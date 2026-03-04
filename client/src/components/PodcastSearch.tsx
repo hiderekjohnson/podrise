@@ -219,7 +219,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
       {selectedPodcasts.length > 0 && (
       <div className="space-y-2 pt-2">
         <p className="text-sm font-semibold text-foreground px-1">
-          Selected podcasts{maxSelection ? ` (${selectedPodcasts.length}/${maxSelection})` : ` (${selectedPodcasts.length})`}
+          Selected podcasts
         </p>
           <div className="flex flex-wrap gap-2">
             <AnimatePresence>
