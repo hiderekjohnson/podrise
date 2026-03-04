@@ -157,42 +157,58 @@ export async function registerRoutes(
         }
       });
 
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+      const yesterdayEnd = new Date(yesterdayStart);
+      yesterdayEnd.setDate(yesterdayEnd.getDate() + 1);
+      const yesterdayLabel = yesterdayStart.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
       const episodeData: string[] = [];
+      let hasAnyEpisodes = false;
       for (const podcast of podcastInfos) {
         try {
-          const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.id}&media=podcast&entity=podcastEpisode&limit=3&sort=recent`;
+          const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.id}&media=podcast&entity=podcastEpisode&limit=20&sort=recent`;
           const lookupRes = await fetch(lookupUrl);
           const lookupJson = await lookupRes.json();
           const episodes = (lookupJson.results || [])
-            .filter((r: any) => r.wrapperType === "podcastEpisode")
-            .slice(0, 3);
+            .filter((r: any) => {
+              if (r.wrapperType !== "podcastEpisode") return false;
+              const releaseDate = new Date(r.releaseDate);
+              return releaseDate >= yesterdayStart && releaseDate < yesterdayEnd;
+            });
 
           if (episodes.length > 0) {
+            hasAnyEpisodes = true;
             const epSummary = episodes
               .map((ep: any) => `- "${ep.trackName}": ${(ep.description || "No description available.").slice(0, 300)}`)
               .join("\n");
             episodeData.push(`**${podcast.name}**\n${epSummary}`);
           } else {
-            episodeData.push(`**${podcast.name}**\n- No recent episodes found.`);
+            episodeData.push(`**${podcast.name}**\n- No new episodes released yesterday.`);
           }
         } catch {
           episodeData.push(`**${podcast.name}**\n- Could not fetch episodes.`);
         }
       }
 
-      const readingMinutes = user.readingLength || 10;
-      const prompt = `You are PodCap, an AI that creates daily podcast digest emails. Generate a digest summary based on these recent podcast episodes. The summary should take approximately ${readingMinutes} minutes to read.
+      if (!hasAnyEpisodes) {
+        return res.status(400).json({ message: `None of your podcasts released new episodes yesterday (${yesterdayLabel}). Check back tomorrow!` });
+      }
 
-Recent episodes:
+      const readingMinutes = user.readingLength || 10;
+      const prompt = `You are PodCap, an AI that creates daily podcast digest emails. Generate a digest summary based on podcast episodes released yesterday (${yesterdayLabel}). The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had new episodes yesterday — skip any that didn't.
+
+Episodes released on ${yesterdayLabel}:
 ${episodeData.join("\n\n")}
 
 Create an engaging daily digest with:
-1. A brief "Today's Highlights" overview (2-3 sentences)
-2. For each podcast, a section with:
-   - Key takeaways and insights from recent episodes
+1. A brief "Yesterday's Highlights" overview (2-3 sentences)
+2. For each podcast that had new episodes, a section with:
+   - Key takeaways and insights from yesterday's episodes
    - Notable quotes or interesting points (make them feel authentic)
    - Why listeners should care about these topics
-3. A "Conversation Starters" section with 2-3 talking points from across all podcasts
+3. A "Conversation Starters" section with 2-3 talking points from across the episodes
 
 Format with markdown. Be conversational, insightful, and concise. Make it feel like a knowledgeable friend giving you the highlights.`;
 
@@ -204,11 +220,11 @@ Format with markdown. Be conversational, insightful, and concise. Make it feel l
       });
 
       const summary = completion.choices[0]?.message?.content || "Unable to generate summary.";
-      const today = new Date().toISOString().split("T")[0];
+      const recapDateStr = yesterdayStart.toISOString().split("T")[0];
 
       const recap = await storage.createRecap({
         userId: user.id,
-        recapDate: today,
+        recapDate: recapDateStr,
         podcasts: user.podcasts,
         summary,
       });
