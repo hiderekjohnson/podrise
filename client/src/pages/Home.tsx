@@ -115,13 +115,14 @@ export default function Home() {
           >
             <h1
               data-testid="text-headline"
-              className="text-3xl sm:text-[2.75rem] md:text-5xl font-display font-extrabold text-foreground leading-[1.12] tracking-tight max-w-[600px]"
+              className="text-3xl sm:text-[2.75rem] md:text-5xl font-display font-extrabold text-foreground leading-[1.12] tracking-tight"
             >
-              Your favorite podcasts, summarized in one{" "}
-              <span className="text-primary">daily email</span>.
+              Your favorite podcasts, summarized
+              <br />
+              in one <span className="text-primary">daily email</span>.
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-muted-foreground">
-              Start free with up to 3 podcasts.
+            <p className="mt-5 text-base sm:text-[1.1rem] text-muted-foreground font-medium tracking-wide uppercase">
+              Start free with up to 3 podcasts
             </p>
           </motion.div>
         </section>
