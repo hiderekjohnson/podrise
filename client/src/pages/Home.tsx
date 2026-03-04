@@ -94,7 +94,7 @@ export default function Home() {
           data-testid="img-logo"
         />
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold text-foreground leading-[1.1] tracking-tight max-w-2xl mx-auto">
-          All your favorite podcasts, recapped in one{" "}
+          Get the key insights from your favorite podcasts in one{" "}
           <span className="text-primary">daily email</span>.
         </h1>
       </div>
@@ -103,8 +103,8 @@ export default function Home() {
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">1</span>
-              Which podcasts should we recap for you?
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">1</span>
+              Choose podcasts to recap
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base ml-11">
               Start with up to 3 podcasts for free.
@@ -124,12 +124,9 @@ export default function Home() {
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">2</span>
-              Set your reading length
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">2</span>
+              How long should your daily recap take to read?
             </h2>
-            <p className="text-muted-foreground text-sm sm:text-base ml-11">
-              How much time do you have to read every day?
-            </p>
           </div>
 
           <div className="ml-0 sm:ml-11">
@@ -164,8 +161,8 @@ export default function Home() {
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">3</span>
-              Where should we send it?
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">3</span>
+              Where should we send your daily recap?
             </h2>
           </div>
 
@@ -173,13 +170,17 @@ export default function Home() {
             <input
               data-testid="input-email"
               type="email"
-              placeholder="name@example.com"
+              placeholder="Enter your email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full h-14 px-4 bg-black/[0.03] border border-black/[0.05] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium text-lg"
             />
 
-            <div className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              You'll receive one email each day with summaries from the podcasts you selected.
+            </p>
+
+            <div className="space-y-4 pt-2">
               <button
                 data-testid="button-finish"
                 onClick={handleSubmit}
@@ -189,18 +190,12 @@ export default function Home() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating your digest...
+                    Creating your recap...
                   </>
                 ) : (
-                  "Finish & Create My PodCap Digest"
+                  "Create My Daily Recap"
                 )}
               </button>
-
-              <p className="text-center text-sm text-muted-foreground">
-                We'll send you your first daily brief right now, based on the last week.{" "}
-                <br className="hidden sm:block" />
-                Future briefs will only cover the previous day.
-              </p>
 
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
