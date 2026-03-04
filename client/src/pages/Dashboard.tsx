@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles } from "lucide-react";
+import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
@@ -92,6 +92,8 @@ export default function Dashboard() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [viewingRecap, setViewingRecap] = useState<RecapData | null>(null);
 
+  const isPro = user?.plan === "pro";
+
   const { data: recaps, isLoading: recapsLoading } = useQuery<RecapData[]>({
     queryKey: ["/api/recaps"],
     enabled: !!user,
@@ -115,6 +117,22 @@ export default function Dashboard() {
       setEmail(user.email);
       setDeliveryTime(user.deliveryTime || "07:00");
       setDeliveryTimezone(user.deliveryTimezone || "America/New_York");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgraded") === "true" && user) {
+      apiRequest("POST", "/api/stripe/sync-subscription")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.plan === "pro") {
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+            toast({ title: "Welcome to Pro!", description: "You now have unlimited podcast summaries." });
+          }
+        })
+        .catch(() => {});
+      window.history.replaceState({}, "", "/dashboard");
     }
   }, [user]);
 
@@ -296,7 +314,7 @@ export default function Dashboard() {
                       selectedPodcasts={podcasts}
                       onAdd={handleAdd}
                       onRemove={handleRemove}
-                      maxSelection={3}
+                      maxSelection={isPro ? undefined : 3}
                     />
                   </section>
 
@@ -413,6 +431,54 @@ export default function Dashboard() {
                           className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
                           Edit
+                        </button>
+                      </div>
+                    )}
+                  </section>
+
+                  <div className="border-t border-black/[0.06]" />
+
+                  <section className="flex flex-col gap-4">
+                    <h2 className="text-lg font-display font-bold text-foreground">
+                      Plan
+                    </h2>
+                    {isPro ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Crown className="w-5 h-5 text-primary" />
+                          <span className="font-semibold text-foreground">Pro</span>
+                          <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full">Active</span>
+                        </div>
+                        <button
+                          data-testid="button-manage-billing"
+                          onClick={async () => {
+                            try {
+                              const res = await apiRequest("POST", "/api/stripe/portal");
+                              const data = await res.json();
+                              if (data.url) window.location.href = data.url;
+                            } catch {
+                              toast({ title: "Error", description: "Could not open billing portal.", variant: "destructive" });
+                            }
+                          }}
+                          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          Manage Billing
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">Free</span>
+                          <span className="text-xs text-muted-foreground">3 podcasts max</span>
+                        </div>
+                        <button
+                          data-testid="button-upgrade-plan"
+                          onClick={() => navigate("/upgrade")}
+                          className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <Crown className="w-4 h-4" />
+                          Upgrade to Pro
                         </button>
                       </div>
                     )}

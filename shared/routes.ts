@@ -21,6 +21,9 @@ const userResponseSchema = z.object({
   readingLength: z.number(),
   deliveryTime: z.string(),
   deliveryTimezone: z.string(),
+  plan: z.string().optional(),
+  stripeCustomerId: z.string().nullable().optional(),
+  stripeSubscriptionId: z.string().nullable().optional(),
   createdAt: z.string().nullable(),
 });
 

@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Crown, Check, ArrowLeft } from "lucide-react";
+import { Crown, Check, ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import faviconPath from "@assets/image_1772642558577.png";
 
 const FEATURES = [
@@ -12,16 +16,72 @@ const FEATURES = [
 
 export default function Upgrade() {
   const [, navigate] = useLocation();
+  const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    setIsCheckingOut(true);
+    try {
+      const res = await apiRequest("POST", "/api/stripe/create-checkout");
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast({ title: "Error", description: "Could not start checkout. Please try again.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to start checkout", variant: "destructive" });
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
+  if (user?.plan === "pro") {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+          <div className="flex items-center gap-2.5">
+            <img src={faviconPath} alt="PodCap icon" className="w-8 h-8 object-contain" />
+            <span className="font-display font-bold text-lg text-foreground">PodCap</span>
+          </div>
+          <button
+            data-testid="link-back"
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to dashboard
+          </button>
+        </header>
+        <main className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <Crown className="w-7 h-7 text-primary" />
+          </div>
+          <h1 className="text-2xl font-display font-extrabold text-foreground mb-2">You're on Pro</h1>
+          <p className="text-muted-foreground mb-6">You already have unlimited podcast summaries.</p>
+          <button
+            data-testid="button-back-dashboard"
+            onClick={() => navigate("/dashboard")}
+            className="h-11 px-6 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground"
+          >
+            Back to Dashboard
+          </button>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
-          <img
-            src={faviconPath}
-            alt="PodCap icon"
-            className="w-8 h-8 object-contain"
-          />
+          <img src={faviconPath} alt="PodCap icon" className="w-8 h-8 object-contain" />
           <span className="font-display font-bold text-lg text-foreground">PodCap</span>
         </div>
         <button
@@ -71,10 +131,21 @@ export default function Upgrade() {
 
             <button
               data-testid="button-subscribe"
-              className="w-full h-14 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.99]"
+              onClick={handleSubscribe}
+              disabled={isCheckingOut || authLoading}
+              className="w-full h-14 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.99] disabled:opacity-60"
             >
-              <Crown className="w-4.5 h-4.5" />
-              Subscribe Now
+              {isCheckingOut ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Redirecting to checkout...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4.5 h-4.5" />
+                  Subscribe Now
+                </>
+              )}
             </button>
             <p className="text-center text-xs text-muted-foreground mt-3">
               Cancel anytime. No questions asked.

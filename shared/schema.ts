@@ -9,6 +9,9 @@ export const users = pgTable("users", {
   readingLength: integer("reading_length").notNull().default(10),
   deliveryTime: text("delivery_time").notNull().default("07:00"),
   deliveryTimezone: text("delivery_timezone").notNull().default("America/New_York"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  plan: text("plan").notNull().default("free"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

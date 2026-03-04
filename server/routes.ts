@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { openai } from "./replit_integrations/image/client";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 
 declare module "express-session" {
   interface SessionData {
@@ -363,6 +364,166 @@ IMPORTANT TONE GUIDELINES:
         });
       }
       throw err;
+    }
+  });
+
+  app.get("/api/stripe/publishable-key", async (_req, res) => {
+    try {
+      const key = await getStripePublishableKey();
+      res.json({ publishableKey: key });
+    } catch (err) {
+      console.error("Failed to get Stripe publishable key:", err);
+      res.status(500).json({ message: "Stripe not configured" });
+    }
+  });
+
+  app.post("/api/stripe/create-checkout", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    try {
+      const stripe = await getUncachableStripeClient();
+
+      let customerId = user.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { userId: String(user.id) },
+        });
+        await storage.updateUserStripeInfo(user.id, { stripeCustomerId: customer.id });
+        customerId = customer.id;
+      }
+
+      const products = await stripe.products.search({ query: "name:'PodCap Pro'" });
+      const proProduct = products.data.find(p => p.active);
+
+      if (!proProduct) {
+        return res.status(500).json({ message: "No Pro plan found. Please contact support." });
+      }
+
+      const pricesResult = await stripe.prices.list({ product: proProduct.id, active: true, limit: 5 });
+      const proPrice = pricesResult.data.find(p => p.recurring?.interval === "month");
+
+      if (!proPrice) {
+        return res.status(500).json({ message: "No Pro plan price found. Please contact support." });
+      }
+
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ["card"],
+        line_items: [{ price: proPrice.id, quantity: 1 }],
+        mode: "subscription",
+        success_url: `${baseUrl}/dashboard?upgraded=true`,
+        cancel_url: `${baseUrl}/upgrade`,
+      });
+
+      res.json({ url: session.url });
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      res.status(500).json({ message: "Failed to create checkout session" });
+    }
+  });
+
+  app.get("/api/stripe/subscription", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.stripeSubscriptionId) {
+      return res.json({ subscription: null, plan: user.plan || "free" });
+    }
+
+    try {
+      const subscription = await storage.getSubscription(user.stripeSubscriptionId);
+      res.json({ subscription, plan: user.plan || "free" });
+    } catch {
+      res.json({ subscription: null, plan: user.plan || "free" });
+    }
+  });
+
+  app.post("/api/stripe/portal", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUserById(req.session.userId);
+    if (!user || !user.stripeCustomerId) {
+      return res.status(400).json({ message: "No billing account found" });
+    }
+
+    try {
+      const stripe = await getUncachableStripeClient();
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: user.stripeCustomerId,
+        return_url: `${baseUrl}/dashboard`,
+      });
+      res.json({ url: portalSession.url });
+    } catch (err: any) {
+      console.error("Portal error:", err);
+      res.status(500).json({ message: "Failed to create billing portal session" });
+    }
+  });
+
+  app.post("/api/stripe/sync-subscription", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUserById(req.session.userId);
+    if (!user || !user.stripeCustomerId) {
+      return res.json({ plan: "free" });
+    }
+
+    try {
+      const stripe = await getUncachableStripeClient();
+      const subscriptions = await stripe.subscriptions.list({
+        customer: user.stripeCustomerId,
+        status: "active",
+        limit: 10,
+      });
+
+      const products = await stripe.products.search({ query: "name:'PodCap Pro'" });
+      const proProductId = products.data.find(p => p.active)?.id;
+
+      const activeSub = subscriptions.data.find(sub =>
+        sub.items.data.some(item => {
+          const price = item.price;
+          return price.product === proProductId;
+        })
+      );
+
+      if (activeSub) {
+        await storage.updateUserStripeInfo(user.id, {
+          stripeSubscriptionId: activeSub.id,
+          plan: "pro",
+        });
+        const updatedUser = await storage.getUserById(user.id);
+        return res.json({ plan: "pro", user: updatedUser });
+      } else {
+        if (user.plan === "pro") {
+          await storage.updateUserStripeInfo(user.id, {
+            stripeSubscriptionId: undefined,
+            plan: "free",
+          });
+        }
+        return res.json({ plan: "free" });
+      }
+    } catch (err) {
+      console.error("Sync subscription error:", err);
+      res.json({ plan: user.plan || "free" });
     }
   });
 
