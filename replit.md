@@ -17,6 +17,7 @@ A full-stack web application that lets users create and manage personalized dail
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), reading_length, delivery_time (default "07:00"), delivery_timezone (default "America/New_York"), created_at
+- `recaps` table: id, user_id, recap_date (date), podcasts (text array), summary (text), created_at
 
 ## Auth Flow
 - Signup via onboarding creates user record + session
@@ -36,6 +37,13 @@ A full-stack web application that lets users create and manage personalized dail
 - `GET /api/auth/me` — Get current user
 - `POST /api/auth/logout` — Destroy session
 - `POST /api/users/update` — Update user preferences (email, readingLength, podcasts, deliveryTime, deliveryTimezone)
+- `GET /api/recaps` — Get all recaps for authenticated user
+- `POST /api/recaps/generate` — Generate AI recap from user's podcasts (fetches recent episodes from iTunes, summarizes via OpenAI)
+
+## AI Integration
+- OpenAI via Replit AI Integrations (env vars: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`)
+- Recap generation: fetches 3 most recent episodes per podcast from iTunes lookup API, sends to GPT-4o-mini for digest summary
+- Summary rendered as markdown in recap modal using `react-markdown`
 
 ## Key Files
 - `shared/schema.ts` — Drizzle schema + Zod validation

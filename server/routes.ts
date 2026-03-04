@@ -4,6 +4,7 @@ import session from "express-session";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { openai } from "./replit_integrations/image/client";
 
 declare module "express-session" {
   interface SessionData {
@@ -122,6 +123,91 @@ export async function registerRoutes(
     }
     const recaps = await storage.getRecapsByUserId(req.session.userId);
     res.json(recaps);
+  });
+
+  app.post("/api/recaps/generate", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (!user.podcasts || user.podcasts.length === 0) {
+      return res.status(400).json({ message: "No podcasts selected. Add podcasts in Settings first." });
+    }
+
+    try {
+      const podcastInfos: { name: string; id: string }[] = user.podcasts.map((raw) => {
+        try {
+          const parsed = JSON.parse(raw);
+          return { name: parsed.name || raw, id: parsed.id || raw };
+        } catch {
+          return { name: raw, id: raw };
+        }
+      });
+
+      const episodeData: string[] = [];
+      for (const podcast of podcastInfos) {
+        try {
+          const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.id}&media=podcast&entity=podcastEpisode&limit=3&sort=recent`;
+          const lookupRes = await fetch(lookupUrl);
+          const lookupJson = await lookupRes.json();
+          const episodes = (lookupJson.results || [])
+            .filter((r: any) => r.wrapperType === "podcastEpisode")
+            .slice(0, 3);
+
+          if (episodes.length > 0) {
+            const epSummary = episodes
+              .map((ep: any) => `- "${ep.trackName}": ${(ep.description || "No description available.").slice(0, 300)}`)
+              .join("\n");
+            episodeData.push(`**${podcast.name}**\n${epSummary}`);
+          } else {
+            episodeData.push(`**${podcast.name}**\n- No recent episodes found.`);
+          }
+        } catch {
+          episodeData.push(`**${podcast.name}**\n- Could not fetch episodes.`);
+        }
+      }
+
+      const readingMinutes = user.readingLength || 10;
+      const prompt = `You are PodCap, an AI that creates daily podcast digest emails. Generate a digest summary based on these recent podcast episodes. The summary should take approximately ${readingMinutes} minutes to read.
+
+Recent episodes:
+${episodeData.join("\n\n")}
+
+Create an engaging daily digest with:
+1. A brief "Today's Highlights" overview (2-3 sentences)
+2. For each podcast, a section with:
+   - Key takeaways and insights from recent episodes
+   - Notable quotes or interesting points (make them feel authentic)
+   - Why listeners should care about these topics
+3. A "Conversation Starters" section with 2-3 talking points from across all podcasts
+
+Format with markdown. Be conversational, insightful, and concise. Make it feel like a knowledgeable friend giving you the highlights.`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 2000,
+        temperature: 0.7,
+      });
+
+      const summary = completion.choices[0]?.message?.content || "Unable to generate summary.";
+      const today = new Date().toISOString().split("T")[0];
+
+      const recap = await storage.createRecap({
+        userId: user.id,
+        recapDate: today,
+        podcasts: user.podcasts,
+        summary,
+      });
+
+      res.json(recap);
+    } catch (err) {
+      console.error("Recap generation error:", err);
+      res.status(500).json({ message: "Failed to generate recap. Please try again." });
+    }
   });
 
   app.post(api.users.update.path, async (req, res) => {

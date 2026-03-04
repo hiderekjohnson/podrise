@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast } from "lucide-react";
+import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
+import ReactMarkdown from "react-markdown";
 import faviconPath from "@assets/image_1772642558577.png";
 
 interface SelectedPodcast {
@@ -93,6 +95,17 @@ export default function Dashboard() {
   const { data: recaps, isLoading: recapsLoading } = useQuery<RecapData[]>({
     queryKey: ["/api/recaps"],
     enabled: !!user,
+  });
+
+  const generateRecap = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/recaps/generate"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/recaps"] });
+      toast({ title: "Recap generated!", description: "Your daily podcast digest is ready to view." });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Generation failed", description: err.message, variant: "destructive" });
+    },
   });
 
   useEffect(() => {
@@ -448,12 +461,54 @@ export default function Dashboard() {
                       <h3 className="text-lg font-display font-bold text-foreground mb-1">
                         No recaps yet
                       </h3>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Your daily podcast recaps will appear here once they start being generated. Check back after your first delivery!
+                      <p className="text-sm text-muted-foreground max-w-sm mb-5">
+                        Generate your first AI-powered podcast digest now, or check back after your scheduled delivery time.
                       </p>
+                      <button
+                        data-testid="button-generate-recap"
+                        onClick={() => generateRecap.mutate()}
+                        disabled={generateRecap.isPending}
+                        className="inline-flex items-center gap-2 px-6 h-12 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+                      >
+                        {generateRecap.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            Generate Recap Now
+                          </>
+                        )}
+                      </button>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
+                    <div>
+                      <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                          {recaps.length} recap{recaps.length !== 1 ? "s" : ""}
+                        </h3>
+                        <button
+                          data-testid="button-generate-recap"
+                          onClick={() => generateRecap.mutate()}
+                          disabled={generateRecap.isPending}
+                          className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg font-semibold text-sm bg-primary text-primary-foreground shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                        >
+                          {generateRecap.isPending ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3.5 h-3.5" />
+                              Generate
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="overflow-x-auto">
                       <table className="w-full" data-testid="table-recaps">
                         <thead>
                           <tr className="border-b border-black/[0.06]">
@@ -495,6 +550,7 @@ export default function Dashboard() {
                           ))}
                         </tbody>
                       </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -552,8 +608,8 @@ export default function Dashboard() {
                     </span>
                   ))}
                 </div>
-                <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap" data-testid="text-recap-summary">
-                  {viewingRecap.summary}
+                <div className="prose prose-sm max-w-none text-foreground" data-testid="text-recap-summary">
+                  <ReactMarkdown>{viewingRecap.summary}</ReactMarkdown>
                 </div>
               </div>
             </motion.div>

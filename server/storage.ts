@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap } from "@shared/schema";
+import { users, recaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
@@ -8,6 +8,7 @@ export interface IStorage {
   getUserById(id: number): Promise<UserResponse | undefined>;
   updateUser(id: number, updates: UpdateUserRequest): Promise<UserResponse>;
   getRecapsByUserId(userId: number): Promise<Recap[]>;
+  createRecap(recap: InsertRecap): Promise<Recap>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -50,6 +51,14 @@ export class DatabaseStorage implements IStorage {
       .from(recaps)
       .where(eq(recaps.userId, userId))
       .orderBy(desc(recaps.recapDate));
+  }
+
+  async createRecap(recap: InsertRecap): Promise<Recap> {
+    const [created] = await db
+      .insert(recaps)
+      .values(recap)
+      .returning();
+    return created;
   }
 }
 
