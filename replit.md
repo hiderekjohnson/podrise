@@ -14,6 +14,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/login` — Email-based login for existing users
 - `/dashboard` — Manage podcasts, reading length, delivery time/timezone, and email preferences
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts)
+- `/admin` — Admin dashboard (password-protected): view all users, their emails, signup dates, and podcasts
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), reading_length, delivery_time (default "07:00"), delivery_timezone (default "America/New_York"), created_at
@@ -39,6 +40,10 @@ A full-stack web application that lets users create and manage personalized dail
 - `POST /api/users/update` — Update user preferences (email, readingLength, podcasts, deliveryTime, deliveryTimezone)
 - `GET /api/recaps` — Get all recaps for authenticated user
 - `POST /api/recaps/generate` — Generate AI recap from user's podcasts (fetches recent episodes from iTunes, summarizes via OpenAI)
+- `POST /api/admin/login` — Admin login (validates against ADMIN_PASSWORD env var)
+- `GET /api/admin/me` — Check admin session
+- `POST /api/admin/logout` — Admin logout
+- `GET /api/admin/users` — Get all users (admin only)
 
 ## AI Integration
 - OpenAI via Replit AI Integrations (env vars: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`)
@@ -54,3 +59,4 @@ A full-stack web application that lets users create and manage personalized dail
 - `client/src/pages/Home.tsx` — Onboarding page
 - `client/src/pages/Login.tsx` — Login page
 - `client/src/pages/Dashboard.tsx` — Dashboard page
+- `client/src/pages/Admin.tsx` — Admin dashboard page

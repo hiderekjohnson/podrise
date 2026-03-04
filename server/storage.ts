@@ -9,6 +9,7 @@ export interface IStorage {
   updateUser(id: number, updates: UpdateUserRequest): Promise<UserResponse>;
   getRecapsByUserId(userId: number): Promise<Recap[]>;
   createRecap(recap: InsertRecap): Promise<Recap>;
+  getAllUsers(): Promise<UserResponse[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -59,6 +60,13 @@ export class DatabaseStorage implements IStorage {
       .values(recap)
       .returning();
     return created;
+  }
+
+  async getAllUsers(): Promise<UserResponse[]> {
+    return db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
   }
 }
 

@@ -9,6 +9,7 @@ import { openai } from "./replit_integrations/image/client";
 declare module "express-session" {
   interface SessionData {
     userId?: number;
+    isAdmin?: boolean;
   }
 }
 
@@ -208,6 +209,55 @@ Format with markdown. Be conversational, insightful, and concise. Make it feel l
       console.error("Recap generation error:", err);
       res.status(500).json({ message: "Failed to generate recap. Please try again." });
     }
+  });
+
+  const adminLoginAttempts = new Map<string, { count: number; resetAt: number }>();
+
+  app.post("/api/admin/login", async (req, res) => {
+    const ip = req.ip || "unknown";
+    const now = Date.now();
+    const attempt = adminLoginAttempts.get(ip);
+    if (attempt && attempt.count >= 5 && now < attempt.resetAt) {
+      return res.status(429).json({ message: "Too many attempts. Try again later." });
+    }
+    if (!attempt || now >= (attempt?.resetAt ?? 0)) {
+      adminLoginAttempts.set(ip, { count: 0, resetAt: now + 15 * 60 * 1000 });
+    }
+
+    const parsed = z.object({ password: z.string().min(1) }).safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
+    if (parsed.data.password !== process.env.ADMIN_PASSWORD) {
+      const entry = adminLoginAttempts.get(ip)!;
+      entry.count++;
+      return res.status(401).json({ message: "Invalid admin password" });
+    }
+
+    adminLoginAttempts.delete(ip);
+    req.session.isAdmin = true;
+    res.json({ message: "Admin authenticated" });
+  });
+
+  app.get("/api/admin/me", (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    res.json({ isAdmin: true });
+  });
+
+  app.post("/api/admin/logout", (req, res) => {
+    req.session.isAdmin = false;
+    res.json({ message: "Admin logged out" });
+  });
+
+  app.get("/api/admin/users", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const allUsers = await storage.getAllUsers();
+    res.json(allUsers);
   });
 
   app.post(api.users.update.path, async (req, res) => {
