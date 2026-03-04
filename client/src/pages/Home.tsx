@@ -1,21 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Search, X, Headphones, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Headphones, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { PodcastCard } from "@/components/PodcastCard";
-
-const MOCK_PODCASTS = [
-  { id: 'joe-rogan', name: 'Joe Rogan Experience', initials: 'JR', color: 'bg-red-100 text-red-700' },
-  { id: 'all-in', name: 'All-In Podcast', initials: 'AI', color: 'bg-blue-100 text-blue-700' },
-  { id: 'huberman', name: 'Huberman Lab', initials: 'HL', color: 'bg-emerald-100 text-emerald-700' },
-  { id: 'acquired', name: 'Acquired', initials: 'AC', color: 'bg-purple-100 text-purple-700' },
-  { id: 'my-first-million', name: 'My First Million', initials: 'MM', color: 'bg-amber-100 text-amber-700' },
-  { id: 'lex-fridman', name: 'Lex Fridman Podcast', initials: 'LF', color: 'bg-slate-100 text-slate-700' },
-  { id: 'hbr-ideacast', name: 'HBR IdeaCast', initials: 'HB', color: 'bg-orange-100 text-orange-700' },
-  { id: 'tim-ferriss', name: 'The Tim Ferriss Show', initials: 'TF', color: 'bg-teal-100 text-teal-700' },
-];
+import { PodcastSearch } from "@/components/PodcastSearch";
 
 const READING_LENGTHS = [5, 10, 15, 20];
 
@@ -25,8 +14,7 @@ export default function Home() {
   const { toast } = useToast();
   const { mutate: register, isPending } = useRegister();
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [readingLength, setReadingLength] = useState<number>(10);
   const [email, setEmail] = useState("");
 
@@ -35,25 +23,14 @@ export default function Home() {
     return null;
   }
 
-  const filteredPodcasts = !searchQuery
-    ? MOCK_PODCASTS
-    : MOCK_PODCASTS.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
   const togglePodcast = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
   };
 
-  const selectedPodcastsList = MOCK_PODCASTS.filter(p => selectedIds.has(p.id));
-
   const handleSubmit = () => {
-    if (selectedIds.size === 0) {
+    if (selectedIds.length === 0) {
       toast({
         title: "Almost there!",
         description: "Please select at least one podcast.",
@@ -73,7 +50,7 @@ export default function Home() {
 
     register(
       {
-        podcasts: Array.from(selectedIds),
+        podcasts: selectedIds,
         readingLength,
         email,
       },
@@ -112,7 +89,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="w-full max-w-3xl glass-panel rounded-3xl p-6 sm:p-10 flex flex-col gap-12 relative overflow-hidden">
+      <div className="w-full max-w-3xl glass-panel rounded-3xl p-6 sm:p-10 flex flex-col gap-12 relative">
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
@@ -120,65 +97,15 @@ export default function Home() {
               Which podcasts do you want?
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base ml-11">
-              Choose up to 3 to start... you can always select more later.
+              Search and add your favorites to get started.
             </p>
           </div>
 
-          <div className="ml-0 sm:ml-11 space-y-4">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
-              <input
-                data-testid="input-search-podcasts"
-                type="text"
-                placeholder="Search podcasts (e.g. 'Huberman')"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-14 pl-12 pr-4 bg-black/[0.03] border border-black/[0.05] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto p-1 hide-scrollbar">
-              <AnimatePresence>
-                {filteredPodcasts.map(podcast => (
-                  <PodcastCard
-                    key={podcast.id}
-                    podcast={podcast}
-                    isSelected={selectedIds.has(podcast.id)}
-                    onClick={() => togglePodcast(podcast.id)}
-                  />
-                ))}
-              </AnimatePresence>
-              {filteredPodcasts.length === 0 && (
-                <div className="col-span-full py-8 text-center text-muted-foreground">
-                  No podcasts found matching "{searchQuery}"
-                </div>
-              )}
-            </div>
-
-            {selectedPodcastsList.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-border/50">
-                <AnimatePresence>
-                  {selectedPodcastsList.map(podcast => (
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.8, opacity: 0 }}
-                      key={podcast.id}
-                      className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-semibold"
-                    >
-                      {podcast.name}
-                      <button
-                        data-testid={`button-remove-podcast-${podcast.id}`}
-                        onClick={() => togglePodcast(podcast.id)}
-                        className="p-0.5 rounded-full transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
+          <div className="ml-0 sm:ml-11">
+            <PodcastSearch
+              selectedIds={selectedIds}
+              onToggle={togglePodcast}
+            />
           </div>
         </section>
 
@@ -195,7 +122,7 @@ export default function Home() {
 
           <div className="ml-0 sm:ml-11">
             <div className="flex bg-black/[0.04] p-1.5 rounded-2xl w-full max-w-md">
-              {READING_LENGTHS.map(length => {
+              {READING_LENGTHS.map((length) => {
                 const isActive = readingLength === length;
                 return (
                   <button
@@ -204,7 +131,7 @@ export default function Home() {
                     onClick={() => setReadingLength(length)}
                     className={`
                       relative flex-1 py-3 text-sm sm:text-base font-semibold rounded-xl transition-all duration-300
-                      ${isActive ? 'text-primary' : 'text-muted-foreground'}
+                      ${isActive ? "text-primary" : "text-muted-foreground"}
                     `}
                   >
                     {isActive && (
@@ -258,7 +185,8 @@ export default function Home() {
               </button>
 
               <p className="text-center text-sm text-muted-foreground">
-                We'll send you your first daily brief right now, based on the last week. <br className="hidden sm:block" />
+                We'll send you your first daily brief right now, based on the last week.{" "}
+                <br className="hidden sm:block" />
                 Future briefs will only cover the previous day.
               </p>
 
