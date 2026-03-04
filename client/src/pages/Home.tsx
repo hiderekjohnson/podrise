@@ -106,10 +106,10 @@ export default function Home() {
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">1</span>
-              Which podcasts do you want?
+              Which podcasts should we recap for you?
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base ml-11">
-              Search and add your favorites to get started.
+              Start with up to 3 podcasts for free.
             </p>
           </div>
 
@@ -118,6 +118,7 @@ export default function Home() {
               selectedPodcasts={selectedPodcasts}
               onAdd={handleAdd}
               onRemove={handleRemove}
+              maxSelection={3}
             />
           </div>
         </section>

@@ -19,15 +19,17 @@ interface PodcastSearchProps {
   selectedPodcasts: SelectedPodcast[];
   onAdd: (podcast: SelectedPodcast) => void;
   onRemove: (id: string) => void;
+  maxSelection?: number;
 }
 
-export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSearchProps) {
+export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection }: PodcastSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<PodcastResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
+  const atLimit = maxSelection != null && selectedPodcasts.length >= maxSelection;
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -67,10 +69,11 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
           <input
             data-testid="input-search-podcasts"
             type="search"
-            placeholder="Search podcasts..."
+            placeholder={atLimit ? `${maxSelection} podcast limit reached` : "Search and add your favorite podcasts..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+            disabled={atLimit}
+            className={`w-full h-12 pl-12 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium ${atLimit ? "opacity-50 cursor-not-allowed" : ""}`}
           />
         </div>
         {searchQuery && (

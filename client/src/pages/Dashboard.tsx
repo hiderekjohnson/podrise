@@ -167,6 +167,7 @@ export default function Dashboard() {
               selectedPodcasts={podcasts}
               onAdd={handleAdd}
               onRemove={handleRemove}
+              maxSelection={3}
             />
           </div>
 
