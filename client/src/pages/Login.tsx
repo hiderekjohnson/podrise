@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Mail, ArrowRight, Loader2, Headphones } from "lucide-react";
+import { Mail, ArrowRight, Loader2 } from "lucide-react";
 import { useLogin, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import logoPath from "@assets/image_1772641542609.png";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -49,14 +50,17 @@ export default function Login() {
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-6 shadow-inner">
-          <Headphones className="w-8 h-8" />
-        </div>
+        <img
+          src={logoPath}
+          alt="PodCap"
+          className="h-16 mx-auto mb-6 object-contain"
+          data-testid="img-logo"
+        />
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
           Welcome Back
         </h1>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          Enter your email to access your podcast digest dashboard.
+          Enter your email to access your PodCap dashboard.
         </p>
       </div>
 

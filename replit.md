@@ -1,4 +1,4 @@
-# Daily Podcast Digest
+# PodCap - Daily Podcast Digest
 
 A full-stack web application that lets users create and manage personalized daily podcast digest subscriptions.
 
@@ -7,6 +7,7 @@ A full-stack web application that lets users create and manage personalized dail
 - **Backend**: Express.js with session-based auth
 - **Database**: PostgreSQL via Drizzle ORM
 - **Styling**: Custom glassmorphism design with Plus Jakarta Sans display font
+- **Brand**: PodCap logo (`attached_assets/image_1772641542609.png`), primary blue `hsl(207, 90%, 54%)`
 
 ## Pages
 - `/` — Onboarding: 3-step signup flow (select podcasts, choose reading length, enter email)

@@ -9,34 +9,33 @@
     --font-sans: 'Inter', sans-serif;
     --font-display: 'Plus Jakarta Sans', sans-serif;
 
-    /* A sophisticated, airy palette */
-    --background: 220 33% 98%;
-    --foreground: 222 47% 11%;
+    --background: 210 33% 97%;
+    --foreground: 215 50% 12%;
     
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 50% 12%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 50% 12%;
     
-    --primary: 230 80% 60%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 207 90% 54%;
+    --primary-foreground: 0 0% 100%;
     
     --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary-foreground: 215 50% 12%;
     
     --muted: 214 32% 91%;
     --muted-foreground: 215 16% 47%;
     
-    --accent: 230 80% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 207 90% 54%;
+    --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 230 80% 60%;
+    --ring: 207 90% 54%;
 
     --radius: 1rem;
   }
@@ -49,8 +48,8 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     background-image: 
-      radial-gradient(at 0% 0%, hsla(230, 80%, 95%, 1) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(280, 80%, 95%, 1) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, hsla(207, 90%, 94%, 1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(207, 70%, 92%, 1) 0px, transparent 50%);
     background-attachment: fixed;
     min-height: 100vh;
   }

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Headphones, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
+import logoPath from "@assets/image_1772641542609.png";
 
 interface SelectedPodcast {
   id: string;
@@ -86,11 +87,14 @@ export default function Home() {
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-6 shadow-inner">
-          <Headphones className="w-8 h-8" />
-        </div>
+        <img
+          src={logoPath}
+          alt="PodCap"
+          className="h-16 mx-auto mb-6 object-contain"
+          data-testid="img-logo"
+        />
         <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">
-          Your Daily Podcast Brief
+          Your Daily Podcast Digest
         </h1>
         <p className="text-lg text-muted-foreground max-w-lg mx-auto">
           Get the best insights from your favorite shows condensed into a quick, readable daily digest.
@@ -189,7 +193,7 @@ export default function Home() {
                     Creating your digest...
                   </>
                 ) : (
-                  "Finish & Create My Daily Podcast Digest"
+                  "Finish & Create My PodCap Digest"
                 )}
               </button>
 
