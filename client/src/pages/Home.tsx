@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Mail, X } from "lucide-react";
+import { Loader2, ArrowRight, Mail, X, Pencil, Podcast } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +23,9 @@ export default function Home() {
   const [selectedPodcasts, setSelectedPodcasts] = useState<SelectedPodcast[]>([]);
   const [email, setEmail] = useState("");
   const [showSampleEmail, setShowSampleEmail] = useState(false);
+  const [podcastsLocked, setPodcastsLocked] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const emailSectionRef = useRef<HTMLElement>(null);
 
   if (user) {
     navigate("/dashboard");
@@ -30,11 +33,23 @@ export default function Home() {
   }
 
   const handleAdd = (podcast: SelectedPodcast) => {
-    setSelectedPodcasts((prev) => [...prev, podcast]);
+    const updated = [...selectedPodcasts, podcast];
+    setSelectedPodcasts(updated);
+    if (updated.length >= 3) {
+      setPodcastsLocked(true);
+      setTimeout(() => {
+        emailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => emailRef.current?.focus(), 400);
+      }, 300);
+    }
   };
 
   const handleRemove = (id: string) => {
     setSelectedPodcasts((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleUnlockPodcasts = () => {
+    setPodcastsLocked(false);
   };
 
   const handleSubmit = () => {
@@ -137,27 +152,80 @@ export default function Home() {
         >
           <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col gap-10">
             <section className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
-                <div>
-                  <h2 className="text-lg font-display font-bold text-foreground">
-                    Choose podcasts to recap
-                  </h2>
-                </div>
+              <div className="flex items-center gap-3">
+                <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-colors ${podcastsLocked ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
+                  {podcastsLocked ? "✓" : "1"}
+                </span>
+                <h2 className="text-lg font-display font-bold text-foreground flex-1">
+                  {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
+                </h2>
+                {podcastsLocked && (
+                  <button
+                    data-testid="button-change-podcasts"
+                    onClick={handleUnlockPodcasts}
+                    className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Change
+                  </button>
+                )}
               </div>
-              <div className="pl-10">
-                <PodcastSearch
-                  selectedPodcasts={selectedPodcasts}
-                  onAdd={handleAdd}
-                  onRemove={handleRemove}
-                  maxSelection={3}
-                />
-              </div>
+
+              <AnimatePresence mode="wait">
+                {podcastsLocked ? (
+                  <motion.div
+                    key="locked"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="pl-10"
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPodcasts.map((podcast) => (
+                        <div
+                          key={podcast.id}
+                          className="flex items-center gap-2 bg-secondary text-foreground pl-1.5 pr-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {podcast.artworkUrl ? (
+                            <img
+                              src={podcast.artworkUrl}
+                              alt={podcast.name}
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Podcast className="w-3 h-3 text-primary" />
+                            </div>
+                          )}
+                          <span className="truncate max-w-[160px]">{podcast.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="unlocked"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="pl-10"
+                  >
+                    <PodcastSearch
+                      selectedPodcasts={selectedPodcasts}
+                      onAdd={handleAdd}
+                      onRemove={handleRemove}
+                      maxSelection={3}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </section>
 
             <div className="border-t border-black/[0.06]" />
 
-            <section className="flex flex-col gap-4">
+            <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
                 <h2 className="text-lg font-display font-bold text-foreground">
@@ -166,6 +234,7 @@ export default function Home() {
               </div>
               <div className="pl-10 space-y-4">
                 <input
+                  ref={emailRef}
                   data-testid="input-email"
                   type="email"
                   placeholder="Enter your email address"
@@ -196,7 +265,7 @@ export default function Home() {
                 )}
               </button>
               <p className="text-xs text-muted-foreground">
-                Free for up to 3 podcasts. No credit card required.
+                No credit card required.
               </p>
             </div>
           </div>
