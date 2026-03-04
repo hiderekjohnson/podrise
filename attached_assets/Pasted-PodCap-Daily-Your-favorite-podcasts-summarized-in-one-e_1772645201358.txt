@@ -1,0 +1,150 @@
+PodCap Daily
+Your favorite podcasts, summarized in one email.
+
+Good morning, Derek.
+
+You follow 5 podcasts today.
+Total listening time: 6 hours 3 minutes
+Your recap: 10 minute read
+
+American Optimist • Moonshots • My First Million • Founders • Driverless Digest
+
+⸻
+
+TLDR — The Biggest Ideas From Your Podcasts Today
+
+🚀 NASA is planning a permanent moon base by 2028
+Source: American Optimist
+
+🤖 AI could replace large parts of the consulting industry
+Source: Moonshots
+
+💰 Vertical AI startups may become the biggest investment opportunity in AI
+Source: My First Million
+
+🧠 The most successful careers come from obsessive preparation and long-term focus
+Source: Founders
+
+🚗 Many “self-driving” cars still rely on remote human operators
+Source: Driverless Digest
+
+⸻
+
+American Optimist
+Episode: Jared Isaacman’s Vision for NASA
+
+Published: February 2026
+Length: 1 hr 12 min
+
+TLDR
+
+NASA’s next phase focuses on returning to the moon, building a permanent lunar base, and developing a real space economy powered by nuclear energy and lunar resources.
+
+Why It Matters
+
+This episode explains how the moon could become the launchpad for a real space economy, including fuel production, mining, and manufacturing in orbit.
+
+Key Insights
+
+• NASA aims to land astronauts on the moon again by 2028
+• Lunar ice could be converted into rocket fuel for deeper missions
+• Nuclear propulsion may enable long-duration exploration
+• The long-term goal is a self-sustaining space economy
+
+⸻
+
+Moonshots
+Episode: AI, Geopolitics, and the Future of Work
+
+Published: February 2026
+Length: 1 hr 48 min
+
+TLDR
+
+AI development is accelerating globally, potentially disrupting industries from consulting to cybersecurity while raising major ethical and geopolitical questions.
+
+Why It Matters
+
+AI tools may soon automate complex professional work that previously required large teams of analysts and consultants.
+
+Key Insights
+
+• AI models are entering a phase of recursive self-improvement
+• Consulting firms may face major disruption
+• Countries like India are positioning themselves as AI-neutral hubs
+• AI could displace large numbers of white-collar jobs
+
+⸻
+
+My First Million
+Episode: Where Investors Are Betting in the AI Economy
+
+Published: February 2026
+Length: 1 hr 22 min
+
+TLDR
+
+The biggest AI opportunities may lie in industry-specific software rather than competing directly with large AI platforms.
+
+Why It Matters
+
+Most successful AI companies may not build general models. Instead they will apply AI to specific industries and workflows.
+
+Key Insights
+
+• Vertical AI startups may outperform general AI startups
+• AI assistants with the most user context will win
+• Many SaaS companies risk being replaced by AI tools
+• Content creation remains one of the best ways to attract opportunity
+
+⸻
+
+Founders
+Episode #413 — Running Down a Dream
+
+Published: February 2026
+Length: 58 min
+
+TLDR
+
+The most successful people pursue careers they are deeply obsessed with and invest heavily in preparation, mentorship, and long-term relationships.
+
+Why It Matters
+
+Long-term success often comes from deep curiosity and persistence, not short-term motivation.
+
+Key Insights
+
+• Saying your goals out loud can turn dreams into commitments
+• Preparation is often more important than motivation
+• Mentors accelerate learning dramatically
+• Strong peer networks compound success
+
+⸻
+
+Driverless Digest
+Episode: Inside Waymo’s Remote Assistance Program
+
+Published: February 2026
+Length: 43 min
+
+TLDR
+
+Many autonomous vehicles rely on remote human assistance, raising questions about whether today’s systems are truly “fully autonomous.”
+
+Why It Matters
+
+Understanding the limitations of current self-driving technology is critical as robotaxi services expand globally.
+
+Key Insights
+
+• Remote operators assist vehicles in difficult situations
+• Communication latency can introduce safety risks
+• Regulators may require stronger licensing standards
+• True full autonomy remains a major technical challenge
+
+⸻
+
+That’s your PodCap Daily.
+
+6 hours of podcasts summarized in 10 minutes.
