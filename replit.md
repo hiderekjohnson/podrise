@@ -10,12 +10,13 @@ A full-stack web application that lets users create and manage personalized dail
 - **Brand**: PodCap logo (`attached_assets/image_1772641542609.png`), primary blue `hsl(207, 90%, 54%)`
 
 ## Pages
-- `/` — Onboarding: 3-step signup flow (select podcasts, choose reading length, enter email)
+- `/` — Onboarding: 2-step signup flow (select 3 podcasts with auto-advance, enter email)
 - `/login` — Email-based login for existing users
-- `/dashboard` — Manage podcasts, reading length, and email preferences
+- `/dashboard` — Manage podcasts, reading length, delivery time/timezone, and email preferences
+- `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts)
 
 ## Database Schema
-- `users` table: id, email (unique), podcasts (text array), reading_length, created_at
+- `users` table: id, email (unique), podcasts (text array), reading_length, delivery_time (default "07:00"), delivery_timezone (default "America/New_York"), created_at
 
 ## Auth Flow
 - Signup via onboarding creates user record + session
@@ -34,7 +35,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `POST /api/auth/login` — Login by email + session
 - `GET /api/auth/me` — Get current user
 - `POST /api/auth/logout` — Destroy session
-- `POST /api/users/update` — Update user preferences (email, readingLength, podcasts)
+- `POST /api/users/update` — Update user preferences (email, readingLength, podcasts, deliveryTime, deliveryTimezone)
 
 ## Key Files
 - `shared/schema.ts` — Drizzle schema + Zod validation

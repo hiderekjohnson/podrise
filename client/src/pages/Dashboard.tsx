@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, ArrowRight, Save } from "lucide-react";
+import { Loader2, LogOut, Save, Clock, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,36 @@ function parsePodcasts(raw: string[]): SelectedPodcast[] {
 
 const READING_LENGTHS = [5, 10, 15, 20];
 
+const TIMEZONES = [
+  { value: "America/New_York", label: "Eastern (ET)" },
+  { value: "America/Chicago", label: "Central (CT)" },
+  { value: "America/Denver", label: "Mountain (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific (PT)" },
+  { value: "America/Anchorage", label: "Alaska (AKT)" },
+  { value: "Pacific/Honolulu", label: "Hawaii (HT)" },
+  { value: "Europe/London", label: "London (GMT/BST)" },
+  { value: "Europe/Paris", label: "Central Europe (CET)" },
+  { value: "Europe/Berlin", label: "Berlin (CET)" },
+  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+  { value: "Asia/Shanghai", label: "Shanghai (CST)" },
+  { value: "Asia/Kolkata", label: "India (IST)" },
+  { value: "Asia/Dubai", label: "Dubai (GST)" },
+  { value: "Australia/Sydney", label: "Sydney (AEST)" },
+  { value: "Australia/Perth", label: "Perth (AWST)" },
+];
+
+const DELIVERY_TIMES = [
+  { value: "05:00", label: "5:00 AM" },
+  { value: "06:00", label: "6:00 AM" },
+  { value: "07:00", label: "7:00 AM" },
+  { value: "08:00", label: "8:00 AM" },
+  { value: "09:00", label: "9:00 AM" },
+  { value: "10:00", label: "10:00 AM" },
+  { value: "12:00", label: "12:00 PM" },
+  { value: "17:00", label: "5:00 PM" },
+  { value: "20:00", label: "8:00 PM" },
+];
+
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const { data: user, isLoading } = useAuth();
@@ -36,6 +66,8 @@ export default function Dashboard() {
   const [readingLength, setReadingLength] = useState(10);
   const [email, setEmail] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
+  const [deliveryTime, setDeliveryTime] = useState("07:00");
+  const [deliveryTimezone, setDeliveryTimezone] = useState("America/New_York");
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -43,6 +75,8 @@ export default function Dashboard() {
       setPodcasts(parsePodcasts(user.podcasts));
       setReadingLength(user.readingLength);
       setEmail(user.email);
+      setDeliveryTime(user.deliveryTime || "07:00");
+      setDeliveryTimezone(user.deliveryTimezone || "America/New_York");
     }
   }, [user]);
 
@@ -100,7 +134,7 @@ export default function Dashboard() {
 
   const handleSaveAll = () => {
     updateUser(
-      { email, readingLength, podcasts: serializePodcasts(podcasts) },
+      { email, readingLength, podcasts: serializePodcasts(podcasts), deliveryTime, deliveryTimezone },
       {
         onSuccess: () => {
           setEditingEmail(false);
@@ -160,7 +194,7 @@ export default function Dashboard() {
               Manage Your Recap
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground/80">
-              Update your podcasts, reading length, and email below.
+              Update your podcasts, delivery time, and email below.
             </p>
           </motion.div>
         </section>
@@ -173,58 +207,88 @@ export default function Dashboard() {
         >
           <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col gap-10">
             <section className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">1</span>
-                <div>
-                  <h2 className="text-lg font-display font-bold text-foreground">
-                    Your podcasts
-                  </h2>
-                </div>
-              </div>
-              <div className="pl-10">
-                <PodcastSearch
-                  selectedPodcasts={podcasts}
-                  onAdd={handleAdd}
-                  onRemove={handleRemove}
-                  maxSelection={3}
-                />
+              <h2 className="text-lg font-display font-bold text-foreground">
+                Your podcasts
+              </h2>
+              <PodcastSearch
+                selectedPodcasts={podcasts}
+                onAdd={handleAdd}
+                onRemove={handleRemove}
+                maxSelection={3}
+              />
+            </section>
+
+            <div className="border-t border-black/[0.06]" />
+
+            <section className="flex flex-col gap-4">
+              <h2 className="text-lg font-display font-bold text-foreground">
+                How long should your daily recap take to read?
+              </h2>
+              <div className="flex bg-black/[0.04] p-1 rounded-xl w-full max-w-sm">
+                {READING_LENGTHS.map((length) => {
+                  const isActive = readingLength === length;
+                  return (
+                    <button
+                      key={length}
+                      data-testid={`button-reading-${length}`}
+                      onClick={() => setReadingLength(length)}
+                      className={`
+                        relative flex-1 py-2.5 text-sm font-semibold rounded-[10px] transition-all duration-300
+                        ${isActive ? "text-primary" : "text-muted-foreground"}
+                      `}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="dashboardTab"
+                          className="absolute inset-0 bg-white shadow-sm rounded-[10px] border border-black/[0.04]"
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        />
+                      )}
+                      <span className="relative z-10">{length} min</span>
+                    </button>
+                  );
+                })}
               </div>
             </section>
 
             <div className="border-t border-black/[0.06]" />
 
             <section className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
-                <h2 className="text-lg font-display font-bold text-foreground">
-                  How long should your daily recap take to read?
-                </h2>
-              </div>
-              <div className="pl-10">
-                <div className="flex bg-black/[0.04] p-1 rounded-xl w-full max-w-sm">
-                  {READING_LENGTHS.map((length) => {
-                    const isActive = readingLength === length;
-                    return (
-                      <button
-                        key={length}
-                        data-testid={`button-reading-${length}`}
-                        onClick={() => setReadingLength(length)}
-                        className={`
-                          relative flex-1 py-2.5 text-sm font-semibold rounded-[10px] transition-all duration-300
-                          ${isActive ? "text-primary" : "text-muted-foreground"}
-                        `}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="dashboardTab"
-                            className="absolute inset-0 bg-white shadow-sm rounded-[10px] border border-black/[0.04]"
-                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                        <span className="relative z-10">{length} min</span>
-                      </button>
-                    );
-                  })}
+              <h2 className="text-lg font-display font-bold text-foreground">
+                Delivery time
+              </h2>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mb-2">
+                    <Clock className="w-3.5 h-3.5" />
+                    Time
+                  </label>
+                  <select
+                    data-testid="select-delivery-time"
+                    value={deliveryTime}
+                    onChange={(e) => setDeliveryTime(e.target.value)}
+                    className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium appearance-none cursor-pointer"
+                  >
+                    {DELIVERY_TIMES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mb-2">
+                    <Globe className="w-3.5 h-3.5" />
+                    Timezone
+                  </label>
+                  <select
+                    data-testid="select-delivery-timezone"
+                    value={deliveryTimezone}
+                    onChange={(e) => setDeliveryTimezone(e.target.value)}
+                    className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium appearance-none cursor-pointer"
+                  >
+                    {TIMEZONES.map((tz) => (
+                      <option key={tz.value} value={tz.value}>{tz.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </section>
@@ -232,49 +296,44 @@ export default function Dashboard() {
             <div className="border-t border-black/[0.06]" />
 
             <section className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">3</span>
-                <h2 className="text-lg font-display font-bold text-foreground">
-                  Where should we send your daily recap?
-                </h2>
-              </div>
-              <div className="pl-10">
-                {editingEmail ? (
-                  <div className="flex items-center gap-3">
-                    <input
-                      data-testid="input-edit-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      autoFocus
-                      className="flex-1 h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
-                    />
-                    <button
-                      data-testid="button-edit-email"
-                      onClick={() => setEditingEmail(false)}
-                      className="text-sm font-semibold text-primary shrink-0"
-                    >
-                      Done
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <span
-                      data-testid="text-user-email"
-                      className="text-foreground font-medium"
-                    >
-                      {email}
-                    </span>
-                    <button
-                      data-testid="button-edit-email"
-                      onClick={() => setEditingEmail(true)}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                )}
-              </div>
+              <h2 className="text-lg font-display font-bold text-foreground">
+                Where should we send your daily recap?
+              </h2>
+              {editingEmail ? (
+                <div className="flex items-center gap-3">
+                  <input
+                    data-testid="input-edit-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoFocus
+                    className="flex-1 h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                  />
+                  <button
+                    data-testid="button-edit-email"
+                    onClick={() => setEditingEmail(false)}
+                    className="text-sm font-semibold text-primary shrink-0"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span
+                    data-testid="text-user-email"
+                    className="text-foreground font-medium"
+                  >
+                    {email}
+                  </span>
+                  <button
+                    data-testid="button-edit-email"
+                    onClick={() => setEditingEmail(true)}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
             </section>
 
             <div className="flex flex-col items-center gap-2">

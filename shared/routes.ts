@@ -19,6 +19,8 @@ const userResponseSchema = z.object({
   email: z.string(),
   podcasts: z.array(z.string()),
   readingLength: z.number(),
+  deliveryTime: z.string(),
+  deliveryTimezone: z.string(),
   createdAt: z.string().nullable(),
 });
 
@@ -66,6 +68,8 @@ export const api = {
         email: z.string().email().optional(),
         readingLength: z.coerce.number().min(5).max(20).optional(),
         podcasts: z.array(z.string()).min(1, "Select at least one podcast").optional(),
+        deliveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+        deliveryTimezone: z.string().optional(),
       }),
       responses: {
         200: userResponseSchema,
