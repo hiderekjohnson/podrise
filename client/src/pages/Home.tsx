@@ -14,8 +14,6 @@ interface SelectedPodcast {
   artworkUrl: string;
 }
 
-const READING_LENGTHS = [5, 10, 15, 20];
-
 export default function Home() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
@@ -23,7 +21,6 @@ export default function Home() {
   const { mutate: register, isPending } = useRegister();
 
   const [selectedPodcasts, setSelectedPodcasts] = useState<SelectedPodcast[]>([]);
-  const [readingLength, setReadingLength] = useState<number>(10);
   const [email, setEmail] = useState("");
   const [showSampleEmail, setShowSampleEmail] = useState(false);
 
@@ -62,7 +59,7 @@ export default function Home() {
     register(
       {
         podcasts: selectedPodcasts.map((p) => JSON.stringify(p)),
-        readingLength,
+        readingLength: 10,
         email,
       },
       {
@@ -166,44 +163,6 @@ export default function Home() {
             <section className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
-                <h2 className="text-lg font-display font-bold text-foreground">
-                  How long should your daily recap take to read?
-                </h2>
-              </div>
-              <div className="pl-10">
-                <div className="flex bg-black/[0.04] p-1 rounded-xl w-full max-w-sm">
-                  {READING_LENGTHS.map((length) => {
-                    const isActive = readingLength === length;
-                    return (
-                      <button
-                        key={length}
-                        data-testid={`button-reading-${length}`}
-                        onClick={() => setReadingLength(length)}
-                        className={`
-                          relative flex-1 py-2.5 text-sm font-semibold rounded-[10px] transition-all duration-300
-                          ${isActive ? "text-primary" : "text-muted-foreground"}
-                        `}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeTab"
-                            className="absolute inset-0 bg-white shadow-sm rounded-[10px] border border-black/[0.04]"
-                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                        <span className="relative z-10">{length} min</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-
-            <div className="border-t border-black/[0.06]" />
-
-            <section className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">3</span>
                 <h2 className="text-lg font-display font-bold text-foreground">
                   Where should we send your daily recap?
                 </h2>
