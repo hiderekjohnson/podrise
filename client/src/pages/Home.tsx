@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2 } from "lucide-react";
+import { Headphones, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
-import logoImage from "@assets/image_1772640789953.png";
 
 interface SelectedPodcast {
   id: string;
@@ -67,7 +66,7 @@ export default function Home() {
         onSuccess: () => {
           toast({
             title: "Success!",
-            description: "Your recap has been created. Redirecting to your dashboard...",
+            description: "Your digest has been created. Redirecting to your dashboard...",
           });
           navigate("/dashboard");
         },
@@ -86,20 +85,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-      <div className="text-center mb-12">
-        <img
-          src={logoImage}
-          alt="PodCap"
-          className="mx-auto w-[320px] md:w-[420px] mb-2 object-contain select-none pointer-events-none"
-          style={{ filter: "drop-shadow(0 0 40px rgba(56, 152, 236, 0.15))" }}
-        />
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-6 shadow-inner">
+          <Headphones className="w-8 h-8" />
+        </div>
+        <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">
+          Your Daily Podcast Brief
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-lg mx-auto">
+          Get the best insights from your favorite shows condensed into a quick, readable daily digest.
+        </p>
       </div>
 
       <div className="w-full max-w-3xl glass-panel rounded-3xl p-6 sm:p-10 flex flex-col gap-12 relative">
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">1</span>
               Which podcasts do you want?
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base ml-11">
@@ -119,7 +121,7 @@ export default function Home() {
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">2</span>
               Set your reading length
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base ml-11">
@@ -128,7 +130,7 @@ export default function Home() {
           </div>
 
           <div className="ml-0 sm:ml-11">
-            <div className="flex bg-white/[0.04] p-1.5 rounded-2xl w-full max-w-md border border-white/[0.06]">
+            <div className="flex bg-black/[0.04] p-1.5 rounded-2xl w-full max-w-md">
               {READING_LENGTHS.map((length) => {
                 const isActive = readingLength === length;
                 return (
@@ -144,7 +146,7 @@ export default function Home() {
                     {isActive && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute inset-0 bg-white/[0.08] shadow-sm rounded-xl border border-white/[0.1]"
+                        className="absolute inset-0 bg-white shadow-sm rounded-xl border border-black/[0.04]"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -159,7 +161,7 @@ export default function Home() {
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm">3</span>
               Where should we send it?
             </h2>
           </div>
@@ -171,7 +173,7 @@ export default function Home() {
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-14 px-4 bg-white/[0.04] border border-white/[0.08] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all font-medium text-lg"
+              className="w-full h-14 px-4 bg-black/[0.03] border border-black/[0.05] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium text-lg"
             />
 
             <div className="space-y-4 pt-4">
@@ -179,22 +181,22 @@ export default function Home() {
                 data-testid="button-finish"
                 onClick={handleSubmit}
                 disabled={isPending}
-                className="w-full h-16 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-xl shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:brightness-110"
+                className="w-full h-16 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-xl shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating your recap...
+                    Creating your digest...
                   </>
                 ) : (
-                  "CREATE MY PODCAST RECAP"
+                  "Finish & Create My Daily Podcast Digest"
                 )}
               </button>
 
               <p className="text-center text-sm text-muted-foreground">
-                We'll send you your first recap right now, based on the last week.{" "}
+                We'll send you your first daily brief right now, based on the last week.{" "}
                 <br className="hidden sm:block" />
-                Future recaps will only cover the previous day.
+                Future briefs will only cover the previous day.
               </p>
 
               <p className="text-center text-sm text-muted-foreground">
@@ -202,7 +204,7 @@ export default function Home() {
                 <button
                   data-testid="link-login"
                   onClick={() => navigate("/login")}
-                  className="text-primary font-semibold hover:underline"
+                  className="text-primary font-semibold"
                 >
                   Log in
                 </button>

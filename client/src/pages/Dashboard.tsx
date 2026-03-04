@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Mail, Save } from "lucide-react";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
 import { PodcastSearch } from "@/components/PodcastSearch";
-import logoImage from "@assets/image_1772640789953.png";
 
 interface SelectedPodcast {
   id: string;
@@ -128,18 +127,17 @@ export default function Dashboard() {
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
-            <img
-              src={logoImage}
-              alt="PodCap"
-              className="h-10 md:h-12 object-contain select-none pointer-events-none"
-              style={{ filter: "drop-shadow(0 0 20px rgba(56, 152, 236, 0.1))" }}
-            />
-          </div>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+            Manage Your Daily Podcast Digest
+            <br />
+            <span className="text-muted-foreground text-lg md:text-xl font-semibold">
+              Subscriptions & Preferences
+            </span>
+          </h1>
           <button
             data-testid="button-logout"
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Log out
@@ -148,7 +146,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3 glass-panel rounded-2xl p-6">
-            <h2 className="font-display font-bold text-lg mb-1 text-foreground">
+            <h2 className="font-display font-bold text-lg mb-1">
               Manage Your Source Podcasts
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
@@ -164,7 +162,7 @@ export default function Dashboard() {
 
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="glass-panel rounded-2xl p-6">
-              <h2 className="font-display font-bold text-lg mb-6 text-foreground">
+              <h2 className="font-display font-bold text-lg mb-6">
                 Fine-Tune Your Reading Length
               </h2>
               <div className="px-2">
@@ -183,7 +181,7 @@ export default function Dashboard() {
                       key={mark}
                       className={
                         readingLength === mark
-                          ? "text-primary font-bold"
+                          ? "text-foreground font-bold"
                           : ""
                       }
                     >
@@ -195,8 +193,8 @@ export default function Dashboard() {
             </div>
 
             <div className="glass-panel rounded-2xl p-6">
-              <h2 className="font-display font-bold text-lg mb-4 text-foreground">
-                Receive Your Daily Recap
+              <h2 className="font-display font-bold text-lg mb-4">
+                Receive Your Daily Digest
               </h2>
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-muted-foreground flex-shrink-0" />
@@ -207,7 +205,7 @@ export default function Dashboard() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoFocus
-                    className="flex-1 h-10 px-3 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+                    className="flex-1 h-10 px-3 bg-black/[0.03] border border-black/[0.05] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                   />
                 ) : (
                   <span
@@ -220,7 +218,7 @@ export default function Dashboard() {
                 <button
                   data-testid="button-edit-email"
                   onClick={() => setEditingEmail(!editingEmail)}
-                  className="text-sm font-medium text-muted-foreground border border-white/[0.1] rounded-lg px-3 py-1.5 hover:text-foreground transition-colors"
+                  className="text-sm font-medium text-muted-foreground border border-border rounded-lg px-3 py-1.5"
                 >
                   {editingEmail ? "Done" : "Edit email"}
                 </button>
@@ -234,7 +232,7 @@ export default function Dashboard() {
             data-testid="button-save-all"
             onClick={handleSaveAll}
             disabled={isUpdating}
-            className="h-14 px-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:brightness-110"
+            className="h-14 px-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-foreground text-background border-2 border-dashed border-foreground/30 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {isUpdating ? (
               <Loader2 className="w-5 h-5 animate-spin" />
