@@ -208,34 +208,32 @@ export default function Home() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
                 />
-                <p className="text-xs text-muted-foreground">
-                  You'll receive one email each day with summaries from the podcasts you selected.
-                </p>
               </div>
             </section>
 
-            <button
-              data-testid="button-finish"
-              onClick={handleSubmit}
-              disabled={isPending}
-              className="w-full h-14 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating your recap...
-                </>
-              ) : (
-                <>
-                  Create My Daily Recap
-                  <ArrowRight className="w-4.5 h-4.5" />
-                </>
-              )}
-            </button>
-
-            <p className="text-center text-sm text-muted-foreground -mt-3">
-              Free for up to 3 podcasts. No credit card required.
-            </p>
+            <div className="flex flex-col items-center gap-2">
+              <button
+                data-testid="button-finish"
+                onClick={handleSubmit}
+                disabled={isPending}
+                className="w-full h-14 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating your recap...
+                  </>
+                ) : (
+                  <>
+                    Create My Daily Recap
+                    <ArrowRight className="w-4.5 h-4.5" />
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-muted-foreground">
+                Free for up to 3 podcasts. No credit card required.
+              </p>
+            </div>
           </div>
         </motion.div>
       </main>
