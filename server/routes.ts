@@ -116,6 +116,14 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/recaps", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const recaps = await storage.getRecapsByUserId(req.session.userId);
+    res.json(recaps);
+  });
+
   app.post(api.users.update.path, async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });

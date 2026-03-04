@@ -1,12 +1,13 @@
 import { db } from "./db";
-import { users, type CreateUserRequest, type UpdateUserRequest, type UserResponse } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { users, recaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   createUser(user: CreateUserRequest): Promise<UserResponse>;
   getUserByEmail(email: string): Promise<UserResponse | undefined>;
   getUserById(id: number): Promise<UserResponse | undefined>;
   updateUser(id: number, updates: UpdateUserRequest): Promise<UserResponse>;
+  getRecapsByUserId(userId: number): Promise<Recap[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -41,6 +42,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return updated;
+  }
+
+  async getRecapsByUserId(userId: number): Promise<Recap[]> {
+    return db
+      .select()
+      .from(recaps)
+      .where(eq(recaps.userId, userId))
+      .orderBy(desc(recaps.recapDate));
   }
 }
 

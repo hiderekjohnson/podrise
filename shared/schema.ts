@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -29,3 +29,20 @@ export type User = typeof users.$inferSelect;
 export type CreateUserRequest = InsertUser;
 export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "readingLength" | "podcasts" | "deliveryTime" | "deliveryTimezone">>;
 export type UserResponse = User;
+
+export const recaps = pgTable("recaps", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  recapDate: date("recap_date").notNull(),
+  podcasts: text("podcasts").array().notNull(),
+  summary: text("summary").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRecapSchema = createInsertSchema(recaps).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRecap = z.infer<typeof insertRecapSchema>;
+export type Recap = typeof recaps.$inferSelect;
