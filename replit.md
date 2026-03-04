@@ -20,6 +20,7 @@ A full-stack web application that lets users create and manage personalized dail
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), reading_length, delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
 - `recaps` table: id, user_id, recap_date, podcasts (text array), summary, created_at
+- `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow
@@ -65,6 +66,12 @@ A full-stack web application that lets users create and manage personalized dail
 - OpenAI via Replit AI Integrations
 - Recap generation: fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
 - Summary follows specific format: Big Ideas Today, per-episode cards, Conversation Ammo
+- **Transcript Integration**: Taddy GraphQL API fetches real podcast transcripts for richer recaps
+  - Credentials: `TADDY_USER_ID` (shared env) + `TADDY_API_KEY` (secret)
+  - Matches iTunes episodes to Taddy by podcast iTunes ID → Taddy UUID → episode title match
+  - Transcripts cached in `episode_transcripts` table (keyed by episode_guid) to avoid redundant API calls
+  - Falls back to iTunes episode descriptions when no transcript is available
+  - Transcript excerpts (up to 8000 chars) fed to GPT for more accurate quotes, facts, and insights
 
 ## Key Files
 - `shared/schema.ts` — Drizzle schema + Zod validation
@@ -73,6 +80,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `server/storage.ts` — Database storage layer
 - `server/stripeClient.ts` — Stripe client setup (credentials from Replit connector)
 - `server/webhookHandlers.ts` — Stripe webhook processing
+- `server/taddyClient.ts` — Taddy GraphQL API client for podcast search + transcript fetching
 - `server/seed-products.ts` — Script to create Stripe products
 - `server/index.ts` — Server entry point (Stripe init + webhook route before JSON middleware)
 - `client/src/hooks/use-auth.ts` — Auth hooks

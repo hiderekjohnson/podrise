@@ -7,6 +7,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { openai } from "./replit_integrations/image/client";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts } from "./taddyClient";
 
 declare module "express-session" {
   interface SessionData {
@@ -167,6 +168,7 @@ export async function registerRoutes(
 
       const episodeData: string[] = [];
       let hasAnyEpisodes = false;
+      let hasTranscripts = false;
       for (const podcast of podcastInfos) {
         try {
           const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.id}&media=podcast&entity=podcastEpisode&limit=20&sort=recent`;
@@ -181,17 +183,56 @@ export async function registerRoutes(
 
           if (episodes.length > 0) {
             hasAnyEpisodes = true;
-            const epDetails = episodes
-              .map((ep: any) => {
-                const durationMs = ep.trackTimeMillis || 0;
-                const durationMin = Math.round(durationMs / 60000);
-                const durationStr = durationMin >= 60
-                  ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
-                  : `${durationMin} minutes`;
-                return `- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n  Description: ${(ep.description || "No description available.").slice(0, 500)}`;
-              })
-              .join("\n");
-            episodeData.push(`Podcast: ${podcast.name}\n${epDetails}`);
+
+            let taddyPodcast: any = null;
+            let taddyEpisodes: any[] = [];
+            try {
+              taddyPodcast = await searchPodcastByItunesId(podcast.id);
+              if (taddyPodcast?.uuid) {
+                taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
+              }
+            } catch (taddyErr) {
+              console.warn(`Taddy lookup failed for ${podcast.name}:`, taddyErr);
+            }
+
+            const epDetails: string[] = [];
+            for (const ep of episodes) {
+              const durationMs = ep.trackTimeMillis || 0;
+              const durationMin = Math.round(durationMs / 60000);
+              const durationStr = durationMin >= 60
+                ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+                : `${durationMin} minutes`;
+
+              const episodeGuid = ep.episodeGuid || `${podcast.id}_${ep.trackId || ep.trackName}`;
+              let transcriptText: string | null = null;
+
+              const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
+              if (cached) {
+                transcriptText = cached.transcript;
+              } else {
+                const taddyMatch = taddyEpisodes.find((te: any) =>
+                  te.name?.toLowerCase().trim() === ep.trackName?.toLowerCase().trim()
+                );
+                if (taddyMatch?.transcript) {
+                  transcriptText = taddyMatch.transcript;
+                  await storage.saveTranscript({
+                    podcastId: podcast.id,
+                    episodeGuid,
+                    episodeTitle: ep.trackName,
+                    transcript: transcriptText,
+                  });
+                }
+              }
+
+              if (transcriptText) {
+                hasTranscripts = true;
+                const truncated = transcriptText.slice(0, 8000);
+                epDetails.push(`- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n  Transcript (excerpt):\n${truncated}`);
+              } else {
+                epDetails.push(`- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n  Description: ${(ep.description || "No description available.").slice(0, 500)}`);
+              }
+            }
+            episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
           } else {
             episodeData.push(`Podcast: ${podcast.name}\n- No new episodes released yesterday.`);
           }
@@ -208,7 +249,13 @@ export async function registerRoutes(
       const podcastNames = podcastInfos.map((p) => p.name).join(" · ");
       const podcastCount = podcastInfos.length;
 
+      const transcriptNote = hasTranscripts
+        ? "Some episodes below include real transcript excerpts — use these for accurate quotes, specific facts, and concrete insights. For episodes with only descriptions, do your best based on the available info."
+        : "Note: No full transcripts were available for these episodes, so you are working from episode descriptions only. Do your best to infer specific content.";
+
       const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for episodes released on ${yesterdayLabel}. The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had new episodes — skip any that didn't.
+
+${transcriptNote}
 
 Source episodes from ${yesterdayLabel}:
 ${episodeData.join("\n\n")}
@@ -278,7 +325,7 @@ IMPORTANT TONE GUIDELINES:
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 3000,
+        max_tokens: hasTranscripts ? 4000 : 3000,
         temperature: 0.7,
       });
 

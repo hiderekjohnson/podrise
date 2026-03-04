@@ -49,3 +49,14 @@ export const insertRecapSchema = createInsertSchema(recaps).omit({
 
 export type InsertRecap = z.infer<typeof insertRecapSchema>;
 export type Recap = typeof recaps.$inferSelect;
+
+export const episodeTranscripts = pgTable("episode_transcripts", {
+  id: serial("id").primaryKey(),
+  podcastId: text("podcast_id").notNull(),
+  episodeGuid: text("episode_guid").notNull().unique(),
+  episodeTitle: text("episode_title").notNull(),
+  transcript: text("transcript").notNull(),
+  fetchedAt: timestamp("fetched_at").defaultNow(),
+});
+
+export type EpisodeTranscript = typeof episodeTranscripts.$inferSelect;

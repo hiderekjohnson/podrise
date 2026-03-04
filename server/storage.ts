@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap } from "@shared/schema";
+import { users, recaps, episodeTranscripts, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript } from "@shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -13,6 +13,8 @@ export interface IStorage {
   createRecap(recap: InsertRecap): Promise<Recap>;
   getAllUsers(): Promise<UserResponse[]>;
   getSubscription(subscriptionId: string): Promise<any>;
+  getTranscriptByEpisodeGuid(episodeGuid: string): Promise<EpisodeTranscript | undefined>;
+  saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -87,6 +89,26 @@ export class DatabaseStorage implements IStorage {
       sql`SELECT * FROM stripe.subscriptions WHERE id = ${subscriptionId}`
     );
     return result.rows[0] || null;
+  }
+
+  async getTranscriptByEpisodeGuid(episodeGuid: string): Promise<EpisodeTranscript | undefined> {
+    const [transcript] = await db
+      .select()
+      .from(episodeTranscripts)
+      .where(eq(episodeTranscripts.episodeGuid, episodeGuid));
+    return transcript ?? undefined;
+  }
+
+  async saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript> {
+    const [created] = await db
+      .insert(episodeTranscripts)
+      .values(data)
+      .onConflictDoUpdate({
+        target: episodeTranscripts.episodeGuid,
+        set: { transcript: data.transcript, fetchedAt: new Date() },
+      })
+      .returning();
+    return created;
   }
 
   async getAllUsers(): Promise<UserResponse[]> {
