@@ -115,12 +115,9 @@ export default function Home() {
               data-testid="text-headline"
               className="text-[2rem] sm:text-[2.75rem] md:text-[3.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
             >
-              <span className="block">Your favorite podcasts,</span>
-              <span className="block">summarized in one <span className="text-primary">daily email</span>.</span>
+              <span className="block">All your favorite podcasts.</span>
+              <span className="block">One <span className="text-primary">daily recap</span> email.</span>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground/80">
-              Free for up to 3 podcasts
-            </p>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
