@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Mail, ArrowRight, Loader2, Headphones } from "lucide-react";
+import { Mail, ArrowRight, Loader2 } from "lucide-react";
 import { useLogin, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import logoImage from "@assets/image_1772640789953.png";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -49,14 +50,17 @@ export default function Login() {
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-6 shadow-inner">
-          <Headphones className="w-8 h-8" />
-        </div>
-        <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
+        <img
+          src={logoImage}
+          alt="PodCap"
+          className="mx-auto w-[260px] md:w-[320px] mb-4 object-contain select-none pointer-events-none"
+          style={{ filter: "drop-shadow(0 0 40px rgba(56, 152, 236, 0.15))" }}
+        />
+        <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2">
           Welcome Back
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          Enter your email to access your podcast digest dashboard.
+        </h2>
+        <p className="text-base text-muted-foreground max-w-md mx-auto">
+          Enter your email to access your podcast recap dashboard.
         </p>
       </div>
 
@@ -70,7 +74,7 @@ export default function Login() {
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 bg-black/[0.03] border border-black/[0.05] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+              className="w-full h-14 pl-12 pr-4 bg-white/[0.04] border border-white/[0.08] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all font-medium"
             />
           </div>
 
@@ -78,7 +82,7 @@ export default function Login() {
             data-testid="button-login"
             type="submit"
             disabled={isPending}
-            className="w-full h-14 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full h-14 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:brightness-110"
           >
             {isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -97,7 +101,7 @@ export default function Login() {
             <button
               data-testid="link-signup"
               onClick={() => navigate("/")}
-              className="text-primary font-semibold"
+              className="text-primary font-semibold hover:underline"
             >
               Sign up
             </button>

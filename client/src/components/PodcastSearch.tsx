@@ -70,14 +70,14 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
             placeholder="Search podcasts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+            className="w-full h-12 pl-12 pr-4 bg-white/[0.04] border border-white/[0.08] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all font-medium"
           />
         </div>
         {searchQuery && (
           <button
             data-testid="button-clear-search"
             onClick={() => setSearchQuery("")}
-            className="text-sm font-medium text-primary shrink-0"
+            className="text-sm font-medium text-primary shrink-0 hover:underline"
           >
             Clear
           </button>
@@ -93,10 +93,10 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
             transition={{ duration: 0.15 }}
             className="space-y-1"
           >
-            <p className="text-sm font-semibold text-foreground px-1">
+            <p className="text-sm font-semibold text-foreground/70 px-1">
               Search Results for "{searchQuery}"
             </p>
-            <div className="border border-black/[0.06] rounded-xl divide-y divide-black/[0.06] overflow-hidden bg-white/60">
+            <div className="border border-white/[0.08] rounded-xl divide-y divide-white/[0.06] overflow-hidden bg-white/[0.03]">
               {isSearching ? (
                 <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -106,7 +106,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
                 filteredResults.map((podcast) => (
                   <div
                     key={podcast.id}
-                    className="flex items-center gap-3 px-4 py-3"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors"
                   >
                     {podcast.artworkUrl ? (
                       <img
@@ -115,7 +115,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
                         className="w-10 h-10 rounded-lg object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                         <Podcast className="w-5 h-5 text-primary" />
                       </div>
                     )}
@@ -136,7 +136,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
                           artworkUrl: podcast.artworkUrl,
                         })
                       }
-                      className="flex items-center gap-1 text-sm font-semibold text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-colors shrink-0"
+                      className="flex items-center gap-1 text-sm font-semibold text-primary px-3 py-1.5 rounded-lg border border-primary/25 hover:bg-primary/10 transition-colors shrink-0"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add
@@ -155,7 +155,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
 
       {selectedPodcasts.length > 0 && (
         <div className="space-y-2 pt-2">
-          <p className="text-sm font-semibold text-foreground px-1">
+          <p className="text-sm font-semibold text-foreground/70 px-1">
             Selected Podcasts:
           </p>
           <div className="flex flex-wrap gap-2">
@@ -166,7 +166,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
                   initial={{ scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.85, opacity: 0 }}
-                  className="flex items-center gap-2 bg-secondary text-foreground pl-1.5 pr-2 py-1 rounded-full text-sm font-medium"
+                  className="flex items-center gap-2 bg-white/[0.08] text-foreground pl-1.5 pr-2 py-1 rounded-full text-sm font-medium border border-white/[0.06]"
                 >
                   {podcast.artworkUrl ? (
                     <img
@@ -175,7 +175,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
                       className="w-6 h-6 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center">
                       <Podcast className="w-3 h-3 text-primary" />
                     </div>
                   )}
@@ -183,7 +183,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSear
                   <button
                     data-testid={`button-remove-podcast-${podcast.id}`}
                     onClick={() => onRemove(podcast.id)}
-                    className="p-0.5 rounded-full text-muted-foreground transition-colors"
+                    className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
