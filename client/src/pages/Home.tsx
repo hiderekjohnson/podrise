@@ -160,9 +160,6 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     {podcastsLocked ? "Your podcasts" : "Choose 3 podcasts to start"}
                   </h2>
-                  {!podcastsLocked && (
-                    <p className="text-sm text-muted-foreground mt-0.5">You can add more or remove any later.</p>
-                  )}
                 </div>
                 {podcastsLocked && (
                   <button
@@ -237,7 +234,6 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Where should we send your daily recap?
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">All your selected podcasts, summarized in one email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
@@ -273,7 +269,7 @@ export default function Home() {
                 )}
               </button>
               <p className="text-xs text-muted-foreground">
-                No credit card required.
+                Free for up to 3 podcasts. No credit card required.
               </p>
             </div>
           </div>
