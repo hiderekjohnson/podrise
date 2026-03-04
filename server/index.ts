@@ -49,7 +49,7 @@ async function initStripe() {
   }
 }
 
-await initStripe();
+initStripe().then(() => {}).catch(() => {});
 
 app.post(
   '/api/stripe/webhook',
