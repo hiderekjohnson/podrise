@@ -86,19 +86,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-      <div className="text-center mb-10">
+      <div className="text-center mb-12">
         <img
           src={logoPath}
           alt="PodCap"
-          className="h-16 mx-auto mb-6 object-contain"
+          className="h-12 sm:h-14 mx-auto mb-8 object-contain"
           data-testid="img-logo"
         />
-        <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">
-          Your Daily Podcast Digest
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold text-foreground leading-[1.1] tracking-tight max-w-2xl mx-auto">
+          All your favorite podcasts, recapped in one{" "}
+          <span className="text-primary">daily email</span>.
         </h1>
-        <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-          Get the best insights from your favorite shows condensed into a quick, readable daily digest.
-        </p>
       </div>
 
       <div className="w-full max-w-3xl glass-panel rounded-3xl p-6 sm:p-10 flex flex-col gap-12 relative">
