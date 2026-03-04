@@ -113,15 +113,11 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/8 border border-primary/15 mb-8">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">Free to start</span>
-            </div>
             <h1
               data-testid="text-headline"
               className="text-[2.5rem] sm:text-5xl md:text-[3.5rem] font-display font-extrabold text-foreground leading-[1.08] tracking-tight max-w-[680px]"
             >
-              Get the key insights from your favorite podcasts in one{" "}
+              Your favorite podcasts, summarized in one{" "}
               <span className="text-primary relative">
                 daily email
                 <svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 200 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -130,7 +126,7 @@ export default function Home() {
               </span>.
             </h1>
             <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-[520px] leading-relaxed">
-              Follow your favorite podcasts and get the key takeaways you can read in 5–20 minutes. No more falling behind.
+              Start free with up to 3 podcasts.
             </p>
           </motion.div>
         </section>
@@ -245,16 +241,6 @@ export default function Home() {
               )}
             </button>
 
-            <p className="text-center text-sm text-muted-foreground -mt-4">
-              Already have an account?{" "}
-              <button
-                data-testid="link-login-bottom"
-                onClick={() => navigate("/login")}
-                className="text-primary font-semibold hover:underline"
-              >
-                Log in
-              </button>
-            </p>
           </div>
         </motion.div>
       </main>
