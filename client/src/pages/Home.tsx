@@ -106,22 +106,22 @@ export default function Home() {
       </header>
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
-        <section className="w-full max-w-3xl text-center pt-10 sm:pt-16 pb-10 sm:pb-12">
+        <section className="w-full max-w-3xl text-center pt-14 sm:pt-20 pb-12 sm:pb-14">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center"
+            className="flex flex-col items-center gap-5"
           >
             <h1
               data-testid="text-headline"
-              className="text-[1.75rem] sm:text-4xl md:text-[2.65rem] font-display font-extrabold text-foreground leading-[1.15] tracking-tight"
+              className="text-[2rem] sm:text-[2.75rem] md:text-[3.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
             >
               <span className="block">Your favorite podcasts,</span>
               <span className="block">summarized in one <span className="text-primary">daily email</span>.</span>
             </h1>
-            <p className="mt-5 text-base sm:text-[1.1rem] text-muted-foreground font-medium tracking-wide uppercase">
-              Start free with up to 3 podcasts
+            <p className="text-sm sm:text-base text-muted-foreground/80">
+              Free for up to 3 podcasts
             </p>
           </motion.div>
         </section>
