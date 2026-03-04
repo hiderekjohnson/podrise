@@ -5,7 +5,7 @@ import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
 import { PodcastSearch } from "@/components/PodcastSearch";
-import logoPath from "@assets/image_1772641542609.png";
+import faviconPath from "@assets/image_1772642558577.png";
 
 interface SelectedPodcast {
   id: string;
@@ -128,18 +128,18 @@ export default function Dashboard() {
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <img
-              src={logoPath}
+              src={faviconPath}
               alt="PodCap"
-              className="h-10 object-contain"
+              className="w-9 h-9 object-contain"
               data-testid="img-logo"
             />
             <div>
-              <h1 className="text-xl md:text-2xl font-display font-bold text-foreground">
-                Dashboard
+              <h1 className="text-lg md:text-xl font-display font-bold text-foreground leading-tight">
+                PodCap Dashboard
               </h1>
-              <span className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-xs font-medium">
                 Subscriptions & Preferences
               </span>
             </div>
