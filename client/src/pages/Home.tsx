@@ -1,38 +1,45 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import { Search, X, Headphones, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCreateSubscription } from "@/hooks/use-subscriptions";
+import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastCard } from "@/components/PodcastCard";
 
 const MOCK_PODCASTS = [
-  { id: '1', name: 'Joe Rogan Experience', initials: 'JR', color: 'bg-red-100 text-red-700' },
-  { id: '2', name: 'All-In Podcast', initials: 'AI', color: 'bg-blue-100 text-blue-700' },
-  { id: '3', name: 'Huberman Lab', initials: 'HL', color: 'bg-emerald-100 text-emerald-700' },
-  { id: '4', name: 'Acquired', initials: 'AC', color: 'bg-purple-100 text-purple-700' },
-  { id: '5', name: 'My First Million', initials: 'MM', color: 'bg-amber-100 text-amber-700' },
-  { id: '6', name: 'Lex Fridman Podcast', initials: 'LF', color: 'bg-slate-100 text-slate-700' },
-  { id: '7', name: 'Invest Like the Best', initials: 'IB', color: 'bg-indigo-100 text-indigo-700' },
-  { id: '8', name: 'The Daily', initials: 'TD', color: 'bg-rose-100 text-rose-700' },
+  { id: 'joe-rogan', name: 'Joe Rogan Experience', initials: 'JR', color: 'bg-red-100 text-red-700' },
+  { id: 'all-in', name: 'All-In Podcast', initials: 'AI', color: 'bg-blue-100 text-blue-700' },
+  { id: 'huberman', name: 'Huberman Lab', initials: 'HL', color: 'bg-emerald-100 text-emerald-700' },
+  { id: 'acquired', name: 'Acquired', initials: 'AC', color: 'bg-purple-100 text-purple-700' },
+  { id: 'my-first-million', name: 'My First Million', initials: 'MM', color: 'bg-amber-100 text-amber-700' },
+  { id: 'lex-fridman', name: 'Lex Fridman Podcast', initials: 'LF', color: 'bg-slate-100 text-slate-700' },
+  { id: 'hbr-ideacast', name: 'HBR IdeaCast', initials: 'HB', color: 'bg-orange-100 text-orange-700' },
+  { id: 'tim-ferriss', name: 'The Tim Ferriss Show', initials: 'TF', color: 'bg-teal-100 text-teal-700' },
 ];
 
 const READING_LENGTHS = [5, 10, 15, 20];
 
 export default function Home() {
+  const [, navigate] = useLocation();
+  const { data: user } = useAuth();
   const { toast } = useToast();
-  const { mutate: createSubscription, isPending } = useCreateSubscription();
+  const { mutate: register, isPending } = useRegister();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [readingLength, setReadingLength] = useState<number>(10);
   const [email, setEmail] = useState("");
 
-  const filteredPodcasts = useMemo(() => {
-    if (!searchQuery) return MOCK_PODCASTS;
-    return MOCK_PODCASTS.filter(p => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+  if (user) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  const filteredPodcasts = !searchQuery
+    ? MOCK_PODCASTS
+    : MOCK_PODCASTS.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   const togglePodcast = (id: string) => {
     setSelectedIds(prev => {
@@ -64,7 +71,7 @@ export default function Home() {
       return;
     }
 
-    createSubscription(
+    register(
       {
         podcasts: Array.from(selectedIds),
         readingLength,
@@ -73,30 +80,26 @@ export default function Home() {
       {
         onSuccess: () => {
           toast({
-            title: "Success! 🎉",
-            description: "Check your email for your first daily brief.",
+            title: "Success!",
+            description: "Your digest has been created. Redirecting to your dashboard...",
           });
-          // Reset form
-          setSelectedIds(new Set());
-          setEmail("");
-          setSearchQuery("");
-          setReadingLength(10);
+          navigate("/dashboard");
         },
         onError: (err) => {
           toast({
             title: "Something went wrong",
-            description: err.message,
+            description: err.message.includes("400")
+              ? "An account with this email already exists. Try logging in."
+              : err.message,
             variant: "destructive",
           });
-        }
+        },
       }
     );
   };
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-      
-      {/* Header */}
       <div className="text-center mb-10">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-6 shadow-inner">
           <Headphones className="w-8 h-8" />
@@ -109,10 +112,7 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Main Card */}
       <div className="w-full max-w-3xl glass-panel rounded-3xl p-6 sm:p-10 flex flex-col gap-12 relative overflow-hidden">
-        
-        {/* Step 1 */}
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
@@ -128,6 +128,7 @@ export default function Home() {
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
               <input
+                data-testid="input-search-podcasts"
                 type="text"
                 placeholder="Search podcasts (e.g. 'Huberman')"
                 value={searchQuery}
@@ -154,7 +155,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* Selected Pills */}
             {selectedPodcastsList.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4 border-t border-border/50">
                 <AnimatePresence>
@@ -167,9 +167,10 @@ export default function Home() {
                       className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-semibold"
                     >
                       {podcast.name}
-                      <button 
+                      <button
+                        data-testid={`button-remove-podcast-${podcast.id}`}
                         onClick={() => togglePodcast(podcast.id)}
-                        className="hover:bg-primary/20 p-0.5 rounded-full transition-colors"
+                        className="p-0.5 rounded-full transition-colors"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -181,7 +182,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Step 2 */}
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
@@ -200,10 +200,11 @@ export default function Home() {
                 return (
                   <button
                     key={length}
+                    data-testid={`button-reading-${length}`}
                     onClick={() => setReadingLength(length)}
                     className={`
                       relative flex-1 py-3 text-sm sm:text-base font-semibold rounded-xl transition-all duration-300
-                      ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}
+                      ${isActive ? 'text-primary' : 'text-muted-foreground'}
                     `}
                   >
                     {isActive && (
@@ -221,7 +222,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Step 3 */}
         <section className="flex flex-col gap-6">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground flex items-center gap-3">
@@ -232,6 +232,7 @@ export default function Home() {
 
           <div className="ml-0 sm:ml-11 space-y-6">
             <input
+              data-testid="input-email"
               type="email"
               placeholder="name@example.com"
               value={email}
@@ -241,9 +242,10 @@ export default function Home() {
 
             <div className="space-y-4 pt-4">
               <button
+                data-testid="button-finish"
                 onClick={handleSubmit}
                 disabled={isPending}
-                className="w-full h-16 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full h-16 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-lg bg-primary text-primary-foreground shadow-xl shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isPending ? (
                   <>
@@ -254,15 +256,25 @@ export default function Home() {
                   "Finish & Create My Daily Podcast Digest"
                 )}
               </button>
-              
+
               <p className="text-center text-sm text-muted-foreground">
                 We'll send you your first daily brief right now, based on the last week. <br className="hidden sm:block" />
                 Future briefs will only cover the previous day.
               </p>
+
+              <p className="text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <button
+                  data-testid="link-login"
+                  onClick={() => navigate("/login")}
+                  className="text-primary font-semibold"
+                >
+                  Log in
+                </button>
+              </p>
             </div>
           </div>
         </section>
-
       </div>
     </div>
   );
