@@ -180,12 +180,19 @@ export async function registerRoutes(
 
           if (episodes.length > 0) {
             hasAnyEpisodes = true;
-            const epSummary = episodes
-              .map((ep: any) => `- "${ep.trackName}": ${(ep.description || "No description available.").slice(0, 300)}`)
+            const epDetails = episodes
+              .map((ep: any) => {
+                const durationMs = ep.trackTimeMillis || 0;
+                const durationMin = Math.round(durationMs / 60000);
+                const durationStr = durationMin >= 60
+                  ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+                  : `${durationMin} minutes`;
+                return `- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n  Description: ${(ep.description || "No description available.").slice(0, 500)}`;
+              })
               .join("\n");
-            episodeData.push(`**${podcast.name}**\n${epSummary}`);
+            episodeData.push(`Podcast: ${podcast.name}\n${epDetails}`);
           } else {
-            episodeData.push(`**${podcast.name}**\n- No new episodes released yesterday.`);
+            episodeData.push(`Podcast: ${podcast.name}\n- No new episodes released yesterday.`);
           }
         } catch {
           episodeData.push(`**${podcast.name}**\n- Could not fetch episodes.`);
@@ -197,25 +204,80 @@ export async function registerRoutes(
       }
 
       const readingMinutes = user.readingLength || 10;
-      const prompt = `You are PodCap, an AI that creates daily podcast digest emails. Generate a digest summary based on podcast episodes released yesterday (${yesterdayLabel}). The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had new episodes yesterday — skip any that didn't.
+      const podcastNames = podcastInfos.map((p) => p.name).join(" · ");
+      const podcastCount = podcastInfos.length;
 
-Episodes released on ${yesterdayLabel}:
+      const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for episodes released on ${yesterdayLabel}. The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had new episodes — skip any that didn't.
+
+Source episodes from ${yesterdayLabel}:
 ${episodeData.join("\n\n")}
 
-Create an engaging daily digest with:
-1. A brief "Yesterday's Highlights" overview (2-3 sentences)
-2. For each podcast that had new episodes, a section with:
-   - Key takeaways and insights from yesterday's episodes
-   - Notable quotes or interesting points (make them feel authentic)
-   - Why listeners should care about these topics
-3. A "Conversation Starters" section with 2-3 talking points from across the episodes
+You MUST follow this EXACT structure and tone. Write in markdown.
 
-Format with markdown. Be conversational, insightful, and concise. Make it feel like a knowledgeable friend giving you the highlights.`;
+---
+
+## Big Ideas Today
+
+For each episode that had new content, write one punchy one-liner takeaway. Format each as:
+
+🚀 **[One bold sentence summarizing the biggest idea]**
+*Source: [Podcast Name]*
+
+(Use relevant emojis: 🚀 🤖 💰 🧠 🔬 💡 📈 🎯 🌍 etc. One per idea.)
+
+---
+
+Then for EACH episode (only ones with new content), write a section like this:
+
+## [PODCAST NAME IN CAPS]
+
+**[Episode Title]**
+[Guest Name if available] · [Guest Title if available] · [Duration]
+
+**TL;DR:** [2-3 sentence summary of the core thesis of the episode. Be direct and specific, not vague.]
+
+**[Discussion Label — choose one: "What They Talk About" / "What They Debate" / "What [Host] Focuses On" / "What They Explain"]**
+[2-3 sentences describing the dynamic of the conversation. Who pushes back on what? What's the tension? What angle do they explore? Make it feel like you listened.]
+
+**Key Insights:**
+- [Specific, concrete insight #1]
+- [Specific, concrete insight #2]
+- [Specific, concrete insight #3]
+- [Specific, concrete insight #4]
+
+> "[A memorable, quotable line from the episode — make it feel real and punchy, the kind of thing someone would repeat at dinner]"
+
+---
+
+## Conversation Ammo
+
+*If you repeat one idea today, make it this:*
+
+**[Topic Tag]** — [A conversational one-liner someone could casually bring up. Written as "Someone argued..." or "Apparently..." or a surprising fact.]
+
+**[Topic Tag]** — [Another one-liner from a different episode]
+
+**[Topic Tag]** — [A third one-liner from a different episode]
+
+---
+
+**That's your PodCap Daily.**
+
+---
+
+IMPORTANT TONE GUIDELINES:
+- Write like a sharp, well-read friend catching you up — not like a news anchor or a corporate summary
+- Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
+- The hook quotes should feel real — punchy, conversational, the kind of thing someone actually said
+- Key insights should be specific facts or claims, not generic observations
+- Conversation Ammo should be things someone could casually say at dinner or in a meeting
+- Keep energy high but don't use exclamation marks excessively
+- Never say "In this episode" or "The hosts discuss" — just state the ideas directly`;
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 2000,
+        max_tokens: 3000,
         temperature: 0.7,
       });
 
