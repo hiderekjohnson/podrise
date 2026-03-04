@@ -21,7 +21,14 @@ A full-stack web application that lets users create and manage personalized dail
 - Login by email lookup (no password) + session
 - Sessions stored server-side via `express-session`
 
+## Podcast Data
+- Search powered by iTunes Search API (proxied through backend to avoid CORS)
+- Each selected podcast stored as a JSON string `{id, name, artworkUrl}` in the text array column
+- Fallback icon shown for podcasts with missing artwork
+- PodcastSearch component shared between Home (onboarding) and Dashboard
+
 ## API Routes
+- `GET /api/podcasts/search?term=...` — Search podcasts via iTunes API (returns id, name, artistName, artworkUrl)
 - `POST /api/auth/register` — Create account + session
 - `POST /api/auth/login` — Login by email + session
 - `GET /api/auth/me` — Get current user

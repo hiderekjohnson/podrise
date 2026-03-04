@@ -1,41 +1,63 @@
-import { useState } from "react";
-import { Search, X, Plus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, X, Plus, Loader2, Podcast } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ALL_PODCASTS = [
-  { id: "joe-rogan", name: "The Joe Rogan Experience", initials: "JR", color: "bg-red-100 text-red-700" },
-  { id: "all-in", name: "All-In Podcast", initials: "AI", color: "bg-blue-100 text-blue-700" },
-  { id: "huberman", name: "Huberman Lab", initials: "HL", color: "bg-emerald-100 text-emerald-700" },
-  { id: "acquired", name: "Acquired", initials: "AC", color: "bg-purple-100 text-purple-700" },
-  { id: "my-first-million", name: "My First Million", initials: "MM", color: "bg-amber-100 text-amber-700" },
-  { id: "lex-fridman", name: "Lex Fridman Podcast", initials: "LF", color: "bg-slate-100 text-slate-700" },
-  { id: "hbr-ideacast", name: "HBR IdeaCast", initials: "HB", color: "bg-orange-100 text-orange-700" },
-  { id: "tim-ferriss", name: "The Tim Ferriss Show", initials: "TF", color: "bg-teal-100 text-teal-700" },
-  { id: "the-daily", name: "The Daily", initials: "TD", color: "bg-rose-100 text-rose-700" },
-  { id: "invest-best", name: "Invest Like the Best", initials: "IB", color: "bg-indigo-100 text-indigo-700" },
-  { id: "morning-joe", name: "The Morning Joe Show", initials: "MJ", color: "bg-sky-100 text-sky-700" },
-  { id: "joe-budden", name: "Joe Budden Podcast", initials: "JB", color: "bg-yellow-100 text-yellow-700" },
-];
-
-interface PodcastSearchProps {
-  selectedIds: string[];
-  onToggle: (id: string) => void;
+interface PodcastResult {
+  id: string;
+  name: string;
+  artistName: string;
+  artworkUrl: string;
 }
 
-export function PodcastSearch({ selectedIds, onToggle }: PodcastSearchProps) {
+interface SelectedPodcast {
+  id: string;
+  name: string;
+  artworkUrl: string;
+}
+
+interface PodcastSearchProps {
+  selectedPodcasts: SelectedPodcast[];
+  onAdd: (podcast: SelectedPodcast) => void;
+  onRemove: (id: string) => void;
+}
+
+export function PodcastSearch({ selectedPodcasts, onAdd, onRemove }: PodcastSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState<PodcastResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const filteredPodcasts = searchQuery.trim()
-    ? ALL_PODCASTS.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !selectedIds.includes(p.id)
-      )
-    : [];
+  const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
 
-  const selectedPodcasts = ALL_PODCASTS.filter((p) =>
-    selectedIds.includes(p.id)
-  );
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      setResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/podcasts/search?term=${encodeURIComponent(trimmed)}`);
+        const data = await res.json();
+        setResults(data.results || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 350);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchQuery]);
+
+  const filteredResults = results.filter((r) => !selectedIdSet.has(r.id));
 
   return (
     <div className="space-y-4">
@@ -63,7 +85,7 @@ export function PodcastSearch({ selectedIds, onToggle }: PodcastSearchProps) {
       </div>
 
       <AnimatePresence mode="wait">
-        {searchQuery.trim() && (
+        {searchQuery.trim().length >= 2 && (
           <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
@@ -75,24 +97,46 @@ export function PodcastSearch({ selectedIds, onToggle }: PodcastSearchProps) {
               Search Results for "{searchQuery}"
             </p>
             <div className="border border-black/[0.06] rounded-xl divide-y divide-black/[0.06] overflow-hidden bg-white/60">
-              {filteredPodcasts.length > 0 ? (
-                filteredPodcasts.map((podcast) => (
+              {isSearching ? (
+                <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Searching...
+                </div>
+              ) : filteredResults.length > 0 ? (
+                filteredResults.map((podcast) => (
                   <div
                     key={podcast.id}
                     className="flex items-center gap-3 px-4 py-3"
                   >
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-display font-bold shrink-0 ${podcast.color}`}
-                    >
-                      {podcast.initials}
+                    {podcast.artworkUrl ? (
+                      <img
+                        src={podcast.artworkUrl}
+                        alt={podcast.name}
+                        className="w-10 h-10 rounded-lg object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Podcast className="w-5 h-5 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm truncate">
+                        {podcast.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {podcast.artistName}
+                      </p>
                     </div>
-                    <span className="flex-1 font-medium text-foreground text-sm">
-                      {podcast.name}
-                    </span>
                     <button
                       data-testid={`button-add-podcast-${podcast.id}`}
-                      onClick={() => onToggle(podcast.id)}
-                      className="flex items-center gap-1 text-sm font-semibold text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-colors"
+                      onClick={() =>
+                        onAdd({
+                          id: podcast.id,
+                          name: podcast.name,
+                          artworkUrl: podcast.artworkUrl,
+                        })
+                      }
+                      className="flex items-center gap-1 text-sm font-semibold text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-colors shrink-0"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add
@@ -122,12 +166,23 @@ export function PodcastSearch({ selectedIds, onToggle }: PodcastSearchProps) {
                   initial={{ scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.85, opacity: 0 }}
-                  className="flex items-center gap-1.5 bg-secondary text-foreground pl-3 pr-2 py-1.5 rounded-full text-sm font-medium"
+                  className="flex items-center gap-2 bg-secondary text-foreground pl-1.5 pr-2 py-1 rounded-full text-sm font-medium"
                 >
-                  {podcast.name}
+                  {podcast.artworkUrl ? (
+                    <img
+                      src={podcast.artworkUrl}
+                      alt={podcast.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Podcast className="w-3 h-3 text-primary" />
+                    </div>
+                  )}
+                  <span className="truncate max-w-[160px]">{podcast.name}</span>
                   <button
                     data-testid={`button-remove-podcast-${podcast.id}`}
-                    onClick={() => onToggle(podcast.id)}
+                    onClick={() => onRemove(podcast.id)}
                     className="p-0.5 rounded-full text-muted-foreground transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -141,5 +196,3 @@ export function PodcastSearch({ selectedIds, onToggle }: PodcastSearchProps) {
     </div>
   );
 }
-
-export { ALL_PODCASTS };

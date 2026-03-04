@@ -95,6 +95,27 @@ export async function registerRoutes(
     });
   });
 
+  app.get("/api/podcasts/search", async (req, res) => {
+    const term = req.query.term as string;
+    if (!term || term.trim().length < 2) {
+      return res.json({ results: [] });
+    }
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast&entity=podcast&limit=8`;
+      const response = await fetch(url);
+      const data = await response.json();
+      const results = (data.results || []).map((item: any) => ({
+        id: String(item.collectionId),
+        name: item.collectionName,
+        artistName: item.artistName,
+        artworkUrl: item.artworkUrl100,
+      }));
+      res.json({ results });
+    } catch {
+      res.json({ results: [] });
+    }
+  });
+
   app.post(api.users.update.path, async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });

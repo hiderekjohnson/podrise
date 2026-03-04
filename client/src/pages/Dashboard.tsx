@@ -1,10 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Mail, Save } from "lucide-react";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
 import { PodcastSearch } from "@/components/PodcastSearch";
+
+interface SelectedPodcast {
+  id: string;
+  name: string;
+  artworkUrl: string;
+}
+
+function parsePodcasts(raw: string[]): SelectedPodcast[] {
+  return raw.map((item) => {
+    try {
+      const parsed = JSON.parse(item);
+      if (parsed && typeof parsed === "object" && parsed.id) return parsed;
+    } catch {}
+    return { id: item, name: item, artworkUrl: "" };
+  });
+}
 
 const READING_MARKS = [5, 10, 15, 20];
 
@@ -15,7 +31,7 @@ export default function Dashboard() {
   const { mutate: logout } = useLogout();
   const { toast } = useToast();
 
-  const [podcasts, setPodcasts] = useState<string[]>([]);
+  const [podcasts, setPodcasts] = useState<SelectedPodcast[]>([]);
   const [readingLength, setReadingLength] = useState(10);
   const [email, setEmail] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
@@ -23,7 +39,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user) {
-      setPodcasts(user.podcasts);
+      setPodcasts(parsePodcasts(user.podcasts));
       setReadingLength(user.readingLength);
       setEmail(user.email);
     }
@@ -42,16 +58,35 @@ export default function Dashboard() {
     return null;
   }
 
-  const togglePodcast = (id: string) => {
-    const newPodcasts = podcasts.includes(id)
-      ? podcasts.filter((p) => p !== id)
-      : [...podcasts, id];
-    setPodcasts(newPodcasts);
+  const serializePodcasts = (list: SelectedPodcast[]) =>
+    list.map((p) => JSON.stringify(p));
+
+  const handleAdd = (podcast: SelectedPodcast) => {
+    const newList = [...podcasts, podcast];
+    setPodcasts(newList);
     updateUser(
-      { podcasts: newPodcasts },
+      { podcasts: serializePodcasts(newList) },
       {
         onError: () => {
-          if (user) setPodcasts(user.podcasts);
+          if (user) setPodcasts(parsePodcasts(user.podcasts));
+          toast({
+            title: "Failed to update",
+            description: "Could not update your podcast list.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  const handleRemove = (id: string) => {
+    const newList = podcasts.filter((p) => p.id !== id);
+    setPodcasts(newList);
+    updateUser(
+      { podcasts: serializePodcasts(newList) },
+      {
+        onError: () => {
+          if (user) setPodcasts(parsePodcasts(user.podcasts));
           toast({
             title: "Failed to update",
             description: "Could not update your podcast list.",
@@ -64,7 +99,7 @@ export default function Dashboard() {
 
   const handleSaveAll = () => {
     updateUser(
-      { email, readingLength, podcasts },
+      { email, readingLength, podcasts: serializePodcasts(podcasts) },
       {
         onSuccess: () => {
           setEditingEmail(false);
@@ -119,8 +154,9 @@ export default function Dashboard() {
             </p>
 
             <PodcastSearch
-              selectedIds={podcasts}
-              onToggle={togglePodcast}
+              selectedPodcasts={podcasts}
+              onAdd={handleAdd}
+              onRemove={handleRemove}
             />
           </div>
 

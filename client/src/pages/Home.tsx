@@ -6,6 +6,12 @@ import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 
+interface SelectedPodcast {
+  id: string;
+  name: string;
+  artworkUrl: string;
+}
+
 const READING_LENGTHS = [5, 10, 15, 20];
 
 export default function Home() {
@@ -14,7 +20,7 @@ export default function Home() {
   const { toast } = useToast();
   const { mutate: register, isPending } = useRegister();
 
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedPodcasts, setSelectedPodcasts] = useState<SelectedPodcast[]>([]);
   const [readingLength, setReadingLength] = useState<number>(10);
   const [email, setEmail] = useState("");
 
@@ -23,14 +29,16 @@ export default function Home() {
     return null;
   }
 
-  const togglePodcast = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
+  const handleAdd = (podcast: SelectedPodcast) => {
+    setSelectedPodcasts((prev) => [...prev, podcast]);
+  };
+
+  const handleRemove = (id: string) => {
+    setSelectedPodcasts((prev) => prev.filter((p) => p.id !== id));
   };
 
   const handleSubmit = () => {
-    if (selectedIds.length === 0) {
+    if (selectedPodcasts.length === 0) {
       toast({
         title: "Almost there!",
         description: "Please select at least one podcast.",
@@ -50,7 +58,7 @@ export default function Home() {
 
     register(
       {
-        podcasts: selectedIds,
+        podcasts: selectedPodcasts.map((p) => JSON.stringify(p)),
         readingLength,
         email,
       },
@@ -103,8 +111,9 @@ export default function Home() {
 
           <div className="ml-0 sm:ml-11">
             <PodcastSearch
-              selectedIds={selectedIds}
-              onToggle={togglePodcast}
+              selectedPodcasts={selectedPodcasts}
+              onAdd={handleAdd}
+              onRemove={handleRemove}
             />
           </div>
         </section>
