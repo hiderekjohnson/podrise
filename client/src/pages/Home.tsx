@@ -106,7 +106,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
-        <section className="w-full max-w-3xl text-center pt-12 sm:pt-20 pb-14 sm:pb-16">
+        <section className="w-full max-w-3xl text-center pt-10 sm:pt-16 pb-10 sm:pb-12">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,17 +115,12 @@ export default function Home() {
           >
             <h1
               data-testid="text-headline"
-              className="text-[2.5rem] sm:text-5xl md:text-[3.5rem] font-display font-extrabold text-foreground leading-[1.08] tracking-tight max-w-[680px]"
+              className="text-3xl sm:text-[2.75rem] md:text-5xl font-display font-extrabold text-foreground leading-[1.12] tracking-tight max-w-[600px]"
             >
               Your favorite podcasts, summarized in one{" "}
-              <span className="text-primary relative">
-                daily email
-                <svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 200 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 5.5C40 2 80 1 100 3C120 5 160 6 199 2.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.3"/>
-                </svg>
-              </span>.
+              <span className="text-primary">daily email</span>.
             </h1>
-            <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-[520px] leading-relaxed">
+            <p className="mt-4 text-base sm:text-lg text-muted-foreground">
               Start free with up to 3 podcasts.
             </p>
           </motion.div>
@@ -241,6 +236,9 @@ export default function Home() {
               )}
             </button>
 
+            <p className="text-center text-sm text-muted-foreground -mt-3">
+              Free for up to 3 podcasts. No credit card required.
+            </p>
           </div>
         </motion.div>
       </main>
