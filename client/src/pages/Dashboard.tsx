@@ -77,7 +77,7 @@ const DELIVERY_TIMES = [
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
-  const { data: user, isLoading } = useAuth();
+  const { data: user, isLoading, isFetching } = useAuth();
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
   const { mutate: logout } = useLogout();
   const { toast } = useToast();
@@ -118,7 +118,7 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

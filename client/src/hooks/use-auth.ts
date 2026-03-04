@@ -26,8 +26,8 @@ export function useRegister() {
       const res = await apiRequest("POST", "/api/auth/register", data);
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    onSuccess: (user) => {
+      queryClient.setQueryData(["/api/auth/me"], user);
     },
   });
 }
@@ -38,8 +38,8 @@ export function useLogin() {
       const res = await apiRequest("POST", "/api/auth/login", data);
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    onSuccess: (user) => {
+      queryClient.setQueryData(["/api/auth/me"], user);
     },
   });
 }
