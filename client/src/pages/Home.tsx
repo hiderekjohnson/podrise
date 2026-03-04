@@ -156,9 +156,14 @@ export default function Home() {
                 <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-colors ${podcastsLocked ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
                   {podcastsLocked ? "✓" : "1"}
                 </span>
-                <h2 className="text-lg font-display font-bold text-foreground flex-1">
-                  {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
-                </h2>
+                <div className="flex-1">
+                  <h2 className="text-lg font-display font-bold text-foreground">
+                    {podcastsLocked ? "Your podcasts" : "Choose 3 podcasts to start"}
+                  </h2>
+                  {!podcastsLocked && (
+                    <p className="text-sm text-muted-foreground mt-0.5">You can add more or remove any later.</p>
+                  )}
+                </div>
                 {podcastsLocked && (
                   <button
                     data-testid="button-change-podcasts"
@@ -228,9 +233,12 @@ export default function Home() {
             <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
-                <h2 className="text-lg font-display font-bold text-foreground">
-                  Where should we send your daily recap?
-                </h2>
+                <div>
+                  <h2 className="text-lg font-display font-bold text-foreground">
+                    Where should we send your daily recap?
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">All your selected podcasts, summarized in one email.</p>
+                </div>
               </div>
               <div className="pl-10 space-y-4">
                 <input
