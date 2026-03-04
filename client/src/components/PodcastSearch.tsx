@@ -156,11 +156,11 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
         )}
       </AnimatePresence>
 
+      {selectedPodcasts.length > 0 && (
       <div className="space-y-2 pt-2">
         <p className="text-sm font-semibold text-foreground px-1">
-          Selected podcasts{maxSelection ? ` (${selectedPodcasts.length}/${maxSelection})` : selectedPodcasts.length > 0 ? ` (${selectedPodcasts.length})` : ""}
+          Selected podcasts{maxSelection ? ` (${selectedPodcasts.length}/${maxSelection})` : ` (${selectedPodcasts.length})`}
         </p>
-        {selectedPodcasts.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             <AnimatePresence>
               {selectedPodcasts.map((podcast) => (
@@ -194,12 +194,8 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
               ))}
             </AnimatePresence>
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground px-1">
-            No podcasts selected yet.
-          </p>
-        )}
       </div>
+      )}
     </div>
   );
 }
