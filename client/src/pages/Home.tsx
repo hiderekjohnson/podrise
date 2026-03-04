@@ -140,9 +140,6 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Choose podcasts to recap
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Start with up to 3 podcasts for free.
-                  </p>
                 </div>
               </div>
               <div className="pl-10">
