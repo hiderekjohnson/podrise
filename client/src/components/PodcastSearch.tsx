@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, X, Plus, Loader2, Podcast } from "lucide-react";
+import { Search, X, Plus, Loader2, Podcast, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
 
 interface PodcastResult {
   id: string;
@@ -23,9 +24,11 @@ interface PodcastSearchProps {
 }
 
 export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection }: PodcastSearchProps) {
+  const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<PodcastResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
@@ -61,19 +64,69 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
 
   const filteredResults = results.filter((r) => !selectedIdSet.has(r.id));
 
+  const handleAddClick = (podcast: PodcastResult) => {
+    if (atLimit) {
+      setShowUpgrade(true);
+      return;
+    }
+    onAdd({
+      id: podcast.id,
+      name: podcast.name,
+      artworkUrl: podcast.artworkUrl,
+    });
+  };
+
   return (
     <div className="space-y-4">
+      <AnimatePresence>
+        {showUpgrade && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="rounded-xl border border-primary/20 bg-primary/[0.04] p-5 flex flex-col items-center gap-3 text-center"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-foreground text-base">
+                Get unlimited podcast summaries
+              </p>
+              <p className="text-2xl font-display font-extrabold text-foreground mt-1">
+                $9.99<span className="text-base font-semibold text-muted-foreground">/month</span>
+              </p>
+            </div>
+            <button
+              data-testid="button-upgrade"
+              onClick={() => navigate("/upgrade")}
+              className="w-full max-w-xs h-11 flex items-center justify-center gap-2 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-all active:scale-[0.98]"
+            >
+              <Crown className="w-4 h-4" />
+              Upgrade
+            </button>
+            <p className="text-xs text-muted-foreground">Cancel anytime</p>
+            <button
+              data-testid="button-dismiss-upgrade"
+              onClick={() => setShowUpgrade(false)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="relative group flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
           <input
             data-testid="input-search-podcasts"
             type="search"
-            placeholder={atLimit ? `${maxSelection} podcast limit reached` : "Search and add your favorite podcasts..."}
+            placeholder="Search and add your favorite podcasts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            disabled={atLimit}
-            className={`w-full h-12 pl-12 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium ${atLimit ? "opacity-50 cursor-not-allowed" : ""}`}
+            className="w-full h-12 pl-12 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
           />
         </div>
         {searchQuery && (
@@ -132,17 +185,24 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                     </div>
                     <button
                       data-testid={`button-add-podcast-${podcast.id}`}
-                      onClick={() =>
-                        onAdd({
-                          id: podcast.id,
-                          name: podcast.name,
-                          artworkUrl: podcast.artworkUrl,
-                        })
-                      }
-                      className="flex items-center gap-1 text-sm font-semibold text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-colors shrink-0"
+                      onClick={() => handleAddClick(podcast)}
+                      className={`flex items-center gap-1 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors shrink-0 ${
+                        atLimit
+                          ? "text-muted-foreground border-black/[0.08]"
+                          : "text-primary border-primary/20"
+                      }`}
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add
+                      {atLimit ? (
+                        <>
+                          <Crown className="w-3.5 h-3.5" />
+                          Upgrade
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3.5 h-3.5" />
+                          Add
+                        </>
+                      )}
                     </button>
                   </div>
                 ))
