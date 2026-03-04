@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -17,8 +18,16 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  const PgStore = connectPgSimple(session);
+
+  app.set("trust proxy", 1);
+
   app.use(
     session({
+      store: new PgStore({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: true,
+      }),
       secret: process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
