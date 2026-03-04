@@ -128,10 +128,10 @@ export default function Dashboard() {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-8">
           <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-            Manage Your Daily Podcast Digest
+            PodCap Dashboard
             <br />
             <span className="text-muted-foreground text-lg md:text-xl font-semibold">
-              Subscriptions & Preferences
+              Manage Your Podcast Recaps
             </span>
           </h1>
           <button
