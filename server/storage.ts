@@ -204,7 +204,7 @@ export class DatabaseStorage implements IStorage {
       for (const raw of user.podcasts) {
         try {
           const parsed = JSON.parse(raw);
-          if (parsed && parsed.id && parsed.name) {
+          if (parsed && parsed.id && parsed.name && parsed.artworkUrl && parsed.artworkUrl.startsWith("https://")) {
             const existing = counts.get(parsed.id);
             if (existing) {
               existing.count++;
