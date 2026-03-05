@@ -173,7 +173,7 @@ export default function Leaderboard() {
                       className="shrink-0 px-3 py-1.5 text-xs font-bold text-primary bg-primary/8 hover:bg-primary/15 border border-primary/15 rounded-lg transition-all active:scale-[0.97]"
                       data-testid={`button-recap-${index}`}
                     >
-                      Create Daily Recap
+                      Get Episode Recaps
                     </button>
                   </div>
                 ))}
