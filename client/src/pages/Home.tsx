@@ -159,7 +159,7 @@ export default function Home() {
                 </span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">
-                    {podcastsLocked ? "Your podcasts" : "Choose 3 podcasts to start"}
+                    {podcastsLocked ? "Your podcasts" : "Choose 3 podcasts you already listen to"}
                   </h2>
                 </div>
                 {podcastsLocked && (
