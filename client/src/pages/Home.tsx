@@ -179,9 +179,6 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
                   </h2>
-                  {!podcastsLocked && (
-                    <p className="text-sm text-muted-foreground mt-0.5">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
-                  )}
                 </div>
                 {podcastsLocked && (
                   <button
@@ -244,7 +241,8 @@ export default function Home() {
                     />
                     {selectedPodcasts.length > 0 && (
                       <div>
-                        <p className="text-sm font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
+                        <p className="text-sm font-semibold text-foreground">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
+                        <p className="text-xs text-muted-foreground mb-2">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                         <div className="grid grid-cols-3 gap-3">
                           {selectedPodcasts.map((podcast) => (
                             <div
