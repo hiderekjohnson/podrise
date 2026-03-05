@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield } from "lucide-react";
+import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
@@ -43,24 +44,6 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
-const TIMEZONES = [
-  { value: "America/New_York", label: "Eastern (ET)" },
-  { value: "America/Chicago", label: "Central (CT)" },
-  { value: "America/Denver", label: "Mountain (MT)" },
-  { value: "America/Los_Angeles", label: "Pacific (PT)" },
-  { value: "America/Anchorage", label: "Alaska (AKT)" },
-  { value: "Pacific/Honolulu", label: "Hawaii (HT)" },
-  { value: "Europe/London", label: "London (GMT/BST)" },
-  { value: "Europe/Paris", label: "Central Europe (CET)" },
-  { value: "Europe/Berlin", label: "Berlin (CET)" },
-  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
-  { value: "Asia/Shanghai", label: "Shanghai (CST)" },
-  { value: "Asia/Kolkata", label: "India (IST)" },
-  { value: "Asia/Dubai", label: "Dubai (GST)" },
-  { value: "Australia/Sydney", label: "Sydney (AEST)" },
-  { value: "Australia/Perth", label: "Perth (AWST)" },
-];
-
 const DELIVERY_TIMES = [
   { value: "05:00", label: "5:00 AM" },
   { value: "06:00", label: "6:00 AM" },
@@ -93,7 +76,7 @@ export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
   const [deliveryTime, setDeliveryTime] = useState("07:00");
-  const [deliveryTimezone, setDeliveryTimezone] = useState("America/New_York");
+  const [deliveryTimezone, setDeliveryTimezone] = useState(() => getDetectedTimezone());
   const [loggingOut, setLoggingOut] = useState(false);
   const [viewingRecap, setViewingRecap] = useState<RecapData | null>(null);
 
@@ -389,16 +372,10 @@ export default function Dashboard() {
                           <Globe className="w-3.5 h-3.5" />
                           Timezone
                         </label>
-                        <select
-                          data-testid="select-delivery-timezone"
+                        <TimezoneSelect
                           value={deliveryTimezone}
-                          onChange={(e) => setDeliveryTimezone(e.target.value)}
-                          className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium appearance-none cursor-pointer"
-                        >
-                          {TIMEZONES.map((tz) => (
-                            <option key={tz.value} value={tz.value}>{tz.label}</option>
-                          ))}
-                        </select>
+                          onChange={(tz) => setDeliveryTimezone(tz)}
+                        />
                       </div>
                     </div>
                   </section>

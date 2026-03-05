@@ -13,7 +13,7 @@ A full-stack web application that lets users create and manage personalized dail
 ## Pages
 - `/` — Onboarding: 2-step signup flow (select 3 podcasts with auto-advance, enter email)
 - `/login` — Email-based login for existing users
-- `/dashboard` — Manage podcasts, delivery time/timezone, email, and plan/billing
+- `/dashboard` — Manage podcasts, delivery time/timezone (full IANA searchable selector with auto-detect), email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
 - `/admin` — Admin dashboard (password-protected): view all users, email send logs, analytics; tabbed interface
 - `/podcasts/myfirstmillion` — SEO landing page for My First Million podcast; email-only signup auto-adds MFM; FAQ, Apple/Spotify links, PodCap-branded
