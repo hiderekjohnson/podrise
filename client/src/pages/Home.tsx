@@ -177,7 +177,7 @@ export default function Home() {
                 </span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">
-                    {podcastsLocked ? "Your podcasts" : "Choose 3 podcasts you already listen to"}
+                    {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
                   </h2>
                 </div>
                 {podcastsLocked && (
@@ -254,7 +254,7 @@ export default function Home() {
                 </span>
                 <div>
                   <h2 className="text-lg font-display font-bold text-foreground">
-                    Where should we send your daily recap?
+                    Where should we send your recap?
                   </h2>
                 </div>
               </div>
@@ -285,7 +285,7 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    Create My Daily Recap
+                    Start My Daily Recap
                     <ArrowRight className="w-4.5 h-4.5" />
                   </>
                 )}
