@@ -272,6 +272,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/leaderboard", async (_req, res) => {
+    try {
+      const topPodcasts = await storage.getTopPodcasts(50);
+      res.json(topPodcasts);
+    } catch (err) {
+      console.error("Leaderboard error:", err);
+      res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+  });
+
   app.get("/api/recaps", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });

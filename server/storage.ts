@@ -23,6 +23,7 @@ export interface IStorage {
   markMagicLinkUsed(id: number): Promise<void>;
   deleteUser(id: number): Promise<void>;
   getAllRecaps(): Promise<Recap[]>;
+  getTopPodcasts(limit?: number): Promise<{ id: string; name: string; artworkUrl: string; userCount: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -193,6 +194,37 @@ export class DatabaseStorage implements IStorage {
       .update(magicLinks)
       .set({ usedAt: new Date() })
       .where(eq(magicLinks.id, id));
+  }
+
+  async getTopPodcasts(limit = 50): Promise<{ id: string; name: string; artworkUrl: string; userCount: number }[]> {
+    const allUsers = await db.select({ podcasts: users.podcasts }).from(users);
+    const counts = new Map<string, { id: string; name: string; artworkUrl: string; count: number }>();
+
+    for (const user of allUsers) {
+      for (const raw of user.podcasts) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.id && parsed.name) {
+            const existing = counts.get(parsed.id);
+            if (existing) {
+              existing.count++;
+            } else {
+              counts.set(parsed.id, {
+                id: parsed.id,
+                name: parsed.name,
+                artworkUrl: parsed.artworkUrl || "",
+                count: 1,
+              });
+            }
+          }
+        } catch {}
+      }
+    }
+
+    return Array.from(counts.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit)
+      .map((p) => ({ id: p.id, name: p.name, artworkUrl: p.artworkUrl, userCount: p.count }));
   }
 }
 
