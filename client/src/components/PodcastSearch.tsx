@@ -248,11 +248,11 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-20 h-20 rounded-xl object-cover shadow-sm"
+                      className="w-28 h-28 rounded-xl object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Podcast className="w-8 h-8 text-primary" />
+                    <div className="w-28 h-28 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Podcast className="w-10 h-10 text-primary" />
                     </div>
                   )}
                   <span className="mt-2.5 text-sm font-medium text-foreground leading-tight line-clamp-2">{podcast.name}</span>
