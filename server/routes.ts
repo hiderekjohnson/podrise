@@ -604,6 +604,27 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/admin/users/:id/plan", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    const { plan } = req.body;
+    if (plan !== "free" && plan !== "pro") {
+      return res.status(400).json({ message: "Invalid plan. Must be 'free' or 'pro'." });
+    }
+    try {
+      await storage.updateUser(userId, { plan });
+      res.json({ message: `User ${userId} updated to ${plan} plan` });
+    } catch (err) {
+      console.error("Failed to update user plan:", err);
+      res.status(500).json({ message: "Failed to update user plan" });
+    }
+  });
+
   app.post("/api/admin/impersonate", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
