@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Mail, X, Pencil, Podcast, Clock, Headphones, BookOpen, Zap, Quote, MessageCircle } from "lucide-react";
+import { Loader2, ArrowRight, Mail, X, Pencil, Podcast, Clock, Headphones, BookOpen, Zap, Quote, MessageCircle, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -113,13 +113,14 @@ export default function Home() {
             className="h-9 object-contain"
           />
         </a>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             data-testid="link-podcasts"
             onClick={() => navigate("/podcasts")}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-colors"
+            title="Most Popular"
           >
-            Podcasts
+            <Trophy className="w-4.5 h-4.5" />
           </button>
           <button
             data-testid="link-login"
