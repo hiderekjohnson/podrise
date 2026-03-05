@@ -117,7 +117,7 @@ export default function PodcastLandingMFM() {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-blue-50/30 to-white">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-8 object-contain" />
+          <img src={logoPath} alt="PodCap" className="h-20 -my-5 object-contain" />
         </a>
         <a
           href="/login"

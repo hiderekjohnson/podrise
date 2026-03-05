@@ -109,7 +109,7 @@ export default function Home() {
           <img
             src={logoPath}
             alt="PodCap"
-            className="h-10 object-contain"
+            className="h-20 -my-5 object-contain"
           />
         </a>
         <div className="flex items-center gap-4">

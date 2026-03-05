@@ -71,7 +71,7 @@ export default function Login() {
             <img
               src={logoPath}
               alt="PodCap"
-              className="h-9 object-contain"
+              className="h-20 object-contain"
               data-testid="img-logo"
             />
           </div>

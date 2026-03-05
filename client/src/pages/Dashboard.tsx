@@ -361,7 +361,7 @@ export default function Dashboard() {
           <img
             src={logoPath}
             alt="PodCap"
-            className="h-8 object-contain"
+            className="h-20 -my-5 object-contain"
           />
         </a>
         <button
