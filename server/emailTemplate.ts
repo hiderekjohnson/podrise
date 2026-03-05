@@ -207,55 +207,22 @@ function renderInlineMarkdown(text: string): string {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline;" target="_blank">$1</a>');
 }
 
-function buildStatsCards(statsHeader: string, episodeCount: number): string {
-  const runtimeMatch = statsHeader.match(/\*?\*?(\d+h?\s*\d*m?)\*?\*?\s*(?:Audio analyzed|Total runtime)/i);
-  const totalRuntime = runtimeMatch ? runtimeMatch[1].trim() : "";
-
-  const readMinutes = Math.max(2, Math.ceil(episodeCount * 2.5));
-
-  let totalMinutes = 0;
-  const hourMatch = totalRuntime.match(/(\d+)h/);
-  const minMatch = totalRuntime.match(/(\d+)m/);
-  if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
-  if (minMatch) totalMinutes += parseInt(minMatch[1]);
-  const timeSaved = totalMinutes - readMinutes;
-
+function buildStatsCards(episodeCount: number): string {
   return `<table width="100%" cellpadding="0" cellspacing="4" border="0" style="margin:20px 0;">
       <tr>
-        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
+        <td width="49%" style="text-align:center;padding:16px 8px;border-radius:10px;background:#f0f7ff;">
           <div style="font-size:18px;margin-bottom:4px;">&#127911;</div>
-          <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${episodeCount}</div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Podcasts</div>
+          <div style="font-size:28px;font-weight:800;color:#1a1a1a;">${episodeCount}</div>
+          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Podcasts recapped</div>
         </td>
-        <td width="1%"></td>
-        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
-          <div style="font-size:18px;margin-bottom:4px;">&#128269;</div>
-          <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${totalRuntime || "&mdash;"}</div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Audio analyzed</div>
-        </td>
-        <td width="1%"></td>
-        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
-          <div style="font-size:18px;margin-bottom:4px;">&#128214;</div>
-          <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${readMinutes} min</div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your recap</div>
-        </td>
-        <td width="1%"></td>
-        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#ecfdf5;">
+        <td width="2%"></td>
+        <td width="49%" style="text-align:center;padding:16px 8px;border-radius:10px;background:#ecfdf5;">
           <div style="font-size:18px;margin-bottom:4px;">&#9889;</div>
-          <div style="font-size:22px;font-weight:800;color:#059669;">${timeSaved > 0 ? formatTimeSaved(timeSaved) : "&mdash;"}</div>
+          <div style="font-size:28px;font-weight:800;color:#059669;">Today</div>
           <div style="font-size:11px;color:#059669;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Time saved</div>
         </td>
       </tr>
     </table>`;
-}
-
-function formatTimeSaved(minutes: number): string {
-  if (minutes >= 60) {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${h}h`;
-  }
-  return `${minutes}m`;
 }
 
 function buildTldlSummary(episodes: ParsedEpisode[]): string {
@@ -372,46 +339,18 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
 export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
   const parsed = parseDigestMarkdown(markdown);
 
-  const runtimeMatch = parsed.statsHeader.match(/\*?\*?(\d+h?\s*\d*m?)\*?\*?\s*(?:Audio analyzed|Total runtime)/i);
-  const totalRuntime = runtimeMatch ? runtimeMatch[1].trim() : "";
-
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-
-  const bigIdeasHtml = parsed.bigIdeas
-    .map(idea => `<tr>
-          <td style="padding:0 10px 14px 0;vertical-align:top;width:30px;font-size:20px;">${idea.emoji}</td>
-          <td style="padding-bottom:14px;vertical-align:top;">
-            <div style="font-size:14px;font-weight:700;color:#1a1a1a;line-height:1.4;">${escapeHtml(idea.text)}</div>
-            ${idea.source ? `<div style="font-size:12px;color:#94a3b8;margin-top:2px;">Source: ${escapeHtml(idea.source)}</div>` : ""}
-          </td>
-        </tr>`)
-    .join("");
 
   const tldlSummaryHtml = buildTldlSummary(parsed.episodes);
 
   const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep)).join("");
 
-  const conversationAmmoHtml = parsed.conversationAmmo.length > 0
-    ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:20px;margin:20px 0;">
-        <h2 style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#92400e;margin:0 0 14px 0;">&#128172; Conversation Ammo</h2>
-        <p style="font-size:12px;color:#92400e;font-style:italic;margin:0 0 14px 0;">Drop one of these at your next dinner party:</p>
-        ${parsed.conversationAmmo
-          .map((ammo, idx) => `<div style="margin-bottom:12px;padding-bottom:${idx < parsed.conversationAmmo.length - 1 ? "12" : "0"}px;${idx < parsed.conversationAmmo.length - 1 ? "border-bottom:1px solid #fde68a;" : ""}">
-              <span style="display:inline-block;background:#fde68a;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(ammo.tag)}</span>
-              <p style="font-size:14px;color:#374151;line-height:1.5;margin:6px 0 0 0;">${renderInlineMarkdown(escapeHtml(ammo.text))}</p>
-            </div>`)
-          .join("")}
-      </div>`
-    : "";
-
-  const statsCardsHtml = buildStatsCards(parsed.statsHeader, parsed.episodes.length);
+  const statsCardsHtml = buildStatsCards(parsed.episodes.length);
 
   const manageBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:10px 16px;margin-bottom:24px;text-align:center;">
         <p style="color:#1e40af;font-size:12px;margin:0;">Want to change your podcasts? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your subscriptions</a></p>
       </div>`;
-
-  const readMinutes = Math.max(2, Math.ceil(parsed.episodes.length * 2.5));
 
   return `<!DOCTYPE html>
 <html>
@@ -437,21 +376,13 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
     <![endif]-->
     <div style="padding:28px;">
       <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin:0 0 8px 0;">Here's your PodCap for ${dateStr}</p>
-      <h2 style="font-size:24px;font-weight:800;color:#1a1a1a;margin:0 0 10px 0;line-height:1.3;">We listened to <span style="color:#2563eb;">${totalRuntime || parsed.episodes.length + " episodes"}</span> of podcasts so you don't have to.</h2>
-      <p style="font-size:15px;color:#374151;margin:0 0 4px 0;">Below is your <strong>${readMinutes}-minute recap</strong> of <strong>${parsed.episodes.length} podcast${parsed.episodes.length !== 1 ? "s" : ""}</strong>. You can thank us later.</p>
+      <h2 style="font-size:24px;font-weight:800;color:#1a1a1a;margin:0 0 10px 0;line-height:1.3;">We listened to <span style="color:#2563eb;">${parsed.episodes.length} of your favorite podcast${parsed.episodes.length !== 1 ? "s" : ""}</span> yesterday so you don't have to.</h2>
+      <p style="font-size:15px;color:#374151;margin:0;">Below is your recap. You can thank us later.</p>
       ${parsed.podcastNames ? `<p style="font-size:13px;color:#94a3b8;margin:12px 0 0 0;">${escapeHtml(parsed.podcastNames)}</p>` : ""}
       ${statsCardsHtml}
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
       ${tldlSummaryHtml}
-      ${bigIdeasHtml ? `<div style="margin:24px 0;">
-        <h2 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#1a1a1a;margin:0 0 16px 0;">BIG IDEAS TODAY</h2>
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          ${bigIdeasHtml}
-        </table>
-      </div>` : ""}
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 4px 0;">
       ${episodeCardsHtml}
-      ${conversationAmmoHtml}
       <div style="text-align:center;margin:24px 0 8px 0;">
         <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 4px 0;">That's your PodCap Daily. &#9749;</p>
         <p style="font-size:13px;color:#6b7280;margin:0;">Same time tomorrow?</p>

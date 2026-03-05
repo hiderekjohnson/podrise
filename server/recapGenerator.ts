@@ -19,15 +19,6 @@ function buildSpotifySearchUrl(podcastName: string, episodeTitle: string): strin
   return `https://open.spotify.com/search/${query}`;
 }
 
-function formatDuration(totalMinutes: number): string {
-  if (totalMinutes >= 60) {
-    const hours = Math.floor(totalMinutes / 60);
-    const mins = totalMinutes % 60;
-    return mins > 0 ? `${hours}h ${String(mins).padStart(2, "0")}m` : `${hours}h 00m`;
-  }
-  return `${totalMinutes}m`;
-}
-
 function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Date, yesterdayEnd?: Date): any[] {
   const podcastEpisodes = allResults.filter((r: any) => r.wrapperType === "podcastEpisode");
 
@@ -64,8 +55,6 @@ export async function generateRecap(
   const podcastNamesWithEpisodes: string[] = [];
   let hasAnyEpisodes = false;
   let hasTranscripts = false;
-  let totalDurationMin = 0;
-
   const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
   const noEpisodesMsg = mode === "latest" ? "No episodes found." : "No new episodes released yesterday.";
 
@@ -95,7 +84,6 @@ export async function generateRecap(
         for (const ep of episodes) {
           const durationMs = ep.trackTimeMillis || 0;
           const durationMin = Math.round(durationMs / 60000);
-          totalDurationMin += durationMin;
           const durationStr = durationMin >= 60
             ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
             : `${durationMin} minutes`;
@@ -165,22 +153,11 @@ You MUST follow this EXACT structure and tone. Write in markdown.
 
 ---
 
-**Stats header — include this EXACTLY at the very top of the digest, before Big Ideas Today:**
+**Stats header — include this EXACTLY at the very top of the digest:**
 
 ${podcastNames}
 
-**${totalPodcasts}** Podcasts · **${formatDuration(totalDurationMin)}** Audio analyzed
-
----
-
-## Big Ideas Today
-
-For each episode that had new content, write one punchy one-liner takeaway. Format each as:
-
-🚀 **[One bold sentence summarizing the biggest idea]**
-*Source: [Podcast Name]*
-
-(Use relevant emojis: 🚀 🤖 💰 🧠 🔬 💡 📈 🎯 🌍 etc. One per idea.)
+**${totalPodcasts}** Podcasts
 
 ---
 
@@ -210,18 +187,6 @@ Then for EACH episode (only ones with new content), write a section like this:
 
 ---
 
-## Conversation Ammo
-
-*Drop one of these at your next dinner party:*
-
-**[Topic Tag]** — [A conversational one-liner someone could casually bring up. Written as "Someone argued..." or "Apparently..." or a surprising fact.]
-
-**[Topic Tag]** — [Another one-liner from a different episode]
-
-**[Topic Tag]** — [A third one-liner from a different episode]
-
----
-
 **That's your PodCap Daily. You can thank us later.**
 
 ---
@@ -231,7 +196,6 @@ IMPORTANT TONE GUIDELINES:
 - Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
 - The quotes should feel real — punchy, conversational, the kind of thing someone actually said. Always attribute the quote to the speaker.
 - Key insights should be specific facts or claims, not generic observations
-- Conversation Ammo should be things someone could casually say at dinner or in a meeting
 - Keep energy high but don't use exclamation marks excessively
 - Never say "In this episode" or "The hosts discuss" — just state the ideas directly
 - The "What Happened" section should read like a story, NOT a list. Use flowing paragraphs with paragraph breaks between beats.
