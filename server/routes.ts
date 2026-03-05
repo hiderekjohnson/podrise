@@ -100,10 +100,83 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
   console.log(`[NewUserNotify] Notification sent for ${user.email}`);
 }
 
+const DOMAIN = "https://podcap.io";
+
+const STATIC_PAGES = [
+  { path: "/", priority: "1.0", changefreq: "daily" },
+  { path: "/podcasts", priority: "0.9", changefreq: "daily" },
+  { path: "/login", priority: "0.5", changefreq: "monthly" },
+  { path: "/privacy", priority: "0.3", changefreq: "yearly" },
+  { path: "/terms", priority: "0.3", changefreq: "yearly" },
+];
+
+const PODCAST_SLUGS = [
+  "myfirstmillion", "empowerher",
+  "joerogan", "diaryofaceo", "allin", "thedaily", "lexfridman", "smartless",
+  "hubermanlab", "newheights", "timferriss", "callherdaddy", "pivot", "acquired",
+  "hardfork", "waveform", "thevergecast", "searchengine", "a16z", "bg2pod",
+  "decoder", "aidailybrief", "planetmoney", "thejournal", "howibuiltthis",
+  "ramseyshow", "hbrideacast", "financialaudit", "founders", "businessbreakdowns",
+  "mastersofscale", "biggerpockets", "theindicator", "mastersinbusiness",
+  "themoneyguyshow", "equity", "onpurpose", "melrobbins", "armchairexpert",
+  "conanobrien", "meidastouch", "shawnryanshow", "thisamericanlife", "freshair",
+  "podsaveamerica", "hiddenbrain", "tedtalksdaily", "officeladies", "moderncto",
+  "stuffyoushouldknow",
+];
+
+function buildSitemap(): string {
+  const today = new Date().toISOString().split("T")[0];
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+  xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+  for (const page of STATIC_PAGES) {
+    xml += `  <url>\n`;
+    xml += `    <loc>${DOMAIN}${page.path}</loc>\n`;
+    xml += `    <lastmod>${today}</lastmod>\n`;
+    xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
+    xml += `    <priority>${page.priority}</priority>\n`;
+    xml += `  </url>\n`;
+  }
+
+  for (const slug of PODCAST_SLUGS) {
+    xml += `  <url>\n`;
+    xml += `    <loc>${DOMAIN}/podcasts/${slug}</loc>\n`;
+    xml += `    <lastmod>${today}</lastmod>\n`;
+    xml += `    <changefreq>weekly</changefreq>\n`;
+    xml += `    <priority>0.8</priority>\n`;
+    xml += `  </url>\n`;
+  }
+
+  xml += `</urlset>`;
+  return xml;
+}
+
+const ROBOTS_TXT = `User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /upgrade
+Disallow: /api/
+
+Sitemap: ${DOMAIN}/sitemap.xml
+`;
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.get("/sitemap.xml", (_req, res) => {
+    res.set("Content-Type", "application/xml");
+    res.set("Cache-Control", "public, max-age=3600");
+    res.send(buildSitemap());
+  });
+
+  app.get("/robots.txt", (_req, res) => {
+    res.set("Content-Type", "text/plain");
+    res.set("Cache-Control", "public, max-age=86400");
+    res.send(ROBOTS_TXT);
+  });
+
   const PgStore = connectPgSimple(session);
 
   app.set("trust proxy", 1);
