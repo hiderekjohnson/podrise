@@ -1,25 +1,382 @@
+interface ParsedEpisode {
+  podcastName: string;
+  episodeTitle: string;
+  metaLine: string;
+  linksLine: string;
+  tldr: string;
+  discussionLabel: string;
+  discussionText: string;
+  keyInsights: string[];
+  quote: string;
+}
+
+interface ParsedDigest {
+  statsHeader: string;
+  podcastNames: string;
+  bigIdeas: { emoji: string; text: string; source: string }[];
+  episodes: ParsedEpisode[];
+  conversationAmmo: { tag: string; text: string }[];
+}
+
+function isEpisodeSection(title: string, body: string): boolean {
+  if (title.toLowerCase().includes("big ideas") || title.toLowerCase().includes("conversation ammo")) {
+    return false;
+  }
+  const hasTldr = /\*\*TL;?DR/i.test(body);
+  const hasKeyInsights = /\*\*Key (Insights|Takeaways)/i.test(body);
+  const hasEpisodeTitle = /^\*\*.+\*\*$/m.test(body);
+  return hasTldr || hasKeyInsights || hasEpisodeTitle;
+}
+
+function parseDigestMarkdown(markdown: string): ParsedDigest {
+  const result: ParsedDigest = {
+    statsHeader: "",
+    podcastNames: "",
+    bigIdeas: [],
+    episodes: [],
+    conversationAmmo: [],
+  };
+
+  const h2Sections = markdown.split(/^## /m);
+
+  if (h2Sections.length > 0) {
+    const preH2 = h2Sections[0].trim();
+    const cleanPre = preH2.replace(/^---+$/gm, "").trim();
+    const statsLines = cleanPre.split("\n").filter(l => l.trim() && !/^\*\*Stats header/i.test(l));
+    if (statsLines.length >= 1) {
+      result.podcastNames = statsLines[0].replace(/\*\*/g, "").trim();
+    }
+    if (statsLines.length >= 2) {
+      result.statsHeader = statsLines.slice(1).join("\n").trim();
+    }
+  }
+
+  for (let s = 1; s < h2Sections.length; s++) {
+    const section = h2Sections[s];
+    const sectionTitle = section.split("\n")[0].trim();
+    const sectionBody = section.slice(section.indexOf("\n") + 1).trim();
+
+    if (/big ideas today/i.test(sectionTitle)) {
+      const ideaLines = sectionBody.split("\n").filter(l => l.trim());
+      let currentEmoji = "";
+      let currentText = "";
+      let currentSource = "";
+
+      for (const line of ideaLines) {
+        const ideaMatch = line.match(/^(.{1,4}?)\s*\*\*(.+?)\*\*/);
+        if (ideaMatch && /\p{Emoji}/u.test(ideaMatch[1])) {
+          if (currentText) {
+            result.bigIdeas.push({ emoji: currentEmoji, text: currentText, source: currentSource });
+          }
+          currentEmoji = ideaMatch[1].trim();
+          currentText = ideaMatch[2];
+          currentSource = "";
+        }
+        const sourceMatch = line.match(/^\*Source:\s*(.+?)\*$/);
+        if (sourceMatch) {
+          currentSource = sourceMatch[1].trim();
+        }
+      }
+      if (currentText) {
+        result.bigIdeas.push({ emoji: currentEmoji, text: currentText, source: currentSource });
+      }
+      continue;
+    }
+
+    if (/conversation ammo/i.test(sectionTitle)) {
+      const lines = sectionBody.split("\n").filter(l => l.trim());
+      for (const line of lines) {
+        const ammoMatch = line.match(/^\*\*(.+?)\*\*\s*[—–\-:]\s*(.+)$/);
+        if (ammoMatch) {
+          result.conversationAmmo.push({ tag: ammoMatch[1], text: ammoMatch[2] });
+        }
+      }
+      continue;
+    }
+
+    if (isEpisodeSection(sectionTitle, sectionBody)) {
+      const episode: ParsedEpisode = {
+        podcastName: sectionTitle,
+        episodeTitle: "",
+        metaLine: "",
+        linksLine: "",
+        tldr: "",
+        discussionLabel: "",
+        discussionText: "",
+        keyInsights: [],
+        quote: "",
+      };
+
+      const lines = sectionBody.split("\n");
+      let i = 0;
+
+      while (i < lines.length && !lines[i].trim()) i++;
+
+      if (i < lines.length) {
+        const titleMatch = lines[i].match(/^\*\*(.+?)\*\*\s*$/);
+        if (titleMatch) {
+          episode.episodeTitle = titleMatch[1];
+          i++;
+        }
+      }
+
+      while (i < lines.length && !lines[i].trim()) i++;
+      if (i < lines.length && !lines[i].startsWith("**") && !lines[i].startsWith(">") && !lines[i].startsWith("-") && !/^🎧/.test(lines[i])) {
+        episode.metaLine = lines[i].trim();
+        i++;
+      }
+
+      while (i < lines.length && !lines[i].trim()) i++;
+      if (i < lines.length && /🎧/.test(lines[i])) {
+        episode.linksLine = lines[i].trim();
+        i++;
+      }
+
+      const remainingText = lines.slice(i).join("\n");
+
+      const tldrMatch = remainingText.match(/\*\*TL;?DR:?\*\*\s*(.+?)(?=\n\s*\n\s*\*\*|\n\*\*[A-Z])/si);
+      if (tldrMatch) {
+        episode.tldr = tldrMatch[1].trim();
+      } else {
+        const simpleTldr = remainingText.match(/\*\*TL;?DR:?\*\*\s*(.+?)$/mi);
+        if (simpleTldr) {
+          episode.tldr = simpleTldr[1].trim();
+        }
+      }
+
+      const discussionMatch = remainingText.match(/\*\*(.+?(?:Talk|Debate|Focus|Explain|Discuss|Cover|Explore|Unpack|Break|Argue|Reveal|Dig|Examine|Analyze|Dissect|Address|Highlight|Investigate).+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key)/i);
+      if (discussionMatch) {
+        episode.discussionLabel = discussionMatch[1].trim();
+        episode.discussionText = discussionMatch[2].trim();
+      } else {
+        const altDiscussion = remainingText.match(/\*\*(What .+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key)/i);
+        if (altDiscussion) {
+          episode.discussionLabel = altDiscussion[1].trim();
+          episode.discussionText = altDiscussion[2].trim();
+        }
+      }
+
+      const insightsMatch = remainingText.match(/\*\*Key (?:Insights|Takeaways):?\*\*\s*\n((?:[-•]\s*.+\n?)+)/i);
+      if (insightsMatch) {
+        episode.keyInsights = insightsMatch[1]
+          .split("\n")
+          .filter(l => /^[-•]\s/.test(l.trim()))
+          .map(l => l.replace(/^[-•]\s*/, "").trim());
+      }
+
+      const quoteMatches = remainingText.match(/^>\s*"?(.+?)"?\s*$/gm);
+      if (quoteMatches) {
+        const lastQuote = quoteMatches[quoteMatches.length - 1];
+        const cleaned = lastQuote.replace(/^>\s*/, "").replace(/^[""\u201C]|[""\u201D]$/g, "").trim();
+        episode.quote = cleaned;
+      }
+
+      result.episodes.push(episode);
+    }
+  }
+
+  return result;
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderLinks(linksLine: string): string {
+  if (!linksLine) return "";
+  const rendered = linksLine
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:none;font-weight:600;" target="_blank">$1</a>')
+    .replace(/🎧\s*/, "");
+  return `<p style="margin:8px 0 0 0;font-size:13px;color:#6b7280;">🎧 ${rendered}</p>`;
+}
+
+function renderInlineMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline;" target="_blank">$1</a>');
+}
+
+function buildStatsCards(statsHeader: string, episodeCount: number): string {
+  const runtimeMatch = statsHeader.match(/\*?\*?(\d+h?\s*\d*m?)\*?\*?\s*Total runtime/i);
+  const totalRuntime = runtimeMatch ? runtimeMatch[1].trim() : "";
+
+  const readMinutes = Math.max(2, Math.ceil(episodeCount * 2.5));
+
+  let totalMinutes = 0;
+  const hourMatch = totalRuntime.match(/(\d+)h/);
+  const minMatch = totalRuntime.match(/(\d+)m/);
+  if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
+  if (minMatch) totalMinutes += parseInt(minMatch[1]);
+  const timeSaved = totalMinutes - readMinutes;
+
+  return `<table width="100%" cellpadding="0" cellspacing="4" border="0" style="margin:20px 0;">
+      <tr>
+        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
+          <div style="font-size:18px;margin-bottom:4px;">🎧</div>
+          <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${episodeCount}</div>
+          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Podcasts</div>
+        </td>
+        <td width="1%"></td>
+        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
+          <div style="font-size:18px;margin-bottom:4px;">&#9201;</div>
+          <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${totalRuntime || "&mdash;"}</div>
+          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total runtime</div>
+        </td>
+        <td width="1%"></td>
+        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
+          <div style="font-size:18px;margin-bottom:4px;">&#128214;</div>
+          <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${readMinutes} min</div>
+          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your recap</div>
+        </td>
+        <td width="1%"></td>
+        <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#ecfdf5;">
+          <div style="font-size:18px;margin-bottom:4px;">&#9889;</div>
+          <div style="font-size:22px;font-weight:800;color:#059669;">${timeSaved > 0 ? formatTimeSaved(timeSaved) : "&mdash;"}</div>
+          <div style="font-size:11px;color:#059669;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Time saved</div>
+        </td>
+      </tr>
+    </table>`;
+}
+
+function formatTimeSaved(minutes: number): string {
+  if (minutes >= 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${h}h`;
+  }
+  return `${minutes}m`;
+}
+
+function buildEpisodeCard(episode: ParsedEpisode): string {
+  const metaParts = episode.metaLine.split(/\s*·\s*/).map(p => p.trim()).filter(Boolean);
+  let guestHtml = "";
+  let durationHtml = "";
+
+  if (metaParts.length >= 3) {
+    const guestName = metaParts[0];
+    const guestTitle = metaParts[1];
+    durationHtml = metaParts[metaParts.length - 1];
+    guestHtml = `
+        <td style="vertical-align:top;padding-left:20px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">GUEST</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(guestName)}</div>
+          <div style="font-size:13px;color:#6b7280;">${escapeHtml(guestTitle)}</div>
+        </td>`;
+  } else if (metaParts.length === 2) {
+    durationHtml = metaParts[1];
+  } else {
+    durationHtml = metaParts[0] || "";
+  }
+
+  const insightsHtml = episode.keyInsights
+    .map(insight => `<tr>
+            <td style="padding:0 8px 8px 0;vertical-align:top;width:18px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#2563eb;margin-top:7px;"></div>
+            </td>
+            <td style="padding-bottom:8px;font-size:14px;color:#374151;line-height:1.5;">${renderInlineMarkdown(escapeHtml(insight))}</td>
+          </tr>`)
+    .join("");
+
+  const quoteHtml = episode.quote
+    ? `<div style="background:#fefce8;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 16px;margin:16px 0 0 0;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="vertical-align:top;padding-right:10px;font-size:22px;color:#f59e0b;">&#8220;&#8220;</td>
+            <td style="font-size:14px;color:#1a1a1a;font-style:italic;line-height:1.5;">"${escapeHtml(episode.quote)}"</td>
+          </tr></table>
+        </div>`
+    : "";
+
+  const discussionHtml = episode.discussionText
+    ? `<div style="margin:16px 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:8px;">${escapeHtml(episode.discussionLabel || "WHAT THEY TALK ABOUT")}</div>
+          <p style="font-size:14px;color:#374151;line-height:1.6;margin:0;">${renderInlineMarkdown(escapeHtml(episode.discussionText))}</p>
+        </div>`
+    : "";
+
+  const tldrHtml = episode.tldr
+    ? `<div style="background:#f8fafc;border-left:3px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 16px;margin:16px 0;">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:6px;">TLDR</div>
+          <p style="font-size:14px;color:#1a1a1a;line-height:1.5;margin:0;">${renderInlineMarkdown(escapeHtml(episode.tldr))}</p>
+        </div>`
+    : "";
+
+  return `<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:20px 0;">
+      <!--[if mso]>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#4f7df5;padding:14px 20px;">
+      <![endif]-->
+      <div style="background-color:#4f7df5;background-image:linear-gradient(135deg,#4f7df5,#6c9aff);padding:14px 20px;">
+        <h2 style="color:#ffffff;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:0;">${escapeHtml(episode.podcastName)}</h2>
+      </div>
+      <!--[if mso]>
+      </td></tr></table>
+      <![endif]-->
+      <div style="padding:20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="vertical-align:top;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">EPISODE</div>
+              <div style="font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.3;">${escapeHtml(episode.episodeTitle)}</div>
+            </td>
+            ${guestHtml}
+          </tr>
+        </table>
+        ${durationHtml ? `<div style="margin-top:12px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">LENGTH</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(durationHtml)}</div>
+        </div>` : ""}
+        ${renderLinks(episode.linksLine)}
+        ${tldrHtml}
+        ${discussionHtml}
+        ${insightsHtml ? `<div style="margin:16px 0 0 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:10px;">KEY INSIGHTS</div>
+          <table cellpadding="0" cellspacing="0" border="0">
+            ${insightsHtml}
+          </table>
+        </div>` : ""}
+        ${quoteHtml}
+      </div>
+    </div>`;
+}
+
 export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
-  const manageLink = `<div style="text-align:center;margin:16px 0 8px 0;"><a href="https://podcap.io/login" style="color:#2563eb;font-size:12px;text-decoration:underline;">Manage your podcasts</a></div>`;
+  const parsed = parseDigestMarkdown(markdown);
 
-  let html = markdown
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline;" target="_blank">$1</a>')
-    .replace(/^## (.+)$/gm, '<h2 style="color:#1a1a1a;font-size:22px;font-weight:700;margin:28px 0 12px 0;padding-bottom:8px;border-bottom:2px solid #e5e7eb;">$1</h2>')
-    .replace(/^\*\*(.+?)\*\*$/gm, '<p style="font-weight:700;color:#1a1a1a;margin:8px 0;">$1</p>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em style="color:#6b7280;">$1</em>')
-    .replace(/^> "(.+)"$/gm, '<blockquote style="border-left:4px solid #2563eb;padding:12px 16px;margin:16px 0;background:#f0f7ff;border-radius:0 8px 8px 0;font-style:italic;color:#1e40af;font-size:15px;">"$1"</blockquote>')
-    .replace(/^> (.+)$/gm, '<blockquote style="border-left:4px solid #2563eb;padding:12px 16px;margin:16px 0;background:#f0f7ff;border-radius:0 8px 8px 0;font-style:italic;color:#1e40af;font-size:15px;">$1</blockquote>')
-    .replace(/^- (.+)$/gm, '<li style="margin:6px 0;color:#374151;line-height:1.6;">$1</li>')
-    .replace(/^---$/gm, `<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">${manageLink}`)
-    .replace(/\n\n/g, '</p><p style="color:#374151;line-height:1.7;margin:8px 0;">')
-    .replace(/<\/p><p[^>]*>(<h2|<hr|<blockquote|<li)/g, '$1')
-    .replace(/(<\/h2>|<\/hr>|<\/blockquote>|<\/li>)<\/p>/g, '$1');
+  const firstName = recipientEmail.split("@")[0].replace(/[^a-zA-Z]/g, " ").replace(/\b\w/g, l => l.toUpperCase()).split(" ")[0];
 
-  const liGroups = html.replace(/(<li[^>]*>.*?<\/li>)(\s*<li)/g, '$1$2');
-  html = liGroups.replace(/(<li[^>]*>.*?<\/li>(?:\s*<li[^>]*>.*?<\/li>)*)/g, '<ul style="padding-left:20px;margin:12px 0;">$1</ul>');
+  const bigIdeasHtml = parsed.bigIdeas
+    .map(idea => `<tr>
+          <td style="padding:0 10px 14px 0;vertical-align:top;width:30px;font-size:20px;">${idea.emoji}</td>
+          <td style="padding-bottom:14px;vertical-align:top;">
+            <div style="font-size:14px;font-weight:700;color:#1a1a1a;line-height:1.4;">${escapeHtml(idea.text)}</div>
+            ${idea.source ? `<div style="font-size:12px;color:#94a3b8;margin-top:2px;">Source: ${escapeHtml(idea.source)}</div>` : ""}
+          </td>
+        </tr>`)
+    .join("");
 
-  const topBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:12px 16px;margin-bottom:20px;text-align:center;">
-        <p style="color:#1e40af;font-size:13px;margin:0;">Want to add or remove podcasts from your daily summary? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your podcasts here</a></p>
+  const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep)).join("");
+
+  const conversationAmmoHtml = parsed.conversationAmmo.length > 0
+    ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:20px;margin:20px 0;">
+        <h2 style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#92400e;margin:0 0 14px 0;">&#128172; Conversation Ammo</h2>
+        <p style="font-size:12px;color:#92400e;font-style:italic;margin:0 0 14px 0;">If you repeat one idea today, make it one of these:</p>
+        ${parsed.conversationAmmo
+          .map((ammo, idx) => `<div style="margin-bottom:12px;padding-bottom:${idx < parsed.conversationAmmo.length - 1 ? "12" : "0"}px;${idx < parsed.conversationAmmo.length - 1 ? "border-bottom:1px solid #fde68a;" : ""}">
+              <span style="display:inline-block;background:#fde68a;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(ammo.tag)}</span>
+              <p style="font-size:14px;color:#374151;line-height:1.5;margin:6px 0 0 0;">${renderInlineMarkdown(escapeHtml(ammo.text))}</p>
+            </div>`)
+          .join("")}
+      </div>`
+    : "";
+
+  const statsCardsHtml = buildStatsCards(parsed.statsHeader, parsed.episodes.length);
+
+  const manageBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:10px 16px;margin-bottom:24px;text-align:center;">
+        <p style="color:#1e40af;font-size:12px;margin:0;">Want to change your podcasts? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your subscriptions</a></p>
       </div>`;
 
   return `<!DOCTYPE html>
@@ -27,24 +384,46 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--[if mso]>
+  <style>table{border-collapse:collapse;}td{padding:0;}</style>
+  <![endif]-->
   <title>PodCap Daily Digest</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-    <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">☕ PodCap Daily</h1>
+    <!--[if mso]>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#2563eb;padding:32px 24px;text-align:center;">
+    <![endif]-->
+    <div style="background-color:#2563eb;background-image:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;text-align:center;">
+      <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">&#9749; PodCap Daily</h1>
       <p style="color:#bfdbfe;font-size:14px;margin:8px 0 0 0;">Your personalized podcast digest</p>
     </div>
-    <div style="padding:24px 28px;">
-      ${topBanner}
-      ${html}
+    <!--[if mso]>
+    </td></tr></table>
+    <![endif]-->
+    <div style="padding:28px;">
+      <h2 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0 0 6px 0;">Good morning${firstName !== recipientEmail.split("@")[0] ? ` ${firstName}` : ""}.</h2>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 4px 0;">You follow <strong style="color:#1a1a1a;">${parsed.episodes.length} podcast${parsed.episodes.length !== 1 ? "s" : ""}</strong> today</p>
+      ${parsed.podcastNames ? `<p style="font-size:13px;color:#94a3b8;margin:8px 0 0 0;">${escapeHtml(parsed.podcastNames)}</p>` : ""}
+      ${statsCardsHtml}
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+      ${bigIdeasHtml ? `<div style="margin-bottom:24px;">
+        <h2 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#1a1a1a;margin:0 0 16px 0;">BIG IDEAS TODAY</h2>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          ${bigIdeasHtml}
+        </table>
+      </div>` : ""}
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 4px 0;">
+      ${episodeCardsHtml}
+      ${conversationAmmoHtml}
+      ${manageBanner}
     </div>
     <div style="background:#f9fafb;padding:20px 28px;text-align:center;border-top:1px solid #e5e7eb;">
       <p style="color:#9ca3af;font-size:12px;margin:0;">
-        You're receiving this because you signed up for PodCap Daily.
+        You're receiving this because you signed up for <a href="https://podcap.io" style="color:#9ca3af;text-decoration:underline;">PodCap Daily</a>.
       </p>
       <p style="color:#9ca3af;font-size:12px;margin:4px 0 0 0;">
-        <a href="https://podcap.io/login" style="color:#9ca3af;text-decoration:underline;">Manage your podcasts</a> · Sent to ${recipientEmail}
+        <a href="https://podcap.io/login" style="color:#9ca3af;text-decoration:underline;">Manage your podcasts</a> &middot; Sent to ${recipientEmail}
       </p>
     </div>
   </div>
