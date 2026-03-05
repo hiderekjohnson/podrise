@@ -227,7 +227,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
         <p className="text-sm font-semibold text-foreground px-1">
           Your podcasts
         </p>
-          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(selectedPodcasts.length, 3)}, 1fr)` }}>
+          <div className="grid grid-cols-3 gap-3">
             <AnimatePresence>
               {selectedPodcasts.map((podcast) => (
                 <motion.div

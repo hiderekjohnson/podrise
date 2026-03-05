@@ -192,24 +192,24 @@ export default function Home() {
                     transition={{ duration: 0.25 }}
                     className="pl-10"
                   >
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div
                           key={podcast.id}
-                          className="flex items-center gap-2 bg-secondary text-foreground pl-1.5 pr-3 py-1 rounded-full text-sm font-medium"
+                          className="flex flex-col items-center text-center bg-card border border-border rounded-xl p-3"
                         >
                           {podcast.artworkUrl ? (
                             <img
                               src={podcast.artworkUrl}
                               alt={podcast.name}
-                              className="w-6 h-6 rounded-full object-cover"
+                              className="w-20 h-20 rounded-xl object-cover shadow-sm"
                             />
                           ) : (
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Podcast className="w-3 h-3 text-primary" />
+                            <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center">
+                              <Podcast className="w-8 h-8 text-primary" />
                             </div>
                           )}
-                          <span className="truncate max-w-[160px]">{podcast.name}</span>
+                          <span className="mt-2.5 text-sm font-medium text-foreground leading-tight line-clamp-2">{podcast.name}</span>
                         </div>
                       ))}
                     </div>
