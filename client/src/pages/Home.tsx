@@ -177,8 +177,11 @@ export default function Home() {
                 </span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">
-                    {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
+                    {podcastsLocked ? "Your podcasts" : <>Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></>}
                   </h2>
+                  {!podcastsLocked && (
+                    <p className="text-sm text-muted-foreground mt-0.5">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                  )}
                 </div>
                 {podcastsLocked && (
                   <button
@@ -219,8 +222,7 @@ export default function Home() {
                               <Podcast className="w-10 h-10 text-primary" />
                             </div>
                           )}
-                          <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-1">{podcast.name}</p>
-                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">Daily recap</p>
+                          <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
                         </div>
                       ))}
                     </div>
