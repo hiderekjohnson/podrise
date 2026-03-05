@@ -1,5 +1,6 @@
 export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
   let html = markdown
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline;" target="_blank">$1</a>')
     .replace(/^## (.+)$/gm, '<h2 style="color:#1a1a1a;font-size:22px;font-weight:700;margin:28px 0 12px 0;padding-bottom:8px;border-bottom:2px solid #e5e7eb;">$1</h2>')
     .replace(/^\*\*(.+?)\*\*$/gm, '<p style="font-weight:700;color:#1a1a1a;margin:8px 0;">$1</p>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')

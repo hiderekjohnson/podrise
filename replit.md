@@ -66,8 +66,9 @@ A full-stack web application that lets users create and manage personalized dail
 
 ## AI Integration
 - OpenAI via Replit AI Integrations
-- Recap generation: fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
-- Summary follows specific format: Big Ideas Today, per-episode cards, Conversation Ammo
+- Recap generation: shared `server/recapGenerator.ts` module fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
+- Summary includes stats header (podcast count, total runtime, recap time, time saved), per-episode Apple Podcasts + Spotify links
+- Summary follows specific format: Stats Header, Big Ideas Today, per-episode cards with listen links, Conversation Ammo
 - **Transcript Integration**: Taddy GraphQL API fetches real podcast transcripts for richer recaps
   - Credentials: `TADDY_USER_ID` (shared env) + `TADDY_API_KEY` (secret)
   - Matches iTunes episodes to Taddy by podcast iTunes ID → Taddy UUID → episode title match
@@ -93,6 +94,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `server/storage.ts` — Database storage layer
 - `server/stripeClient.ts` — Stripe client setup (credentials from Replit connector)
 - `server/webhookHandlers.ts` — Stripe webhook processing
+- `server/recapGenerator.ts` — Shared recap generation logic (iTunes fetch, Taddy transcripts, GPT prompt with stats + links)
 - `server/taddyClient.ts` — Taddy GraphQL API client for podcast search + transcript fetching
 - `server/resendClient.ts` — Resend email client (via Replit connector)
 - `server/emailTemplate.ts` — Markdown-to-HTML email template converter
