@@ -1,5 +1,9 @@
 const TADDY_API_URL = "https://api.taddy.org";
 
+const podcastCache = new Map<string, { result: TaddySearchResult | null; expiry: number }>();
+const episodeCache = new Map<string, { result: TaddyEpisode[]; expiry: number }>();
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
 interface TaddyEpisode {
   uuid: string;
   name: string;
@@ -28,6 +32,12 @@ export async function searchPodcastByItunesId(itunesId: string): Promise<TaddySe
     return null;
   }
 
+  const cacheKey = `podcast_${numericId}`;
+  const cached = podcastCache.get(cacheKey);
+  if (cached && cached.expiry > Date.now()) {
+    return cached.result;
+  }
+
   const query = `{
     getPodcastSeries(itunesId: ${numericId}) {
       uuid
@@ -37,13 +47,21 @@ export async function searchPodcastByItunesId(itunesId: string): Promise<TaddySe
   }`;
 
   const data = await taddyRequest(query);
-  return data?.data?.getPodcastSeries || null;
+  const result = data?.data?.getPodcastSeries || null;
+  podcastCache.set(cacheKey, { result, expiry: Date.now() + CACHE_TTL_MS });
+  return result;
 }
 
 export async function getRecentEpisodesWithTranscripts(
   podcastUuid: string,
   limit: number = 10
 ): Promise<TaddyEpisode[]> {
+  const cacheKey = `episodes_${podcastUuid}_${limit}`;
+  const cached = episodeCache.get(cacheKey);
+  if (cached && cached.expiry > Date.now()) {
+    return cached.result;
+  }
+
   const query = `{
     getPodcastSeries(uuid: "${podcastUuid}") {
       uuid
@@ -59,6 +77,7 @@ export async function getRecentEpisodesWithTranscripts(
 
   const data = await taddyRequest(query);
   const episodes = data?.data?.getPodcastSeries?.episodes || [];
+  episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
   return episodes;
 }
 
