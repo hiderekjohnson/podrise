@@ -16,6 +16,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/dashboard` — Manage podcasts, delivery time/timezone, email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
 - `/admin` — Admin dashboard (password-protected): view all users, email send logs, analytics; tabbed interface
+- `/podcasts/myfirstmillion` — SEO landing page for My First Million podcast; email-only signup auto-adds MFM; FAQ, Apple/Spotify links, PodCap-branded
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at

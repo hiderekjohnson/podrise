@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Upgrade from "./pages/Upgrade";
 import Admin from "./pages/Admin";
+import PodcastLandingMFM from "./pages/PodcastLanding";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/upgrade" component={Upgrade} />
       <Route path="/admin" component={Admin} />
+      <Route path="/podcasts/myfirstmillion" component={PodcastLandingMFM} />
       <Route component={NotFound} />
     </Switch>
   );
