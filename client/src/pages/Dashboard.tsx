@@ -458,7 +458,7 @@ export default function Dashboard() {
 
                   <section className="flex flex-col gap-4">
                     <h2 className="text-lg font-display font-bold text-foreground">
-                      Delivery time
+                      Email recap delivery time
                     </h2>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <div className="flex-1">
