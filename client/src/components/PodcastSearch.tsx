@@ -224,48 +224,6 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
         </AnimatePresence>
       </div>
 
-      {selectedPodcasts.length > 0 && (
-      <div className="space-y-3 pt-2">
-        <p className="text-sm font-semibold text-foreground px-1">
-          Your podcasts
-        </p>
-          <div className="grid grid-cols-3 gap-3">
-            <AnimatePresence>
-              {selectedPodcasts.map((podcast) => (
-                <motion.div
-                  key={podcast.id}
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="group relative bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 transition-all hover:shadow-lg hover:shadow-black/[0.06]"
-                >
-                  <button
-                    data-testid={`button-remove-podcast-${podcast.id}`}
-                    onClick={() => onRemove(podcast.id)}
-                    className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                  {podcast.artworkUrl ? (
-                    <img
-                      src={hiResArtwork(podcast.artworkUrl)}
-                      alt={podcast.name}
-                      className="w-full aspect-square rounded-xl object-cover shadow-sm shadow-black/[0.06]"
-                    />
-                  ) : (
-                    <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-                      <Podcast className="w-10 h-10 text-primary" />
-                    </div>
-                  )}
-                  <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-1">{podcast.name}</p>
-                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">Daily recap</p>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-      </div>
-      )}
     </div>
   );
 }
