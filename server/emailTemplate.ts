@@ -345,11 +345,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-  const tldlSummaryHtml = buildTldlSummary(parsed.episodes);
-
   const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep)).join("");
-
-  const statsCardsHtml = buildStatsCards(parsed.episodes.length);
 
   const manageBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:10px 16px;margin-bottom:24px;text-align:center;">
         <p style="color:#1e40af;font-size:12px;margin:0;">Want to change your podcasts? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your subscriptions</a></p>
@@ -379,11 +375,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
     <![endif]-->
     <div style="padding:28px;">
       <h2 style="font-size:22px;font-weight:800;color:#1a1a1a;margin:0 0 12px 0;line-height:1.4;">We listened to <span style="color:#2563eb;">${totalDuration || parsed.episodes.length + " of your favorite podcasts"}</span> of your favorite podcasts yesterday so you don't have to.</h2>
-      <p style="font-size:15px;color:#374151;margin:0;">Here's everything worth knowing in a few minutes.</p>
-      ${parsed.podcastNames ? `<p style="font-size:13px;color:#94a3b8;margin:12px 0 0 0;">${escapeHtml(parsed.podcastNames)}</p>` : ""}
-      ${statsCardsHtml}
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-      ${tldlSummaryHtml}
+      <p style="font-size:15px;color:#374151;margin:0 0 24px 0;">Here's everything worth knowing in a few minutes.</p>
       ${episodeCardsHtml}
       <div style="text-align:center;margin:24px 0 8px 0;">
         <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 4px 0;">That's your PodCap Daily. &#9749;</p>
