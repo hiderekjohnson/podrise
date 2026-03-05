@@ -308,8 +308,8 @@ export default function Home() {
               <button
                 data-testid="button-finish"
                 onClick={handleSubmit}
-                disabled={isPending}
-                className="w-full h-14 flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                disabled={isPending || selectedPodcasts.length === 0 || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
+                className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
               >
                 {isPending ? (
                   <>
