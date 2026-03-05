@@ -17,6 +17,7 @@ export interface IStorage {
   saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript>;
   logEmail(data: InsertEmailLog): Promise<EmailLog>;
   getEmailLogs(): Promise<EmailLog[]>;
+  hasEmailLogForUserOnDate(userId: number, date: string): Promise<boolean>;
   createMagicLink(email: string, token: string, expiresAt: Date): Promise<MagicLink>;
   getMagicLinkByToken(token: string): Promise<MagicLink | undefined>;
   markMagicLinkUsed(id: number): Promise<void>;
@@ -139,6 +140,22 @@ export class DatabaseStorage implements IStorage {
       .from(emailLogs)
       .orderBy(desc(emailLogs.sentAt))
       .limit(500);
+  }
+
+  async hasEmailLogForUserOnDate(userId: number, date: string): Promise<boolean> {
+    const dayStart = new Date(date + "T00:00:00.000Z");
+    const dayEnd = new Date(date + "T23:59:59.999Z");
+    const [row] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(emailLogs)
+      .where(
+        and(
+          eq(emailLogs.userId, userId),
+          gt(emailLogs.sentAt, dayStart),
+          sql`${emailLogs.sentAt} <= ${dayEnd}`
+        )
+      );
+    return (row?.count ?? 0) > 0;
   }
   async deleteUser(id: number): Promise<void> {
     await db.delete(recaps).where(eq(recaps.userId, id));

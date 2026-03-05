@@ -98,10 +98,17 @@ async function processUsers() {
     if (recentlySent.has(cacheKey)) continue;
     if (!shouldSendNow(deliveryTime, timezone)) continue;
 
+    recentlySent.add(cacheKey);
+
     try {
       const { dateStr } = getYesterdayInTimezone(timezone);
       if (await hasRecapForDate(user.id, dateStr)) {
-        recentlySent.add(cacheKey);
+        continue;
+      }
+
+      const alreadyEmailed = await storage.hasEmailLogForUserOnDate(user.id, userDate);
+      if (alreadyEmailed) {
+        console.log(`[EmailScheduler] User ${user.id} already received email today (${userDate}), skipping.`);
         continue;
       }
 
@@ -110,7 +117,6 @@ async function processUsers() {
       const result = await generateRecapForUser(user, timezone);
       if (!result) {
         console.log(`[EmailScheduler] No new episodes for user ${user.id}, skipping email.`);
-        recentlySent.add(cacheKey);
         continue;
       }
 
@@ -136,7 +142,6 @@ async function processUsers() {
         continue;
       }
 
-      recentlySent.add(cacheKey);
       console.log(`[EmailScheduler] Email sent to ${user.email}, id: ${sendResult.data?.id}`);
 
       await storage.logEmail({
