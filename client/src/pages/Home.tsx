@@ -8,6 +8,10 @@ import { PodcastSearch } from "@/components/PodcastSearch";
 import logoPath from "@assets/image_1772641542609.png";
 import faviconPath from "@assets/image_1772642558577.png";
 
+function hiResArtwork(url: string) {
+  return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
+}
+
 interface SelectedPodcast {
   id: string;
   name: string;
@@ -192,24 +196,25 @@ export default function Home() {
                     transition={{ duration: 0.25 }}
                     className="pl-10"
                   >
-                    <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div
                           key={podcast.id}
-                          className="flex items-center gap-3.5 bg-white border border-black/[0.06] rounded-2xl p-3 pr-4"
+                          className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5"
                         >
                           {podcast.artworkUrl ? (
                             <img
-                              src={podcast.artworkUrl}
+                              src={hiResArtwork(podcast.artworkUrl)}
                               alt={podcast.name}
-                              className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
+                              className="w-full aspect-square rounded-xl object-cover shadow-sm shadow-black/[0.06]"
                             />
                           ) : (
-                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0">
-                              <Podcast className="w-6 h-6 text-primary" />
+                            <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
+                              <Podcast className="w-10 h-10 text-primary" />
                             </div>
                           )}
-                          <span className="flex-1 text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</span>
+                          <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-1">{podcast.name}</p>
+                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">Daily recap</p>
                         </div>
                       ))}
                     </div>
