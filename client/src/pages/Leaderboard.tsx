@@ -26,7 +26,7 @@ export default function Leaderboard() {
     queryKey: ["/api/leaderboard"],
   });
 
-  const maxCount = podcasts?.[0]?.userCount || 1;
+  const filteredPodcasts = podcasts?.filter((p) => p.artworkUrl && p.artworkUrl.startsWith("https://"));
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +103,7 @@ export default function Leaderboard() {
               className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
               data-testid="heading-leaderboard"
             >
-              Top Podcasts on PodCap
+              PodCap Leaderboard
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground max-w-lg">
               See which podcasts our users are getting daily recaps for. Pick one to start your own free digest.
@@ -128,10 +128,10 @@ export default function Leaderboard() {
                 <span className="text-sm font-display font-bold text-foreground">Top Podcasts by Users</span>
               </div>
               <div className="divide-y divide-black/[0.04]">
-                {podcasts?.map((podcast, index) => (
+                {filteredPodcasts?.map((podcast, index) => (
                   <div
                     key={podcast.id}
-                    className="flex items-center gap-3 sm:gap-4 px-5 sm:px-6 py-3.5 hover:bg-black/[0.01] transition-colors"
+                    className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-4 hover:bg-black/[0.01] transition-colors"
                     data-testid={`leaderboard-row-${index}`}
                   >
                     <span className="text-sm font-bold text-muted-foreground w-6 text-right shrink-0" data-testid={`rank-${index}`}>
@@ -140,25 +140,12 @@ export default function Leaderboard() {
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-10 h-10 rounded-lg object-cover shadow-sm shrink-0"
+                      className="w-14 h-14 rounded-xl object-cover shadow-sm shrink-0"
                       data-testid={`artwork-${index}`}
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
-                        {podcast.name}
-                      </p>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-primary/10 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary/60 rounded-full transition-all"
-                            style={{ width: `${Math.max((podcast.userCount / maxCount) * 100, 8)}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-muted-foreground shrink-0" data-testid={`count-${index}`}>
-                          {podcast.userCount}
-                        </span>
-                      </div>
-                    </div>
+                    <p className="flex-1 min-w-0 text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
+                      {podcast.name}
+                    </p>
                     <button
                       onClick={() => setSelectedPodcast(podcast)}
                       className="shrink-0 px-3 py-1.5 text-xs font-bold text-primary bg-primary/8 hover:bg-primary/15 border border-primary/15 rounded-lg transition-all active:scale-[0.97]"
