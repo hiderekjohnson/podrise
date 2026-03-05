@@ -165,8 +165,8 @@ export default function Home() {
               Create Your Podcast Recap
             </h2>
             <section className="flex flex-col gap-5">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 bg-primary text-primary-foreground">
+              <div className="flex items-start gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">
                   1
                 </span>
                 <div className="flex-1">
