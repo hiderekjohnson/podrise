@@ -44,17 +44,20 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
-const DELIVERY_TIMES = [
-  { value: "05:00", label: "5:00 AM" },
-  { value: "06:00", label: "6:00 AM" },
-  { value: "07:00", label: "7:00 AM" },
-  { value: "08:00", label: "8:00 AM" },
-  { value: "09:00", label: "9:00 AM" },
-  { value: "10:00", label: "10:00 AM" },
-  { value: "12:00", label: "12:00 PM" },
-  { value: "17:00", label: "5:00 PM" },
-  { value: "20:00", label: "8:00 PM" },
-];
+function generateDeliveryTimes() {
+  const times: { value: string; label: string }[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      const value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const ampm = h < 12 ? "AM" : "PM";
+      const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
+      times.push({ value, label });
+    }
+  }
+  return times;
+}
+const DELIVERY_TIMES = generateDeliveryTimes();
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
