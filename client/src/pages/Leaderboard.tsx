@@ -1,12 +1,64 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ArrowRight, Mail, Headphones, Trophy } from "lucide-react";
+import { Loader2, ArrowRight, Mail, Headphones, Trophy, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
+
+const GLOBAL_LEADERS = [
+  { name: "The Joe Rogan Experience", category: "Interviews / Culture" },
+  { name: "The Diary of a CEO with Steven Bartlett", category: "Business / Growth" },
+  { name: "All-In Podcast", category: "Tech / Venture Capital" },
+  { name: "The Daily", category: "Business / News" },
+  { name: "Lex Fridman Podcast", category: "AI / Tech / Science" },
+  { name: "SmartLess", category: "Interviews / Comedy" },
+  { name: "Huberman Lab", category: "Health / Performance Science" },
+  { name: "New Heights with Jason & Travis Kelce", category: "Sports / Business" },
+  { name: "The Tim Ferriss Show", category: "Productivity / Business" },
+  { name: "Call Her Daddy", category: "Interviews / Relationships" },
+  { name: "Pivot", category: "Tech / Business" },
+  { name: "Acquired", category: "Business History / Tech Deals" },
+  { name: "Hard Fork", category: "AI / Tech Trends" },
+  { name: "Waveform: The MKBHD Podcast", category: "Consumer Tech" },
+  { name: "The Vergecast", category: "Tech News" },
+  { name: "Search Engine", category: "Internet Culture / Tech" },
+  { name: "a16z Podcast", category: "Venture Capital / Software" },
+  { name: "BG2 Pod", category: "VC / AI" },
+  { name: "Decoder with Nilay Patel", category: "Business of Tech" },
+  { name: "The AI Daily Brief", category: "AI / Tech" },
+  { name: "My First Million", category: "Business Ideas / Startups" },
+  { name: "Planet Money", category: "Economics" },
+  { name: "The Journal", category: "Business News" },
+  { name: "How I Built This", category: "Entrepreneurship" },
+  { name: "The Ramsey Show", category: "Personal Finance" },
+  { name: "HBR IdeaCast", category: "Management / Strategy" },
+  { name: "Financial Audit with Caleb Hammer", category: "Finance / Interviews" },
+  { name: "Founders", category: "Lessons from History" },
+  { name: "Business Breakdowns", category: "Company Analysis" },
+  { name: "Masters of Scale", category: "Entrepreneurship" },
+  { name: "BiggerPockets Real Estate", category: "Investing" },
+  { name: "The Indicator from Planet Money", category: "Economic Trends" },
+  { name: "Masters in Business", category: "Finance / Interviews" },
+  { name: "The Money Guy Show", category: "Finance Strategy" },
+  { name: "Equity", category: "Startup Funding" },
+  { name: "On Purpose with Jay Shetty", category: "Growth / Mindset" },
+  { name: "The Mel Robbins Podcast", category: "Motivation / Science" },
+  { name: "Armchair Expert with Dax Shepard", category: "Human Stories" },
+  { name: "Conan O'Brien Needs a Friend", category: "Comedy / Interviews" },
+  { name: "The MeidasTouch Podcast", category: "Politics / Law" },
+  { name: "Shawn Ryan Show", category: "Interviews / Society" },
+  { name: "This American Life", category: "Narrative / Culture" },
+  { name: "Fresh Air", category: "Arts / Culture Interviews" },
+  { name: "Pod Save America", category: "Politics / Interviews" },
+  { name: "Hidden Brain", category: "Psychology / Behavior" },
+  { name: "TED Talks Daily", category: "Big Ideas" },
+  { name: "Office Ladies", category: "TV / Entertainment" },
+  { name: "Modern CTO", category: "Tech Leadership" },
+  { name: "Stuff You Should Know", category: "General Knowledge" },
+];
 
 interface LeaderboardPodcast {
   id: string;
@@ -106,7 +158,7 @@ export default function Leaderboard() {
               className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
               data-testid="heading-leaderboard"
             >
-              PodCap Leaderboard
+              PodCap Podcasts
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground max-w-lg">
               See which podcasts our users are getting daily recaps for. Pick one to start your own free digest.
@@ -179,6 +231,44 @@ export default function Leaderboard() {
             </div>
           </motion.div>
         )}
+
+        <motion.section
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="w-full max-w-2xl mt-12"
+        >
+          <div className="glass-panel overflow-hidden">
+            <div className="px-5 sm:px-6 py-4 border-b border-black/[0.06] flex items-center gap-2">
+              <Globe className="w-4 h-4 text-primary" />
+              <span className="text-sm font-display font-bold text-foreground">Global Leaders</span>
+            </div>
+            <div className="divide-y divide-black/[0.04]">
+              {GLOBAL_LEADERS.map((podcast, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-3.5"
+                  data-testid={`global-leader-row-${index}`}
+                >
+                  <span className="text-xs font-bold text-muted-foreground/50 w-5 text-right shrink-0 tabular-nums">
+                    {index + 1}
+                  </span>
+                  <div className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                    <Headphones className="w-4 h-4 text-primary/60" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {podcast.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground/60 mt-0.5">
+                      {podcast.category}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
       </main>
 
       {selectedPodcast && (

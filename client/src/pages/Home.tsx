@@ -115,11 +115,11 @@ export default function Home() {
         </a>
         <div className="flex items-center gap-4">
           <button
-            data-testid="link-leaderboard"
-            onClick={() => navigate("/leaderboard")}
+            data-testid="link-podcasts"
+            onClick={() => navigate("/podcasts")}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Leaderboard
+            Podcasts
           </button>
           <button
             data-testid="link-login"
