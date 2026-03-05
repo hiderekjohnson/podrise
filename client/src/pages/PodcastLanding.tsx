@@ -60,23 +60,48 @@ export default function PodcastLandingMFM() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    document.title = "My First Million Podcast Summary — Free Daily Recap | PodCap";
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-      metaDesc.setAttribute("content", "Get a free AI-powered daily summary of the My First Million podcast by Sam Parr and Shaan Puri. Key business ideas, startup strategies, and side hustles delivered to your inbox every morning.");
-    }
-    const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement("meta");
-    ogTitle.setAttribute("property", "og:title");
-    ogTitle.setAttribute("content", "My First Million Podcast Summary — Free Daily Recap | PodCap");
-    if (!ogTitle.parentElement) document.head.appendChild(ogTitle);
-    const ogDesc = document.querySelector('meta[property="og:description"]') || document.createElement("meta");
-    ogDesc.setAttribute("property", "og:description");
-    ogDesc.setAttribute("content", "AI-powered daily summaries of My First Million by Sam Parr & Shaan Puri. Business ideas, startup strategies, and side hustles — delivered free to your inbox.");
-    if (!ogDesc.parentElement) document.head.appendChild(ogDesc);
-    const ogImage = document.querySelector('meta[property="og:image"]') || document.createElement("meta");
-    ogImage.setAttribute("property", "og:image");
-    ogImage.setAttribute("content", MFM_PODCAST.artworkUrl);
-    if (!ogImage.parentElement) document.head.appendChild(ogImage);
+    document.title = "My First Million Podcast Summary & Recap — Daily Episode Recaps | PodCap";
+
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("name", "description", "Get free daily My First Million podcast summaries and episode recaps. AI-powered My First Million podcast recap of every new episode by Sam Parr & Shaan Puri — business ideas, startup strategies, and side hustles delivered to your inbox.");
+    setMeta("name", "keywords", "My First Million podcast summary, My First Million episode summary, My First Million podcast recap, My First Million recap, Sam Parr, Shaan Puri, podcast summary, daily podcast recap, business podcast summary");
+    setMeta("property", "og:title", "My First Million Podcast Summary & Recap — Free Daily Episode Recaps | PodCap");
+    setMeta("property", "og:description", "AI-powered daily My First Million podcast summaries and episode recaps. Business ideas, startup strategies, and side hustles from Sam Parr & Shaan Puri — delivered free to your inbox.");
+    setMeta("property", "og:image", MFM_PODCAST.artworkUrl);
+    setMeta("property", "og:url", "https://podcap.io/podcasts/myfirstmillion");
+    setMeta("property", "og:type", "website");
+    setMeta("property", "og:site_name", "PodCap");
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", "My First Million Podcast Summary & Recap | PodCap");
+    setMeta("name", "twitter:description", "Free daily AI-powered My First Million podcast summaries and episode recaps delivered to your inbox.");
+    setMeta("name", "twitter:image", MFM_PODCAST.artworkUrl);
+
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", "https://podcap.io/podcasts/myfirstmillion");
+
+    let jsonLd = document.querySelector('script[data-seo="podcast-landing"]');
+    if (!jsonLd) { jsonLd = document.createElement("script"); jsonLd.setAttribute("type", "application/ld+json"); jsonLd.setAttribute("data-seo", "podcast-landing"); document.head.appendChild(jsonLd); }
+    jsonLd.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "My First Million Podcast Summary & Recap",
+      "description": "Free daily AI-powered My First Million podcast summary and episode recap. Get the key business ideas, startup strategies, and side hustles from Sam Parr & Shaan Puri delivered to your inbox.",
+      "url": "https://podcap.io/podcasts/myfirstmillion",
+      "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
+      "about": { "@type": "PodcastSeries", "name": "My First Million", "author": [{ "@type": "Person", "name": "Sam Parr" }, { "@type": "Person", "name": "Shaan Puri" }] },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free daily My First Million podcast recap delivered by email" }
+    });
+
+    return () => {
+      const ld = document.querySelector('script[data-seo="podcast-landing"]');
+      if (ld) ld.remove();
+    };
   }, []);
 
   if (user) {
@@ -140,21 +165,22 @@ export default function PodcastLandingMFM() {
             <div className="flex flex-col items-center lg:items-start gap-6 flex-1">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/8 border border-primary/15 rounded-full">
                 <Headphones className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold text-primary tracking-wide uppercase">Free Daily Podcast Summary</span>
+                <span className="text-xs font-semibold text-primary tracking-wide uppercase">Free Daily Podcast Summary & Recap</span>
               </div>
 
               <h1
                 className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] text-center lg:text-left"
                 data-testid="heading-main"
               >
-                Never miss an episode of{" "}
-                <span className="text-primary">My First Million</span>
+                My First Million{" "}
+                <span className="text-primary">podcast summary</span>,{" "}
+                daily
               </h1>
 
               <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-center lg:text-left max-w-lg">
-                Get an AI-powered summary of every new My First Million episode
-                delivered to your inbox. All the business ideas, side hustles, and startup
-                strategies from Sam Parr & Shaan Puri — in a quick morning read.
+                Get a free AI-powered My First Million podcast recap and episode summary
+                delivered to your inbox every morning. All the business ideas, side hustles, and startup
+                strategies from Sam Parr & Shaan Puri — without listening to the full episode.
               </p>
 
               <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3" data-testid="form-signup">
