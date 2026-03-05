@@ -133,7 +133,7 @@ async function processUsers() {
       const sendResult = await client.emails.send({
         from: `PodCap Daily <${fromEmail}>`,
         to: user.email,
-        subject: `☕ Your PodCap Daily — ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`,
+        subject: `☕ Your PodCap Daily Recap — ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`,
         html: emailHtml,
       });
 

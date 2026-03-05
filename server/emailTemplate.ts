@@ -339,6 +339,9 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
 export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
   const parsed = parseDigestMarkdown(markdown);
 
+  const durationMatch = parsed.statsHeader.match(/\*?\*?([^*]+)\*?\*?\s*Total duration/i);
+  const totalDuration = durationMatch ? durationMatch[1].replace(/\*/g, "").trim() : "";
+
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
@@ -375,9 +378,8 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
     </td></tr></table>
     <![endif]-->
     <div style="padding:28px;">
-      <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin:0 0 8px 0;">Here's your PodCap for ${dateStr}</p>
-      <h2 style="font-size:24px;font-weight:800;color:#1a1a1a;margin:0 0 10px 0;line-height:1.3;">We listened to <span style="color:#2563eb;">${parsed.episodes.length} of your favorite podcast${parsed.episodes.length !== 1 ? "s" : ""}</span> yesterday so you don't have to.</h2>
-      <p style="font-size:15px;color:#374151;margin:0;">Below is your recap. You can thank us later.</p>
+      <h2 style="font-size:22px;font-weight:800;color:#1a1a1a;margin:0 0 12px 0;line-height:1.4;">We listened to <span style="color:#2563eb;">${totalDuration || parsed.episodes.length + " of your favorite podcasts"}</span> of your favorite podcasts yesterday so you don't have to.</h2>
+      <p style="font-size:15px;color:#374151;margin:0;">Here's everything worth knowing in a few minutes.</p>
       ${parsed.podcastNames ? `<p style="font-size:13px;color:#94a3b8;margin:12px 0 0 0;">${escapeHtml(parsed.podcastNames)}</p>` : ""}
       ${statsCardsHtml}
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
@@ -386,6 +388,10 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
       <div style="text-align:center;margin:24px 0 8px 0;">
         <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 4px 0;">That's your PodCap Daily. &#9749;</p>
         <p style="font-size:13px;color:#6b7280;margin:0;">Same time tomorrow?</p>
+      </div>
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;margin:20px 0;text-align:center;">
+        <p style="font-size:14px;font-weight:600;color:#1a1a1a;margin:0 0 6px 0;">P.S. Know someone who likes the same podcasts as you?</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Forward them this email. They'll thank you later.</p>
       </div>
       ${manageBanner}
     </div>

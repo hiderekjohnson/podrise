@@ -385,7 +385,7 @@ export async function registerRoutes(
       const result = await client.emails.send({
         from: `PodCap Daily <${fromEmail}>`,
         to: user.email,
-        subject: `☕ Your PodCap Daily — ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
+        subject: `☕ Your PodCap Daily Recap — ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
         html: emailHtml,
       });
 

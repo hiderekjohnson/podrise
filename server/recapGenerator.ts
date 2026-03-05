@@ -55,6 +55,7 @@ export async function generateRecap(
   const podcastNamesWithEpisodes: string[] = [];
   let hasAnyEpisodes = false;
   let hasTranscripts = false;
+  let totalDurationMin = 0;
   const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
   const noEpisodesMsg = mode === "latest" ? "No episodes found." : "No new episodes released yesterday.";
 
@@ -84,6 +85,7 @@ export async function generateRecap(
         for (const ep of episodes) {
           const durationMs = ep.trackTimeMillis || 0;
           const durationMin = Math.round(durationMs / 60000);
+          totalDurationMin += durationMin;
           const durationStr = durationMin >= 60
             ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
             : `${durationMin} minutes`;
@@ -138,6 +140,12 @@ export async function generateRecap(
   const podcastNames = podcastNamesWithEpisodes.join(" · ");
   const totalPodcasts = podcastNamesWithEpisodes.length;
 
+  const totalHours = Math.floor(totalDurationMin / 60);
+  const totalMins = totalDurationMin % 60;
+  const durationLong = totalHours > 0
+    ? (totalMins > 0 ? `${totalHours} hour${totalHours !== 1 ? "s" : ""} and ${totalMins} minute${totalMins !== 1 ? "s" : ""}` : `${totalHours} hour${totalHours !== 1 ? "s" : ""}`)
+    : `${totalMins} minute${totalMins !== 1 ? "s" : ""}`;
+
   const transcriptNote = hasTranscripts
     ? "Some episodes below include real transcript excerpts — use these for accurate quotes, specific facts, and concrete insights. For episodes with only descriptions, do your best based on the available info."
     : "Note: No full transcripts were available for these episodes, so you are working from episode descriptions only. Do your best to infer specific content.";
@@ -157,7 +165,7 @@ You MUST follow this EXACT structure and tone. Write in markdown.
 
 ${podcastNames}
 
-**${totalPodcasts}** Podcasts
+**${totalPodcasts}** Podcasts · **${durationLong}** Total duration
 
 ---
 
