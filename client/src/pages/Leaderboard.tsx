@@ -12,6 +12,9 @@ interface LeaderboardPodcast {
   name: string;
   artworkUrl: string;
   userCount: number;
+  artist: string;
+  genres: string[];
+  episodeCount: number;
 }
 
 export default function Leaderboard() {
@@ -143,9 +146,28 @@ export default function Leaderboard() {
                       className="w-14 h-14 rounded-xl object-cover shadow-sm shrink-0"
                       data-testid={`artwork-${index}`}
                     />
-                    <p className="flex-1 min-w-0 text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
-                      {podcast.name}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
+                        {podcast.name}
+                      </p>
+                      {podcast.artist && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                          {podcast.artist}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {podcast.genres?.slice(0, 2).map((genre) => (
+                          <span key={genre} className="text-[10px] font-medium text-muted-foreground bg-black/[0.04] px-1.5 py-0.5 rounded">
+                            {genre}
+                          </span>
+                        ))}
+                        {podcast.episodeCount > 0 && (
+                          <span className="text-[10px] text-muted-foreground/70">
+                            {podcast.episodeCount} episodes
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <button
                       onClick={() => setSelectedPodcast(podcast)}
                       className="shrink-0 px-3 py-1.5 text-xs font-bold text-primary bg-primary/8 hover:bg-primary/15 border border-primary/15 rounded-lg transition-all active:scale-[0.97]"

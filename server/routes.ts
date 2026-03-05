@@ -275,7 +275,36 @@ export async function registerRoutes(
   app.get("/api/leaderboard", async (_req, res) => {
     try {
       const topPodcasts = await storage.getTopPodcasts(50);
-      res.json(topPodcasts);
+
+      const ids = topPodcasts.map((p) => p.id).join(",");
+      let itunesData: Record<string, any> = {};
+      try {
+        const itunesRes = await fetch(`https://itunes.apple.com/lookup?id=${ids}`);
+        const itunesJson = await itunesRes.json() as any;
+        for (const r of itunesJson.results || []) {
+          itunesData[String(r.trackId || r.collectionId)] = {
+            artist: r.artistName || "",
+            genres: (r.genres || []).filter((g: string) => g !== "Podcasts"),
+            episodeCount: r.trackCount || 0,
+            artworkUrl600: r.artworkUrl600 || "",
+          };
+        }
+      } catch (e) {
+        console.warn("iTunes lookup failed (non-fatal):", e);
+      }
+
+      const enriched = topPodcasts.map((p) => {
+        const itunes = itunesData[p.id];
+        return {
+          ...p,
+          artworkUrl: itunes?.artworkUrl600 || p.artworkUrl,
+          artist: itunes?.artist || "",
+          genres: itunes?.genres || [],
+          episodeCount: itunes?.episodeCount || 0,
+        };
+      });
+
+      res.json(enriched);
     } catch (err) {
       console.error("Leaderboard error:", err);
       res.status(500).json({ message: "Failed to fetch leaderboard" });
