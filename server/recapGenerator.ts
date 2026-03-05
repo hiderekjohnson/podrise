@@ -67,12 +67,13 @@ export const DEFAULT_RECAP_PROMPT = `Then for EACH episode (only ones with new c
 IMPORTANT TONE GUIDELINES:
 - Write like a sharp, well-read friend catching you up — not like a news anchor or a corporate summary
 - Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
-- The quotes should feel real — punchy, conversational, the kind of thing someone actually said. Always attribute the quote to the speaker.
-- Key insights should be specific facts or claims, not generic observations
+- The quotes MUST be taken directly from the transcript provided. Do NOT invent or paraphrase quotes. Always attribute the quote to the speaker.
+- Key insights should be specific facts or claims directly stated in the transcript, not generic observations
 - Keep energy high but don't use exclamation marks excessively
 - Never say "In this episode" or "The hosts discuss" — just state the ideas directly
 - The "What Happened" section should read like a story, NOT a list. Use flowing paragraphs with paragraph breaks between beats.
-- IMPORTANT: Use the ACTUAL Apple Podcasts and Spotify links provided in the episode data above. Do NOT make up URLs. The line with links should appear right after the episode title/guest/duration line.`;
+- IMPORTANT: Use the ACTUAL Apple Podcasts and Spotify links provided in the episode data above. Do NOT make up URLs. The line with links should appear right after the episode title/guest/duration line.
+- CRITICAL: NEVER fabricate, invent, or make up any quotes, facts, speaker names, guest details, or content. Every claim must come directly from the transcript. If you cannot find a good quote in the transcript, omit the Quote section for that episode rather than inventing one.`;
 
 interface PromptParams {
   dateContext: string;
@@ -130,10 +131,8 @@ export async function generateRecap(
   const episodeData: string[] = [];
   const podcastNamesWithEpisodes: string[] = [];
   let hasAnyEpisodes = false;
-  let hasTranscripts = false;
   let totalDurationMin = 0;
   const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
-  const noEpisodesMsg = mode === "latest" ? "No episodes found." : "No new episodes released yesterday.";
 
   for (const podcast of podcastInfos) {
     try {
@@ -143,8 +142,6 @@ export async function generateRecap(
       const episodes = selectEpisodes(lookupJson.results || [], mode, yesterdayStart, yesterdayEnd);
 
       if (episodes.length > 0) {
-        hasAnyEpisodes = true;
-        podcastNamesWithEpisodes.push(podcast.name);
 
         let taddyPodcast: any = null;
         let taddyEpisodes: any[] = [];
@@ -200,16 +197,19 @@ export async function generateRecap(
           const linksLine = `  Apple Podcasts: ${appleUrl || "N/A"}\n  Spotify Search: ${spotifySearchUrl}`;
 
           if (transcriptText) {
-            hasTranscripts = true;
             const truncated = transcriptText.slice(0, 8000);
             epDetails.push(`- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n${linksLine}\n  Transcript (excerpt):\n${truncated}`);
           } else {
-            epDetails.push(`- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n${linksLine}\n  Description: ${(ep.description || "No description available.").slice(0, 500)}`);
+            console.log(`[Recap] Skipping episode "${ep.trackName}" (${podcast.name}) — no transcript available`);
           }
         }
-        episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
-      } else {
-        episodeData.push(`Podcast: ${podcast.name}\n- ${noEpisodesMsg}`);
+        if (epDetails.length > 0) {
+          hasAnyEpisodes = true;
+          podcastNamesWithEpisodes.push(podcast.name);
+          episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
+        } else {
+          console.log(`[Recap] No transcripts found for any episodes of ${podcast.name} — skipping podcast entirely`);
+        }
       }
     } catch {
       episodeData.push(`**${podcast.name}**\n- Could not fetch episodes.`);
@@ -217,6 +217,7 @@ export async function generateRecap(
   }
 
   if (!hasAnyEpisodes) {
+    console.log(`[Recap] No episodes with transcripts found for user ${user.id} — no recap generated`);
     return null;
   }
 
@@ -229,9 +230,7 @@ export async function generateRecap(
     ? (totalMins > 0 ? `${totalHours} hour${totalHours !== 1 ? "s" : ""} and ${totalMins} minute${totalMins !== 1 ? "s" : ""}` : `${totalHours} hour${totalHours !== 1 ? "s" : ""}`)
     : `${totalMins} minute${totalMins !== 1 ? "s" : ""}`;
 
-  const transcriptNote = hasTranscripts
-    ? "Some episodes below include real transcript excerpts — use these for accurate quotes, specific facts, and concrete insights. For episodes with only descriptions, do your best based on the available info."
-    : "Note: No full transcripts were available for these episodes, so you are working from episode descriptions only. Do your best to infer specific content.";
+  const transcriptNote = `All episodes below include real transcript excerpts. Base ALL quotes, facts, insights, and summaries ONLY on what is explicitly stated in the transcript. NEVER fabricate, invent, or assume quotes, speaker names, facts, or details that are not directly present in the transcript text provided. If something is unclear from the transcript, omit it rather than guessing.`;
 
   const prompt = buildPrompt({
     dateContext,
@@ -246,7 +245,7 @@ export async function generateRecap(
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: hasTranscripts ? 4000 : 3000,
+    max_tokens: 4000,
     temperature: 0.7,
   });
 
