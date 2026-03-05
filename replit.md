@@ -113,4 +113,4 @@ A full-stack web application that lets users create and manage personalized dail
 ## Important: User Data Safety
 - NEVER bulk-delete user accounts. All user accounts are real users.
 - Only delete individual accounts via the admin panel delete button (with confirmation).
-- The 7 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com
+- The 8 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com, ru1@mac.com
