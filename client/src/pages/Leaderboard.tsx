@@ -5,7 +5,7 @@ import { Loader2, ArrowRight, Mail, Headphones, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import faviconPath from "@assets/image_1772642558577.png";
+import logoPath from "@assets/Podcap_logo_1772731291095.png";
 
 interface LeaderboardPodcast {
   id: string;
@@ -65,9 +65,8 @@ export default function Leaderboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center gap-2.5" data-testid="link-home">
-          <img src={faviconPath} alt="PodCap icon" className="w-8 h-8 object-contain" />
-          <span className="font-display font-bold text-lg text-foreground">PodCap</span>
+        <a href="/" className="flex items-center" data-testid="link-home">
+          <img src={logoPath} alt="PodCap" className="h-8 object-contain" />
         </a>
         <div className="flex items-center gap-4">
           {user ? (
@@ -269,9 +268,8 @@ export default function Leaderboard() {
 
       <footer className="w-full border-t border-black/[0.06] py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src={faviconPath} alt="PodCap" className="w-5 h-5 object-contain" />
-            <span className="text-sm font-semibold text-muted-foreground">PodCap</span>
+          <div className="flex items-center">
+            <img src={logoPath} alt="PodCap" className="h-5 object-contain opacity-50" />
           </div>
           <p className="text-xs text-muted-foreground/60 text-center">
             See which podcasts are trending. Create your own free daily recap.

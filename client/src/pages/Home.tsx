@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
-import logoPath from "@assets/image_1772641542609.png";
-import faviconPath from "@assets/image_1772642558577.png";
+import logoPath from "@assets/Podcap_logo_1772731291095.png";
 
 function hiResArtwork(url: string) {
   return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
@@ -106,14 +105,13 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5">
+        <a href="/" className="flex items-center">
           <img
-            src={faviconPath}
-            alt="PodCap icon"
-            className="w-8 h-8 object-contain"
+            src={logoPath}
+            alt="PodCap"
+            className="h-8 object-contain"
           />
-          <span className="font-display font-bold text-lg text-foreground">PodCap</span>
-        </div>
+        </a>
         <div className="flex items-center gap-4">
           <button
             data-testid="link-leaderboard"
@@ -339,8 +337,8 @@ export default function Home() {
 
                 <div className="text-center space-y-3">
                   <div className="flex items-center justify-center gap-2">
-                    <img src={faviconPath} alt="PodCap" className="w-7 h-7" />
-                    <span className="font-display font-extrabold text-lg text-foreground">PodCap Daily</span>
+                    <img src={logoPath} alt="PodCap" className="h-7 object-contain" />
+                    <span className="font-display font-extrabold text-lg text-foreground">Daily</span>
                   </div>
                   <p className="text-sm text-muted-foreground">Your favorite podcasts, summarized in one email</p>
                 </div>

@@ -10,7 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import ReactMarkdown from "react-markdown";
-import faviconPath from "@assets/image_1772642558577.png";
+import logoPath from "@assets/Podcap_logo_1772731291095.png";
 
 interface SelectedPodcast {
   id: string;
@@ -357,15 +357,13 @@ export default function Dashboard() {
         </div>
       )}
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5">
+        <a href="/" className="flex items-center" data-testid="img-logo">
           <img
-            src={faviconPath}
-            alt="PodCap icon"
-            className="w-8 h-8 object-contain"
-            data-testid="img-logo"
+            src={logoPath}
+            alt="PodCap"
+            className="h-8 object-contain"
           />
-          <span className="font-display font-bold text-lg text-foreground">PodCap</span>
-        </div>
+        </a>
         <button
           data-testid="button-logout"
           onClick={handleLogout}

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import faviconPath from "@assets/image_1772642558577.png";
+import logoPath from "@assets/Podcap_logo_1772731291095.png";
 
 const FEATURES = [
   "Unlimited podcast summaries",
@@ -46,10 +46,9 @@ export default function Upgrade() {
     return (
       <div className="min-h-screen flex flex-col">
         <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-          <div className="flex items-center gap-2.5">
-            <img src={faviconPath} alt="PodCap icon" className="w-8 h-8 object-contain" />
-            <span className="font-display font-bold text-lg text-foreground">PodCap</span>
-          </div>
+          <a href="/" className="flex items-center">
+            <img src={logoPath} alt="PodCap" className="h-8 object-contain" />
+          </a>
           <button
             data-testid="link-back"
             onClick={() => navigate("/dashboard")}
@@ -80,10 +79,9 @@ export default function Upgrade() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5">
-          <img src={faviconPath} alt="PodCap icon" className="w-8 h-8 object-contain" />
-          <span className="font-display font-bold text-lg text-foreground">PodCap</span>
-        </div>
+        <a href="/" className="flex items-center">
+          <img src={logoPath} alt="PodCap" className="h-8 object-contain" />
+        </a>
         <button
           data-testid="link-back"
           onClick={() => navigate("/dashboard")}

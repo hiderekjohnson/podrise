@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
-import faviconPath from "@assets/image_1772642558577.png";
+import logoPath from "@assets/Podcap_logo_1772731291095.png";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -67,14 +67,13 @@ export default function Login() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2.5 mb-8">
+          <div className="flex items-center justify-center mb-8">
             <img
-              src={faviconPath}
+              src={logoPath}
               alt="PodCap"
-              className="w-10 h-10 object-contain"
+              className="h-9 object-contain"
               data-testid="img-logo"
             />
-            <span className="font-display font-bold text-xl text-foreground">PodCap</span>
           </div>
         </div>
 
@@ -109,14 +108,13 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-2.5 mb-8">
+        <div className="flex items-center justify-center mb-8">
           <img
-            src={faviconPath}
+            src={logoPath}
             alt="PodCap"
-            className="w-10 h-10 object-contain"
+            className="h-9 object-contain"
             data-testid="img-logo"
           />
-          <span className="font-display font-bold text-xl text-foreground">PodCap</span>
         </div>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
           Welcome Back
