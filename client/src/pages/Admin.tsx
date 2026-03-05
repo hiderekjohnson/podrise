@@ -117,7 +117,7 @@ export default function Admin() {
       const data = await res.json();
       setEmailPreview({ id: logId, html: data.html });
     } catch {
-      toast({ title: "Not available", description: "Email content is not stored for this log entry.", variant: "destructive" });
+      toast({ title: "Not available", description: "Email content was not stored for this older log entry. Newer emails will have viewable content." });
     } finally {
       setLoadingEmailId(null);
     }
