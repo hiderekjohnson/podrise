@@ -183,35 +183,41 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                   <p className="px-6 pt-3 pb-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
                     Results
                   </p>
-                  {filteredResults.map((podcast) => (
-                    <button
-                      key={podcast.id}
-                      data-testid={`button-add-podcast-${podcast.id}`}
-                      onClick={() => handleAddClick(podcast)}
-                      className="flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors hover:bg-black/[0.03] group/row"
-                    >
-                      {podcast.artworkUrl ? (
-                        <img
-                          src={podcast.artworkUrl}
-                          alt={podcast.name}
-                          className="w-12 h-12 rounded-xl object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                          <Podcast className="w-5 h-5 text-primary" />
+                  {filteredResults.map((podcast) => {
+                    const atMax = selectedPodcasts.length >= maxSelection;
+                    return (
+                      <button
+                        key={podcast.id}
+                        data-testid={`button-add-podcast-${podcast.id}`}
+                        onClick={() => !atMax && handleAddClick(podcast)}
+                        disabled={atMax}
+                        className={`flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors group/row ${atMax ? "opacity-50 cursor-not-allowed" : "hover:bg-black/[0.03]"}`}
+                      >
+                        {podcast.artworkUrl ? (
+                          <img
+                            src={podcast.artworkUrl}
+                            alt={podcast.name}
+                            className="w-12 h-12 rounded-xl object-cover shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                            <Podcast className="w-5 h-5 text-primary" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground text-[15px] truncate">
+                            {podcast.name}
+                          </p>
+                          <p className="text-[13px] text-muted-foreground/60 truncate mt-0.5">
+                            {podcast.artistName}
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground text-[15px] truncate">
-                          {podcast.name}
-                        </p>
-                        <p className="text-[13px] text-muted-foreground/60 truncate mt-0.5">
-                          {podcast.artistName}
-                        </p>
-                      </div>
-                      <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
-                    </button>
-                  ))}
+                        {!atMax && (
+                          <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="px-6 py-10 text-center">

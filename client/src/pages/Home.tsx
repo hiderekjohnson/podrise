@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Mail, X, Pencil, Podcast, Clock, Headphones, BookOpen, Zap, Quote, MessageCircle, Trophy } from "lucide-react";
+import { Loader2, ArrowRight, Mail, X, Podcast, Clock, Headphones, BookOpen, Zap, Quote, MessageCircle, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,6 @@ export default function Home() {
   const [selectedPodcasts, setSelectedPodcasts] = useState<SelectedPodcast[]>([]);
   const [email, setEmail] = useState("");
   const [showSampleEmail, setShowSampleEmail] = useState(false);
-  const [podcastsLocked, setPodcastsLocked] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const emailSectionRef = useRef<HTMLElement>(null);
 
@@ -40,7 +39,6 @@ export default function Home() {
     const updated = [...selectedPodcasts, podcast];
     setSelectedPodcasts(updated);
     if (updated.length >= 3) {
-      setPodcastsLocked(true);
       setTimeout(() => {
         emailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         setTimeout(() => emailRef.current?.focus(), 400);
@@ -50,10 +48,6 @@ export default function Home() {
 
   const handleRemove = (id: string) => {
     setSelectedPodcasts((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const handleUnlockPodcasts = () => {
-    setPodcastsLocked(false);
   };
 
   const handleSubmit = () => {
@@ -172,42 +166,40 @@ export default function Home() {
             </h2>
             <section className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
-                <span className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 transition-colors ${podcastsLocked ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
-                  {podcastsLocked ? "✓" : "1"}
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 bg-primary text-primary-foreground">
+                  1
                 </span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">
-                    {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
+                    Choose podcasts to recap
                   </h2>
                 </div>
-                {podcastsLocked && (
-                  <button
-                    data-testid="button-change-podcasts"
-                    onClick={handleUnlockPodcasts}
-                    className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    Change
-                  </button>
-                )}
               </div>
 
-              <AnimatePresence mode="wait">
-                {podcastsLocked ? (
-                  <motion.div
-                    key="locked"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="pl-10"
-                  >
+              <div className="pl-10 space-y-5">
+                <PodcastSearch
+                  selectedPodcasts={selectedPodcasts}
+                  onAdd={handleAdd}
+                  onRemove={handleRemove}
+                  maxSelection={3}
+                />
+                {selectedPodcasts.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
+                    <p className="text-xs text-muted-foreground mb-2">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                     <div className="grid grid-cols-3 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div
                           key={podcast.id}
-                          className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5"
+                          className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 relative group"
                         >
+                          <button
+                            data-testid={`button-remove-selected-${podcast.id}`}
+                            onClick={() => handleRemove(podcast.id)}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                          >
+                            ×
+                          </button>
                           {podcast.artworkUrl ? (
                             <img
                               src={hiResArtwork(podcast.artworkUrl)}
@@ -223,67 +215,17 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="unlocked"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="pl-10 space-y-5"
-                  >
-                    <PodcastSearch
-                      selectedPodcasts={selectedPodcasts}
-                      onAdd={handleAdd}
-                      onRemove={handleRemove}
-                      maxSelection={3}
-                    />
-                    {selectedPodcasts.length > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
-                        <p className="text-xs text-muted-foreground mb-2">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
-                        <div className="grid grid-cols-3 gap-3">
-                          {selectedPodcasts.map((podcast) => (
-                            <div
-                              key={podcast.id}
-                              className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 relative group"
-                            >
-                              <button
-                                data-testid={`button-remove-selected-${podcast.id}`}
-                                onClick={() => handleRemove(podcast.id)}
-                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                              >
-                                ×
-                              </button>
-                              {podcast.artworkUrl ? (
-                                <img
-                                  src={hiResArtwork(podcast.artworkUrl)}
-                                  alt={podcast.name}
-                                  className="w-full aspect-square rounded-xl object-cover shadow-sm shadow-black/[0.06]"
-                                />
-                              ) : (
-                                <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-                                  <Podcast className="w-10 h-10 text-primary" />
-                                </div>
-                              )}
-                              <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
+              </div>
             </section>
 
             <div className="border-t border-black/[0.06]" />
 
             <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
-                <span className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 transition-colors ${email.includes("@") && email.includes(".") ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
-                  {email.includes("@") && email.includes(".") ? "✓" : "2"}
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">
+                  2
                 </span>
                 <div>
                   <h2 className="text-lg font-display font-bold text-foreground">
