@@ -149,6 +149,7 @@ async function processUsers() {
         recipientEmail: user.email,
         podcasts: user.podcasts,
         source: "scheduled",
+        emailHtml,
       });
     } catch (err) {
       console.error(`[EmailScheduler] Failed for user ${user.id}:`, err);

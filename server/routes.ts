@@ -401,6 +401,7 @@ export async function registerRoutes(
         recipientEmail: user.email,
         podcasts: recap.podcasts,
         source: "manual",
+        emailHtml,
       });
 
       res.json({ message: "Email sent successfully" });
@@ -465,6 +466,22 @@ export async function registerRoutes(
     }
     const logs = await storage.getEmailLogs();
     res.json(logs);
+  });
+
+  app.get("/api/admin/email-logs/:id/html", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const logId = parseInt(req.params.id);
+    const logs = await storage.getEmailLogs();
+    const log = logs.find((l) => l.id === logId);
+    if (!log) {
+      return res.status(404).json({ message: "Email log not found" });
+    }
+    if (!log.emailHtml) {
+      return res.status(404).json({ message: "Email content not available for this log entry" });
+    }
+    res.json({ html: log.emailHtml });
   });
 
   app.get("/api/admin/analytics", async (req, res) => {

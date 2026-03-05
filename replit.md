@@ -22,7 +22,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
 - `recaps` table: id, user_id, recap_date, podcasts (text array), summary, created_at
 - `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
-- `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), sent_at
+- `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), email_html (text, stores sent HTML for admin preview), sent_at
 - `magic_links` table: id, email, token (unique), expires_at, used_at, created_at — stores magic link tokens for passwordless login
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 

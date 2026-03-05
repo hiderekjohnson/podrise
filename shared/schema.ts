@@ -65,6 +65,7 @@ export const emailLogs = pgTable("email_logs", {
   recipientEmail: text("recipient_email").notNull(),
   podcasts: text("podcasts").array().notNull(),
   source: text("source").notNull().default("manual"),
+  emailHtml: text("email_html"),
   sentAt: timestamp("sent_at").defaultNow(),
 });
 

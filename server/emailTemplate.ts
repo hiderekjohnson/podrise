@@ -1,4 +1,6 @@
 export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
+  const manageLink = `<div style="text-align:center;margin:16px 0 8px 0;"><a href="https://podcap.io/login" style="color:#2563eb;font-size:12px;text-decoration:underline;">Manage your podcasts</a></div>`;
+
   let html = markdown
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline;" target="_blank">$1</a>')
     .replace(/^## (.+)$/gm, '<h2 style="color:#1a1a1a;font-size:22px;font-weight:700;margin:28px 0 12px 0;padding-bottom:8px;border-bottom:2px solid #e5e7eb;">$1</h2>')
@@ -8,13 +10,17 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
     .replace(/^> "(.+)"$/gm, '<blockquote style="border-left:4px solid #2563eb;padding:12px 16px;margin:16px 0;background:#f0f7ff;border-radius:0 8px 8px 0;font-style:italic;color:#1e40af;font-size:15px;">"$1"</blockquote>')
     .replace(/^> (.+)$/gm, '<blockquote style="border-left:4px solid #2563eb;padding:12px 16px;margin:16px 0;background:#f0f7ff;border-radius:0 8px 8px 0;font-style:italic;color:#1e40af;font-size:15px;">$1</blockquote>')
     .replace(/^- (.+)$/gm, '<li style="margin:6px 0;color:#374151;line-height:1.6;">$1</li>')
-    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">')
+    .replace(/^---$/gm, `<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">${manageLink}`)
     .replace(/\n\n/g, '</p><p style="color:#374151;line-height:1.7;margin:8px 0;">')
     .replace(/<\/p><p[^>]*>(<h2|<hr|<blockquote|<li)/g, '$1')
     .replace(/(<\/h2>|<\/hr>|<\/blockquote>|<\/li>)<\/p>/g, '$1');
 
   const liGroups = html.replace(/(<li[^>]*>.*?<\/li>)(\s*<li)/g, '$1$2');
   html = liGroups.replace(/(<li[^>]*>.*?<\/li>(?:\s*<li[^>]*>.*?<\/li>)*)/g, '<ul style="padding-left:20px;margin:12px 0;">$1</ul>');
+
+  const topBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:12px 16px;margin-bottom:20px;text-align:center;">
+        <p style="color:#1e40af;font-size:13px;margin:0;">Want to add or remove podcasts from your daily summary? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your podcasts here</a></p>
+      </div>`;
 
   return `<!DOCTYPE html>
 <html>
@@ -30,6 +36,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
       <p style="color:#bfdbfe;font-size:14px;margin:8px 0 0 0;">Your personalized podcast digest</p>
     </div>
     <div style="padding:24px 28px;">
+      ${topBanner}
       ${html}
     </div>
     <div style="background:#f9fafb;padding:20px 28px;text-align:center;border-top:1px solid #e5e7eb;">
@@ -37,7 +44,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
         You're receiving this because you signed up for PodCap Daily.
       </p>
       <p style="color:#9ca3af;font-size:12px;margin:4px 0 0 0;">
-        Sent to ${recipientEmail}
+        <a href="https://podcap.io/login" style="color:#9ca3af;text-decoration:underline;">Manage your podcasts</a> · Sent to ${recipientEmail}
       </p>
     </div>
   </div>

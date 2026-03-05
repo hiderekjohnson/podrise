@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, Eye, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -63,6 +63,8 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"users" | "emails" | "analytics">("users");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [emailPreview, setEmailPreview] = useState<{ id: number; html: string } | null>(null);
+  const [loadingEmailId, setLoadingEmailId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
     queryKey: ["/api/admin/me"],
@@ -105,6 +107,19 @@ export default function Admin() {
     queryKey: ["/api/admin/analytics"],
     enabled: isAdmin,
   });
+
+  const viewEmailHtml = async (logId: number) => {
+    setLoadingEmailId(logId);
+    try {
+      const res = await apiRequest("GET", `/api/admin/email-logs/${logId}/html`);
+      const data = await res.json();
+      setEmailPreview({ id: logId, html: data.html });
+    } catch {
+      toast({ title: "Not available", description: "Email content is not stored for this log entry.", variant: "destructive" });
+    } finally {
+      setLoadingEmailId(null);
+    }
+  };
 
   const impersonateMutation = useMutation({
     mutationFn: (userId: number) => apiRequest("POST", "/api/admin/impersonate", { userId }),
@@ -435,12 +450,13 @@ export default function Admin() {
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Sent At</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Podcasts Summarized</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Source</th>
+                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3"></th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-black/[0.04]">
                           {filteredEmails.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                              <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
                                 {searchTerm ? "No emails match your search." : "No emails sent yet."}
                               </td>
                             </tr>
@@ -497,6 +513,21 @@ export default function Admin() {
                                     )}
                                     {log.source === "scheduled" ? "Scheduled" : "Manual"}
                                   </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                  <button
+                                    onClick={() => viewEmailHtml(log.id)}
+                                    disabled={loadingEmailId === log.id}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                                    data-testid={`button-view-email-${log.id}`}
+                                  >
+                                    {loadingEmailId === log.id ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <Eye className="w-3 h-3" />
+                                    )}
+                                    View
+                                  </button>
                                 </td>
                               </tr>
                             ))
@@ -694,6 +725,32 @@ export default function Admin() {
           </motion.div>
         </section>
       </main>
+
+      {emailPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" data-testid="modal-email-preview">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col mx-4">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-foreground">Email Preview (Log #{emailPreview.id})</h3>
+              <button
+                onClick={() => setEmailPreview(null)}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+                data-testid="button-close-email-preview"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-1">
+              <iframe
+                srcDoc={emailPreview.html}
+                title="Email Preview"
+                className="w-full h-full min-h-[600px] border-0 rounded-b-2xl"
+                sandbox="allow-popups"
+                data-testid="iframe-email-preview"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
