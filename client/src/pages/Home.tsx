@@ -238,7 +238,9 @@ export default function Home() {
 
             <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">2</span>
+                <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 mt-0.5 transition-colors ${email.includes("@") && email.includes(".") ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
+                  {email.includes("@") && email.includes(".") ? "✓" : "2"}
+                </span>
                 <div>
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Where should we send your daily recap?
