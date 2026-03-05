@@ -1,4 +1,4 @@
-import { getStripeSync, getUncachableStripeClient } from './stripeClient';
+import { getStripeSync } from './stripeClient';
 import { storage } from './storage';
 
 export class WebhookHandlers {
@@ -12,13 +12,6 @@ export class WebhookHandlers {
 
     const sync = await getStripeSync();
     await sync.processWebhook(payload, signature);
-
-    const stripe = await getUncachableStripeClient();
-    const event = stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      '' // managed webhook doesn't need signing secret for verification since sync already verified
-    ).catch ? null : null;
 
     let parsedEvent: any;
     try {
