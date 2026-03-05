@@ -44,10 +44,19 @@ async function getLocationFromIp(ip: string): Promise<string> {
   return "Unknown";
 }
 
-async function sendNewUserNotification(user: any, req: any) {
+async function sendNewUserNotification(user: any, req: any, signupSource?: string) {
   const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "Unknown";
   const location = await getLocationFromIp(ip);
   const podcastNames = (user.podcasts || []).map((p: string) => parsePodcastName(p));
+  const rawSource = signupSource || req.headers["referer"] || "";
+  const sourceLabels: Record<string, string> = {
+    "/": "Homepage",
+    "/login": "Login Page",
+    "/leaderboard": "Leaderboard",
+    "/podcasts/myfirstmillion": "MFM Landing Page",
+  };
+  const sourceLabel = sourceLabels[rawSource] || rawSource || "Unknown";
+  const sourceUrl = rawSource ? `${sourceLabel} <span style="color:#aaa;font-size:12px;">(${rawSource})</span>` : sourceLabel;
   const signupTime = new Date().toLocaleString("en-US", {
     timeZone: "Europe/Lisbon",
     weekday: "long",
@@ -77,6 +86,7 @@ async function sendNewUserNotification(user: any, req: any) {
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Location</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${location} <span style="color:#aaa;font-size:12px;">(${ip})</span></td></tr>
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Podcasts</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${podcastNames.length > 0 ? podcastNames.map((n: string) => `<span style="display:inline-block;background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${n}</span>`).join("") : "<em style='color:#aaa;'>None selected</em>"}</td></tr>
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Signed up</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${signupTime} <span style="color:#aaa;font-size:12px;">(Lisbon)</span></td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Source</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${sourceUrl}</td></tr>
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">User ID</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">#${user.id}</td></tr>
 </table>
 </div>
@@ -144,7 +154,7 @@ export async function registerRoutes(
       req.session.userId = user.id;
       res.status(201).json(user);
 
-      sendNewUserNotification(user, req).catch((err) =>
+      sendNewUserNotification(user, req, req.body.signupSource).catch((err) =>
         console.error("[NewUserNotify] Failed:", err)
       );
     } catch (err) {

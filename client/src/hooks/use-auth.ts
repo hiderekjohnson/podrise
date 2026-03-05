@@ -23,7 +23,7 @@ export function useAuth() {
 export function useRegister() {
   return useMutation({
     mutationFn: async (data: { email: string; podcasts: string[] }) => {
-      const res = await apiRequest("POST", "/api/auth/register", data);
+      const res = await apiRequest("POST", "/api/auth/register", { ...data, signupSource: window.location.pathname });
       return await res.json();
     },
     onSuccess: (user) => {
