@@ -140,7 +140,6 @@ export class DatabaseStorage implements IStorage {
       .limit(500);
   }
   async deleteUser(id: number): Promise<void> {
-    await db.delete(emailLogs).where(eq(emailLogs.userId, id));
     await db.delete(recaps).where(eq(recaps.userId, id));
     await db.delete(users).where(eq(users.id, id));
   }
