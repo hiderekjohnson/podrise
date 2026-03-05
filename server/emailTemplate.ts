@@ -3,10 +3,10 @@ interface ParsedEpisode {
   episodeTitle: string;
   metaLine: string;
   linksLine: string;
-  tldr: string;
-  discussionLabel: string;
-  discussionText: string;
+  tldl: string;
+  whatHappened: string;
   keyInsights: string[];
+  quoteAttribution: string;
   quote: string;
 }
 
@@ -19,13 +19,8 @@ interface ParsedDigest {
 }
 
 function isEpisodeSection(title: string, body: string): boolean {
-  if (title.toLowerCase().includes("big ideas") || title.toLowerCase().includes("conversation ammo")) {
-    return false;
-  }
-  const hasTldr = /\*\*TL;?DR/i.test(body);
-  const hasKeyInsights = /\*\*Key (Insights|Takeaways)/i.test(body);
-  const hasEpisodeTitle = /^\*\*.+\*\*$/m.test(body);
-  return hasTldr || hasKeyInsights || hasEpisodeTitle;
+  if (/big ideas|conversation ammo/i.test(title)) return false;
+  return /\*\*TLDL|\*\*TL;?DR|\*\*Key (Insights|Takeaways)/i.test(body) || /^\*\*.+\*\*$/m.test(body);
 }
 
 function parseDigestMarkdown(markdown: string): ParsedDigest {
@@ -100,10 +95,10 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
         episodeTitle: "",
         metaLine: "",
         linksLine: "",
-        tldr: "",
-        discussionLabel: "",
-        discussionText: "",
+        tldl: "",
+        whatHappened: "",
         keyInsights: [],
+        quoteAttribution: "",
         quote: "",
       };
 
@@ -111,7 +106,6 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
       let i = 0;
 
       while (i < lines.length && !lines[i].trim()) i++;
-
       if (i < lines.length) {
         const titleMatch = lines[i].match(/^\*\*(.+?)\*\*\s*$/);
         if (titleMatch) {
@@ -134,25 +128,29 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
 
       const remainingText = lines.slice(i).join("\n");
 
-      const tldrMatch = remainingText.match(/\*\*TL;?DR:?\*\*\s*(.+?)(?=\n\s*\n\s*\*\*|\n\*\*[A-Z])/si);
-      if (tldrMatch) {
-        episode.tldr = tldrMatch[1].trim();
+      const tldlMatch = remainingText.match(/\*\*TLDL:?\*\*\s*(.+?)(?=\n\s*\n\s*\*\*|\n\*\*[A-Z])/si);
+      if (tldlMatch) {
+        episode.tldl = tldlMatch[1].trim();
       } else {
-        const simpleTldr = remainingText.match(/\*\*TL;?DR:?\*\*\s*(.+?)$/mi);
-        if (simpleTldr) {
-          episode.tldr = simpleTldr[1].trim();
+        const tldrMatch = remainingText.match(/\*\*TL;?DR:?\*\*\s*(.+?)(?=\n\s*\n\s*\*\*|\n\*\*[A-Z])/si);
+        if (tldrMatch) {
+          episode.tldl = tldrMatch[1].trim();
+        } else {
+          const simpleMatch = remainingText.match(/\*\*(?:TLDL|TL;?DR):?\*\*\s*(.+?)$/mi);
+          if (simpleMatch) episode.tldl = simpleMatch[1].trim();
         }
       }
 
-      const discussionMatch = remainingText.match(/\*\*(.+?(?:Talk|Debate|Focus|Explain|Discuss|Cover|Explore|Unpack|Break|Argue|Reveal|Dig|Examine|Analyze|Dissect|Address|Highlight|Investigate).+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key)/i);
-      if (discussionMatch) {
-        episode.discussionLabel = discussionMatch[1].trim();
-        episode.discussionText = discussionMatch[2].trim();
+      const whatHappenedMatch = remainingText.match(/\*\*What Happened\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key|\n\*\*Quote)/i);
+      if (whatHappenedMatch) {
+        episode.whatHappened = whatHappenedMatch[1].trim();
       } else {
-        const altDiscussion = remainingText.match(/\*\*(What .+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key)/i);
-        if (altDiscussion) {
-          episode.discussionLabel = altDiscussion[1].trim();
-          episode.discussionText = altDiscussion[2].trim();
+        const discussionMatch = remainingText.match(/\*\*(.+?(?:Talk|Debate|Focus|Explain|Discuss|Cover|Explore|Happened).+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key|\n\*\*Quote)/i);
+        if (discussionMatch) {
+          episode.whatHappened = discussionMatch[2].trim();
+        } else {
+          const altMatch = remainingText.match(/\*\*(What .+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key|\n\*\*Quote)/i);
+          if (altMatch) episode.whatHappened = altMatch[2].trim();
         }
       }
 
@@ -164,11 +162,16 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
           .map(l => l.replace(/^[-•]\s*/, "").trim());
       }
 
-      const quoteMatches = remainingText.match(/^>\s*"?(.+?)"?\s*$/gm);
-      if (quoteMatches) {
-        const lastQuote = quoteMatches[quoteMatches.length - 1];
-        const cleaned = lastQuote.replace(/^>\s*/, "").replace(/^[""\u201C]|[""\u201D]$/g, "").trim();
-        episode.quote = cleaned;
+      const quoteBlockMatch = remainingText.match(/\*\*Quote\*\*\s*\n(.+?):\s*\n>\s*"?(.+?)"?\s*$/ms);
+      if (quoteBlockMatch) {
+        episode.quoteAttribution = quoteBlockMatch[1].trim();
+        episode.quote = quoteBlockMatch[2].replace(/^[""\u201C]|[""\u201D]$/g, "").trim();
+      } else {
+        const quoteMatches = remainingText.match(/^>\s*"?(.+?)"?\s*$/gm);
+        if (quoteMatches) {
+          const lastQuote = quoteMatches[quoteMatches.length - 1];
+          episode.quote = lastQuote.replace(/^>\s*/, "").replace(/^[""\u201C]|[""\u201D]$/g, "").trim();
+        }
       }
 
       result.episodes.push(episode);
@@ -191,7 +194,10 @@ function renderLinks(linksLine: string): string {
   const rendered = linksLine
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:none;font-weight:600;" target="_blank">$1</a>')
     .replace(/🎧\s*/, "");
-  return `<p style="margin:8px 0 0 0;font-size:13px;color:#6b7280;">🎧 ${rendered}</p>`;
+  return `<div style="margin:12px 0 0 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:6px;">LISTEN TO THE FULL EPISODE</div>
+          <p style="margin:0;font-size:13px;color:#6b7280;">&#127911; ${rendered}</p>
+        </div>`;
 }
 
 function renderInlineMarkdown(text: string): string {
@@ -202,7 +208,7 @@ function renderInlineMarkdown(text: string): string {
 }
 
 function buildStatsCards(statsHeader: string, episodeCount: number): string {
-  const runtimeMatch = statsHeader.match(/\*?\*?(\d+h?\s*\d*m?)\*?\*?\s*Total runtime/i);
+  const runtimeMatch = statsHeader.match(/\*?\*?(\d+h?\s*\d*m?)\*?\*?\s*(?:Audio analyzed|Total runtime)/i);
   const totalRuntime = runtimeMatch ? runtimeMatch[1].trim() : "";
 
   const readMinutes = Math.max(2, Math.ceil(episodeCount * 2.5));
@@ -217,15 +223,15 @@ function buildStatsCards(statsHeader: string, episodeCount: number): string {
   return `<table width="100%" cellpadding="0" cellspacing="4" border="0" style="margin:20px 0;">
       <tr>
         <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
-          <div style="font-size:18px;margin-bottom:4px;">🎧</div>
+          <div style="font-size:18px;margin-bottom:4px;">&#127911;</div>
           <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${episodeCount}</div>
           <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Podcasts</div>
         </td>
         <td width="1%"></td>
         <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
-          <div style="font-size:18px;margin-bottom:4px;">&#9201;</div>
+          <div style="font-size:18px;margin-bottom:4px;">&#128269;</div>
           <div style="font-size:22px;font-weight:800;color:#1a1a1a;">${totalRuntime || "&mdash;"}</div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total runtime</div>
+          <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Audio analyzed</div>
         </td>
         <td width="1%"></td>
         <td width="24%" style="text-align:center;padding:14px 4px;border-radius:10px;background:#f0f7ff;">
@@ -250,6 +256,24 @@ function formatTimeSaved(minutes: number): string {
     return m > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${h}h`;
   }
   return `${minutes}m`;
+}
+
+function buildTldlSummary(episodes: ParsedEpisode[]): string {
+  if (episodes.length === 0) return "";
+
+  const items = episodes
+    .filter(ep => ep.tldl)
+    .map(ep => `<div style="margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:800;color:#1a1a1a;margin-bottom:4px;">&#127911; ${escapeHtml(ep.podcastName)}</div>
+          <p style="font-size:14px;color:#374151;line-height:1.5;margin:0;">${renderInlineMarkdown(escapeHtml(ep.tldl))}</p>
+        </div>`)
+    .join("");
+
+  return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:20px 0;">
+      <h2 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#2563eb;margin:0 0 4px 0;">TLDL</h2>
+      <p style="font-size:11px;color:#94a3b8;font-style:italic;margin:0 0 16px 0;">Too Long, Didn't Listen</p>
+      ${items}
+    </div>`;
 }
 
 function buildEpisodeCard(episode: ParsedEpisode): string {
@@ -282,35 +306,38 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
           </tr>`)
     .join("");
 
-  const quoteHtml = episode.quote
-    ? `<div style="background:#fefce8;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 16px;margin:16px 0 0 0;">
-          <table cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="vertical-align:top;padding-right:10px;font-size:22px;color:#f59e0b;">&#8220;&#8220;</td>
-            <td style="font-size:14px;color:#1a1a1a;font-style:italic;line-height:1.5;">"${escapeHtml(episode.quote)}"</td>
-          </tr></table>
-        </div>`
-    : "";
+  let quoteHtml = "";
+  if (episode.quote) {
+    const attrHtml = episode.quoteAttribution
+      ? `<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">${escapeHtml(episode.quoteAttribution)}:</div>`
+      : "";
+    quoteHtml = `<div style="margin:16px 0 0 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">QUOTE</div>
+          ${attrHtml}
+          <div style="background:#fefce8;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 16px;">
+            <table cellpadding="0" cellspacing="0" border="0"><tr>
+              <td style="vertical-align:top;padding-right:10px;font-size:22px;color:#f59e0b;">&#8220;&#8220;</td>
+              <td style="font-size:14px;color:#1a1a1a;font-style:italic;line-height:1.5;">"${escapeHtml(episode.quote)}"</td>
+            </tr></table>
+          </div>
+        </div>`;
+  }
 
-  const discussionHtml = episode.discussionText
+  const whatHappenedHtml = episode.whatHappened
     ? `<div style="margin:16px 0;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:8px;">${escapeHtml(episode.discussionLabel || "WHAT THEY TALK ABOUT")}</div>
-          <p style="font-size:14px;color:#374151;line-height:1.6;margin:0;">${renderInlineMarkdown(escapeHtml(episode.discussionText))}</p>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:8px;">WHAT HAPPENED</div>
+          ${episode.whatHappened.split(/\n\n+/).map(p =>
+            `<p style="font-size:14px;color:#374151;line-height:1.7;margin:0 0 12px 0;">${renderInlineMarkdown(escapeHtml(p.trim()))}</p>`
+          ).join("")}
         </div>`
     : "";
 
-  const tldrHtml = episode.tldr
-    ? `<div style="background:#f8fafc;border-left:3px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 16px;margin:16px 0;">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:6px;">TLDR</div>
-          <p style="font-size:14px;color:#1a1a1a;line-height:1.5;margin:0;">${renderInlineMarkdown(escapeHtml(episode.tldr))}</p>
-        </div>`
-    : "";
-
-  return `<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:20px 0;">
+  return `<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:24px 0;">
       <!--[if mso]>
       <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#4f7df5;padding:14px 20px;">
       <![endif]-->
       <div style="background-color:#4f7df5;background-image:linear-gradient(135deg,#4f7df5,#6c9aff);padding:14px 20px;">
-        <h2 style="color:#ffffff;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:0;">${escapeHtml(episode.podcastName)}</h2>
+        <h2 style="color:#ffffff;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:0;">&#127911; ${escapeHtml(episode.podcastName)}</h2>
       </div>
       <!--[if mso]>
       </td></tr></table>
@@ -330,8 +357,7 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
           <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(durationHtml)}</div>
         </div>` : ""}
         ${renderLinks(episode.linksLine)}
-        ${tldrHtml}
-        ${discussionHtml}
+        ${whatHappenedHtml}
         ${insightsHtml ? `<div style="margin:16px 0 0 0;">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:10px;">KEY INSIGHTS</div>
           <table cellpadding="0" cellspacing="0" border="0">
@@ -346,7 +372,11 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
 export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
   const parsed = parseDigestMarkdown(markdown);
 
-  const firstName = recipientEmail.split("@")[0].replace(/[^a-zA-Z]/g, " ").replace(/\b\w/g, l => l.toUpperCase()).split(" ")[0];
+  const runtimeMatch = parsed.statsHeader.match(/\*?\*?(\d+h?\s*\d*m?)\*?\*?\s*(?:Audio analyzed|Total runtime)/i);
+  const totalRuntime = runtimeMatch ? runtimeMatch[1].trim() : "";
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
   const bigIdeasHtml = parsed.bigIdeas
     .map(idea => `<tr>
@@ -358,12 +388,14 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
         </tr>`)
     .join("");
 
+  const tldlSummaryHtml = buildTldlSummary(parsed.episodes);
+
   const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep)).join("");
 
   const conversationAmmoHtml = parsed.conversationAmmo.length > 0
     ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:20px;margin:20px 0;">
         <h2 style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#92400e;margin:0 0 14px 0;">&#128172; Conversation Ammo</h2>
-        <p style="font-size:12px;color:#92400e;font-style:italic;margin:0 0 14px 0;">If you repeat one idea today, make it one of these:</p>
+        <p style="font-size:12px;color:#92400e;font-style:italic;margin:0 0 14px 0;">Drop one of these at your next dinner party:</p>
         ${parsed.conversationAmmo
           .map((ammo, idx) => `<div style="margin-bottom:12px;padding-bottom:${idx < parsed.conversationAmmo.length - 1 ? "12" : "0"}px;${idx < parsed.conversationAmmo.length - 1 ? "border-bottom:1px solid #fde68a;" : ""}">
               <span style="display:inline-block;background:#fde68a;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(ammo.tag)}</span>
@@ -378,6 +410,8 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
   const manageBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:10px 16px;margin-bottom:24px;text-align:center;">
         <p style="color:#1e40af;font-size:12px;margin:0;">Want to change your podcasts? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your subscriptions</a></p>
       </div>`;
+
+  const readMinutes = Math.max(2, Math.ceil(parsed.episodes.length * 2.5));
 
   return `<!DOCTYPE html>
 <html>
@@ -402,12 +436,14 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
     </td></tr></table>
     <![endif]-->
     <div style="padding:28px;">
-      <h2 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0 0 6px 0;">Good morning${firstName !== recipientEmail.split("@")[0] ? ` ${firstName}` : ""}.</h2>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 4px 0;">You follow <strong style="color:#1a1a1a;">${parsed.episodes.length} podcast${parsed.episodes.length !== 1 ? "s" : ""}</strong> today</p>
-      ${parsed.podcastNames ? `<p style="font-size:13px;color:#94a3b8;margin:8px 0 0 0;">${escapeHtml(parsed.podcastNames)}</p>` : ""}
+      <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin:0 0 8px 0;">Here's your PodCap for ${dateStr}</p>
+      <h2 style="font-size:24px;font-weight:800;color:#1a1a1a;margin:0 0 10px 0;line-height:1.3;">We listened to <span style="color:#2563eb;">${totalRuntime || parsed.episodes.length + " episodes"}</span> of podcasts so you don't have to.</h2>
+      <p style="font-size:15px;color:#374151;margin:0 0 4px 0;">Below is your <strong>${readMinutes}-minute recap</strong> of <strong>${parsed.episodes.length} podcast${parsed.episodes.length !== 1 ? "s" : ""}</strong>. You can thank us later.</p>
+      ${parsed.podcastNames ? `<p style="font-size:13px;color:#94a3b8;margin:12px 0 0 0;">${escapeHtml(parsed.podcastNames)}</p>` : ""}
       ${statsCardsHtml}
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-      ${bigIdeasHtml ? `<div style="margin-bottom:24px;">
+      ${tldlSummaryHtml}
+      ${bigIdeasHtml ? `<div style="margin:24px 0;">
         <h2 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#1a1a1a;margin:0 0 16px 0;">BIG IDEAS TODAY</h2>
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${bigIdeasHtml}
@@ -416,6 +452,10 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 4px 0;">
       ${episodeCardsHtml}
       ${conversationAmmoHtml}
+      <div style="text-align:center;margin:24px 0 8px 0;">
+        <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 4px 0;">That's your PodCap Daily. &#9749;</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Same time tomorrow?</p>
+      </div>
       ${manageBanner}
     </div>
     <div style="background:#f9fafb;padding:20px 28px;text-align:center;border-top:1px solid #e5e7eb;">

@@ -169,7 +169,7 @@ You MUST follow this EXACT structure and tone. Write in markdown.
 
 ${podcastNames}
 
-**${totalPodcasts}** Podcasts · **${formatDuration(totalDurationMin)}** Total runtime
+**${totalPodcasts}** Podcasts · **${formatDuration(totalDurationMin)}** Audio analyzed
 
 ---
 
@@ -193,10 +193,10 @@ Then for EACH episode (only ones with new content), write a section like this:
 
 🎧 [Apple Podcasts](USE_THE_APPLE_PODCASTS_URL_FROM_THE_EPISODE_DATA_ABOVE) · [Spotify](USE_THE_SPOTIFY_SEARCH_URL_FROM_THE_EPISODE_DATA_ABOVE)
 
-**TL;DR:** [2-3 sentence summary of the core thesis of the episode. Be direct and specific, not vague.]
+**TLDL:** [2-3 sentence summary of the core thesis of the episode. Be direct and specific, not vague. TLDL stands for "Too Long, Didn't Listen".]
 
-**[Discussion Label — choose one: "What They Talk About" / "What They Debate" / "What [Host] Focuses On" / "What They Explain"]**
-[2-3 sentences describing the dynamic of the conversation. Who pushes back on what? What's the tension? What angle do they explore? Make it feel like you listened.]
+**What Happened**
+[2-4 paragraphs telling the story of the episode in a narrative style. Walk through the conversation beat by beat — what did they open with, where did it go, what was the tension or surprise, how did it end. Write it like you're telling a friend about a conversation you overheard. Use paragraph breaks between major beats. Do NOT use bullet points here — write in flowing prose.]
 
 **Key Insights:**
 - [Specific, concrete insight #1]
@@ -204,13 +204,15 @@ Then for EACH episode (only ones with new content), write a section like this:
 - [Specific, concrete insight #3]
 - [Specific, concrete insight #4]
 
+**Quote**
+[Speaker name] on [topic]:
 > "[A memorable, quotable line from the episode — make it feel real and punchy, the kind of thing someone would repeat at dinner]"
 
 ---
 
 ## Conversation Ammo
 
-*If you repeat one idea today, make it this:*
+*Drop one of these at your next dinner party:*
 
 **[Topic Tag]** — [A conversational one-liner someone could casually bring up. Written as "Someone argued..." or "Apparently..." or a surprising fact.]
 
@@ -220,18 +222,19 @@ Then for EACH episode (only ones with new content), write a section like this:
 
 ---
 
-**That's your PodCap Daily.**
+**That's your PodCap Daily. You can thank us later.**
 
 ---
 
 IMPORTANT TONE GUIDELINES:
 - Write like a sharp, well-read friend catching you up — not like a news anchor or a corporate summary
 - Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
-- The hook quotes should feel real — punchy, conversational, the kind of thing someone actually said
+- The quotes should feel real — punchy, conversational, the kind of thing someone actually said. Always attribute the quote to the speaker.
 - Key insights should be specific facts or claims, not generic observations
 - Conversation Ammo should be things someone could casually say at dinner or in a meeting
 - Keep energy high but don't use exclamation marks excessively
 - Never say "In this episode" or "The hosts discuss" — just state the ideas directly
+- The "What Happened" section should read like a story, NOT a list. Use flowing paragraphs with paragraph breaks between beats.
 - IMPORTANT: Use the ACTUAL Apple Podcasts and Spotify links provided in the episode data above. Do NOT make up URLs. The line with links should appear right after the episode title/guest/duration line.`;
 
   const completion = await openai.chat.completions.create({
