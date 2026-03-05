@@ -4,6 +4,7 @@ import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, Chevron
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 const PODCAST = {
@@ -353,17 +354,7 @@ export default function PodcastLandingEmpowerHer() {
         </motion.section>
       </main>
 
-      <footer className="w-full border-t border-black/[0.06] py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center">
-            <img src={logoPath} alt="PodCap" className="h-5 object-contain opacity-50" />
-          </div>
-          <p className="text-xs text-muted-foreground/60 text-center">
-            PodCap is not affiliated with empowerHER or Kacia Ghetmiri.
-            All trademarks belong to their respective owners.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
