@@ -22,12 +22,15 @@ A full-stack web application that lets users create and manage personalized dail
 - `recaps` table: id, user_id, recap_date, podcasts (text array), summary, created_at
 - `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
 - `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), sent_at
+- `magic_links` table: id, email, token (unique), expires_at, used_at, created_at — stores magic link tokens for passwordless login
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow
 - Signup via onboarding creates user record + session
-- Login by email lookup (no password) + session
+- Login via magic link: user enters email → server generates 32-byte token (15-min expiry), sends branded email via Resend → user clicks link → `GET /api/auth/magic?token=...` validates token, creates session, redirects to `/dashboard`
+- Invalid/expired magic links redirect to `/login?error=invalid` or `/login?error=expired` with inline error alert
 - Sessions stored in PostgreSQL via `connect-pg-simple`
+- Dashboard invalidates auth cache on mount to ensure fresh session after magic link redirect
 
 ## Stripe / Payment Flow
 - Stripe connected via Replit integration (handles sandbox/live keys automatically)

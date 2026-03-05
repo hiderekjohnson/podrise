@@ -1,16 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { Mail, ArrowRight, Loader2 } from "lucide-react";
-import { useLogin, useAuth } from "@/hooks/use-auth";
+import { Mail, ArrowRight, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
 import faviconPath from "@assets/image_1772642558577.png";
 
 export default function Login() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
   const { toast } = useToast();
-  const { mutate: login, isPending } = useLogin();
   const [email, setEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loginMutation = useMutation({
+    mutationFn: (email: string) => apiRequest("POST", "/api/auth/login", { email }),
+    onSuccess: () => {
+      setEmailSent(true);
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Login failed",
+        description: err.message.includes("404")
+          ? "No account found with this email. Please sign up first."
+          : err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const hasShownError = useRef(false);
+  useEffect(() => {
+    if (hasShownError.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (error === "expired") {
+      hasShownError.current = true;
+      setErrorMessage("That login link has expired or was already used. Please request a new one.");
+    } else if (error === "invalid") {
+      hasShownError.current = true;
+      setErrorMessage("That login link is invalid. Please try again.");
+    }
+  }, []);
 
   if (user) {
     navigate("/dashboard");
@@ -27,25 +60,51 @@ export default function Login() {
       });
       return;
     }
-
-    login(
-      { email },
-      {
-        onSuccess: () => {
-          navigate("/dashboard");
-        },
-        onError: (err) => {
-          toast({
-            title: "Login failed",
-            description: err.message.includes("404")
-              ? "No account found with this email. Please sign up first."
-              : err.message,
-            variant: "destructive",
-          });
-        },
-      }
-    );
+    loginMutation.mutate(email);
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2.5 mb-8">
+            <img
+              src={faviconPath}
+              alt="PodCap"
+              className="w-10 h-10 object-contain"
+              data-testid="img-logo"
+            />
+            <span className="font-display font-bold text-xl text-foreground">PodCap</span>
+          </div>
+        </div>
+
+        <div className="w-full max-w-sm glass-panel rounded-2xl p-6 sm:p-8 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-5">
+            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-display font-bold text-foreground mb-2" data-testid="text-check-email">
+            Check Your Email
+          </h1>
+          <p className="text-muted-foreground text-sm mb-1">
+            We sent a login link to
+          </p>
+          <p className="font-semibold text-foreground text-sm mb-5" data-testid="text-sent-email">
+            {email}
+          </p>
+          <p className="text-muted-foreground text-xs mb-6">
+            The link expires in 15 minutes. Check your spam folder if you don't see it.
+          </p>
+          <button
+            data-testid="button-back-to-login"
+            onClick={() => { setEmailSent(false); loginMutation.reset(); }}
+            className="text-sm text-primary font-semibold hover:underline"
+          >
+            Use a different email
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -63,9 +122,16 @@ export default function Login() {
           Welcome Back
         </h1>
         <p className="text-base text-muted-foreground max-w-md mx-auto">
-          Enter your email to access your PodCap dashboard.
+          Enter your email and we'll send you a login link.
         </p>
       </div>
+
+      {errorMessage && (
+        <div className="w-full max-w-sm mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4" data-testid="alert-login-error">
+          <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-red-700">{errorMessage}</p>
+        </div>
+      )}
 
       <div className="w-full max-w-sm glass-panel rounded-2xl p-6 sm:p-8">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -84,14 +150,14 @@ export default function Login() {
           <button
             data-testid="button-login"
             type="submit"
-            disabled={isPending}
+            disabled={loginMutation.isPending}
             className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {isPending ? (
+            {loginMutation.isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                Log In
+                Send Login Link
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

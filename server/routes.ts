@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import type { Server } from "http";
+import crypto from "crypto";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
@@ -90,8 +91,44 @@ export async function registerRoutes(
           message: "No account found with this email address.",
         });
       }
-      req.session.userId = user.id;
-      res.json(user);
+
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+      await storage.createMagicLink(user.email, token, expiresAt);
+
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const magicUrl = `${baseUrl}/api/auth/magic?token=${token}`;
+
+      const { client, fromEmail } = await getUncachableResendClient();
+      const sendResult = await client.emails.send({
+        from: `PodCap <${fromEmail}>`,
+        to: user.email,
+        subject: "Your PodCap Login Link",
+        html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:480px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;text-align:center;">
+      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">PodCap</h1>
+    </div>
+    <div style="padding:32px 28px;text-align:center;">
+      <h2 style="color:#1a1a1a;font-size:20px;font-weight:700;margin:0 0 12px 0;">Log in to PodCap</h2>
+      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px 0;">Click the button below to securely log in. This link expires in 15 minutes.</p>
+      <a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(37,99,235,0.3);">Log in to PodCap</a>
+      <p style="color:#9ca3af;font-size:12px;margin:24px 0 0 0;">If you didn't request this, you can safely ignore this email.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+      });
+
+      if (sendResult.error) {
+        console.error("Magic link email error:", JSON.stringify(sendResult.error));
+        return res.status(500).json({ message: "Failed to send login email. Please try again." });
+      }
+
+      res.json({ message: "Magic link sent! Check your email." });
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
@@ -101,6 +138,30 @@ export async function registerRoutes(
       }
       throw err;
     }
+  });
+
+  app.get("/api/auth/magic", async (req, res) => {
+    const token = req.query.token as string;
+    if (!token) {
+      return res.redirect("/login?error=invalid");
+    }
+
+    const magicLink = await storage.getMagicLinkByToken(token);
+    if (!magicLink) {
+      return res.redirect("/login?error=expired");
+    }
+
+    const user = await storage.getUserByEmail(magicLink.email);
+    if (!user) {
+      return res.redirect("/login?error=invalid");
+    }
+
+    await storage.markMagicLinkUsed(magicLink.id);
+    req.session.userId = user.id;
+
+    req.session.save(() => {
+      res.redirect("/dashboard");
+    });
   });
 
   app.post(api.auth.logout.path, (req, res) => {

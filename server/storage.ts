@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog } from "@shared/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink } from "@shared/schema";
+import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
   createUser(user: CreateUserRequest): Promise<UserResponse>;
@@ -17,6 +17,9 @@ export interface IStorage {
   saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript>;
   logEmail(data: InsertEmailLog): Promise<EmailLog>;
   getEmailLogs(): Promise<EmailLog[]>;
+  createMagicLink(email: string, token: string, expiresAt: Date): Promise<MagicLink>;
+  getMagicLinkByToken(token: string): Promise<MagicLink | undefined>;
+  markMagicLinkUsed(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -134,6 +137,34 @@ export class DatabaseStorage implements IStorage {
       .from(emailLogs)
       .orderBy(desc(emailLogs.sentAt))
       .limit(500);
+  }
+  async createMagicLink(email: string, token: string, expiresAt: Date): Promise<MagicLink> {
+    const [link] = await db
+      .insert(magicLinks)
+      .values({ email, token, expiresAt })
+      .returning();
+    return link;
+  }
+
+  async getMagicLinkByToken(token: string): Promise<MagicLink | undefined> {
+    const [link] = await db
+      .select()
+      .from(magicLinks)
+      .where(
+        and(
+          eq(magicLinks.token, token),
+          gt(magicLinks.expiresAt, new Date()),
+          isNull(magicLinks.usedAt)
+        )
+      );
+    return link ?? undefined;
+  }
+
+  async markMagicLinkUsed(id: number): Promise<void> {
+    await db
+      .update(magicLinks)
+      .set({ usedAt: new Date() })
+      .where(eq(magicLinks.id, id));
   }
 }
 

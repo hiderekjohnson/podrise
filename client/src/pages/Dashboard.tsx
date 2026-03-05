@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -81,6 +81,14 @@ export default function Dashboard() {
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
   const { mutate: logout } = useLogout();
   const { toast } = useToast();
+
+  const hasInvalidatedAuth = useRef(false);
+  useEffect(() => {
+    if (!hasInvalidatedAuth.current) {
+      hasInvalidatedAuth.current = true;
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    }
+  }, []);
 
   const [activeTab, setActiveTab] = useState<"settings" | "recaps">("settings");
   const [podcasts, setPodcasts] = useState<SelectedPodcast[]>([]);
