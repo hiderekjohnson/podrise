@@ -69,6 +69,38 @@ export default function Dashboard() {
   const [deliveryTimezone, setDeliveryTimezone] = useState(() => getDetectedTimezone());
   const [loggingOut, setLoggingOut] = useState(false);
   const [viewingRecap, setViewingRecap] = useState<RecapData | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emailDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const autoSave = useCallback((fields: Record<string, any>) => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    setAutoSaveStatus("saving");
+    autoSaveTimer.current = setTimeout(() => {
+      updateUser(fields, {
+        onSuccess: () => {
+          setAutoSaveStatus("saved");
+          savedTimer.current = setTimeout(() => setAutoSaveStatus("idle"), 2000);
+        },
+        onError: () => {
+          setAutoSaveStatus("idle");
+          toast({ title: "Failed to save", description: "Your changes could not be saved.", variant: "destructive" });
+        },
+      });
+    }, 800);
+  }, [updateUser, toast]);
+
+  const handleEmailChange = useCallback((val: string) => {
+    setEmail(val);
+    if (emailDebounce.current) clearTimeout(emailDebounce.current);
+    if (val.includes("@") && val.includes(".")) {
+      emailDebounce.current = setTimeout(() => {
+        autoSave({ email: val });
+      }, 1200);
+    }
+  }, [autoSave]);
 
   const isPro = user?.plan === "pro";
 
@@ -215,39 +247,6 @@ export default function Dashboard() {
       }
     );
   };
-
-  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const autoSave = useCallback((fields: Record<string, any>) => {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    setAutoSaveStatus("saving");
-    autoSaveTimer.current = setTimeout(() => {
-      updateUser(fields, {
-        onSuccess: () => {
-          setAutoSaveStatus("saved");
-          savedTimer.current = setTimeout(() => setAutoSaveStatus("idle"), 2000);
-        },
-        onError: () => {
-          setAutoSaveStatus("idle");
-          toast({ title: "Failed to save", description: "Your changes could not be saved.", variant: "destructive" });
-        },
-      });
-    }, 800);
-  }, [updateUser, toast]);
-
-  const emailDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleEmailChange = useCallback((val: string) => {
-    setEmail(val);
-    if (emailDebounce.current) clearTimeout(emailDebounce.current);
-    if (val.includes("@") && val.includes(".")) {
-      emailDebounce.current = setTimeout(() => {
-        autoSave({ email: val });
-      }, 1200);
-    }
-  }, [autoSave]);
 
   const handleLogout = () => {
     setLoggingOut(true);
