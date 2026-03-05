@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
-import logoPath from "@assets/Podcap_logo_1772731291095.png";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 function hiResArtwork(url: string) {
   return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
@@ -109,7 +109,7 @@ export default function Home() {
           <img
             src={logoPath}
             alt="PodCap"
-            className="h-20 -my-5 object-contain"
+            className="h-9 object-contain"
           />
         </a>
         <div className="flex items-center gap-4">

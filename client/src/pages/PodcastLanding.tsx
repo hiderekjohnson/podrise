@@ -4,7 +4,7 @@ import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, Chevron
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Podcap_logo_1772731291095.png";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 const MFM_PODCAST = {
   id: "1469759170",
@@ -117,7 +117,7 @@ export default function PodcastLandingMFM() {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-blue-50/30 to-white">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-20 -my-5 object-contain" />
+          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
         </a>
         <a
           href="/login"

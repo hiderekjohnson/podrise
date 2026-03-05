@@ -5,7 +5,7 @@ import { Loader2, ArrowRight, Mail, Headphones, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Podcap_logo_1772731291095.png";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface LeaderboardPodcast {
   id: string;
@@ -66,7 +66,7 @@ export default function Leaderboard() {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-20 -my-5 object-contain" />
+          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
         </a>
         <div className="flex items-center gap-4">
           {user ? (

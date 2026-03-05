@@ -10,7 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import ReactMarkdown from "react-markdown";
-import logoPath from "@assets/Podcap_logo_1772731291095.png";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface SelectedPodcast {
   id: string;
@@ -361,7 +361,7 @@ export default function Dashboard() {
           <img
             src={logoPath}
             alt="PodCap"
-            className="h-20 -my-5 object-contain"
+            className="h-9 object-contain"
           />
         </a>
         <button

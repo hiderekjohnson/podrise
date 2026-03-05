@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
-import logoPath from "@assets/Podcap_logo_1772731291095.png";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -71,7 +71,7 @@ export default function Login() {
             <img
               src={logoPath}
               alt="PodCap"
-              className="h-20 object-contain"
+              className="h-10 object-contain"
               data-testid="img-logo"
             />
           </div>

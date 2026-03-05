@@ -7,7 +7,7 @@ const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Podcap_logo_1772731291095.png";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface AdminUser {
   id: number;
@@ -164,7 +164,7 @@ export default function Admin() {
       <div className="min-h-screen flex flex-col">
         <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <a href="/" className="flex items-center">
-            <img src={logoPath} alt="PodCap" className="h-20 -my-5 object-contain" />
+            <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
           </a>
         </header>
 
@@ -231,7 +231,7 @@ export default function Admin() {
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
           <a href="/" className="flex items-center">
-            <img src={logoPath} alt="PodCap" className="h-20 -my-5 object-contain" />
+            <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
           </a>
           <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase tracking-wide">Admin</span>
         </div>
