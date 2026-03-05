@@ -144,21 +144,11 @@ export default function Home() {
               data-testid="text-headline"
               className="text-[2rem] sm:text-[2.75rem] md:text-[3.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
             >
-              Your favorite podcasts.{" "}<span className="text-primary">Recapped daily.</span>
+              Your favorite podcasts{" "}<span className="text-primary">recapped daily</span>
             </h1>
-            <div className="flex items-center gap-4 max-w-lg">
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
-                alt="Sarah M."
-                className="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-white shadow-md"
-              />
-              <div>
-                <p className="text-sm sm:text-base text-muted-foreground italic leading-relaxed">
-                  "It's like having my own assistant that listens to each podcast and sends me the highlights."
-                </p>
-                <p className="text-xs font-semibold text-foreground/70 mt-1">Sarah M. — PodCap user</p>
-              </div>
-            </div>
+            <h2 className="text-base sm:text-lg text-muted-foreground font-medium">
+              Like having an assistant listen and send you the highlights.
+            </h2>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
