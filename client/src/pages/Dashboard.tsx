@@ -306,7 +306,7 @@ export default function Dashboard() {
                   <button
                     data-testid="button-remove-podcasts-first"
                     onClick={() => setShowCancelModal(false)}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
                   >
                     Remove podcasts first
                   </button>
@@ -315,7 +315,7 @@ export default function Dashboard() {
                     data-testid="button-confirm-cancel"
                     onClick={handleCancelSubscription}
                     disabled={isCanceling}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
                   >
                     {isCanceling ? (
                       <>
@@ -330,7 +330,7 @@ export default function Dashboard() {
                 <button
                   data-testid="button-keep-subscription"
                   onClick={() => setShowCancelModal(false)}
-                  className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                  className="w-full h-10 flex items-center justify-center rounded-2xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
                 >
                   {podcastsOverLimit ? "Never mind" : "Keep my subscription"}
                 </button>
@@ -398,16 +398,16 @@ export default function Dashboard() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="w-full max-w-2xl"
         >
-          <div className="flex bg-black/[0.04] p-1 rounded-xl w-full max-w-xs mx-auto mb-6">
+          <div className="flex bg-black/[0.04] p-1.5 rounded-2xl w-full max-w-xs mx-auto mb-8">
             <button
               data-testid="tab-settings"
               onClick={() => setActiveTab("settings")}
-              className={`relative flex-1 py-2.5 text-sm font-semibold rounded-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${activeTab === "settings" ? "text-primary" : "text-muted-foreground"}`}
+              className={`relative flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${activeTab === "settings" ? "text-primary" : "text-muted-foreground"}`}
             >
               {activeTab === "settings" && (
                 <motion.div
                   layoutId="dashboardTabSwitch"
-                  className="absolute inset-0 bg-white shadow-sm rounded-[10px] border border-black/[0.04]"
+                  className="absolute inset-0 bg-white shadow-sm rounded-xl border border-black/[0.04]"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
@@ -417,12 +417,12 @@ export default function Dashboard() {
             <button
               data-testid="tab-recaps"
               onClick={() => setActiveTab("recaps")}
-              className={`relative flex-1 py-2.5 text-sm font-semibold rounded-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${activeTab === "recaps" ? "text-primary" : "text-muted-foreground"}`}
+              className={`relative flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${activeTab === "recaps" ? "text-primary" : "text-muted-foreground"}`}
             >
               {activeTab === "recaps" && (
                 <motion.div
                   layoutId="dashboardTabSwitch"
-                  className="absolute inset-0 bg-white shadow-sm rounded-[10px] border border-black/[0.04]"
+                  className="absolute inset-0 bg-white shadow-sm rounded-xl border border-black/[0.04]"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
@@ -440,7 +440,7 @@ export default function Dashboard() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col gap-10">
+                <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
                   <section className="flex flex-col gap-4">
                     <h2 className="text-lg font-display font-bold text-foreground">
                       Your podcasts
@@ -497,7 +497,7 @@ export default function Dashboard() {
                           value={email}
                           onChange={(e) => handleEmailChange(e.target.value)}
                           autoFocus
-                          className="flex-1 h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                          className="flex-1 h-14 px-5 bg-white border border-black/[0.08] rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
                         />
                         <button
                           data-testid="button-edit-email"
@@ -533,7 +533,7 @@ export default function Dashboard() {
                     <h2 className="text-lg font-display font-bold text-foreground">
                       Subscription
                     </h2>
-                    <div className="rounded-xl border border-black/[0.06] bg-black/[0.02] p-5 space-y-4">
+                    <div className="rounded-2xl border border-black/[0.06] bg-black/[0.02] p-5 space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Crown className="w-5 h-5 text-primary" />
@@ -623,7 +623,7 @@ export default function Dashboard() {
                         data-testid="button-generate-recap"
                         onClick={() => generateRecap.mutate()}
                         disabled={generateRecap.isPending}
-                        className="inline-flex items-center gap-2 px-6 h-12 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+                        className="inline-flex items-center gap-2 px-6 h-12 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
                       >
                         {generateRecap.isPending ? (
                           <>

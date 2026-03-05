@@ -145,7 +145,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
             placeholder="Search and add your favorite podcasts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+            className="w-full h-14 pl-12 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
           />
         </div>
         {searchQuery && (
@@ -171,7 +171,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
             <p className="text-sm font-semibold text-foreground px-1">
               Search Results for "{searchQuery}"
             </p>
-            <div className="border border-black/[0.06] rounded-xl divide-y divide-black/[0.06] overflow-hidden bg-white/60">
+            <div className="border border-black/[0.06] rounded-2xl divide-y divide-black/[0.06] overflow-hidden bg-white shadow-md shadow-black/[0.04]">
               {isSearching ? (
                 <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -235,7 +235,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
-                  className="group relative bg-card border border-border rounded-xl p-3 flex flex-col items-center text-center transition-shadow hover:shadow-md"
+                  className="group relative bg-white border border-black/[0.06] rounded-2xl p-4 flex flex-col items-center text-center transition-all hover:shadow-lg hover:shadow-black/[0.06]"
                 >
                   <button
                     data-testid={`button-remove-podcast-${podcast.id}`}

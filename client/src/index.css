@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,33 +9,33 @@
     --font-sans: 'Inter', sans-serif;
     --font-display: 'Plus Jakarta Sans', sans-serif;
 
-    --background: 210 33% 97%;
-    --foreground: 215 50% 12%;
+    --background: 30 20% 97%;
+    --foreground: 0 0% 13%;
     
     --card: 0 0% 100%;
-    --card-foreground: 215 50% 12%;
+    --card-foreground: 0 0% 13%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 215 50% 12%;
+    --popover-foreground: 0 0% 13%;
     
-    --primary: 207 90% 54%;
+    --primary: 350 72% 58%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 215 50% 12%;
+    --secondary: 30 15% 94%;
+    --secondary-foreground: 0 0% 13%;
     
-    --muted: 214 32% 91%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 30 10% 90%;
+    --muted-foreground: 0 0% 44%;
     
-    --accent: 207 90% 54%;
+    --accent: 350 72% 58%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 207 90% 54%;
+    --border: 30 10% 90%;
+    --input: 30 10% 90%;
+    --ring: 350 72% 58%;
 
     --radius: 1rem;
   }
@@ -47,10 +47,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(207, 90%, 94%, 1) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(207, 70%, 92%, 1) 0px, transparent 50%);
-    background-attachment: fixed;
     min-height: 100vh;
   }
 
@@ -62,7 +58,8 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5;
+    @apply bg-white border border-black/[0.06] shadow-xl shadow-black/[0.05];
+    border-radius: 24px;
   }
   
   .hide-scrollbar::-webkit-scrollbar {

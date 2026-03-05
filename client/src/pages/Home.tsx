@@ -159,10 +159,10 @@ export default function Home() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="w-full max-w-2xl"
         >
-          <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col gap-10">
-            <section className="flex flex-col gap-4">
+          <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
+            <section className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
-                <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-colors ${podcastsLocked ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
+                <span className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 transition-colors ${podcastsLocked ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
                   {podcastsLocked ? "✓" : "1"}
                 </span>
                 <div className="flex-1">
@@ -196,7 +196,7 @@ export default function Home() {
                       {selectedPodcasts.map((podcast) => (
                         <div
                           key={podcast.id}
-                          className="flex flex-col items-center text-center bg-card border border-border rounded-xl p-3"
+                          className="flex flex-col items-center text-center bg-white border border-black/[0.06] rounded-2xl p-4"
                         >
                           {podcast.artworkUrl ? (
                             <img
@@ -238,7 +238,7 @@ export default function Home() {
 
             <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
-                <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 mt-0.5 transition-colors ${email.includes("@") && email.includes(".") ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
+                <span className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 transition-colors ${email.includes("@") && email.includes(".") ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"}`}>
                   {email.includes("@") && email.includes(".") ? "✓" : "2"}
                 </span>
                 <div>
@@ -255,7 +255,7 @@ export default function Home() {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                  className="w-full h-14 px-5 bg-white border border-black/[0.08] rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
                 />
               </div>
             </section>
@@ -265,7 +265,7 @@ export default function Home() {
                 data-testid="button-finish"
                 onClick={handleSubmit}
                 disabled={isPending}
-                className="w-full h-14 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+                className="w-full h-14 flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
               >
                 {isPending ? (
                   <>
@@ -558,8 +558,8 @@ function SampleEpisode({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-black/[0.06] overflow-hidden">
-      <div className={`${color} px-5 py-3`}>
+    <div className="rounded-2xl border border-black/[0.06] overflow-hidden shadow-sm shadow-black/[0.03]">
+      <div className={`${color} px-5 py-3.5`}>
         <p className="text-xs font-bold text-white uppercase tracking-[0.15em]">{name}</p>
       </div>
       <div className="p-5 space-y-4 bg-white">
