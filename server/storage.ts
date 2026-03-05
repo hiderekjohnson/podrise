@@ -21,6 +21,7 @@ export interface IStorage {
   getMagicLinkByToken(token: string): Promise<MagicLink | undefined>;
   markMagicLinkUsed(id: number): Promise<void>;
   deleteUser(id: number): Promise<void>;
+  getAllRecaps(): Promise<Recap[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -142,6 +143,10 @@ export class DatabaseStorage implements IStorage {
   async deleteUser(id: number): Promise<void> {
     await db.delete(recaps).where(eq(recaps.userId, id));
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  async getAllRecaps(): Promise<Recap[]> {
+    return await db.select().from(recaps).orderBy(desc(recaps.createdAt));
   }
 
   async createMagicLink(email: string, token: string, expiresAt: Date): Promise<MagicLink> {

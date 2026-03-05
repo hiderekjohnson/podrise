@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2 } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,6 +24,18 @@ interface EmailLogEntry {
   podcasts: string[];
   source: string;
   sentAt: string | null;
+}
+
+interface AnalyticsData {
+  totalUsers: number;
+  totalRecaps: number;
+  totalEmailsSent: number;
+  proUsers: number;
+  totalRuntimeMinutes: number;
+  topPodcasts: { name: string; artworkUrl: string; count: number }[];
+  userGrowth: { date: string; newUsers: number; totalUsers: number }[];
+  emailActivity: { date: string; count: number }[];
+  readingLengthDist: Record<number, number>;
 }
 
 function parsePodcastName(raw: string): string {
@@ -51,7 +63,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "emails">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "emails" | "analytics">("users");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
@@ -88,6 +100,11 @@ export default function Admin() {
 
   const { data: emailLogs, isLoading: emailLogsLoading } = useQuery<EmailLogEntry[]>({
     queryKey: ["/api/admin/email-logs"],
+    enabled: isAdmin,
+  });
+
+  const { data: analytics, isLoading: analyticsLoading } = useQuery<AnalyticsData>({
+    queryKey: ["/api/admin/analytics"],
     enabled: isAdmin,
   });
 
@@ -252,18 +269,32 @@ export default function Admin() {
                     {emailLogs?.length ?? 0}
                   </span>
                 </button>
+                <button
+                  data-testid="tab-analytics"
+                  onClick={() => { setActiveTab("analytics"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === "analytics"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Analytics
+                </button>
               </div>
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  data-testid="input-admin-search"
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={activeTab === "users" ? "Search users or podcasts..." : "Search by email or podcast..."}
-                  className="w-full h-10 pl-10 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50"
-                />
-              </div>
+              {activeTab !== "analytics" && (
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    data-testid="input-admin-search"
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={activeTab === "users" ? "Search users or podcasts..." : "Search by email or podcast..."}
+                    className="w-full h-10 pl-10 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50"
+                  />
+                </div>
+              )}
             </div>
 
             {activeTab === "users" && (
@@ -478,6 +509,223 @@ export default function Admin() {
                     </div>
                   </div>
                 )}
+              </>
+            )}
+
+            {activeTab === "analytics" && (
+              <>
+                {analyticsLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : analytics ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-total-users">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Users className="w-4.5 h-4.5 text-primary" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Users</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.totalUsers}</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-pro-users">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                            <Crown className="w-4.5 h-4.5 text-amber-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pro</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.proUsers}</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-total-recaps">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
+                            <TrendingUp className="w-4.5 h-4.5 text-green-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recaps</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.totalRecaps}</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-sent">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                            <Mail className="w-4.5 h-4.5 text-blue-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Emails</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.totalEmailsSent}</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-total-runtime">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                            <Headphones className="w-4.5 h-4.5 text-purple-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Runtime</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">
+                          {analytics.totalRuntimeMinutes >= 60
+                            ? `${Math.floor(analytics.totalRuntimeMinutes / 60)}h ${analytics.totalRuntimeMinutes % 60}m`
+                            : `${analytics.totalRuntimeMinutes}m`}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-top-podcasts">
+                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                          <Podcast className="w-4 h-4 text-primary" />
+                          Top Podcasts by Users
+                        </h3>
+                        {analytics.topPodcasts.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">No data yet</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {analytics.topPodcasts.map((podcast, i) => {
+                              const maxCount = analytics.topPodcasts[0]?.count || 1;
+                              return (
+                                <div key={i} className="flex items-center gap-3" data-testid={`podcast-rank-${i}`}>
+                                  <span className="text-xs font-bold text-muted-foreground w-5 text-right">{i + 1}</span>
+                                  {podcast.artworkUrl ? (
+                                    <img
+                                      src={podcast.artworkUrl}
+                                      alt=""
+                                      className="w-8 h-8 rounded-lg object-cover shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                      <Podcast className="w-4 h-4 text-primary" />
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
+                                    <div className="mt-1 h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-primary/60 rounded-full transition-all"
+                                        style={{ width: `${(podcast.count / maxCount) * 100}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <span className="text-sm font-bold text-foreground shrink-0 tabular-nums">
+                                    {podcast.count} {podcast.count === 1 ? "user" : "users"}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-user-growth">
+                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                          User Growth
+                        </h3>
+                        {analytics.userGrowth.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">No data yet</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {(() => {
+                              const maxTotal = Math.max(...analytics.userGrowth.map(d => d.totalUsers), 1);
+                              return analytics.userGrowth.map((point, i) => (
+                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`growth-row-${i}`}>
+                                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
+                                    {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </span>
+                                  <div className="flex-1 h-2 bg-black/[0.04] rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-green-500/60 rounded-full transition-all"
+                                      style={{ width: `${(point.totalUsers / maxTotal) * 100}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
+                                    {point.totalUsers} total
+                                  </span>
+                                  {point.newUsers > 0 && (
+                                    <span className="text-xs font-semibold text-green-600 w-12 text-right">
+                                      +{point.newUsers}
+                                    </span>
+                                  )}
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-email-activity">
+                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-blue-500" />
+                          Email Activity
+                        </h3>
+                        {analytics.emailActivity.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">No emails sent yet</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {(() => {
+                              const maxEmails = Math.max(...analytics.emailActivity.map(d => d.count), 1);
+                              const recent = analytics.emailActivity.slice(-14);
+                              return recent.map((point, i) => (
+                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`email-day-${i}`}>
+                                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
+                                    {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </span>
+                                  <div className="flex-1 h-2 bg-black/[0.04] rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-blue-500/60 rounded-full transition-all"
+                                      style={{ width: `${(point.count / maxEmails) * 100}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
+                                    {point.count} sent
+                                  </span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-reading-length">
+                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-purple-500" />
+                          Reading Length Preferences
+                        </h3>
+                        {Object.keys(analytics.readingLengthDist).length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">No data yet</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {(() => {
+                              const entries = Object.entries(analytics.readingLengthDist)
+                                .map(([len, count]) => ({ length: parseInt(len), count: count as number }))
+                                .sort((a, b) => a.length - b.length);
+                              const maxCount = Math.max(...entries.map(e => e.count), 1);
+                              return entries.map((entry, i) => (
+                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`reading-len-${entry.length}`}>
+                                  <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">
+                                    {entry.length} min
+                                  </span>
+                                  <div className="flex-1 h-3 bg-black/[0.04] rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-purple-500/50 rounded-full transition-all"
+                                      style={{ width: `${(entry.count / maxCount) * 100}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
+                                    {entry.count} {entry.count === 1 ? "user" : "users"}
+                                  </span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </>
             )}
           </motion.div>

@@ -349,6 +349,104 @@ export async function registerRoutes(
     res.json(logs);
   });
 
+  app.get("/api/admin/analytics", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const allUsers = await storage.getAllUsers();
+      const allRecaps = await storage.getAllRecaps();
+      const allEmailLogs = await storage.getEmailLogs();
+
+      const totalUsers = allUsers.length;
+      const totalRecaps = allRecaps.length;
+      const totalEmailsSent = allEmailLogs.length;
+      const proUsers = allUsers.filter(u => u.plan === "pro").length;
+
+      const podcastCounts: Record<string, { name: string; artworkUrl: string; count: number }> = {};
+      for (const user of allUsers) {
+        for (const p of user.podcasts) {
+          try {
+            const parsed = JSON.parse(p);
+            const key = parsed.id || parsed.name;
+            if (!podcastCounts[key]) {
+              podcastCounts[key] = { name: parsed.name, artworkUrl: parsed.artworkUrl || "", count: 0 };
+            }
+            podcastCounts[key].count++;
+          } catch {}
+        }
+      }
+      const topPodcasts = Object.values(podcastCounts)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 15);
+
+      let totalRuntimeMinutes = 0;
+      for (const recap of allRecaps) {
+        const match = recap.summary?.match(/\*\*(\d+)h?\s*(\d+)?m?\*\*\s*Total runtime/i)
+          || recap.summary?.match(/(\d+)h\s+(\d+)m.*Total runtime/i);
+        if (match) {
+          const hours = parseInt(match[1] || "0", 10);
+          const mins = parseInt(match[2] || "0", 10);
+          totalRuntimeMinutes += hours * 60 + mins;
+        } else {
+          const minMatch = recap.summary?.match(/\*\*(\d+)m\*\*\s*Total runtime/i);
+          if (minMatch) {
+            totalRuntimeMinutes += parseInt(minMatch[1], 10);
+          }
+        }
+      }
+
+      const userGrowth: Record<string, number> = {};
+      for (const user of allUsers) {
+        if (user.createdAt) {
+          const date = new Date(user.createdAt).toISOString().split("T")[0];
+          userGrowth[date] = (userGrowth[date] || 0) + 1;
+        }
+      }
+      const userGrowthSorted = Object.entries(userGrowth)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, count]) => ({ date, count }));
+
+      let cumulative = 0;
+      const userGrowthCumulative = userGrowthSorted.map(({ date, count }) => {
+        cumulative += count;
+        return { date, newUsers: count, totalUsers: cumulative };
+      });
+
+      const emailsByDay: Record<string, number> = {};
+      for (const log of allEmailLogs) {
+        if (log.sentAt) {
+          const date = new Date(log.sentAt).toISOString().split("T")[0];
+          emailsByDay[date] = (emailsByDay[date] || 0) + 1;
+        }
+      }
+      const emailActivity = Object.entries(emailsByDay)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, count]) => ({ date, count }));
+
+      const readingLengthDist: Record<number, number> = {};
+      for (const user of allUsers) {
+        const rl = user.readingLength ?? 10;
+        readingLengthDist[rl] = (readingLengthDist[rl] || 0) + 1;
+      }
+
+      res.json({
+        totalUsers,
+        totalRecaps,
+        totalEmailsSent,
+        proUsers,
+        totalRuntimeMinutes,
+        topPodcasts,
+        userGrowth: userGrowthCumulative,
+        emailActivity,
+        readingLengthDist,
+      });
+    } catch (err) {
+      console.error("Analytics error:", err);
+      res.status(500).json({ message: "Failed to load analytics" });
+    }
+  });
+
   app.delete("/api/admin/users/:id", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
