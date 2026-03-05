@@ -15,12 +15,13 @@ A full-stack web application that lets users create and manage personalized dail
 - `/login` — Email-based login for existing users
 - `/dashboard` — Manage podcasts, reading length, delivery time/timezone, email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
-- `/admin` — Admin dashboard (password-protected): view all users, their emails, signup dates, and podcasts
+- `/admin` — Admin dashboard (password-protected): view all users, email send logs; tabbed interface
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), reading_length, delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
 - `recaps` table: id, user_id, recap_date, podcasts (text array), summary, created_at
 - `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
+- `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), sent_at
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow
@@ -56,6 +57,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `GET /api/admin/me` — Check admin session
 - `POST /api/admin/logout` — Admin logout
 - `GET /api/admin/users` — Get all users (admin only)
+- `GET /api/admin/email-logs` — Get email send history (admin only, last 500)
 - `GET /api/stripe/publishable-key` — Get Stripe publishable key
 - `POST /api/stripe/create-checkout` — Create Stripe checkout session
 - `GET /api/stripe/subscription` — Get user's subscription status

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog } from "@shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -15,6 +15,8 @@ export interface IStorage {
   getSubscription(subscriptionId: string): Promise<any>;
   getTranscriptByEpisodeGuid(episodeGuid: string): Promise<EpisodeTranscript | undefined>;
   saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript>;
+  logEmail(data: InsertEmailLog): Promise<EmailLog>;
+  getEmailLogs(): Promise<EmailLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -116,6 +118,22 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .orderBy(desc(users.createdAt));
+  }
+
+  async logEmail(data: InsertEmailLog): Promise<EmailLog> {
+    const [log] = await db
+      .insert(emailLogs)
+      .values(data)
+      .returning();
+    return log;
+  }
+
+  async getEmailLogs(): Promise<EmailLog[]> {
+    return db
+      .select()
+      .from(emailLogs)
+      .orderBy(desc(emailLogs.sentAt))
+      .limit(500);
   }
 }
 

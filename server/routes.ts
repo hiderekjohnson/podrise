@@ -386,6 +386,14 @@ IMPORTANT TONE GUIDELINES:
       }
 
       console.log("Resend email sent, id:", result.data?.id);
+
+      await storage.logEmail({
+        userId: user.id,
+        recipientEmail: user.email,
+        podcasts: recap.podcasts,
+        source: "manual",
+      });
+
       res.json({ message: "Email sent successfully" });
     } catch (err: any) {
       console.error("Send email error:", err?.message || err);
@@ -440,6 +448,14 @@ IMPORTANT TONE GUIDELINES:
     }
     const allUsers = await storage.getAllUsers();
     res.json(allUsers);
+  });
+
+  app.get("/api/admin/email-logs", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const logs = await storage.getEmailLogs();
+    res.json(logs);
   });
 
   app.post(api.users.update.path, async (req, res) => {

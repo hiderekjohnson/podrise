@@ -312,6 +312,13 @@ async function processUsers() {
 
       recentlySent.add(cacheKey);
       console.log(`[EmailScheduler] Email sent to ${user.email}, id: ${sendResult.data?.id}`);
+
+      await storage.logEmail({
+        userId: user.id,
+        recipientEmail: user.email,
+        podcasts: user.podcasts,
+        source: "scheduled",
+      });
     } catch (err) {
       console.error(`[EmailScheduler] Failed for user ${user.id}:`, err);
     }

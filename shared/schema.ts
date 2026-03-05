@@ -60,3 +60,20 @@ export const episodeTranscripts = pgTable("episode_transcripts", {
 });
 
 export type EpisodeTranscript = typeof episodeTranscripts.$inferSelect;
+
+export const emailLogs = pgTable("email_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  recipientEmail: text("recipient_email").notNull(),
+  podcasts: text("podcasts").array().notNull(),
+  source: text("source").notNull().default("manual"),
+  sentAt: timestamp("sent_at").defaultNow(),
+});
+
+export const insertEmailLogSchema = createInsertSchema(emailLogs).omit({
+  id: true,
+  sentAt: true,
+});
+
+export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
+export type EmailLog = typeof emailLogs.$inferSelect;
