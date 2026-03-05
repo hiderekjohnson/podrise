@@ -147,7 +147,7 @@ export default function Home() {
               Your favorite podcasts recapped daily
             </h1>
             <h2 className="text-base sm:text-lg text-muted-foreground font-medium">
-              Like having an assistant listen and send you the key highlights.
+              We listen so you don't have to.
             </h2>
             <button
               data-testid="link-sample-email"
