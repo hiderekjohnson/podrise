@@ -8,6 +8,8 @@ import { z } from "zod";
 import { openai } from "./replit_integrations/image/client";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts } from "./taddyClient";
+import { getUncachableResendClient } from "./resendClient";
+import { markdownToEmailHtml } from "./emailTemplate";
 
 declare module "express-session" {
   interface SessionData {
@@ -343,6 +345,45 @@ IMPORTANT TONE GUIDELINES:
     } catch (err) {
       console.error("Recap generation error:", err);
       res.status(500).json({ message: "Failed to generate recap. Please try again." });
+    }
+  });
+
+  app.post("/api/recaps/send-email", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const parsed = z.object({ recapId: z.coerce.number().int().positive() }).safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Missing or invalid recapId" });
+    }
+    const { recapId } = parsed.data;
+
+    try {
+      const recaps = await storage.getRecapsByUserId(user.id);
+      const recap = recaps.find((r) => r.id === recapId);
+      if (!recap) {
+        return res.status(404).json({ message: "Recap not found" });
+      }
+
+      const emailHtml = markdownToEmailHtml(recap.summary, user.email);
+      const { client, fromEmail } = await getUncachableResendClient();
+
+      await client.emails.send({
+        from: `PodCap Daily <${fromEmail}>`,
+        to: user.email,
+        subject: `☕ Your PodCap Daily — ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
+        html: emailHtml,
+      });
+
+      res.json({ message: "Email sent successfully" });
+    } catch (err) {
+      console.error("Send email error:", err);
+      res.status(500).json({ message: "Failed to send email. Please try again." });
     }
   });
 

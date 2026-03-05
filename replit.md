@@ -73,6 +73,17 @@ A full-stack web application that lets users create and manage personalized dail
   - Falls back to iTunes episode descriptions when no transcript is available
   - Transcript excerpts (up to 8000 chars) fed to GPT for more accurate quotes, facts, and insights
 
+## Email System
+- **Provider**: Resend via Replit connector integration
+- **Scheduler**: `server/emailScheduler.ts` runs every 60 seconds, checks each user's delivery time + timezone
+  - Only sends if current time in user's timezone matches their `deliveryTime` setting
+  - Skips users who already received email today (in-memory `sentToday` set, resets at midnight UTC)
+  - Skips if no new episodes from yesterday — no email sent
+  - Generates recap, saves to DB, converts markdown to HTML, sends via Resend
+- **Email Template**: `server/emailTemplate.ts` converts markdown recap to styled HTML email
+- **Manual Send**: Users can click "Send to Email" on any recap in the dashboard viewer
+- **API Route**: `POST /api/recaps/send-email` sends a specific recap to the user's email
+
 ## Key Files
 - `shared/schema.ts` — Drizzle schema + Zod validation
 - `shared/routes.ts` — API contract definitions
@@ -81,6 +92,9 @@ A full-stack web application that lets users create and manage personalized dail
 - `server/stripeClient.ts` — Stripe client setup (credentials from Replit connector)
 - `server/webhookHandlers.ts` — Stripe webhook processing
 - `server/taddyClient.ts` — Taddy GraphQL API client for podcast search + transcript fetching
+- `server/resendClient.ts` — Resend email client (via Replit connector)
+- `server/emailTemplate.ts` — Markdown-to-HTML email template converter
+- `server/emailScheduler.ts` — Background scheduler for automated daily email delivery
 - `server/seed-products.ts` — Script to create Stripe products
 - `server/index.ts` — Server entry point (Stripe init + webhook route before JSON middleware)
 - `client/src/hooks/use-auth.ts` — Auth hooks

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard } from "lucide-react";
+import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
@@ -107,6 +107,16 @@ export default function Dashboard() {
     },
     onError: (err: Error) => {
       toast({ title: "Generation failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const sendEmail = useMutation({
+    mutationFn: (recapId: number) => apiRequest("POST", "/api/recaps/send-email", { recapId }),
+    onSuccess: () => {
+      toast({ title: "Email sent!", description: "Check your inbox for the recap." });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Email failed", description: err.message, variant: "destructive" });
     },
   });
 
@@ -653,13 +663,24 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">{formatRecapDate(viewingRecap.recapDate)}</p>
                   </div>
                 </div>
-                <button
-                  data-testid="button-close-recap"
-                  onClick={() => setViewingRecap(null)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    data-testid="button-send-email"
+                    onClick={() => sendEmail.mutate(viewingRecap.id)}
+                    disabled={sendEmail.isPending}
+                    className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-all disabled:opacity-50"
+                  >
+                    {sendEmail.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    Send to Email
+                  </button>
+                  <button
+                    data-testid="button-close-recap"
+                    onClick={() => setViewingRecap(null)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="px-6 sm:px-8 py-6 sm:py-8">
