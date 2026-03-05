@@ -20,6 +20,7 @@ export interface IStorage {
   createMagicLink(email: string, token: string, expiresAt: Date): Promise<MagicLink>;
   getMagicLinkByToken(token: string): Promise<MagicLink | undefined>;
   markMagicLinkUsed(id: number): Promise<void>;
+  deleteUser(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -138,6 +139,12 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(emailLogs.sentAt))
       .limit(500);
   }
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(emailLogs).where(eq(emailLogs.userId, id));
+    await db.delete(recaps).where(eq(recaps.userId, id));
+    await db.delete(users).where(eq(users.id, id));
+  }
+
   async createMagicLink(email: string, token: string, expiresAt: Date): Promise<MagicLink> {
     const [link] = await db
       .insert(magicLinks)

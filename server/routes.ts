@@ -349,6 +349,23 @@ export async function registerRoutes(
     res.json(logs);
   });
 
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    try {
+      await storage.deleteUser(userId);
+      res.json({ message: "User deleted" });
+    } catch (err) {
+      console.error("Failed to delete user:", err);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   app.post("/api/admin/impersonate", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

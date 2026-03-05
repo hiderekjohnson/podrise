@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -52,6 +52,7 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"users" | "emails">("users");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
     queryKey: ["/api/admin/me"],
@@ -98,6 +99,18 @@ export default function Admin() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to impersonate user.", variant: "destructive" });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => apiRequest("DELETE", `/api/admin/users/${userId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setConfirmDeleteId(null);
+      toast({ title: "User deleted", description: "The user account has been removed." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete user.", variant: "destructive" });
     },
   });
 
@@ -323,15 +336,49 @@ export default function Admin() {
                                   </div>
                                 </td>
                                 <td className="px-5 py-4">
-                                  <button
-                                    data-testid={`button-impersonate-${user.id}`}
-                                    onClick={() => impersonateMutation.mutate(user.id)}
-                                    disabled={impersonateMutation.isPending}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary border border-primary/20 hover:bg-primary/5 transition-colors disabled:opacity-50"
-                                  >
-                                    <UserCheck className="w-3.5 h-3.5" />
-                                    Impersonate
-                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      data-testid={`button-impersonate-${user.id}`}
+                                      onClick={() => impersonateMutation.mutate(user.id)}
+                                      disabled={impersonateMutation.isPending}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary border border-primary/20 hover:bg-primary/5 transition-colors disabled:opacity-50"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                      Impersonate
+                                    </button>
+                                    {confirmDeleteId === user.id ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          data-testid={`button-confirm-delete-${user.id}`}
+                                          onClick={() => deleteUserMutation.mutate(user.id)}
+                                          disabled={deleteUserMutation.isPending}
+                                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50"
+                                        >
+                                          {deleteUserMutation.isPending ? (
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                          ) : (
+                                            "Confirm"
+                                          )}
+                                        </button>
+                                        <button
+                                          data-testid={`button-cancel-delete-${user.id}`}
+                                          onClick={() => setConfirmDeleteId(null)}
+                                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground border border-black/10 hover:bg-black/[0.03] transition-colors"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        data-testid={`button-delete-${user.id}`}
+                                        onClick={() => setConfirmDeleteId(user.id)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-500 border border-red-200 hover:bg-red-50 transition-colors"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        Delete
+                                      </button>
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
                             ))
