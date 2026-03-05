@@ -56,23 +56,44 @@ export function injectPodcastMeta(html: string, url: string): string {
     `<meta property="og:description" content="${podcast.description}" />`
   );
 
-  const ogImageTag = `<meta property="og:image" content="${podcast.artworkUrl}" />`;
-  const ogTypeTag = `<meta property="og:type" content="website" />`;
-  const twitterCardTag = `<meta name="twitter:card" content="summary_large_image" />`;
-  const twitterTitleTag = `<meta name="twitter:title" content="${title}" />`;
-  const twitterDescTag = `<meta name="twitter:description" content="${podcast.description}" />`;
-  const twitterImageTag = `<meta name="twitter:image" content="${podcast.artworkUrl}" />`;
-
-  const faviconLink = `<link rel="icon" type="image/jpeg" href="${podcast.artworkUrl}" />`;
   html = html.replace(
-    /<link rel="icon" type="image\/png" href="\/favicon\.png"\s*\/?>/, 
-    faviconLink
+    /<meta property="og:image" content="[^"]*"\s*\/?>/,
+    `<meta property="og:image" content="${podcast.artworkUrl}" />`
   );
 
-  const injectedTags = `${ogImageTag}\n    ${ogTypeTag}\n    ${twitterCardTag}\n    ${twitterTitleTag}\n    ${twitterDescTag}\n    ${twitterImageTag}`;
   html = html.replace(
-    /<\/head>/,
-    `    ${injectedTags}\n  </head>`
+    /<meta property="og:url" content="[^"]*"\s*\/?>/,
+    `<meta property="og:url" content="https://podcap.io/podcasts/${podcast.slug}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:card" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:card" content="summary_large_image" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:title" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:title" content="${title}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:description" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:description" content="${podcast.description}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:image" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:image" content="${podcast.artworkUrl}" />`
+  );
+
+  html = html.replace(
+    /<link rel="icon" type="image\/png" href="\/favicon\.png"\s*\/?>/,
+    `<link rel="icon" type="image/jpeg" href="${podcast.artworkUrl}" />`
+  );
+
+  html = html.replace(
+    /<link rel="apple-touch-icon" href="\/favicon\.png"\s*\/?>/,
+    `<link rel="apple-touch-icon" href="${podcast.artworkUrl}" />`
   );
 
   return html;
