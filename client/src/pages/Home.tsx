@@ -166,6 +166,9 @@ export default function Home() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="w-full max-w-2xl"
         >
+          <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6">
+            Create Your Podcast Recap
+          </h2>
           <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
             <section className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
