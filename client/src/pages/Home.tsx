@@ -117,10 +117,10 @@ export default function Home() {
           <button
             data-testid="link-podcasts"
             onClick={() => navigate("/podcasts")}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-colors"
-            title="Most Popular"
+            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors"
           >
-            <Trophy className="w-4.5 h-4.5" />
+            <Trophy className="w-3.5 h-3.5" />
+            Most Popular
           </button>
           <button
             data-testid="link-login"
