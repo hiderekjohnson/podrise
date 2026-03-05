@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Search, X, Plus, Loader2, Podcast, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
@@ -80,57 +81,60 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
 
   return (
     <div className="space-y-4">
-      <AnimatePresence>
-        {showUpgradeModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-            onClick={(e) => { if (e.target === e.currentTarget) setShowUpgradeModal(false); }}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showUpgradeModal && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
-              data-testid="modal-upgrade"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+              onClick={(e) => { if (e.target === e.currentTarget) setShowUpgradeModal(false); }}
             >
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Crown className="w-7 h-7 text-primary" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
-                  You've reached your free plan limit
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  The free plan includes up to 3 podcasts. Upgrade to Pro for unlimited podcasts for $9.99/month.
-                </p>
-              </div>
-              <div className="w-full space-y-2.5">
-                <button
-                  data-testid="button-upgrade-modal"
-                  onClick={() => { setShowUpgradeModal(false); navigate("/upgrade"); }}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
-                >
-                  <Crown className="w-4 h-4" />
-                  Upgrade to Pro — $9.99/month
-                </button>
-                <button
-                  data-testid="button-dismiss-upgrade"
-                  onClick={() => setShowUpgradeModal(false)}
-                  className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
-                >
-                  Not now
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground/60">You can cancel anytime.</p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
+                data-testid="modal-upgrade"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Crown className="w-7 h-7 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
+                    You've reached your free plan limit
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    The free plan includes up to 3 podcasts. Upgrade to Pro for unlimited podcasts for $9.99/month.
+                  </p>
+                </div>
+                <div className="w-full space-y-2.5">
+                  <button
+                    data-testid="button-upgrade-modal"
+                    onClick={() => { setShowUpgradeModal(false); navigate("/upgrade"); }}
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                  >
+                    <Crown className="w-4 h-4" />
+                    Upgrade to Pro — $9.99/month
+                  </button>
+                  <button
+                    data-testid="button-dismiss-upgrade"
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                  >
+                    Not now
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground/60">You can cancel anytime.</p>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <div className="relative group flex items-center gap-2">
         <div className="relative flex-1">
