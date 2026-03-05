@@ -373,16 +373,22 @@ IMPORTANT TONE GUIDELINES:
       const emailHtml = markdownToEmailHtml(recap.summary, user.email);
       const { client, fromEmail } = await getUncachableResendClient();
 
-      await client.emails.send({
+      const result = await client.emails.send({
         from: `PodCap Daily <${fromEmail}>`,
         to: user.email,
         subject: `☕ Your PodCap Daily — ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
         html: emailHtml,
       });
 
+      if (result.error) {
+        console.error("Resend API error:", JSON.stringify(result.error));
+        return res.status(500).json({ message: `Email failed: ${result.error.message || "Unknown error"}` });
+      }
+
+      console.log("Resend email sent, id:", result.data?.id);
       res.json({ message: "Email sent successfully" });
-    } catch (err) {
-      console.error("Send email error:", err);
+    } catch (err: any) {
+      console.error("Send email error:", err?.message || err);
       res.status(500).json({ message: "Failed to send email. Please try again." });
     }
   });

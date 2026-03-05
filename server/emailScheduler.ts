@@ -298,15 +298,20 @@ async function processUsers() {
       const emailHtml = markdownToEmailHtml(result.summary, user.email);
 
       const { client, fromEmail } = await getUncachableResendClient();
-      await client.emails.send({
+      const sendResult = await client.emails.send({
         from: `PodCap Daily <${fromEmail}>`,
         to: user.email,
         subject: `☕ Your PodCap Daily — ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`,
         html: emailHtml,
       });
 
+      if (sendResult.error) {
+        console.error(`[EmailScheduler] Resend error for user ${user.id}:`, JSON.stringify(sendResult.error));
+        continue;
+      }
+
       recentlySent.add(cacheKey);
-      console.log(`[EmailScheduler] Email sent to ${user.email}`);
+      console.log(`[EmailScheduler] Email sent to ${user.email}, id: ${sendResult.data?.id}`);
     } catch (err) {
       console.error(`[EmailScheduler] Failed for user ${user.id}:`, err);
     }
