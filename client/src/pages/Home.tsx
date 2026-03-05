@@ -146,11 +146,19 @@ export default function Home() {
             >
               Your favorite podcasts.{" "}<span className="text-primary">Recapped daily.</span>
             </h1>
-            <blockquote className="relative max-w-lg">
-              <span className="text-base sm:text-lg text-muted-foreground italic leading-relaxed">
-                "It's like having my own assistant that listens to each podcast and sends me the highlights."
-              </span>
-            </blockquote>
+            <div className="flex items-center gap-4 max-w-lg">
+              <img
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
+                alt="Sarah M."
+                className="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-white shadow-md"
+              />
+              <div>
+                <p className="text-sm sm:text-base text-muted-foreground italic leading-relaxed">
+                  "It's like having my own assistant that listens to each podcast and sends me the highlights."
+                </p>
+                <p className="text-xs font-semibold text-foreground/70 mt-1">Sarah M. — PodCap user</p>
+              </div>
+            </div>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
