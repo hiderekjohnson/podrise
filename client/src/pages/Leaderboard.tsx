@@ -63,7 +63,7 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-blue-50/30 to-white">
+    <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center gap-2.5" data-testid="link-home">
           <img src={faviconPath} alt="PodCap icon" className="w-8 h-8 object-contain" />
@@ -125,25 +125,26 @@ export default function Leaderboard() {
             transition={{ duration: 0.5, delay: 0.15 }}
             className="w-full max-w-2xl"
           >
-            <div className="glass-panel rounded-2xl sm:rounded-3xl overflow-hidden">
+            <div className="glass-panel overflow-hidden">
               <div className="px-5 sm:px-6 py-4 border-b border-black/[0.06] flex items-center gap-2">
                 <Headphones className="w-4 h-4 text-primary" />
                 <span className="text-sm font-display font-bold text-foreground">Top Podcasts by Users</span>
               </div>
               <div className="divide-y divide-black/[0.04]">
                 {filteredPodcasts?.map((podcast, index) => (
-                  <div
+                  <button
                     key={podcast.id}
-                    className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-4 hover:bg-black/[0.01] transition-colors"
+                    onClick={() => setSelectedPodcast(podcast)}
+                    className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-4 w-full text-left transition-colors hover:bg-black/[0.02] group/row"
                     data-testid={`leaderboard-row-${index}`}
                   >
-                    <span className="text-sm font-bold text-muted-foreground w-6 text-right shrink-0" data-testid={`rank-${index}`}>
+                    <span className="text-xs font-bold text-muted-foreground/50 w-5 text-right shrink-0 tabular-nums" data-testid={`rank-${index}`}>
                       {index + 1}
                     </span>
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-14 h-14 rounded-xl object-cover shadow-sm shrink-0"
+                      className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
                       data-testid={`artwork-${index}`}
                     />
                     <div className="flex-1 min-w-0">
@@ -151,31 +152,28 @@ export default function Leaderboard() {
                         {podcast.name}
                       </p>
                       {podcast.artist && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
                           {podcast.artist}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                         {podcast.genres?.slice(0, 2).map((genre) => (
-                          <span key={genre} className="text-[10px] font-medium text-muted-foreground bg-black/[0.04] px-1.5 py-0.5 rounded">
+                          <span key={genre} className="text-[10px] font-semibold text-muted-foreground/70 bg-black/[0.04] px-2 py-0.5 rounded-full">
                             {genre}
                           </span>
                         ))}
                         {podcast.episodeCount > 0 && (
-                          <span className="text-[10px] text-muted-foreground/70">
-                            {podcast.episodeCount} episodes
+                          <span className="text-[10px] text-muted-foreground/50">
+                            {podcast.episodeCount} ep.
                           </span>
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setSelectedPodcast(podcast)}
-                      className="shrink-0 px-3 py-1.5 text-xs font-bold text-primary bg-primary/8 hover:bg-primary/15 border border-primary/15 rounded-lg transition-all active:scale-[0.97]"
-                      data-testid={`button-recap-${index}`}
-                    >
-                      Get Episode Recaps
-                    </button>
-                  </div>
+                    <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20" data-testid={`button-recap-${index}`}>
+                      Get Recaps
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -214,7 +212,7 @@ export default function Leaderboard() {
                 <p className="text-sm text-muted-foreground">You're already signed in.</p>
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                  className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-105 transition-all active:scale-[0.98]"
                   data-testid="button-go-dashboard"
                 >
                   Go to Dashboard
@@ -232,14 +230,14 @@ export default function Leaderboard() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     autoFocus
-                    className="w-full h-12 pl-11 pr-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm"
+                    className="w-full h-14 pl-11 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
                   />
                 </div>
                 <button
                   data-testid="button-leaderboard-signup"
                   type="submit"
                   disabled={isPending}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md hover:shadow-lg disabled:opacity-50 transition-all active:scale-[0.98]"
+                  className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-105 disabled:opacity-50 transition-all active:scale-[0.98]"
                 >
                   {isPending ? (
                     <>

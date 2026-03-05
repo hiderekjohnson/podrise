@@ -192,24 +192,24 @@ export default function Home() {
                     transition={{ duration: 0.25 }}
                     className="pl-10"
                   >
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="flex flex-col gap-2">
                       {selectedPodcasts.map((podcast) => (
                         <div
                           key={podcast.id}
-                          className="flex flex-col items-center text-center bg-white border border-black/[0.06] rounded-2xl p-4"
+                          className="flex items-center gap-3.5 bg-white border border-black/[0.06] rounded-2xl p-3 pr-4"
                         >
                           {podcast.artworkUrl ? (
                             <img
                               src={podcast.artworkUrl}
                               alt={podcast.name}
-                              className="w-28 h-28 rounded-xl object-cover shadow-sm"
+                              className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
                             />
                           ) : (
-                            <div className="w-28 h-28 rounded-xl bg-primary/10 flex items-center justify-center">
-                              <Podcast className="w-10 h-10 text-primary" />
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0">
+                              <Podcast className="w-6 h-6 text-primary" />
                             </div>
                           )}
-                          <span className="mt-2.5 text-sm font-medium text-foreground leading-tight line-clamp-2">{podcast.name}</span>
+                          <span className="flex-1 text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</span>
                         </div>
                       ))}
                     </div>
