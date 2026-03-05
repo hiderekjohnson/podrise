@@ -146,9 +146,11 @@ export default function Home() {
             >
               Your favorite podcasts.{" "}<span className="text-primary">Recapped daily.</span>
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground">
-              Like having an assistant listen and send you the highlights.
-            </p>
+            <blockquote className="relative max-w-lg">
+              <span className="text-base sm:text-lg text-muted-foreground italic leading-relaxed">
+                "It's like having my own assistant that listens to each podcast and sends me the highlights."
+              </span>
+            </blockquote>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
