@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { runMigrations } from "stripe-replit-sync";
 import { getStripeSync } from "./stripeClient";
 import { WebhookHandlers } from "./webhookHandlers";
 import { startEmailScheduler } from "./emailScheduler";
@@ -24,6 +23,7 @@ async function initStripe() {
   }
 
   try {
+    const { runMigrations } = await import("stripe-replit-sync");
     console.log('Initializing Stripe schema...');
     await runMigrations({ databaseUrl });
     console.log('Stripe schema ready');
@@ -49,10 +49,6 @@ async function initStripe() {
     console.error('Failed to initialize Stripe:', error);
   }
 }
-
-initStripe().then(() => {}).catch((err) => {
-  console.error('Stripe init error (non-fatal):', err);
-});
 
 app.post(
   '/api/stripe/webhook',
@@ -136,8 +132,15 @@ process.on("uncaughtException", (err) => {
 });
 
 (async () => {
+  console.log("Starting server...");
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("DATABASE_URL:", process.env.DATABASE_URL ? "set" : "NOT SET");
+  console.log("SESSION_SECRET:", process.env.SESSION_SECRET ? "set" : "NOT SET");
+  console.log("PORT:", process.env.PORT || "5000 (default)");
+
   try {
     await registerRoutes(httpServer, app);
+    console.log("Routes registered successfully");
   } catch (err) {
     console.error("Failed to register routes:", err);
   }
@@ -171,6 +174,11 @@ process.on("uncaughtException", (err) => {
     },
     () => {
       log(`serving on port ${port}`);
+
+      initStripe().catch((err) => {
+        console.error('Stripe init error (non-fatal):', err);
+      });
+
       startEmailScheduler();
     },
   );
