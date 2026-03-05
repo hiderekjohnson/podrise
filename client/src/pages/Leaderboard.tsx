@@ -267,17 +267,6 @@ export default function Leaderboard() {
         </div>
       )}
 
-      <footer className="w-full border-t border-black/[0.06] py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center">
-            <img src={logoPath} alt="PodCap" className="h-5 object-contain opacity-50" />
-          </div>
-          <p className="text-xs text-muted-foreground/60 text-center">
-            See which podcasts are trending. Create your own free daily recap.
-          </p>
-        </div>
-      </footer>
-
       <Footer />
     </div>
   );
