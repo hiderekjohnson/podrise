@@ -223,39 +223,39 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
       </AnimatePresence>
 
       {selectedPodcasts.length > 0 && (
-      <div className="space-y-2 pt-2">
+      <div className="space-y-3 pt-3">
         <p className="text-sm font-semibold text-foreground px-1">
-          Selected podcasts
+          Your podcasts
         </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(selectedPodcasts.length, 3)}, 1fr)` }}>
             <AnimatePresence>
               {selectedPodcasts.map((podcast) => (
                 <motion.div
                   key={podcast.id}
-                  initial={{ scale: 0.85, opacity: 0 }}
+                  initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.85, opacity: 0 }}
-                  className="flex items-center gap-2 bg-secondary text-foreground pl-1.5 pr-2 py-1 rounded-full text-sm font-medium"
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="group relative bg-card border border-border rounded-xl p-3 flex flex-col items-center text-center transition-shadow hover:shadow-md"
                 >
+                  <button
+                    data-testid={`button-remove-podcast-${podcast.id}`}
+                    onClick={() => onRemove(podcast.id)}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-background/80 border border-border text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                   {podcast.artworkUrl ? (
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-6 h-6 rounded-full object-cover"
+                      className="w-20 h-20 rounded-xl object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Podcast className="w-3 h-3 text-primary" />
+                    <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Podcast className="w-8 h-8 text-primary" />
                     </div>
                   )}
-                  <span className="truncate max-w-[160px]">{podcast.name}</span>
-                  <button
-                    data-testid={`button-remove-podcast-${podcast.id}`}
-                    onClick={() => onRemove(podcast.id)}
-                    className="p-0.5 rounded-full text-muted-foreground transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                  <span className="mt-2.5 text-sm font-medium text-foreground leading-tight line-clamp-2">{podcast.name}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
