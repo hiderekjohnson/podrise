@@ -68,9 +68,9 @@ function getYesterdayInTimezone(timezone: string): { start: Date; end: Date; lab
   }
 }
 
-async function generateRecapForUser(user: any, timezone: string): Promise<{ summary: string; dateStr: string } | null> {
+async function generateRecapForUser(user: any, timezone: string, promptOverride?: string): Promise<{ summary: string; dateStr: string } | null> {
   const { start: yesterdayStart, end: yesterdayEnd, label: yesterdayLabel, dateStr } = getYesterdayInTimezone(timezone);
-  return generateRecap(user, yesterdayStart, yesterdayEnd, yesterdayLabel, dateStr);
+  return generateRecap(user, yesterdayStart, yesterdayEnd, yesterdayLabel, dateStr, "yesterday", promptOverride);
 }
 
 async function hasRecapForDate(userId: number, dateStr: string): Promise<boolean> {
@@ -85,6 +85,14 @@ async function processUsers() {
   } catch (err) {
     console.error("[EmailScheduler] Failed to fetch users:", err);
     return;
+  }
+
+  let recapPrompt: string | undefined;
+  try {
+    const settings = await storage.getEmailTemplateSettings();
+    recapPrompt = settings.recapPrompt || undefined;
+  } catch (err) {
+    console.error("[EmailScheduler] Failed to load recap prompt, using default:", err);
   }
 
   for (const user of users) {
@@ -114,7 +122,7 @@ async function processUsers() {
 
       console.log(`[EmailScheduler] Processing user ${user.id} (${user.email})...`);
 
-      const result = await generateRecapForUser(user, timezone);
+      const result = await generateRecapForUser(user, timezone, recapPrompt);
       if (!result) {
         console.log(`[EmailScheduler] No new episodes for user ${user.id}, skipping email.`);
         continue;

@@ -34,13 +34,89 @@ function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Dat
   return [podcastEpisodes[0]];
 }
 
+export const DEFAULT_RECAP_PROMPT = `Then for EACH episode (only ones with new content), write a section like this:
+
+## [PODCAST NAME IN CAPS]
+
+**[Episode Title]**
+[Guest Name if available] · [Guest Title if available] · [Duration]
+
+🎧 [Apple Podcasts](USE_THE_APPLE_PODCASTS_URL_FROM_THE_EPISODE_DATA_ABOVE) · [Spotify](USE_THE_SPOTIFY_SEARCH_URL_FROM_THE_EPISODE_DATA_ABOVE)
+
+**TLDL:** [2-3 sentence summary of the core thesis of the episode. Be direct and specific, not vague. TLDL stands for "Too Long, Didn't Listen".]
+
+**What Happened**
+[2-4 paragraphs telling the story of the episode in a narrative style. Walk through the conversation beat by beat — what did they open with, where did it go, what was the tension or surprise, how did it end. Write it like you're telling a friend about a conversation you overheard. Use paragraph breaks between major beats. Do NOT use bullet points here — write in flowing prose.]
+
+**Key Insights:**
+- [Specific, concrete insight #1]
+- [Specific, concrete insight #2]
+- [Specific, concrete insight #3]
+- [Specific, concrete insight #4]
+
+**Quote**
+[Speaker name] on [topic]:
+> "[A memorable, quotable line from the episode — make it feel real and punchy, the kind of thing someone would repeat at dinner]"
+
+---
+
+**That's your PodCap Daily. You can thank us later.**
+
+---
+
+IMPORTANT TONE GUIDELINES:
+- Write like a sharp, well-read friend catching you up — not like a news anchor or a corporate summary
+- Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
+- The quotes should feel real — punchy, conversational, the kind of thing someone actually said. Always attribute the quote to the speaker.
+- Key insights should be specific facts or claims, not generic observations
+- Keep energy high but don't use exclamation marks excessively
+- Never say "In this episode" or "The hosts discuss" — just state the ideas directly
+- The "What Happened" section should read like a story, NOT a list. Use flowing paragraphs with paragraph breaks between beats.
+- IMPORTANT: Use the ACTUAL Apple Podcasts and Spotify links provided in the episode data above. Do NOT make up URLs. The line with links should appear right after the episode title/guest/duration line.`;
+
+interface PromptParams {
+  dateContext: string;
+  transcriptNote: string;
+  episodeData: string;
+  podcastNames: string;
+  totalPodcasts: number;
+  durationLong: string;
+  customPrompt?: string;
+}
+
+function buildPrompt(p: PromptParams): string {
+  const formatInstructions = p.customPrompt || DEFAULT_RECAP_PROMPT;
+
+  return `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${p.dateContext}. Give each episode a similar-length recap — thorough but concise. Only cover podcasts that had episodes — skip any that didn't.
+
+${p.transcriptNote}
+
+Source episodes:
+${p.episodeData}
+
+You MUST follow this EXACT structure and tone. Write in markdown.
+
+---
+
+**Stats header — include this EXACTLY at the very top of the digest:**
+
+${p.podcastNames}
+
+**${p.totalPodcasts}** Podcasts · **${p.durationLong}** Total duration
+
+---
+
+${formatInstructions}`;
+}
+
 export async function generateRecap(
   user: { id: number; podcasts: string[] },
   yesterdayStart: Date,
   yesterdayEnd: Date,
   yesterdayLabel: string,
   dateStr: string,
-  mode: RecapMode = "yesterday"
+  mode: RecapMode = "yesterday",
+  promptOverride?: string
 ): Promise<RecapResult | null> {
   const podcastInfos: PodcastInfo[] = user.podcasts.map((raw: string) => {
     try {
@@ -150,64 +226,15 @@ export async function generateRecap(
     ? "Some episodes below include real transcript excerpts — use these for accurate quotes, specific facts, and concrete insights. For episodes with only descriptions, do your best based on the available info."
     : "Note: No full transcripts were available for these episodes, so you are working from episode descriptions only. Do your best to infer specific content.";
 
-  const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${dateContext}. Give each episode a similar-length recap — thorough but concise. Only cover podcasts that had episodes — skip any that didn't.
-
-${transcriptNote}
-
-Source episodes:
-${episodeData.join("\n\n")}
-
-You MUST follow this EXACT structure and tone. Write in markdown.
-
----
-
-**Stats header — include this EXACTLY at the very top of the digest:**
-
-${podcastNames}
-
-**${totalPodcasts}** Podcasts · **${durationLong}** Total duration
-
----
-
-Then for EACH episode (only ones with new content), write a section like this:
-
-## [PODCAST NAME IN CAPS]
-
-**[Episode Title]**
-[Guest Name if available] · [Guest Title if available] · [Duration]
-
-🎧 [Apple Podcasts](USE_THE_APPLE_PODCASTS_URL_FROM_THE_EPISODE_DATA_ABOVE) · [Spotify](USE_THE_SPOTIFY_SEARCH_URL_FROM_THE_EPISODE_DATA_ABOVE)
-
-**TLDL:** [2-3 sentence summary of the core thesis of the episode. Be direct and specific, not vague. TLDL stands for "Too Long, Didn't Listen".]
-
-**What Happened**
-[2-4 paragraphs telling the story of the episode in a narrative style. Walk through the conversation beat by beat — what did they open with, where did it go, what was the tension or surprise, how did it end. Write it like you're telling a friend about a conversation you overheard. Use paragraph breaks between major beats. Do NOT use bullet points here — write in flowing prose.]
-
-**Key Insights:**
-- [Specific, concrete insight #1]
-- [Specific, concrete insight #2]
-- [Specific, concrete insight #3]
-- [Specific, concrete insight #4]
-
-**Quote**
-[Speaker name] on [topic]:
-> "[A memorable, quotable line from the episode — make it feel real and punchy, the kind of thing someone would repeat at dinner]"
-
----
-
-**That's your PodCap Daily. You can thank us later.**
-
----
-
-IMPORTANT TONE GUIDELINES:
-- Write like a sharp, well-read friend catching you up — not like a news anchor or a corporate summary
-- Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
-- The quotes should feel real — punchy, conversational, the kind of thing someone actually said. Always attribute the quote to the speaker.
-- Key insights should be specific facts or claims, not generic observations
-- Keep energy high but don't use exclamation marks excessively
-- Never say "In this episode" or "The hosts discuss" — just state the ideas directly
-- The "What Happened" section should read like a story, NOT a list. Use flowing paragraphs with paragraph breaks between beats.
-- IMPORTANT: Use the ACTUAL Apple Podcasts and Spotify links provided in the episode data above. Do NOT make up URLs. The line with links should appear right after the episode title/guest/duration line.`;
+  const prompt = buildPrompt({
+    dateContext,
+    transcriptNote,
+    episodeData: episodeData.join("\n\n"),
+    podcastNames,
+    totalPodcasts,
+    durationLong,
+    customPrompt: promptOverride,
+  });
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",

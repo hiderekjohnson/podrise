@@ -74,6 +74,7 @@ A full-stack web application that lets users create and manage personalized dail
 - Recap generation: shared `server/recapGenerator.ts` module fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
 - Summary includes stats header (podcast count, total runtime), per-episode Apple Podcasts + Spotify links
 - Summary follows specific format: Stats Header, per-episode cards with TLDL, What Happened (prose), Key Insights, Quote with attribution
+- **Admin-editable AI prompt**: The format/tone instructions sent to GPT are stored in `email_template_settings` (key: `recapPrompt`) and editable via Admin → AI Prompt tab. `DEFAULT_RECAP_PROMPT` exported from `recapGenerator.ts` used as fallback.
 - **Transcript Integration**: Taddy GraphQL API fetches real podcast transcripts for richer recaps
   - Credentials: `TADDY_USER_ID` (shared env) + `TADDY_API_KEY` (secret)
   - Matches iTunes episodes to Taddy by podcast iTunes ID → Taddy UUID → episode title match
@@ -115,6 +116,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `client/src/pages/Upgrade.tsx` — Upgrade page with Stripe checkout
 - `client/src/pages/Admin.tsx` — Admin dashboard page
 - `client/src/pages/EmailTemplateEditor.tsx` — Admin email template editor with live preview
+- `client/src/pages/RecapPromptEditor.tsx` — Admin AI recap prompt editor
 
 ## Important: User Data Safety
 - NEVER bulk-delete user accounts. All user accounts are real users.

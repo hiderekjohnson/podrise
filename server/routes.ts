@@ -9,7 +9,7 @@ import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
-import { generateRecap } from "./recapGenerator";
+import { generateRecap, DEFAULT_RECAP_PROMPT } from "./recapGenerator";
 
 declare module "express-session" {
   interface SessionData {
@@ -336,7 +336,8 @@ export async function registerRoutes(
       const todayStr = today.toISOString().split("T")[0];
       const todayLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-      const result = await generateRecap(user, today, today, todayLabel, todayStr, "latest");
+      const settings = await storage.getEmailTemplateSettings();
+      const result = await generateRecap(user, today, today, todayLabel, todayStr, "latest", settings.recapPrompt || undefined);
       if (!result) {
         return res.status(400).json({ message: "Could not find any recent episodes for your podcasts. Try again later!" });
       }
@@ -677,6 +678,32 @@ export async function registerRoutes(
     const config: Partial<EmailTemplateConfig> = template || {};
     const html = markdownToEmailHtml(sampleMarkdown, "preview@example.com", config);
     res.json({ html });
+  });
+
+  app.get("/api/admin/recap-prompt", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const settings = await storage.getEmailTemplateSettings();
+    res.json({
+      prompt: settings.recapPrompt || "",
+      defaultPrompt: DEFAULT_RECAP_PROMPT,
+    });
+  });
+
+  app.put("/api/admin/recap-prompt", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { prompt } = req.body;
+    if (typeof prompt !== "string") {
+      return res.status(400).json({ message: "Invalid prompt data" });
+    }
+    if (prompt.length > 10000) {
+      return res.status(400).json({ message: "Prompt is too long (max 10,000 characters)" });
+    }
+    await storage.setEmailTemplateSettings({ recapPrompt: prompt });
+    res.json({ message: "Recap prompt saved" });
   });
 
   app.get("/api/auth/impersonation-status", (req, res) => {
