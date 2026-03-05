@@ -142,7 +142,7 @@ export default function PodcastLandingGeneric() {
 
     register(
       {
-        podcasts: [JSON.stringify({ id: slug, name, artworkUrl: "" })],
+        podcasts: [JSON.stringify({ id: slug, name, artworkUrl: config.artworkUrl || "" })],
         email,
       },
       {
@@ -186,6 +186,15 @@ export default function PodcastLandingGeneric() {
             transition={{ duration: 0.6 }}
             className="flex flex-col items-center gap-6"
           >
+            {config.artworkUrl && (
+              <img
+                src={config.artworkUrl}
+                alt={name}
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover shadow-xl shadow-black/10"
+                data-testid="img-podcast-artwork"
+              />
+            )}
+
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/8 border border-primary/15 rounded-full">
               <Headphones className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-primary tracking-wide uppercase">Free Daily Podcast Summary & Recap</span>
@@ -328,9 +337,18 @@ export default function PodcastLandingGeneric() {
           className="w-full max-w-2xl pb-20"
         >
           <div className="glass-panel rounded-3xl p-8 sm:p-10 text-center flex flex-col items-center gap-5">
-            <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Headphones className="w-8 h-8 text-primary" />
-            </div>
+            {config.artworkUrl ? (
+              <img
+                src={config.artworkUrl}
+                alt={name}
+                className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/10"
+                data-testid="img-podcast-artwork-bottom"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Headphones className="w-8 h-8 text-primary" />
+              </div>
+            )}
             <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground">
               Start getting {name} recaps today
             </h2>
