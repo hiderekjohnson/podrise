@@ -151,16 +151,13 @@ export async function registerRoutes(
     }
 
     try {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-      const yesterdayEnd = new Date(yesterdayStart);
-      yesterdayEnd.setDate(yesterdayEnd.getDate() + 1);
-      const yesterdayLabel = yesterdayStart.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0];
+      const todayLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-      const result = await generateRecap(user, yesterdayStart, yesterdayEnd, yesterdayLabel, yesterdayStart.toISOString().split("T")[0]);
+      const result = await generateRecap(user, today, today, todayLabel, todayStr, "latest");
       if (!result) {
-        return res.status(400).json({ message: `None of your podcasts released new episodes yesterday (${yesterdayLabel}). Check back tomorrow!` });
+        return res.status(400).json({ message: "Could not find any recent episodes for your podcasts. Try again later!" });
       }
 
       const { summary, dateStr: recapDateStr } = result;

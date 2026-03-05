@@ -12,6 +12,8 @@ interface RecapResult {
   dateStr: string;
 }
 
+type RecapMode = "yesterday" | "latest";
+
 function buildSpotifySearchUrl(podcastName: string, episodeTitle: string): string {
   const query = encodeURIComponent(`${podcastName} ${episodeTitle}`);
   return `https://open.spotify.com/search/${query}`;
@@ -26,12 +28,28 @@ function formatDuration(totalMinutes: number): string {
   return `${totalMinutes}m`;
 }
 
+function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Date, yesterdayEnd?: Date): any[] {
+  const podcastEpisodes = allResults.filter((r: any) => r.wrapperType === "podcastEpisode");
+
+  if (mode === "yesterday" && yesterdayStart && yesterdayEnd) {
+    return podcastEpisodes.filter((r: any) => {
+      const releaseDate = new Date(r.releaseDate);
+      return releaseDate >= yesterdayStart && releaseDate < yesterdayEnd;
+    });
+  }
+
+  if (podcastEpisodes.length === 0) return [];
+  podcastEpisodes.sort((a: any, b: any) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+  return [podcastEpisodes[0]];
+}
+
 export async function generateRecap(
   user: { id: number; podcasts: string[]; readingLength?: number | null },
   yesterdayStart: Date,
   yesterdayEnd: Date,
   yesterdayLabel: string,
-  dateStr: string
+  dateStr: string,
+  mode: RecapMode = "yesterday"
 ): Promise<RecapResult | null> {
   const podcastInfos: PodcastInfo[] = user.podcasts.map((raw: string) => {
     try {
@@ -48,16 +66,15 @@ export async function generateRecap(
   let hasTranscripts = false;
   let totalDurationMin = 0;
 
+  const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
+  const noEpisodesMsg = mode === "latest" ? "No episodes found." : "No new episodes released yesterday.";
+
   for (const podcast of podcastInfos) {
     try {
       const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.id}&media=podcast&entity=podcastEpisode&limit=20&sort=recent`;
       const lookupRes = await fetch(lookupUrl);
       const lookupJson = await lookupRes.json();
-      const episodes = (lookupJson.results || []).filter((r: any) => {
-        if (r.wrapperType !== "podcastEpisode") return false;
-        const releaseDate = new Date(r.releaseDate);
-        return releaseDate >= yesterdayStart && releaseDate < yesterdayEnd;
-      });
+      const episodes = selectEpisodes(lookupJson.results || [], mode, yesterdayStart, yesterdayEnd);
 
       if (episodes.length > 0) {
         hasAnyEpisodes = true;
@@ -119,7 +136,7 @@ export async function generateRecap(
         }
         episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
       } else {
-        episodeData.push(`Podcast: ${podcast.name}\n- No new episodes released yesterday.`);
+        episodeData.push(`Podcast: ${podcast.name}\n- ${noEpisodesMsg}`);
       }
     } catch {
       episodeData.push(`**${podcast.name}**\n- Could not fetch episodes.`);
@@ -139,11 +156,11 @@ export async function generateRecap(
     ? "Some episodes below include real transcript excerpts — use these for accurate quotes, specific facts, and concrete insights. For episodes with only descriptions, do your best based on the available info."
     : "Note: No full transcripts were available for these episodes, so you are working from episode descriptions only. Do your best to infer specific content.";
 
-  const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for episodes released on ${yesterdayLabel}. The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had new episodes — skip any that didn't.
+  const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${dateContext}. The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had episodes — skip any that didn't.
 
 ${transcriptNote}
 
-Source episodes from ${yesterdayLabel}:
+Source episodes:
 ${episodeData.join("\n\n")}
 
 You MUST follow this EXACT structure and tone. Write in markdown.
