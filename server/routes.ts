@@ -175,11 +175,16 @@ export async function registerRoutes(
       const baseUrl = `${req.protocol}://${req.get("host")}`;
       const magicUrl = `${baseUrl}/api/auth/magic?token=${token}`;
 
+      const loginCode = crypto.randomBytes(2).toString("hex").toUpperCase();
+
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
         from: `PodCap <${fromEmail}>`,
         to: user.email,
-        subject: "Your PodCap Login Link",
+        subject: `Log in to PodCap (#${loginCode})`,
+        headers: {
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+        },
         html: `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
