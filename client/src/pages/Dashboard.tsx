@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield, Check } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -216,24 +216,38 @@ export default function Dashboard() {
     );
   };
 
-  const handleSaveAll = () => {
-    updateUser(
-      { email, podcasts: serializePodcasts(podcasts), deliveryTime, deliveryTimezone },
-      {
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const autoSave = useCallback((fields: Record<string, any>) => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    setAutoSaveStatus("saving");
+    autoSaveTimer.current = setTimeout(() => {
+      updateUser(fields, {
         onSuccess: () => {
-          setEditingEmail(false);
-          toast({ title: "Saved", description: "Your preferences have been updated." });
+          setAutoSaveStatus("saved");
+          savedTimer.current = setTimeout(() => setAutoSaveStatus("idle"), 2000);
         },
-        onError: (err) => {
-          toast({
-            title: "Failed to save",
-            description: err.message,
-            variant: "destructive",
-          });
+        onError: () => {
+          setAutoSaveStatus("idle");
+          toast({ title: "Failed to save", description: "Your changes could not be saved.", variant: "destructive" });
         },
-      }
-    );
-  };
+      });
+    }, 800);
+  }, [updateUser, toast]);
+
+  const emailDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleEmailChange = useCallback((val: string) => {
+    setEmail(val);
+    if (emailDebounce.current) clearTimeout(emailDebounce.current);
+    if (val.includes("@") && val.includes(".")) {
+      emailDebounce.current = setTimeout(() => {
+        autoSave({ email: val });
+      }, 1200);
+    }
+  }, [autoSave]);
 
   const handleLogout = () => {
     setLoggingOut(true);
@@ -454,7 +468,7 @@ export default function Dashboard() {
                         </label>
                         <TimePicker
                           value={deliveryTime}
-                          onChange={(t) => setDeliveryTime(t)}
+                          onChange={(t) => { setDeliveryTime(t); autoSave({ deliveryTime: t }); }}
                         />
                       </div>
                       <div className="flex-1">
@@ -464,7 +478,7 @@ export default function Dashboard() {
                         </label>
                         <TimezoneSelect
                           value={deliveryTimezone}
-                          onChange={(tz) => setDeliveryTimezone(tz)}
+                          onChange={(tz) => { setDeliveryTimezone(tz); autoSave({ deliveryTimezone: tz }); }}
                         />
                       </div>
                     </div>
@@ -482,7 +496,7 @@ export default function Dashboard() {
                           data-testid="input-edit-email"
                           type="email"
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          onChange={(e) => handleEmailChange(e.target.value)}
                           autoFocus
                           className="flex-1 h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
                         />
@@ -558,26 +572,28 @@ export default function Dashboard() {
                   </>
                   )}
 
-                  <div className="flex flex-col items-center gap-2">
-                    <button
-                      data-testid="button-save-all"
-                      onClick={handleSaveAll}
-                      disabled={isUpdating}
-                      className="w-full h-14 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
-                    >
-                      {isUpdating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <AnimatePresence>
+                    {autoSaveStatus !== "idle" && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground py-2"
+                      >
+                        {autoSaveStatus === "saving" ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-green-500" />
+                            <span className="text-green-600">Saved</span>
+                          </>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             ) : (
