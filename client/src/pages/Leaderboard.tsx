@@ -5,6 +5,7 @@ import { Loader2, ArrowRight, Mail, Headphones, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface LeaderboardPodcast {
@@ -276,6 +277,8 @@ export default function Leaderboard() {
           </p>
         </div>
       </footer>
+
+      <Footer />
     </div>
   );
 }

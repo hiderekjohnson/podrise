@@ -11,6 +11,8 @@ import Admin from "./pages/Admin";
 import PodcastLandingMFM from "./pages/PodcastLanding";
 import PodcastLandingEmpowerHer from "./pages/PodcastLandingEmpowerHer";
 import Leaderboard from "./pages/Leaderboard";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -24,6 +26,8 @@ function Router() {
       <Route path="/podcasts/myfirstmillion" component={PodcastLandingMFM} />
       <Route path="/podcasts/empowerher" component={PodcastLandingEmpowerHer} />
       <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       <Route component={NotFound} />
     </Switch>
   );
