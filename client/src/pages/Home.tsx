@@ -173,6 +173,7 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Choose podcasts to recap
                   </h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                 </div>
               </div>
 
@@ -185,8 +186,7 @@ export default function Home() {
                 />
                 {selectedPodcasts.length > 0 && (
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
-                    <p className="text-xs text-muted-foreground mb-2">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
                     <div className="grid grid-cols-3 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div
@@ -231,6 +231,7 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Where should we send your recap?
                   </h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">All your podcast recaps in one daily email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
