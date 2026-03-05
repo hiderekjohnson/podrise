@@ -186,36 +186,39 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                   {filteredResults.map((podcast) => {
                     const atMax = selectedPodcasts.length >= maxSelection;
                     return (
-                      <button
+                      <div
                         key={podcast.id}
                         data-testid={`button-add-podcast-${podcast.id}`}
                         onClick={() => !atMax && handleAddClick(podcast)}
-                        disabled={atMax}
-                        className={`flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors group/row ${atMax ? "opacity-50 cursor-not-allowed" : "hover:bg-black/[0.03]"}`}
+                        className={`relative flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors group/row ${atMax ? "cursor-not-allowed" : "hover:bg-black/[0.03] cursor-pointer"}`}
                       >
                         {podcast.artworkUrl ? (
                           <img
                             src={podcast.artworkUrl}
                             alt={podcast.name}
-                            className="w-12 h-12 rounded-xl object-cover shrink-0"
+                            className={`w-12 h-12 rounded-xl object-cover shrink-0 ${atMax ? "opacity-50" : ""}`}
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                          <div className={`w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0 ${atMax ? "opacity-50" : ""}`}>
                             <Podcast className="w-5 h-5 text-primary" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground text-[15px] truncate">
+                          <p className={`font-semibold text-[15px] truncate ${atMax ? "text-muted-foreground" : "text-foreground"}`}>
                             {podcast.name}
                           </p>
                           <p className="text-[13px] text-muted-foreground/60 truncate mt-0.5">
-                            {podcast.artistName}
+                            {atMax ? (
+                              <span className="text-amber-600 font-medium">You've reached the free limit of 3 podcasts.</span>
+                            ) : (
+                              podcast.artistName
+                            )}
                           </p>
                         </div>
                         {!atMax && (
                           <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
