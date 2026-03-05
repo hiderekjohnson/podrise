@@ -247,12 +247,12 @@ export default function Home() {
               </div>
             </section>
 
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 pl-10">
               <button
                 data-testid="button-finish"
                 onClick={handleSubmit}
                 disabled={isPending || selectedPodcasts.length === 0 || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
-                className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
+                className="w-auto px-8 h-11 flex items-center justify-center gap-2 rounded-lg font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
               >
                 {isPending ? (
                   <>
