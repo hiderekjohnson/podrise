@@ -28,7 +28,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<PodcastResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
@@ -66,7 +66,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
 
   const handleAddClick = (podcast: PodcastResult) => {
     if (atLimit) {
-      setShowUpgrade(true);
+      setShowUpgradeModal(true);
       return;
     }
     onAdd({
@@ -81,40 +81,53 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
   return (
     <div className="space-y-4">
       <AnimatePresence>
-        {showUpgrade && (
+        {showUpgradeModal && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="rounded-xl border border-primary/20 bg-primary/[0.04] p-5 flex flex-col items-center gap-3 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowUpgradeModal(false); }}
           >
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-display font-bold text-foreground text-base">
-                Get unlimited podcast summaries
-              </p>
-              <p className="text-2xl font-display font-extrabold text-foreground mt-1">
-                $9.99<span className="text-base font-semibold text-muted-foreground">/month</span>
-              </p>
-            </div>
-            <button
-              data-testid="button-upgrade"
-              onClick={() => navigate("/upgrade")}
-              className="w-full max-w-xs h-11 flex items-center justify-center gap-2 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-all active:scale-[0.98]"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
+              data-testid="modal-upgrade"
             >
-              <Crown className="w-4 h-4" />
-              Upgrade
-            </button>
-            <p className="text-xs text-muted-foreground">Cancel anytime</p>
-            <button
-              data-testid="button-dismiss-upgrade"
-              onClick={() => setShowUpgrade(false)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Dismiss
-            </button>
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Crown className="w-7 h-7 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
+                  You've reached your free plan limit
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  The free plan includes up to 3 podcasts. Upgrade to Pro for unlimited podcasts for $9.99/month.
+                </p>
+              </div>
+              <div className="w-full space-y-2.5">
+                <button
+                  data-testid="button-upgrade-modal"
+                  onClick={() => { setShowUpgradeModal(false); navigate("/upgrade"); }}
+                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                >
+                  <Crown className="w-4 h-4" />
+                  Upgrade to Pro — $9.99/month
+                </button>
+                <button
+                  data-testid="button-dismiss-upgrade"
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                >
+                  Not now
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground/60">You can cancel anytime.</p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -188,23 +201,10 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                     <button
                       data-testid={`button-add-podcast-${podcast.id}`}
                       onClick={() => handleAddClick(podcast)}
-                      className={`flex items-center gap-1 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors shrink-0 ${
-                        atLimit
-                          ? "text-muted-foreground border-black/[0.08]"
-                          : "text-primary border-primary/20"
-                      }`}
+                      className="flex items-center gap-1 text-sm font-semibold px-3 py-1.5 rounded-lg border text-primary border-primary/20 transition-colors shrink-0 hover:bg-primary/5"
                     >
-                      {atLimit ? (
-                        <>
-                          <Crown className="w-3.5 h-3.5" />
-                          Upgrade
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-3.5 h-3.5" />
-                          Add
-                        </>
-                      )}
+                      <Plus className="w-3.5 h-3.5" />
+                      Add
                     </button>
                   </div>
                 ))
