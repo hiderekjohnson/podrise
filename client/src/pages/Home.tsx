@@ -74,7 +74,8 @@ export default function Home() {
     register(
       {
         podcasts: selectedPodcasts.map((p) => JSON.stringify(p)),
-        readingLength: 10,
+
+
         email,
       },
       {

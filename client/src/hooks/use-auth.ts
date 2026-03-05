@@ -22,7 +22,7 @@ export function useAuth() {
 
 export function useRegister() {
   return useMutation({
-    mutationFn: async (data: { email: string; podcasts: string[]; readingLength: number }) => {
+    mutationFn: async (data: { email: string; podcasts: string[] }) => {
       const res = await apiRequest("POST", "/api/auth/register", data);
       return await res.json();
     },
@@ -57,7 +57,7 @@ export function useLogout() {
 
 export function useUpdateUser() {
   return useMutation({
-    mutationFn: async (data: { email?: string; readingLength?: number; podcasts?: string[] }) => {
+    mutationFn: async (data: { email?: string; podcasts?: string[]; deliveryTime?: string; deliveryTimezone?: string }) => {
       const res = await apiRequest("POST", "/api/users/update", data);
       return await res.json();
     },

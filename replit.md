@@ -13,12 +13,12 @@ A full-stack web application that lets users create and manage personalized dail
 ## Pages
 - `/` — Onboarding: 2-step signup flow (select 3 podcasts with auto-advance, enter email)
 - `/login` — Email-based login for existing users
-- `/dashboard` — Manage podcasts, reading length, delivery time/timezone, email, and plan/billing
+- `/dashboard` — Manage podcasts, delivery time/timezone, email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
-- `/admin` — Admin dashboard (password-protected): view all users, email send logs; tabbed interface
+- `/admin` — Admin dashboard (password-protected): view all users, email send logs, analytics; tabbed interface
 
 ## Database Schema
-- `users` table: id, email (unique), podcasts (text array), reading_length, delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
+- `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
 - `recaps` table: id, user_id, recap_date, podcasts (text array), summary, created_at
 - `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
 - `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), sent_at
@@ -70,7 +70,7 @@ A full-stack web application that lets users create and manage personalized dail
 ## AI Integration
 - OpenAI via Replit AI Integrations
 - Recap generation: shared `server/recapGenerator.ts` module fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
-- Summary includes stats header (podcast count, total runtime, recap time, time saved), per-episode Apple Podcasts + Spotify links
+- Summary includes stats header (podcast count, total runtime), per-episode Apple Podcasts + Spotify links
 - Summary follows specific format: Stats Header, Big Ideas Today, per-episode cards with listen links, Conversation Ammo
 - **Transcript Integration**: Taddy GraphQL API fetches real podcast transcripts for richer recaps
   - Credentials: `TADDY_USER_ID` (shared env) + `TADDY_API_KEY` (secret)

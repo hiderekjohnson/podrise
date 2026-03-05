@@ -11,7 +11,6 @@ interface AdminUser {
   id: number;
   email: string;
   podcasts: string[];
-  readingLength: number;
   deliveryTime: string;
   deliveryTimezone: string;
   createdAt: string | null;
@@ -35,7 +34,6 @@ interface AnalyticsData {
   topPodcasts: { name: string; artworkUrl: string; count: number }[];
   userGrowth: { date: string; newUsers: number; totalUsers: number }[];
   emailActivity: { date: string; count: number }[];
-  readingLengthDist: Record<number, number>;
 }
 
 function parsePodcastName(raw: string): string {
@@ -362,7 +360,6 @@ export default function Admin() {
                                 </td>
                                 <td className="px-5 py-4">
                                   <div className="text-xs text-muted-foreground space-y-0.5">
-                                    <p>{user.readingLength} min read</p>
                                     <p>{user.deliveryTime} · {user.deliveryTimezone?.replace("America/", "").replace("_", " ") || "ET"}</p>
                                   </div>
                                 </td>
@@ -689,40 +686,6 @@ export default function Admin() {
                         )}
                       </div>
 
-                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-reading-length">
-                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-purple-500" />
-                          Reading Length Preferences
-                        </h3>
-                        {Object.keys(analytics.readingLengthDist).length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic">No data yet</p>
-                        ) : (
-                          <div className="space-y-2">
-                            {(() => {
-                              const entries = Object.entries(analytics.readingLengthDist)
-                                .map(([len, count]) => ({ length: parseInt(len), count: count as number }))
-                                .sort((a, b) => a.length - b.length);
-                              const maxCount = Math.max(...entries.map(e => e.count), 1);
-                              return entries.map((entry, i) => (
-                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`reading-len-${entry.length}`}>
-                                  <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">
-                                    {entry.length} min
-                                  </span>
-                                  <div className="flex-1 h-3 bg-black/[0.04] rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-purple-500/50 rounded-full transition-all"
-                                      style={{ width: `${(entry.count / maxCount) * 100}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
-                                    {entry.count} {entry.count === 1 ? "user" : "users"}
-                                  </span>
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 ) : null}

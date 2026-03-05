@@ -44,7 +44,7 @@ function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Dat
 }
 
 export async function generateRecap(
-  user: { id: number; podcasts: string[]; readingLength?: number | null },
+  user: { id: number; podcasts: string[] },
   yesterdayStart: Date,
   yesterdayEnd: Date,
   yesterdayLabel: string,
@@ -147,16 +147,14 @@ export async function generateRecap(
     return null;
   }
 
-  const readingMinutes = user.readingLength || 10;
   const podcastNames = podcastNamesWithEpisodes.join(" · ");
   const totalPodcasts = podcastNamesWithEpisodes.length;
-  const timeSavedMin = Math.max(0, totalDurationMin - readingMinutes);
 
   const transcriptNote = hasTranscripts
     ? "Some episodes below include real transcript excerpts — use these for accurate quotes, specific facts, and concrete insights. For episodes with only descriptions, do your best based on the available info."
     : "Note: No full transcripts were available for these episodes, so you are working from episode descriptions only. Do your best to infer specific content.";
 
-  const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${dateContext}. The summary should take approximately ${readingMinutes} minutes to read. Only cover podcasts that had episodes — skip any that didn't.
+  const prompt = `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${dateContext}. Give each episode a similar-length recap — thorough but concise. Only cover podcasts that had episodes — skip any that didn't.
 
 ${transcriptNote}
 
@@ -171,7 +169,7 @@ You MUST follow this EXACT structure and tone. Write in markdown.
 
 ${podcastNames}
 
-**${totalPodcasts}** Podcasts · **${formatDuration(totalDurationMin)}** Total runtime · **${readingMinutes} min** Your recap · **${formatDuration(timeSavedMin)}** Time saved
+**${totalPodcasts}** Podcasts · **${formatDuration(totalDurationMin)}** Total runtime
 
 ---
 

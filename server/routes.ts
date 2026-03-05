@@ -424,12 +424,6 @@ export async function registerRoutes(
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, count]) => ({ date, count }));
 
-      const readingLengthDist: Record<number, number> = {};
-      for (const user of allUsers) {
-        const rl = user.readingLength ?? 10;
-        readingLengthDist[rl] = (readingLengthDist[rl] || 0) + 1;
-      }
-
       res.json({
         totalUsers,
         totalRecaps,
@@ -439,7 +433,6 @@ export async function registerRoutes(
         topPodcasts,
         userGrowth: userGrowthCumulative,
         emailActivity,
-        readingLengthDist,
       });
     } catch (err) {
       console.error("Analytics error:", err);

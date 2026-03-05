@@ -18,7 +18,6 @@ const userResponseSchema = z.object({
   id: z.number(),
   email: z.string(),
   podcasts: z.array(z.string()),
-  readingLength: z.number(),
   deliveryTime: z.string(),
   deliveryTimezone: z.string(),
   plan: z.string().optional(),
@@ -69,7 +68,6 @@ export const api = {
       path: '/api/users/update' as const,
       input: z.object({
         email: z.string().email().optional(),
-        readingLength: z.coerce.number().min(5).max(20).optional(),
         podcasts: z.array(z.string()).min(1, "Select at least one podcast").optional(),
         deliveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
         deliveryTimezone: z.string().optional(),

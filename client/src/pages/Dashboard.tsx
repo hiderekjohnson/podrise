@@ -43,8 +43,6 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
-const READING_LENGTHS = [5, 10, 15, 20];
-
 const TIMEZONES = [
   { value: "America/New_York", label: "Eastern (ET)" },
   { value: "America/Chicago", label: "Central (CT)" },
@@ -92,7 +90,6 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState<"settings" | "recaps">("settings");
   const [podcasts, setPodcasts] = useState<SelectedPodcast[]>([]);
-  const [readingLength, setReadingLength] = useState(10);
   const [email, setEmail] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
   const [deliveryTime, setDeliveryTime] = useState("07:00");
@@ -144,7 +141,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       setPodcasts(parsePodcasts(user.podcasts));
-      setReadingLength(user.readingLength);
       setEmail(user.email);
       setDeliveryTime(user.deliveryTime || "07:00");
       setDeliveryTimezone(user.deliveryTimezone || "America/New_York");
@@ -221,7 +217,7 @@ export default function Dashboard() {
 
   const handleSaveAll = () => {
     updateUser(
-      { email, readingLength, podcasts: serializePodcasts(podcasts), deliveryTime, deliveryTimezone },
+      { email, podcasts: serializePodcasts(podcasts), deliveryTime, deliveryTimezone },
       {
         onSuccess: () => {
           setEditingEmail(false);
@@ -363,39 +359,6 @@ export default function Dashboard() {
                       onRemove={handleRemove}
                       maxSelection={isPro ? undefined : 3}
                     />
-                  </section>
-
-                  <div className="border-t border-black/[0.06]" />
-
-                  <section className="flex flex-col gap-4">
-                    <h2 className="text-lg font-display font-bold text-foreground">
-                      How long should your daily recap take to read?
-                    </h2>
-                    <div className="flex bg-black/[0.04] p-1 rounded-xl w-full max-w-sm">
-                      {READING_LENGTHS.map((length) => {
-                        const isActive = readingLength === length;
-                        return (
-                          <button
-                            key={length}
-                            data-testid={`button-reading-${length}`}
-                            onClick={() => setReadingLength(length)}
-                            className={`
-                              relative flex-1 py-2.5 text-sm font-semibold rounded-[10px] transition-all duration-300
-                              ${isActive ? "text-primary" : "text-muted-foreground"}
-                            `}
-                          >
-                            {isActive && (
-                              <motion.div
-                                layoutId="dashboardTab"
-                                className="absolute inset-0 bg-white shadow-sm rounded-[10px] border border-black/[0.04]"
-                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                              />
-                            )}
-                            <span className="relative z-10">{length} min</span>
-                          </button>
-                        );
-                      })}
-                    </div>
                   </section>
 
                   <div className="border-t border-black/[0.06]" />
