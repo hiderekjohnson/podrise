@@ -6,59 +6,8 @@ import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
+import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
-
-const GLOBAL_LEADERS = [
-  { name: "The Joe Rogan Experience", category: "Interviews / Culture" },
-  { name: "The Diary of a CEO with Steven Bartlett", category: "Business / Growth" },
-  { name: "All-In Podcast", category: "Tech / Venture Capital" },
-  { name: "The Daily", category: "Business / News" },
-  { name: "Lex Fridman Podcast", category: "AI / Tech / Science" },
-  { name: "SmartLess", category: "Interviews / Comedy" },
-  { name: "Huberman Lab", category: "Health / Performance Science" },
-  { name: "New Heights with Jason & Travis Kelce", category: "Sports / Business" },
-  { name: "The Tim Ferriss Show", category: "Productivity / Business" },
-  { name: "Call Her Daddy", category: "Interviews / Relationships" },
-  { name: "Pivot", category: "Tech / Business" },
-  { name: "Acquired", category: "Business History / Tech Deals" },
-  { name: "Hard Fork", category: "AI / Tech Trends" },
-  { name: "Waveform: The MKBHD Podcast", category: "Consumer Tech" },
-  { name: "The Vergecast", category: "Tech News" },
-  { name: "Search Engine", category: "Internet Culture / Tech" },
-  { name: "a16z Podcast", category: "Venture Capital / Software" },
-  { name: "BG2 Pod", category: "VC / AI" },
-  { name: "Decoder with Nilay Patel", category: "Business of Tech" },
-  { name: "The AI Daily Brief", category: "AI / Tech" },
-  { name: "My First Million", category: "Business Ideas / Startups" },
-  { name: "Planet Money", category: "Economics" },
-  { name: "The Journal", category: "Business News" },
-  { name: "How I Built This", category: "Entrepreneurship" },
-  { name: "The Ramsey Show", category: "Personal Finance" },
-  { name: "HBR IdeaCast", category: "Management / Strategy" },
-  { name: "Financial Audit with Caleb Hammer", category: "Finance / Interviews" },
-  { name: "Founders", category: "Lessons from History" },
-  { name: "Business Breakdowns", category: "Company Analysis" },
-  { name: "Masters of Scale", category: "Entrepreneurship" },
-  { name: "BiggerPockets Real Estate", category: "Investing" },
-  { name: "The Indicator from Planet Money", category: "Economic Trends" },
-  { name: "Masters in Business", category: "Finance / Interviews" },
-  { name: "The Money Guy Show", category: "Finance Strategy" },
-  { name: "Equity", category: "Startup Funding" },
-  { name: "On Purpose with Jay Shetty", category: "Growth / Mindset" },
-  { name: "The Mel Robbins Podcast", category: "Motivation / Science" },
-  { name: "Armchair Expert with Dax Shepard", category: "Human Stories" },
-  { name: "Conan O'Brien Needs a Friend", category: "Comedy / Interviews" },
-  { name: "The MeidasTouch Podcast", category: "Politics / Law" },
-  { name: "Shawn Ryan Show", category: "Interviews / Society" },
-  { name: "This American Life", category: "Narrative / Culture" },
-  { name: "Fresh Air", category: "Arts / Culture Interviews" },
-  { name: "Pod Save America", category: "Politics / Interviews" },
-  { name: "Hidden Brain", category: "Psychology / Behavior" },
-  { name: "TED Talks Daily", category: "Big Ideas" },
-  { name: "Office Ladies", category: "TV / Entertainment" },
-  { name: "Modern CTO", category: "Tech Leadership" },
-  { name: "Stuff You Should Know", category: "General Knowledge" },
-];
 
 interface LeaderboardPodcast {
   id: string;
@@ -244,10 +193,11 @@ export default function Leaderboard() {
               <span className="text-sm font-display font-bold text-foreground">Global Leaders</span>
             </div>
             <div className="divide-y divide-black/[0.04]">
-              {GLOBAL_LEADERS.map((podcast, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-3.5"
+              {PODCAST_LANDINGS.map((podcast, index) => (
+                <a
+                  key={podcast.slug}
+                  href={`/podcasts/${podcast.slug}`}
+                  className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-3.5 transition-colors hover:bg-black/[0.02] group/row"
                   data-testid={`global-leader-row-${index}`}
                 >
                   <span className="text-xs font-bold text-muted-foreground/50 w-5 text-right shrink-0 tabular-nums">
@@ -264,7 +214,11 @@ export default function Leaderboard() {
                       {podcast.category}
                     </p>
                   </div>
-                </div>
+                  <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20">
+                    Get Recaps
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </a>
               ))}
             </div>
           </div>

@@ -10,6 +10,7 @@ import Upgrade from "./pages/Upgrade";
 import Admin from "./pages/Admin";
 import PodcastLandingMFM from "./pages/PodcastLanding";
 import PodcastLandingEmpowerHer from "./pages/PodcastLandingEmpowerHer";
+import PodcastLandingGeneric from "./pages/PodcastLandingGeneric";
 import Leaderboard from "./pages/Leaderboard";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/podcasts/myfirstmillion" component={PodcastLandingMFM} />
       <Route path="/podcasts/empowerher" component={PodcastLandingEmpowerHer} />
+      <Route path="/podcasts/:slug" component={PodcastLandingGeneric} />
       <Route path="/podcasts" component={Leaderboard} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
