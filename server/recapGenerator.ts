@@ -1,6 +1,6 @@
 import { storage } from "./storage";
 import { openai } from "./replit_integrations/image/client";
-import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts } from "./taddyClient";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } from "./taddyClient";
 
 interface PodcastInfo {
   name: string;
@@ -179,14 +179,21 @@ export async function generateRecap(
             const taddyMatch = taddyEpisodes.find((te: any) =>
               te.name?.toLowerCase().trim() === ep.trackName?.toLowerCase().trim()
             );
-            if (taddyMatch?.transcript) {
-              transcriptText = taddyMatch.transcript;
-              await storage.saveTranscript({
-                podcastId: podcast.id,
-                episodeGuid,
-                episodeTitle: ep.trackName,
-                transcript: transcriptText,
-              });
+            if (taddyMatch?.uuid) {
+              try {
+                const fetchedTranscript = await getEpisodeTranscript(taddyMatch.uuid);
+                if (fetchedTranscript) {
+                  transcriptText = fetchedTranscript;
+                  await storage.saveTranscript({
+                    podcastId: podcast.id,
+                    episodeGuid,
+                    episodeTitle: ep.trackName,
+                    transcript: transcriptText,
+                  });
+                }
+              } catch (transcriptErr) {
+                console.warn(`Transcript fetch failed for "${ep.trackName}":`, transcriptErr);
+              }
             }
           }
 
