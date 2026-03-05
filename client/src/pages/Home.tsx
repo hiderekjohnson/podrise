@@ -144,8 +144,11 @@ export default function Home() {
               data-testid="text-headline"
               className="text-[2rem] sm:text-[2.75rem] md:text-[3.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
             >
-              Your favorite podcasts, summarized in one <span className="text-primary">daily email</span>
+              Your favorite podcasts.{" "}<span className="text-primary">Recapped daily.</span>
             </h1>
+            <p className="text-base sm:text-lg text-muted-foreground">
+              Like having an assistant listen and send you the highlights.
+            </p>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
