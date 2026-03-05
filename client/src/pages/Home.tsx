@@ -132,21 +132,21 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-5"
+            className="flex flex-col items-center gap-4"
           >
             <h1
               data-testid="text-headline"
-              className="text-[2rem] sm:text-[2.75rem] md:text-[3.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
+              className="text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-display font-extrabold text-foreground leading-[1.08] tracking-[-0.025em]"
             >
               Your favorite podcasts recapped daily
             </h1>
-            <h2 className="text-base sm:text-lg text-muted-foreground font-medium">
+            <p className="text-lg sm:text-xl text-muted-foreground font-medium max-w-lg">
               We listen so you don't have to.
-            </h2>
+            </p>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-1"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
             >
               <Mail className="w-4 h-4" />
               See sample email
@@ -161,7 +161,7 @@ export default function Home() {
           className="w-full max-w-2xl"
         >
           <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
-            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center">
+            <h2 className="text-2xl sm:text-[1.75rem] font-display font-extrabold text-foreground text-center">
               Create Your Podcast Recap
             </h2>
             <section className="flex flex-col gap-5">
@@ -173,7 +173,7 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Choose podcasts to recap
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                  <p className="text-[13px] text-muted-foreground mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                 </div>
               </div>
 
@@ -231,7 +231,7 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Where should we send your recap?
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">All your podcast recaps in one daily email.</p>
+                  <p className="text-[13px] text-muted-foreground mt-1">All your podcast recaps in one daily email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
@@ -242,7 +242,7 @@ export default function Home() {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-14 px-5 bg-white border border-black/[0.08] rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
+                  className="w-full h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
                 />
               </div>
             </section>
@@ -252,7 +252,7 @@ export default function Home() {
                 data-testid="button-finish"
                 onClick={handleSubmit}
                 disabled={isPending || selectedPodcasts.length === 0 || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
-                className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
+                className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
               >
                 {isPending ? (
                   <>
@@ -266,7 +266,7 @@ export default function Home() {
                   </>
                 )}
               </button>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground">
                 Free for up to 3 podcasts. No credit card required.
               </p>
             </div>
