@@ -196,7 +196,7 @@ export default function Home() {
                     transition={{ duration: 0.25 }}
                     className="pl-10"
                   >
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div
                           key={podcast.id}
