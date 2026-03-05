@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
+import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
@@ -44,20 +45,6 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
-function generateDeliveryTimes() {
-  const times: { value: string; label: string }[] = [];
-  for (let h = 0; h < 24; h++) {
-    for (let m = 0; m < 60; m += 15) {
-      const value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      const ampm = h < 12 ? "AM" : "PM";
-      const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
-      times.push({ value, label });
-    }
-  }
-  return times;
-}
-const DELIVERY_TIMES = generateDeliveryTimes();
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
@@ -359,16 +346,10 @@ export default function Dashboard() {
                           <Clock className="w-3.5 h-3.5" />
                           Time
                         </label>
-                        <select
-                          data-testid="select-delivery-time"
+                        <TimePicker
                           value={deliveryTime}
-                          onChange={(e) => setDeliveryTime(e.target.value)}
-                          className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium appearance-none cursor-pointer"
-                        >
-                          {DELIVERY_TIMES.map((t) => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
-                          ))}
-                        </select>
+                          onChange={(t) => setDeliveryTime(t)}
+                        />
                       </div>
                       <div className="flex-1">
                         <label className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mb-2">
