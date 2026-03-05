@@ -632,6 +632,43 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/stripe/cancel-subscription", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.stripeSubscriptionId) {
+      return res.status(400).json({ message: "No active subscription found" });
+    }
+
+    const podcastCount = user.podcasts?.length || 0;
+    if (podcastCount > 3) {
+      return res.status(400).json({
+        message: `Please remove ${podcastCount - 3} podcast${podcastCount - 3 > 1 ? "s" : ""} before canceling. The free plan supports up to 3 podcasts.`,
+        podcastCount,
+      });
+    }
+
+    try {
+      const stripe = await getUncachableStripeClient();
+      await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+      await storage.updateUserStripeInfo(user.id, {
+        stripeSubscriptionId: undefined,
+        plan: "free",
+      });
+      const updatedUser = await storage.getUserById(user.id);
+      res.json({ success: true, user: updatedUser });
+    } catch (err: any) {
+      console.error("Cancel subscription error:", err);
+      res.status(500).json({ message: "Failed to cancel subscription" });
+    }
+  });
+
   app.post("/api/stripe/sync-subscription", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });

@@ -90,6 +90,34 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: subscriptionData } = useQuery<{ subscription: any; plan: string }>({
+    queryKey: ["/api/stripe/subscription"],
+    enabled: !!user && isPro,
+  });
+
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    setIsCanceling(true);
+    try {
+      const res = await apiRequest("POST", "/api/stripe/cancel-subscription");
+      const data = await res.json();
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/stripe/subscription"] });
+        setShowCancelModal(false);
+        toast({ title: "Subscription canceled", description: "You're now on the free plan." });
+      } else {
+        toast({ title: "Cannot cancel", description: data.message, variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to cancel subscription.", variant: "destructive" });
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   const generateRecap = useMutation({
     mutationFn: () => apiRequest("POST", "/api/recaps/generate"),
     onSuccess: () => {
@@ -219,8 +247,86 @@ export default function Dashboard() {
     return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   };
 
+  const podcastsOverLimit = podcasts.length > 3;
+  const podcastsToRemove = podcasts.length - 3;
+
   return (
     <div className="min-h-screen flex flex-col">
+      <AnimatePresence>
+        {showCancelModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowCancelModal(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
+              data-testid="modal-cancel-subscription"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
+                <CreditCard className="w-7 h-7 text-red-500" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-cancel-title">
+                  Cancel your subscription?
+                </h3>
+                {podcastsOverLimit ? (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    The free plan supports up to 3 podcasts. You currently have <span className="font-semibold text-foreground">{podcasts.length}</span> selected.
+                    Please remove {podcastsToRemove} podcast{podcastsToRemove > 1 ? "s" : ""} from your list before canceling.
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    You'll lose access to unlimited podcasts and be moved to the free plan (up to 3 podcasts). This takes effect immediately.
+                  </p>
+                )}
+              </div>
+              <div className="w-full space-y-2.5">
+                {podcastsOverLimit ? (
+                  <button
+                    data-testid="button-remove-podcasts-first"
+                    onClick={() => setShowCancelModal(false)}
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                  >
+                    Remove podcasts first
+                  </button>
+                ) : (
+                  <button
+                    data-testid="button-confirm-cancel"
+                    onClick={handleCancelSubscription}
+                    disabled={isCanceling}
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
+                  >
+                    {isCanceling ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Canceling...
+                      </>
+                    ) : (
+                      "Yes, cancel subscription"
+                    )}
+                  </button>
+                )}
+                <button
+                  data-testid="button-keep-subscription"
+                  onClick={() => setShowCancelModal(false)}
+                  className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                >
+                  {podcastsOverLimit ? "Never mind" : "Keep my subscription"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {impersonationStatus?.impersonating && (
         <div className="w-full bg-amber-500 text-white px-4 py-2.5 flex items-center justify-center gap-3" data-testid="banner-impersonating">
           <Shield className="w-4 h-4" />
@@ -407,53 +513,50 @@ export default function Dashboard() {
                     )}
                   </section>
 
+                  {isPro && (
+                  <>
                   <div className="border-t border-black/[0.06]" />
-
                   <section className="flex flex-col gap-4">
                     <h2 className="text-lg font-display font-bold text-foreground">
-                      Plan
+                      Subscription
                     </h2>
-                    {isPro ? (
+                    <div className="rounded-xl border border-black/[0.06] bg-black/[0.02] p-5 space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Crown className="w-5 h-5 text-primary" />
-                          <span className="font-semibold text-foreground">Pro</span>
+                          <span className="font-display font-bold text-foreground">PodCap Pro</span>
                           <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full">Active</span>
                         </div>
-                        <button
-                          data-testid="button-manage-billing"
-                          onClick={async () => {
-                            try {
-                              const res = await apiRequest("POST", "/api/stripe/portal");
-                              const data = await res.json();
-                              if (data.url) window.location.href = data.url;
-                            } catch {
-                              toast({ title: "Error", description: "Could not open billing portal.", variant: "destructive" });
-                            }
-                          }}
-                          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <CreditCard className="w-4 h-4" />
-                          Manage Billing
-                        </button>
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-foreground">Free</span>
-                          <span className="text-xs text-muted-foreground">3 podcasts max</span>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Monthly fee</span>
+                        <span className="font-semibold text-foreground">$9.99/month</span>
+                      </div>
+                      {subscriptionData?.subscription?.current_period_end && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Next billing date</span>
+                          <span className="font-semibold text-foreground">
+                            {new Date(
+                              typeof subscriptionData.subscription.current_period_end === "number"
+                                ? subscriptionData.subscription.current_period_end * 1000
+                                : subscriptionData.subscription.current_period_end
+                            ).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </span>
                         </div>
+                      )}
+                      <div className="pt-1">
                         <button
-                          data-testid="button-upgrade-plan"
-                          onClick={() => navigate("/upgrade")}
-                          className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                          data-testid="button-cancel-subscription"
+                          onClick={() => setShowCancelModal(true)}
+                          className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
                         >
-                          <Crown className="w-4 h-4" />
-                          Upgrade to Pro
+                          Cancel subscription
                         </button>
                       </div>
-                    )}
+                    </div>
                   </section>
+                  </>
+                  )}
 
                   <div className="flex flex-col items-center gap-2">
                     <button
