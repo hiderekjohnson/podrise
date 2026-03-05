@@ -127,7 +127,8 @@ async function processUsers() {
         summary: result.summary,
       });
 
-      const emailHtml = markdownToEmailHtml(result.summary, user.email);
+      const templateSettings = await storage.getEmailTemplateSettings();
+      const emailHtml = markdownToEmailHtml(result.summary, user.email, templateSettings);
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({

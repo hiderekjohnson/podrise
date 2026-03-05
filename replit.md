@@ -24,6 +24,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
 - `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), email_html (text, stores sent HTML for admin preview), sent_at
 - `magic_links` table: id, email, token (unique), expires_at, used_at, created_at — stores magic link tokens for passwordless login
+- `email_template_settings` table: id, key (unique), value — stores admin-editable email template settings (key-value pairs)
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow
@@ -72,7 +73,7 @@ A full-stack web application that lets users create and manage personalized dail
 - OpenAI via Replit AI Integrations
 - Recap generation: shared `server/recapGenerator.ts` module fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
 - Summary includes stats header (podcast count, total runtime), per-episode Apple Podcasts + Spotify links
-- Summary follows specific format: Stats Header, Big Ideas Today, per-episode cards with listen links, Conversation Ammo
+- Summary follows specific format: Stats Header, per-episode cards with TLDL, What Happened (prose), Key Insights, Quote with attribution
 - **Transcript Integration**: Taddy GraphQL API fetches real podcast transcripts for richer recaps
   - Credentials: `TADDY_USER_ID` (shared env) + `TADDY_API_KEY` (secret)
   - Matches iTunes episodes to Taddy by podcast iTunes ID → Taddy UUID → episode title match
@@ -87,7 +88,10 @@ A full-stack web application that lets users create and manage personalized dail
   - Skips users who already received email today (in-memory `sentToday` set, resets at midnight UTC)
   - Skips if no new episodes from yesterday — no email sent
   - Generates recap, saves to DB, converts markdown to HTML, sends via Resend
-- **Email Template**: `server/emailTemplate.ts` converts markdown recap to styled HTML email
+- **Email Template**: `server/emailTemplate.ts` converts markdown recap to styled HTML email with merge tags
+  - Admin-editable template settings stored in `email_template_settings` table
+  - Merge tags: `{{audio_length}}`, `{{episode_count}}`, `{{podcast_names}}`, `{{date}}`, `{{email}}`
+  - Template editor available in Admin dashboard → Template tab with live preview
 - **Manual Send**: Users can click "Send to Email" on any recap in the dashboard viewer
 - **API Route**: `POST /api/recaps/send-email` sends a specific recap to the user's email
 
@@ -110,6 +114,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `client/src/pages/Dashboard.tsx` — Dashboard page
 - `client/src/pages/Upgrade.tsx` — Upgrade page with Stripe checkout
 - `client/src/pages/Admin.tsx` — Admin dashboard page
+- `client/src/pages/EmailTemplateEditor.tsx` — Admin email template editor with live preview
 
 ## Important: User Data Safety
 - NEVER bulk-delete user accounts. All user accounts are real users.

@@ -8,7 +8,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml } from "./emailTemplate";
+import { markdownToEmailHtml, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 
 declare module "express-session" {
@@ -379,7 +379,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Recap not found" });
       }
 
-      const emailHtml = markdownToEmailHtml(recap.summary, user.email);
+      const templateSettings = await storage.getEmailTemplateSettings();
+      const emailHtml = markdownToEmailHtml(recap.summary, user.email, templateSettings);
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
@@ -628,6 +629,54 @@ export async function registerRoutes(
     req.session.save(() => {
       res.json({ message: "Stopped impersonating" });
     });
+  });
+
+  app.get("/api/admin/email-template", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const saved = await storage.getEmailTemplateSettings();
+    const template: EmailTemplateConfig = { ...DEFAULT_TEMPLATE };
+    for (const key of Object.keys(DEFAULT_TEMPLATE) as (keyof EmailTemplateConfig)[]) {
+      if (saved[key] !== undefined) {
+        template[key] = saved[key];
+      }
+    }
+    res.json({ template, mergeTags: MERGE_TAGS, defaults: DEFAULT_TEMPLATE });
+  });
+
+  app.put("/api/admin/email-template", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { template } = req.body;
+    if (!template || typeof template !== "object") {
+      return res.status(400).json({ message: "Invalid template data" });
+    }
+    const validKeys = Object.keys(DEFAULT_TEMPLATE);
+    const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
+    const colorKeys = ["headerColor", "accentColor"];
+    const toSave: Record<string, string> = {};
+    for (const [key, value] of Object.entries(template)) {
+      if (!validKeys.includes(key) || typeof value !== "string") continue;
+      if (value.length > 500) continue;
+      if (colorKeys.includes(key) && !hexColorRegex.test(value)) continue;
+      if (key === "showPs" && value !== "true" && value !== "false") continue;
+      toSave[key] = value;
+    }
+    await storage.setEmailTemplateSettings(toSave);
+    res.json({ message: "Template saved" });
+  });
+
+  app.post("/api/admin/email-template/preview", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { template } = req.body;
+    const sampleMarkdown = `My First Million · The All-In Podcast\n\n**2** Podcasts · **5 hours and 32 minutes** Total duration\n\n---\n\n## MY FIRST MILLION\n\n**How This 25-Year-Old Built a $100M Business**\nJake Chen · CEO of CloudStack · 1 hr 12 min\n\n🎧 [Apple Podcasts](https://podcasts.apple.com/example) · [Spotify](https://open.spotify.com/search/example)\n\n**TLDL:** Jake Chen dropped out of college to build CloudStack, a no-code platform that now processes $2B in transactions annually.\n\n**What Happened**\nSam opens by calling Jake "the most impressive founder under 30." Jake walks through the origin story — building internal tools for his university when he realized every small business had the same problem.\n\nHe launched on Product Hunt, got 2,000 users in the first week, and was profitable by month three.\n\n**Key Insights:**\n- CloudStack processes $2B in annual transactions with only 47 employees\n- White-labeling through accounting firms drives 40% of revenue\n- The no-code market is projected to hit $187B by 2030\n\n**Quote**\nJake Chen on turning down $50M:\n> "Everyone told me I was crazy. But I looked at every founder who sold early and asked one question: are you happier? Not one said yes."\n\n---`;
+    const config: Partial<EmailTemplateConfig> = template || {};
+    const html = markdownToEmailHtml(sampleMarkdown, "preview@example.com", config);
+    res.json({ html });
   });
 
   app.get("/api/auth/impersonation-status", (req, res) => {

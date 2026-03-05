@@ -336,7 +336,54 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
     </div>`;
 }
 
-export function markdownToEmailHtml(markdown: string, recipientEmail: string): string {
+export interface EmailTemplateConfig {
+  headerTitle: string;
+  headerSubtitle: string;
+  headline: string;
+  subtitle: string;
+  signoffLine1: string;
+  signoffLine2: string;
+  psLine1: string;
+  psLine2: string;
+  showPs: string;
+  footerText: string;
+  headerColor: string;
+  accentColor: string;
+}
+
+export const DEFAULT_TEMPLATE: EmailTemplateConfig = {
+  headerTitle: "☕ PodCap Daily",
+  headerSubtitle: "Your personalized podcast digest",
+  headline: "We listened to {{audio_length}} of your favorite podcasts yesterday so you don't have to.",
+  subtitle: "Here's everything worth knowing in a few minutes.",
+  signoffLine1: "That's your PodCap Daily. ☕",
+  signoffLine2: "Same time tomorrow?",
+  psLine1: "P.S. Know someone who likes the same podcasts as you?",
+  psLine2: "Forward them this email. They'll thank you later.",
+  showPs: "true",
+  footerText: "You're receiving this because you signed up for PodCap Daily.",
+  headerColor: "#2563eb",
+  accentColor: "#2563eb",
+};
+
+export const MERGE_TAGS: { tag: string; description: string; example: string }[] = [
+  { tag: "{{audio_length}}", description: "Total listening time of all episodes", example: "5 hours and 32 minutes" },
+  { tag: "{{episode_count}}", description: "Number of podcast episodes", example: "3" },
+  { tag: "{{podcast_names}}", description: "Names of podcasts covered", example: "My First Million · The All-In Podcast" },
+  { tag: "{{date}}", description: "Today's date", example: "Thursday, March 5, 2026" },
+  { tag: "{{email}}", description: "Recipient's email address", example: "you@example.com" },
+];
+
+function replaceMergeTags(text: string, vars: Record<string, string>): string {
+  return text
+    .replace(/\{\{audio_length\}\}/g, vars.audio_length || "your favorite podcasts")
+    .replace(/\{\{episode_count\}\}/g, vars.episode_count || "0")
+    .replace(/\{\{podcast_names\}\}/g, vars.podcast_names || "")
+    .replace(/\{\{date\}\}/g, vars.date || "")
+    .replace(/\{\{email\}\}/g, vars.email || "");
+}
+
+export function markdownToEmailHtml(markdown: string, recipientEmail: string, templateOverrides?: Partial<EmailTemplateConfig>): string {
   const parsed = parseDigestMarkdown(markdown);
 
   const durationMatch = parsed.statsHeader.match(/\*?\*?([^*]+)\*?\*?\s*Total duration/i);
@@ -345,11 +392,35 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
+  const t: EmailTemplateConfig = { ...DEFAULT_TEMPLATE, ...templateOverrides };
+
+  const mergeVars: Record<string, string> = {
+    audio_length: totalDuration || parsed.episodes.length + " of your favorite podcasts",
+    episode_count: String(parsed.episodes.length),
+    podcast_names: parsed.podcastNames || "",
+    date: dateStr,
+    email: recipientEmail,
+  };
+
+  const headline = escapeHtml(replaceMergeTags(t.headline, mergeVars));
+  const subtitle = escapeHtml(replaceMergeTags(t.subtitle, mergeVars));
+  const headerTitle = escapeHtml(replaceMergeTags(t.headerTitle, mergeVars));
+  const headerSubtitle = escapeHtml(replaceMergeTags(t.headerSubtitle, mergeVars));
+  const signoff1 = escapeHtml(replaceMergeTags(t.signoffLine1, mergeVars));
+  const signoff2 = escapeHtml(replaceMergeTags(t.signoffLine2, mergeVars));
+  const psLine1 = escapeHtml(replaceMergeTags(t.psLine1, mergeVars));
+  const psLine2 = escapeHtml(replaceMergeTags(t.psLine2, mergeVars));
+  const footerText = escapeHtml(replaceMergeTags(t.footerText, mergeVars));
+
   const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep)).join("");
 
+  const showPs = t.showPs === "true";
+
   const manageBanner = `<div style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;padding:10px 16px;margin-bottom:24px;text-align:center;">
-        <p style="color:#1e40af;font-size:12px;margin:0;">Want to change your podcasts? <a href="https://podcap.io/login" style="color:#2563eb;font-weight:600;text-decoration:underline;">Manage your subscriptions</a></p>
+        <p style="color:#1e40af;font-size:12px;margin:0;">Want to change your podcasts? <a href="https://podcap.io/login" style="color:${escapeHtml(t.accentColor)};font-weight:600;text-decoration:underline;">Manage your subscriptions</a></p>
       </div>`;
+
+  const headerGradientDark = adjustColor(t.headerColor, -20);
 
   return `<!DOCTYPE html>
 <html>
@@ -364,38 +435,47 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string): s
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
     <!--[if mso]>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#2563eb;padding:32px 24px;text-align:center;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:${escapeHtml(t.headerColor)};padding:32px 24px;text-align:center;">
     <![endif]-->
-    <div style="background-color:#2563eb;background-image:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">&#9749; PodCap Daily</h1>
-      <p style="color:#bfdbfe;font-size:14px;margin:8px 0 0 0;">Your personalized podcast digest</p>
+    <div style="background-color:${escapeHtml(t.headerColor)};background-image:linear-gradient(135deg,${escapeHtml(headerGradientDark)},${escapeHtml(t.headerColor)});padding:32px 24px;text-align:center;">
+      <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">${headerTitle}</h1>
+      <p style="color:rgba(255,255,255,0.75);font-size:14px;margin:8px 0 0 0;">${headerSubtitle}</p>
     </div>
     <!--[if mso]>
     </td></tr></table>
     <![endif]-->
     <div style="padding:28px;">
-      <h2 style="font-size:22px;font-weight:800;color:#1a1a1a;margin:0 0 12px 0;line-height:1.4;">We listened to <span style="color:#2563eb;">${totalDuration || parsed.episodes.length + " of your favorite podcasts"}</span> of your favorite podcasts yesterday so you don't have to.</h2>
-      <p style="font-size:15px;color:#374151;margin:0 0 24px 0;">Here's everything worth knowing in a few minutes.</p>
+      <h2 style="font-size:22px;font-weight:800;color:#1a1a1a;margin:0 0 12px 0;line-height:1.4;">${headline}</h2>
+      <p style="font-size:15px;color:#374151;margin:0 0 24px 0;">${subtitle}</p>
       ${episodeCardsHtml}
       <div style="text-align:center;margin:24px 0 8px 0;">
-        <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 4px 0;">That's your PodCap Daily. &#9749;</p>
-        <p style="font-size:13px;color:#6b7280;margin:0;">Same time tomorrow?</p>
+        <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 4px 0;">${signoff1}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">${signoff2}</p>
       </div>
-      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;margin:20px 0;text-align:center;">
-        <p style="font-size:14px;font-weight:600;color:#1a1a1a;margin:0 0 6px 0;">P.S. Know someone who likes the same podcasts as you?</p>
-        <p style="font-size:13px;color:#6b7280;margin:0;">Forward them this email. They'll thank you later.</p>
-      </div>
+      ${showPs ? `<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;margin:20px 0;text-align:center;">
+        <p style="font-size:14px;font-weight:600;color:#1a1a1a;margin:0 0 6px 0;">${psLine1}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">${psLine2}</p>
+      </div>` : ""}
       ${manageBanner}
     </div>
     <div style="background:#f9fafb;padding:20px 28px;text-align:center;border-top:1px solid #e5e7eb;">
       <p style="color:#9ca3af;font-size:12px;margin:0;">
-        You're receiving this because you signed up for <a href="https://podcap.io" style="color:#9ca3af;text-decoration:underline;">PodCap Daily</a>.
+        ${footerText} <a href="https://podcap.io" style="color:#9ca3af;text-decoration:underline;">podcap.io</a>
       </p>
       <p style="color:#9ca3af;font-size:12px;margin:4px 0 0 0;">
-        <a href="https://podcap.io/login" style="color:#9ca3af;text-decoration:underline;">Manage your podcasts</a> &middot; Sent to ${recipientEmail}
+        <a href="https://podcap.io/login" style="color:#9ca3af;text-decoration:underline;">Manage your podcasts</a> &middot; Sent to ${escapeHtml(recipientEmail)}
       </p>
     </div>
   </div>
 </body>
 </html>`;
+}
+
+function adjustColor(hex: string, amount: number): string {
+  const h = hex.replace("#", "");
+  const num = parseInt(h, 16);
+  let r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + amount));
+  let g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
+  let b = Math.max(0, Math.min(255, (num & 0xff) + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
