@@ -140,89 +140,89 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
         document.body
       )}
 
-      <div className="relative group flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
-          <input
-            data-testid="input-search-podcasts"
-            type="search"
-            placeholder="Search and add your favorite podcasts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-14 pl-12 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
-          />
+      <div className="relative">
+        <div className="relative group flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
+            <input
+              data-testid="input-search-podcasts"
+              type="search"
+              placeholder="Search podcasts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-14 pl-12 pr-10 bg-white border border-black/[0.08] rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
+            />
+            {searchQuery && (
+              <button
+                data-testid="button-clear-search"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/[0.06] text-muted-foreground hover:bg-black/[0.1] transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-        {searchQuery && (
-          <button
-            data-testid="button-clear-search"
-            onClick={() => setSearchQuery("")}
-            className="text-sm font-medium text-primary shrink-0"
-          >
-            Clear
-          </button>
-        )}
-      </div>
 
-      <AnimatePresence mode="wait">
-        {searchQuery.trim().length >= 2 && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="space-y-1"
-          >
-            <p className="text-sm font-semibold text-foreground px-1">
-              Search Results for "{searchQuery}"
-            </p>
-            <div className="border border-black/[0.06] rounded-2xl divide-y divide-black/[0.06] overflow-hidden bg-white shadow-md shadow-black/[0.04]">
+        <AnimatePresence>
+          {searchQuery.trim().length >= 2 && (
+            <motion.div
+              initial={{ opacity: 0, y: 4, scale: 0.98 }}
+              animate={{ opacity: 1, y: 8, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="absolute left-0 right-0 z-50 bg-white rounded-3xl shadow-2xl shadow-black/[0.12] border border-black/[0.06] overflow-hidden max-h-[360px] overflow-y-auto"
+            >
               {isSearching ? (
-                <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Searching...
+                <div className="flex items-center justify-center gap-2.5 px-6 py-10 text-sm text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span>Searching podcasts...</span>
                 </div>
               ) : filteredResults.length > 0 ? (
-                filteredResults.map((podcast) => (
-                  <button
-                    key={podcast.id}
-                    data-testid={`button-add-podcast-${podcast.id}`}
-                    onClick={() => handleAddClick(podcast)}
-                    className="flex items-center gap-3.5 px-4 py-3 w-full text-left transition-colors hover:bg-black/[0.02] group/row"
-                  >
-                    {podcast.artworkUrl ? (
-                      <img
-                        src={podcast.artworkUrl}
-                        alt={podcast.name}
-                        className="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0">
-                        <Podcast className="w-5 h-5 text-primary" />
+                <div className="py-2">
+                  <p className="px-6 pt-3 pb-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                    Results
+                  </p>
+                  {filteredResults.map((podcast) => (
+                    <button
+                      key={podcast.id}
+                      data-testid={`button-add-podcast-${podcast.id}`}
+                      onClick={() => handleAddClick(podcast)}
+                      className="flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors hover:bg-black/[0.03] group/row"
+                    >
+                      {podcast.artworkUrl ? (
+                        <img
+                          src={podcast.artworkUrl}
+                          alt={podcast.name}
+                          className="w-12 h-12 rounded-xl object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                          <Podcast className="w-5 h-5 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground text-[15px] truncate">
+                          {podcast.name}
+                        </p>
+                        <p className="text-[13px] text-muted-foreground/60 truncate mt-0.5">
+                          {podcast.artistName}
+                        </p>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground text-sm truncate">
-                        {podcast.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
-                        {podcast.artistName}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-primary/[0.08] text-primary shrink-0 transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20">
-                      <Plus className="w-3 h-3" />
-                      Add
-                    </div>
-                  </button>
-                ))
+                      <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
+                    </button>
+                  ))}
+                </div>
               ) : (
-                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                  No podcasts found matching "{searchQuery}"
+                <div className="px-6 py-10 text-center">
+                  <p className="text-sm text-muted-foreground">No podcasts found</p>
+                  <p className="text-xs text-muted-foreground/50 mt-1">Try a different search term</p>
                 </div>
               )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {selectedPodcasts.length > 0 && (
       <div className="space-y-3 pt-2">
