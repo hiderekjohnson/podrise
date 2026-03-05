@@ -15,6 +15,8 @@ declare module "express-session" {
   interface SessionData {
     userId?: number;
     isAdmin?: boolean;
+    impersonatingUserId?: number;
+    originalUserId?: number;
   }
 }
 
@@ -345,6 +347,52 @@ export async function registerRoutes(
     }
     const logs = await storage.getEmailLogs();
     res.json(logs);
+  });
+
+  app.post("/api/admin/impersonate", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    if (req.session.impersonatingUserId) {
+      return res.status(400).json({ message: "Already impersonating a user. Stop impersonating first." });
+    }
+    const parsed = z.object({ userId: z.number() }).safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+    const user = await storage.getUserById(parsed.data.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    req.session.originalUserId = req.session.userId;
+    req.session.impersonatingUserId = parsed.data.userId;
+    req.session.userId = parsed.data.userId;
+    req.session.save(() => {
+      res.json({ message: "Now impersonating user", user });
+    });
+  });
+
+  app.post("/api/admin/stop-impersonating", (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    if (!req.session.impersonatingUserId) {
+      return res.status(400).json({ message: "Not currently impersonating anyone" });
+    }
+    req.session.userId = req.session.originalUserId;
+    delete req.session.impersonatingUserId;
+    delete req.session.originalUserId;
+    req.session.save(() => {
+      res.json({ message: "Stopped impersonating" });
+    });
+  });
+
+  app.get("/api/auth/impersonation-status", (req, res) => {
+    if (req.session.isAdmin && req.session.impersonatingUserId) {
+      res.json({ impersonating: true, userId: req.session.impersonatingUserId });
+    } else {
+      res.json({ impersonating: false });
+    }
   });
 
   app.post(api.users.update.path, async (req, res) => {

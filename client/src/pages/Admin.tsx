@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -88,6 +88,17 @@ export default function Admin() {
   const { data: emailLogs, isLoading: emailLogsLoading } = useQuery<EmailLogEntry[]>({
     queryKey: ["/api/admin/email-logs"],
     enabled: isAdmin,
+  });
+
+  const impersonateMutation = useMutation({
+    mutationFn: (userId: number) => apiRequest("POST", "/api/admin/impersonate", { userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      navigate("/dashboard");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to impersonate user.", variant: "destructive" });
+    },
   });
 
   const handleLogin = (e: React.FormEvent) => {
@@ -258,12 +269,13 @@ export default function Admin() {
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Signed Up</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Podcasts</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Settings</th>
+                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-black/[0.04]">
                           {filteredUsers.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                              <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
                                 {searchTerm ? "No users match your search." : "No users yet."}
                               </td>
                             </tr>
@@ -309,6 +321,17 @@ export default function Admin() {
                                     <p>{user.readingLength} min read</p>
                                     <p>{user.deliveryTime} · {user.deliveryTimezone?.replace("America/", "").replace("_", " ") || "ET"}</p>
                                   </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                  <button
+                                    data-testid={`button-impersonate-${user.id}`}
+                                    onClick={() => impersonateMutation.mutate(user.id)}
+                                    disabled={impersonateMutation.isPending}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary border border-primary/20 hover:bg-primary/5 transition-colors disabled:opacity-50"
+                                  >
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                    Impersonate
+                                  </button>
                                 </td>
                               </tr>
                             ))

@@ -74,6 +74,8 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
       name: podcast.name,
       artworkUrl: podcast.artworkUrl,
     });
+    setSearchQuery("");
+    setResults([]);
   };
 
   return (

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail } from "lucide-react";
+import { Loader2, LogOut, Save, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
@@ -101,6 +101,19 @@ export default function Dashboard() {
   const [viewingRecap, setViewingRecap] = useState<RecapData | null>(null);
 
   const isPro = user?.plan === "pro";
+
+  const { data: impersonationStatus } = useQuery<{ impersonating: boolean; userId?: number }>({
+    queryKey: ["/api/auth/impersonation-status"],
+  });
+
+  const stopImpersonating = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/stop-impersonating"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/impersonation-status"] });
+      navigate("/admin");
+    },
+  });
 
   const { data: recaps, isLoading: recapsLoading } = useQuery<RecapData[]>({
     queryKey: ["/api/recaps"],
@@ -239,6 +252,22 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {impersonationStatus?.impersonating && (
+        <div className="w-full bg-amber-500 text-white px-4 py-2.5 flex items-center justify-center gap-3" data-testid="banner-impersonating">
+          <Shield className="w-4 h-4" />
+          <span className="text-sm font-semibold">
+            Viewing as {user?.email}
+          </span>
+          <button
+            data-testid="button-stop-impersonating"
+            onClick={() => stopImpersonating.mutate()}
+            disabled={stopImpersonating.isPending}
+            className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-xs font-bold transition-colors"
+          >
+            {stopImpersonating.isPending ? "Returning..." : "Back to Admin"}
+          </button>
+        </div>
+      )}
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
           <img
