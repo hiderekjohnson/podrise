@@ -16,7 +16,7 @@ const FEATURES = [
 
 export default function Upgrade() {
   const [, navigate] = useLocation();
-  const { user, isLoading: authLoading } = useAuth();
+  const { data: user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
