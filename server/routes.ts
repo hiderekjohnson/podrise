@@ -20,6 +20,76 @@ declare module "express-session" {
   }
 }
 
+function parsePodcastName(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.name) return parsed.name;
+  } catch {}
+  return raw;
+}
+
+async function getLocationFromIp(ip: string): Promise<string> {
+  try {
+    const cleanIp = ip.replace("::ffff:", "");
+    if (cleanIp === "127.0.0.1" || cleanIp === "::1" || cleanIp.startsWith("10.") || cleanIp.startsWith("192.168.")) {
+      return "Local / Development";
+    }
+    const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=city,regionName,country`);
+    if (res.ok) {
+      const data = await res.json() as { city?: string; regionName?: string; country?: string };
+      const parts = [data.city, data.regionName, data.country].filter(Boolean);
+      return parts.length > 0 ? parts.join(", ") : "Unknown";
+    }
+  } catch {}
+  return "Unknown";
+}
+
+async function sendNewUserNotification(user: any, req: any) {
+  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "Unknown";
+  const location = await getLocationFromIp(ip);
+  const podcastNames = (user.podcasts || []).map((p: string) => parsePodcastName(p));
+  const signupTime = new Date().toLocaleString("en-US", {
+    timeZone: "Europe/Lisbon",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  const { client, fromEmail } = await getUncachableResendClient();
+  await client.emails.send({
+    from: `PodCap Alerts <${fromEmail}>`,
+    to: "hiderekjohnson@gmail.com",
+    subject: `🚀 New PodCap User: ${user.email}`,
+    html: `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
+<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#2196F3,#1976D2);padding:28px 32px;">
+<h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">🎉 New User Signup</h1>
+</div>
+<div style="padding:28px 32px;">
+<table style="width:100%;border-collapse:collapse;">
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;width:110px;">Email</td><td style="padding:10px 0;font-size:14px;font-weight:600;color:#1a1a1a;">${user.email}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Location</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${location} <span style="color:#aaa;font-size:12px;">(${ip})</span></td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Podcasts</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${podcastNames.length > 0 ? podcastNames.map((n: string) => `<span style="display:inline-block;background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${n}</span>`).join("") : "<em style='color:#aaa;'>None selected</em>"}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Signed up</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${signupTime} <span style="color:#aaa;font-size:12px;">(Lisbon)</span></td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">User ID</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">#${user.id}</td></tr>
+</table>
+</div>
+<div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
+<span style="font-size:12px;color:#aaa;">PodCap User Alert</span>
+</div>
+</div>
+</body></html>`,
+  });
+
+  console.log(`[NewUserNotify] Notification sent for ${user.email}`);
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -73,6 +143,10 @@ export async function registerRoutes(
       const user = await storage.createUser(input);
       req.session.userId = user.id;
       res.status(201).json(user);
+
+      sendNewUserNotification(user, req).catch((err) =>
+        console.error("[NewUserNotify] Failed:", err)
+      );
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
