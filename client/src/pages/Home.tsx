@@ -177,7 +177,7 @@ export default function Home() {
                 </span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">
-                    {podcastsLocked ? "Your podcasts" : <>Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></>}
+                    {podcastsLocked ? "Your podcasts" : "Choose podcasts to recap"}
                   </h2>
                   {!podcastsLocked && (
                     <p className="text-sm text-muted-foreground mt-0.5">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
@@ -234,7 +234,7 @@ export default function Home() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="pl-10"
+                    className="pl-10 space-y-5"
                   >
                     <PodcastSearch
                       selectedPodcasts={selectedPodcasts}
@@ -242,6 +242,39 @@ export default function Home() {
                       onRemove={handleRemove}
                       maxSelection={3}
                     />
+                    {selectedPodcasts.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
+                        <div className="grid grid-cols-3 gap-3">
+                          {selectedPodcasts.map((podcast) => (
+                            <div
+                              key={podcast.id}
+                              className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 relative group"
+                            >
+                              <button
+                                data-testid={`button-remove-selected-${podcast.id}`}
+                                onClick={() => handleRemove(podcast.id)}
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                              >
+                                ×
+                              </button>
+                              {podcast.artworkUrl ? (
+                                <img
+                                  src={hiResArtwork(podcast.artworkUrl)}
+                                  alt={podcast.name}
+                                  className="w-full aspect-square rounded-xl object-cover shadow-sm shadow-black/[0.06]"
+                                />
+                              ) : (
+                                <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
+                                  <Podcast className="w-10 h-10 text-primary" />
+                                </div>
+                              )}
+                              <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
