@@ -266,8 +266,8 @@ export default function Home() {
                   </>
                 )}
               </button>
-              <p className="text-[13px] text-muted-foreground">
-                Free for up to 3 podcasts. No credit card required.
+              <p className="text-[13px] text-muted-foreground italic">
+                Free forever for up to 3 podcasts.
               </p>
             </div>
           </div>
