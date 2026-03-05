@@ -9,6 +9,17 @@ import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
+const LANDING_NAME_TO_SLUG = new Map<string, string>();
+PODCAST_LANDINGS.forEach((p) => {
+  LANDING_NAME_TO_SLUG.set(p.name.toLowerCase(), p.slug);
+});
+LANDING_NAME_TO_SLUG.set("my first million", "myfirstmillion");
+LANDING_NAME_TO_SLUG.set("empowerher podcast", "empowerher");
+
+function findPodcastSlug(name: string): string | null {
+  return LANDING_NAME_TO_SLUG.get(name.toLowerCase()) ?? null;
+}
+
 interface LeaderboardPodcast {
   id: string;
   name: string;
@@ -149,9 +160,23 @@ export default function Leaderboard() {
                       data-testid={`artwork-${index}`}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
-                        {podcast.name}
-                      </p>
+                      {(() => {
+                        const slug = findPodcastSlug(podcast.name);
+                        return slug ? (
+                          <a
+                            href={`/podcasts/${slug}`}
+                            className="text-sm font-semibold text-foreground hover:underline truncate block transition-colors"
+                            data-testid={`name-${index}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {podcast.name}
+                          </a>
+                        ) : (
+                          <p className="text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
+                            {podcast.name}
+                          </p>
+                        );
+                      })()}
                       {podcast.artist && (
                         <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
                           {podcast.artist}
@@ -203,9 +228,18 @@ export default function Leaderboard() {
                   <span className="text-xs font-bold text-muted-foreground/50 w-5 text-right shrink-0 tabular-nums">
                     {index + 1}
                   </span>
-                  <div className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                    <Headphones className="w-4 h-4 text-primary/60" />
-                  </div>
+                  {podcast.artworkUrl ? (
+                    <img
+                      src={podcast.artworkUrl}
+                      alt={podcast.name}
+                      className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
+                      data-testid={`global-artwork-${index}`}
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                      <Headphones className="w-4 h-4 text-primary/60" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">
                       {podcast.name}
