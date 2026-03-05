@@ -17,10 +17,10 @@ export function serveStatic(app: Express) {
     const indexPath = path.resolve(distPath, "index.html");
     const url = req.originalUrl;
 
-    if (url.startsWith("/podcasts/")) {
-      let html = fs.readFileSync(indexPath, "utf-8");
-      html = injectPodcastMeta(html, url);
-      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    let html = fs.readFileSync(indexPath, "utf-8");
+    const injected = injectPodcastMeta(html, url);
+    if (injected !== html) {
+      res.status(200).set({ "Content-Type": "text/html" }).end(injected);
     } else {
       res.sendFile(indexPath);
     }

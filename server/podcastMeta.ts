@@ -26,75 +26,112 @@ const PODCAST_PAGES: PodcastMeta[] = [
   },
 ];
 
+interface PageMeta {
+  title: string;
+  description: string;
+  image: string;
+  url: string;
+  twitterCard?: string;
+  replaceFavicon?: boolean;
+}
+
+const STATIC_PAGES: Record<string, PageMeta> = {
+  "/leaderboard": {
+    title: "PodCap Leaderboard — Most Popular Podcasts",
+    description: "See which podcasts are trending on PodCap. Discover the most popular shows and create your own free daily AI-powered recap.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/leaderboard",
+    twitterCard: "summary",
+    replaceFavicon: false,
+  },
+};
+
+function replaceMetaTags(html: string, meta: PageMeta): string {
+  html = html.replace(
+    /<title>[^<]*<\/title>/,
+    `<title>${meta.title}</title>`
+  );
+
+  html = html.replace(
+    /<meta name="description" content="[^"]*"\s*\/?>/,
+    `<meta name="description" content="${meta.description}" />`
+  );
+
+  html = html.replace(
+    /<meta property="og:title" content="[^"]*"\s*\/?>/,
+    `<meta property="og:title" content="${meta.title}" />`
+  );
+
+  html = html.replace(
+    /<meta property="og:description" content="[^"]*"\s*\/?>/,
+    `<meta property="og:description" content="${meta.description}" />`
+  );
+
+  html = html.replace(
+    /<meta property="og:image" content="[^"]*"\s*\/?>/,
+    `<meta property="og:image" content="${meta.image}" />`
+  );
+
+  html = html.replace(
+    /<meta property="og:url" content="[^"]*"\s*\/?>/,
+    `<meta property="og:url" content="${meta.url}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:card" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:card" content="${meta.twitterCard || "summary_large_image"}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:title" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:title" content="${meta.title}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:description" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:description" content="${meta.description}" />`
+  );
+
+  html = html.replace(
+    /<meta name="twitter:image" content="[^"]*"\s*\/?>/,
+    `<meta name="twitter:image" content="${meta.image}" />`
+  );
+
+  if (meta.replaceFavicon !== false) {
+    html = html.replace(
+      /<link rel="icon" type="image\/png" href="\/favicon\.png"\s*\/?>/,
+      `<link rel="icon" type="image/jpeg" href="${meta.image}" />`
+    );
+
+    html = html.replace(
+      /<link rel="apple-touch-icon" href="\/favicon\.png"\s*\/?>/,
+      `<link rel="apple-touch-icon" href="${meta.image}" />`
+    );
+  }
+
+  return html;
+}
+
 export function injectPodcastMeta(html: string, url: string): string {
-  const match = url.match(/^\/podcasts\/([a-zA-Z0-9_-]+)/);
+  const cleanUrl = url.split("?")[0].split("#")[0];
+
+  const staticPage = STATIC_PAGES[cleanUrl];
+  if (staticPage) {
+    return replaceMetaTags(html, staticPage);
+  }
+
+  const match = cleanUrl.match(/^\/podcasts\/([a-zA-Z0-9_-]+)/);
   if (!match) return html;
 
   const slug = match[1].toLowerCase();
   const podcast = PODCAST_PAGES.find((p) => p.slug === slug);
   if (!podcast) return html;
 
-  const title = `${podcast.name} Podcast Summary — Free Daily Recap | PodCap`;
-
-  html = html.replace(
-    /<title>[^<]*<\/title>/,
-    `<title>${title}</title>`
-  );
-
-  html = html.replace(
-    /<meta name="description" content="[^"]*"\s*\/?>/, 
-    `<meta name="description" content="${podcast.description}" />`
-  );
-
-  html = html.replace(
-    /<meta property="og:title" content="[^"]*"\s*\/?>/, 
-    `<meta property="og:title" content="${title}" />`
-  );
-
-  html = html.replace(
-    /<meta property="og:description" content="[^"]*"\s*\/?>/, 
-    `<meta property="og:description" content="${podcast.description}" />`
-  );
-
-  html = html.replace(
-    /<meta property="og:image" content="[^"]*"\s*\/?>/,
-    `<meta property="og:image" content="${podcast.artworkUrl}" />`
-  );
-
-  html = html.replace(
-    /<meta property="og:url" content="[^"]*"\s*\/?>/,
-    `<meta property="og:url" content="https://podcap.io/podcasts/${podcast.slug}" />`
-  );
-
-  html = html.replace(
-    /<meta name="twitter:card" content="[^"]*"\s*\/?>/,
-    `<meta name="twitter:card" content="summary_large_image" />`
-  );
-
-  html = html.replace(
-    /<meta name="twitter:title" content="[^"]*"\s*\/?>/,
-    `<meta name="twitter:title" content="${title}" />`
-  );
-
-  html = html.replace(
-    /<meta name="twitter:description" content="[^"]*"\s*\/?>/,
-    `<meta name="twitter:description" content="${podcast.description}" />`
-  );
-
-  html = html.replace(
-    /<meta name="twitter:image" content="[^"]*"\s*\/?>/,
-    `<meta name="twitter:image" content="${podcast.artworkUrl}" />`
-  );
-
-  html = html.replace(
-    /<link rel="icon" type="image\/png" href="\/favicon\.png"\s*\/?>/,
-    `<link rel="icon" type="image/jpeg" href="${podcast.artworkUrl}" />`
-  );
-
-  html = html.replace(
-    /<link rel="apple-touch-icon" href="\/favicon\.png"\s*\/?>/,
-    `<link rel="apple-touch-icon" href="${podcast.artworkUrl}" />`
-  );
-
-  return html;
+  return replaceMetaTags(html, {
+    title: `${podcast.name} Podcast Summary — Free Daily Recap | PodCap`,
+    description: podcast.description,
+    image: podcast.artworkUrl,
+    url: `https://podcap.io/podcasts/${podcast.slug}`,
+    twitterCard: "summary_large_image",
+  });
 }
