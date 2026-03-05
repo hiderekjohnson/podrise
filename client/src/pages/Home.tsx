@@ -144,7 +144,7 @@ export default function Home() {
               data-testid="text-headline"
               className="text-[2rem] sm:text-[2.75rem] md:text-[3.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
             >
-              Your favorite podcasts{" "}<span className="text-primary">recapped daily</span>
+              Your favorite podcasts recapped daily
             </h1>
             <h2 className="text-base sm:text-lg text-muted-foreground font-medium">
               Like having an assistant listen and send you the highlights.
