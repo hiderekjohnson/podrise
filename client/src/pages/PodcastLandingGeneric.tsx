@@ -202,19 +202,15 @@ export default function PodcastLandingGeneric() {
                 className="text-[2rem] sm:text-[2.5rem] lg:text-[3rem] font-display font-extrabold text-foreground leading-[1.08] tracking-[-0.025em]"
                 data-testid="heading-main"
               >
-                {name} Podcast Summaries
+                {name} Podcast Recaps
               </h1>
 
               <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-                Get a short summary of every new {name} episode, delivered to your inbox.
+                Get a short recap of every new podcast episode, delivered to your inbox.
               </p>
 
-              <p className="text-base text-muted-foreground/80 leading-relaxed">
-                Each recap explains who the guest was, what they talked about, and the key ideas from the episode — all in a quick 2 to 3 minute read.
-              </p>
-
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup">
-                <div className="flex-1 relative">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1 max-w-lg" data-testid="form-signup">
+                <div className="flex-1 relative min-w-0">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/40" />
                   <input
                     data-testid="input-email"
@@ -238,7 +234,7 @@ export default function PodcastLandingGeneric() {
                     </>
                   ) : (
                     <>
-                      Get Free Summaries
+                      Get Free Recaps
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -246,7 +242,7 @@ export default function PodcastLandingGeneric() {
               </form>
 
               <p className="text-sm text-muted-foreground/60 italic">
-                Free forever for up to 3 podcasts. No credit card required.
+                Free service. No credit card required.
               </p>
             </div>
 
