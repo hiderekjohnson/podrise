@@ -23,7 +23,54 @@ function isEpisodeSection(title: string, body: string): boolean {
   return /\*\*TLDL|\*\*TL;?DR|\*\*Key (Insights|Takeaways)/i.test(body) || /^\*\*.+\*\*$/m.test(body);
 }
 
+function normalizeMarkdownHeaders(markdown: string): string {
+  if (/^## /m.test(markdown)) return markdown;
+
+  const lines = markdown.split("\n");
+  const result: string[] = [];
+  let foundStatsLine = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!foundStatsLine) {
+      if (/^\*\*\d+\*\*\s*Podcasts/i.test(trimmed)) {
+        foundStatsLine = true;
+      }
+      result.push(line);
+      continue;
+    }
+
+    if (trimmed === "---") {
+      result.push(line);
+      continue;
+    }
+
+    const nextLines = lines.slice(i + 1, i + 4).filter(l => l.trim());
+    const nextNonEmpty = nextLines[0] || "";
+    const looksLikePodcastTitle = trimmed &&
+      !trimmed.startsWith("*") && !trimmed.startsWith(">") &&
+      !trimmed.startsWith("-") && !trimmed.startsWith("#") &&
+      !trimmed.startsWith("🎧") && !trimmed.startsWith("TLDL") &&
+      !trimmed.startsWith("What ") && !trimmed.startsWith("Key ") &&
+      !trimmed.startsWith("Quote") &&
+      trimmed.length < 80 && trimmed.length > 2;
+    const bodyBelow = nextLines.join("\n");
+    const hasEpisodeContent = /\*\*TLDL|\*\*TL;?DR|\*\*Key (Insights|Takeaways)/i.test(bodyBelow) || /^\*\*.+\*\*/.test(nextNonEmpty.trim());
+
+    if (looksLikePodcastTitle && hasEpisodeContent) {
+      result.push(`## ${trimmed.toUpperCase()}`);
+    } else {
+      result.push(line);
+    }
+  }
+
+  return result.join("\n");
+}
+
 function parseDigestMarkdown(markdown: string): ParsedDigest {
+  markdown = normalizeMarkdownHeaders(markdown);
   const result: ParsedDigest = {
     statsHeader: "",
     podcastNames: "",

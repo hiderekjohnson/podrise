@@ -97,6 +97,8 @@ ${p.episodeData}
 
 You MUST follow this EXACT structure and tone. Write in markdown.
 
+CRITICAL FORMATTING RULE: Each podcast section MUST start with a markdown level-2 heading using "## " (two hash marks followed by a space). For example: "## MY FIRST MILLION". Do NOT omit the "## " prefix. Without it, the email will break.
+
 ---
 
 **Stats header — include this EXACTLY at the very top of the digest:**
