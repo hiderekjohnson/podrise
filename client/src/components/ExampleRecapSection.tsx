@@ -18,7 +18,7 @@ interface ExampleRecap {
   updatedAt: string;
 }
 
-export function ExampleRecapSection({ slug, podcastName }: { slug: string; podcastName: string }) {
+export function ExampleRecapSection({ slug, podcastName, hideHeading }: { slug: string; podcastName: string; hideHeading?: boolean }) {
   const { data: recap } = useQuery<ExampleRecap>({
     queryKey: ["/api/podcasts", slug, "example-recap"],
     queryFn: async () => {
@@ -41,15 +41,19 @@ export function ExampleRecapSection({ slug, podcastName }: { slug: string; podca
       id="recap-sample"
       data-testid="section-example-recap"
     >
-      <h2
-        className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-2"
-        data-testid="heading-example-recap"
-      >
-        Example {podcastName} Recap
-      </h2>
-      <p className="text-sm text-muted-foreground text-center mb-6 max-w-lg mx-auto">
-        Here's what you'll receive in your inbox — a real PodCap summary.
-      </p>
+      {!hideHeading && (
+        <>
+          <h2
+            className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-2"
+            data-testid="heading-example-recap"
+          >
+            Example {podcastName} Recap
+          </h2>
+          <p className="text-sm text-muted-foreground text-center mb-6 max-w-lg mx-auto">
+            Here's what you'll receive in your inbox — a real PodCap summary.
+          </p>
+        </>
+      )}
 
       <div className="bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-7 space-y-5" data-testid="card-example-recap">
         <div className="space-y-1.5">
