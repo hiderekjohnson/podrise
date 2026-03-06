@@ -7,10 +7,10 @@ export interface EpisodeRecap {
   podcastName: string;
   hosts: string;
   tldl: string;
-  sections: {
-    heading: string;
-    content: string;
-  }[];
+  whatHappened: string;
+  keyInsights: string[];
+  quote?: string;
+  quoteAttribution?: string;
 }
 
 function slugify(title: string): string {
@@ -31,141 +31,96 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
     podcastSlug: "myfirstmillion",
     episodeSlug: "built-50m-ai-app-in-high-school",
     episodeTitle: "I built a $50M AI app in high school (and just sold it for...)",
-    publishDate: "2026-03-03",
+    publishDate: "2026-03-05",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
-    tldl: "A high schooler built an AI-powered study tool that exploded to millions of users, caught the attention of a major edtech company, and sold for a rumored $50M+ — all before his 19th birthday. Sam and Shaan break down exactly how he did it and what founders can learn.",
-    sections: [
-      {
-        heading: "What Happened",
-        content: "Sam and Shaan sit down to dissect the story of a teenage founder who built an AI study assistant during COVID lockdowns. The app started as a simple tool to summarize textbook chapters using GPT-3 but quickly went viral on TikTok when students discovered it could generate practice questions and explain complex topics in plain English. Within 18 months, the app had over 8 million active users and was generating $2M+ in monthly revenue from a freemium subscription model. A major edtech acquirer came knocking, and the founder — still technically in high school — negotiated a deal reportedly worth north of $50 million."
-      },
-      {
-        heading: "Key Insights",
-        content: "The biggest takeaway: distribution matters more than the product. The founder didn't build the best AI — he built the most shareable one. His TikTok strategy of posting \"watch me ace this test using my app\" videos drove millions of organic downloads. Sam points out that the founder's age was actually an advantage: he understood exactly what students wanted because he was one. Shaan highlights the importance of speed — the founder launched a working MVP in two weeks, iterated based on user feedback daily, and never raised venture capital. The entire company was bootstrapped and profitable from month three."
-      },
-      {
-        heading: "Opportunities Mentioned",
-        content: "Sam and Shaan brainstorm similar opportunities: AI-powered tools for trade school students (plumbing, electrical, HVAC), an AI tutor for professional certifications (CPA, real estate, nursing), and a \"Duolingo for math\" that uses AI to adapt difficulty in real-time. They also discuss the broader trend of teenage founders building real companies and why the barrier to entry has never been lower thanks to AI coding tools and no-code platforms."
-      },
-      {
-        heading: "Quotable Moment",
-        content: "\"This kid didn't wait for permission. He didn't apply to Y Combinator. He didn't spend six months on a pitch deck. He just built the thing, put it on TikTok, and let the users decide. That's the new playbook.\" — Shaan Puri"
-      }
-    ]
+    tldl: "Zach, a 19-year-old entrepreneur, shares his journey of building and selling his app, Cal AI, which achieved $30 million in revenue before its sale. His story highlights the power of audacity and self-belief in overcoming obstacles, including college rejections.",
+    whatHappened: "The episode kicks off with Zach reflecting on his incredible journey from high school to selling his company at just 19. He reveals that he recently sold his app, Cal AI, which helps users log their meals through AI, for an undisclosed amount after hitting $30 million in revenue. The hosts marvel at his accomplishments, noting how calm and mature he sounds compared to the last time he appeared on the podcast, where he was still in high school during a lunch break.\n\nZach shares his experience with college admissions, revealing how he was rejected from multiple prestigious schools despite having a stellar GPA and a successful business. He tweets about the rejections, which goes viral and leads to support from notable figures, including the mayor of Miami. This unexpected publicity helps him find his footing and ultimately leads him to the University of Miami, where he is now a freshman, balancing school with his entrepreneurial ambitions.\n\nAs the conversation progresses, Zach discusses the importance of self-belief and how he always envisioned achieving his goals. He reflects on the audacity of claiming he would build a $50 million app while still in his teens and how that mindset fueled his success. The hosts emphasize that his blend of programming skills and marketing savvy has been crucial in his journey, allowing him to lead a team effectively and innovate in a competitive space.",
+    keyInsights: [
+      "Zach's app, Cal AI, generated $30 million in revenue before its sale, showcasing the potential of innovative tech solutions in the fitness industry.",
+      "Despite being a high achiever, Zach faced college rejections, highlighting the often unpredictable nature of admissions processes.",
+      "The viral response to his college rejection tweet led to unexpected networking opportunities, including support from influential people in his community.",
+      "Zach emphasizes that success is not solely about being a coding prodigy; rather, it's about combining skills and audacity to manifest one's goals."
+    ],
+    quote: "I always believed in my heart I was going to do it. I just wanted it so badly that I needed it to be true.",
+    quoteAttribution: "Zach"
   },
   {
     podcastSlug: "myfirstmillion",
     episodeSlug: "asked-450m-vc-where-to-invest-2026",
     episodeTitle: "I Asked a $450M VC Where to Invest in 2026",
-    publishDate: "2026-03-01",
+    publishDate: "2026-03-03",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
-    tldl: "Sam sits down with a VC managing $450M to get the inside scoop on where smart money is flowing in 2026. They cover AI infrastructure, vertical SaaS, healthcare tech, and the surprising sectors VCs are quietly pouring capital into.",
-    sections: [
-      {
-        heading: "What Happened",
-        content: "Sam interviews a venture capitalist who manages a $450M fund focused on early-stage B2B companies. The conversation covers the VC's investment thesis for 2026, which sectors are overhyped versus underhyped, and specific companies in his portfolio that are growing rapidly. The VC shares candid thoughts on why most AI startups will fail, which niches still have massive whitespace, and how founders should think about fundraising in the current market. He also reveals the one question he asks every founder in a pitch meeting that instantly tells him whether the company will succeed."
-      },
-      {
-        heading: "Key Insights",
-        content: "The VC's top three sectors for 2026: (1) AI infrastructure picks-and-shovels plays — not the models themselves, but the tooling, monitoring, and deployment layers around them. (2) Vertical SaaS for industries that still run on paper — construction, logistics, and agriculture. (3) Healthcare AI that reduces administrative burden rather than trying to replace doctors. His biggest warning: consumer AI apps are a terrible venture bet because retention is awful and switching costs are zero. He also shares that the best founders he's backed all had deep domain expertise — they weren't technical people looking for a problem, they were industry insiders who understood the pain firsthand."
-      },
-      {
-        heading: "Opportunities Mentioned",
-        content: "Specific opportunities discussed include: AI-powered compliance tools for financial services, software for managing fleets of autonomous vehicles, AI agents that handle insurance claims end-to-end, and platforms that help small manufacturers adopt robotics without hiring engineers. The VC also mentions that \"boring\" businesses like waste management and HVAC servicing are being transformed by software and represent huge opportunities for founders willing to get their hands dirty."
-      },
-      {
-        heading: "Quotable Moment",
-        content: "\"Everyone wants to build the next ChatGPT. But the real money is in building the boring stuff that makes ChatGPT actually useful for a specific industry. That's where the $100M companies are hiding.\" — Guest VC"
-      }
-    ]
+    tldl: "Investing can yield asymmetric returns, where the potential upside far outweighs the downside. Building relationships and opportunities in life mirrors investment strategies, emphasizing the importance of expanding one's network.",
+    whatHappened: "The conversation opens with a discussion about risk and reward in investing, highlighting how a $3 million investment can lead to a potential $300 million return. The guest, referred to as 'The Most Interesting Man in Tech,' walks through his framework for evaluating asymmetric bets — situations where the downside is capped but the upside is essentially unlimited.\n\nThe discussion broadens into how this same framework applies to life decisions. The guest argues that most people underinvest in social opportunities — hosting events, attending conferences, making introductions — because they don't see the compounding effect of relationship-building. He shares how building personal 'yachts' (memorable gathering experiences) can significantly enhance both personal and professional growth.\n\nThe hosts dig into the practical mechanics of increasing one's surface area for luck. Only a small fraction of investments — or relationships — will drive the majority of returns. The key insight is that volume matters: you need to increase the number of interactions and opportunities to find the few that will be transformative.",
+    keyInsights: [
+      "Investing allows for asymmetric risk where potential gains vastly exceed potential losses, as illustrated by the $3 million to $300 million example.",
+      "Only a small fraction of investments will drive the majority of returns, suggesting that both in investing and life, focus should be on the few impactful connections or opportunities.",
+      "Increasing social interactions and opportunities can lead to unexpected and rewarding outcomes, reinforcing the idea of expanding one's network.",
+      "Building personal 'yachts' through hosting events or gatherings can significantly enhance relationship-building and create a compounding effect on personal and professional growth."
+    ],
+    quote: "There's a possibility of it being $300 million. But the downside is capped at $3 million.",
+    quoteAttribution: "The Most Interesting Man in Tech"
   },
   {
     podcastSlug: "myfirstmillion",
     episodeSlug: "think-and-grow-rich-is-a-lie",
     episodeTitle: "'Think and Grow Rich' Is a Lie. (But The Advice Still Works)",
-    publishDate: "2026-02-27",
+    publishDate: "2026-02-26",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
-    tldl: "Sam and Shaan dissect Napoleon Hill's 'Think and Grow Rich' — separating the timeless business wisdom from the outright fabrications. They reveal which advice actually works for modern entrepreneurs and which parts are complete fiction.",
-    sections: [
-      {
-        heading: "What Happened",
-        content: "Sam and Shaan do a deep dive into one of the most influential business books ever written — Napoleon Hill's 'Think and Grow Rich.' They start by revealing the uncomfortable truth: many of the stories in the book are fabricated or heavily embellished. Hill likely never had extended conversations with Andrew Carnegie, and several of the success stories he cites have been debunked by historians. Despite this, Sam and Shaan argue that the core principles — having a definite purpose, the power of mastermind groups, persistent action, and auto-suggestion — are genuinely useful frameworks that have helped millions of entrepreneurs build real businesses."
-      },
-      {
-        heading: "Key Insights",
-        content: "The episode's central argument is that a book can be factually dishonest and still practically useful. Shaan compares it to fables — nobody cares that the tortoise and the hare never actually raced, because the lesson about persistence is real. Sam highlights three principles from the book that he's personally used to build The Hustle: (1) the \"definite chief aim\" — writing down exactly what you want and reading it every morning, (2) the \"mastermind\" principle — surrounding yourself with people smarter than you in specific domains, and (3) the \"burning desire\" test — if you wouldn't do it for free, you probably won't succeed at it. They also discuss why the self-help industry thrives on mythology and whether that's ultimately harmful or helpful."
-      },
-      {
-        heading: "Opportunities Mentioned",
-        content: "The conversation sparks ideas around modernizing classic business advice: a \"Think and Grow Rich\" for the AI era, a curated mastermind group platform (paid, high-quality, verified members), and a daily \"definite aim\" journaling app that uses AI to track progress toward goals. They also discuss the massive opportunity in debunking popular business myths through content — a YouTube channel or podcast dedicated to separating fact from fiction in business books."
-      },
-      {
-        heading: "Quotable Moment",
-        content: "\"The book is basically historical fan fiction. Napoleon Hill made up half the stories. But here's the thing — the advice still works. I used the 'definite chief aim' technique before I even knew it was from this book. Sometimes the messenger is trash but the message is gold.\" — Sam Parr"
-      }
-    ]
+    tldl: "Despite the dubious backstory of Napoleon Hill, the principles in 'Think and Grow Rich' continue to resonate and provide valuable advice for achieving success.",
+    whatHappened: "The conversation kicks off with a surprising revelation about 'Think and Grow Rich,' a book celebrated for its motivational content but whose author's credibility is deeply flawed. One host shares that the entire backstory is essentially fabricated — Napoleon Hill was a con man whose life was marked by failures, legal troubles, and outright deception. Hill likely never had the extended conversations with Andrew Carnegie that he claimed formed the foundation of the book.\n\nDespite this damning biography, the hosts argue that the advice itself holds up remarkably well. They walk through the key principles — the 'definite chief aim' of writing down exactly what you want, the 'mastermind' concept of surrounding yourself with brilliant collaborators, and the power of auto-suggestion and daily repetition. Both hosts share personal anecdotes of using these frameworks successfully in their own entrepreneurial journeys.\n\nThe conversation evolves into a broader discussion about whether it matters if self-help wisdom comes from flawed sources. The hosts compare it to fables — nobody cares that the tortoise and the hare never actually raced, because the underlying lesson about persistence is universally true. They conclude that the book's enduring popularity is proof that the ideas work, regardless of the messenger's integrity.",
+    keyInsights: [
+      "Napoleon Hill's life was marked by failures and legal issues, casting doubt on the credibility of his claims in 'Think and Grow Rich.'",
+      "The concept of 'mastermind' was popularized by Hill, emphasizing collaboration among successful individuals.",
+      "Writing down goals and repeating them daily can significantly increase the likelihood of achieving those goals.",
+      "Despite the author's questionable integrity, the advice in 'Think and Grow Rich' remains relevant and effective for personal development."
+    ],
+    quote: "Everything I just told you is a lie. Except for Think and Grow Rich, amazing book. One of the best-selling books of all time.",
+    quoteAttribution: "Sam Parr"
   },
   {
     podcastSlug: "myfirstmillion",
     episodeSlug: "dumb-iphone-apps-making-people-rich",
     episodeTitle: "Dumb iPhone Apps Are Making People Rich Again (Here's how)",
-    publishDate: "2026-02-25",
+    publishDate: "2026-02-24",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
-    tldl: "Sam and Shaan break down the resurgence of simple, \"dumb\" iPhone apps that are generating millions in revenue. From fart sound buttons to minimalist habit trackers, they explore why simplicity is winning and how indie developers are cashing in.",
-    sections: [
-      {
-        heading: "What Happened",
-        content: "Sam and Shaan explore a counterintuitive trend: while Big Tech companies pour billions into complex AI products, solo developers are quietly making fortunes with dead-simple iPhone apps. They spotlight several examples — a $4.99 white noise app doing $300K/month, a one-screen habit tracker earning $150K/month, and a novelty soundboard app that went viral and generated $2M in its first year. The key insight is that the App Store's discovery algorithm favors apps with high engagement and low churn, and simple apps often outperform complex ones on both metrics because users actually open them every day."
-      },
-      {
-        heading: "Key Insights",
-        content: "Three patterns emerge from the most successful simple apps: (1) They solve one micro-problem extremely well — no feature bloat, no onboarding flow, just instant value. (2) They use subscription pricing ($2.99-$6.99/month) which adds up fast at scale. (3) They're built by one or two people with near-zero overhead, so even modest download numbers translate to life-changing income. Shaan reveals his framework for evaluating app ideas: if you can explain the entire app in one sentence and a five-year-old would understand the value, it's probably a winner. Sam adds that AI tools like Cursor and Replit have made it possible to build and ship a polished iOS app in a single weekend, further lowering the barrier."
-      },
-      {
-        heading: "Opportunities Mentioned",
-        content: "Specific app ideas discussed: a \"focus mode\" app that blocks everything except what you're working on (simpler than existing solutions), a daily photo journal that takes exactly one photo per day with no filters or sharing, a \"did I lock the door?\" app that logs when you leave the house, and a minimalist meal planner that only shows three options per meal. They also discuss the opportunity to acquire existing simple apps that are profitable but abandoned by their developers."
-      },
-      {
-        heading: "Quotable Moment",
-        content: "\"We're living in the golden age of dumb apps. A guy made a fart soundboard and retired at 28. Meanwhile, some VC-backed startup with 50 engineers just shut down. The lesson? Users don't want more features. They want less.\" — Shaan Puri"
-      }
-    ]
+    tldl: "The episode reveals how founders are successfully launching simple yet effective iPhone apps that tap into everyday habits, often validated by viral marketing. A key takeaway is the importance of leveraging social media to gauge demand before building the product.",
+    whatHappened: "The conversation kicks off with Pat from Starter Story sharing his recent milestone of being acquired by HubSpot, just days before the episode's recording. Despite the impending deal closure, he feels comfortable discussing the journey openly. Pat reveals the negotiation process and how he arrived at his target number — a figure he felt was authentic to his valuation of the business he'd built.\n\nThe discussion shifts to a fascinating trend Pat has been tracking: six out of twelve founders he speaks to weekly are finding massive success with simple iOS apps. These aren't complex AI products or enterprise tools — they're dead-simple apps that solve one micro-problem. One app literally forces you to do push-ups. Another went viral on social media before it was even built, proving demand before a single line of code was written.\n\nPat's secret weapon at Starter Story was requiring interviewees to disclose their actual revenue numbers. This transparency set the platform apart and provided genuinely useful data to aspiring entrepreneurs. The hosts dig into the broader lesson: founders are now flipping the traditional product development playbook. Instead of 'build it and they will come,' the new approach is 'see if they come, then build it.'",
+    keyInsights: [
+      "Six out of twelve founders Pat speaks to weekly are finding success with iOS apps, indicating a strong market opportunity.",
+      "Pat's negotiation for the sale of Starter Story was influenced by a self-defined target number, which he felt was authentic to his valuation of the business.",
+      "Requiring interviewees to disclose their revenue helped Starter Story stand out by providing valuable insights to aspiring entrepreneurs.",
+      "Founders are now leveraging social media for validation before creating products, exemplified by an app that went viral before it was even developed."
+    ],
+    quote: "If we build it, they will come. It's like, if they come, then we'll build it, I guess.",
+    quoteAttribution: "Pat"
   },
   {
     podcastSlug: "myfirstmillion",
     episodeSlug: "selling-acs-to-tourism-king-of-jamaica",
     episodeTitle: "From selling ACs to becoming the tourism king of Jamaica",
-    publishDate: "2026-02-21",
+    publishDate: "2026-02-20",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
-    tldl: "An entrepreneur who started by selling air conditioners in Jamaica pivoted into tourism and built a hospitality empire. Sam and Shaan break down his unconventional path, the power of local market dominance, and why tourism businesses are underrated.",
-    sections: [
-      {
-        heading: "What Happened",
-        content: "Sam and Shaan interview an entrepreneur who built a tourism empire in Jamaica starting from humble beginnings selling and installing air conditioning units. The guest explains how his AC business gave him access to every hotel and resort on the island, which led him to spot a massive gap in the market: tourists wanted authentic local experiences but had no reliable way to find them. He started by organizing small group tours, then expanded into boutique accommodations, airport transfers, and eventually a full-service tourism platform that now handles over 100,000 visitors per year. His company went from zero to $20M+ in annual revenue in under a decade."
-      },
-      {
-        heading: "Key Insights",
-        content: "The biggest lesson: your first business doesn't have to be your forever business — but it should give you unfair advantages for your next one. The AC business wasn't glamorous, but it gave the founder three things that made his tourism play unstoppable: (1) relationships with every hotel operator on the island, (2) deep knowledge of local infrastructure and logistics, and (3) cash flow to self-fund the transition. Sam highlights the \"local monopoly\" strategy — instead of trying to compete globally, dominate one geographic market so thoroughly that you become the default. Shaan notes that tourism is a $9 trillion global industry that's surprisingly underserved by technology, especially in developing markets."
-      },
-      {
-        heading: "Opportunities Mentioned",
-        content: "The episode sparks discussion about tourism opportunities in other developing markets — Southeast Asia, Central America, Eastern Europe, and Africa all have growing tourist sectors with minimal tech infrastructure. Specific ideas include: a \"Viator but local\" platform for emerging destinations, luxury van/bus touring companies for retirees, and acquiring small hotels in tourist areas and modernizing their booking and operations with software. They also discuss the trend of \"bleisure\" travel (business + leisure) and how entrepreneurs can capitalize on remote workers who want to travel while working."
-      },
-      {
-        heading: "Quotable Moment",
-        content: "\"Everyone's trying to build the next billion-dollar app. Meanwhile, this guy became a multi-millionaire by helping tourists find the best jerk chicken in Montego Bay. Sometimes the best businesses are the ones that VCs would never fund.\" — Sam Parr"
-      }
-    ]
+    tldl: "Gordon Stewart, a Jamaican entrepreneur, transformed the tourism landscape in Jamaica by reimagining resorts and focusing on service and speed, ultimately creating the Sandals brand. His story highlights the importance of identifying unique market opportunities and continuously adapting to consumer needs.",
+    whatHappened: "Gordon Stewart, affectionately known as Butch, started his entrepreneurial journey in Jamaica by selling air conditioning units door-to-door. He recognized an untapped market in the Caribbean for AC units and differentiated himself from competitors like General Electric by offering rapid installation and exceptional service. His hustle paid off, allowing him to establish Appliance Traders Limited and dominate the AC market in Jamaica, which set the stage for his next venture into the hospitality industry.\n\nIn 1981, Butch took a bold step by purchasing a rundown hotel called Bayrock, despite skepticism surrounding tourism in Jamaica at the time. His vision was to create a luxurious, all-inclusive experience for couples seeking a carefree vacation. He rebranded the hotel as Sandals and implemented a business model that emphasized a single price for everything included, ensuring guests wouldn't feel nickel-and-dimed. Butch studied successful resorts to integrate their best ideas while crafting a unique identity around romance and exclusivity, positioning Sandals as a couples-only resort.\n\nButch's hands-on approach and commitment to quality led him to buy more distressed hotels across the Caribbean, where he meticulously improved operations based on guest feedback. His philosophy of continuous tweaking and adaptation helped Sandals become a leader in the hospitality market, employing thousands of locals and revitalizing the Jamaican economy. Stewart's story exemplifies the power of innovation and a customer-centric approach in building a successful business.",
+    keyInsights: [
+      "Butch Stewart identified a gap in the AC market in Jamaica, leveraging speed and service as his key differentiators against larger competitors.",
+      "The creation of Sandals was rooted in a clear vision of offering couples an all-inclusive luxury experience, which was a radical departure from typical resort offerings at the time.",
+      "Stewart's approach to hotel management included studying competitors and incorporating the best ideas, while also being hands-on to ensure quality at every level.",
+      "His philosophy of continuous improvement and dedication to customer satisfaction played a crucial role in establishing brand loyalty and repeat business."
+    ],
+    quote: "The most valuable real estate and the hardest real estate to build is the one in the consumer's mind.",
+    quoteAttribution: "Butch Stewart"
   }
 ];
 

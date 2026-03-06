@@ -1,0 +1,115 @@
+PodCap Podcast Page Structure (SEO + UX Requirements)
+
+We need to organize podcast pages so they work well for users and for SEO. Each podcast should have three types of pages: a hub page, an episode archive page, and individual episode pages.
+
+The goal is to keep pages clean while ensuring Google can crawl every episode summary.
+
+⸻
+
+1. Podcast Hub Page
+
+Example URL:
+
+/podcasts/myfirstmillion
+
+This page is the main landing page for the podcast.
+
+It should NOT list every episode. Some podcasts will eventually have hundreds of episodes and listing all of them would make the page slow and cluttered.
+
+Instead the page should display:
+
+• The latest 5 to 10 episodes
+• Each episode should include:
+	•	Episode title
+	•	A short snippet of the summary (1–2 sentences)
+	•	A link that says “Read Summary”
+
+Example layout:
+
+Episode Title
+Short summary snippet
+Read Summary →
+
+At the bottom of this section include a button:
+
+View All Episodes
+
+This button should link to:
+
+/podcasts/myfirstmillion/episodes
+
+Why this structure matters:
+
+Search engines treat this page as the main authority page for the podcast. It should be optimized to rank for searches like:
+
+• “My First Million podcast summary”
+• “My First Million podcast recap”
+• “My First Million podcast takeaways”
+
+This page acts as the central hub that links to individual episode summaries.
+
+⸻
+
+2. Episode Archive Page (Full Episode List)
+
+Example URL:
+
+/podcasts/myfirstmillion/episodes
+
+This page should list every episode summary for the podcast.
+
+Episodes should be ordered:
+
+Newest → Oldest
+
+Each entry should show:
+
+Episode Title
+Read Summary →
+
+Example:
+
+Build Your Own Yacht + Why AI Will Eat SaaS
+Read Summary →
+
+Weird Startup Ideas That Might Work
+Read Summary →
+
+How to Build a Billion Dollar Newsletter
+Read Summary →
+
+Each “Read Summary” link should go to the individual episode page.
+
+⸻
+
+Pagination
+
+If a podcast has many episodes, this page must support pagination.
+
+Example structure:
+
+/podcasts/myfirstmillion/episodes
+
+/podcasts/myfirstmillion/episodes?page=2
+
+/podcasts/myfirstmillion/episodes?page=3
+
+Each page should contain around 20–30 episodes.
+
+Why this page exists:
+
+This archive creates a crawl path to every episode summary page.
+
+Without this archive, search engines might only discover the most recent episodes and miss older content.
+
+⸻
+
+3. Episode Summary Pages
+
+Example URL:
+
+/podcasts/myfirstmillion/build-your-own-yacht-ai-will-eat-saas
+
+Each episode should have its own dedicated page.
+
+This is the page that contains the full podcast recap.

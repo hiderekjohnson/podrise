@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones } from "lucide-react";
 import { getEpisodeBySlug, getAdjacentEpisodes } from "../data/episodeRecaps";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "../data/podcastLandingData";
 import { useRegister } from "@/hooks/use-auth";
@@ -114,7 +114,7 @@ export default function EpisodeRecapPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <h1 className="text-2xl font-display font-bold text-foreground mb-3">Episode not found</h1>
+          <h1 className="text-2xl font-display font-bold text-foreground mb-3" data-testid="text-not-found">Episode not found</h1>
           <p className="text-muted-foreground mb-6">This episode recap doesn't exist yet.</p>
           <Link href={podcastConfig ? `/podcasts/${podcastSlug}` : "/podcasts"}>
             <span className="text-primary font-semibold hover:underline" data-testid="link-back">
@@ -133,6 +133,8 @@ export default function EpisodeRecapPage() {
     day: "numeric",
   });
 
+  const whatHappenedParagraphs = episode.whatHappened.split("\n\n").filter(Boolean);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
@@ -149,78 +151,146 @@ export default function EpisodeRecapPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
-        <nav className="flex items-center justify-between mb-8" data-testid="nav-episode-arrows">
+        <nav className="flex items-center justify-between mb-10" data-testid="nav-episode-arrows">
           {prev ? (
             <Link href={`/podcasts/${podcastSlug}/${prev.episodeSlug}`}>
-              <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors" data-testid="link-prev-episode">
-                <ChevronLeft className="w-4 h-4" />
-                Previous Episode
+              <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group" data-testid="link-prev-episode">
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                Previous
               </span>
             </Link>
           ) : <span />}
           {next ? (
             <Link href={`/podcasts/${podcastSlug}/${next.episodeSlug}`}>
-              <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors" data-testid="link-next-episode">
-                Newer Episode
-                <ChevronRight className="w-4 h-4" />
+              <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group" data-testid="link-next-episode">
+                Newer
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </span>
             </Link>
           ) : <span />}
         </nav>
 
         <motion.article
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <div className="flex items-start gap-5 mb-8">
+          <div className="flex items-start gap-5 sm:gap-6 mb-10">
             <img
               src={episode.artworkUrl}
               alt={episode.podcastName}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shadow-md shadow-black/[0.06] shrink-0"
+              className="w-[88px] h-[88px] sm:w-28 sm:h-28 rounded-2xl object-cover shadow-lg shadow-black/[0.08] shrink-0 ring-1 ring-black/[0.04]"
               data-testid="img-episode-artwork"
             />
-            <div className="min-w-0">
+            <div className="min-w-0 pt-1">
               <Link href={`/podcasts/${podcastSlug}`}>
-                <span className="text-sm font-semibold text-primary hover:underline" data-testid="link-podcast-name">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider hover:underline" data-testid="link-podcast-name">
+                  <Headphones className="w-3.5 h-3.5" />
                   {episode.podcastName}
                 </span>
               </Link>
-              <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground leading-snug mt-1.5" data-testid="text-episode-title">
+              <h1 className="text-[22px] sm:text-[28px] font-display font-extrabold text-foreground leading-[1.25] mt-2" data-testid="text-episode-title">
                 {episode.episodeTitle}
               </h1>
-              <p className="text-sm text-muted-foreground mt-2" data-testid="text-episode-date">
-                {formattedDate} · Hosted by {episode.hosts}
-              </p>
+              <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5" data-testid="text-episode-date">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {formattedDate}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-black/[0.15]" />
+                <span>{episode.hosts}</span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-primary/[0.04] border border-primary/[0.08] rounded-xl px-5 py-4 mb-10" data-testid="section-tldl">
-            <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">TLDL — Too Long, Didn't Listen</p>
-            <p className="text-[17px] leading-[1.8] text-foreground">{episode.tldl}</p>
+          <div className="relative bg-gradient-to-br from-primary/[0.05] to-primary/[0.02] border border-primary/[0.1] rounded-2xl px-6 py-5 sm:px-7 sm:py-6 mb-12" data-testid="section-tldl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/[0.1]">
+                <Clock className="w-3.5 h-3.5 text-primary" />
+              </span>
+              <span className="text-xs font-bold text-primary uppercase tracking-wider">TLDL — Too Long, Didn't Listen</span>
+            </div>
+            <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
           </div>
 
-          {episode.sections.map((section, i) => (
-            <section key={i} className="mb-10" data-testid={`section-recap-${i}`}>
-              <h2 className="text-lg sm:text-xl font-display font-bold text-foreground mb-3">{section.heading}</h2>
-              <p className="text-[17px] leading-[1.8] text-muted-foreground">{section.content}</p>
+          {whatHappenedParagraphs.length > 0 && (
+            <section className="mb-12" data-testid="section-what-happened">
+              <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
+                <span className="w-1 h-6 rounded-full bg-primary" />
+                What Happened
+              </h2>
+              <div className="space-y-5">
+                {whatHappenedParagraphs.map((paragraph, i) => (
+                  <p key={i} className="text-[17px] leading-[1.85] text-muted-foreground">
+                    {i === 0 && <span className="text-foreground font-semibold">{paragraph.split(" ").slice(0, 3).join(" ")} </span>}
+                    {i === 0 ? paragraph.split(" ").slice(3).join(" ") : paragraph}
+                  </p>
+                ))}
+              </div>
             </section>
-          ))}
+          )}
+
+          {episode.keyInsights.length > 0 && (
+            <section className="mb-12" data-testid="section-key-insights">
+              <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
+                <span className="w-1 h-6 rounded-full bg-amber-400" />
+                Key Insights
+              </h2>
+              <div className="grid gap-3">
+                {episode.keyInsights.map((insight, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 items-start bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-xl px-5 py-4 shadow-sm shadow-black/[0.02]"
+                    data-testid={`insight-${i}`}
+                  >
+                    <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                      <Lightbulb className="w-4 h-4" />
+                    </span>
+                    <p className="text-[16px] leading-[1.7] text-muted-foreground">{insight}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {episode.quote && (
+            <section className="mb-12" data-testid="section-quote">
+              <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl px-6 py-6 sm:px-8 sm:py-7 overflow-hidden">
+                <div className="absolute top-4 right-5 opacity-[0.04]">
+                  <Quote className="w-24 h-24 text-foreground" />
+                </div>
+                <div className="relative">
+                  <Quote className="w-5 h-5 text-primary/40 mb-3" />
+                  <blockquote className="text-[18px] sm:text-[20px] leading-[1.7] text-foreground font-medium italic">
+                    "{episode.quote}"
+                  </blockquote>
+                  {episode.quoteAttribution && (
+                    <p className="mt-4 text-sm font-semibold text-muted-foreground">
+                      — {episode.quoteAttribution}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
         </motion.article>
 
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-          className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-8 sm:p-10 mb-16"
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="relative overflow-hidden bg-gradient-to-br from-primary/[0.06] via-primary/[0.03] to-transparent border border-primary/[0.1] rounded-2xl p-7 sm:p-9 mb-16"
           data-testid="section-episode-cta"
         >
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-10 items-center">
+          <div className="absolute -bottom-8 -right-8 opacity-[0.04]">
+            <Headphones className="w-40 h-40 text-primary" />
+          </div>
+          <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-10 items-center">
             <div className="flex flex-col gap-4 text-center md:text-left">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug">
-                Get {episode.podcastName} recaps in your inbox
+                Get {episode.podcastName} recaps<br className="hidden sm:block" /> in your inbox
               </h2>
-              <p className="text-base text-muted-foreground leading-relaxed">
+              <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md">
                 Never miss an episode. PodCap sends you a concise recap of every new {episode.podcastName} episode — free, no app needed.
               </p>
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup-episode">
@@ -230,7 +300,7 @@ export default function EpisodeRecapPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  className="flex-1 h-12 px-4 bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
                 />
                 <button
                   data-testid="button-signup-episode"
@@ -238,6 +308,7 @@ export default function EpisodeRecapPage() {
                   className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
                 >
                   Get Free Recaps
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
             </div>
@@ -245,7 +316,7 @@ export default function EpisodeRecapPage() {
               <img
                 src={episode.artworkUrl}
                 alt={episode.podcastName}
-                className="w-32 h-32 lg:w-36 lg:h-36 rounded-2xl object-cover shadow-xl shadow-black/[0.08]"
+                className="w-32 h-32 lg:w-36 lg:h-36 rounded-2xl object-cover shadow-xl shadow-black/[0.08] ring-1 ring-black/[0.04]"
                 data-testid="img-cta-artwork"
               />
             </div>
@@ -254,9 +325,9 @@ export default function EpisodeRecapPage() {
 
         {relatedPodcasts.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             data-testid="section-related-podcasts"
           >
             <h2 className="text-lg font-display font-bold text-foreground mb-5">
@@ -265,11 +336,11 @@ export default function EpisodeRecapPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {relatedPodcasts.map((rp: any) => (
                 <Link key={rp.slug} href={`/podcasts/${rp.slug}`}>
-                  <div className="bg-white border border-black/[0.06] rounded-xl p-5 flex items-center gap-4 hover:shadow-md hover:shadow-black/[0.04] transition-all cursor-pointer" data-testid={`card-related-${rp.slug}`}>
+                  <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 flex items-center gap-4 hover:shadow-md hover:shadow-black/[0.04] hover:-translate-y-0.5 transition-all cursor-pointer" data-testid={`card-related-${rp.slug}`}>
                     <img
                       src={rp.artworkUrl}
                       alt={rp.name}
-                      className="w-14 h-14 rounded-lg object-cover shadow-sm shadow-black/[0.04] shrink-0"
+                      className="w-14 h-14 rounded-lg object-cover shadow-sm shadow-black/[0.04] shrink-0 ring-1 ring-black/[0.04]"
                     />
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-foreground truncate">{rp.name}</p>
