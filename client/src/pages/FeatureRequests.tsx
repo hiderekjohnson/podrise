@@ -56,6 +56,16 @@ const changelog: ChangelogEntry[] = [
     tag: "Discovery",
   },
   {
+    title: "View and re-send past recaps from your dashboard",
+    description: "Your daily podcast recaps aren't just emails anymore. Log in to your PodCap account to browse all your previous episode summaries — and re-send any recap to your inbox if you need it again.",
+    emoji: "📂",
+  },
+  {
+    title: "No new episodes? No email",
+    description: "We turned off recap emails on days when none of your podcasts dropped a new episode. One less unnecessary email in your inbox — you're welcome.",
+    emoji: "📭",
+  },
+  {
     title: "Vacation mode for your daily podcast recaps",
     description: "Going on a trip? Pause your daily podcast summaries until a specific date. You can update or cancel vacation mode anytime from your dashboard settings.",
     emoji: "🏖️",
