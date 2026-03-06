@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -61,7 +61,7 @@ export default function PodcastLandingGeneric() {
   useEffect(() => {
     if (!config) return;
 
-    const { name, slug: s, keywords, hosts, description } = config;
+    const { name, slug: s, keywords, hosts, description, artworkUrl } = config;
     const url = `https://podcap.io/podcasts/${s}`;
 
     document.title = `${name} Podcast Summary & Recap — Daily Episode Recaps | PodCap`;
@@ -79,7 +79,13 @@ export default function PodcastLandingGeneric() {
     setMeta("property", "og:url", url);
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodCap");
-    setMeta("name", "twitter:card", "summary");
+    if (artworkUrl) {
+      setMeta("property", "og:image", artworkUrl);
+      setMeta("name", "twitter:card", "summary_large_image");
+      setMeta("name", "twitter:image", artworkUrl);
+    } else {
+      setMeta("name", "twitter:card", "summary");
+    }
     setMeta("name", "twitter:title", `${name} Podcast Summary & Recap | PodCap`);
     setMeta("name", "twitter:description", `Free daily AI-powered ${name} podcast summaries and episode recaps delivered to your inbox.`);
 
@@ -131,8 +137,9 @@ export default function PodcastLandingGeneric() {
     return null;
   }
 
-  const { name, hosts, category, faqTopics, description: desc } = config;
+  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, appleUrl, spotifyUrl } = config;
   const faqItems = generateFaqItems(name, hosts, faqTopics, category);
+  const hasExternalLinks = appleUrl || spotifyUrl;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +150,7 @@ export default function PodcastLandingGeneric() {
 
     register(
       {
-        podcasts: [JSON.stringify({ id: slug, name, artworkUrl: config.artworkUrl || "" })],
+        podcasts: [JSON.stringify({ id: itunesId, name, artworkUrl: artworkUrl || "" })],
         email,
       },
       {
@@ -185,78 +192,132 @@ export default function PodcastLandingGeneric() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col items-center gap-6"
+            className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16"
           >
-            {config.artworkUrl && (
-              <img
-                src={config.artworkUrl}
-                alt={name}
-                className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover shadow-xl shadow-black/10"
-                data-testid="img-podcast-artwork"
-              />
-            )}
+            <div className="flex flex-col items-center lg:items-start gap-6 flex-1">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/8 border border-primary/15 rounded-full">
+                <Headphones className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-semibold text-primary tracking-wide uppercase">Free Daily Podcast Summary & Recap</span>
+              </div>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/8 border border-primary/15 rounded-full">
-              <Headphones className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide uppercase">Free Daily Podcast Summary & Recap</span>
+              <h1
+                className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] text-center lg:text-left"
+                data-testid="heading-main"
+              >
+                {name}{" "}
+                <span className="text-primary">podcast summary</span>,{" "}
+                daily
+              </h1>
+
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-center lg:text-left max-w-lg">
+                Get a free AI-powered {name} podcast recap and episode summary
+                delivered to your inbox every morning. All the {desc} from {hosts} — without listening to the full episode.
+              </p>
+
+              <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3" data-testid="form-signup">
+                <div className="flex-1 relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                  <input
+                    data-testid="input-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full h-14 pl-11 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm"
+                  />
+                </div>
+                <button
+                  data-testid="button-signup"
+                  type="submit"
+                  disabled={isPending}
+                  className="h-14 px-7 flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] whitespace-nowrap"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Setting up...
+                    </>
+                  ) : (
+                    <>
+                      Get Free Summaries
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <p className="text-xs text-muted-foreground/60 text-center lg:text-left">
+                Free forever for up to 3 podcasts. No credit card required.
+              </p>
             </div>
 
-            <h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] text-center"
-              data-testid="heading-main"
-            >
-              {name}{" "}
-              <span className="text-primary">podcast summary</span>,{" "}
-              daily
-            </h1>
-
-            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-center max-w-2xl">
-              Get a free AI-powered {name} podcast recap and episode summary
-              delivered to your inbox every morning. All the {desc} from {hosts} — without listening to the full episode.
-            </p>
-
-            <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3" data-testid="form-signup">
-              <div className="flex-1 relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-                <input
-                  data-testid="input-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full h-14 pl-11 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm"
-                />
-              </div>
-              <button
-                data-testid="button-signup"
-                type="submit"
-                disabled={isPending}
-                className="h-14 px-7 flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] whitespace-nowrap"
+            {artworkUrl && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="shrink-0"
               >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Setting up...
-                  </>
-                ) : (
-                  <>
-                    Get Free Summaries
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <p className="text-xs text-muted-foreground/60 text-center">
-              Free forever for up to 3 podcasts. No credit card required.
-            </p>
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-primary/5 rounded-[2rem] blur-2xl" />
+                  <img
+                    src={artworkUrl}
+                    alt={`${name} Podcast Cover Art`}
+                    className="relative w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-3xl shadow-2xl shadow-black/10 object-cover"
+                    data-testid="img-podcast-artwork"
+                  />
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </section>
+
+        {hasExternalLinks && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="w-full max-w-4xl pb-16"
+          >
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {appleUrl && (
+                <a
+                  href={appleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 px-5 py-3 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold text-foreground hover:bg-black/[0.02] hover:border-black/[0.12] transition-all shadow-sm"
+                  data-testid="link-apple-podcasts"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 110 16 8 8 0 010-16zm0 3a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0 6.5c-1.38 0-2.5.672-2.5 1.5v2.5c0 .414.336.75.75.75h3.5a.75.75 0 00.75-.75V15c0-.828-1.12-1.5-2.5-1.5z" fill="currentColor"/>
+                  </svg>
+                  Listen on Apple Podcasts
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                </a>
+              )}
+              {spotifyUrl && (
+                <a
+                  href={spotifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 px-5 py-3 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold text-foreground hover:bg-black/[0.02] hover:border-black/[0.12] transition-all shadow-sm"
+                  data-testid="link-spotify"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                  </svg>
+                  Listen on Spotify
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                </a>
+              )}
+            </div>
+          </motion.section>
+        )}
 
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: hasExternalLinks ? 0.4 : 0.3 }}
           className="w-full max-w-4xl pb-16"
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -298,7 +359,7 @@ export default function PodcastLandingGeneric() {
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: hasExternalLinks ? 0.5 : 0.4 }}
           className="w-full max-w-3xl pb-20"
         >
           <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8" data-testid="heading-faq">
@@ -336,13 +397,13 @@ export default function PodcastLandingGeneric() {
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: hasExternalLinks ? 0.6 : 0.5 }}
           className="w-full max-w-2xl pb-20"
         >
           <div className="glass-panel rounded-3xl p-8 sm:p-10 text-center flex flex-col items-center gap-5">
-            {config.artworkUrl ? (
+            {artworkUrl ? (
               <img
-                src={config.artworkUrl}
+                src={artworkUrl}
                 alt={name}
                 className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/10"
                 data-testid="img-podcast-artwork-bottom"

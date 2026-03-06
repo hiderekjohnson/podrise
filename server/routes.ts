@@ -53,9 +53,12 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
     "/": "Homepage",
     "/login": "Login Page",
     "/leaderboard": "Leaderboard",
-    "/podcasts/myfirstmillion": "MFM Landing Page",
   };
-  const sourceLabel = sourceLabels[rawSource] || rawSource || "Unknown";
+  let sourceLabel = sourceLabels[rawSource] || rawSource || "Unknown";
+  if (rawSource.startsWith("/podcasts/")) {
+    const slug = rawSource.replace("/podcasts/", "");
+    sourceLabel = `Landing Page (${slug})`;
+  }
   const sourceUrl = rawSource ? `${sourceLabel} <span style="color:#aaa;font-size:12px;">(${rawSource})</span>` : sourceLabel;
   const signupTime = new Date().toLocaleString("en-US", {
     timeZone: "Europe/Lisbon",

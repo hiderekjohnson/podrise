@@ -8,6 +8,8 @@ export interface PodcastLandingConfig {
   keywords: string;
   faqTopics: string;
   artworkUrl: string;
+  appleUrl?: string;
+  spotifyUrl?: string;
 }
 
 export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
@@ -538,6 +540,31 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Stuff You Should Know, SYSK, Josh Clark, Chuck Bryant, general knowledge, education, curiosity",
     faqTopics: "science explanations, historical deep dives, pop culture analysis, technology breakdowns, natural world wonders, and entertaining explorations of topics you never knew you wanted to understand",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/aa/82/91/aa82912f-23ee-6f6a-583c-a4e993164d0e/mza_12111158076643383507.jpg/600x600bb.jpg",
+  },
+  {
+    slug: "myfirstmillion",
+    name: "My First Million",
+    itunesId: "1469759170",
+    category: "Business / Startups",
+    hosts: "Sam Parr & Shaan Puri",
+    description: "business ideas, side hustles, and startup strategies",
+    keywords: "My First Million, Sam Parr, Shaan Puri, business ideas, startups, side hustles, entrepreneurship",
+    faqTopics: "startup ideas, side hustle opportunities, business trends, SaaS, e-commerce, creator economy, wealth building, entrepreneurship frameworks, and interviews with successful founders and investors",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
+    appleUrl: "https://podcasts.apple.com/us/podcast/my-first-million/id1469759170",
+    spotifyUrl: "https://open.spotify.com/show/3mliji9352UAk3XnWElnDV",
+  },
+  {
+    slug: "empowerher",
+    name: "empowerHER",
+    itunesId: "1444456380",
+    category: "Personal Development / Empowerment",
+    hosts: "Kacia Ghetmiri",
+    description: "personal growth insights, empowerment strategies, and inspiration",
+    keywords: "empowerHER, Kacia Ghetmiri, personal growth, empowerment, faith, confidence, entrepreneurship",
+    faqTopics: "personal development, women's empowerment, faith, confidence, entrepreneurship, relationships, health, and mindset",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/7f/d5/91/7fd591fe-a825-c9e3-bb6e-03f6e80588a9/mza_13023608203325049565.jpg/600x600bb.jpg",
+    appleUrl: "https://podcasts.apple.com/us/podcast/empowerher/id1444456380",
   },
 ];
 
