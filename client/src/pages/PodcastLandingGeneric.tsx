@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { Loader2, ArrowRight, Headphones, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -198,30 +198,19 @@ export default function PodcastLandingGeneric() {
             className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center"
           >
             <div className="flex flex-col gap-6 order-2 md:order-1">
-              <div className="inline-flex items-center gap-2 w-fit px-4 py-1.5 rounded-full border border-primary/20 bg-primary/[0.04]">
-                <Headphones className="w-4 h-4 text-primary" />
-                <span className="text-xs font-bold text-primary uppercase tracking-wider">Free Daily Podcast Summary & Recap</span>
-              </div>
-
               <h1
                 className="text-[2rem] sm:text-[2.5rem] lg:text-[3rem] font-display font-extrabold text-foreground leading-[1.08] tracking-[-0.025em]"
                 data-testid="heading-main"
               >
-                {name}{" "}
-                <span className="text-primary">podcast summary</span>, daily
+                {name} Podcast Summaries
               </h1>
 
-              <div className="space-y-1">
-                <p className="text-lg font-display font-bold text-foreground">
-                  Your favorite podcasts recapped daily
-                </p>
-                <p className="text-base text-muted-foreground italic">
-                  We listen so you don't have to.
-                </p>
-              </div>
+              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+                Get a short summary of every new {name} episode, delivered to your inbox.
+              </p>
 
-              <p className="text-base text-muted-foreground leading-relaxed">
-                Get a free {name} podcast recap and episode summary delivered to your inbox every morning. All the {faqTopics ? `insights on ${faqTopics}` : `key topics`} from {hosts} — without listening to the full episode.
+              <p className="text-base text-muted-foreground/80 leading-relaxed">
+                Each recap explains who the guest was, what they talked about, and the key ideas from the episode — all in a quick 2 to 3 minute read.
               </p>
 
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup">
