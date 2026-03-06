@@ -209,8 +209,8 @@ export default function PodcastLandingGeneric() {
                 Get a short recap of every new podcast episode, delivered to your inbox.
               </p>
 
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1 max-w-lg" data-testid="form-signup">
-                <div className="flex-1 relative min-w-0">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-1 w-full" data-testid="form-signup">
+                <div className="relative w-full">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/40" />
                   <input
                     data-testid="input-email"
@@ -225,7 +225,7 @@ export default function PodcastLandingGeneric() {
                   data-testid="button-signup"
                   type="submit"
                   disabled={isPending}
-                  className="h-[3.25rem] px-7 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
+                  className="w-full h-[3.25rem] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
                 >
                   {isPending ? (
                     <>
@@ -277,7 +277,7 @@ export default function PodcastLandingGeneric() {
           </p>
         </motion.section>
 
-        <ExampleRecapSection slug={slug || ""} podcastName={name} hideHeading />
+        <ExampleRecapSection slug={slug || ""} podcastName={name} hideHeading artworkUrl={artworkUrl} />
 
 
         <motion.section
@@ -287,6 +287,14 @@ export default function PodcastLandingGeneric() {
           className="w-full max-w-3xl pb-20"
         >
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-8 sm:p-12 text-center flex flex-col items-center gap-5" data-testid="section-mid-cta">
+            {artworkUrl && (
+              <img
+                src={artworkUrl}
+                alt={name}
+                className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/[0.06]"
+                data-testid="mid-cta-artwork"
+              />
+            )}
             <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug">
               Receive free podcast summaries directly to your email when a new episode drops
             </h2>

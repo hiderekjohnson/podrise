@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Lightbulb, Quote, FileText } from "lucide-react";
+import { Calendar, Clock, Lightbulb, Quote, FileText, Inbox } from "lucide-react";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface ExampleRecap {
   id: number;
@@ -18,7 +19,7 @@ interface ExampleRecap {
   updatedAt: string;
 }
 
-export function ExampleRecapSection({ slug, podcastName, hideHeading }: { slug: string; podcastName: string; hideHeading?: boolean }) {
+export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl }: { slug: string; podcastName: string; hideHeading?: boolean; artworkUrl?: string }) {
   const { data: recap } = useQuery<ExampleRecap>({
     queryKey: ["/api/podcasts", slug, "example-recap"],
     queryFn: async () => {
@@ -55,79 +56,131 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading }: { slug: 
         </>
       )}
 
-      <div className="bg-white border border-black/[0.06] rounded-2xl p-7 sm:p-10 lg:p-12 space-y-8" data-testid="card-example-recap">
+      <div className="rounded-2xl border border-black/[0.08] shadow-lg shadow-black/[0.04] overflow-hidden" data-testid="card-example-recap">
 
-        <div className="space-y-3">
-          <h3
-            className="text-xl sm:text-2xl font-display font-bold text-foreground leading-snug"
-            data-testid="text-episode-title"
-          >
-            {recap.episodeTitle}
-          </h3>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            {recap.episodeDate && (
-              <span className="flex items-center gap-2" data-testid="text-episode-date">
-                <Calendar className="w-4 h-4" />
-                {recap.episodeDate}
-              </span>
-            )}
-            {recap.episodeDuration && (
-              <span className="flex items-center gap-2" data-testid="text-episode-duration">
-                <Clock className="w-4 h-4" />
-                {recap.episodeDuration}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-xl p-6" data-testid="section-tldl">
-          <div className="flex items-center gap-2.5 mb-3">
-            <FileText className="w-4.5 h-4.5 text-primary" />
-            <span className="text-sm font-display font-bold text-primary uppercase tracking-wider">TLDL</span>
-          </div>
-          <p className="text-base sm:text-[17px] text-foreground leading-relaxed">{recap.tldl}</p>
-        </div>
-
-        <div className="space-y-4" data-testid="section-what-happened">
-          <h4 className="text-base font-display font-bold text-foreground">What Happened</h4>
-          {recap.whatHappened.split(/\n\n+/).map((paragraph, i) => (
-            <p key={i} className="text-base sm:text-[17px] text-muted-foreground leading-[1.8]">{paragraph}</p>
-          ))}
-        </div>
-
-        {recap.keyInsights && recap.keyInsights.length > 0 && (
-          <div className="space-y-4" data-testid="section-key-insights">
-            <div className="flex items-center gap-2.5">
-              <Lightbulb className="w-5 h-5 text-amber-500" />
-              <h4 className="text-base font-display font-bold text-foreground">Key Insights</h4>
+        <div className="bg-gradient-to-b from-gray-50 to-gray-50/80 border-b border-black/[0.06] px-6 sm:px-8 py-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-red-400/70" />
+              <span className="w-3 h-3 rounded-full bg-amber-400/70" />
+              <span className="w-3 h-3 rounded-full bg-green-400/70" />
             </div>
-            <ul className="space-y-4">
-              {recap.keyInsights.map((insight, i) => (
-                <li
-                  key={i}
-                  className="flex items-start gap-4 text-base sm:text-[17px] text-muted-foreground leading-[1.8]"
-                  data-testid={`text-insight-${i}`}
-                >
-                  <span className="mt-[10px] w-2 h-2 rounded-full bg-primary shrink-0" />
-                  {insight}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {recap.quote && recap.quoteAttribution && (
-          <div
-            className="border-l-[3px] border-primary/25 pl-6 py-2 space-y-2"
-            data-testid="section-quote"
-          >
-            <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">"{recap.quote}"</p>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Quote className="w-4 h-4" />
-              {recap.quoteAttribution}
+            <div className="flex items-center gap-2 ml-auto">
+              <Inbox className="w-4 h-4 text-muted-foreground/50" />
+              <span className="text-xs text-muted-foreground/50 font-medium">Inbox</span>
             </div>
           </div>
-        )}
+          <div className="space-y-1.5 text-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-muted-foreground/60 w-12 shrink-0">From:</span>
+              <div className="flex items-center gap-2">
+                <img src={logoPath} alt="PodCap" className="h-4 object-contain" />
+                <span className="text-foreground font-medium">PodCap Daily Recap</span>
+                <span className="text-muted-foreground/50">&lt;digest@podcap.io&gt;</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-muted-foreground/60 w-12 shrink-0">To:</span>
+              <span className="text-foreground/70">you@email.com</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-muted-foreground/60 w-12 shrink-0">Subject:</span>
+              <span className="text-foreground font-medium">{recap.episodeTitle}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white px-7 sm:px-10 lg:px-14 py-8 sm:py-10 lg:py-12 space-y-8">
+
+          <div className="flex items-start gap-4 sm:gap-5">
+            {artworkUrl && (
+              <img
+                src={artworkUrl}
+                alt={podcastName}
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shadow-md shadow-black/[0.06] shrink-0"
+                data-testid="recap-artwork"
+              />
+            )}
+            <div className="space-y-2 min-w-0">
+              <h3
+                className="text-xl sm:text-2xl font-display font-bold text-foreground leading-snug"
+                data-testid="text-episode-title"
+              >
+                {recap.episodeTitle}
+              </h3>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                {recap.episodeDate && (
+                  <span className="flex items-center gap-2" data-testid="text-episode-date">
+                    <Calendar className="w-4 h-4" />
+                    {recap.episodeDate}
+                  </span>
+                )}
+                {recap.episodeDuration && (
+                  <span className="flex items-center gap-2" data-testid="text-episode-duration">
+                    <Clock className="w-4 h-4" />
+                    {recap.episodeDuration}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-xl p-6" data-testid="section-tldl">
+            <div className="flex items-center gap-2.5 mb-3">
+              <FileText className="w-5 h-5 text-primary" />
+              <span className="text-sm font-display font-bold text-primary uppercase tracking-wider">TLDL</span>
+            </div>
+            <p className="text-base sm:text-[17px] text-foreground leading-relaxed">{recap.tldl}</p>
+          </div>
+
+          <div className="space-y-4" data-testid="section-what-happened">
+            <h4 className="text-base font-display font-bold text-foreground">What Happened</h4>
+            {recap.whatHappened.split(/\n\n+/).map((paragraph, i) => (
+              <p key={i} className="text-base sm:text-[17px] text-muted-foreground leading-[1.8]">{paragraph}</p>
+            ))}
+          </div>
+
+          {recap.keyInsights && recap.keyInsights.length > 0 && (
+            <div className="space-y-4" data-testid="section-key-insights">
+              <div className="flex items-center gap-2.5">
+                <Lightbulb className="w-5 h-5 text-amber-500" />
+                <h4 className="text-base font-display font-bold text-foreground">Key Insights</h4>
+              </div>
+              <ul className="space-y-4">
+                {recap.keyInsights.map((insight, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-4 text-base sm:text-[17px] text-muted-foreground leading-[1.8]"
+                    data-testid={`text-insight-${i}`}
+                  >
+                    <span className="mt-[10px] w-2 h-2 rounded-full bg-primary shrink-0" />
+                    {insight}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {recap.quote && recap.quoteAttribution && (
+            <div
+              className="border-l-[3px] border-primary/25 pl-6 py-2 space-y-2"
+              data-testid="section-quote"
+            >
+              <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">"{recap.quote}"</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Quote className="w-4 h-4" />
+                {recap.quoteAttribution}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-black/[0.06] pt-6 mt-8 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src={logoPath} alt="PodCap" className="h-5 object-contain opacity-50" />
+            </div>
+            <span className="text-xs text-muted-foreground/40">podcap.io</span>
+          </div>
+        </div>
       </div>
     </motion.section>
   );
