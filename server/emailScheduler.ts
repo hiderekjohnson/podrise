@@ -130,8 +130,10 @@ async function pregenerateAllEmails() {
         continue;
       }
 
+      const h2Count = (result.summary.match(/^## /gm) || []).length;
+      console.log(`[EmailScheduler] User ${user.id} recap: ${result.summary.length} chars, ${h2Count} h2 sections`);
       if (!recapHasContent(result.summary)) {
-        console.warn(`[EmailScheduler] Pre-generated recap for user ${user.id} has 0 episodes — skipping.`);
+        console.warn(`[EmailScheduler] Pre-generated recap for user ${user.id} has 0 parsed episodes. First 500 chars: ${result.summary.slice(0, 500)}`);
         skipped++;
         continue;
       }
