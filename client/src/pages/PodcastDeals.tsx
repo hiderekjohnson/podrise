@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Tag, ExternalLink, Ticket, Gift, Zap, Clock, ArrowRight, ChevronDown, ChevronUp, Loader2, Podcast } from "lucide-react";
+import { Tag, ExternalLink, Ticket, Zap, Clock, ArrowRight, ChevronDown, ChevronUp, Loader2, Podcast, Copy, Check } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
-import { useState } from "react";
 
 interface DealEntry {
   id: number;
@@ -23,37 +22,48 @@ interface DealEntry {
   detectedAt: string;
 }
 
-function dealTypeIcon(type: string) {
-  switch (type) {
-    case "promo_code": return <Ticket className="w-4 h-4" />;
-    case "free_trial": return <Zap className="w-4 h-4" />;
-    case "special_link": return <ExternalLink className="w-4 h-4" />;
-    case "discount": return <Tag className="w-4 h-4" />;
-    case "bonus": return <Gift className="w-4 h-4" />;
-    default: return <Tag className="w-4 h-4" />;
-  }
+function dealTypeBadge(type: string) {
+  const config: Record<string, { icon: typeof Tag; label: string; className: string }> = {
+    promo_code: { icon: Ticket, label: "Promo Code", className: "bg-violet-50 text-violet-600 border-violet-100" },
+    free_trial: { icon: Zap, label: "Free Trial", className: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+    special_link: { icon: ExternalLink, label: "Special Link", className: "bg-blue-50 text-blue-600 border-blue-100" },
+    discount: { icon: Tag, label: "Discount", className: "bg-amber-50 text-amber-600 border-amber-100" },
+    bonus: { icon: Tag, label: "Bonus", className: "bg-pink-50 text-pink-600 border-pink-100" },
+  };
+  const c = config[type] || config.discount;
+  const Icon = c.icon;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wide border ${c.className}`}>
+      <Icon className="w-3 h-3" />
+      {c.label}
+    </span>
+  );
 }
 
-function dealTypeLabel(type: string) {
-  switch (type) {
-    case "promo_code": return "Promo Code";
-    case "free_trial": return "Free Trial";
-    case "special_link": return "Special Link";
-    case "discount": return "Discount";
-    case "bonus": return "Bonus";
-    default: return type;
-  }
-}
+function PromoCodeBadge({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
 
-function dealTypeBadgeColor(type: string) {
-  switch (type) {
-    case "promo_code": return "bg-violet-100 text-violet-700";
-    case "free_trial": return "bg-emerald-100 text-emerald-700";
-    case "special_link": return "bg-blue-100 text-blue-700";
-    case "discount": return "bg-amber-100 text-amber-700";
-    case "bonus": return "bg-pink-100 text-pink-700";
-    default: return "bg-gray-100 text-gray-700";
-  }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="group inline-flex items-center gap-2 px-4 py-2 bg-primary/[0.06] hover:bg-primary/[0.10] border border-primary/[0.12] rounded-xl transition-all cursor-pointer"
+      title="Click to copy code"
+    >
+      <span className="font-mono font-bold text-sm text-primary tracking-wider">{code}</span>
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-emerald-500" />
+      ) : (
+        <Copy className="w-3.5 h-3.5 text-primary/40 group-hover:text-primary/70 transition-colors" />
+      )}
+    </button>
+  );
 }
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -103,31 +113,11 @@ export default function PodcastDeals() {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is the Podcast Deals page?",
-          "acceptedAnswer": { "@type": "Answer", "text": "This page lists actionable sponsor offers mentioned on podcasts we track using transcript analysis." }
-        },
-        {
-          "@type": "Question",
-          "name": "Are these podcast promo codes updated regularly?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. PodCap updates the page based on recently transcribed podcast episodes." }
-        },
-        {
-          "@type": "Question",
-          "name": "Does PodCap sell these products?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. PodCap simply organizes deals mentioned on podcasts." }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I get summaries of these podcasts?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Visit any podcast page on PodCap and sign up to receive recap emails." }
-        },
-        {
-          "@type": "Question",
-          "name": "What if a podcast mentions a deal without a promo code?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Some ads use special links, free trials, or bonus offers instead of codes. We include those if there is a clear redemption method." }
-        },
+        { "@type": "Question", "name": "What is the Podcast Deals page?", "acceptedAnswer": { "@type": "Answer", "text": "This page lists actionable sponsor offers mentioned on podcasts we track using transcript analysis." } },
+        { "@type": "Question", "name": "Are these podcast promo codes updated regularly?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. PodCap updates the page based on recently transcribed podcast episodes." } },
+        { "@type": "Question", "name": "Does PodCap sell these products?", "acceptedAnswer": { "@type": "Answer", "text": "No. PodCap simply organizes deals mentioned on podcasts." } },
+        { "@type": "Question", "name": "Can I get summaries of these podcasts?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Visit any podcast page on PodCap and sign up to receive recap emails." } },
+        { "@type": "Question", "name": "What if a podcast mentions a deal without a promo code?", "acceptedAnswer": { "@type": "Answer", "text": "Some ads use special links, free trials, or bonus offers instead of codes. We include those if there is a clear redemption method." } },
       ]
     };
 
@@ -147,7 +137,6 @@ export default function PodcastDeals() {
           "description": `Mentioned on ${deal.podcastName} on ${deal.episodeDate}`
         }))
       };
-
       let ilScript = document.querySelector('script[data-schema="itemlist-deals"]');
       if (!ilScript) { ilScript = document.createElement("script"); ilScript.setAttribute("type", "application/ld+json"); ilScript.setAttribute("data-schema", "itemlist-deals"); document.head.appendChild(ilScript); }
       ilScript.textContent = JSON.stringify(itemListSchema);
@@ -161,7 +150,7 @@ export default function PodcastDeals() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+      <header className="w-full px-6 py-5 flex items-center justify-between max-w-3xl mx-auto">
         <Link href="/" className="flex items-center" data-testid="img-logo">
           <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
         </Link>
@@ -174,162 +163,144 @@ export default function PodcastDeals() {
         </Link>
       </header>
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-16">
+
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-4xl text-center pt-10 sm:pt-16 pb-8"
+          className="w-full max-w-3xl text-center pt-10 sm:pt-16 pb-10"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/[0.07] text-primary text-xs font-bold uppercase tracking-widest mb-6">
-            <Tag className="w-3.5 h-3.5" />
-            Podcast Deals & Promo Codes
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.06] text-primary text-[11px] font-bold uppercase tracking-widest mb-5">
+            <Tag className="w-3 h-3" />
+            Podcast Deals
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] mb-4" data-testid="heading-deals">
-            Latest Podcast Deals and Promo Codes
+          <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em] mb-4" data-testid="heading-deals">
+            Deals & codes from your
+            <br className="hidden sm:block" />
+            {" "}favorite podcasts
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-4">
-            Here are some of the most recent actionable podcast deals mentioned on podcasts we track. PodCap analyzes podcast transcripts and surfaces sponsor offers that include promo codes, special links, free trials, or other redemption methods.
-          </p>
-          <p className="text-sm text-muted-foreground/70 max-w-xl mx-auto">
-            We only include deals with a clear way for listeners to claim the offer, not generic sponsor mentions.
-            Want more than just the deals?{" "}
-            <Link href="/podcasts" className="text-primary font-semibold hover:underline">
-              Visit your favorite podcast pages
-            </Link>{" "}
-            and sign up to get daily podcast recaps.
+          <p className="text-base text-muted-foreground max-w-lg mx-auto leading-relaxed">
+            We scan podcast transcripts and pull out promo codes, special links, and offers so you don't have to sit through every ad break.
           </p>
         </motion.section>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <Loader2 className="w-7 h-7 animate-spin text-primary" />
           </div>
         ) : !deals || deals.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="w-full max-w-2xl text-center py-16"
+            className="w-full max-w-md text-center py-20"
           >
-            <Tag className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-            <h2 className="font-display font-bold text-xl text-foreground mb-2">Deals coming soon</h2>
-            <p className="text-sm text-muted-foreground">
+            <div className="w-16 h-16 rounded-2xl bg-primary/[0.06] flex items-center justify-center mx-auto mb-5">
+              <Tag className="w-8 h-8 text-primary/30" />
+            </div>
+            <h2 className="font-display font-bold text-xl text-foreground mb-2" data-testid="text-empty-deals">No deals yet</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               We're analyzing podcast transcripts to surface the latest sponsor deals. Check back soon!
             </p>
           </motion.div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="w-full max-w-4xl space-y-10"
-          >
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="deals-grid">
-              {deals.map((deal) => (
-                <div
+          <div className="w-full max-w-3xl space-y-12">
+            <div className="space-y-3" data-testid="deals-grid">
+              {deals.map((deal, i) => (
+                <motion.div
                   key={deal.id}
-                  className="glass-panel rounded-2xl p-5 flex flex-col gap-3 hover:shadow-lg hover:shadow-black/[0.04] transition-shadow"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: Math.min(i * 0.06, 0.4) }}
+                  className="bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 hover:border-black/[0.10] hover:shadow-lg hover:shadow-black/[0.03] transition-all"
                   data-testid={`deal-card-${deal.id}`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-display font-bold text-foreground text-base leading-snug" data-testid={`deal-sponsor-${deal.id}`}>
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <h3 className="font-display font-bold text-foreground text-lg leading-snug" data-testid={`deal-sponsor-${deal.id}`}>
                       {deal.sponsorName}
                     </h3>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${dealTypeBadgeColor(deal.dealType)}`}>
-                      {dealTypeIcon(deal.dealType)}
-                      {dealTypeLabel(deal.dealType)}
-                    </span>
+                    {dealTypeBadge(deal.dealType)}
                   </div>
 
-                  <p className="text-sm text-foreground/80 leading-relaxed" data-testid={`deal-offer-${deal.id}`}>
+                  <p className="text-sm text-foreground/75 leading-relaxed mb-4" data-testid={`deal-offer-${deal.id}`}>
                     {deal.offerSummary}
                   </p>
 
-                  {deal.promoCode && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-muted-foreground uppercase">Code:</span>
-                      <span
-                        className="inline-block px-3 py-1 bg-primary/[0.08] text-primary font-mono font-bold text-sm rounded-lg tracking-wide"
-                        data-testid={`deal-code-${deal.id}`}
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    {deal.promoCode && (
+                      <PromoCodeBadge code={deal.promoCode} />
+                    )}
+
+                    {deal.specialLink && (
+                      <a
+                        href={deal.specialLink.startsWith("http") ? deal.specialLink : `https://${deal.specialLink}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                        data-testid={`deal-link-${deal.id}`}
                       >
-                        {deal.promoCode}
-                      </span>
-                    </div>
-                  )}
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>{deal.specialLink}</span>
+                      </a>
+                    )}
+                  </div>
 
-                  {!deal.promoCode && (
-                    <p className="text-xs text-muted-foreground/60">No code mentioned</p>
-                  )}
-
-                  {deal.specialLink && (
-                    <a
-                      href={deal.specialLink.startsWith("http") ? deal.specialLink : `https://${deal.specialLink}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-primary hover:underline"
-                      data-testid={`deal-link-${deal.id}`}
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span className="truncate" title={deal.specialLink}>{deal.specialLink}</span>
-                    </a>
-                  )}
-
-                  <div className="mt-auto pt-3 border-t border-black/[0.04] flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground/60">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <Podcast className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                      <Podcast className="w-3.5 h-3.5 shrink-0" />
                       {deal.podcastSlug ? (
                         <Link
                           href={`/podcasts/${deal.podcastSlug}`}
-                          className="text-xs font-semibold text-primary hover:underline truncate"
+                          className="font-semibold text-primary/70 hover:text-primary hover:underline truncate transition-colors"
                           data-testid={`deal-podcast-link-${deal.id}`}
                         >
                           {deal.podcastName}
                         </Link>
                       ) : (
-                        <span className="text-xs font-semibold text-foreground truncate">{deal.podcastName}</span>
+                        <span className="font-semibold text-foreground/50 truncate">{deal.podcastName}</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground/50 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                       <Clock className="w-3 h-3" />
                       <span>{deal.episodeDate}</span>
                     </div>
                   </div>
 
-                  <p className="text-[10px] text-muted-foreground/40 leading-tight">
+                  <p className="text-[11px] text-muted-foreground/40 mt-2 leading-snug">
                     Mentioned in: {deal.episodeTitle}
                   </p>
-                </div>
+                </motion.div>
               ))}
             </div>
 
-            <section className="pt-4" data-testid="section-seo-text">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Explore recent deals mentioned on podcasts like{" "}
+            <section className="text-center" data-testid="section-seo-text">
+              <p className="text-sm text-muted-foreground/70 leading-relaxed max-w-xl mx-auto">
+                Deals sourced from podcasts including{" "}
                 <Link href="/podcasts/myfirstmillion" className="text-primary hover:underline">My First Million</Link>,{" "}
                 <Link href="/podcasts/callherdaddy" className="text-primary hover:underline">Call Her Daddy</Link>,{" "}
                 <Link href="/podcasts/hubermanlab" className="text-primary hover:underline">Huberman Lab</Link>,{" "}
-                and many more. PodCap analyzes transcripts to surface podcast promo codes, sponsor offers, and exclusive deals so you don't have to listen to every ad break.
+                and more.
               </p>
             </section>
 
-            <section className="glass-panel rounded-2xl p-6 sm:p-8 text-center" data-testid="section-cta">
-              <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground mb-3">
-                Get more than just deals
+            <section className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-8 sm:p-10 text-center" data-testid="section-cta">
+              <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground mb-2">
+                More than just deals
               </h2>
-              <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
-                Sign up for PodCap to receive daily AI-powered podcast recaps delivered to your inbox. Never miss a key insight again.
+              <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
+                Get the key takeaways from every episode — delivered to your inbox each morning.
               </p>
               <Link
                 href="/podcasts"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                className="inline-flex items-center gap-2 px-6 h-12 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
                 data-testid="button-browse-podcasts"
               >
-                Choose Podcasts to Recap
+                Browse Podcasts
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </section>
-          </motion.div>
+          </div>
         )}
 
         <motion.section
@@ -342,7 +313,7 @@ export default function PodcastDeals() {
           <h2 className="font-display font-extrabold text-2xl text-foreground mb-6 text-center">
             Frequently Asked Questions
           </h2>
-          <div className="glass-panel rounded-2xl overflow-hidden px-6">
+          <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden px-6">
             <FAQItem
               question="What is the Podcast Deals page?"
               answer="This page lists actionable sponsor offers mentioned on podcasts we track using transcript analysis."
@@ -366,7 +337,7 @@ export default function PodcastDeals() {
           </div>
         </motion.section>
 
-        <p className="text-xs text-muted-foreground/40 text-center max-w-md mt-4">
+        <p className="text-[11px] text-muted-foreground/40 text-center max-w-sm mt-2">
           Check sponsor websites for current terms. Deals shown were recently mentioned in podcast episodes and may have changed or expired.
         </p>
       </main>
