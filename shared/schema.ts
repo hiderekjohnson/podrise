@@ -96,6 +96,26 @@ export const emailTemplateSettings = pgTable("email_template_settings", {
 
 export type EmailTemplateSetting = typeof emailTemplateSettings.$inferSelect;
 
+export const pendingEmails = pgTable("pending_emails", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  recipientEmail: text("recipient_email").notNull(),
+  podcasts: text("podcasts").array().notNull(),
+  recapDate: date("recap_date").notNull(),
+  summary: text("summary").notNull(),
+  emailHtml: text("email_html").notNull(),
+  subject: text("subject").notNull(),
+  scheduledFor: text("scheduled_for").notNull(),
+  timezone: text("timezone").notNull().default("America/New_York"),
+  status: text("status").notNull().default("pending"),
+  sentAt: timestamp("sent_at"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type PendingEmail = typeof pendingEmails.$inferSelect;
+export type InsertPendingEmail = typeof pendingEmails.$inferInsert;
+
 export const transcriptLogs = pgTable("transcript_logs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),

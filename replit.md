@@ -15,7 +15,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/login` — Email-based login for existing users
 - `/dashboard` — Manage podcasts, delivery time/timezone (full IANA searchable selector with auto-detect), email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
-- `/admin` — Admin dashboard (password-protected): view all users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface
+- `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface (defaults to Pending tab)
 - `/podcasts/myfirstmillion` — SEO landing page for My First Million podcast; email-only signup auto-adds MFM; FAQ, Apple/Spotify links, PodCap-branded
 
 ## Database Schema
@@ -25,6 +25,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), email_html (text, stores sent HTML for admin preview), sent_at
 - `magic_links` table: id, email, token (unique), expires_at, used_at, created_at — stores magic link tokens for passwordless login
 - `email_template_settings` table: id, key (unique), value — stores admin-editable email template settings (key-value pairs)
+- `pending_emails` table: id, user_id, recipient_email, podcasts (text array), recap_date, summary, email_html, subject, scheduled_for, timezone, status (pending/sent/cancelled/error), sent_at, error_message, created_at — pre-generated emails awaiting delivery
 - `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at — logs each transcript fetch attempt during recap generation
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
@@ -85,11 +86,13 @@ A full-stack web application that lets users create and manage personalized dail
 
 ## Email System
 - **Provider**: Resend via Replit connector integration
-- **Scheduler**: `server/emailScheduler.ts` runs every 60 seconds, checks each user's delivery time + timezone
-  - Only sends if current time in user's timezone matches their `deliveryTime` setting
-  - Skips users who already received email today (in-memory `sentToday` set, resets at midnight UTC)
-  - Skips if no new episodes from yesterday — no email sent
-  - Generates recap, saves to DB, converts markdown to HTML, sends via Resend
+- **Scheduler**: `server/emailScheduler.ts` — two-phase pre-generation + delivery system:
+  1. **Pre-generation** (7:00 UTC daily): Batch-generates all recap emails for all users, stores them in `pending_emails` table with status "pending"
+  2. **Delivery** (every 60 seconds): Checks pending emails, sends any whose user's delivery time has arrived in their timezone
+  - Admin can manually trigger pre-generation via "Generate Now" button
+  - Admin can preview, cancel, or send-now any pending email before delivery
+  - Skips users who already received email today or already have a pending email for the date
+  - Safeguard: refuses to send emails with 0 parsed episodes (`recapHasContent` check)
 - **Email Template**: `server/emailTemplate.ts` converts markdown recap to styled HTML email with merge tags
   - Admin-editable template settings stored in `email_template_settings` table
   - Merge tags: `{{audio_length}}`, `{{episode_count}}`, `{{podcast_names}}`, `{{date}}`, `{{email}}`

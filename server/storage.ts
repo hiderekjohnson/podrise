@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
@@ -30,6 +30,13 @@ export interface IStorage {
   logTranscriptEvent(data: { userId?: number; podcastName: string; podcastId: string; episodeTitle: string; episodeGuid?: string; taddyUuid?: string; status: string; transcriptLength?: number; errorMessage?: string }): Promise<TranscriptLog>;
   getTranscriptLogs(limit?: number): Promise<TranscriptLog[]>;
   getTranscriptById(id: number): Promise<EpisodeTranscript | undefined>;
+  createPendingEmail(data: InsertPendingEmail): Promise<PendingEmail>;
+  getPendingEmails(status?: string): Promise<PendingEmail[]>;
+  getPendingEmailById(id: number): Promise<PendingEmail | undefined>;
+  updatePendingEmailStatus(id: number, status: string, errorMessage?: string): Promise<PendingEmail>;
+  getPendingEmailsForUser(userId: number, recapDate: string): Promise<PendingEmail[]>;
+  deletePendingEmail(id: number): Promise<void>;
+  clearOldPendingEmails(daysOld: number): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -282,6 +289,53 @@ export class DatabaseStorage implements IStorage {
   async getTranscriptById(id: number): Promise<EpisodeTranscript | undefined> {
     const [t] = await db.select().from(episodeTranscripts).where(eq(episodeTranscripts.id, id));
     return t;
+  }
+
+  async createPendingEmail(data: InsertPendingEmail): Promise<PendingEmail> {
+    const [created] = await db.insert(pendingEmails).values(data).returning();
+    return created;
+  }
+
+  async getPendingEmails(status?: string): Promise<PendingEmail[]> {
+    if (status) {
+      return db.select().from(pendingEmails).where(eq(pendingEmails.status, status)).orderBy(desc(pendingEmails.createdAt)).limit(500);
+    }
+    return db.select().from(pendingEmails).orderBy(desc(pendingEmails.createdAt)).limit(500);
+  }
+
+  async getPendingEmailById(id: number): Promise<PendingEmail | undefined> {
+    const [row] = await db.select().from(pendingEmails).where(eq(pendingEmails.id, id));
+    return row ?? undefined;
+  }
+
+  async updatePendingEmailStatus(id: number, status: string, errorMessage?: string): Promise<PendingEmail> {
+    const updates: any = { status };
+    if (status === "sent") updates.sentAt = new Date();
+    if (errorMessage) updates.errorMessage = errorMessage;
+    const [updated] = await db.update(pendingEmails).set(updates).where(eq(pendingEmails.id, id)).returning();
+    return updated;
+  }
+
+  async getPendingEmailsForUser(userId: number, recapDate: string): Promise<PendingEmail[]> {
+    return db.select().from(pendingEmails).where(
+      and(eq(pendingEmails.userId, userId), eq(pendingEmails.recapDate, recapDate))
+    );
+  }
+
+  async deletePendingEmail(id: number): Promise<void> {
+    await db.delete(pendingEmails).where(eq(pendingEmails.id, id));
+  }
+
+  async clearOldPendingEmails(daysOld: number): Promise<number> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - daysOld);
+    const result = await db.delete(pendingEmails).where(
+      and(
+        sql`${pendingEmails.createdAt} < ${cutoff}`,
+        sql`${pendingEmails.status} IN ('sent', 'cancelled')`
+      )
+    ).returning();
+    return result.length;
   }
 }
 

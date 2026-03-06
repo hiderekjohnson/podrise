@@ -606,6 +606,104 @@ export async function registerRoutes(
     res.json({ transcript: transcript.transcript, episodeTitle: transcript.episodeTitle, podcastId: transcript.podcastId });
   });
 
+  app.get("/api/admin/pending-emails", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const status = req.query.status as string | undefined;
+    const emails = await storage.getPendingEmails(status || undefined);
+    res.json(emails);
+  });
+
+  app.get("/api/admin/pending-emails/:id/html", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const id = parseInt(req.params.id);
+    const pending = await storage.getPendingEmailById(id);
+    if (!pending) {
+      return res.status(404).json({ message: "Pending email not found" });
+    }
+    res.json({ html: pending.emailHtml });
+  });
+
+  app.post("/api/admin/pending-emails/:id/cancel", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const id = parseInt(req.params.id);
+    const pending = await storage.getPendingEmailById(id);
+    if (!pending) {
+      return res.status(404).json({ message: "Pending email not found" });
+    }
+    if (pending.status !== "pending") {
+      return res.status(400).json({ message: `Cannot cancel email with status "${pending.status}"` });
+    }
+    await storage.updatePendingEmailStatus(id, "cancelled");
+    res.json({ message: "Email cancelled" });
+  });
+
+  app.post("/api/admin/pending-emails/:id/send-now", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const id = parseInt(req.params.id);
+    const pending = await storage.getPendingEmailById(id);
+    if (!pending) {
+      return res.status(404).json({ message: "Pending email not found" });
+    }
+    if (pending.status !== "pending") {
+      return res.status(400).json({ message: `Cannot send email with status "${pending.status}"` });
+    }
+
+    if (!recapHasContent(pending.summary)) {
+      await storage.updatePendingEmailStatus(id, "error", "No episode content in recap");
+      return res.status(400).json({ message: "This email has no episode content and cannot be sent." });
+    }
+
+    try {
+      const { client, fromEmail } = await getUncachableResendClient();
+      const sendResult = await client.emails.send({
+        from: `PodCap Daily <${fromEmail}>`,
+        to: pending.recipientEmail,
+        subject: pending.subject,
+        html: pending.emailHtml,
+      });
+
+      if (sendResult.error) {
+        await storage.updatePendingEmailStatus(id, "error", sendResult.error.message || "Send failed");
+        return res.status(500).json({ message: `Send failed: ${sendResult.error.message}` });
+      }
+
+      await storage.updatePendingEmailStatus(id, "sent");
+      await storage.logEmail({
+        userId: pending.userId,
+        recipientEmail: pending.recipientEmail,
+        podcasts: pending.podcasts,
+        source: "manual",
+        emailHtml: pending.emailHtml,
+      });
+
+      res.json({ message: "Email sent successfully" });
+    } catch (err: any) {
+      await storage.updatePendingEmailStatus(id, "error", err?.message || String(err)).catch(() => {});
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  app.post("/api/admin/trigger-pregeneration", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { triggerPregeneration } = await import("./emailScheduler");
+      triggerPregeneration();
+      res.json({ message: "Pre-generation started. Check back in a few minutes." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger pre-generation" });
+    }
+  });
+
   app.get("/api/admin/analytics", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
