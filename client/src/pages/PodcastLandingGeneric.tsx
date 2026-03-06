@@ -284,41 +284,47 @@ export default function PodcastLandingGeneric() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-3xl pb-20"
+          className="w-full max-w-4xl pb-20"
         >
-          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-8 sm:p-12 text-center flex flex-col items-center gap-5" data-testid="section-mid-cta">
-            {artworkUrl && (
-              <img
-                src={artworkUrl}
-                alt={name}
-                className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/[0.06]"
-                data-testid="mid-cta-artwork"
-              />
-            )}
-            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug">
-              Receive free podcast summaries directly to your email when a new episode drops
-            </h2>
-            <p className="text-base text-muted-foreground max-w-md leading-relaxed">
-              No app needed. No ads. Just the key takeaways from {name} — in your inbox every morning.
-            </p>
-            <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup-mid">
-              <input
-                data-testid="input-email-mid"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="flex-1 h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
-              />
-              <button
-                data-testid="button-signup-mid"
-                type="submit"
-                disabled={isPending}
-                className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
-              >
-                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Get Started Free"}
-              </button>
-            </form>
+          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-8 sm:p-10 overflow-hidden" data-testid="section-mid-cta">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-10 items-center">
+              <div className="flex flex-col gap-4 text-center md:text-left">
+                <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug">
+                  Receive free podcast summaries directly to your email when a new episode drops
+                </h2>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  No app needed. No ads. Just the key takeaways from {name} — in your inbox every morning.
+                </p>
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup-mid">
+                  <input
+                    data-testid="input-email-mid"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="flex-1 h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  />
+                  <button
+                    data-testid="button-signup-mid"
+                    type="submit"
+                    disabled={isPending}
+                    className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
+                  >
+                    {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Get Started Free"}
+                  </button>
+                </form>
+              </div>
+              {artworkUrl && (
+                <div className="hidden md:flex justify-center">
+                  <img
+                    src={artworkUrl}
+                    alt={name}
+                    className="w-40 h-40 lg:w-48 lg:h-48 rounded-2xl object-cover shadow-xl shadow-black/[0.08]"
+                    data-testid="mid-cta-artwork"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </motion.section>
 

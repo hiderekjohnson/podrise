@@ -38,7 +38,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.12 }}
-      className="w-full max-w-4xl pb-20"
+      className="w-full max-w-2xl mx-auto pb-20"
       id="recap-sample"
       data-testid="section-example-recap"
     >
