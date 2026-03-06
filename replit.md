@@ -16,7 +16,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/dashboard` — Manage podcasts, delivery time/timezone (full IANA searchable selector with auto-detect), email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
 - `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface (defaults to Pending tab)
-- `/podcasts/:slug` — Unified SEO landing pages for all ~50 podcasts including MFM and empowerHER (data in `client/src/data/podcastLandingData.ts`); supports optional Apple/Spotify/YouTube links, og:image, side-by-side artwork hero; each shows example AI recap when available
+- `/podcasts/:slug` — Unified SEO landing pages for all ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); supports Apple/Spotify/YouTube links, podcast snapshot (category, avg length, frequency, total episodes, year started), "Known For" bullets, host bios, time-saved stat, related podcasts (internal links), example AI recap, and SEO-optimized title tags
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at

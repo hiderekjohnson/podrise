@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, ChevronUp, ExternalLink, Calendar, BarChart3, Mic, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { ExampleRecapSection } from "@/components/ExampleRecapSection";
-import { getPodcastBySlug } from "@/data/podcastLandingData";
+import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 function generateFaqItems(name: string, hosts: string, faqTopics: string, category: string) {
@@ -46,6 +47,14 @@ function generateFaqItems(name: string, hosts: string, faqTopics: string, catego
   ];
 }
 
+function estimateTimeSaved(avgLength?: number, totalEpisodes?: number): { hoursSaved: number; readTime: number } | null {
+  if (!avgLength || !totalEpisodes) return null;
+  const estimatedRecaps = Math.min(totalEpisodes, Math.floor(totalEpisodes * 0.3));
+  const readTime = 3;
+  const hoursSaved = Math.round((estimatedRecaps * (avgLength - readTime)) / 60);
+  return hoursSaved > 10 ? { hoursSaved, readTime } : null;
+}
+
 export default function PodcastLandingGeneric() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -64,7 +73,7 @@ export default function PodcastLandingGeneric() {
     const { name, slug: s, keywords, hosts, description, artworkUrl } = config;
     const url = `https://podcap.io/podcasts/${s}`;
 
-    document.title = `${name} Podcast Summary & Recap — Daily Episode Recaps | PodCap`;
+    document.title = `${name} Podcast Summary, Latest Episode Recap | PodCap`;
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -74,7 +83,7 @@ export default function PodcastLandingGeneric() {
 
     setMeta("name", "description", `Get free daily ${name} podcast summaries and episode recaps. AI-powered ${name} podcast recap of every new episode by ${hosts} — ${description} delivered to your inbox.`);
     setMeta("name", "keywords", `${name} podcast summary, ${name} episode summary, ${name} podcast recap, ${name} recap, ${keywords}, podcast summary, daily podcast recap`);
-    setMeta("property", "og:title", `${name} Podcast Summary & Recap — Free Daily Episode Recaps | PodCap`);
+    setMeta("property", "og:title", `${name} Podcast Summary, Latest Episode Recap | PodCap`);
     setMeta("property", "og:description", `AI-powered daily ${name} podcast summaries and episode recaps. ${description.charAt(0).toUpperCase() + description.slice(1)} — delivered free to your inbox.`);
     setMeta("property", "og:url", url);
     setMeta("property", "og:type", "website");
@@ -86,7 +95,7 @@ export default function PodcastLandingGeneric() {
     } else {
       setMeta("name", "twitter:card", "summary");
     }
-    setMeta("name", "twitter:title", `${name} Podcast Summary & Recap | PodCap`);
+    setMeta("name", "twitter:title", `${name} Podcast Summary, Latest Episode Recap | PodCap`);
     setMeta("name", "twitter:description", `Free daily AI-powered ${name} podcast summaries and episode recaps delivered to your inbox.`);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -98,7 +107,7 @@ export default function PodcastLandingGeneric() {
     jsonLd.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": `${name} Podcast Summary & Recap`,
+      "name": `${name} Podcast Summary, Latest Episode Recap`,
       "description": `Free daily AI-powered ${name} podcast summary and episode recap. ${description.charAt(0).toUpperCase() + description.slice(1)} delivered to your inbox.`,
       "url": url,
       "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
@@ -137,9 +146,17 @@ export default function PodcastLandingGeneric() {
     return null;
   }
 
-  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, appleUrl, spotifyUrl, youtubeUrl } = config;
+  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, appleUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs } = config;
   const faqItems = generateFaqItems(name, hosts, faqTopics, category);
   const hasExternalLinks = appleUrl || spotifyUrl || youtubeUrl;
+  const timeSaved = estimateTimeSaved(avgEpisodeLength, totalEpisodes);
+
+  const relatedPodcasts = (relatedSlugs || [])
+    .map(s => getPodcastBySlug(s))
+    .filter((p): p is PodcastLandingConfig => !!p)
+    .slice(0, 3);
+
+  const hasSnapshot = avgEpisodeLength || frequency || totalEpisodes || yearStarted;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,6 +225,11 @@ export default function PodcastLandingGeneric() {
                 <span className="text-primary">podcast summary</span>,{" "}
                 daily
               </h1>
+
+              <div className="text-center lg:text-left" data-testid="tagline">
+                <p className="text-base sm:text-lg font-display font-bold text-foreground">Your favorite podcasts recapped daily</p>
+                <p className="text-sm text-muted-foreground italic">We listen so you don't have to.</p>
+              </div>
 
               <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-center lg:text-left max-w-lg">
                 Get a free AI-powered {name} podcast recap and episode summary
@@ -329,10 +351,36 @@ export default function PodcastLandingGeneric() {
           </motion.section>
         )}
 
+        {timeSaved && avgEpisodeLength && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+            className="w-full max-w-4xl pb-16"
+            data-testid="section-time-saved"
+          >
+            <div className="glass-panel rounded-2xl p-6 sm:p-8 text-center">
+              <p className="text-lg sm:text-xl font-display font-bold text-foreground mb-3">
+                Save up to <span className="text-primary">{timeSaved.hoursSaved.toLocaleString()} hours</span> by reading PodCap summaries instead of listening to every episode.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  Average episode: {avgEpisodeLength} min
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Zap className="w-4 h-4" />
+                  Average recap read: {timeSaved.readTime} min
+                </span>
+              </div>
+            </div>
+          </motion.section>
+        )}
+
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: hasExternalLinks ? 0.4 : 0.3 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
           className="w-full max-w-4xl pb-16"
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -362,7 +410,7 @@ export default function PodcastLandingGeneric() {
               </div>
               <h3 className="font-display font-bold text-foreground">Save Hours Every Week</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Each episode can be 30–180 minutes. Your PodCap recap takes 5 minutes to read
+                Each episode can be {avgEpisodeLength ? `${avgEpisodeLength}+ minutes` : "30–180 minutes"}. Your PodCap recap takes about 3 minutes to read
                 and covers everything worth knowing.
               </p>
             </div>
@@ -371,10 +419,114 @@ export default function PodcastLandingGeneric() {
 
         <ExampleRecapSection slug={slug || ""} podcastName={name} />
 
+        {hasSnapshot && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+            className="w-full max-w-4xl pb-16"
+            data-testid="section-snapshot"
+          >
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
+              Podcast Snapshot
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {category && (
+                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-category">
+                  <BarChart3 className="w-5 h-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground mb-1">Category</p>
+                  <p className="text-sm font-bold text-foreground">{category}</p>
+                </div>
+              )}
+              {avgEpisodeLength && (
+                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-length">
+                  <Clock className="w-5 h-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground mb-1">Avg. Episode</p>
+                  <p className="text-sm font-bold text-foreground">{avgEpisodeLength} min</p>
+                </div>
+              )}
+              {frequency && (
+                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-frequency">
+                  <Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground mb-1">Frequency</p>
+                  <p className="text-sm font-bold text-foreground">{frequency}</p>
+                </div>
+              )}
+              {totalEpisodes && (
+                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-episodes">
+                  <Mic className="w-5 h-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground mb-1">Total Episodes</p>
+                  <p className="text-sm font-bold text-foreground">{totalEpisodes.toLocaleString()}+</p>
+                </div>
+              )}
+              {yearStarted && (
+                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-year">
+                  <Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground mb-1">Year Started</p>
+                  <p className="text-sm font-bold text-foreground">{yearStarted}</p>
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
+
+        {knownFor && knownFor.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="w-full max-w-3xl pb-16"
+            data-testid="section-known-for"
+          >
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
+              What {name} Is Known For
+            </h2>
+            <div className="glass-panel rounded-2xl p-6 sm:p-8">
+              <ul className="space-y-3">
+                {knownFor.map((item, i) => (
+                  <li key={i} className="flex items-start gap-3" data-testid={`known-for-${i}`}>
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                    </span>
+                    <span className="text-sm sm:text-base text-foreground leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.section>
+        )}
+
+        {hostBios && hostBios.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.55 }}
+            className="w-full max-w-3xl pb-16"
+            data-testid="section-host-bios"
+          >
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
+              About the {hostBios.length === 1 ? "Host" : "Hosts"}
+            </h2>
+            <div className={`grid gap-5 ${hostBios.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+              {hostBios.map((host, i) => (
+                <div key={i} className="glass-panel rounded-2xl p-6" data-testid={`host-bio-${i}`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="font-display font-bold text-foreground">{host.name}</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{host.bio}</p>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: hasExternalLinks ? 0.5 : 0.4 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
           className="w-full max-w-3xl pb-20"
         >
           <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8" data-testid="heading-faq">
@@ -412,7 +564,7 @@ export default function PodcastLandingGeneric() {
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: hasExternalLinks ? 0.6 : 0.5 }}
+          transition={{ duration: 0.5, delay: 0.65 }}
           className="w-full max-w-2xl pb-20"
         >
           <div className="glass-panel rounded-3xl p-8 sm:p-10 text-center flex flex-col items-center gap-5">
@@ -455,6 +607,38 @@ export default function PodcastLandingGeneric() {
             </form>
           </div>
         </motion.section>
+
+        {relatedPodcasts.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+            className="w-full max-w-3xl pb-20"
+            data-testid="section-related-podcasts"
+          >
+            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6">
+              People who follow this podcast also get recaps of:
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {relatedPodcasts.map((rp) => (
+                <a
+                  key={rp.slug}
+                  href={`/podcasts/${rp.slug}`}
+                  className="glass-panel rounded-2xl p-5 flex items-center gap-4 hover:bg-black/[0.02] hover:border-black/[0.12] transition-all group"
+                  data-testid={`related-podcast-${rp.slug}`}
+                >
+                  {rp.artworkUrl && (
+                    <img src={rp.artworkUrl} alt={rp.name} className="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-display font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">{rp.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{rp.category}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </motion.section>
+        )}
       </main>
 
       <Footer />
