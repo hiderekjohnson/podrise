@@ -45,6 +45,7 @@ export default function PodcastLandingGeneric() {
   const { toast } = useToast();
   const { mutate: register, isPending } = useRegister();
   const [email, setEmail] = useState("");
+  const [showEmailField, setShowEmailField] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
@@ -209,51 +210,65 @@ export default function PodcastLandingGeneric() {
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <h1
                 className="text-[2rem] sm:text-[2.5rem] md:text-[3rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
                 data-testid="heading-main"
               >
-                {name}{" "}
-                <span className="text-primary">podcast summary</span>,{" "}
-                daily
+                {name} Podcast Summaries
               </h1>
               <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                AI-powered {name} recaps from {hosts} — delivered free to your inbox every morning.
+                Get a short summary of every new {name} episode, delivered to your inbox.
+              </p>
+              <p className="text-sm text-muted-foreground/80 max-w-lg mx-auto leading-relaxed">
+                Each recap covers who the guest was, what they talked about, and the key ideas from the episode — all in a quick 2 to 3 minute read.
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3 mt-2" data-testid="form-signup">
-              <div className="flex-1 relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-                <input
-                  data-testid="input-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full h-12 pl-11 pr-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
-                />
-              </div>
+            {!showEmailField ? (
               <button
                 data-testid="button-signup"
-                type="submit"
-                disabled={isPending}
-                className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
+                type="button"
+                onClick={() => setShowEmailField(true)}
+                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap mt-2"
               >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Setting up...
-                  </>
-                ) : (
-                  <>
-                    Get Free Recaps
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                Get Free Episode Summaries
+                <ArrowRight className="w-4 h-4" />
               </button>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3 mt-2" data-testid="form-signup">
+                <div className="flex-1 relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                  <input
+                    data-testid="input-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    autoFocus
+                    className="w-full h-12 pl-11 pr-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  />
+                </div>
+                <button
+                  data-testid="button-submit"
+                  type="submit"
+                  disabled={isPending}
+                  className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Setting up...
+                    </>
+                  ) : (
+                    <>
+                      Sign Up Free
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
 
             <p className="text-[13px] text-muted-foreground/60 italic">
               Free forever for up to 3 podcasts. No credit card required.
