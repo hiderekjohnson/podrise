@@ -54,8 +54,11 @@ export default function About() {
     setMeta("property", "og:description", "PodCap was built by Derek Johnson because even semi-retirement wasn't enough to catch up on podcasts. Learn the founder story behind the daily podcast recap service.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
+    setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
     setMeta("name", "twitter:title", "About PodCap — The Story Behind Your Daily Podcast Summaries");
+    setMeta("name", "twitter:description", "PodCap was built by Derek Johnson because even semi-retirement wasn't enough to catch up on podcasts. Learn the founder story behind the daily podcast recap service.");
+    setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }

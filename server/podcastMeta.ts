@@ -10,6 +10,14 @@ interface PageMeta {
 }
 
 const STATIC_PAGES: Record<string, PageMeta> = {
+  "/about": {
+    title: "About PodCap — The Story Behind Your Daily Podcast Summaries",
+    description: "PodCap was built by Derek Johnson after 15 years running Tatango.com. Even semi-retired, he couldn't keep up with his favorite podcasts. So he built an AI-powered daily podcast summary service.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/about",
+    twitterCard: "summary",
+    replaceFavicon: false,
+  },
   "/leaderboard": {
     title: "PodCap Leaderboard — Most Popular Podcasts",
     description: "See which podcasts are trending on PodCap. Discover the most popular shows and create your own free daily AI-powered recap.",

@@ -17,6 +17,7 @@ import Terms from "./pages/Terms";
 import Support from "./pages/Support";
 import PodcastDeals from "./pages/PodcastDeals";
 import FeatureRequests from "./pages/FeatureRequests";
+import About from "./pages/About";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/support" component={Support} />
       <Route path="/updates" component={FeatureRequests} />
+      <Route path="/about" component={About} />
       <Route component={NotFound} />
     </Switch>
   );
