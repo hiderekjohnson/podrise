@@ -14,6 +14,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Support from "./pages/Support";
 import PodcastDeals from "./pages/PodcastDeals";
+import FeatureRequests from "./pages/FeatureRequests";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/support" component={Support} />
+      <Route path="/updates" component={FeatureRequests} />
       <Route component={NotFound} />
     </Switch>
   );

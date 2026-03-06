@@ -50,6 +50,13 @@ export function Footer() {
               >
                 Help & Support
               </Link>
+              <Link
+                href="/updates"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="link-updates"
+              >
+                What's New
+              </Link>
             </div>
             <p className="text-xs text-muted-foreground/60">
               &copy; {new Date().getFullYear()} PodCap. All rights reserved.
