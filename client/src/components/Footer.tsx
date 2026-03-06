@@ -51,6 +51,13 @@ export function Footer() {
                 About
               </Link>
               <Link
+                href="/contact"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="link-contact"
+              >
+                Contact
+              </Link>
+              <Link
                 href="/support"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="link-support"
