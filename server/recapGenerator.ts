@@ -31,6 +31,7 @@ interface RecapResult {
   dateStr: string;
   episodeStats: EpisodeStats;
   parsedEpisodes: ParsedEpisode[];
+  recappedPodcasts: string[];
 }
 
 type RecapMode = "yesterday" | "latest";
@@ -140,6 +141,7 @@ export async function generateRecap(
 
   const episodeData: string[] = [];
   const podcastNamesWithEpisodes: string[] = [];
+  const podcastIdsWithEpisodes: string[] = [];
   let hasAnyEpisodes = false;
   let totalDurationMin = 0;
   const episodeMetadata: Map<string, { duration: string; date: string; podcastId: string }> = new Map();
@@ -252,6 +254,7 @@ export async function generateRecap(
         if (epDetails.length > 0) {
           hasAnyEpisodes = true;
           podcastNamesWithEpisodes.push(podcast.name);
+          podcastIdsWithEpisodes.push(podcast.id);
           episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
           stats.included++;
           stats.details.push({ podcast: podcast.name, status: "included", episodeCount: epDetails.length });
@@ -375,10 +378,27 @@ export async function generateRecap(
       };
     });
 
+    const recappedPodcasts = user.podcasts.filter((raw: string) => {
+      try {
+        const parsed = JSON.parse(raw);
+        return podcastIdsWithEpisodes.includes(parsed.id);
+      } catch {
+        return podcastNamesWithEpisodes.includes(raw);
+      }
+    });
+
     const summary = markdownSections.join("\n\n");
-    return { summary, dateStr, episodeStats: stats, parsedEpisodes };
+    return { summary, dateStr, episodeStats: stats, parsedEpisodes, recappedPodcasts };
   } catch (parseErr) {
     console.warn(`[Recap] Failed to parse AI JSON response for user ${user.id}, falling back to raw content. Error:`, parseErr);
-    return { summary: content, dateStr, episodeStats: stats, parsedEpisodes: [] };
+    const recappedPodcasts = user.podcasts.filter((raw: string) => {
+      try {
+        const parsed = JSON.parse(raw);
+        return podcastIdsWithEpisodes.includes(parsed.id);
+      } catch {
+        return podcastNamesWithEpisodes.includes(raw);
+      }
+    });
+    return { summary: content, dateStr, episodeStats: stats, parsedEpisodes: [], recappedPodcasts };
   }
 }

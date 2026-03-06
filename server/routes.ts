@@ -469,12 +469,12 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Could not find any recent episodes for your podcasts. Try again later!" });
       }
 
-      const { summary, dateStr: recapDateStr } = result;
+      const { summary, dateStr: recapDateStr, recappedPodcasts } = result;
 
       const recap = await storage.createRecap({
         userId: user.id,
         recapDate: recapDateStr,
-        podcasts: user.podcasts,
+        podcasts: recappedPodcasts,
         summary,
       });
 

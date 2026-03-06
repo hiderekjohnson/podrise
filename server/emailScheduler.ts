@@ -189,14 +189,14 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     await storage.createRecap({
       userId: user.id,
       recapDate: result.dateStr,
-      podcasts: user.podcasts,
+      podcasts: result.recappedPodcasts,
       summary: result.summary,
     });
 
     await storage.createPendingEmail({
       userId: user.id,
       recipientEmail: user.email,
-      podcasts: user.podcasts,
+      podcasts: result.recappedPodcasts,
       recapDate: result.dateStr,
       summary: result.summary,
       emailHtml,
