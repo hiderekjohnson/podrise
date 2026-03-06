@@ -172,10 +172,15 @@ export async function generateRecap(
           const episodeGuid = ep.episodeGuid || `${podcast.id}_${ep.trackId || ep.trackName}`;
           let transcriptText: string | null = null;
 
+          const logEvent = (eventData: Parameters<typeof storage.logTranscriptEvent>[0]) => {
+            storage.logTranscriptEvent(eventData).catch(logErr => console.warn(`[Recap] Failed to log transcript event:`, logErr));
+          };
+
           const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
           if (cached) {
             transcriptText = cached.transcript;
             console.log(`[Recap] Using cached transcript for "${ep.trackName}" (${transcriptText.length} chars)`);
+            logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, status: "cached", transcriptLength: transcriptText.length });
           } else {
             const taddyMatch = taddyEpisodes.find((te: any) =>
               te.name?.toLowerCase().trim() === ep.trackName?.toLowerCase().trim()
@@ -192,14 +197,19 @@ export async function generateRecap(
                     episodeTitle: ep.trackName,
                     transcript: transcriptText,
                   });
+                  logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, taddyUuid: taddyMatch.uuid, status: "fetched", transcriptLength: transcriptText.length });
                 } else {
                   console.warn(`[Recap] Taddy returned empty transcript for "${ep.trackName}" (uuid: ${taddyMatch.uuid})`);
+                  logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, taddyUuid: taddyMatch.uuid, status: "empty", errorMessage: "Taddy returned empty transcript" });
                 }
-              } catch (transcriptErr) {
+              } catch (transcriptErr: any) {
                 console.warn(`[Recap] Transcript fetch failed for "${ep.trackName}":`, transcriptErr);
+                logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, taddyUuid: taddyMatch.uuid, status: "error", errorMessage: transcriptErr?.message || String(transcriptErr) });
               }
             } else {
-              console.warn(`[Recap] No Taddy title match for iTunes episode "${ep.trackName}" — available Taddy titles: ${taddyEpisodes.map((te: any) => te.name).join(", ")}`);
+              const availableTitles = taddyEpisodes.map((te: any) => te.name).join(", ");
+              console.warn(`[Recap] No Taddy title match for iTunes episode "${ep.trackName}" — available Taddy titles: ${availableTitles}`);
+              logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, status: "no_match", errorMessage: `No Taddy title match. Available: ${availableTitles.slice(0, 300)}` });
             }
           }
 

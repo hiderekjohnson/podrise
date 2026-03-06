@@ -15,7 +15,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/login` — Email-based login for existing users
 - `/dashboard` — Manage podcasts, delivery time/timezone (full IANA searchable selector with auto-detect), email, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
-- `/admin` — Admin dashboard (password-protected): view all users, email send logs, analytics; tabbed interface
+- `/admin` — Admin dashboard (password-protected): view all users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface
 - `/podcasts/myfirstmillion` — SEO landing page for My First Million podcast; email-only signup auto-adds MFM; FAQ, Apple/Spotify links, PodCap-branded
 
 ## Database Schema
@@ -25,6 +25,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), email_html (text, stores sent HTML for admin preview), sent_at
 - `magic_links` table: id, email, token (unique), expires_at, used_at, created_at — stores magic link tokens for passwordless login
 - `email_template_settings` table: id, key (unique), value — stores admin-editable email template settings (key-value pairs)
+- `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at — logs each transcript fetch attempt during recap generation
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow

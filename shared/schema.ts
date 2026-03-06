@@ -95,3 +95,19 @@ export const emailTemplateSettings = pgTable("email_template_settings", {
 });
 
 export type EmailTemplateSetting = typeof emailTemplateSettings.$inferSelect;
+
+export const transcriptLogs = pgTable("transcript_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  podcastName: text("podcast_name").notNull(),
+  podcastId: text("podcast_id").notNull(),
+  episodeTitle: text("episode_title").notNull(),
+  episodeGuid: text("episode_guid"),
+  taddyUuid: text("taddy_uuid"),
+  status: text("status").notNull(),
+  transcriptLength: integer("transcript_length"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type TranscriptLog = typeof transcriptLogs.$inferSelect;

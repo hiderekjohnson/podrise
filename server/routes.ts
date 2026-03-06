@@ -569,6 +569,38 @@ export async function registerRoutes(
     res.json({ html: log.emailHtml });
   });
 
+  app.get("/api/admin/transcript-logs", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const logs = await storage.getTranscriptLogs(300);
+    res.json(logs);
+  });
+
+  app.get("/api/admin/transcripts/:id", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const id = parseInt(req.params.id);
+    const transcript = await storage.getTranscriptById(id);
+    if (!transcript) {
+      return res.status(404).json({ message: "Transcript not found" });
+    }
+    res.json({ transcript: transcript.transcript, episodeTitle: transcript.episodeTitle, podcastId: transcript.podcastId });
+  });
+
+  app.get("/api/admin/transcripts/by-guid/:episodeGuid", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { episodeGuid } = req.params;
+    const transcript = await storage.getTranscriptByEpisodeGuid(episodeGuid);
+    if (!transcript) {
+      return res.status(404).json({ message: "Transcript not found for this episode" });
+    }
+    res.json({ transcript: transcript.transcript, episodeTitle: transcript.episodeTitle, podcastId: transcript.podcastId });
+  });
+
   app.get("/api/admin/analytics", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

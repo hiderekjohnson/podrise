@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
@@ -27,6 +27,9 @@ export interface IStorage {
   getEmailTemplateSettings(): Promise<Record<string, string>>;
   setEmailTemplateSetting(key: string, value: string): Promise<void>;
   setEmailTemplateSettings(settings: Record<string, string>): Promise<void>;
+  logTranscriptEvent(data: { userId?: number; podcastName: string; podcastId: string; episodeTitle: string; episodeGuid?: string; taddyUuid?: string; status: string; transcriptLength?: number; errorMessage?: string }): Promise<TranscriptLog>;
+  getTranscriptLogs(limit?: number): Promise<TranscriptLog[]>;
+  getTranscriptById(id: number): Promise<EpisodeTranscript | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -252,6 +255,33 @@ export class DatabaseStorage implements IStorage {
     for (const [key, value] of Object.entries(settings)) {
       await this.setEmailTemplateSetting(key, value);
     }
+  }
+
+  async logTranscriptEvent(data: { userId?: number; podcastName: string; podcastId: string; episodeTitle: string; episodeGuid?: string; taddyUuid?: string; status: string; transcriptLength?: number; errorMessage?: string }): Promise<TranscriptLog> {
+    const [log] = await db
+      .insert(transcriptLogs)
+      .values({
+        userId: data.userId ?? null,
+        podcastName: data.podcastName,
+        podcastId: data.podcastId,
+        episodeTitle: data.episodeTitle,
+        episodeGuid: data.episodeGuid ?? null,
+        taddyUuid: data.taddyUuid ?? null,
+        status: data.status,
+        transcriptLength: data.transcriptLength ?? null,
+        errorMessage: data.errorMessage ?? null,
+      })
+      .returning();
+    return log;
+  }
+
+  async getTranscriptLogs(limit = 200): Promise<TranscriptLog[]> {
+    return db.select().from(transcriptLogs).orderBy(desc(transcriptLogs.id)).limit(limit);
+  }
+
+  async getTranscriptById(id: number): Promise<EpisodeTranscript | undefined> {
+    const [t] = await db.select().from(episodeTranscripts).where(eq(episodeTranscripts.id, id));
+    return t;
   }
 }
 

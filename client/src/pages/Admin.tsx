@@ -1,9 +1,10 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, Eye, X, Palette, BrainCircuit } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, Eye, X, Palette, BrainCircuit, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
 const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
+const TranscriptLogs = lazy(() => import("./TranscriptLogs"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -63,7 +64,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "emails" | "analytics" | "template" | "prompt">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "emails" | "analytics" | "template" | "prompt" | "transcripts">("users");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [emailPreview, setEmailPreview] = useState<{ id: number; html: string } | null>(null);
   const [loadingEmailId, setLoadingEmailId] = useState<number | null>(null);
@@ -320,8 +321,20 @@ export default function Admin() {
                   <BrainCircuit className="w-4 h-4" />
                   AI Prompt
                 </button>
+                <button
+                  data-testid="tab-transcripts"
+                  onClick={() => { setActiveTab("transcripts"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === "transcripts"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Transcripts
+                </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && (
+              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -766,6 +779,16 @@ export default function Admin() {
                 </div>
               }>
                 <RecapPromptEditor />
+              </Suspense>
+            )}
+
+            {activeTab === "transcripts" && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              }>
+                <TranscriptLogs />
               </Suspense>
             )}
           </motion.div>
