@@ -1,71 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Rocket, Send, Sparkles, Calendar, ExternalLink, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, PartyPopper } from "lucide-react";
+import { Send, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { apiRequest } from "@/lib/queryClient";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface ChangelogEntry {
-  date: string;
   title: string;
   description: string;
   link?: { url: string; label: string };
   emoji: string;
+  tag?: string;
 }
 
 const changelog: ChangelogEntry[] = [
   {
-    date: "March 2026",
-    title: "Example recaps on podcast pages",
-    description: "Each individual podcast page now shows a real AI-generated recap so you can see exactly what you'll get before signing up.",
-    link: { url: "/podcasts/joerogan", label: "See an example" },
+    title: "AI-generated episode recaps on every podcast page",
+    description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily podcast recap looks like before signing up.",
+    link: { url: "/podcasts/joerogan", label: "Read Joe Rogan's latest episode summary" },
     emoji: "📝",
+    tag: "Podcast Summaries",
   },
   {
-    date: "March 2026",
-    title: "Individual podcast sign-up pages",
-    description: "We had multiple podcasters reach out and say they wanted their own sign-up pages just for their podcast — so we built them. If you're a podcaster and want your own page, reach out to us!",
-    link: { url: "/podcasts/myfirstmillion", label: "See an example" },
+    title: "Dedicated podcast summary pages for individual shows",
+    description: "Podcasters reached out and asked for their own sign-up pages — so we built them. Each page is a hub for that podcast's daily recaps, episode summaries, and show info. If you're a podcaster and want your own page, we'd love to hear from you.",
+    link: { url: "/podcasts/myfirstmillion", label: "See the My First Million podcast summary page" },
     emoji: "🎙️",
+    tag: "Podcast Pages",
   },
   {
-    date: "March 2026",
-    title: "Help & Support page",
-    description: "Sorry we didn't think of this sooner — you can now reach us anytime with questions, issues, or feedback.",
-    link: { url: "/support", label: "Visit support" },
+    title: "Help & Support center",
+    description: "Sorry we didn't think of this sooner — you can now reach us anytime with questions, issues, or feedback about your podcast summaries.",
+    link: { url: "/support", label: "Visit the PodCap support page" },
     emoji: "💬",
   },
   {
-    date: "March 2026",
-    title: "PodCap Pro — unlimited podcasts",
-    description: "You can now follow more than 3 podcasts with our new Pro tier for $9.99/month. Get unlimited podcast recaps delivered daily.",
+    title: "PodCap Pro — unlimited podcast summaries",
+    description: "Follow more than 3 podcasts with our Pro plan for $9.99/month. Get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
     emoji: "⭐",
+    tag: "Pro",
   },
   {
-    date: "March 2026",
-    title: "Podcast Deals page",
-    description: "We now extract sponsor deals, promo codes, and special offers mentioned in podcast episodes so you never miss a deal.",
-    link: { url: "/podcast-deals", label: "Browse deals" },
+    title: "Podcast deals & promo codes",
+    description: "We now extract sponsor deals, promo codes, and exclusive offers mentioned in podcast episodes — so you never miss a discount from your favorite shows.",
+    link: { url: "/podcast-deals", label: "Browse the latest podcast deals and promo codes" },
     emoji: "🏷️",
+    tag: "Deals",
   },
   {
-    date: "March 2026",
-    title: "Most Popular Podcasts directory",
-    description: "Browse and discover the most popular podcasts on PodCap, with individual pages for each one.",
-    link: { url: "/podcasts", label: "Explore podcasts" },
+    title: "Most popular podcasts directory",
+    description: "Browse and discover the most popular podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
+    link: { url: "/podcasts", label: "Explore the most popular podcast summaries" },
     emoji: "📊",
+    tag: "Discovery",
   },
   {
-    date: "February 2026",
-    title: "Vacation mode",
-    description: "Going on a trip? Put your daily recaps on pause until a specific date. You can update or cancel vacation mode anytime from your settings.",
+    title: "Vacation mode for your daily podcast recaps",
+    description: "Going on a trip? Pause your daily podcast summaries until a specific date. You can update or cancel vacation mode anytime from your dashboard settings.",
     emoji: "🏖️",
   },
   {
-    date: "February 2026",
-    title: "Custom delivery time",
-    description: "Choose exactly when you'd like to receive your daily recap. Early bird or night owl — your digest arrives on your schedule.",
+    title: "Custom delivery time for podcast summaries",
+    description: "Choose exactly when you'd like to receive your daily podcast recap. Early bird or night owl — your AI-powered episode summary arrives on your schedule.",
     emoji: "⏰",
   },
 ];
@@ -76,6 +73,45 @@ export default function FeatureRequests() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.title = "PodCap Updates — New Podcast Summary Features & Changelog";
+
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("name", "description", "See the latest PodCap features — AI-powered podcast summaries, episode recaps, custom delivery times, vacation mode, podcast deals, and more. Request new features for your daily podcast digest.");
+    setMeta("name", "keywords", "podcast summary updates, podcast recap features, PodCap changelog, podcast digest features, AI podcast summary, episode recap updates");
+    setMeta("property", "og:title", "PodCap Updates — New Podcast Summary Features & Changelog");
+    setMeta("property", "og:description", "See the latest PodCap features for AI-powered podcast summaries and episode recaps. Request new features for your daily podcast digest.");
+    setMeta("property", "og:url", "https://podcap.io/updates");
+    setMeta("property", "og:type", "website");
+    setMeta("property", "og:site_name", "PodCap");
+
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", "https://podcap.io/updates");
+
+    let jsonLd = document.querySelector('script[data-seo="updates"]');
+    if (!jsonLd) { jsonLd = document.createElement("script"); jsonLd.setAttribute("type", "application/ld+json"); jsonLd.setAttribute("data-seo", "updates"); document.head.appendChild(jsonLd); }
+    jsonLd.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "PodCap Updates — Podcast Summary Features & Changelog",
+      "description": "See the latest features for AI-powered podcast summaries and daily episode recaps on PodCap.",
+      "url": "https://podcap.io/updates",
+      "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
+    });
+
+    return () => {
+      const ld = document.querySelector('script[data-seo="updates"]');
+      if (ld) ld.remove();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +135,10 @@ export default function FeatureRequests() {
     }
   };
 
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
@@ -116,24 +156,25 @@ export default function FeatureRequests() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
 
-        <section className="w-full max-w-3xl pt-10 sm:pt-16 pb-14 text-center">
+        <section className="w-full max-w-2xl pt-10 sm:pt-16 pb-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center gap-4"
           >
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
-              <Rocket className="w-7 h-7 text-primary" />
+            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-primary/[0.06] border border-primary/[0.1] rounded-full">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-semibold text-primary tracking-wide uppercase">Product Updates</span>
             </div>
             <h1
               className="text-[2rem] sm:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
               data-testid="heading-main"
             >
-              What's New & What's Next
+              What's New at PodCap
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-              See what we've been building and tell us what you'd love to see next.
+            <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Everything we've shipped to make your daily podcast summaries better.
             </p>
           </motion.div>
         </section>
@@ -142,26 +183,75 @@ export default function FeatureRequests() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="w-full max-w-3xl pb-16"
+          className="w-full max-w-2xl pb-16"
+        >
+          <div className="space-y-3">
+            {changelog.map((entry, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.15 + i * 0.04 }}
+                data-testid={`changelog-entry-${i}`}
+              >
+                <div className="bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 hover:border-black/[0.1] transition-colors">
+                  <div className="flex gap-4">
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-black/[0.02] flex items-center justify-center text-xl">
+                      {entry.emoji}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <h3 className="text-[15px] font-bold text-foreground leading-snug">{entry.title}</h3>
+                        {entry.tag && (
+                          <span className="inline-flex px-2 py-0.5 bg-primary/[0.06] text-primary text-[10px] font-semibold uppercase tracking-wider rounded-full whitespace-nowrap">
+                            {entry.tag}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{entry.description}</p>
+                      {entry.link && (
+                        <a
+                          href={entry.link.url}
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-3"
+                          data-testid={`changelog-link-${i}`}
+                        >
+                          {entry.link.label}
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          ref={formRef}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="w-full max-w-2xl pb-20"
         >
           <div className="bg-white border border-black/[0.06] rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
                 <Lightbulb className="w-4.5 h-4.5 text-amber-600" />
               </div>
               <div>
-                <h2 className="text-base font-display font-bold text-foreground">Submit a Feature Request</h2>
+                <h2 className="text-base font-display font-bold text-foreground">What should we build next?</h2>
                 <p className="text-xs text-muted-foreground">We read every suggestion — your ideas shape PodCap.</p>
               </div>
             </div>
 
             {sent ? (
-              <div className="flex flex-col items-center gap-3 py-6 text-center" data-testid="section-sent-confirmation">
+              <div className="flex flex-col items-center gap-3 py-8 text-center" data-testid="section-sent-confirmation">
                 <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-green-600" />
                 </div>
                 <p className="text-sm font-semibold text-foreground">Thanks for the idea!</p>
-                <p className="text-sm text-muted-foreground">We read every suggestion and will reach out if we have questions.</p>
+                <p className="text-sm text-muted-foreground max-w-xs">We read every suggestion and will reach out if we have questions.</p>
                 <button
                   onClick={() => { setSent(false); setMessage(""); setEmail(""); }}
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-1"
@@ -173,7 +263,6 @@ export default function FeatureRequests() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-feature-request">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Your idea</label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -184,12 +273,11 @@ export default function FeatureRequests() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email (optional — so we can follow up)</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
+                    placeholder="your@email.com (optional)"
                     className="w-full h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all"
                     data-testid="input-email"
                   />
@@ -197,11 +285,11 @@ export default function FeatureRequests() {
                 <div className="flex items-center justify-between pt-1">
                   <a
                     href="/support"
-                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                     data-testid="link-support"
                   >
                     <LifeBuoy className="w-3.5 h-3.5" />
-                    Having an issue? Contact support instead
+                    Need help? Contact support
                   </a>
                   <button
                     type="submit"
@@ -219,81 +307,6 @@ export default function FeatureRequests() {
                 </div>
               </form>
             )}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-3xl pb-20"
-        >
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <PartyPopper className="w-4.5 h-4.5 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground" data-testid="heading-changelog">Changelog</h2>
-              <p className="text-xs text-muted-foreground">Everything we've shipped so far.</p>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute left-[15px] top-2 bottom-2 w-px bg-black/[0.06]" />
-
-            <div className="space-y-1">
-              {changelog.map((entry, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.25 + i * 0.04 }}
-                  className="relative pl-10 py-4 group"
-                  data-testid={`changelog-entry-${i}`}
-                >
-                  <div className="absolute left-[9px] top-[22px] w-[13px] h-[13px] rounded-full bg-white border-2 border-primary/30 group-hover:border-primary transition-colors" />
-
-                  <div className="bg-white border border-black/[0.06] rounded-xl p-5 hover:border-black/[0.1] transition-colors">
-                    <div className="flex items-start gap-3">
-                      <span className="text-xl leading-none mt-0.5">{entry.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-bold text-foreground">{entry.title}</h3>
-                        </div>
-                        <p className="text-xs text-muted-foreground/60 mb-2 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {entry.date}
-                        </p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{entry.description}</p>
-                        {entry.link && (
-                          <a
-                            href={entry.link.url}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors mt-2"
-                            data-testid={`changelog-link-${i}`}
-                          >
-                            {entry.link.label}
-                            <ArrowRight className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              More coming soon. Have an idea?{" "}
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="text-primary font-medium hover:text-primary/80 transition-colors"
-                data-testid="button-scroll-to-top"
-              >
-                Tell us what you'd like to see
-              </button>
-            </p>
           </div>
         </motion.section>
 
