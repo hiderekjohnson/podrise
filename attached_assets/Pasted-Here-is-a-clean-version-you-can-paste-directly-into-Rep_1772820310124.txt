@@ -1,0 +1,264 @@
+Here is a clean version you can paste directly into Replit.
+It avoids over-specifying UI or engineering choices and gives them flexibility while still defining the product requirements and SEO goals.
+
+⸻
+
+Build a new page on PodCap called Podcast Deals.
+
+The purpose of this page is to surface recent actionable deals mentioned in podcast sponsor ads that we detect from podcast transcripts we already process. The page should help us rank for searches like:
+	•	podcast promo codes
+	•	podcast sponsor deals
+	•	podcast coupon codes
+	•	deals mentioned on podcasts
+	•	“[podcast name] promo code”
+	•	“[podcast name] sponsor offer”
+
+The page should also help drive traffic to individual podcast signup pages on PodCap.
+
+URL
+Create the page at:
+
+/podcast-deals
+
+This should be an SEO-friendly indexable page.
+
+Title tag suggestion:
+Latest Podcast Deals and Promo Codes Mentioned on Top Podcasts | PodCap
+
+Meta description suggestion:
+Browse the latest podcast deals, promo codes, and sponsor offers mentioned on popular podcasts. Discover recent offers from your favorite shows and sign up to get podcast recaps with PodCap.
+
+You can implement the layout and UI however you think is best (table, cards, list, etc.). Prioritize clarity, readability, and SEO.
+
+Core concept
+This page lists real deals mentioned in podcast sponsor ads based on transcripts we already process.
+
+Each entry represents a deal mentioned in a specific podcast episode.
+
+Deal inclusion rules (important)
+Only include deals if the ad contains a clear redemption mechanism.
+
+Include deals if the ad contains something like:
+	•	a promo code
+	•	a specific URL or landing page
+	•	a discount percentage
+	•	a dollar discount
+	•	a free trial
+	•	a free bonus item
+	•	instructions to mention the podcast or host
+	•	a unique sign-up link mentioned in the ad
+
+Examples of deals to include:
+
+Use code HUBERMAN for 20 percent off
+
+Visit siriusxm.com/unwellmusic
+
+Start your Shopify trial for 1 dollar per month
+
+Mention this podcast to receive a bonus
+
+Examples to exclude:
+
+Generic sponsor mentions
+
+“This episode is brought to you by…”
+
+Brand awareness ads
+
+Host endorsements with no offer
+
+Ads with no clear way for the listener to redeem something
+
+If the sponsor ad does not contain a redemption mechanism, do not include it.
+
+Data source requirements
+Only include deals derived from podcast transcripts we already have in our system.
+
+Do not manually add deals from external sources.
+
+Each deal should be associated with:
+	•	the podcast
+	•	a specific episode
+	•	the episode date
+	•	the detected sponsor offer
+
+Recency prioritization
+Prioritize recent deals mentioned in recent podcast episodes.
+
+This page should feel fresh.
+
+Suggested sorting logic:
+	1.	Most recent podcast episode date
+	2.	Most recently detected deals
+	3.	Relevance of the offer
+
+Per-podcast limit
+For now, limit the display to a maximum of 3 deals per podcast.
+
+This prevents one large podcast from dominating the page and keeps the content diverse.
+
+Required deal information
+Each deal should include:
+
+Sponsor name
+
+Short offer summary
+
+Promo code if one exists
+
+Podcast name
+
+Podcast episode date
+
+Optional but useful fields if available:
+
+Episode title
+
+Special link mentioned in the ad
+
+Deal category
+
+Deal type (promo code, free trial, special link, etc.)
+
+Status label
+
+Display the podcast episode date clearly so users can see when the deal was mentioned.
+
+Internal linking
+Whenever a deal lists the podcast that mentioned it, link the podcast name to the PodCap podcast signup page.
+
+Examples:
+
+My First Million → /podcasts/myfirstmillion
+
+Call Her Daddy → /podcasts/callherdaddy
+
+Huberman Lab → /podcasts/hubermanlab
+
+All podcast links should point to our own pages, not external platforms.
+
+This is important for both SEO and conversion.
+
+Offer summaries
+Do not paste the entire ad transcript.
+
+Instead, summarize the offer in one short line.
+
+Examples:
+
+Shopify
+Offer: 1 dollar per month trial for new users
+Promo code: none mentioned
+Podcast: My First Million
+Podcast date: March 4 2026
+
+SiriusXM
+Offer: 3 months free trial
+Promo code: none mentioned
+Special link: siriusxm.com/unwellmusic
+Podcast: Call Her Daddy
+Podcast date: March 6 2026
+
+If a code was not mentioned, simply say “No code mentioned”.
+
+Avoid language that guarantees the deal is still active.
+
+Use safer wording like:
+
+Recently mentioned
+
+Offer mentioned in episode
+
+Check sponsor website for current terms
+
+Page intro text
+At the top of the page include an introduction similar to:
+
+Latest Podcast Deals and Promo Codes
+
+Here are some of the most recent actionable podcast deals mentioned on podcasts we track. PodCap analyzes podcast transcripts and surfaces sponsor offers that include promo codes, special links, free trials, or other redemption methods.
+
+We only include deals with a clear way for listeners to claim the offer, not generic sponsor mentions.
+
+Want more than just the deals? Visit your favorite podcast pages and sign up to get daily podcast recaps.
+
+SEO content
+Somewhere on the page include a natural sentence like:
+
+Explore recent deals mentioned on podcasts like My First Million, Call Her Daddy, Huberman Lab, and many more.
+
+You can add supporting sections if helpful for SEO, such as:
+
+Recent deals by podcast
+
+Popular sponsor categories
+
+Featured podcasts
+
+You can decide the best layout.
+
+FAQ section
+Include an FAQ section near the bottom for SEO.
+
+Suggested questions:
+
+What is the Podcast Deals page?
+
+This page lists actionable sponsor offers mentioned on podcasts we track using transcript analysis.
+
+Are these podcast promo codes updated regularly?
+
+Yes. PodCap updates the page based on recently transcribed podcast episodes.
+
+Does PodCap sell these products?
+
+No. PodCap simply organizes deals mentioned on podcasts.
+
+Can I get summaries of these podcasts?
+
+Yes. Visit any podcast page on PodCap and sign up to receive recap emails.
+
+What if a podcast mentions a deal without a promo code?
+
+Some ads use special links, free trials, or bonus offers instead of codes. We include those if there is a clear redemption method.
+
+Structured data
+If possible, add:
+
+FAQ schema
+
+ItemList schema for the deal listings
+
+Proper heading hierarchy.
+
+Design direction
+The page should feel like a clean media intelligence page, not a coupon spam site.
+
+Focus on clarity, readability, and usefulness.
+
+Avoid anything that looks like a low-quality affiliate coupon farm.
+
+Conversion goal
+The page should naturally encourage users to explore podcast pages and sign up for recap emails.
+
+Calls to action can include things like:
+
+Get podcast recaps
+
+Follow your favorite podcasts
+
+Choose podcasts to recap
+
+Final goal
+This page should:
+
+surface real deals from podcast transcripts
+
+rank for podcast promo code searches
+
+send traffic to podcast signup pages
+
+strengthen internal SEO linking
+
+help position PodCap as a podcast intelligence platform, not just a recap tool.

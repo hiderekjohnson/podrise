@@ -17,6 +17,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
 - `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface (defaults to Pending tab)
 - `/podcasts/:slug` — Unified SEO landing pages for all ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); supports Apple/Spotify/YouTube links, podcast snapshot (category, avg length, frequency, total episodes, year started), "Known For" bullets, host bios, time-saved stat, related podcasts (internal links), example AI recap, and SEO-optimized title tags
+- `/podcast-deals` — SEO page listing actionable sponsor deals extracted from podcast transcripts (promo codes, free trials, special links, discounts). FAQ schema, ItemList schema, internal linking to podcast pages. Admin triggers extraction via "Extract Deals" button in admin Analytics tab
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
@@ -28,6 +29,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `pending_emails` table: id, user_id, recipient_email, podcasts (text array), recap_date, summary, email_html, subject, scheduled_for, timezone, status (pending/sent/cancelled/error), sent_at, error_message, created_at — pre-generated emails awaiting delivery
 - `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at — logs each transcript fetch attempt during recap generation
 - `podcast_example_recaps` table: id, slug (unique), podcast_name, itunes_id, episode_title, episode_date, episode_duration, tldl, what_happened, key_insights (text array), quote, quote_attribution, updated_at — stores AI-generated example recaps for podcast landing pages
+- `podcast_deals` table: id, podcast_name, podcast_id, podcast_slug, episode_title, episode_date, sponsor_name, offer_summary, promo_code, special_link, deal_type, deal_category, detected_at — AI-extracted sponsor deals from transcripts
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow

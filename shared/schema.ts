@@ -152,3 +152,27 @@ export const podcastExampleRecaps = pgTable("podcast_example_recaps", {
 
 export type PodcastExampleRecap = typeof podcastExampleRecaps.$inferSelect;
 export type InsertPodcastExampleRecap = typeof podcastExampleRecaps.$inferInsert;
+
+export const podcastDeals = pgTable("podcast_deals", {
+  id: serial("id").primaryKey(),
+  podcastName: text("podcast_name").notNull(),
+  podcastId: text("podcast_id").notNull(),
+  podcastSlug: text("podcast_slug"),
+  episodeTitle: text("episode_title").notNull(),
+  episodeDate: text("episode_date").notNull(),
+  sponsorName: text("sponsor_name").notNull(),
+  offerSummary: text("offer_summary").notNull(),
+  promoCode: text("promo_code"),
+  specialLink: text("special_link"),
+  dealType: text("deal_type").notNull(),
+  dealCategory: text("deal_category"),
+  detectedAt: timestamp("detected_at").defaultNow(),
+});
+
+export const insertPodcastDealSchema = createInsertSchema(podcastDeals).omit({
+  id: true,
+  detectedAt: true,
+});
+
+export type PodcastDeal = typeof podcastDeals.$inferSelect;
+export type InsertPodcastDeal = z.infer<typeof insertPodcastDealSchema>;

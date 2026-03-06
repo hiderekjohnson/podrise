@@ -23,6 +23,13 @@ export function Footer() {
                 Podcasts
               </Link>
               <Link
+                href="/podcast-deals"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="link-podcast-deals"
+              >
+                Deals
+              </Link>
+              <Link
                 href="/privacy"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="link-privacy"
