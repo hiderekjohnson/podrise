@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Footer } from "@/components/Footer";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, Send, CheckCircle2, HelpCircle, Mail, Clock, Zap, CreditCard, Shield } from "lucide-react";
+import { ChevronDown, Send, CheckCircle2, HelpCircle, Mail } from "lucide-react";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -55,46 +55,58 @@ export default function Support() {
 
   const faqs = [
     {
-      question: "How does PodCap decide which episodes to include?",
-      answer: "Every day, PodCap checks for new episodes released the previous calendar day in your timezone. For example, if your delivery is set to 7:00 AM on Friday, we look for episodes that were published on Thursday (from midnight Thursday to midnight Friday in your timezone). This means you always get a recap of yesterday's episodes, with the freshest content possible.",
+      question: "How does PodCap decide which podcast episodes to include in my daily recap?",
+      answer: "PodCap automatically checks for new podcast episodes released the previous calendar day in your timezone. For example, if your daily podcast summary is set to arrive at 7:00 AM on Friday, we look for episodes published on Thursday (midnight to midnight in your timezone). This ensures your podcast recap always covers yesterday's freshest content so you never miss an episode.",
     },
     {
-      question: "What happens if none of my podcasts released a new episode?",
-      answer: "If none of your selected podcasts published a new episode the previous day, we simply skip that day — no email is sent. We don't want to clutter your inbox with empty recaps. You'll only hear from us when there's something new to catch up on.",
+      question: "What happens if none of my podcasts released a new episode yesterday?",
+      answer: "If none of your selected podcasts published a new episode, PodCap simply skips that day — no email is sent. We don't clutter your inbox with empty podcast summaries. You'll only receive a daily podcast digest when there's new content to catch up on.",
     },
     {
-      question: "When will I receive my daily recap?",
-      answer: "Your recap is generated at your chosen delivery time each day. You can set your preferred time and timezone from your dashboard. Most people choose a morning time so they can catch up over coffee.",
+      question: "When will I receive my daily podcast summary?",
+      answer: "Your podcast recap is generated and delivered at your chosen time each day. You can set your preferred delivery time and timezone from your dashboard. Most listeners choose a morning delivery so they can read their podcast summaries over coffee and decide what to listen to during their commute.",
     },
     {
-      question: "Can I change my podcast selections?",
-      answer: "Yes! You can update your podcast selections anytime from your dashboard. Just search for new podcasts and add or remove them. Changes take effect starting with your next daily recap.",
+      question: "Can I change which podcasts are included in my recap?",
+      answer: "Yes! You can update your podcast selections anytime from your dashboard. Search for new shows and add or remove them with one click. Changes take effect starting with your next daily podcast digest — no waiting required.",
     },
     {
-      question: "How many podcasts can I follow?",
-      answer: "Free users can follow up to 3 podcasts. Pro subscribers can follow unlimited podcasts and get access to longer, more detailed recaps.",
+      question: "How many podcasts can I follow with PodCap?",
+      answer: "Free users can follow up to 3 podcasts and receive daily podcast summaries for each. Pro subscribers get unlimited podcast selections and access to longer, more detailed AI-powered recaps that go deeper into each episode's key takeaways.",
     },
     {
-      question: "What does the Pro plan include?",
-      answer: "The Pro plan ($9.99/month) gives you unlimited podcast selections, longer and more detailed daily recaps, and priority support. You can upgrade anytime from your dashboard.",
+      question: "What does the PodCap Pro plan include?",
+      answer: "The Pro plan ($9.99/month) unlocks unlimited podcast selections, longer and more detailed daily podcast recaps with richer episode summaries, and priority support. You can upgrade anytime from your dashboard and start receiving enhanced podcast digests immediately.",
     },
     {
       question: "How do I cancel my Pro subscription?",
-      answer: "You can manage your subscription from your dashboard. Click the \"Manage Subscription\" button to access Stripe's customer portal where you can cancel anytime. Your Pro benefits continue until the end of your billing period.",
+      answer: "You can manage your subscription from your dashboard. Click the \"Manage Subscription\" button to access Stripe's customer portal where you can cancel anytime. Your Pro benefits — including unlimited podcast summaries — continue until the end of your billing period.",
     },
     {
-      question: "How does PodCap create the recaps?",
-      answer: "We use AI to analyze real podcast transcripts and create concise, accurate summaries. Every fact, quote, and insight in your recap comes directly from the actual episode transcript — nothing is made up or guessed.",
+      question: "How does PodCap create such accurate podcast recaps?",
+      answer: "PodCap uses advanced AI to analyze real podcast transcripts and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode transcript — nothing is fabricated or guessed. This makes PodCap one of the most reliable podcast summary services available.",
     },
     {
-      question: "I'm not receiving my emails. What should I do?",
-      answer: "First, check your spam or junk folder — sometimes recap emails end up there. If you find them there, mark them as \"not spam\" so future emails go to your inbox. Also make sure the email address on your account is correct (you can check this on your dashboard). If you're still not receiving emails, contact us using the form below.",
+      question: "I'm not receiving my daily podcast recap emails. What should I do?",
+      answer: "First, check your spam or junk folder — sometimes podcast summary emails end up there. If you find them, mark them as \"not spam\" so future podcast digests go to your inbox. Also verify the email address on your dashboard is correct. If you're still not receiving your daily podcast recaps, reach out using the contact form below and we'll help troubleshoot.",
     },
     {
-      question: "Is my data safe?",
-      answer: "Yes. We only collect your email address and podcast preferences. We don't sell your data to anyone. Payment processing is handled securely by Stripe — we never see or store your credit card details. You can read our full Privacy Policy for more details.",
+      question: "Is my data safe with PodCap?",
+      answer: "Absolutely. We only collect your email address and podcast preferences — the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone. Payment processing is handled securely by Stripe, so we never see or store your credit card details.",
     },
   ];
+
+  useEffect(() => {
+    document.title = "Help & Support — PodCap | Daily Podcast Summaries & Recaps";
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.content = content;
+    };
+    setMeta("name", "description", "Find answers about PodCap's AI-powered daily podcast summaries, episode recaps, delivery settings, Pro plan features, and more. Get help or contact our support team.");
+    setMeta("property", "og:title", "Help & Support — PodCap | Daily Podcast Summaries & Recaps");
+    setMeta("property", "og:description", "Get answers about your daily podcast digest, episode summaries, delivery timing, and subscription. Contact the PodCap support team.");
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -115,7 +127,7 @@ export default function Support() {
             <HelpCircle className="w-6 h-6 text-primary" />
           </div>
           <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Help & Support</h1>
-          <p className="text-muted-foreground">Find answers to common questions or get in touch with our team.</p>
+          <p className="text-muted-foreground">Find answers to common questions about your daily podcast recaps, or get in touch with our team.</p>
         </div>
 
         <section className="mb-14">
@@ -130,28 +142,13 @@ export default function Support() {
         </section>
 
         <section className="mb-14">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-black/[0.06] bg-white">
-              <Clock className="w-5 h-5 text-primary mb-2" />
-              <p className="text-sm font-semibold">Quick Responses</p>
-              <p className="text-xs text-muted-foreground mt-1">We typically reply within a few hours.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-black/[0.06] bg-white">
-              <Shield className="w-5 h-5 text-primary mb-2" />
-              <p className="text-sm font-semibold">Privacy First</p>
-              <p className="text-xs text-muted-foreground mt-1">Your data is secure and never shared.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-5 rounded-xl border border-black/[0.06] bg-white">
-              <Zap className="w-5 h-5 text-primary mb-2" />
-              <p className="text-sm font-semibold">Real Humans</p>
-              <p className="text-xs text-muted-foreground mt-1">Every message is read by our team.</p>
-            </div>
-          </div>
-
           <h2 className="text-xl font-bold mb-5 flex items-center gap-2">
             <Mail className="w-5 h-5 text-primary" />
             <span>Contact Us</span>
           </h2>
+          <p className="text-sm text-muted-foreground mb-5">
+            Can't find the answer you're looking for above? Send us a message below and we'll get back to you as soon as we can.
+          </p>
 
           <div className="border border-black/[0.06] rounded-2xl bg-white p-6">
             {submitMutation.isSuccess ? (
@@ -170,14 +167,14 @@ export default function Support() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-support">
                 <div>
-                  <label htmlFor="support-email" className="block text-sm font-semibold mb-1.5">Your email</label>
+                  <label htmlFor="support-email" className="block text-sm font-semibold mb-1.5">Your PodCap email address</label>
                   <input
                     id="support-email"
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder="The email you use to log in to PodCap"
                     className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     data-testid="input-support-email"
                   />
