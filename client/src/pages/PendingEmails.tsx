@@ -95,7 +95,7 @@ function formatDateTime(dateStr: string | null) {
 
 export default function PendingEmails() {
   const { toast } = useToast();
-  const [statusFilter, setStatusFilter] = useState<string>("held");
+  const [statusFilter, setStatusFilter] = useState<string>("pending_approval");
   const [previewHtml, setPreviewHtml] = useState<{ id: number; html: string } | null>(null);
   const [loadingPreviewId, setLoadingPreviewId] = useState<number | null>(null);
 
@@ -165,36 +165,35 @@ export default function PendingEmails() {
     );
   }
 
-  const filteredEmails = statusFilter === "all"
-    ? (emails || [])
-    : (emails || []).filter(e => e.status === statusFilter);
+  const allEmails = emails || [];
+  const pendingApprovalEmails = allEmails.filter(e => e.status === "held" || e.status === "pending");
+  const sentEmails = allEmails.filter(e => e.status === "sent");
+  const cancelledErrorEmails = allEmails.filter(e => e.status === "cancelled" || e.status === "error");
 
-  const statusCounts = (emails || []).reduce((acc, e) => {
-    acc[e.status] = (acc[e.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const filteredEmails = statusFilter === "pending_approval"
+    ? pendingApprovalEmails
+    : statusFilter === "sent"
+    ? sentEmails
+    : cancelledErrorEmails;
 
-  const pendingCount = statusCounts["pending"] || 0;
+  const tabs = [
+    { key: "pending_approval", label: "Pending Approval", count: pendingApprovalEmails.length },
+    { key: "sent", label: "Approved — Sent", count: sentEmails.length },
+    { key: "cancelled_error", label: "Cancelled / Error", count: cancelledErrorEmails.length },
+  ];
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setStatusFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === "all" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-black/[0.03]"}`}
-            data-testid="filter-pending-all"
-          >
-            All ({emails?.length || 0})
-          </button>
-          {["held", "pending", "sent", "cancelled", "error"].map(s => (
+          {tabs.map(tab => (
             <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${statusFilter === s ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-black/[0.03]"}`}
-              data-testid={`filter-pending-${s}`}
+              key={tab.key}
+              onClick={() => setStatusFilter(tab.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === tab.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-black/[0.03]"}`}
+              data-testid={`filter-${tab.key}`}
             >
-              {s} ({statusCounts[s] || 0})
+              {tab.label} ({tab.count})
             </button>
           ))}
         </div>
@@ -209,12 +208,12 @@ export default function PendingEmails() {
         </button>
       </div>
 
-      {pendingCount > 0 && statusFilter === "pending" && (
+      {pendingApprovalEmails.length > 0 && statusFilter === "pending_approval" && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3" data-testid="pending-summary">
           <Mail className="w-5 h-5 text-amber-600 shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">{pendingCount} email{pendingCount !== 1 ? "s" : ""} queued to send today</p>
-            <p className="text-xs text-amber-600 mt-0.5">Review the content below. Cancel any that look wrong before they're delivered.</p>
+            <p className="text-sm font-semibold text-amber-800">{pendingApprovalEmails.length} email{pendingApprovalEmails.length !== 1 ? "s" : ""} waiting for your approval</p>
+            <p className="text-xs text-amber-600 mt-0.5">Preview each email, then click Send or Cancel.</p>
           </div>
         </div>
       )}

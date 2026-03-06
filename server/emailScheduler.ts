@@ -4,7 +4,29 @@ import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
+const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
 const recentlyGenerated = new Set<string>();
+
+async function sendAdminNotification(userEmail: string, subject: string) {
+  const { client, fromEmail } = await getUncachableResendClient();
+  await client.emails.send({
+    from: `PodCap System <${fromEmail}>`,
+    to: ADMIN_NOTIFY_EMAIL,
+    subject: `⚡ New email pending approval`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+        <h2 style="margin: 0 0 16px; font-size: 18px; color: #1a1a1a;">New Email Pending Approval</h2>
+        <div style="background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <p style="margin: 0 0 8px; font-size: 14px; color: #92400E;"><strong>For:</strong> ${userEmail}</p>
+          <p style="margin: 0; font-size: 14px; color: #92400E;"><strong>Subject:</strong> ${subject}</p>
+        </div>
+        <p style="margin: 0 0 16px; font-size: 14px; color: #666;">A new recap email has been generated and is waiting for your review. Please log in to the admin dashboard to preview and approve it.</p>
+        <a href="https://podcap.io/admin" style="display: inline-block; background: #2563EB; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;">Review in Admin Dashboard</a>
+      </div>
+    `,
+  });
+  console.log(`[EmailScheduler] Admin notification sent to ${ADMIN_NOTIFY_EMAIL}`);
+}
 
 function getUserLocalDate(timezone: string): string {
   try {
@@ -140,6 +162,13 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     });
 
     console.log(`[EmailScheduler] Email generated and held for review — user ${user.id} (${deliveryTime} ${timezone})`);
+
+    try {
+      await sendAdminNotification(user.email, subject);
+    } catch (notifyErr) {
+      console.warn(`[EmailScheduler] Failed to send admin notification:`, notifyErr);
+    }
+
     return "generated";
   } catch (err) {
     console.error(`[EmailScheduler] Generation failed for user ${user.id}:`, err);
