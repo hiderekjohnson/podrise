@@ -249,7 +249,7 @@ export default function PendingEmails() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-[13px] font-semibold text-foreground">{formatDeliveryTime(email.scheduledFor)}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-0.5">{email.timezone.replace(/_/g, " ")}</p>
+                    <p className="text-xs text-muted-foreground/60 mt-0.5">{email.recapDate} · {email.timezone.replace(/_/g, " ")}</p>
                   </td>
                   <td className="px-4 py-3">
                     {statusBadge(email.status)}
