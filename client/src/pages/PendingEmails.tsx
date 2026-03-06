@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail, Info } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -30,9 +30,16 @@ interface PendingEmailEntry {
 
 function statusBadge(status: string) {
   switch (status) {
+    case "held":
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700" data-testid="badge-held">
+          <Eye className="w-3 h-3" />
+          Held for Review
+        </span>
+      );
     case "pending":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700" data-testid="badge-pending">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700" data-testid="badge-pending">
           <Clock className="w-3 h-3" />
           Pending
         </span>
@@ -85,47 +92,20 @@ function formatDateTime(dateStr: string | null) {
   });
 }
 
-const PREGENERATE_HOUR_UTC = 7;
-
 function ScheduleDisclosure() {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const nextRunUTC = new Date(now);
-  nextRunUTC.setUTCHours(PREGENERATE_HOUR_UTC, 0, 0, 0);
-  if (nextRunUTC <= now) {
-    nextRunUTC.setUTCDate(nextRunUTC.getUTCDate() + 1);
-  }
-
-  const diffMs = nextRunUTC.getTime() - now.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-  const localTime = nextRunUTC.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
-  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, " ");
-
-  let countdown = "";
-  if (diffHours > 0) {
-    countdown = `${diffHours}h ${diffMins}m`;
-  } else {
-    countdown = `${diffMins}m`;
-  }
-
   return (
     <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200/60 text-sm text-blue-800" data-testid="schedule-disclosure">
       <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
       <div>
-        <p className="font-semibold">Daily email generation schedule</p>
+        <p className="font-semibold">How email delivery works</p>
         <p className="mt-0.5 text-blue-700/80">
-          Emails are automatically generated every day at <span className="font-semibold">{PREGENERATE_HOUR_UTC}:00 UTC</span> ({localTime} {localTz}).
-          Each user's email is then delivered at their chosen delivery time.
+          Each user's recap is automatically generated at their chosen delivery time in their timezone. Once generated, emails are <span className="font-semibold">held for review</span> — they will not be sent until you manually approve and send each one.
+        </p>
+        <p className="mt-1.5 text-blue-700/80">
+          <span className="font-semibold">Your workflow:</span> Check this page periodically for new "Held for Review" emails → Preview them → Click Send or Cancel for each one.
         </p>
         <p className="mt-1 text-blue-600/70 text-xs">
-          Next run in <span className="font-semibold">{countdown}</span> — check back after that to review emails before they're sent.
+          You can also use "Generate Now" to manually create emails for all users immediately.
         </p>
       </div>
     </div>
@@ -134,7 +114,7 @@ function ScheduleDisclosure() {
 
 export default function PendingEmails() {
   const { toast } = useToast();
-  const [statusFilter, setStatusFilter] = useState<string>("pending");
+  const [statusFilter, setStatusFilter] = useState<string>("held");
   const [previewHtml, setPreviewHtml] = useState<{ id: number; html: string } | null>(null);
   const [loadingPreviewId, setLoadingPreviewId] = useState<number | null>(null);
 
@@ -227,7 +207,7 @@ export default function PendingEmails() {
           >
             All ({emails?.length || 0})
           </button>
-          {["pending", "sent", "cancelled", "error"].map(s => (
+          {["held", "pending", "sent", "cancelled", "error"].map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -368,7 +348,7 @@ export default function PendingEmails() {
                       >
                         {loadingPreviewId === email.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                       </button>
-                      {email.status === "pending" && (
+                      {(email.status === "held" || email.status === "pending") && (
                         <>
                           <button
                             onClick={() => sendNowMutation.mutate(email.id)}

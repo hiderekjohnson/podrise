@@ -636,7 +636,7 @@ export async function registerRoutes(
     if (!pending) {
       return res.status(404).json({ message: "Pending email not found" });
     }
-    if (pending.status !== "pending") {
+    if (pending.status !== "held" && pending.status !== "pending") {
       return res.status(400).json({ message: `Cannot cancel email with status "${pending.status}"` });
     }
     await storage.updatePendingEmailStatus(id, "cancelled");
@@ -652,7 +652,7 @@ export async function registerRoutes(
     if (!pending) {
       return res.status(404).json({ message: "Pending email not found" });
     }
-    if (pending.status !== "pending") {
+    if (pending.status !== "held" && pending.status !== "pending") {
       return res.status(400).json({ message: `Cannot send email with status "${pending.status}"` });
     }
 

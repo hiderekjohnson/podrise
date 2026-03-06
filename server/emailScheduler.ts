@@ -4,9 +4,7 @@ import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
-const PREGENERATE_HOUR_UTC = 7;
-const recentlySent = new Set<string>();
-let lastPregenerateDate = "";
+const recentlyGenerated = new Set<string>();
 
 function getUserLocalDate(timezone: string): string {
   try {
@@ -32,7 +30,7 @@ function getUserLocalTime(timezone: string): { hours: number; minutes: number } 
   }
 }
 
-function shouldSendNow(deliveryTime: string, timezone: string): boolean {
+function isDeliveryTime(deliveryTime: string, timezone: string): boolean {
   const parts = deliveryTime.split(":").map(Number);
   if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
   const [targetHour, targetMinute] = parts;
@@ -41,7 +39,7 @@ function shouldSendNow(deliveryTime: string, timezone: string): boolean {
   const targetTotal = targetHour * 60 + targetMinute;
   const currentTotal = hours * 60 + minutes;
   const diff = currentTotal - targetTotal;
-  return diff >= 0 && diff <= 60;
+  return diff >= 0 && diff <= 5;
 }
 
 function getYesterdayInTimezone(timezone: string): { start: Date; end: Date; label: string; dateStr: string } {
@@ -70,19 +68,91 @@ function getYesterdayInTimezone(timezone: string): { start: Date; end: Date; lab
   }
 }
 
-async function pregenerateAllEmails(force = false) {
-  const todayUTC = new Date().toISOString().split("T")[0];
-  if (!force && lastPregenerateDate === todayUTC) return;
+async function generateForUser(user: any, force: boolean, recapPrompt?: string): Promise<"generated" | "skipped" | "failed"> {
+  if (!user.podcasts || user.podcasts.length === 0 || !user.email) {
+    return "skipped";
+  }
 
-  console.log(`[EmailScheduler] Starting ${force ? "FORCED " : ""}nightly pre-generation for ${todayUTC}...`);
-  lastPregenerateDate = todayUTC;
+  const timezone = user.deliveryTimezone || "America/New_York";
 
+  try {
+    const { start: yesterdayStart, end: yesterdayEnd, label: yesterdayLabel, dateStr } = getYesterdayInTimezone(timezone);
+
+    if (!force) {
+      const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
+      if (existing.length > 0) {
+        return "skipped";
+      }
+
+      const recaps = await storage.getRecapsByUserId(user.id);
+      if (recaps.some(r => r.recapDate === dateStr)) {
+        return "skipped";
+      }
+    } else {
+      const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
+      const heldOnes = existing.filter((e: any) => e.status === "held" || e.status === "pending");
+      for (const p of heldOnes) {
+        await storage.updatePendingEmailStatus(p.id, "cancelled", "Replaced by forced regeneration");
+      }
+    }
+
+    console.log(`[EmailScheduler] Generating recap for user ${user.id} (${user.email})...`);
+
+    const result = await generateRecap(user, yesterdayStart, yesterdayEnd, yesterdayLabel, dateStr, "yesterday", recapPrompt);
+    if (!result) {
+      console.log(`[EmailScheduler] No new episodes for user ${user.id}, skipping.`);
+      return "skipped";
+    }
+
+    const h2Count = (result.summary.match(/^## /gm) || []).length;
+    console.log(`[EmailScheduler] User ${user.id} recap: ${result.summary.length} chars, ${h2Count} h2 sections`);
+    if (!recapHasContent(result.summary)) {
+      console.warn(`[EmailScheduler] Recap for user ${user.id} has 0 parsed episodes. First 500 chars: ${result.summary.slice(0, 500)}`);
+      return "skipped";
+    }
+
+    const templateSettings = await storage.getEmailTemplateSettings();
+    const emailHtml = markdownToEmailHtml(result.summary, user.email, templateSettings);
+
+    const deliveryTime = user.deliveryTime || "07:00";
+    const subject = `☕ Your PodCap Daily Recap — ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
+
+    await storage.createRecap({
+      userId: user.id,
+      recapDate: result.dateStr,
+      podcasts: user.podcasts,
+      summary: result.summary,
+    });
+
+    await storage.createPendingEmail({
+      userId: user.id,
+      recipientEmail: user.email,
+      podcasts: user.podcasts,
+      recapDate: result.dateStr,
+      summary: result.summary,
+      emailHtml,
+      subject,
+      scheduledFor: deliveryTime,
+      timezone,
+      episodeStats: JSON.stringify(result.episodeStats),
+      source: force ? "manual" : "scheduled",
+      status: "held",
+    });
+
+    console.log(`[EmailScheduler] Email generated and held for review — user ${user.id} (${deliveryTime} ${timezone})`);
+    return "generated";
+  } catch (err) {
+    console.error(`[EmailScheduler] Generation failed for user ${user.id}:`, err);
+    return "failed";
+  }
+}
+
+async function processSchedulerTick() {
   let users: any[];
   try {
     users = await storage.getAllUsers();
   } catch (err) {
-    console.error("[EmailScheduler] Failed to fetch users for pre-generation:", err);
-    lastPregenerateDate = "";
+    console.error("[EmailScheduler] Failed to fetch users:", err);
     return;
   }
 
@@ -90,99 +160,54 @@ async function pregenerateAllEmails(force = false) {
   try {
     const settings = await storage.getEmailTemplateSettings();
     recapPrompt = settings.recapPrompt || undefined;
-  } catch (err) {
-    console.error("[EmailScheduler] Failed to load recap prompt:", err);
-  }
-
-  let generated = 0;
-  let skipped = 0;
-  let failed = 0;
+  } catch {}
 
   for (const user of users) {
-    if (!user.podcasts || user.podcasts.length === 0 || !user.email) {
-      skipped++;
-      continue;
-    }
+    if (!user.podcasts || user.podcasts.length === 0 || !user.email) continue;
 
     const timezone = user.deliveryTimezone || "America/New_York";
+    const deliveryTime = user.deliveryTime || "07:00";
 
-    try {
-      const { start: yesterdayStart, end: yesterdayEnd, label: yesterdayLabel, dateStr } = getYesterdayInTimezone(timezone);
+    if (!isDeliveryTime(deliveryTime, timezone)) continue;
 
-      if (!force) {
-        const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
-        if (existing.length > 0) {
-          skipped++;
-          continue;
-        }
+    const cacheKey = `${user.id}_${getUserLocalDate(timezone)}`;
+    if (recentlyGenerated.has(cacheKey)) continue;
+    recentlyGenerated.add(cacheKey);
 
-        const recaps = await storage.getRecapsByUserId(user.id);
-        if (recaps.some(r => r.recapDate === dateStr)) {
-          skipped++;
-          continue;
-        }
-      } else {
-        const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
-        const pendingOnes = existing.filter((e: any) => e.status === "pending");
-        for (const p of pendingOnes) {
-          await storage.updatePendingEmailStatus(p.id, "cancelled", "Replaced by forced regeneration");
-        }
-      }
-
-      console.log(`[EmailScheduler] Pre-generating recap for user ${user.id} (${user.email})...`);
-
-      const result = await generateRecap(user, yesterdayStart, yesterdayEnd, yesterdayLabel, dateStr, "yesterday", recapPrompt);
-      if (!result) {
-        console.log(`[EmailScheduler] No new episodes for user ${user.id}, skipping.`);
-        skipped++;
-        continue;
-      }
-
-      const h2Count = (result.summary.match(/^## /gm) || []).length;
-      console.log(`[EmailScheduler] User ${user.id} recap: ${result.summary.length} chars, ${h2Count} h2 sections`);
-      if (!recapHasContent(result.summary)) {
-        console.warn(`[EmailScheduler] Pre-generated recap for user ${user.id} has 0 parsed episodes. First 500 chars: ${result.summary.slice(0, 500)}`);
-        skipped++;
-        continue;
-      }
-
-      const templateSettings = await storage.getEmailTemplateSettings();
-      const emailHtml = markdownToEmailHtml(result.summary, user.email, templateSettings);
-
-      const deliveryTime = user.deliveryTime || "07:00";
-      const subject = `☕ Your PodCap Daily Recap — ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
-
-      await storage.createRecap({
-        userId: user.id,
-        recapDate: result.dateStr,
-        podcasts: user.podcasts,
-        summary: result.summary,
-      });
-
-      await storage.createPendingEmail({
-        userId: user.id,
-        recipientEmail: user.email,
-        podcasts: user.podcasts,
-        recapDate: result.dateStr,
-        summary: result.summary,
-        emailHtml,
-        subject,
-        scheduledFor: deliveryTime,
-        timezone,
-        episodeStats: JSON.stringify(result.episodeStats),
-        source: force ? "manual" : "scheduled",
-        status: "pending",
-      });
-
-      generated++;
-      console.log(`[EmailScheduler] Pre-generated email for user ${user.id} scheduled at ${deliveryTime} ${timezone}`);
-    } catch (err) {
-      console.error(`[EmailScheduler] Pre-generation failed for user ${user.id}:`, err);
-      failed++;
-    }
+    await generateForUser(user, false, recapPrompt);
   }
 
-  console.log(`[EmailScheduler] Pre-generation complete: ${generated} generated, ${skipped} skipped, ${failed} failed`);
+  if (recentlyGenerated.size > 10000) {
+    recentlyGenerated.clear();
+  }
+}
+
+export async function triggerPregeneration() {
+  console.log(`[EmailScheduler] Manual trigger: generating for all users...`);
+
+  let users: any[];
+  try {
+    users = await storage.getAllUsers();
+  } catch (err) {
+    console.error("[EmailScheduler] Failed to fetch users:", err);
+    return;
+  }
+
+  let recapPrompt: string | undefined;
+  try {
+    const settings = await storage.getEmailTemplateSettings();
+    recapPrompt = settings.recapPrompt || undefined;
+  } catch {}
+
+  let generated = 0, skipped = 0, failed = 0;
+  for (const user of users) {
+    const result = await generateForUser(user, true, recapPrompt);
+    if (result === "generated") generated++;
+    else if (result === "skipped") skipped++;
+    else failed++;
+  }
+
+  console.log(`[EmailScheduler] Manual generation complete: ${generated} generated, ${skipped} skipped, ${failed} failed`);
 
   try {
     const cleaned = await storage.clearOldPendingEmails(7);
@@ -190,95 +215,45 @@ async function pregenerateAllEmails(force = false) {
   } catch {}
 }
 
-async function sendPendingEmails() {
-  let pendingList: any[];
-  try {
-    pendingList = await storage.getPendingEmails("pending");
-  } catch (err) {
-    console.error("[EmailScheduler] Failed to fetch pending emails:", err);
-    return;
+export async function sendHeldEmail(pendingId: number): Promise<void> {
+  const pendingList = await storage.getPendingEmails("held");
+  const pending = pendingList.find((p: any) => p.id === pendingId);
+  if (!pending) {
+    throw new Error("Email not found or not in held status");
   }
 
-  for (const pending of pendingList) {
-    const cacheKey = `${pending.userId}_${pending.recapDate}`;
-    if (recentlySent.has(cacheKey)) continue;
-
-    const timezone = pending.timezone || "America/New_York";
-    const deliveryTime = pending.scheduledFor || "07:00";
-
-    if (!shouldSendNow(deliveryTime, timezone)) continue;
-
-    recentlySent.add(cacheKey);
-
-    try {
-      if (!recapHasContent(pending.summary)) {
-        console.warn(`[EmailScheduler] Pending email ${pending.id} has no episode content — marking as error.`);
-        await storage.updatePendingEmailStatus(pending.id, "error", "No episode content in recap");
-        continue;
-      }
-
-      const userDate = getUserLocalDate(timezone);
-      const alreadyEmailed = await storage.hasEmailLogForUserOnDate(pending.userId, userDate);
-      if (alreadyEmailed) {
-        console.log(`[EmailScheduler] User ${pending.userId} already received email today, marking pending as sent.`);
-        await storage.updatePendingEmailStatus(pending.id, "sent");
-        continue;
-      }
-
-      const { client, fromEmail } = await getUncachableResendClient();
-      const sendResult = await client.emails.send({
-        from: `PodCap Daily <${fromEmail}>`,
-        to: pending.recipientEmail,
-        subject: pending.subject,
-        html: pending.emailHtml,
-      });
-
-      if (sendResult.error) {
-        console.error(`[EmailScheduler] Resend error for pending ${pending.id}:`, JSON.stringify(sendResult.error));
-        await storage.updatePendingEmailStatus(pending.id, "error", sendResult.error.message || "Send failed");
-        continue;
-      }
-
-      console.log(`[EmailScheduler] Email sent to ${pending.recipientEmail}, id: ${sendResult.data?.id}`);
-
-      await storage.updatePendingEmailStatus(pending.id, "sent");
-
-      await storage.logEmail({
-        userId: pending.userId,
-        recipientEmail: pending.recipientEmail,
-        podcasts: pending.podcasts,
-        source: "scheduled",
-        emailHtml: pending.emailHtml,
-      });
-    } catch (err) {
-      console.error(`[EmailScheduler] Failed to send pending ${pending.id}:`, err);
-      await storage.updatePendingEmailStatus(pending.id, "error", String(err)).catch(() => {});
-    }
+  if (!recapHasContent(pending.summary)) {
+    await storage.updatePendingEmailStatus(pending.id, "error", "No episode content in recap");
+    throw new Error("Email has no episode content");
   }
 
-  if (recentlySent.size > 10000) {
-    recentlySent.clear();
+  const { client, fromEmail } = await getUncachableResendClient();
+  const sendResult = await client.emails.send({
+    from: `PodCap Daily <${fromEmail}>`,
+    to: pending.recipientEmail,
+    subject: pending.subject,
+    html: pending.emailHtml,
+  });
+
+  if (sendResult.error) {
+    await storage.updatePendingEmailStatus(pending.id, "error", sendResult.error.message || "Send failed");
+    throw new Error(sendResult.error.message || "Send failed");
   }
-}
 
-async function processSchedulerTick() {
-  const nowUTC = new Date();
-  const hourUTC = nowUTC.getUTCHours();
+  console.log(`[EmailScheduler] Held email ${pending.id} sent to ${pending.recipientEmail}, id: ${sendResult.data?.id}`);
+  await storage.updatePendingEmailStatus(pending.id, "sent");
 
-  if (hourUTC === PREGENERATE_HOUR_UTC) {
-    await pregenerateAllEmails();
-  }
-
-  await sendPendingEmails();
-}
-
-export async function triggerPregeneration() {
-  lastPregenerateDate = "";
-  await pregenerateAllEmails(true);
+  await storage.logEmail({
+    userId: pending.userId,
+    recipientEmail: pending.recipientEmail,
+    podcasts: pending.podcasts,
+    source: pending.source || "scheduled",
+    emailHtml: pending.emailHtml,
+  });
 }
 
 export function startEmailScheduler() {
-  console.log(`[EmailScheduler] Starting email scheduler (pre-generation at ${PREGENERATE_HOUR_UTC}:00 UTC, delivery check every minute)...`);
+  console.log(`[EmailScheduler] Starting email scheduler (per-user generation at delivery time, emails held for review)...`);
   setInterval(processSchedulerTick, SCHEDULER_INTERVAL_MS);
   setTimeout(processSchedulerTick, 5000);
 }
