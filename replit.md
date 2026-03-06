@@ -7,52 +7,58 @@ A full-stack web application that lets users create and manage personalized dail
 - **Backend**: Express.js with session-based auth
 - **Database**: PostgreSQL via Drizzle ORM
 - **Payments**: Stripe via Replit integration (`stripe-replit-sync` for webhook/data sync)
-- **Styling**: Custom glassmorphism design with Plus Jakarta Sans display font
-- **Brand**: PodCap logo (`attached_assets/image_1772641542609.png`), primary blue `hsl(207, 90%, 54%)`
+- **Styling**: Custom design with Plus Jakarta Sans display font, clean white cards with subtle borders
+- **Brand**: PodCap logo (`attached_assets/Podcap_logo_1772731738179.png`), primary blue `hsl(207, 90%, 54%)`, warm off-white background `hsl(30, 20%, 97%)`
 
 ## Pages
 - `/` — Onboarding: 2-step signup flow (select 3 podcasts with auto-advance, enter email)
 - `/login` — Email-based login for existing users
-- `/dashboard` — Manage podcasts, delivery time/timezone (full IANA searchable selector with auto-detect), email, and plan/billing
+- `/dashboard` — Manage podcasts, delivery time/timezone (full IANA searchable selector with auto-detect), email, vacation mode, and plan/billing
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
-- `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface (defaults to Pending tab)
-- `/podcasts/:slug` — Unified SEO landing pages for all ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); supports Apple/Spotify/YouTube links, podcast snapshot (category, avg length, frequency, total episodes, year started), "Known For" bullets, host bios, time-saved stat, related podcasts (internal links), example AI recap, and SEO-optimized title tags
-- `/podcast-deals` — SEO page listing actionable sponsor deals extracted from podcast transcripts (promo codes, free trials, special links, discounts). FAQ schema, ItemList schema, internal linking to podcast pages. Admin triggers extraction via "Extract Deals" button in admin Analytics tab
+- `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs (2 tabs: Successful / Errors); tabbed interface (defaults to Pending tab)
+- `/podcasts` — Most Popular Podcasts directory/leaderboard
+- `/podcasts/:slug` — SEO landing pages for ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); centered artwork hero, email signup, Apple/Spotify/YouTube links, feature cards, example AI recap, snapshot stats, known-for bullets, host bios, time-saved stat, related podcasts, FAQ with schema markup
+- `/podcast-deals` — SEO page listing sponsor deals extracted from podcast transcripts (promo codes, free trials, special links, discounts). FAQ schema, ItemList schema, internal linking. Admin triggers extraction via "Extract Deals" button
+- `/updates` — What's New changelog + feature request form. SEO-optimized with JSON-LD, meta tags. Changelog entries first, feature request form at bottom
+- `/support` — Help & Support contact form
+- `/privacy` — Privacy Policy
+- `/terms` — Terms & Conditions
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
 - `recaps` table: id, user_id, recap_date, podcasts (text array), summary, created_at
 - `episode_transcripts` table: id, podcast_id, episode_guid (unique), episode_title, transcript, fetched_at — caches Taddy transcripts
-- `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), email_html (text, stores sent HTML for admin preview), sent_at
-- `magic_links` table: id, email, token (unique), expires_at, used_at, created_at — stores magic link tokens for passwordless login
-- `email_template_settings` table: id, key (unique), value — stores admin-editable email template settings (key-value pairs)
-- `pending_emails` table: id, user_id, recipient_email, podcasts (text array), recap_date, summary, email_html, subject, scheduled_for, timezone, status (pending/sent/cancelled/error), sent_at, error_message, created_at — pre-generated emails awaiting delivery
-- `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at — logs each transcript fetch attempt during recap generation
-- `podcast_example_recaps` table: id, slug (unique), podcast_name, itunes_id, episode_title, episode_date, episode_duration, tldl, what_happened, key_insights (text array), quote, quote_attribution, updated_at — stores AI-generated example recaps for podcast landing pages
-- `podcast_deals` table: id, podcast_name, podcast_id, podcast_slug, episode_title, episode_date, sponsor_name, offer_summary, promo_code, special_link, deal_type, deal_category, detected_at — AI-extracted sponsor deals from transcripts
-- `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
+- `email_logs` table: id, user_id, recipient_email, podcasts (text array), source ("manual"|"scheduled"), email_html (text), sent_at
+- `magic_links` table: id, email, token (unique), expires_at, used_at, created_at
+- `email_template_settings` table: id, key (unique), value — admin-editable email template settings
+- `pending_emails` table: id, user_id, recipient_email, podcasts (text array), recap_date, summary, email_html, subject, scheduled_for, timezone, status (pending/sent/cancelled/error), sent_at, error_message, created_at
+- `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at
+- `podcast_example_recaps` table: id, slug (unique), podcast_name, itunes_id, episode_title, episode_date, episode_duration, tldl, what_happened, key_insights (text array), quote, quote_attribution, updated_at
+- `podcast_deals` table: id, podcast_name, podcast_id, podcast_slug, episode_title, episode_date, sponsor_name, offer_summary, promo_code, special_link, deal_type, deal_category, detected_at
+- `stripe.*` tables: managed automatically by `stripe-replit-sync`
 
 ## Auth Flow
 - Signup via onboarding creates user record + session
 - Login via magic link: user enters email → server generates 32-byte token (15-min expiry), sends branded email via Resend → user clicks link → `GET /api/auth/magic?token=...` validates token, creates session, redirects to `/dashboard`
-- Invalid/expired magic links redirect to `/login?error=invalid` or `/login?error=expired` with inline error alert
+- Invalid/expired magic links redirect to `/login?error=invalid` or `/login?error=expired`
 - Sessions stored in PostgreSQL via `connect-pg-simple`
-- Dashboard invalidates auth cache on mount to ensure fresh session after magic link redirect
+- Cancel subscription: handles graceful downgrade for accounts with plan="pro" but no Stripe subscription ID (manually-granted pro accounts)
 
 ## Stripe / Payment Flow
 - Stripe connected via Replit integration (handles sandbox/live keys automatically)
-- `stripe-replit-sync` runs migrations on startup to create `stripe` schema, sets up managed webhook, and does backfill sync
+- `stripe-replit-sync` runs migrations on startup, sets up managed webhook, backfill sync
 - Webhook route registered BEFORE `express.json()` middleware in `server/index.ts`
 - Product "PodCap Pro" ($9.99/month) created via `server/seed-products.ts`
 - Checkout: `POST /api/stripe/create-checkout` creates Stripe customer + checkout session
-- After checkout success: redirects to `/dashboard?upgraded=true`, which calls `/api/stripe/sync-subscription` to sync plan status
-- Pro users get unlimited podcasts (no `maxSelection` limit on PodcastSearch)
-- Dashboard shows Plan section with "Upgrade to Pro" or "Manage Billing" (Stripe portal)
+- After checkout success: redirects to `/dashboard?upgraded=true`, calls `/api/stripe/sync-subscription`
+- Pro users get unlimited podcasts
 
 ## Podcast Data
-- Search powered by iTunes Search API (proxied through backend to avoid CORS)
-- Each selected podcast stored as a JSON string `{id, name, artworkUrl}` in the text array column
+- Search powered by iTunes Search API (proxied through backend)
+- Each selected podcast stored as JSON string `{id, name, artworkUrl}` in text array column
 - PodcastSearch component shared between Home (onboarding) and Dashboard
+- Landing page data: ~50 entries in `podcastLandingData.ts` with YouTube URLs, host bios, known-for bullets, related slugs
+- Server-side mapping: `server/podcastLandingMap.ts` — `ITUNES_ID_TO_SLUG` and `SLUG_TO_ITUNES_ID`
 
 ## API Routes
 - `GET /api/podcasts/search?term=...` — Search podcasts via iTunes API
@@ -68,64 +74,67 @@ A full-stack web application that lets users create and manage personalized dail
 - `POST /api/admin/logout` — Admin logout
 - `GET /api/admin/users` — Get all users (admin only)
 - `GET /api/admin/email-logs` — Get email send history (admin only, last 500)
+- `POST /api/admin/extract-deals` — Trigger deal extraction from transcripts
 - `GET /api/stripe/publishable-key` — Get Stripe publishable key
 - `POST /api/stripe/create-checkout` — Create Stripe checkout session
 - `GET /api/stripe/subscription` — Get user's subscription status
 - `POST /api/stripe/portal` — Create Stripe billing portal session
-- `POST /api/stripe/sync-subscription` — Sync subscription status from Stripe
+- `POST /api/stripe/sync-subscription` — Sync subscription status
+- `POST /api/stripe/cancel-subscription` — Cancel subscription (handles null subscription ID gracefully)
+- `GET /api/podcasts/:slug/example-recap` — Get example recap for podcast landing page
+- `GET /api/podcast-deals` — Get extracted podcast deals
+- `POST /api/support` — Submit support/feature request (sends email via Resend)
 
 ## AI Integration
 - OpenAI via Replit AI Integrations
-- Recap generation: shared `server/recapGenerator.ts` module fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
-- Summary includes stats header (podcast count, total runtime), per-episode Apple Podcasts + Spotify links
-- Summary follows specific format: Stats Header, per-episode cards with TLDL, What Happened (prose), Key Insights, Quote with attribution
-- **Admin-editable AI prompt**: The format/tone instructions sent to GPT are stored in `email_template_settings` (key: `recapPrompt`) and editable via Admin → AI Prompt tab. `DEFAULT_RECAP_PROMPT` exported from `recapGenerator.ts` used as fallback.
-- **Transcript Integration**: Taddy GraphQL API fetches real podcast transcripts for richer recaps
-  - Credentials: `TADDY_USER_ID` (shared env) + `TADDY_API_KEY` (secret)
+- Recap generation: `server/recapGenerator.ts` fetches episodes from iTunes, filters to yesterday's releases, sends to GPT-4o-mini
+- Summary format: Stats Header, per-episode cards with TLDL, What Happened (prose), Key Insights, Quote with attribution
+- Admin-editable AI prompt stored in `email_template_settings` (key: `recapPrompt`)
+- Transcript Integration: Taddy GraphQL API (`TADDY_USER_ID=4391` + `TADDY_API_KEY`)
   - Matches iTunes episodes to Taddy by podcast iTunes ID → Taddy UUID → episode title match
-  - Transcripts cached in `episode_transcripts` table (keyed by episode_guid) to avoid redundant API calls
-  - Falls back to iTunes episode descriptions when no transcript is available
-  - Transcript excerpts (up to 8000 chars) fed to GPT for more accurate quotes, facts, and insights
+  - Transcripts cached in `episode_transcripts` table
+  - Transcript excerpts (up to 8000 chars) fed to GPT for more accurate output
+- Deal extraction: `server/dealExtractor.ts` — extracts sponsor deals from transcripts via GPT
 
 ## Email System
-- **Provider**: Resend via Replit connector integration
-- **Scheduler**: `server/emailScheduler.ts` — two-phase pre-generation + delivery system:
-  1. **Pre-generation** (7:00 UTC daily): Batch-generates all recap emails for all users, stores them in `pending_emails` table with status "pending"
-  2. **Delivery** (every 60 seconds): Checks pending emails, sends any whose user's delivery time has arrived in their timezone
-  - Admin can manually trigger pre-generation via "Generate Now" button
-  - Admin can preview, cancel, or send-now any pending email before delivery
-  - Skips users who already received email today or already have a pending email for the date
-  - Safeguard: refuses to send emails with 0 parsed episodes (`recapHasContent` check)
-- **Email Template**: `server/emailTemplate.ts` converts markdown recap to styled HTML email with merge tags
-  - Admin-editable template settings stored in `email_template_settings` table
-  - Merge tags: `{{audio_length}}`, `{{episode_count}}`, `{{podcast_names}}`, `{{date}}`, `{{email}}`
-  - Template editor available in Admin dashboard → Template tab with live preview
-- **Manual Send**: Users can click "Send to Email" on any recap in the dashboard viewer
-- **API Route**: `POST /api/recaps/send-email` sends a specific recap to the user's email
+- **Provider**: Resend via Replit connector, from address: `digest@podcap.io`
+- **Scheduler**: `server/emailScheduler.ts` — two-phase system:
+  1. Pre-generation (7:00 UTC daily): Batch-generates all recap emails, stores in `pending_emails` with status "pending"
+  2. Delivery (every 60 seconds): Sends pending emails when user's delivery time arrives in their timezone
+- **Admin controls**: Generate Now, preview, cancel, send-now any pending email
+- **Email Template**: `server/emailTemplate.ts` converts markdown to styled HTML with merge tags
+- **Notification**: Admin notified at `hiderekjohnson@gmail.com`
 
 ## Key Files
 - `shared/schema.ts` — Drizzle schema + Zod validation
-- `shared/routes.ts` — API contract definitions
-- `server/routes.ts` — Express route handlers with session middleware
+- `server/routes.ts` — Express route handlers
 - `server/storage.ts` — Database storage layer
-- `server/stripeClient.ts` — Stripe client setup (credentials from Replit connector)
-- `server/webhookHandlers.ts` — Stripe webhook processing
-- `server/recapGenerator.ts` — Shared recap generation logic (iTunes fetch, Taddy transcripts, GPT prompt with stats + links)
-- `server/taddyClient.ts` — Taddy GraphQL API client for podcast search + transcript fetching
-- `server/resendClient.ts` — Resend email client (via Replit connector)
-- `server/emailTemplate.ts` — Markdown-to-HTML email template converter
-- `server/emailScheduler.ts` — Background scheduler for automated daily email delivery; also saves example recaps for landing pages when generating user recaps
-- `server/podcastLandingMap.ts` — Server-side mapping of iTunes IDs to landing page slugs
-- `client/src/components/ExampleRecapSection.tsx` — Reusable component showing AI-generated example recap on landing pages
-- `server/seed-products.ts` — Script to create Stripe products
-- `server/index.ts` — Server entry point (Stripe init + webhook route before JSON middleware)
-- `client/src/hooks/use-auth.ts` — Auth hooks
+- `server/stripeClient.ts` — Stripe client setup
+- `server/recapGenerator.ts` — Recap generation logic
+- `server/taddyClient.ts` — Taddy GraphQL API client
+- `server/resendClient.ts` — Resend email client
+- `server/emailTemplate.ts` — Email template converter
+- `server/emailScheduler.ts` — Background scheduler
+- `server/dealExtractor.ts` — Sponsor deal extraction from transcripts
+- `server/podcastLandingMap.ts` — iTunes ID ↔ slug mapping
+- `client/src/data/podcastLandingData.ts` — Landing page data for ~50 podcasts
+- `client/src/components/ExampleRecapSection.tsx` — Example recap component for landing pages
+- `client/src/components/Footer.tsx` — Shared footer with links to Podcasts, Deals, Privacy, Terms, Support, What's New
+- `client/src/pages/PodcastLandingGeneric.tsx` — Individual podcast landing/signup pages
+- `client/src/pages/FeatureRequests.tsx` — What's New changelog + feature request form
 - `client/src/pages/Home.tsx` — Onboarding page
 - `client/src/pages/Dashboard.tsx` — Dashboard page
-- `client/src/pages/Upgrade.tsx` — Upgrade page with Stripe checkout
-- `client/src/pages/Admin.tsx` — Admin dashboard page
-- `client/src/pages/EmailTemplateEditor.tsx` — Admin email template editor with live preview
-- `client/src/pages/RecapPromptEditor.tsx` — Admin AI recap prompt editor
+- `client/src/pages/Admin.tsx` — Admin dashboard
+
+## Design System
+- Max content width: `max-w-3xl` for content pages, `max-w-2xl` for focused forms
+- Cards: `bg-white border border-black/[0.06] rounded-2xl` (clean, no heavy shadows)
+- Glass panel: `bg-white border border-black/[0.06] shadow-xl shadow-black/[0.05]` (used sparingly for CTAs)
+- Buttons: `rounded-xl font-display font-bold` with primary shadow
+- Inputs: `h-11 or h-12, rounded-xl, border-black/[0.08]`
+- Animations: `framer-motion` with `y: 16` entry, 0.5s duration, staggered delays
+- Typography: font-display (Plus Jakarta Sans) for headings, system font for body
+- SEO: Each page sets title, meta description, OG tags, canonical URL, JSON-LD schema
 
 ## Important: User Data Safety
 - NEVER bulk-delete user accounts. All user accounts are real users.
