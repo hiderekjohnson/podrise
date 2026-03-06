@@ -16,6 +16,13 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-end gap-3">
             <div className="flex items-center gap-6">
               <Link
+                href="/podcasts"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="link-podcasts"
+              >
+                Podcasts
+              </Link>
+              <Link
                 href="/privacy"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="link-privacy"
