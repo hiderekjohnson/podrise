@@ -1288,16 +1288,20 @@ ${formatInstructions}`;
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!user.stripeSubscriptionId) {
-      return res.status(400).json({ message: "No active subscription found" });
-    }
-
     const podcastCount = user.podcasts?.length || 0;
     if (podcastCount > 3) {
       return res.status(400).json({
         message: `Please remove ${podcastCount - 3} podcast${podcastCount - 3 > 1 ? "s" : ""} before canceling. The free plan supports up to 3 podcasts.`,
         podcastCount,
       });
+    }
+
+    if (!user.stripeSubscriptionId) {
+      if (user.plan === "pro") {
+        await storage.updateUserStripeInfo(user.id, { plan: "free", stripeSubscriptionId: undefined });
+        return res.json({ success: true, message: "Subscription canceled" });
+      }
+      return res.status(400).json({ message: "No active subscription found" });
     }
 
     try {
