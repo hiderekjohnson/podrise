@@ -34,46 +34,7 @@ function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Dat
   return [podcastEpisodes[0]];
 }
 
-export const DEFAULT_RECAP_PROMPT = `Then for EACH episode (only ones with new content), write a section like this:
-
-## [PODCAST NAME IN CAPS]
-
-**[Episode Title]**
-[Guest Name if available] · [Guest Title if available] · [Duration]
-
-🎧 [Apple Podcasts](USE_THE_APPLE_PODCASTS_URL_FROM_THE_EPISODE_DATA_ABOVE) · [Spotify](USE_THE_SPOTIFY_SEARCH_URL_FROM_THE_EPISODE_DATA_ABOVE)
-
-**TLDL:** [2-3 sentence summary of the core thesis of the episode. Be direct and specific, not vague. TLDL stands for "Too Long, Didn't Listen".]
-
-**What Happened**
-[2-4 paragraphs telling the story of the episode in a narrative style. Walk through the conversation beat by beat — what did they open with, where did it go, what was the tension or surprise, how did it end. Write it like you're telling a friend about a conversation you overheard. Use paragraph breaks between major beats. Do NOT use bullet points here — write in flowing prose.]
-
-**Key Insights:**
-- [Specific, concrete insight #1]
-- [Specific, concrete insight #2]
-- [Specific, concrete insight #3]
-- [Specific, concrete insight #4]
-
-**Quote**
-[Speaker name] on [topic]:
-> "[A memorable, quotable line from the episode — make it feel real and punchy, the kind of thing someone would repeat at dinner]"
-
----
-
-**That's your PodCap Daily. You can thank us later.**
-
----
-
-IMPORTANT TONE GUIDELINES:
-- Write like a sharp, well-read friend catching you up — not like a news anchor or a corporate summary
-- Be specific and concrete, never vague. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
-- The quotes MUST be taken directly from the transcript provided. Do NOT invent or paraphrase quotes. Always attribute the quote to the speaker.
-- Key insights should be specific facts or claims directly stated in the transcript, not generic observations
-- Keep energy high but don't use exclamation marks excessively
-- Never say "In this episode" or "The hosts discuss" — just state the ideas directly
-- The "What Happened" section should read like a story, NOT a list. Use flowing paragraphs with paragraph breaks between beats.
-- IMPORTANT: Use the ACTUAL Apple Podcasts and Spotify links provided in the episode data above. Do NOT make up URLs. The line with links should appear right after the episode title/guest/duration line.
-- CRITICAL: NEVER fabricate, invent, or make up any quotes, facts, speaker names, guest details, or content. Every claim must come directly from the transcript. If you cannot find a good quote in the transcript, omit the Quote section for that episode rather than inventing one.`;
+export const DEFAULT_RECAP_PROMPT = `Respond with a JSON object containing episode recaps. Each episode must include tldl, whatHappened (2-4 narrative paragraphs), keyInsights (4 bullet points), quote, and quoteAttribution. Write like a sharp friend catching someone up. Be specific and concrete. Never fabricate quotes or facts — use only what's in the transcript.`;
 
 interface PromptParams {
   dateContext: string;
@@ -88,29 +49,44 @@ interface PromptParams {
 function buildPrompt(p: PromptParams): string {
   const formatInstructions = p.customPrompt || DEFAULT_RECAP_PROMPT;
 
-  return `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${p.dateContext}. Give each episode a similar-length recap — thorough but concise. Only cover podcasts that had episodes — skip any that didn't.
+  return `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${p.dateContext}. Give each episode a thorough recap. Only cover podcasts that had episodes.
 
 ${p.transcriptNote}
 
 Source episodes:
 ${p.episodeData}
 
-You MUST follow this EXACT structure and tone. Write in markdown. Do NOT skip any sections — every episode MUST include ALL of: TLDL, What Happened (2-4 paragraphs), Key Insights (4 bullet points), and Quote. If you skip sections, the email will appear broken and empty to users.
+Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text). The JSON must have this exact structure:
 
-CRITICAL FORMATTING RULES:
-1. Each podcast section MUST start with a markdown level-2 heading using "## " (two hash marks followed by a space). Example: "## MY FIRST MILLION". Do NOT omit the "## " prefix.
-2. Use bold markers (**) around section headers: **TLDL:**, **What Happened**, **Key Insights:**, **Quote**
-3. Wrap the episode title in bold: **Episode Title Here**
+{
+  "episodes": [
+    {
+      "podcastName": "PODCAST NAME IN CAPS",
+      "episodeTitle": "The Episode Title",
+      "tldl": "2-3 sentence summary of the core thesis. Be direct and specific. TLDL = Too Long Didn't Listen.",
+      "whatHappened": "2-4 paragraphs telling the story of the episode in narrative style. Walk through the conversation beat by beat. Write like you're telling a friend about a conversation you overheard. Separate paragraphs with \\n\\n.",
+      "keyInsights": [
+        "Specific concrete insight #1",
+        "Specific concrete insight #2",
+        "Specific concrete insight #3",
+        "Specific concrete insight #4"
+      ],
+      "quoteAttribution": "Speaker Name on topic",
+      "quote": "A memorable quotable line from the episode taken directly from the transcript"
+    }
+  ]
+}
 
----
-
-**At the very top of the digest, list the podcast names covered (e.g. "My First Million · Acquired · All-In"). Do NOT include a podcast count or total duration line.**
-
-${p.podcastNames}
-
----
-
-${formatInstructions}`;
+RULES:
+- Every episode MUST have all fields: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution
+- Write like a sharp well-read friend catching you up — not a news anchor
+- Be specific and concrete. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
+- Quotes MUST be taken directly from the transcript. Do NOT invent quotes. Always attribute to the speaker.
+- Key insights should be specific facts or claims from the transcript, not generic observations
+- Never say "In this episode" or "The hosts discuss" — state ideas directly
+- The whatHappened section should read like a story with flowing prose, NOT bullet points
+- NEVER fabricate any quotes, facts, speaker names, or content. Every claim must come from the transcript.
+- Use \\n\\n to separate paragraphs in whatHappened`;
 }
 
 function normalizeTitleForMatch(title: string): string {
@@ -285,9 +261,64 @@ export async function generateRecap(
     messages: [{ role: "user", content: prompt }],
     max_tokens: 8000,
     temperature: 0.7,
+    response_format: { type: "json_object" },
   });
 
   const content = completion.choices[0]?.message?.content;
   if (!content) return null;
-  return { summary: content, dateStr };
+
+  let jsonContent = content.trim();
+  if (jsonContent.startsWith("```")) {
+    jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+  }
+
+  try {
+    const parsed = JSON.parse(jsonContent);
+    if (!parsed.episodes || !Array.isArray(parsed.episodes) || parsed.episodes.length === 0) {
+      console.warn(`[Recap] AI returned JSON with no episodes for user ${user.id}`);
+      return null;
+    }
+
+    const markdownSections: string[] = [];
+    markdownSections.push(podcastNames);
+    markdownSections.push("---");
+
+    for (const ep of parsed.episodes) {
+      const lines: string[] = [];
+      lines.push(`## ${(ep.podcastName || "UNKNOWN PODCAST").toUpperCase()}`);
+      lines.push("");
+      lines.push(`**${ep.episodeTitle || "Untitled Episode"}**`);
+      lines.push("");
+      if (ep.tldl) {
+        lines.push(`**TLDL:** ${ep.tldl}`);
+        lines.push("");
+      }
+      if (ep.whatHappened) {
+        lines.push("**What Happened**");
+        lines.push(ep.whatHappened.replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"));
+        lines.push("");
+      }
+      if (ep.keyInsights && Array.isArray(ep.keyInsights) && ep.keyInsights.length > 0) {
+        lines.push("**Key Insights:**");
+        for (const insight of ep.keyInsights) {
+          lines.push(`- ${insight}`);
+        }
+        lines.push("");
+      }
+      if (ep.quote && ep.quoteAttribution) {
+        lines.push("**Quote**");
+        lines.push(`${ep.quoteAttribution}:`);
+        lines.push(`> "${ep.quote}"`);
+        lines.push("");
+      }
+      lines.push("---");
+      markdownSections.push(lines.join("\n"));
+    }
+
+    const summary = markdownSections.join("\n\n");
+    return { summary, dateStr };
+  } catch (parseErr) {
+    console.warn(`[Recap] Failed to parse AI JSON response for user ${user.id}, falling back to raw content. Error:`, parseErr);
+    return { summary: content, dateStr };
+  }
 }
