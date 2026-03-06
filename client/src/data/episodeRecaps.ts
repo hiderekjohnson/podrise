@@ -3,6 +3,7 @@ export interface EpisodeRecap {
   episodeSlug: string;
   episodeTitle: string;
   publishDate: string;
+  duration: string;
   artworkUrl: string;
   podcastName: string;
   hosts: string;
@@ -32,6 +33,7 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
     episodeSlug: "built-50m-ai-app-in-high-school",
     episodeTitle: "I built a $50M AI app in high school (and just sold it for...)",
     publishDate: "2026-03-05",
+    duration: "96 min",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
@@ -51,6 +53,7 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
     episodeSlug: "asked-450m-vc-where-to-invest-2026",
     episodeTitle: "I Asked a $450M VC Where to Invest in 2026",
     publishDate: "2026-03-03",
+    duration: "80 min",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
@@ -70,6 +73,7 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
     episodeSlug: "think-and-grow-rich-is-a-lie",
     episodeTitle: "'Think and Grow Rich' Is a Lie. (But The Advice Still Works)",
     publishDate: "2026-02-26",
+    duration: "71 min",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
@@ -89,6 +93,7 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
     episodeSlug: "dumb-iphone-apps-making-people-rich",
     episodeTitle: "Dumb iPhone Apps Are Making People Rich Again (Here's how)",
     publishDate: "2026-02-24",
+    duration: "69 min",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
@@ -108,6 +113,7 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
     episodeSlug: "selling-acs-to-tourism-king-of-jamaica",
     episodeTitle: "From selling ACs to becoming the tourism king of Jamaica",
     publishDate: "2026-02-20",
+    duration: "68 min",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg",
     podcastName: "My First Million",
     hosts: "Sam Parr & Shaan Puri",
@@ -126,6 +132,14 @@ export const EPISODE_RECAPS: EpisodeRecap[] = [
 
 export function getEpisodesByPodcast(podcastSlug: string): EpisodeRecap[] {
   return EPISODE_RECAPS.filter(e => e.podcastSlug === podcastSlug);
+}
+
+export function getEpisodesByPodcastPaginated(podcastSlug: string, page: number, perPage: number = 25): { episodes: EpisodeRecap[]; totalPages: number; total: number } {
+  const all = getEpisodesByPodcast(podcastSlug);
+  const total = all.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const start = (page - 1) * perPage;
+  return { episodes: all.slice(start, start + perPage), totalPages, total };
 }
 
 export function getEpisodeBySlug(podcastSlug: string, episodeSlug: string): EpisodeRecap | undefined {

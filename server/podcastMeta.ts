@@ -98,6 +98,22 @@ export function injectPodcastMeta(html: string, url: string): string {
     return replaceMetaTags(html, staticPage);
   }
 
+  const archiveMatch = cleanUrl.match(/^\/podcasts\/([a-zA-Z0-9_-]+)\/episodes$/);
+  if (archiveMatch) {
+    const slug = archiveMatch[1].toLowerCase();
+    const podcast = PODCAST_SEO.find(p => p.slug === slug);
+    if (podcast) {
+      const desc = `Browse all ${podcast.name} episode recaps on PodCap. Every episode summarized with key insights and takeaways by ${podcast.hosts}.`;
+      return replaceMetaTags(html, {
+        title: `All ${podcast.name} Episode Recaps | PodCap`,
+        description: desc,
+        image: podcast.artworkUrl,
+        url: `https://podcap.io/podcasts/${podcast.slug}/episodes`,
+        twitterCard: "summary_large_image",
+      });
+    }
+  }
+
   const episodeMatch = cleanUrl.match(/^\/podcasts\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)$/);
   if (episodeMatch) {
     const podcastSlug = episodeMatch[1].toLowerCase();

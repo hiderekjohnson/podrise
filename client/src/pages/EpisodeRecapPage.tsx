@@ -1,7 +1,8 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, ExternalLink } from "lucide-react";
+import { SiApplepodcasts, SiSpotify } from "react-icons/si";
 import { getEpisodeBySlug, getAdjacentEpisodes } from "../data/episodeRecaps";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "../data/podcastLandingData";
 import { useRegister } from "@/hooks/use-auth";
@@ -192,13 +193,40 @@ export default function EpisodeRecapPage() {
               <h1 className="text-[22px] sm:text-[28px] font-display font-extrabold text-foreground leading-[1.25] mt-2" data-testid="text-episode-title">
                 {episode.episodeTitle}
               </h1>
-              <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1.5" data-testid="text-episode-date">
                   <Calendar className="w-3.5 h-3.5" />
                   {formattedDate}
                 </span>
                 <span className="w-1 h-1 rounded-full bg-black/[0.15]" />
+                <span className="flex items-center gap-1.5" data-testid="text-episode-duration">
+                  <Clock className="w-3.5 h-3.5" />
+                  {episode.duration}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-black/[0.15]" />
                 <span>{episode.hosts}</span>
+              </div>
+              <div className="flex items-center gap-2 mt-4" data-testid="listen-buttons">
+                <a
+                  href={`https://podcasts.apple.com/podcast/id${podcastConfig.itunesId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.06] text-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+                  data-testid="link-apple-podcasts"
+                >
+                  <SiApplepodcasts className="w-3.5 h-3.5 text-[#9933CC]" />
+                  Apple Podcasts
+                </a>
+                <a
+                  href={`https://open.spotify.com/search/${encodeURIComponent(episode.episodeTitle + ' ' + episode.podcastName)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.06] text-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+                  data-testid="link-spotify"
+                >
+                  <SiSpotify className="w-3.5 h-3.5 text-[#1DB954]" />
+                  Spotify
+                </a>
               </div>
             </div>
           </div>

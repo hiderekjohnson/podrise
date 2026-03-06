@@ -294,22 +294,37 @@ export default function PodcastLandingGeneric() {
               Recent {name} Episode Recaps
             </h2>
             <div className="space-y-3">
-              {episodeRecaps.map((ep) => {
+              {episodeRecaps.slice(0, 10).map((ep) => {
                 const date = new Date(ep.publishDate + "T00:00:00");
                 const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                const snippet = ep.tldl.length > 120 ? ep.tldl.slice(0, 120).replace(/\s+\S*$/, "") + "..." : ep.tldl;
                 return (
                   <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
-                    <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-4 flex items-center gap-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors truncate sm:whitespace-normal">{ep.episodeTitle}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{formatted}</p>
+                    <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
+                      <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
+                      <p className="text-[15px] text-muted-foreground mt-1.5 line-clamp-2">{snippet}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-muted-foreground/60">{formatted} · {ep.duration}</span>
+                        <span className="inline-flex items-center gap-1 text-sm font-medium text-primary/60 group-hover:text-primary transition-colors">
+                          Read Summary
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary shrink-0 transition-colors" />
                     </div>
                   </Link>
                 );
               })}
             </div>
+            {episodeRecaps.length > 0 && (
+              <div className="flex justify-center mt-8">
+                <Link href={`/podcasts/${slug}/episodes`}>
+                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-view-all-episodes">
+                    View All Episodes
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Link>
+              </div>
+            )}
           </motion.section>
         )}
 
