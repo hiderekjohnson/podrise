@@ -20,7 +20,7 @@ interface ParsedDigest {
 
 function isEpisodeSection(title: string, body: string): boolean {
   if (/big ideas|conversation ammo/i.test(title)) return false;
-  return /\*\*TLDL|\*\*TL;?DR|\*\*Key (Insights|Takeaways)/i.test(body) || /^\*\*.+\*\*$/m.test(body);
+  return /\*?\*?TLDL\*?\*?[:\s]|\*?\*?TL;?DR\*?\*?[:\s]|\*?\*?Key (Insights|Takeaways)\*?\*?/i.test(body) || /^\*\*.+\*\*$/m.test(body) || /What Happened/i.test(body);
 }
 
 function normalizeMarkdownHeaders(markdown: string): string {
@@ -158,11 +158,17 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
         if (titleMatch) {
           episode.episodeTitle = titleMatch[1];
           i++;
+        } else {
+          const plainTitle = lines[i].trim();
+          if (plainTitle && !plainTitle.startsWith("TLDL") && !plainTitle.startsWith("**") && !plainTitle.startsWith(">") && !plainTitle.startsWith("-") && !plainTitle.startsWith("🎧") && !/^(What Happened|Key Insights|Quote)/i.test(plainTitle)) {
+            episode.episodeTitle = plainTitle.replace(/\s+$/, '');
+            i++;
+          }
         }
       }
 
       while (i < lines.length && !lines[i].trim()) i++;
-      if (i < lines.length && !lines[i].startsWith("**") && !lines[i].startsWith(">") && !lines[i].startsWith("-") && !/^🎧/.test(lines[i])) {
+      if (i < lines.length && !lines[i].startsWith("**") && !lines[i].startsWith(">") && !lines[i].startsWith("-") && !/^🎧/.test(lines[i]) && !/^TLDL/i.test(lines[i].trim())) {
         episode.metaLine = lines[i].trim();
         i++;
       }
@@ -175,33 +181,33 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
 
       const remainingText = lines.slice(i).join("\n");
 
-      const tldlMatch = remainingText.match(/\*\*TLDL:?\*\*\s*(.+?)(?=\n\s*\n\s*\*\*|\n\*\*[A-Z])/si);
+      const tldlMatch = remainingText.match(/\*?\*?TLDL:?\*?\*?\s*(.+?)(?=\n\s*\n\s*\*?\*?(?:What Happened|Key Insights|Key Takeaways|Quote)|\n\*\*[A-Z])/si);
       if (tldlMatch) {
         episode.tldl = tldlMatch[1].trim();
       } else {
-        const tldrMatch = remainingText.match(/\*\*TL;?DR:?\*\*\s*(.+?)(?=\n\s*\n\s*\*\*|\n\*\*[A-Z])/si);
+        const tldrMatch = remainingText.match(/\*?\*?TL;?DR:?\*?\*?\s*(.+?)(?=\n\s*\n\s*\*?\*?(?:What Happened|Key Insights|Key Takeaways|Quote)|\n\*\*[A-Z])/si);
         if (tldrMatch) {
           episode.tldl = tldrMatch[1].trim();
         } else {
-          const simpleMatch = remainingText.match(/\*\*(?:TLDL|TL;?DR):?\*\*\s*(.+?)$/mi);
+          const simpleMatch = remainingText.match(/\*?\*?(?:TLDL|TL;?DR):?\*?\*?\s*(.+?)$/mi);
           if (simpleMatch) episode.tldl = simpleMatch[1].trim();
         }
       }
 
-      const whatHappenedMatch = remainingText.match(/\*\*What Happened\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key|\n\*\*Quote)/i);
+      const whatHappenedMatch = remainingText.match(/\*?\*?What Happened\*?\*?\s*\n([\s\S]+?)(?=\n\s*\n\s*\*?\*?Key|\n\*?\*?Quote)/i);
       if (whatHappenedMatch) {
         episode.whatHappened = whatHappenedMatch[1].trim();
       } else {
-        const discussionMatch = remainingText.match(/\*\*(.+?(?:Talk|Debate|Focus|Explain|Discuss|Cover|Explore|Happened).+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key|\n\*\*Quote)/i);
+        const discussionMatch = remainingText.match(/\*\*(.+?(?:Talk|Debate|Focus|Explain|Discuss|Cover|Explore|Happened).+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*?\*?Key|\n\*?\*?Quote)/i);
         if (discussionMatch) {
           episode.whatHappened = discussionMatch[2].trim();
         } else {
-          const altMatch = remainingText.match(/\*\*(What .+?)\*\*\s*\n([\s\S]+?)(?=\n\s*\n\s*\*\*Key|\n\*\*Key|\n\*\*Quote)/i);
-          if (altMatch) episode.whatHappened = altMatch[2].trim();
+          const altMatch = remainingText.match(/\*?\*?(?:What .+?)\*?\*?\s*\n([\s\S]+?)(?=\n\s*\n\s*\*?\*?Key|\n\*?\*?Quote)/i);
+          if (altMatch) episode.whatHappened = altMatch[1].trim();
         }
       }
 
-      const insightsMatch = remainingText.match(/\*\*Key (?:Insights|Takeaways):?\*\*\s*\n((?:[-•]\s*.+\n?)+)/i);
+      const insightsMatch = remainingText.match(/\*?\*?Key (?:Insights|Takeaways):?\*?\*?\s*\n((?:[-•]\s*.+\n?)+)/i);
       if (insightsMatch) {
         episode.keyInsights = insightsMatch[1]
           .split("\n")
@@ -209,7 +215,7 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
           .map(l => l.replace(/^[-•]\s*/, "").trim());
       }
 
-      const quoteBlockMatch = remainingText.match(/\*\*Quote\*\*\s*\n(.+?):\s*\n>\s*"?(.+?)"?\s*$/ms);
+      const quoteBlockMatch = remainingText.match(/\*?\*?Quote\*?\*?\s*\n(.+?):\s*\n>\s*"?(.+?)"?\s*$/ms);
       if (quoteBlockMatch) {
         episode.quoteAttribution = quoteBlockMatch[1].trim();
         episode.quote = quoteBlockMatch[2].replace(/^[""\u201C]|[""\u201D]$/g, "").trim();
