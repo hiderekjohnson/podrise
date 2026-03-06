@@ -85,7 +85,7 @@ export default function Leaderboard() {
           {user ? (
             <a
               href="/dashboard"
-              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
               data-testid="link-dashboard"
             >
               Dashboard
@@ -93,7 +93,7 @@ export default function Leaderboard() {
           ) : (
             <a
               href="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
               data-testid="link-login"
             >
               Log in
@@ -102,61 +102,61 @@ export default function Leaderboard() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
-        <section className="w-full max-w-3xl pt-8 sm:pt-14 pb-8">
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
+        <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center text-center gap-3"
+            className="flex flex-col items-center text-center gap-5"
           >
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
-              <Trophy className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-xs font-semibold text-amber-600 tracking-wide uppercase">Most Popular</span>
+            <div className="flex items-center gap-2.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full">
+              <Trophy className="w-4.5 h-4.5 text-amber-500" />
+              <span className="text-sm font-bold text-amber-600 tracking-wide uppercase">Most Popular</span>
             </div>
             <h1
-              className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
+              className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
               data-testid="heading-leaderboard"
             >
               PodCap Podcasts
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-lg">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               See which podcasts our users are getting daily recaps for. Pick one to start your own free digest.
             </p>
           </motion.div>
         </section>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-24">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
           </div>
         ) : (
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="w-full max-w-2xl"
+            className="w-full max-w-4xl"
           >
-            <div className="glass-panel overflow-hidden">
-              <div className="px-5 sm:px-6 py-4 border-b border-black/[0.06] flex items-center gap-2">
-                <Headphones className="w-4 h-4 text-primary" />
-                <span className="text-sm font-display font-bold text-foreground">Top Podcasts by Users</span>
+            <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-6 sm:px-8 py-5 border-b border-black/[0.06] flex items-center gap-3">
+                <Headphones className="w-5 h-5 text-primary" />
+                <span className="text-base font-display font-bold text-foreground">Top Podcasts by Users</span>
               </div>
               <div className="divide-y divide-black/[0.04]">
                 {filteredPodcasts?.map((podcast, index) => (
                   <button
                     key={podcast.id}
                     onClick={() => setSelectedPodcast(podcast)}
-                    className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-4 w-full text-left transition-colors hover:bg-black/[0.02] group/row"
+                    className="flex items-center gap-5 sm:gap-6 px-6 sm:px-8 py-5 w-full text-left transition-colors hover:bg-black/[0.015] group/row"
                     data-testid={`leaderboard-row-${index}`}
                   >
-                    <span className="text-xs font-bold text-muted-foreground/50 w-5 text-right shrink-0 tabular-nums" data-testid={`rank-${index}`}>
+                    <span className="text-base font-bold text-muted-foreground/40 w-7 text-right shrink-0 tabular-nums" data-testid={`rank-${index}`}>
                       {index + 1}
                     </span>
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0 shadow-md shadow-black/[0.06]"
                       data-testid={`artwork-${index}`}
                     />
                     <div className="flex-1 min-w-0">
@@ -165,39 +165,39 @@ export default function Leaderboard() {
                         return slug ? (
                           <a
                             href={`/podcasts/${slug}`}
-                            className="text-sm font-semibold text-foreground hover:underline truncate block transition-colors"
+                            className="text-base sm:text-lg font-bold text-foreground hover:underline truncate block transition-colors"
                             data-testid={`name-${index}`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {podcast.name}
                           </a>
                         ) : (
-                          <p className="text-sm font-semibold text-foreground truncate" data-testid={`name-${index}`}>
+                          <p className="text-base sm:text-lg font-bold text-foreground truncate" data-testid={`name-${index}`}>
                             {podcast.name}
                           </p>
                         );
                       })()}
                       {podcast.artist && (
-                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
+                        <p className="text-sm text-muted-foreground/70 truncate mt-1">
                           {podcast.artist}
                         </p>
                       )}
-                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
                         {podcast.genres?.slice(0, 2).map((genre) => (
-                          <span key={genre} className="text-[10px] font-semibold text-muted-foreground/70 bg-black/[0.04] px-2 py-0.5 rounded-full">
+                          <span key={genre} className="text-xs font-semibold text-muted-foreground/70 bg-black/[0.04] px-2.5 py-1 rounded-full">
                             {genre}
                           </span>
                         ))}
                         {podcast.episodeCount > 0 && (
-                          <span className="text-[10px] text-muted-foreground/50">
-                            {podcast.episodeCount} ep.
+                          <span className="text-xs text-muted-foreground/50">
+                            {podcast.episodeCount} episodes
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20" data-testid={`button-recap-${index}`}>
+                    <div className="shrink-0 flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20" data-testid={`button-recap-${index}`}>
                       Get Recaps
-                      <ArrowRight className="w-3 h-3" />
+                      <ArrowRight className="w-4 h-4" />
                     </div>
                   </button>
                 ))}
@@ -210,47 +210,40 @@ export default function Leaderboard() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="w-full max-w-2xl mt-12"
+          className="w-full max-w-4xl mt-16"
         >
-          <div className="glass-panel overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-black/[0.06] flex items-center gap-2">
-              <Globe className="w-4 h-4 text-primary" />
-              <span className="text-sm font-display font-bold text-foreground">Global Leaders</span>
+          <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 sm:px-8 py-5 border-b border-black/[0.06] flex items-center gap-3">
+              <Globe className="w-5 h-5 text-primary" />
+              <span className="text-base font-display font-bold text-foreground">Browse All Podcasts</span>
             </div>
-            <div className="divide-y divide-black/[0.04]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 divide-y sm:divide-y-0 divide-black/[0.04]">
               {PODCAST_LANDINGS.map((podcast, index) => (
                 <a
                   key={podcast.slug}
                   href={`/podcasts/${podcast.slug}`}
-                  className="flex items-center gap-4 sm:gap-5 px-5 sm:px-6 py-3.5 transition-colors hover:bg-black/[0.02] group/row"
+                  className="flex items-center gap-4 px-6 sm:px-7 py-5 transition-colors hover:bg-black/[0.015] group/row border-b border-black/[0.04] sm:border-r sm:last:border-r-0"
                   data-testid={`global-leader-row-${index}`}
                 >
-                  <span className="text-xs font-bold text-muted-foreground/50 w-5 text-right shrink-0 tabular-nums">
-                    {index + 1}
-                  </span>
                   {podcast.artworkUrl ? (
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm shadow-black/[0.08]"
+                      className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-md shadow-black/[0.06]"
                       data-testid={`global-artwork-${index}`}
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                      <Headphones className="w-4 h-4 text-primary/60" />
+                    <div className="w-14 h-14 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                      <Headphones className="w-6 h-6 text-primary/60" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
+                    <p className="text-[15px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
                       {podcast.name}
                     </p>
-                    <p className="text-xs text-muted-foreground/60 mt-0.5">
+                    <p className="text-sm text-muted-foreground mt-0.5">
                       {podcast.category}
                     </p>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20">
-                    Get Recaps
-                    <ArrowRight className="w-3 h-3" />
                   </div>
                 </a>
               ))}
@@ -269,28 +262,28 @@ export default function Leaderboard() {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-md flex flex-col items-center gap-5"
+            className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md flex flex-col items-center gap-6"
           >
             <img
               src={selectedPodcast.artworkUrl}
               alt={selectedPodcast.name}
-              className="w-20 h-20 rounded-2xl shadow-lg"
+              className="w-24 h-24 rounded-2xl shadow-lg"
               data-testid="modal-artwork"
             />
             <div className="text-center">
-              <h2 className="text-lg font-display font-extrabold text-foreground" data-testid="modal-title">
+              <h2 className="text-xl font-display font-extrabold text-foreground" data-testid="modal-title">
                 Get daily recaps of {selectedPodcast.name}
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Enter your email and we'll send you an AI-powered summary every time a new episode drops.
+              <p className="text-base text-muted-foreground mt-2">
+                Enter your email and we'll send you a summary every time a new episode drops.
               </p>
             </div>
             {user ? (
-              <div className="w-full flex flex-col items-center gap-3">
-                <p className="text-sm text-muted-foreground">You're already signed in.</p>
+              <div className="w-full flex flex-col items-center gap-4">
+                <p className="text-base text-muted-foreground">You're already signed in.</p>
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-105 transition-all active:scale-[0.98]"
+                  className="w-full h-14 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-105 transition-all active:scale-[0.98]"
                   data-testid="button-go-dashboard"
                 >
                   Go to Dashboard
@@ -298,9 +291,9 @@ export default function Leaderboard() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSignup} className="w-full flex flex-col gap-3" data-testid="form-leaderboard-signup">
+              <form onSubmit={handleSignup} className="w-full flex flex-col gap-4" data-testid="form-leaderboard-signup">
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" />
                   <input
                     data-testid="input-leaderboard-email"
                     type="email"
@@ -308,14 +301,14 @@ export default function Leaderboard() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     autoFocus
-                    className="w-full h-14 pl-11 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                    className="w-full h-14 pl-12 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
                   />
                 </div>
                 <button
                   data-testid="button-leaderboard-signup"
                   type="submit"
                   disabled={isPending}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-105 disabled:opacity-50 transition-all active:scale-[0.98]"
+                  className="w-full h-14 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-105 disabled:opacity-50 transition-all active:scale-[0.98]"
                 >
                   {isPending ? (
                     <>
@@ -329,14 +322,14 @@ export default function Leaderboard() {
                     </>
                   )}
                 </button>
-                <p className="text-xs text-muted-foreground/60 text-center">
+                <p className="text-sm text-muted-foreground/60 text-center">
                   Free forever for up to 3 podcasts. No credit card required.
                 </p>
               </form>
             )}
             <button
               onClick={() => setSelectedPodcast(null)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               data-testid="button-close-modal"
             >
               Cancel
