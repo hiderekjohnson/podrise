@@ -138,9 +138,11 @@ export default function PodcastLandingGeneric() {
     return null;
   }
 
-  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, appleUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs } = config;
+  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs } = config;
   const faqItems = generateFaqItems(name, hosts, faqTopics, category);
-  const hasExternalLinks = appleUrl || spotifyUrl || youtubeUrl;
+  const appleUrl = `https://podcasts.apple.com/podcast/id${itunesId}`;
+  const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
+  const hasExternalLinks = true;
   const timeSaved = estimateTimeSaved(avgEpisodeLength, totalEpisodes);
 
   const relatedPodcasts = (relatedSlugs || [])
@@ -285,9 +287,9 @@ export default function PodcastLandingGeneric() {
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
-                {spotifyUrl && (
+                {effectiveSpotifyUrl && (
                   <a
-                    href={spotifyUrl}
+                    href={effectiveSpotifyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
