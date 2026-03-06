@@ -129,20 +129,6 @@ export default function PendingEmails() {
     },
   });
 
-  const triggerMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", "/api/admin/trigger-pregeneration");
-    },
-    onSuccess: () => {
-      toast({ title: "Pre-generation started", description: "Recaps are being generated. Refresh in a few minutes to see results." });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/pending-emails"] });
-      }, 10000);
-    },
-    onError: (err: any) => {
-      toast({ title: "Error", description: err.message || "Failed to trigger", variant: "destructive" });
-    },
-  });
 
   const handlePreview = async (id: number) => {
     setLoadingPreviewId(id);
@@ -197,15 +183,6 @@ export default function PendingEmails() {
             </button>
           ))}
         </div>
-        <button
-          onClick={() => triggerMutation.mutate()}
-          disabled={triggerMutation.isPending}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 transition-all disabled:opacity-50"
-          data-testid="button-trigger-pregeneration"
-        >
-          {triggerMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-          Generate Now
-        </button>
       </div>
 
       {pendingApprovalEmails.length > 0 && statusFilter === "pending_approval" && (
@@ -223,7 +200,7 @@ export default function PendingEmails() {
           <Clock className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">No {statusFilter !== "all" ? statusFilter : ""} emails found.</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            {statusFilter === "pending" ? 'Click "Generate Now" to pre-generate today\'s recap emails.' : "Emails will appear here when generated."}
+            Emails will appear here as they are generated at each user's delivery time.
           </p>
         </div>
       ) : (
