@@ -159,14 +159,6 @@ export default function PodcastDeals() {
     };
   }, [deals]);
 
-  const podcastGroups: Record<string, DealEntry[]> = {};
-  (deals || []).forEach((deal) => {
-    if (!podcastGroups[deal.podcastName]) podcastGroups[deal.podcastName] = [];
-    podcastGroups[deal.podcastName].push(deal);
-  });
-
-  const categories = [...new Set((deals || []).map(d => d.dealCategory).filter(Boolean))];
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
@@ -310,45 +302,6 @@ export default function PodcastDeals() {
                 </div>
               ))}
             </div>
-
-            {Object.keys(podcastGroups).length > 0 && (
-              <section className="pt-6" data-testid="section-by-podcast">
-                <h2 className="font-display font-extrabold text-2xl text-foreground mb-6">Recent Deals by Podcast</h2>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {Object.entries(podcastGroups).map(([name, groupDeals]) => {
-                    const slug = groupDeals[0]?.podcastSlug;
-                    return (
-                      <div key={name} className="flex items-center gap-3 p-4 bg-black/[0.02] rounded-xl border border-black/[0.04]">
-                        <div className="flex-1 min-w-0">
-                          {slug ? (
-                            <Link href={`/podcasts/${slug}`} className="font-semibold text-sm text-primary hover:underline truncate block" data-testid={`podcast-group-${slug}`}>
-                              {name}
-                            </Link>
-                          ) : (
-                            <span className="font-semibold text-sm text-foreground truncate block">{name}</span>
-                          )}
-                          <span className="text-xs text-muted-foreground">{groupDeals.length} deal{groupDeals.length > 1 ? "s" : ""} found</span>
-                        </div>
-                        <span className="text-xs font-bold text-primary bg-primary/[0.08] px-2 py-1 rounded-lg">{groupDeals.length}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {categories.length > 0 && (
-              <section className="pt-4" data-testid="section-categories">
-                <h2 className="font-display font-extrabold text-2xl text-foreground mb-4">Popular Sponsor Categories</h2>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <span key={cat} className="px-3 py-1.5 bg-black/[0.03] rounded-lg text-sm font-medium text-foreground/70">
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
 
             <section className="pt-4" data-testid="section-seo-text">
               <p className="text-sm text-muted-foreground leading-relaxed">
