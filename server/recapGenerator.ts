@@ -110,6 +110,16 @@ ${p.podcastNames}
 ${formatInstructions}`;
 }
 
+function normalizeTitleForMatch(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/^\d+[\.\)\-:\s]+\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .replace(/[''""]/g, "'")
+    .trim();
+}
+
 export async function generateRecap(
   user: { id: number; podcasts: string[] },
   yesterdayStart: Date,
@@ -182,9 +192,15 @@ export async function generateRecap(
             console.log(`[Recap] Using cached transcript for "${ep.trackName}" (${transcriptText.length} chars)`);
             logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, status: "cached", transcriptLength: transcriptText.length });
           } else {
-            const taddyMatch = taddyEpisodes.find((te: any) =>
-              te.name?.toLowerCase().trim() === ep.trackName?.toLowerCase().trim()
-            );
+            const itunesNorm = normalizeTitleForMatch(ep.trackName || "");
+            const taddyMatch = taddyEpisodes.find((te: any) => {
+              if (!te.name) return false;
+              if (te.name.toLowerCase().trim() === (ep.trackName || "").toLowerCase().trim()) return true;
+              const taddyNorm = normalizeTitleForMatch(te.name);
+              if (taddyNorm === itunesNorm) return true;
+              if (taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm)) return true;
+              return false;
+            });
             if (taddyMatch?.uuid) {
               try {
                 const fetchedTranscript = await getEpisodeTranscript(taddyMatch.uuid);
