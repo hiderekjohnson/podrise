@@ -28,15 +28,15 @@ function normalizeMarkdownHeaders(markdown: string): string {
 
   const lines = markdown.split("\n");
   const result: string[] = [];
-  let foundStatsLine = false;
+  let pastHeader = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
-    if (!foundStatsLine) {
-      if (/^\*\*\d+\*\*\s*Podcasts/i.test(trimmed)) {
-        foundStatsLine = true;
+    if (!pastHeader) {
+      if (/^\*\*\d+\*\*\s*Podcasts/i.test(trimmed) || (trimmed === "---" && i > 2)) {
+        pastHeader = true;
       }
       result.push(line);
       continue;

@@ -101,11 +101,9 @@ CRITICAL FORMATTING RULE: Each podcast section MUST start with a markdown level-
 
 ---
 
-**Stats header — include this EXACTLY at the very top of the digest:**
+**At the very top of the digest, list the podcast names covered (e.g. "My First Million · Acquired · All-In"). Do NOT include a podcast count or total duration line.**
 
 ${p.podcastNames}
-
-**${p.totalPodcasts}** Podcasts · **${p.durationLong}** Total duration
 
 ---
 
