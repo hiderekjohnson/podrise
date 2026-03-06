@@ -383,6 +383,11 @@ function replaceMergeTags(text: string, vars: Record<string, string>): string {
     .replace(/\{\{email\}\}/g, vars.email || "");
 }
 
+export function recapHasContent(markdown: string): boolean {
+  const parsed = parseDigestMarkdown(markdown);
+  return parsed.episodes.length > 0;
+}
+
 export function markdownToEmailHtml(markdown: string, recipientEmail: string, templateOverrides?: Partial<EmailTemplateConfig>): string {
   const parsed = parseDigestMarkdown(markdown);
 

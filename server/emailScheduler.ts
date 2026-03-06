@@ -1,6 +1,6 @@
 import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml } from "./emailTemplate";
+import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
@@ -137,6 +137,11 @@ async function processUsers() {
 
       const templateSettings = await storage.getEmailTemplateSettings();
       const emailHtml = markdownToEmailHtml(result.summary, user.email, templateSettings);
+
+      if (!recapHasContent(result.summary)) {
+        console.warn(`[EmailScheduler] Generated recap for user ${user.id} parsed to 0 episodes — skipping send to avoid empty digest.`);
+        continue;
+      }
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({

@@ -8,7 +8,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
+import { markdownToEmailHtml, recapHasContent, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
 import { generateRecap, DEFAULT_RECAP_PROMPT } from "./recapGenerator";
 
 declare module "express-session" {
@@ -464,6 +464,11 @@ export async function registerRoutes(
       }
 
       const templateSettings = await storage.getEmailTemplateSettings();
+
+      if (!recapHasContent(recap.summary)) {
+        return res.status(400).json({ message: "This recap has no parseable episode content. It cannot be sent." });
+      }
+
       const emailHtml = markdownToEmailHtml(recap.summary, user.email, templateSettings);
       const { client, fromEmail } = await getUncachableResendClient();
 
