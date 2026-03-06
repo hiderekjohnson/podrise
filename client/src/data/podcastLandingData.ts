@@ -10,6 +10,7 @@ export interface PodcastLandingConfig {
   artworkUrl: string;
   appleUrl?: string;
   spotifyUrl?: string;
+  youtubeUrl?: string;
 }
 
 export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
@@ -23,6 +24,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Joe Rogan, JRE, interviews, comedy, culture, MMA, politics",
     faqTopics: "wide-ranging interviews, cultural commentary, science discussions, comedy, and thought-provoking conversations with guests from every walk of life",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/20/ca/57/20ca5718-1fa5-43d2-62aa-80a7b5e10a23/mza_5053467016139819545.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@joerogan",
   },
   {
     slug: "diaryofaceo",
@@ -34,6 +36,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Steven Bartlett, Diary of a CEO, DOAC, business, entrepreneurship, growth, mindset",
     faqTopics: "business strategy, personal development, health optimization, entrepreneurship lessons, and candid conversations with world-class performers and thinkers",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/69/af/0d/69af0ddd-1e0f-7ae3-c84b-88f18e31ad0c/mza_14445920128472365296.png/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@TheDiaryOfACEO",
   },
   {
     slug: "allin",
@@ -45,6 +48,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "All-In, Chamath, Jason Calacanis, David Sacks, Friedberg, venture capital, tech, startups",
     faqTopics: "technology trends, venture capital deals, economic policy debates, startup ecosystem analysis, and geopolitical commentary from four prominent Silicon Valley investors",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts124/v4/c7/d2/92/c7d292ea-44b3-47ff-2f5e-74fa5b23db6c/mza_7005270671777648882.png/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@allin",
   },
   {
     slug: "thedaily",
@@ -67,6 +71,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Lex Fridman, AI, artificial intelligence, science, technology, philosophy, robotics",
     faqTopics: "artificial intelligence research, deep learning, robotics, philosophy of mind, mathematics, physics, and long-form conversations with scientists, engineers, and thought leaders",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/3e/e3/9c/3ee39c89-de08-47a6-7f3d-3849cef6d255/mza_16657851278549137484.png/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@lexfridman",
   },
   {
     slug: "smartless",
@@ -78,6 +83,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "SmartLess, Jason Bateman, Sean Hayes, Will Arnett, comedy, interviews, celebrity",
     faqTopics: "celebrity interviews, comedic banter, behind-the-scenes Hollywood stories, and entertaining conversations where only one host knows the surprise guest",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/b1/93/5f/b1935f9f-35be-9144-e813-626bd8dabfb4/mza_4132654708551836825.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@SmartLess",
   },
   {
     slug: "hubermanlab",
@@ -89,6 +95,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Huberman Lab, Andrew Huberman, neuroscience, health, performance, sleep, focus, science",
     faqTopics: "neuroscience research, health optimization, sleep protocols, stress management, focus enhancement, hormone health, and evidence-based tools for improving mental and physical performance",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/aa/f1/51/aaf151f6-8661-833a-c9d3-7c4ce22f8868/mza_253061105143942369.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@hubermanlab",
   },
   {
     slug: "newheights",
@@ -100,6 +107,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "New Heights, Jason Kelce, Travis Kelce, NFL, football, sports, Kansas City Chiefs, Philadelphia Eagles",
     faqTopics: "NFL analysis, football culture, locker room stories, athlete lifestyle, sports business, and brotherly banter from two of the most popular players in football",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f1/8b/9a/f18b9adb-90cf-874b-641a-76bff3013bb9/mza_16618427022315105403.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@newheightshow",
   },
   {
     slug: "timferriss",
@@ -111,6 +119,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Tim Ferriss, productivity, business, habits, routines, performance, 4-hour, tools of titans",
     faqTopics: "productivity frameworks, business strategies, morning routines, investment philosophies, health protocols, and deconstructed success patterns from world-class performers",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/18/39/b4/1839b420-7aff-c501-5d0d-af2842fba013/mza_6255154260686997849.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@timferriss",
   },
   {
     slug: "callherdaddy",
@@ -122,6 +131,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Call Her Daddy, Alex Cooper, relationships, dating, interviews, culture, lifestyle",
     faqTopics: "relationships, dating culture, celebrity interviews, mental health, sexuality, empowerment, and unfiltered conversations about navigating modern life",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/25/8d/ad/258dad4b-f0d0-fc93-5a52-4622b0815eaf/mza_4112709449130449695.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@callherdaddy",
   },
   {
     slug: "pivot",
@@ -144,6 +154,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Acquired, Ben Gilbert, David Rosenthal, business history, acquisitions, IPOs, tech deals, company analysis",
     faqTopics: "company origin stories, historic acquisitions, IPO analysis, business strategy evolution, technology platform shifts, and the decisions that built trillion-dollar companies",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d6/e9/f9/d6e9f92c-8f46-a302-f7a2-144cefbd74bf/mza_16135045473976550452.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@AcquiredFM",
   },
   {
     slug: "hardfork",
@@ -166,6 +177,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Waveform, MKBHD, Marques Brownlee, consumer tech, gadgets, reviews, technology, smartphones",
     faqTopics: "smartphone reviews, gadget launches, consumer electronics, tech industry news, product design, and expert analysis of the latest technology products and trends",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/87/20/86/87208638-42bf-a5b5-cfd5-6a55f85fc656/mza_105024973981456283.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@Waveform",
   },
   {
     slug: "thevergecast",
@@ -199,6 +211,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "a16z, Andreessen Horowitz, venture capital, software, AI, startups, crypto, technology investing",
     faqTopics: "venture capital trends, software industry analysis, AI and machine learning, crypto and web3, biotech, go-to-market strategies, and insights from one of Silicon Valley's most influential firms",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/3e/04/91/3e049169-5b95-784c-2197-01cfff9f41eb/mza_10026788811025472218.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@a16z",
   },
   {
     slug: "bg2pod",
@@ -210,6 +223,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "BG2 Pod, Bill Gurley, Brad Gerstner, venture capital, AI, investing, technology, startups",
     faqTopics: "venture capital deal analysis, AI industry trends, public market dynamics, startup valuations, technology investing, and perspectives from two of the most respected voices in venture capital",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/PodcastSource126/v4/4b/ab/e5/4babe58b-7cda-b2b3-40a5-bcac3f262764/33f9cff7-dc0b-4293-a5bf-d8cc62ab8c98.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@bg2pod",
   },
   {
     slug: "decoder",
@@ -232,6 +246,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "AI Daily Brief, Nathaniel Whittemore, artificial intelligence, AI news, machine learning, technology, daily AI",
     faqTopics: "AI industry news, large language model updates, machine learning breakthroughs, AI policy and regulation, startup launches, and daily analysis of the fastest-moving technology sector",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/9c/78/d8/9c78d82d-a2d1-a026-6ca2-f92ea61be9ae/mza_18421328158594577747.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@TheAIDailyBrief",
   },
   {
     slug: "planetmoney",
@@ -243,6 +258,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Planet Money, NPR, economics, economy, money, finance, business, public radio",
     faqTopics: "economic concepts explained through storytelling, financial markets, trade policy, labor economics, monetary policy, and creative explorations of how money shapes our world",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/85/df/53/85df5334-0fae-28a9-2bc4-b97b81061d0e/mza_10839245066228881011.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@planetmoney",
   },
   {
     slug: "thejournal",
@@ -276,6 +292,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Ramsey Show, Dave Ramsey, personal finance, budgeting, debt free, money, financial peace",
     faqTopics: "debt elimination strategies, budgeting methods, retirement planning, real estate investing, emergency funds, and no-nonsense financial advice for building wealth",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d2/6d/7c/d26d7c1c-aa8f-ee62-9596-0819f26acfd9/mza_939348199437932615.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@TheRamseyShow",
   },
   {
     slug: "hbrideacast",
@@ -298,6 +315,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Financial Audit, Caleb Hammer, personal finance, money, budgeting, financial advice, debt",
     faqTopics: "personal finance audits, spending habits analysis, debt payoff strategies, budgeting reviews, financial literacy, and candid conversations about real people's money situations",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b9/e8/c1/b9e8c18d-6db9-e2db-5fbb-02c9b88bcfed/mza_11588913954898061535.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@CalebHammer",
   },
   {
     slug: "founders",
@@ -331,6 +349,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Masters of Scale, Reid Hoffman, scaling, startups, entrepreneurship, LinkedIn, growth, Silicon Valley",
     faqTopics: "scaling strategies, growth frameworks, founder interviews, startup playbooks, network effects, blitzscaling, and battle-tested advice from one of Silicon Valley's most successful entrepreneurs",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/13/4b/81/134b8173-d713-cbb2-2d3b-4a8692bd87c0/mza_996010941061703843.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@mastersofscale",
   },
   {
     slug: "biggerpockets",
@@ -342,6 +361,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "BiggerPockets, real estate investing, rental properties, house flipping, BRRRR, passive income, property",
     faqTopics: "real estate investing strategies, rental property analysis, house flipping, commercial real estate, passive income, market analysis, and actionable advice for building wealth through property",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/58/c0/51/58c0512f-d415-0e56-3525-8adfde4e374d/mza_9225706162625505783.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@biggerpockets",
   },
   {
     slug: "theindicator",
@@ -375,6 +395,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Money Guy Show, Brian Preston, Bo Hanson, financial planning, wealth building, investing, personal finance",
     faqTopics: "financial planning frameworks, wealth-building strategies, tax optimization, retirement planning, investment allocation, and practical money management advice for different life stages",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/c2/32/96/c232968d-fedb-1f9a-4aa0-606fc6e0b262/mza_410998016858824665.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@MoneyGuyShow",
   },
   {
     slug: "equity",
@@ -397,6 +418,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "On Purpose, Jay Shetty, mindset, growth, meditation, mindfulness, purpose, relationships",
     faqTopics: "personal growth, mindfulness practices, relationship advice, purpose discovery, mental health, meditation, and wisdom from thought leaders on living a more intentional life",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/5e/a1/69/5ea169e2-18c4-40b0-0982-2fda3476d9a4/mza_9372864784596222041.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@JayShettyPodcast",
   },
   {
     slug: "melrobbins",
@@ -408,6 +430,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Mel Robbins, motivation, science, habits, confidence, personal development, 5 second rule",
     faqTopics: "motivation science, habit formation, confidence building, anxiety management, productivity hacks, neuroscience of change, and actionable strategies for transforming your life",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/2a/9f/c7/2a9fc792-c6a7-e159-0e10-a4442eec27d5/mza_5919882476720095362.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@melrobbins",
   },
   {
     slug: "armchairexpert",
@@ -419,6 +442,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Armchair Expert, Dax Shepard, Monica Padman, interviews, celebrity, human stories, comedy",
     faqTopics: "celebrity interviews, vulnerability and authenticity, addiction recovery, parenting, relationships, human psychology, and honest conversations about the challenges of being human",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f0/13/8f/f0138f4b-8bc3-0a64-2c11-ef566840f60f/mza_3062409012210474882.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@ArmchairExpertPod",
   },
   {
     slug: "conanobrien",
@@ -441,6 +465,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "MeidasTouch, Meiselas brothers, politics, law, legal analysis, political commentary, accountability",
     faqTopics: "political news analysis, legal case breakdowns, constitutional law, election coverage, government accountability, and sharp commentary on the intersection of politics and law",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/73/32/80/733280d2-330a-2f24-c600-bc1088f9f899/mza_17833502176263457882.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@MeidasTouch",
   },
   {
     slug: "shawnryanshow",
@@ -452,6 +477,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Shawn Ryan Show, Shawn Ryan, military, veterans, special operations, interviews, society",
     faqTopics: "military stories, special operations experiences, law enforcement perspectives, geopolitical analysis, veteran transitions, and unfiltered conversations about duty, sacrifice, and society",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/d0/b3/2d/d0b32d7f-ab2d-5791-83b0-854f698a9184/mza_13561258173056659752.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@ShawnRyanShow",
   },
   {
     slug: "thisamericanlife",
@@ -463,6 +489,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "This American Life, Ira Glass, storytelling, narrative, culture, public radio, journalism",
     faqTopics: "true stories, narrative journalism, cultural commentary, human interest features, investigative reporting, and the art of storytelling that reveals unexpected truths about American life",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/64/aa/3a/64aa3a66-a08a-947c-cf21-a5722a1b77ae/mza_11390421932467026234.png/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@ThisAmericanLife",
   },
   {
     slug: "freshair",
@@ -485,6 +512,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Pod Save America, Crooked Media, politics, elections, policy, progressive, political commentary",
     faqTopics: "political strategy, election analysis, policy breakdowns, legislative coverage, progressive politics, and insider perspectives on how Washington actually works",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/44/dc/61/44dc6141-25e9-5bb3-e19e-a2337233d19e/mza_5506771870755587769.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@crookedmedia",
   },
   {
     slug: "hiddenbrain",
@@ -496,6 +524,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Hidden Brain, Shankar Vedantam, psychology, behavior, neuroscience, decision-making, unconscious",
     faqTopics: "behavioral psychology, unconscious bias, decision-making science, social psychology, cognitive science, and fascinating research into why humans think, feel, and act the way they do",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/a5/f7/17/a5f71734-8a47-f34c-16a1-0e0e4ce76b44/mza_15560107938498920498.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@hiddenbrain",
   },
   {
     slug: "tedtalksdaily",
@@ -518,6 +547,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Office Ladies, Jenna Fischer, Angela Kinsey, The Office, TV, behind the scenes, entertainment",
     faqTopics: "The Office episode breakdowns, behind-the-scenes production stories, cast interviews, TV industry insights, comedy writing, and exclusive stories from two beloved stars of the show",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8f/9f/8d/8f9f8d2c-9cd4-302d-2136-f4b473385d8b/mza_3667898821375414961.jpg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@officeladies",
   },
   {
     slug: "moderncto",
@@ -529,6 +559,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Modern CTO, Joel Beasley, CTO, tech leadership, engineering management, software, technology",
     faqTopics: "technology leadership, engineering team management, software architecture decisions, CTO career paths, tech stack choices, and practical advice for leading technology organizations",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/c9/81/e0/c981e011-b15f-85ed-2ec6-5011193c73ec/mza_12380423448663114582.jpeg/600x600bb.jpg",
+    youtubeUrl: "https://www.youtube.com/@ModernCTO",
   },
   {
     slug: "stuffyoushouldknow",
