@@ -149,9 +149,12 @@ export async function generateRecap(
           taddyPodcast = await searchPodcastByItunesId(podcast.id);
           if (taddyPodcast?.uuid) {
             taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
+            console.log(`[Recap] Taddy found ${taddyEpisodes.length} episodes for ${podcast.name} (uuid: ${taddyPodcast.uuid})`);
+          } else {
+            console.warn(`[Recap] Taddy could not find podcast ${podcast.name} (iTunes ID: ${podcast.id})`);
           }
         } catch (taddyErr) {
-          console.warn(`Taddy lookup failed for ${podcast.name}:`, taddyErr);
+          console.warn(`[Recap] Taddy lookup failed for ${podcast.name}:`, taddyErr);
         }
 
         const epDetails: string[] = [];
@@ -172,6 +175,7 @@ export async function generateRecap(
           const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
           if (cached) {
             transcriptText = cached.transcript;
+            console.log(`[Recap] Using cached transcript for "${ep.trackName}" (${transcriptText.length} chars)`);
           } else {
             const taddyMatch = taddyEpisodes.find((te: any) =>
               te.name?.toLowerCase().trim() === ep.trackName?.toLowerCase().trim()
@@ -181,16 +185,21 @@ export async function generateRecap(
                 const fetchedTranscript = await getEpisodeTranscript(taddyMatch.uuid);
                 if (fetchedTranscript) {
                   transcriptText = fetchedTranscript;
+                  console.log(`[Recap] Fetched transcript for "${ep.trackName}" (${transcriptText.length} chars)`);
                   await storage.saveTranscript({
                     podcastId: podcast.id,
                     episodeGuid,
                     episodeTitle: ep.trackName,
                     transcript: transcriptText,
                   });
+                } else {
+                  console.warn(`[Recap] Taddy returned empty transcript for "${ep.trackName}" (uuid: ${taddyMatch.uuid})`);
                 }
               } catch (transcriptErr) {
-                console.warn(`Transcript fetch failed for "${ep.trackName}":`, transcriptErr);
+                console.warn(`[Recap] Transcript fetch failed for "${ep.trackName}":`, transcriptErr);
               }
+            } else {
+              console.warn(`[Recap] No Taddy title match for iTunes episode "${ep.trackName}" — available Taddy titles: ${taddyEpisodes.map((te: any) => te.name).join(", ")}`);
             }
           }
 
@@ -211,8 +220,8 @@ export async function generateRecap(
           console.log(`[Recap] No transcripts found for any episodes of ${podcast.name} — skipping podcast entirely`);
         }
       }
-    } catch {
-      episodeData.push(`**${podcast.name}**\n- Could not fetch episodes.`);
+    } catch (outerErr) {
+      console.error(`[Recap] Error processing podcast ${podcast.name}:`, outerErr);
     }
   }
 
