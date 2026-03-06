@@ -95,9 +95,12 @@ ${p.transcriptNote}
 Source episodes:
 ${p.episodeData}
 
-You MUST follow this EXACT structure and tone. Write in markdown.
+You MUST follow this EXACT structure and tone. Write in markdown. Do NOT skip any sections — every episode MUST include ALL of: TLDL, What Happened (2-4 paragraphs), Key Insights (4 bullet points), and Quote. If you skip sections, the email will appear broken and empty to users.
 
-CRITICAL FORMATTING RULE: Each podcast section MUST start with a markdown level-2 heading using "## " (two hash marks followed by a space). For example: "## MY FIRST MILLION". Do NOT omit the "## " prefix. Without it, the email will break.
+CRITICAL FORMATTING RULES:
+1. Each podcast section MUST start with a markdown level-2 heading using "## " (two hash marks followed by a space). Example: "## MY FIRST MILLION". Do NOT omit the "## " prefix.
+2. Use bold markers (**) around section headers: **TLDL:**, **What Happened**, **Key Insights:**, **Quote**
+3. Wrap the episode title in bold: **Episode Title Here**
 
 ---
 
@@ -280,7 +283,7 @@ export async function generateRecap(
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 4000,
+    max_tokens: 8000,
     temperature: 0.7,
   });
 
