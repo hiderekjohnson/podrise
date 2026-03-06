@@ -94,6 +94,10 @@ export default function Support() {
       question: "Is my data safe with PodCap?",
       answer: "Absolutely. We only collect your email address and podcast preferences — the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone. Payment processing is handled securely by Stripe, so we never see or store your credit card details.",
     },
+    {
+      question: "Can I delete my account?",
+      answer: "Yes, you can delete your account at any time from your dashboard. Please note that this is permanent — deleting your account removes all your data, including your saved podcast selections, previous podcast recaps and episode summaries, delivery preferences, and subscription details. This action cannot be undone, so make sure you no longer need access to your recap history before proceeding.",
+    },
   ];
 
   useEffect(() => {
