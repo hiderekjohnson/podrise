@@ -102,8 +102,9 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
 
     if (!force) {
       const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
-      if (existing.length > 0) {
-        console.log(`[EmailScheduler] Skipping user ${user.id}: pending email already exists for ${dateStr}`);
+      const activeEmails = existing.filter((e: any) => e.status === "held" || e.status === "pending");
+      if (activeEmails.length > 0) {
+        console.log(`[EmailScheduler] Skipping user ${user.id}: active pending email already exists for ${dateStr}`);
         return "skipped";
       }
     } else {
