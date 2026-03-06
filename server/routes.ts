@@ -108,6 +108,7 @@ const STATIC_PAGES = [
   { path: "/login", priority: "0.5", changefreq: "monthly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
+  { path: "/support", priority: "0.5", changefreq: "monthly" },
 ];
 
 const PODCAST_SLUGS = [
@@ -175,6 +176,36 @@ export async function registerRoutes(
     res.set("Content-Type", "text/plain");
     res.set("Cache-Control", "public, max-age=86400");
     res.send(ROBOTS_TXT);
+  });
+
+  app.post("/api/support", async (req, res) => {
+    const { email, message } = req.body;
+    if (!email || !message) {
+      return res.status(400).json({ message: "Email and message are required" });
+    }
+    try {
+      const { client, fromEmail } = await getUncachableResendClient();
+      await client.emails.send({
+        from: `PodCap Support <${fromEmail}>`,
+        to: "hiderekjohnson@gmail.com",
+        replyTo: email,
+        subject: `Support Request from ${email}`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 520px; padding: 24px;">
+            <h2 style="margin: 0 0 16px; font-size: 18px; color: #1a1a1a;">New Support Request</h2>
+            <div style="background: #f8f8f8; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <p style="margin: 0 0 8px; font-size: 14px;"><strong>From:</strong> ${email}</p>
+              <p style="margin: 0; font-size: 14px; white-space: pre-wrap;"><strong>Message:</strong><br/>${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+            </div>
+            <p style="margin: 0; font-size: 12px; color: #999;">Reply directly to this email to respond to the user.</p>
+          </div>
+        `,
+      });
+      res.json({ message: "Support request sent" });
+    } catch (err) {
+      console.error("[Support] Failed to send support email:", err);
+      res.status(500).json({ message: "Failed to send message" });
+    }
   });
 
   const PgStore = connectPgSimple(session);

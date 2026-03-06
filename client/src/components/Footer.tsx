@@ -29,6 +29,13 @@ export function Footer() {
               >
                 Terms & Conditions
               </Link>
+              <Link
+                href="/support"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="link-support"
+              >
+                Help & Support
+              </Link>
             </div>
             <p className="text-xs text-muted-foreground/60">
               &copy; {new Date().getFullYear()} PodCap. All rights reserved.

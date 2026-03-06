@@ -14,6 +14,7 @@ import PodcastLandingGeneric from "./pages/PodcastLandingGeneric";
 import Leaderboard from "./pages/Leaderboard";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Support from "./pages/Support";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/podcasts" component={Leaderboard} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/support" component={Support} />
       <Route component={NotFound} />
     </Switch>
   );
