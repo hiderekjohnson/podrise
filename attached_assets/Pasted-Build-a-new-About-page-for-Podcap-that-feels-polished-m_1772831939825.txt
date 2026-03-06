@@ -1,0 +1,148 @@
+Build a new About page for Podcap that feels polished, modern, slightly funny, and self-aware, but still credible. The goal is to make Podcap feel human, memorable, and trustworthy, not like a faceless AI tool.
+
+Page goal
+
+Explain why Podcap exists through a founder story that feels real:
+
+Derek Johnson founded Tatango.com, ran it for about 15 years, then effectively semi-retired and suddenly had more time on his hands. Naturally, instead of relaxing like a normal person, he got obsessed with podcasts. The problem was that even with more free time, he still could not keep up with all the shows he wanted to follow. Episodes piled up. Backlogs got longer. Great conversations were missed. Podcap was built to solve that exact problem.
+
+The tone should be tongue-in-cheek, witty, and lightly playful, but not goofy. It should feel like a smart founder with self-awareness wrote it. Think: “serious product, unserious delivery in places.”
+
+Overall design direction
+
+Make this page feel like a real startup/company page, not a blog post.
+
+Use a clean, premium layout that matches the rest of Podcap. It should look as polished as the homepage.
+
+Recommended structure:
+	1.	Hero section
+	2.	Founder story / origin story
+	3.	What Podcap actually is
+	4.	“Built for me first” section
+	5.	Product philosophy / who it’s for
+	6.	Link to What’s New page
+	7.	Optional mini FAQ or closing section
+	8.	Final CTA
+
+Tone guidance
+
+The writing should sound like this:
+	•	Smart
+	•	Dryly funny
+	•	Slightly self-deprecating
+	•	Founder-led
+	•	Clear and simple
+	•	Not trying too hard
+	•	Not corporate
+	•	Not overly cute
+	•	Not full of startup jargon
+
+A good tone is something like:
+“I had more free time, listened to more podcasts, and somehow still fell hopelessly behind.”
+
+Or:
+“Yes, Podcap was built to solve a very real modern problem: having excellent taste in podcasts and not enough hours in the day.”
+
+Messaging points that should be included
+
+Please incorporate these ideas naturally into the page:
+	•	Derek Johnson founded Tatango.com and ran it for 15 years
+	•	After stepping back / semi-retiring, he had more time, but still not enough time to listen to all his favorite podcasts
+	•	Even someone semi-retired could not keep up, which says something
+	•	Podcap was built because the problem was personal and annoying
+	•	Podcap listens to your favorite podcasts and sends you concise summaries so you can keep up without having to listen to every episode
+	•	It was built for Derek first, but clearly solves the same problem for lots of other people
+	•	Joke that Derek is not just the founder, but also the first customer, and maybe even the first paid customer
+	•	Mention that Podcap is constantly improving and link to the What’s New page
+	•	Make it feel like a real company with taste and momentum, even if the tone is playful
+
+Suggested page sections and rough copy direction
+
+1. Hero section
+
+Need a strong headline and subhead.
+
+Possible direction:
+About Podcap
+The company built for people who love podcasts, but have lives.
+
+Subhead idea:
+Podcap started with a simple problem: even after building and running a company for 15 years, and then finally having more time, Derek Johnson still could not keep up with his podcast queue.
+
+Add one or two CTA buttons:
+	•	Get Free Summaries
+	•	See What’s New
+
+2. Founder story / origin story
+
+This should be the heart of the page.
+
+Possible direction for the copy:
+Derek Johnson founded Tatango.com and spent 15 years building it. After finally hanging up his cleats and stepping into semi-retirement, he expected to have more time for things he enjoyed. One of those things was podcasts.
+
+There was just one issue.
+
+Even with more free time than before, he still could not keep up.
+
+Every week brought more episodes from favorite shows. Great interviews. Smart conversations. Business breakdowns. Tech debates. Weird startup ideas. Somehow, “having time” still did not translate into “listening to all of them.”
+
+Instead, the backlog kept growing, and with it, the quiet guilt of being 17 episodes behind on a show you swear you still follow.
+
+So he built Podcap.
+
+That paragraph should be polished, tight, and funny.
+
+3. What Podcap is
+
+Make this very clear and simple.
+
+Suggested positioning:
+Podcap listens to your favorite podcasts and sends you short, useful summaries, so you can stay caught up without spending hours every week trying to clear your queue.
+
+Or:
+It is a daily recap for people who love podcasts, but do not have unlimited time, focus, or patience.
+
+Could include 3 quick value props with icons/cards:
+	•	Follow more podcasts without falling behind
+	•	Get the gist fast
+	•	Decide which episodes are worth your full attention
+
+4. Built for me first
+
+This is where you can lean into the humor.
+
+Suggested angle:
+Podcap was built selfishly, in the best possible way. Derek wanted it for himself. He uses it himself. He pays for it himself. He may also be the only founder who can honestly say he became his own first paying customer out of necessity.
+
+Possible headline ideas:
+	•	Built for one very specific customer first
+	•	Founder. Owner. Customer.
+	•	Yes, I made this for myself
+
+This section should make the product feel authentic. It is not “we identified a market opportunity.” It is “this problem annoyed me enough that I built the solution I wanted.”
+
+5. Who it’s for
+
+This is useful because it broadens beyond the founder.
+
+Suggested section:
+Podcap is for people who:
+	•	subscribe to too many podcasts
+	•	genuinely want to keep up
+	•	are tired of falling behind
+	•	want the key ideas without giving up hours every day
+	•	still want to choose when something is worth listening to in full
+
+Could frame it more playfully:
+If your podcast app looks like an unread inbox from 2017, you are in the right place.
+
+6. What’s New section
+
+Add a section that says something like:
+
+We are constantly improving Podcap, adding features, refining summaries, and making it easier to keep up with the podcasts you care about. You can follow the latest updates on our What’s New page.
+
+CTA:
+	•	Visit What’s New
+
+This should feel like active development and momentum, not “set it and forget it.”
