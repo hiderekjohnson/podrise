@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail } from "lucide-react";
+import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail, Info } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -88,6 +88,53 @@ function formatDateTime(dateStr: string | null) {
   });
 }
 
+const PREGENERATE_HOUR_UTC = 7;
+
+function ScheduleDisclosure() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const nextRunUTC = new Date(now);
+  nextRunUTC.setUTCHours(PREGENERATE_HOUR_UTC, 0, 0, 0);
+  if (nextRunUTC <= now) {
+    nextRunUTC.setUTCDate(nextRunUTC.getUTCDate() + 1);
+  }
+
+  const diffMs = nextRunUTC.getTime() - now.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  const localTime = nextRunUTC.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, " ");
+
+  let countdown = "";
+  if (diffHours > 0) {
+    countdown = `${diffHours}h ${diffMins}m`;
+  } else {
+    countdown = `${diffMins}m`;
+  }
+
+  return (
+    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200/60 text-sm text-blue-800" data-testid="schedule-disclosure">
+      <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
+      <div>
+        <p className="font-semibold">Daily email generation schedule</p>
+        <p className="mt-0.5 text-blue-700/80">
+          Emails are automatically generated every day at <span className="font-semibold">{PREGENERATE_HOUR_UTC}:00 UTC</span> ({localTime} {localTz}).
+          Each user's email is then delivered at their chosen delivery time.
+        </p>
+        <p className="mt-1 text-blue-600/70 text-xs">
+          Next run in <span className="font-semibold">{countdown}</span> — check back after that to review emails before they're sent.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function PendingEmails() {
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>("pending");
@@ -173,6 +220,7 @@ export default function PendingEmails() {
 
   return (
     <div className="space-y-4">
+      <ScheduleDisclosure />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <button
