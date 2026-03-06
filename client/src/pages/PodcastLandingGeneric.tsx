@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, ChevronUp, ExternalLink, Calendar, BarChart3, Mic, Users } from "lucide-react";
+import { Loader2, ArrowRight, Headphones, Zap, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -29,20 +29,12 @@ function generateFaqItems(name: string, hosts: string, faqTopics: string, catego
       a: "Yes! Once you create your free PodCap account, you can add up to 3 podcasts to your daily digest. Choose from thousands of popular podcasts. Upgrade to PodCap Pro for unlimited podcasts.",
     },
     {
-      q: `What topics does ${name} cover?`,
-      a: `${name} is a ${category.toLowerCase()} podcast hosted by ${hosts} that covers ${faqTopics}.`,
-    },
-    {
       q: `When will I receive my daily ${name} summary?`,
       a: "You choose your preferred delivery time during setup. Most listeners pick early morning so the recap is waiting in their inbox when they wake up. You can also customize your timezone and delivery schedule from your dashboard.",
     },
     {
       q: "How much does PodCap cost?",
       a: `PodCap is free for up to 3 podcasts. If you want unlimited podcast summaries, you can upgrade to PodCap Pro for $9.99/month. The ${name} summary is included in the free plan.`,
-    },
-    {
-      q: `What if ${name} doesn't release an episode today?`,
-      a: `PodCap only sends you a digest when there are new episodes. If ${name} (or your other selected podcasts) didn't release anything, you won't receive an empty email — we respect your inbox.`,
     },
   ];
 }
@@ -156,7 +148,13 @@ export default function PodcastLandingGeneric() {
     .filter((p): p is PodcastLandingConfig => !!p)
     .slice(0, 3);
 
-  const hasSnapshot = avgEpisodeLength || frequency || totalEpisodes || yearStarted;
+  const snapshotItems = [
+    category ? { icon: Star, label: "Category", value: category } : null,
+    avgEpisodeLength ? { icon: Clock, label: "Avg. Episode", value: `${avgEpisodeLength} min` } : null,
+    frequency ? { icon: Calendar, label: "Frequency", value: frequency } : null,
+    totalEpisodes ? { icon: Mic, label: "Episodes", value: `${totalEpisodes.toLocaleString()}+` } : null,
+    yearStarted ? { icon: Calendar, label: "Since", value: `${yearStarted}` } : null,
+  ].filter(Boolean) as { icon: typeof Star; label: string; value: string }[];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,7 +187,7 @@ export default function PodcastLandingGeneric() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-blue-50/30 to-white">
+    <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
           <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
@@ -204,214 +202,159 @@ export default function PodcastLandingGeneric() {
       </header>
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <section className="w-full max-w-4xl pt-8 sm:pt-16 pb-12 sm:pb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16"
-          >
-            <div className="flex flex-col items-center lg:items-start gap-6 flex-1">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/8 border border-primary/15 rounded-full">
-                <Headphones className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold text-primary tracking-wide uppercase">Free Daily Podcast Summary & Recap</span>
-              </div>
 
+        <section className="w-full max-w-3xl pt-10 sm:pt-16 pb-14 sm:pb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center text-center gap-6"
+          >
+            {artworkUrl && (
+              <div className="relative mb-2">
+                <div className="absolute -inset-3 bg-primary/[0.06] rounded-[2rem] blur-2xl" />
+                <img
+                  src={artworkUrl}
+                  alt={`${name} Podcast Cover Art`}
+                  className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl shadow-xl shadow-black/[0.08] object-cover"
+                  data-testid="img-podcast-artwork"
+                />
+              </div>
+            )}
+
+            <div className="space-y-3">
               <h1
-                className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] text-center lg:text-left"
+                className="text-[2rem] sm:text-[2.5rem] md:text-[3rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
                 data-testid="heading-main"
               >
                 {name}{" "}
                 <span className="text-primary">podcast summary</span>,{" "}
                 daily
               </h1>
-
-              <div className="text-center lg:text-left" data-testid="tagline">
-                <p className="text-base sm:text-lg font-display font-bold text-foreground">Your favorite podcasts recapped daily</p>
-                <p className="text-sm text-muted-foreground italic">We listen so you don't have to.</p>
-              </div>
-
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-center lg:text-left max-w-lg">
-                Get a free AI-powered {name} podcast recap and episode summary
-                delivered to your inbox every morning. All the {desc} from {hosts} — without listening to the full episode.
-              </p>
-
-              <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3" data-testid="form-signup">
-                <div className="flex-1 relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-                  <input
-                    data-testid="input-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full h-14 pl-11 pr-4 bg-white border border-black/[0.08] rounded-2xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm"
-                  />
-                </div>
-                <button
-                  data-testid="button-signup"
-                  type="submit"
-                  disabled={isPending}
-                  className="h-14 px-7 flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Setting up...
-                    </>
-                  ) : (
-                    <>
-                      Get Free Summaries
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              <p className="text-xs text-muted-foreground/60 text-center lg:text-left">
-                Free forever for up to 3 podcasts. No credit card required.
+              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                AI-powered {name} recaps from {hosts} — delivered free to your inbox every morning.
               </p>
             </div>
 
-            {artworkUrl && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="shrink-0"
+            <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col sm:flex-row gap-3 mt-2" data-testid="form-signup">
+              <div className="flex-1 relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                <input
+                  data-testid="input-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full h-12 pl-11 pr-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                />
+              </div>
+              <button
+                data-testid="button-signup"
+                type="submit"
+                disabled={isPending}
+                className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
               >
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-primary/5 rounded-[2rem] blur-2xl" />
-                  <img
-                    src={artworkUrl}
-                    alt={`${name} Podcast Cover Art`}
-                    className="relative w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-3xl shadow-2xl shadow-black/10 object-cover"
-                    data-testid="img-podcast-artwork"
-                  />
-                </div>
-              </motion.div>
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Setting up...
+                  </>
+                ) : (
+                  <>
+                    Get Free Recaps
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="text-[13px] text-muted-foreground/60 italic">
+              Free forever for up to 3 podcasts. No credit card required.
+            </p>
+
+            {hasExternalLinks && (
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-2">
+                {appleUrl && (
+                  <a
+                    href={appleUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="link-apple-podcasts"
+                  >
+                    Apple Podcasts
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {spotifyUrl && (
+                  <a
+                    href={spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="link-spotify"
+                  >
+                    Spotify
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {youtubeUrl && (
+                  <a
+                    href={youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="link-youtube"
+                  >
+                    YouTube
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
             )}
           </motion.div>
         </section>
 
-        {hasExternalLinks && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="w-full max-w-4xl pb-16"
-          >
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              {appleUrl && (
-                <a
-                  href={appleUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 px-5 py-3 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold text-foreground hover:bg-black/[0.02] hover:border-black/[0.12] transition-all shadow-sm"
-                  data-testid="link-apple-podcasts"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 110 16 8 8 0 010-16zm0 3a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0 6.5c-1.38 0-2.5.672-2.5 1.5v2.5c0 .414.336.75.75.75h3.5a.75.75 0 00.75-.75V15c0-.828-1.12-1.5-2.5-1.5z" fill="currentColor"/>
-                  </svg>
-                  Listen on Apple Podcasts
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                </a>
-              )}
-              {spotifyUrl && (
-                <a
-                  href={spotifyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 px-5 py-3 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold text-foreground hover:bg-black/[0.02] hover:border-black/[0.12] transition-all shadow-sm"
-                  data-testid="link-spotify"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-                  </svg>
-                  Listen on Spotify
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                </a>
-              )}
-              {youtubeUrl && (
-                <a
-                  href={youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 px-5 py-3 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold text-foreground hover:bg-black/[0.02] hover:border-black/[0.12] transition-all shadow-sm"
-                  data-testid="link-youtube"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
-                  Watch on YouTube
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                </a>
-              )}
-            </div>
-          </motion.section>
-        )}
-
-        {timeSaved && avgEpisodeLength && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
-            className="w-full max-w-4xl pb-16"
-            data-testid="section-time-saved"
-          >
-            <div className="glass-panel rounded-2xl p-6 sm:p-8 text-center">
-              <p className="text-lg sm:text-xl font-display font-bold text-foreground mb-3">
-                Save up to <span className="text-primary">{timeSaved.hoursSaved.toLocaleString()} hours</span> by reading PodCap summaries instead of listening to every episode.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4" />
-                  Average episode: {avgEpisodeLength} min
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4" />
-                  Average recap read: {timeSaved.readTime} min
-                </span>
-              </div>
-            </div>
-          </motion.section>
-        )}
-
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="w-full max-w-4xl pb-16"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="w-full max-w-3xl pb-16"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="glass-panel rounded-2xl p-6 flex flex-col items-center text-center gap-3" data-testid="feature-ai">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="font-display font-bold text-foreground">AI-Powered Recaps</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Real transcript analysis extracts the best ideas, quotes, and
-                actionable insights from every {name} episode.
+          {timeSaved && avgEpisodeLength && (
+            <div className="bg-primary/[0.04] border border-primary/[0.08] rounded-2xl px-6 py-5 text-center mb-6" data-testid="section-time-saved">
+              <p className="text-sm sm:text-base font-display font-bold text-foreground">
+                Save up to <span className="text-primary">{timeSaved.hoursSaved.toLocaleString()} hours</span> — read a {timeSaved.readTime}-min recap instead of a {avgEpisodeLength}-min episode.
               </p>
             </div>
-            <div className="glass-panel rounded-2xl p-6 flex flex-col items-center text-center gap-3" data-testid="feature-inbox">
-              <div className="w-11 h-11 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-green-500" />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white border border-black/[0.06] rounded-2xl p-5 text-center" data-testid="feature-ai">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Zap className="w-4.5 h-4.5 text-primary" />
               </div>
-              <h3 className="font-display font-bold text-foreground">Straight to Your Inbox</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Wake up to a polished summary every morning. No app to open, no feed to
-                scroll — just the highlights delivered by email.
+              <h3 className="text-sm font-display font-bold text-foreground mb-1.5">AI-Powered Recaps</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Key ideas, quotes, and insights extracted from real {name} transcripts.
               </p>
             </div>
-            <div className="glass-panel rounded-2xl p-6 flex flex-col items-center text-center gap-3" data-testid="feature-time">
-              <div className="w-11 h-11 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-amber-500" />
+            <div className="bg-white border border-black/[0.06] rounded-2xl p-5 text-center" data-testid="feature-inbox">
+              <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center mx-auto mb-3">
+                <Mail className="w-4.5 h-4.5 text-green-600" />
               </div>
-              <h3 className="font-display font-bold text-foreground">Save Hours Every Week</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Each episode can be {avgEpisodeLength ? `${avgEpisodeLength}+ minutes` : "30–180 minutes"}. Your PodCap recap takes about 3 minutes to read
-                and covers everything worth knowing.
+              <h3 className="text-sm font-display font-bold text-foreground mb-1.5">Delivered by Email</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                No app to open. Your recap is waiting in your inbox every morning.
+              </p>
+            </div>
+            <div className="bg-white border border-black/[0.06] rounded-2xl p-5 text-center" data-testid="feature-time">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
+                <Clock className="w-4.5 h-4.5 text-amber-600" />
+              </div>
+              <h3 className="text-sm font-display font-bold text-foreground mb-1.5">3-Minute Read</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Each {avgEpisodeLength ? `${avgEpisodeLength}-min` : "full"} episode condensed into a quick summary.
               </p>
             </div>
           </div>
@@ -419,76 +362,45 @@ export default function PodcastLandingGeneric() {
 
         <ExampleRecapSection slug={slug || ""} podcastName={name} />
 
-        {hasSnapshot && (
+        {snapshotItems.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.45 }}
-            className="w-full max-w-4xl pb-16"
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="w-full max-w-3xl pb-16"
             data-testid="section-snapshot"
           >
-            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
-              Podcast Snapshot
+            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6">
+              About {name}
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              {category && (
-                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-category">
-                  <BarChart3 className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground mb-1">Category</p>
-                  <p className="text-sm font-bold text-foreground">{category}</p>
+            <div className={`grid gap-3 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
+              {snapshotItems.map((item, i) => (
+                <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-4 py-4 text-center" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
+                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{item.label}</p>
+                  <p className="text-sm font-bold text-foreground">{item.value}</p>
                 </div>
-              )}
-              {avgEpisodeLength && (
-                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-length">
-                  <Clock className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground mb-1">Avg. Episode</p>
-                  <p className="text-sm font-bold text-foreground">{avgEpisodeLength} min</p>
-                </div>
-              )}
-              {frequency && (
-                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-frequency">
-                  <Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground mb-1">Frequency</p>
-                  <p className="text-sm font-bold text-foreground">{frequency}</p>
-                </div>
-              )}
-              {totalEpisodes && (
-                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-episodes">
-                  <Mic className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground mb-1">Total Episodes</p>
-                  <p className="text-sm font-bold text-foreground">{totalEpisodes.toLocaleString()}+</p>
-                </div>
-              )}
-              {yearStarted && (
-                <div className="glass-panel rounded-2xl p-5 text-center" data-testid="snapshot-year">
-                  <Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground mb-1">Year Started</p>
-                  <p className="text-sm font-bold text-foreground">{yearStarted}</p>
-                </div>
-              )}
+              ))}
             </div>
           </motion.section>
         )}
 
         {knownFor && knownFor.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-3xl pb-16"
             data-testid="section-known-for"
           >
-            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
+            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6">
               What {name} Is Known For
             </h2>
-            <div className="glass-panel rounded-2xl p-6 sm:p-8">
+            <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
               <ul className="space-y-3">
                 {knownFor.map((item, i) => (
                   <li key={i} className="flex items-start gap-3" data-testid={`known-for-${i}`}>
-                    <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                      <span className="w-2 h-2 rounded-full bg-primary" />
-                    </span>
-                    <span className="text-sm sm:text-base text-foreground leading-relaxed">{item}</span>
+                    <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span className="text-sm text-foreground/80 leading-relaxed">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -498,23 +410,23 @@ export default function PodcastLandingGeneric() {
 
         {hostBios && hostBios.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.55 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
             className="w-full max-w-3xl pb-16"
             data-testid="section-host-bios"
           >
-            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
+            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6">
               About the {hostBios.length === 1 ? "Host" : "Hosts"}
             </h2>
-            <div className={`grid gap-5 ${hostBios.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+            <div className={`grid gap-4 ${hostBios.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
               {hostBios.map((host, i) => (
-                <div key={i} className="glass-panel rounded-2xl p-6" data-testid={`host-bio-${i}`}>
+                <div key={i} className="bg-white border border-black/[0.06] rounded-2xl p-5" data-testid={`host-bio-${i}`}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Users className="w-5 h-5 text-primary" />
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 text-primary" />
                     </div>
-                    <h3 className="font-display font-bold text-foreground">{host.name}</h3>
+                    <h3 className="text-sm font-display font-bold text-foreground">{host.name}</h3>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{host.bio}</p>
                 </div>
@@ -524,35 +436,31 @@ export default function PodcastLandingGeneric() {
         )}
 
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="w-full max-w-3xl pb-20"
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="w-full max-w-3xl pb-16"
         >
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8" data-testid="heading-faq">
+          <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6" data-testid="heading-faq">
             Frequently Asked Questions
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {faqItems.map((item, i) => (
               <div
                 key={i}
-                className="glass-panel rounded-2xl overflow-hidden"
+                className="bg-white border border-black/[0.06] rounded-xl overflow-hidden"
                 data-testid={`faq-item-${i}`}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left gap-4"
+                  className="w-full px-5 py-4 flex items-center justify-between text-left gap-3"
                   data-testid={`faq-toggle-${i}`}
                 >
-                  <span className="font-display font-bold text-foreground text-sm sm:text-base">{item.q}</span>
-                  {openFaq === i ? (
-                    <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-                  )}
+                  <span className="text-sm font-semibold text-foreground">{item.q}</span>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`} />
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-5 -mt-1">
+                  <div className="px-5 pb-4 -mt-1">
                     <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
                   </div>
                 )}
@@ -562,45 +470,40 @@ export default function PodcastLandingGeneric() {
         </motion.section>
 
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.65 }}
-          className="w-full max-w-2xl pb-20"
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="w-full max-w-2xl pb-16"
         >
-          <div className="glass-panel rounded-3xl p-8 sm:p-10 text-center flex flex-col items-center gap-5">
-            {artworkUrl ? (
+          <div className="glass-panel rounded-2xl p-8 sm:p-10 text-center flex flex-col items-center gap-4">
+            {artworkUrl && (
               <img
                 src={artworkUrl}
                 alt={name}
-                className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/10"
+                className="w-14 h-14 rounded-xl object-cover shadow-md shadow-black/[0.08]"
                 data-testid="img-podcast-artwork-bottom"
               />
-            ) : (
-              <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Headphones className="w-8 h-8 text-primary" />
-              </div>
             )}
             <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground">
-              Start getting {name} recaps today
+              Start getting {name} recaps
             </h2>
-            <p className="text-sm text-muted-foreground max-w-md">
-              Join thousands of listeners who save time with PodCap's AI-powered podcast summaries.
-              Enter your email and get your first recap tomorrow morning.
+            <p className="text-sm text-muted-foreground max-w-sm">
+              Enter your email and get your first AI-powered recap tomorrow morning.
             </p>
-            <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col sm:flex-row gap-3" data-testid="form-signup-bottom">
+            <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup-bottom">
               <input
                 data-testid="input-email-bottom"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="flex-1 h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm"
+                className="flex-1 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
               />
               <button
                 data-testid="button-signup-bottom"
                 type="submit"
                 disabled={isPending}
-                className="h-12 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md hover:shadow-lg disabled:opacity-50 transition-all active:scale-[0.98] whitespace-nowrap"
+                className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
               >
                 {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Get Started Free"}
               </button>
@@ -610,28 +513,28 @@ export default function PodcastLandingGeneric() {
 
         {relatedPodcasts.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="w-full max-w-3xl pb-20"
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="w-full max-w-3xl pb-16"
             data-testid="section-related-podcasts"
           >
-            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground text-center mb-6">
-              People who follow this podcast also get recaps of:
+            <h2 className="text-lg font-display font-bold text-foreground text-center mb-5">
+              Listeners also follow
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {relatedPodcasts.map((rp) => (
                 <a
                   key={rp.slug}
                   href={`/podcasts/${rp.slug}`}
-                  className="glass-panel rounded-2xl p-5 flex items-center gap-4 hover:bg-black/[0.02] hover:border-black/[0.12] transition-all group"
+                  className="bg-white border border-black/[0.06] rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-black/[0.12] transition-all group"
                   data-testid={`related-podcast-${rp.slug}`}
                 >
                   {rp.artworkUrl && (
-                    <img src={rp.artworkUrl} alt={rp.name} className="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" />
+                    <img src={rp.artworkUrl} alt={rp.name} className="w-10 h-10 rounded-lg object-cover shadow-sm shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <p className="font-display font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">{rp.name}</p>
+                    <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{rp.category}</p>
                   </div>
                 </a>
