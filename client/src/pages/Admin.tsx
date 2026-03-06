@@ -231,7 +231,7 @@ export default function Admin() {
                   }`}
                 >
                   <Inbox className="w-4 h-4" />
-                  Pending
+                  Email Log
                 </button>
                 <button
                   data-testid="tab-users"
