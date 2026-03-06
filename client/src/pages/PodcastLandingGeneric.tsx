@@ -273,6 +273,19 @@ export default function PodcastLandingGeneric() {
               Free forever for up to 3 podcasts. No credit card required.
             </p>
 
+            <a
+              href="#recap-sample"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("recap-sample")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mt-1"
+              data-testid="link-recap-sample"
+            >
+              See Podcast Recap Sample
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+
             {hasExternalLinks && (
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-2">
                 {appleUrl && (

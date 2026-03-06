@@ -38,6 +38,7 @@ export function ExampleRecapSection({ slug, podcastName }: { slug: string; podca
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.12 }}
       className="w-full max-w-3xl pb-16"
+      id="recap-sample"
       data-testid="section-example-recap"
     >
       <h2

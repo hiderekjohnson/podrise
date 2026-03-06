@@ -1,0 +1,56 @@
+Right under the main area on the individual podcast page, right under “Free forever for up to three podcasts,” let’s put “Example Founders episode summary.” I think that is the most important thing so visitors can immediately understand what we’re sending them.
+
+Then right under that, let’s add another call to action, something like:
+
+“Receive these free podcast summaries directly to your email when a new episode drops.”
+
+Under that, include the email input field again so they can sign up.
+
+Next, we should reorganize the sections. Right now everything like Podcast Snapshot, What Founders Is Known For, About the Host, and other details are mixed together with frequently asked questions about our service. Instead, we should create a clear section titled:
+
+“About the Founders Podcast.”
+
+Inside that section include:
+
+• Podcast Snapshot
+• What the podcast is known for
+• Who the host or hosts are
+• How to listen to the podcast
+
+For the How to Listen part, include links to:
+• YouTube
+• Spotify
+• Apple Podcasts / iTunes
+
+Also within this About the Founders Podcast section, include “Similar podcasts” or “People who follow this podcast also get recaps of…” and list related podcasts there.
+
+Next, remove the section that says:
+
+“Save up to 117 hours by reading podcast summaries instead of listening to every episode. Average episode 60 minutes. Average recap read time 3 minutes.”
+
+We should remove that entirely.
+
+Also remove the three cards that currently say:
+
+• AI-powered recap straight to your inbox
+• Save hours every week
+• (the other similar feature cards)
+
+I don’t think those add much value on this page.
+
+Finally, at the very bottom of the page, add a section called:
+
+“About PodCap.”
+
+This section should include:
+
+• A short description of PodCap
+• An FAQ about PodCap
+• Our mission
+• A link to the main PodCap website
+
+We should also clearly state that PodCap is not associated with or affiliated with any of the podcasts. We’re simply providing summaries as a service for listeners.
+
+Let’s implement all of those changes.
+
+Thank you.
