@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 
 function to24(hour: number, period: "AM" | "PM"): number {
   if (period === "AM") return hour === 12 ? 0 : hour;
@@ -110,45 +110,63 @@ interface TimePickerProps {
 }
 
 export function TimePicker({ value, onChange }: TimePickerProps) {
-  const parsed = parseValue(value);
+  const committed = parseValue(value);
+  const [draft, setDraft] = useState(committed);
 
-  const handleHour = (val: number | string) => {
-    const h = typeof val === "number" ? val : parseInt(val as string, 10);
-    onChange(formatValue(h, parsed.minute, parsed.period));
-  };
+  useEffect(() => {
+    const parsed = parseValue(value);
+    setDraft(parsed);
+  }, [value]);
 
-  const handleMinute = (val: number | string) => {
-    const m = typeof val === "number" ? val : parseInt(val as string, 10);
-    onChange(formatValue(parsed.hour, m, parsed.period));
-  };
+  const isDirty =
+    draft.hour !== committed.hour ||
+    draft.minute !== committed.minute ||
+    draft.period !== committed.period;
 
-  const handlePeriod = (val: number | string) => {
-    onChange(formatValue(parsed.hour, parsed.minute, val as "AM" | "PM"));
+  const handleConfirm = () => {
+    onChange(formatValue(draft.hour, draft.minute, draft.period));
   };
 
   return (
     <div className="flex items-start gap-2" data-testid="time-picker">
       <ColumnDropdown
         options={HOURS.map((h) => ({ value: h, label: String(h) }))}
-        selected={parsed.hour}
-        onSelect={handleHour}
+        selected={draft.hour}
+        onSelect={(val) => setDraft((d) => ({ ...d, hour: typeof val === "number" ? val : parseInt(val as string, 10) }))}
         testIdPrefix="time-hour"
         label="Hour"
       />
       <ColumnDropdown
         options={MINUTES.map((m) => ({ value: m, label: String(m).padStart(2, "0") }))}
-        selected={parsed.minute}
-        onSelect={handleMinute}
+        selected={draft.minute}
+        onSelect={(val) => setDraft((d) => ({ ...d, minute: typeof val === "number" ? val : parseInt(val as string, 10) }))}
         testIdPrefix="time-minute"
         label="Minute"
       />
       <ColumnDropdown
         options={PERIODS.map((p) => ({ value: p, label: p }))}
-        selected={parsed.period}
-        onSelect={handlePeriod}
+        selected={draft.period}
+        onSelect={(val) => setDraft((d) => ({ ...d, period: val as "AM" | "PM" }))}
         testIdPrefix="time-period"
         label="AM/PM"
       />
+      <div className="flex flex-col items-center gap-1.5">
+        <button
+          type="button"
+          data-testid="button-confirm-time"
+          onClick={handleConfirm}
+          disabled={!isDirty}
+          className={`h-12 px-4 rounded-xl font-semibold text-sm transition-all flex items-center gap-1.5 ${
+            isDirty
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.97]"
+              : "bg-black/[0.03] text-muted-foreground/40 cursor-default"
+          }`}
+        >
+          <Check className="w-4 h-4" />
+          Set
+        </button>
+        <span className="text-xs font-medium text-transparent select-none">.</span>
+      </div>
     </div>
   );
 }

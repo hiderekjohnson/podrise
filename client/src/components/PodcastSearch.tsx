@@ -183,17 +183,12 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                   <p className="px-6 pt-3 pb-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
                     Results
                   </p>
-                  {selectedPodcasts.length >= maxSelection && (
-                    <p className="px-6 py-2 text-[13px] text-amber-600 font-medium">You've reached the free limit of 3 podcasts.</p>
-                  )}
-                  {filteredResults.map((podcast) => {
-                    const atMax = selectedPodcasts.length >= maxSelection;
-                    return (
+                  {filteredResults.map((podcast) => (
                       <div
                         key={podcast.id}
                         data-testid={`button-add-podcast-${podcast.id}`}
-                        onClick={() => !atMax && handleAddClick(podcast)}
-                        className={`flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors group/row ${atMax ? "opacity-50 cursor-not-allowed" : "hover:bg-black/[0.03] cursor-pointer"}`}
+                        onClick={() => handleAddClick(podcast)}
+                        className="flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors group/row hover:bg-black/[0.03] cursor-pointer"
                       >
                         {podcast.artworkUrl ? (
                           <img
@@ -214,12 +209,9 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                             {podcast.artistName}
                           </p>
                         </div>
-                        {!atMax && (
-                          <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
-                        )}
+                        <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
               ) : (
                 <div className="px-6 py-10 text-center">
