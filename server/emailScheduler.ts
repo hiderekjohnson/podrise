@@ -103,11 +103,7 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     if (!force) {
       const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
       if (existing.length > 0) {
-        return "skipped";
-      }
-
-      const recaps = await storage.getRecapsByUserId(user.id);
-      if (recaps.some(r => r.recapDate === dateStr)) {
+        console.log(`[EmailScheduler] Skipping user ${user.id}: pending email already exists for ${dateStr}`);
         return "skipped";
       }
     } else {
@@ -196,11 +192,17 @@ async function processSchedulerTick() {
 
     const timezone = user.deliveryTimezone || "America/New_York";
     const deliveryTime = user.deliveryTime || "07:00";
+    const { hours, minutes } = getUserLocalTime(timezone);
 
     if (!isDeliveryTime(deliveryTime, timezone)) continue;
 
+    console.log(`[EmailScheduler] Delivery time match for user ${user.id} (${user.email}): target=${deliveryTime}, current=${hours}:${String(minutes).padStart(2, "0")} in ${timezone}`);
+
     const cacheKey = `${user.id}_${getUserLocalDate(timezone)}`;
-    if (recentlyGenerated.has(cacheKey)) continue;
+    if (recentlyGenerated.has(cacheKey)) {
+      console.log(`[EmailScheduler] Skipping user ${user.id}: already generated this session (cache key: ${cacheKey})`);
+      continue;
+    }
     recentlyGenerated.add(cacheKey);
 
     await generateForUser(user, false, recapPrompt);
