@@ -368,6 +368,48 @@ export async function registerRoutes(
     });
   });
 
+  app.get("/api/founder-podcasts", async (req, res) => {
+    try {
+      const FOUNDER_EMAIL = "hiderekjohnson@gmail.com";
+      const founder = await storage.getUserByEmail(FOUNDER_EMAIL);
+      if (!founder || !founder.podcasts || founder.podcasts.length === 0) {
+        return res.json({ podcasts: [] });
+      }
+      const podcastDetails: { id: string; name: string; artistName: string; artworkUrl: string }[] = [];
+      for (const raw of founder.podcasts) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.id && parsed.name) {
+            podcastDetails.push({
+              id: parsed.id,
+              name: parsed.name,
+              artistName: parsed.artistName || "",
+              artworkUrl: parsed.artworkUrl || "",
+            });
+            continue;
+          }
+        } catch {}
+        try {
+          const lookupUrl = `https://itunes.apple.com/lookup?id=${encodeURIComponent(raw)}&media=podcast`;
+          const lookupRes = await fetch(lookupUrl);
+          const lookupData = await lookupRes.json();
+          if (lookupData.results && lookupData.results.length > 0) {
+            const item = lookupData.results[0];
+            podcastDetails.push({
+              id: String(item.collectionId),
+              name: item.collectionName,
+              artistName: item.artistName,
+              artworkUrl: item.artworkUrl100,
+            });
+          }
+        } catch {}
+      }
+      res.json({ podcasts: podcastDetails });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch founder podcasts" });
+    }
+  });
+
   app.get("/api/podcasts/search", async (req, res) => {
     const term = req.query.term as string;
     if (!term || term.trim().length < 2) {

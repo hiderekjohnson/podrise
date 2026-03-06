@@ -2,29 +2,20 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Headphones, Zap, CheckCircle2, ChevronDown, Quote, Briefcase, Clock, Podcast, Sparkles } from "lucide-react";
+import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Smile, MapPin } from "lucide-react";
+import { SiLinkedin, SiSpotify } from "react-icons/si";
+import { useQuery } from "@tanstack/react-query";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
-import { useState } from "react";
 
-function FAQItem({ question, answer }: { question: string; answer: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border border-black/[0.06] dark:border-white/[0.08] rounded-xl overflow-hidden" data-testid="faq-item">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-black/[0.01] dark:hover:bg-white/[0.02] transition-colors"
-        data-testid="button-faq-toggle"
-      >
-        <span className="text-sm font-semibold text-foreground pr-4">{question}</span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed border-t border-black/[0.04] dark:border-white/[0.04] pt-3">
-          {answer}
-        </div>
-      )}
-    </div>
-  );
+interface FounderPodcast {
+  id: string;
+  name: string;
+  artistName: string;
+  artworkUrl: string;
+}
+
+function hiResArtwork(url: string) {
+  return url.replace(/\/\d+x\d+bb\./, "/200x200bb.");
 }
 
 const fadeUp = {
@@ -33,15 +24,12 @@ const fadeUp = {
   transition: { duration: 0.5, ease: "easeOut" },
 };
 
-const timelineSteps = [
-  { icon: Briefcase, label: "Built Tatango", detail: "Founded Tatango.com" },
-  { icon: Clock, label: "Ran it for 15 years", detail: "SMS marketing platform" },
-  { icon: Headphones, label: "Semi-retired", detail: "Finally had free time" },
-  { icon: Podcast, label: "Podcast overload", detail: "Still couldn't keep up" },
-  { icon: Sparkles, label: "Built PodCap", detail: "Solved the problem" },
-];
-
 export default function About() {
+  const { data: founderPodcasts, isLoading: podcastsLoading } = useQuery<FounderPodcast[]>({
+    queryKey: ["/api/founder-podcasts"],
+    select: (data: any) => data.podcasts,
+  });
+
   useEffect(() => {
     document.title = "About PodCap — The Story Behind Your Daily Podcast Summaries";
     const setMeta = (attr: string, key: string, content: string) => {
@@ -125,7 +113,7 @@ export default function About() {
           <h2 className="text-2xl font-display font-bold mb-6">The origin story</h2>
           <div className="space-y-4 text-[17px] leading-[1.8] text-muted-foreground">
             <p>
-              Derek Johnson founded <a href="https://www.tatango.com" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium hover:text-primary transition-colors">Tatango.com</a> and spent 15 years building it into a leading SMS marketing platform. After finally stepping back into something resembling semi-retirement, he expected to have more time for things he enjoyed. One of those things was podcasts.
+              Derek Johnson founded <a href="https://www.tatango.com" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium hover:text-primary transition-colors">Tatango.com</a> and spent 15 years building it into a leading SMS marketing platform that helped nonprofits raise over $1 billion. After finally stepping back into something resembling semi-retirement, he expected to have more time for things he enjoyed. One of those things was podcasts.
             </p>
             <p className="text-foreground font-medium">
               There was just one issue.
@@ -147,29 +135,6 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          data-testid="section-timeline"
-        >
-          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6 md:gap-0">
-            <div className="hidden md:block absolute top-6 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 rounded-full" />
-            {timelineSteps.map((step, i) => (
-              <div key={i} className="relative flex flex-row md:flex-col items-center gap-3 md:gap-2 md:flex-1">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center relative z-10">
-                  <step.icon className="w-5 h-5 text-primary" />
-                </div>
-                <div className="md:text-center">
-                  <p className="text-sm font-bold text-foreground">{step.label}</p>
-                  <p className="text-xs text-muted-foreground">{step.detail}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="max-w-3xl mx-auto px-6 pb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
           data-testid="section-founder-quote"
         >
           <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 md:p-10">
@@ -177,9 +142,21 @@ export default function About() {
             <blockquote className="relative z-10 text-lg md:text-xl font-display leading-relaxed text-foreground italic pl-6 border-l-4 border-primary/30">
               "I had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If a semi-retired person can't keep up, maybe the problem isn't the person."
             </blockquote>
-            <div className="mt-5 pl-6">
-              <p className="text-sm font-bold text-foreground">Derek Johnson</p>
-              <p className="text-xs text-muted-foreground">Founder of PodCap &middot; Previously founded Tatango.com (15 years)</p>
+            <div className="mt-5 pl-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-foreground">Derek Johnson</p>
+                <p className="text-xs text-muted-foreground">Founder of PodCap &middot; Previously founded Tatango.com (15 years)</p>
+              </div>
+              <a
+                href="https://www.linkedin.com/in/derekjohnson/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0A66C2] hover:text-[#004182] transition-colors"
+                data-testid="link-linkedin"
+              >
+                <SiLinkedin className="w-4 h-4" />
+                Connect on LinkedIn
+              </a>
             </div>
           </div>
         </motion.section>
@@ -188,7 +165,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           data-testid="section-what-is-podcap"
         >
           <h2 className="text-2xl font-display font-bold mb-3">What PodCap actually is</h2>
@@ -224,7 +201,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
           data-testid="section-built-for-me"
         >
           <h2 className="text-2xl font-display font-bold mb-3">Founder. Owner. Customer.</h2>
@@ -239,6 +216,59 @@ export default function About() {
               No productivity guilt required.
             </p>
           </div>
+        </motion.section>
+
+        <motion.section
+          className="max-w-3xl mx-auto px-6 pb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          data-testid="section-derek-podcasts"
+        >
+          <h2 className="text-2xl font-display font-bold mb-3">Derek's podcast recaps</h2>
+          <p className="text-[15px] leading-[1.8] text-muted-foreground mb-6">
+            These are the podcasts Derek actually follows on PodCap. Every morning, he gets a recap of each new episode so he can decide what's worth a full listen. You can get the same recaps, free.
+          </p>
+          {podcastsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-3 animate-pulse">
+                  <div className="w-12 h-12 rounded-lg bg-muted shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : founderPodcasts && founderPodcasts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="grid-founder-podcasts">
+              {founderPodcasts.map((podcast) => (
+                <div
+                  key={podcast.id}
+                  className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-3"
+                  data-testid={`card-podcast-${podcast.id}`}
+                >
+                  <img
+                    src={hiResArtwork(podcast.artworkUrl)}
+                    alt={podcast.name}
+                    className="w-12 h-12 rounded-lg object-cover shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">{podcast.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{podcast.artistName}</p>
+                  </div>
+                  <a
+                    href={`/?podcast=${podcast.id}`}
+                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
+                    data-testid={`link-get-recaps-${podcast.id}`}
+                  >
+                    Get Recaps
+                  </a>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </motion.section>
 
         <motion.section
@@ -273,6 +303,73 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
+          data-testid="section-still-love-podcasts"
+        >
+          <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 md:p-10">
+            <div className="flex items-center gap-3 mb-4">
+              <Heart className="w-6 h-6 text-red-500 fill-red-500" />
+              <h2 className="text-2xl font-display font-bold">I still love podcasts</h2>
+            </div>
+            <div className="space-y-4 text-[15px] leading-[1.8] text-muted-foreground">
+              <p>
+                I didn't create PodCap to have people stop listening to podcasts. Quite the opposite. I want people to listen to the <span className="text-foreground font-medium">right</span> podcast episodes at the <span className="text-foreground font-medium">right</span> time.
+              </p>
+              <p>
+                That's what PodCap does. It gives you a summary before you spend 60 minutes listening, only to find out the episode isn't a great fit for you right now. Instead, you can focus your time on the episodes that are. Skip the noise, keep the signal.
+              </p>
+              <p className="text-foreground font-medium">
+                Long live podcasts. :)
+              </p>
+            </div>
+            <div className="mt-8 pt-6 border-t border-black/[0.06] dark:border-white/[0.06]">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Derek's podcast setup</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#1DB954]/10 flex items-center justify-center shrink-0">
+                    <SiSpotify className="w-4 h-4 text-[#1DB954]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Favorite podcast app</p>
+                    <p className="text-sm font-semibold text-foreground">Spotify</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Headphones className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Favorite podcast</p>
+                    <a href="/podcasts/myfirstmillion" className="text-sm font-semibold text-foreground hover:text-primary transition-colors" data-testid="link-fav-podcast">My First Million</a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <Smile className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Favorite podcast headphones</p>
+                    <p className="text-sm font-semibold text-foreground">AirPods</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Favorite place to listen</p>
+                    <p className="text-sm font-semibold text-foreground">On a walk</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="max-w-3xl mx-auto px-6 pb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
           data-testid="section-whats-new"
         >
           <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8">
@@ -288,38 +385,6 @@ export default function About() {
               Visit What's New
               <ArrowRight className="w-4 h-4" />
             </Link>
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="max-w-3xl mx-auto px-6 pb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.45 }}
-          data-testid="section-faq"
-        >
-          <h2 className="text-2xl font-display font-bold mb-6">A few questions you might have</h2>
-          <div className="space-y-2">
-            <FAQItem
-              question="Did Derek really build this because he fell behind on podcasts?"
-              answer="Yes."
-            />
-            <FAQItem
-              question="Is he really the first paying customer?"
-              answer="Also yes. Someone had to test billing."
-            />
-            <FAQItem
-              question="Is this only for business podcasts?"
-              answer="No. PodCap works with any podcast you wish you had time to keep up with — business, tech, comedy, true crime, whatever you're into."
-            />
-            <FAQItem
-              question="Should I still listen to full episodes?"
-              answer="Absolutely. PodCap helps you decide which episodes deserve your full hour or two. Think of it as a smart filter, not a replacement."
-            />
-            <FAQItem
-              question="How does PodCap create its podcast summaries?"
-              answer="PodCap uses AI to analyze real podcast transcripts and create concise, accurate episode recaps. Every fact, quote, and insight comes directly from the actual episode — nothing is fabricated."
-            />
           </div>
         </motion.section>
 
