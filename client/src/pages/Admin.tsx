@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Send, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, Eye, X, Palette, BrainCircuit, FileText, Inbox } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox } from "lucide-react";
 import { motion } from "framer-motion";
 const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
 const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
@@ -18,15 +18,6 @@ interface AdminUser {
   deliveryTime: string;
   deliveryTimezone: string;
   createdAt: string | null;
-}
-
-interface EmailLogEntry {
-  id: number;
-  userId: number;
-  recipientEmail: string;
-  podcasts: string[];
-  source: string;
-  sentAt: string | null;
 }
 
 interface AnalyticsData {
@@ -65,10 +56,8 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "emails" | "analytics" | "template" | "prompt" | "transcripts" | "pending">("pending");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending">("pending");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-  const [emailPreview, setEmailPreview] = useState<{ id: number; html: string } | null>(null);
-  const [loadingEmailId, setLoadingEmailId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
     queryKey: ["/api/admin/me"],
@@ -93,7 +82,6 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
       queryClient.removeQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.removeQueries({ queryKey: ["/api/admin/email-logs"] });
     },
   });
 
@@ -102,28 +90,10 @@ export default function Admin() {
     enabled: isAdmin,
   });
 
-  const { data: emailLogs, isLoading: emailLogsLoading } = useQuery<EmailLogEntry[]>({
-    queryKey: ["/api/admin/email-logs"],
-    enabled: isAdmin,
-  });
-
   const { data: analytics, isLoading: analyticsLoading } = useQuery<AnalyticsData>({
     queryKey: ["/api/admin/analytics"],
     enabled: isAdmin,
   });
-
-  const viewEmailHtml = async (logId: number) => {
-    setLoadingEmailId(logId);
-    try {
-      const res = await apiRequest("GET", `/api/admin/email-logs/${logId}/html`);
-      const data = await res.json();
-      setEmailPreview({ id: logId, html: data.html });
-    } catch {
-      toast({ title: "Not available", description: "Email content was not stored for this older log entry. Newer emails will have viewable content." });
-    } finally {
-      setLoadingEmailId(null);
-    }
-  };
 
   const impersonateMutation = useMutation({
     mutationFn: (userId: number) => apiRequest("POST", "/api/admin/impersonate", { userId }),
@@ -223,11 +193,6 @@ export default function Admin() {
     u.podcasts.some((p) => parsePodcastName(p).toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredEmails = (emailLogs || []).filter((log) =>
-    log.recipientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.podcasts.some((p) => parsePodcastName(p).toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
@@ -281,21 +246,6 @@ export default function Admin() {
                   Users
                   <span className="ml-0.5 px-1.5 py-0.5 bg-black/[0.05] rounded-md text-xs font-semibold">
                     {users?.length ?? 0}
-                  </span>
-                </button>
-                <button
-                  data-testid="tab-email-logs"
-                  onClick={() => { setActiveTab("emails"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    activeTab === "emails"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Send className="w-4 h-4" />
-                  Email Log
-                  <span className="ml-0.5 px-1.5 py-0.5 bg-black/[0.05] rounded-md text-xs font-semibold">
-                    {emailLogs?.length ?? 0}
                   </span>
                 </button>
                 <button
@@ -474,112 +424,6 @@ export default function Admin() {
                                       </button>
                                     )}
                                   </div>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            {activeTab === "emails" && (
-              <>
-                {emailLogsLoading ? (
-                  <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <div className="glass-panel rounded-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full" data-testid="table-admin-email-logs">
-                        <thead>
-                          <tr className="border-b border-black/[0.06] bg-black/[0.02]">
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Recipient</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Sent At</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Podcasts Summarized</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Source</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3"></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-black/[0.04]">
-                          {filteredEmails.length === 0 ? (
-                            <tr>
-                              <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
-                                {searchTerm ? "No emails match your search." : "No emails sent yet."}
-                              </td>
-                            </tr>
-                          ) : (
-                            filteredEmails.map((log) => (
-                              <tr key={log.id} className="hover:bg-black/[0.015] transition-colors" data-testid={`row-email-log-${log.id}`}>
-                                <td className="px-5 py-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                      <Mail className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-semibold text-foreground" data-testid={`text-email-recipient-${log.id}`}>{log.recipientEmail}</p>
-                                      <p className="text-xs text-muted-foreground">User #{log.userId}</p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <div className="flex items-center gap-1.5 text-sm text-foreground">
-                                    <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                                    <span data-testid={`text-email-sent-${log.id}`}>{formatDate(log.sentAt)}</span>
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <div className="flex flex-wrap gap-1.5" data-testid={`text-email-podcasts-${log.id}`}>
-                                    {log.podcasts.length === 0 ? (
-                                      <span className="text-xs text-muted-foreground italic">None</span>
-                                    ) : (
-                                      log.podcasts.map((p, i) => (
-                                        <span
-                                          key={i}
-                                          className="inline-flex items-center gap-1 bg-secondary text-foreground px-2 py-0.5 rounded-full text-xs font-medium max-w-[180px] truncate"
-                                        >
-                                          <Podcast className="w-3 h-3 text-primary shrink-0" />
-                                          {parsePodcastName(p)}
-                                        </span>
-                                      ))
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <span
-                                    data-testid={`text-email-source-${log.id}`}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                      log.source === "scheduled"
-                                        ? "bg-green-50 text-green-700"
-                                        : "bg-blue-50 text-blue-700"
-                                    }`}
-                                  >
-                                    {log.source === "scheduled" ? (
-                                      <Clock className="w-3 h-3" />
-                                    ) : (
-                                      <Send className="w-3 h-3" />
-                                    )}
-                                    {log.source === "scheduled" ? "Scheduled" : "Manual"}
-                                  </span>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <button
-                                    onClick={() => viewEmailHtml(log.id)}
-                                    disabled={loadingEmailId === log.id}
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
-                                    data-testid={`button-view-email-${log.id}`}
-                                  >
-                                    {loadingEmailId === log.id ? (
-                                      <Loader2 className="w-3 h-3 animate-spin" />
-                                    ) : (
-                                      <Eye className="w-3 h-3" />
-                                    )}
-                                    View
-                                  </button>
                                 </td>
                               </tr>
                             ))
@@ -818,31 +662,6 @@ export default function Admin() {
         </section>
       </main>
 
-      {emailPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" data-testid="modal-email-preview">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col mx-4">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-foreground">Email Preview (Log #{emailPreview.id})</h3>
-              <button
-                onClick={() => setEmailPreview(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-                data-testid="button-close-email-preview"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-auto p-1">
-              <iframe
-                srcDoc={emailPreview.html}
-                title="Email Preview"
-                className="w-full h-full min-h-[600px] border-0 rounded-b-2xl"
-                sandbox="allow-popups"
-                data-testid="iframe-email-preview"
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
