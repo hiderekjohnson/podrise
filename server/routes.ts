@@ -1372,8 +1372,30 @@ ${formatInstructions}`;
   app.get("/api/podcast-deals", async (_req, res) => {
     try {
       const allDeals = await storage.getRecentDeals(300);
+
+      const hasUsablePromoCode = (code: string | null | undefined): boolean => {
+        if (!code) return false;
+        const lower = code.toLowerCase().trim();
+        if (lower.length < 2) return false;
+        const genericPhrases = ["link in the description", "link in description", "see description", "check description", "n/a", "none", "no code"];
+        return !genericPhrases.some(p => lower.includes(p));
+      };
+
+      const hasSpecificLink = (link: string | null | undefined): boolean => {
+        if (!link) return false;
+        const trimmed = link.trim().replace(/\/+$/, "");
+        try {
+          const url = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
+          if (url.pathname === "/" || url.pathname === "") return false;
+          return true;
+        } catch {
+          return trimmed.includes("/") && trimmed.split("/").filter(Boolean).length > 1;
+        }
+      };
+
       const podcastCounts: Record<string, number> = {};
       const filtered = allDeals.filter((deal) => {
+        if (!hasUsablePromoCode(deal.promoCode) && !hasSpecificLink(deal.specialLink)) return false;
         const count = podcastCounts[deal.podcastId] || 0;
         if (count >= 3) return false;
         podcastCounts[deal.podcastId] = count + 1;
