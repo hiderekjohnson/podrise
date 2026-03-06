@@ -70,11 +70,11 @@ function getYesterdayInTimezone(timezone: string): { start: Date; end: Date; lab
   }
 }
 
-async function pregenerateAllEmails() {
+async function pregenerateAllEmails(force = false) {
   const todayUTC = new Date().toISOString().split("T")[0];
-  if (lastPregenerateDate === todayUTC) return;
+  if (!force && lastPregenerateDate === todayUTC) return;
 
-  console.log(`[EmailScheduler] Starting nightly pre-generation for ${todayUTC}...`);
+  console.log(`[EmailScheduler] Starting ${force ? "FORCED " : ""}nightly pre-generation for ${todayUTC}...`);
   lastPregenerateDate = todayUTC;
 
   let users: any[];
@@ -109,16 +109,24 @@ async function pregenerateAllEmails() {
     try {
       const { start: yesterdayStart, end: yesterdayEnd, label: yesterdayLabel, dateStr } = getYesterdayInTimezone(timezone);
 
-      const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
-      if (existing.length > 0) {
-        skipped++;
-        continue;
-      }
+      if (!force) {
+        const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
+        if (existing.length > 0) {
+          skipped++;
+          continue;
+        }
 
-      const recaps = await storage.getRecapsByUserId(user.id);
-      if (recaps.some(r => r.recapDate === dateStr)) {
-        skipped++;
-        continue;
+        const recaps = await storage.getRecapsByUserId(user.id);
+        if (recaps.some(r => r.recapDate === dateStr)) {
+          skipped++;
+          continue;
+        }
+      } else {
+        const existing = await storage.getPendingEmailsForUser(user.id, dateStr);
+        const pendingOnes = existing.filter((e: any) => e.status === "pending");
+        for (const p of pendingOnes) {
+          await storage.updatePendingEmailStatus(p.id, "cancelled", "Replaced by forced regeneration");
+        }
       }
 
       console.log(`[EmailScheduler] Pre-generating recap for user ${user.id} (${user.email})...`);
@@ -264,7 +272,7 @@ async function processSchedulerTick() {
 
 export async function triggerPregeneration() {
   lastPregenerateDate = "";
-  await pregenerateAllEmails();
+  await pregenerateAllEmails(true);
 }
 
 export function startEmailScheduler() {
