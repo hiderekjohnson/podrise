@@ -23,6 +23,7 @@ export interface PodcastLandingConfig {
   knownFor?: string[];
   hostBios?: HostBio[];
   relatedSlugs?: string[];
+  aboutPodcast?: string;
 }
 
 export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
@@ -44,6 +45,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Marathon-length conversations with guests from MMA fighters to scientists to comedians","Unfiltered commentary on politics, culture, and controversial topics","Deep dives into health, fitness, and psychedelic research","The most-listened-to podcast globally with a landmark Spotify deal"],
     hostBios: [{"name":"Joe Rogan","bio":"Stand-up comedian, UFC commentator, and host of the world's most popular podcast. Former host of Fear Factor and a Brazilian jiu-jitsu black belt. His podcast became the top show on Spotify in a reported $200M exclusive deal."}],
     relatedSlugs: ["lexfridman","hubermanlab","shawnryanshow"],
+    aboutPodcast: "The Joe Rogan Experience is a podcast hosted by Joe Rogan covering long-form interviews covering MMA, comedy, politics, science, and culture. Each episode of The Joe Rogan Experience dives into wide-ranging interviews, cultural commentary, science discussions, comedy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Joe Rogan Experience or discovering Joe Rogan for the first time, PodCap delivers a concise summary of every new The Joe Rogan Experience episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "diaryofaceo",
@@ -63,6 +65,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Candid interviews with world-class entrepreneurs, athletes, and scientists","Deep exploration of mental health, relationships, and personal growth","Steven Bartlett's signature opening question that disarms guests","Viral clips that consistently trend on social media platforms"],
     hostBios: [{"name":"Steven Bartlett","bio":"Entrepreneur, investor, and youngest-ever Dragon on BBC's Dragons' Den. Founded Social Chain at 22, building it into a $600M+ company. Author of the bestselling book Happy Sexy Millionaire."}],
     relatedSlugs: ["onpurpose","melrobbins","timferriss"],
+    aboutPodcast: "The Diary of a CEO with Steven Bartlett is a podcast hosted by Steven Bartlett covering deep-dive conversations on business, personal growth, health, and entrepreneurship. Each episode of The Diary of a CEO with Steven Bartlett dives into business strategy, personal development, health optimization, entrepreneurship, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Diary of a CEO with Steven Bartlett or discovering Steven Bartlett for the first time, PodCap delivers a concise summary of every new The Diary of a CEO with Steven Bartlett episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "allin",
@@ -82,6 +85,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Four Silicon Valley billionaires debating tech, economics, and politics","Insider perspectives on venture capital deals and startup valuations","Sharp geopolitical analysis from investors with real skin in the game","The annual All-In Summit bringing together tech's biggest names"],
     hostBios: [{"name":"Chamath Palihapitiya","bio":"Venture capitalist, former Facebook VP of Growth, and CEO of Social Capital. Known for early investments in Slack, Box, and other unicorns."},{"name":"Jason Calacanis","bio":"Angel investor, entrepreneur, and founder of LAUNCH. Early investor in Uber, Robinhood, and Calm."},{"name":"David Sacks","bio":"General partner at Craft Ventures, former COO of PayPal, and founder of Yammer (sold to Microsoft for $1.2B)."},{"name":"David Friedberg","bio":"CEO of The Production Board, former Google employee, and founder of The Climate Corporation (sold to Monsanto for $1.1B)."}],
     relatedSlugs: ["acquired","bg2pod","pivot"],
+    aboutPodcast: "All-In Podcast is a podcast hosted by Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg covering tech industry analysis, venture capital insights, economic policy, and geopolitics. Each episode of All-In Podcast dives into technology trends, venture capital, economic policy, startups, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of All-In Podcast or discovering Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg for the first time, PodCap delivers a concise summary of every new All-In Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thedaily",
@@ -101,6 +105,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The definitive daily news podcast from The New York Times","In-depth single-story format that goes behind the headlines","Michael Barbaro's distinctive interviewing style and narration","Breaking news coverage that shapes the national conversation"],
     hostBios: [{"name":"Michael Barbaro","bio":"Journalist and host of The Daily at The New York Times. Previously covered New York City politics for the Times and has been with the paper since 2006."}],
     relatedSlugs: ["hardfork","thejournal","podsaveamerica"],
+    aboutPodcast: "The Daily is a podcast hosted by The New York Times covering essential news stories and in-depth reporting from The New York Times. Each episode of The Daily dives into breaking news, investigative reporting, political coverage, business news, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Daily or discovering The New York Times for the first time, PodCap delivers a concise summary of every new The Daily episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "lexfridman",
@@ -120,6 +125,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Ultra-long-form conversations (often 3-5 hours) with leading scientists and thinkers","Deep technical discussions on AI, robotics, and the future of intelligence","Philosophical explorations of consciousness, meaning, and the human condition","Interviews with polarizing figures approached with genuine curiosity"],
     hostBios: [{"name":"Lex Fridman","bio":"Research scientist at MIT specializing in AI and autonomous vehicles. Born in the Soviet Union, he brings a unique perspective to conversations about technology, science, and the nature of intelligence."}],
     relatedSlugs: ["joerogan","hubermanlab","timferriss"],
+    aboutPodcast: "Lex Fridman Podcast is a podcast hosted by Lex Fridman covering deep conversations about AI, technology, science, philosophy, and the nature of intelligence. Each episode of Lex Fridman Podcast dives into artificial intelligence, deep learning, robotics, philosophy of mind, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Lex Fridman Podcast or discovering Lex Fridman for the first time, PodCap delivers a concise summary of every new Lex Fridman Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "smartless",
@@ -139,6 +145,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Surprise celebrity guests revealed live — only one host knows who's coming","Hilarious chemistry between three Hollywood best friends","A-list guests from politics, entertainment, sports, and beyond","Consistently one of the top-ranked comedy podcasts globally"],
     hostBios: [{"name":"Jason Bateman","bio":"Emmy-winning actor and director known for Arrested Development and Ozark."},{"name":"Sean Hayes","bio":"Emmy-winning actor best known for his role as Jack McFarland on Will & Grace."},{"name":"Will Arnett","bio":"Actor and producer known for Arrested Development, BoJack Horseman, and Lego Batman."}],
     relatedSlugs: ["conanobrien","armchairexpert","callherdaddy"],
+    aboutPodcast: "SmartLess is a podcast hosted by Jason Bateman, Sean Hayes & Will Arnett covering surprise celebrity interviews with comedic commentary from three Hollywood friends. Each episode of SmartLess dives into celebrity interviews, comedy, behind-the-scenes Hollywood stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of SmartLess or discovering Jason Bateman, Sean Hayes & Will Arnett for the first time, PodCap delivers a concise summary of every new SmartLess episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hubermanlab",
@@ -158,6 +165,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Science-backed protocols for sleep, focus, exercise, and stress management","Detailed neuroscience explanations made accessible to a general audience","Actionable health optimization tools listeners can implement immediately","Deep dives into hormones, supplements, and the biology of performance"],
     hostBios: [{"name":"Dr. Andrew Huberman","bio":"Tenured professor of neurobiology and ophthalmology at Stanford University School of Medicine. His lab studies neural regeneration, brain development, and neuroplasticity."}],
     relatedSlugs: ["lexfridman","melrobbins","timferriss"],
+    aboutPodcast: "Huberman Lab is a podcast hosted by Dr. Andrew Huberman covering neuroscience-based tools for health, performance, sleep, stress, and focus. Each episode of Huberman Lab dives into neuroscience, health optimization, sleep protocols, stress management, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Huberman Lab or discovering Dr. Andrew Huberman for the first time, PodCap delivers a concise summary of every new Huberman Lab episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "newheights",
@@ -177,6 +185,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Two Super Bowl-winning brothers bringing insider NFL analysis and humor","Behind-the-scenes locker room stories from active NFL careers","Celebrity guests from sports, entertainment, and pop culture","Authentic brotherly dynamic that fans love watching on YouTube"],
     hostBios: [{"name":"Jason Kelce","bio":"Retired NFL center who spent 13 seasons with the Philadelphia Eagles, winning Super Bowl LII. Six-time Pro Bowler known for his iconic Super Bowl parade speech."},{"name":"Travis Kelce","bio":"NFL tight end for the Kansas City Chiefs, three-time Super Bowl champion, and nine-time Pro Bowler. The most decorated tight end in NFL history."}],
     relatedSlugs: ["joerogan","smartless","shawnryanshow"],
+    aboutPodcast: "New Heights with Jason & Travis Kelce is a podcast hosted by Jason Kelce & Travis Kelce covering NFL insights, sports culture, and behind-the-scenes stories from two Super Bowl-winning brothers. Each episode of New Heights with Jason & Travis Kelce dives into NFL analysis, football culture, sports business, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of New Heights with Jason & Travis Kelce or discovering Jason Kelce & Travis Kelce for the first time, PodCap delivers a concise summary of every new New Heights with Jason & Travis Kelce episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "timferriss",
@@ -196,6 +205,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deconstructing world-class performers across business, sports, and science","Tactical routines, morning habits, and productivity frameworks","The \"5 Bullet Friday\" format sharing curated tools and recommendations","Pioneering the long-form interview podcast format before it was mainstream"],
     hostBios: [{"name":"Tim Ferriss","bio":"Author of The 4-Hour Workweek, angel investor, and self-experimenter. Early-stage investor in Uber, Facebook, Shopify, and Alibaba. Known for his obsessive approach to deconstructing excellence."}],
     relatedSlugs: ["hubermanlab","lexfridman","acquired"],
+    aboutPodcast: "The Tim Ferriss Show is a podcast hosted by Tim Ferriss covering tactics, routines, and habits of world-class performers across business, sports, and science. Each episode of The Tim Ferriss Show dives into productivity, business strategies, health protocols, success patterns, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Tim Ferriss Show or discovering Tim Ferriss for the first time, PodCap delivers a concise summary of every new The Tim Ferriss Show episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "callherdaddy",
@@ -215,6 +225,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Candid conversations about relationships, dating, and modern life","High-profile celebrity interviews that make headlines","Empowering discussions about sexuality, mental health, and self-worth","One of the biggest podcast deals in history with Spotify and SiriusXM"],
     hostBios: [{"name":"Alex Cooper","bio":"Media personality and host of one of the most-listened-to podcasts in the world. Signed a landmark deal with SiriusXM reportedly worth up to $125M. Named to Forbes 30 Under 30."}],
     relatedSlugs: ["melrobbins","armchairexpert","diaryofaceo"],
+    aboutPodcast: "Call Her Daddy is a podcast hosted by Alex Cooper covering unfiltered conversations on relationships, dating, and modern life. Each episode of Call Her Daddy dives into relationships, dating culture, celebrity interviews, modern life, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Call Her Daddy or discovering Alex Cooper for the first time, PodCap delivers a concise summary of every new Call Her Daddy episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "pivot",
@@ -234,6 +245,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Sharp, opinionated takes on tech, business, and politics from two media veterans","Scott Galloway's bold market predictions and \"Prof G\" analysis","Kara Swisher's insider knowledge from decades covering Silicon Valley","Weekly \"wins and fails\" segment rating companies and leaders"],
     hostBios: [{"name":"Kara Swisher","bio":"Veteran technology journalist, co-founder of Recode, and former editor at The Wall Street Journal. One of the most influential voices in tech media for over 25 years."},{"name":"Scott Galloway","bio":"Professor of Marketing at NYU Stern, serial entrepreneur, and bestselling author of The Four, Post Corona, and Adrift. Known for his provocative predictions about big tech."}],
     relatedSlugs: ["hardfork","allin","decoder"],
+    aboutPodcast: "Pivot is a podcast hosted by Kara Swisher & Scott Galloway covering sharp, honest commentary on tech, business, and politics. Each episode of Pivot dives into tech industry, big tech, business strategy, politics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Pivot or discovering Kara Swisher & Scott Galloway for the first time, PodCap delivers a concise summary of every new Pivot episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "acquired",
@@ -253,6 +265,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Epic multi-hour deep dives into how the world's greatest companies were built","Meticulous research rivaling business school case studies","Covering everything from NVIDIA and Costco to LVMH and Berkshire Hathaway","One of the fastest-growing business podcasts with a cult-like following"],
     hostBios: [{"name":"Ben Gilbert","bio":"Managing director at Pioneer Square Labs and co-founder of the venture studio. Previously worked in venture capital and tech startups in Seattle."},{"name":"David Rosenthal","bio":"Partner at Wave Capital. Previously a VC at Madrona Venture Group and early employee at several Seattle startups."}],
     relatedSlugs: ["allin","businessbreakdowns","founders"],
+    aboutPodcast: "Acquired is a podcast hosted by Ben Gilbert & David Rosenthal covering the playbooks of history's greatest companies and technology acquisitions. Each episode of Acquired dives into business history, tech acquisitions, company strategy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Acquired or discovering Ben Gilbert & David Rosenthal for the first time, PodCap delivers a concise summary of every new Acquired episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hardfork",
@@ -272,6 +285,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making complex AI and tech topics accessible and entertaining","Week-by-week coverage of the AI revolution as it unfolds","Thoughtful debate between two journalists with different tech perspectives","Breaking down how social media platforms shape culture and politics"],
     hostBios: [{"name":"Kevin Roose","bio":"New York Times technology columnist and bestselling author of Futureproof and Talking to Strangers. Known for his early and deep coverage of AI and cryptocurrency."},{"name":"Casey Newton","bio":"Founder of Platformer, a newsletter covering social media platforms and their impact on society. Former senior editor at The Verge."}],
     relatedSlugs: ["pivot","thedaily","aidailybrief"],
+    aboutPodcast: "Hard Fork is a podcast hosted by Kevin Roose & Casey Newton covering the latest in AI, social media, and technology trends from The New York Times. Each episode of Hard Fork dives into AI breakthroughs, social media platform changes, tech industry news, and Silicon Valley culture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Hard Fork or discovering Kevin Roose & Casey Newton for the first time, PodCap delivers a concise summary of every new Hard Fork episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "waveform",
@@ -291,6 +305,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Detailed consumer tech reviews from YouTube's most respected tech reviewer","Smartphone shootouts and gadget comparisons with real-world testing","Behind-the-scenes stories from MKBHD's production process","Lightning round segments covering the week's biggest tech news"],
     hostBios: [{"name":"Marques Brownlee (MKBHD)","bio":"YouTube's most popular tech reviewer with over 19 million subscribers. Named one of the most influential people on the internet by Time magazine."},{"name":"Andrew Manganelli","bio":"Producer and co-host of Waveform. Works alongside MKBHD at the studio, bringing production expertise and a different perspective on consumer tech."}],
     relatedSlugs: ["thevergecast","decoder","moderncto"],
+    aboutPodcast: "Waveform: The MKBHD Podcast is a podcast hosted by Marques Brownlee (MKBHD) & Andrew Manganelli covering consumer tech reviews, gadget news, and technology culture discussions. Each episode of Waveform: The MKBHD Podcast dives into smartphone reviews, gadget launches, consumer electronics, and product design, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Waveform: The MKBHD Podcast or discovering Marques Brownlee (MKBHD) & Andrew Manganelli for the first time, PodCap delivers a concise summary of every new Waveform: The MKBHD Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thevergecast",
@@ -310,6 +325,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["One of the longest-running tech podcasts covering gadgets and platforms","Insider perspective from The Verge's award-winning editorial team","Hot takes on product launches from Apple, Google, and Samsung","Weekly roundup format that covers everything happening in consumer tech"],
     hostBios: [{"name":"The Verge Editorial Team","bio":"Led by editor-in-chief Nilay Patel and a rotating cast of editors and reporters from The Verge, one of the most respected technology news outlets."}],
     relatedSlugs: ["waveform","decoder","hardfork"],
+    aboutPodcast: "The Vergecast is a podcast hosted by The Verge Editorial Team covering weekly tech news roundup covering gadgets, platforms, and the future of technology. Each episode of The Vergecast dives into tech industry news, product launches, platform updates, and internet culture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Vergecast or discovering The Verge Editorial Team for the first time, PodCap delivers a concise summary of every new The Vergecast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "searchengine",
@@ -329,6 +345,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Investigating the questions the internet can't stop asking","The spiritual successor to the beloved Reply All podcast","Stories about how technology intersects with everyday human life","PJ Vogt's signature narrative storytelling style"],
     hostBios: [{"name":"PJ Vogt","bio":"Journalist and former co-host of Reply All, one of the most acclaimed podcast series ever made. Known for his ability to find fascinating stories at the intersection of technology and human experience."}],
     relatedSlugs: ["thisamericanlife","hiddenbrain","hardfork"],
+    aboutPodcast: "Search Engine is a podcast hosted by PJ Vogt covering deep investigations into the questions the internet can't stop asking. Each episode of Search Engine dives into internet mysteries, technology's impact on society, cultural phenomena, and investigative deep dives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Search Engine or discovering PJ Vogt for the first time, PodCap delivers a concise summary of every new Search Engine episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "a16z",
@@ -348,6 +365,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Venture capital insights from one of Silicon Valley's most influential firms","Early and deep coverage of AI, crypto, and biotech trends","Interviews with founders building category-defining companies","Expert analysis of go-to-market strategies and technology adoption curves"],
     hostBios: [{"name":"Andreessen Horowitz","bio":"Leading venture capital firm founded by Marc Andreessen and Ben Horowitz in 2009. The firm manages over $42B in assets and has backed companies like Facebook, Airbnb, Coinbase, and GitHub."}],
     relatedSlugs: ["allin","bg2pod","acquired"],
+    aboutPodcast: "a16z Podcast is a podcast hosted by Andreessen Horowitz covering venture capital perspectives on software, AI, crypto, bio, and the future of technology. Each episode of a16z Podcast dives into venture capital trends, software industry analysis, AI, crypto, and biotech, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of a16z Podcast or discovering Andreessen Horowitz for the first time, PodCap delivers a concise summary of every new a16z Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "bg2pod",
@@ -367,6 +385,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Two legendary investors breaking down AI, markets, and tech trends","Bill Gurley's deep expertise in marketplace businesses and valuations","Brad Gerstner's perspective bridging public and private markets","Accessible analysis of complex investment themes and market dynamics"],
     hostBios: [{"name":"Bill Gurley","bio":"General partner at Benchmark, one of Silicon Valley's most storied VC firms. Known for his early investment in Uber and his expertise in marketplace businesses."},{"name":"Brad Gerstner","bio":"Founder and CEO of Altimeter Capital, a technology-focused investment firm. Known for investments in Snowflake, Unity, and other major tech companies."}],
     relatedSlugs: ["allin","a16z","acquired"],
+    aboutPodcast: "BG2 Pod is a podcast hosted by Bill Gurley & Brad Gerstner covering venture capital insights and AI industry analysis from two legendary investors. Each episode of BG2 Pod dives into venture capital deal analysis, AI industry trends, public markets, and startup valuations, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BG2 Pod or discovering Bill Gurley & Brad Gerstner for the first time, PodCap delivers a concise summary of every new BG2 Pod episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "decoder",
@@ -386,6 +405,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["CEO and executive interviews focused on how they make decisions","Deep exploration of org charts, business models, and corporate strategy","Nilay Patel's probing questions about platform economics and regulation","Understanding how technology companies actually operate behind the scenes"],
     hostBios: [{"name":"Nilay Patel","bio":"Editor-in-chief of The Verge and host of multiple podcasts. A trained lawyer who brings analytical rigor to his coverage of the technology industry and its intersection with law and policy."}],
     relatedSlugs: ["pivot","thevergecast","hardfork"],
+    aboutPodcast: "Decoder with Nilay Patel is a podcast hosted by Nilay Patel covering interviews with CEOs and leaders about how they make decisions and run their companies. Each episode of Decoder with Nilay Patel dives into CEO decision-making, technology company operations, media business models, and platform economics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Decoder with Nilay Patel or discovering Nilay Patel for the first time, PodCap delivers a concise summary of every new Decoder with Nilay Patel episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "aidailybrief",
@@ -405,6 +425,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The fastest daily briefing on AI news and developments","Concise analysis of new model releases, research papers, and industry moves","Coverage of AI policy, regulation, and societal impact","Essential listening for anyone trying to keep up with the AI revolution"],
     hostBios: [{"name":"Nathaniel Whittemore","bio":"Technology journalist and AI analyst who delivers daily coverage of the most important developments in artificial intelligence. Previously covered crypto and fintech."}],
     relatedSlugs: ["hardfork","a16z","lexfridman"],
+    aboutPodcast: "AI Daily Brief is a podcast hosted by Nathaniel Whittemore covering daily analysis of the most important developments in artificial intelligence. Each episode of AI Daily Brief dives into AI news, machine learning breakthroughs, AI policy, and industry developments, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of AI Daily Brief or discovering Nathaniel Whittemore for the first time, PodCap delivers a concise summary of every new AI Daily Brief episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "planetmoney",
@@ -424,6 +445,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making economics entertaining through creative storytelling","Stories like buying a barrel of oil and tracking it through the global supply chain","Explaining complex financial concepts through real-world adventures","One of the most award-winning podcasts in public radio history"],
     hostBios: [{"name":"NPR Team","bio":"Produced by NPR with a rotating cast of hosts and reporters. The show was created by Alex Blumberg and Adam Davidson during the 2008 financial crisis to make economics accessible."}],
     relatedSlugs: ["theindicator","thejournal","howibuiltthis"],
+    aboutPodcast: "Planet Money is a podcast hosted by NPR covering creative, accessible explanations of how the economy actually works. Each episode of Planet Money dives into economics, trade, markets, labor, and the surprising stories behind how money moves, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Planet Money or discovering NPR for the first time, PodCap delivers a concise summary of every new Planet Money episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thejournal",
@@ -443,6 +465,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Business and finance reporting from The Wall Street Journal's newsroom","In-depth corporate investigations and market analysis","Breaking business news stories with insider access","Concise daily format perfect for a commute or morning routine"],
     hostBios: [{"name":"The Wall Street Journal","bio":"Produced by the WSJ's podcast team, drawing on the paper's 130+ years of business journalism. Hosts include Kate Linebaugh and Ryan Knutson."}],
     relatedSlugs: ["thedaily","planetmoney","equity"],
+    aboutPodcast: "The Journal is a podcast hosted by The Wall Street Journal covering the biggest business and finance stories from The Wall Street Journal. Each episode of The Journal dives into business news, financial markets, corporate strategy, and economic trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Journal or discovering The Wall Street Journal for the first time, PodCap delivers a concise summary of every new The Journal episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "howibuiltthis",
@@ -462,6 +485,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Origin stories of iconic companies told by the founders themselves","The emotional rollercoaster of entrepreneurship captured authentically","Brands like Airbnb, Patagonia, Instagram, and Spanx sharing their full journey","Guy Raz's warm interviewing style that gets founders to open up"],
     hostBios: [{"name":"Guy Raz","bio":"One of the most popular podcasters in the world and former NPR correspondent. Also created TED Radio Hour. Named by Time as one of the best interviewers in broadcast."}],
     relatedSlugs: ["founders","mastersofscale","acquired"],
+    aboutPodcast: "How I Built This is a podcast hosted by Guy Raz covering the stories behind the movements and companies that shaped our world. Each episode of How I Built This dives into founder stories, startup journeys, entrepreneurship lessons, and innovation, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of How I Built This or discovering Guy Raz for the first time, PodCap delivers a concise summary of every new How I Built This episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ramseyshow",
@@ -481,6 +505,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["No-nonsense personal finance advice with Dave Ramsey's signature tough love","The 7 Baby Steps framework for getting out of debt and building wealth","Callers sharing their financial situations for live on-air advice","Iconic \"debt-free screams\" celebrating financial freedom"],
     hostBios: [{"name":"Dave Ramsey","bio":"Financial author, radio host, and founder of Ramsey Solutions. Author of The Total Money Makeover with over 10 million copies sold. Built a financial education empire reaching millions daily."}],
     relatedSlugs: ["themoneyguyshow","financialaudit","biggerpockets"],
+    aboutPodcast: "The Ramsey Show is a podcast hosted by Dave Ramsey covering straightforward money advice on budgeting, debt, investing, and building wealth. Each episode of The Ramsey Show dives into personal finance, debt freedom, budgeting strategies, and wealth building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Ramsey Show or discovering Dave Ramsey for the first time, PodCap delivers a concise summary of every new The Ramsey Show episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hbrideacast",
@@ -500,6 +525,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Research-backed management insights from Harvard Business Review's experts","Practical frameworks for leadership, strategy, and organizational behavior","Interviews with top business professors and corporate executives","One of the longest-running and most respected business podcasts"],
     hostBios: [{"name":"Harvard Business Review","bio":"Produced by HBR's editorial team, featuring rotating hosts and the world's leading management thinkers. Distills academic research into actionable business insights."}],
     relatedSlugs: ["mastersofscale","howibuiltthis","acquired"],
+    aboutPodcast: "HBR IdeaCast is a podcast hosted by Harvard Business Review covering leading management thinkers on strategy, leadership, and innovation. Each episode of HBR IdeaCast dives into management strategy, leadership development, organizational culture, and innovation, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of HBR IdeaCast or discovering Harvard Business Review for the first time, PodCap delivers a concise summary of every new HBR IdeaCast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "financialaudit",
@@ -519,6 +545,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Real people opening their books for a candid, sometimes brutal financial review","Caleb Hammer's direct, no-holds-barred approach to financial advice","Viral moments from guests with shocking spending habits","Making financial literacy entertaining for younger audiences"],
     hostBios: [{"name":"Caleb Hammer","bio":"YouTube financial creator and podcast host who reviews real people's finances on camera. Known for his blunt, entertaining approach to financial education that resonates with millennials and Gen Z."}],
     relatedSlugs: ["ramseyshow","themoneyguyshow","biggerpockets"],
+    aboutPodcast: "Financial Audit is a podcast hosted by Caleb Hammer covering real people open their books for brutally honest personal finance reviews. Each episode of Financial Audit dives into personal finance breakdowns, budgeting critiques, debt analysis, and financial literacy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Financial Audit or discovering Caleb Hammer for the first time, PodCap delivers a concise summary of every new Financial Audit episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "founders",
@@ -538,6 +565,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep reading and analysis of entrepreneur biographies and autobiographies","Extracting timeless business lessons from history's greatest builders","Covering figures from Steve Jobs and Henry Ford to obscure genius founders","David Senra's passionate, personal narration style"],
     hostBios: [{"name":"David Senra","bio":"Entrepreneur and obsessive reader who has read over 300 biographies of history's greatest founders. His podcast distills the lessons from these lives into actionable wisdom for modern entrepreneurs."}],
     relatedSlugs: ["acquired","howibuiltthis","mastersofscale"],
+    aboutPodcast: "Founders is a podcast hosted by David Senra covering what the greatest entrepreneurs, inventors, and thinkers in history actually did. Each episode of Founders dives into entrepreneurship history, business biographies, founder stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Founders or discovering David Senra for the first time, PodCap delivers a concise summary of every new Founders episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "businessbreakdowns",
@@ -557,6 +585,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Detailed analysis of how specific companies make money and operate","Breaking down competitive moats, unit economics, and market dynamics","Expert guests from industry insiders to equity analysts","A go-to resource for investors and business strategists"],
     hostBios: [{"name":"Colossus","bio":"Produced by Colossus, the media company behind Invest Like the Best. Features rotating expert hosts who bring deep industry knowledge to each company breakdown."}],
     relatedSlugs: ["acquired","founders","a16z"],
+    aboutPodcast: "Business Breakdowns is a podcast hosted by Colossus covering detailed analyses of the most fascinating businesses in the world. Each episode of Business Breakdowns dives into business models, competitive advantages, financial analysis, and industry deep dives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Business Breakdowns or discovering Colossus for the first time, PodCap delivers a concise summary of every new Business Breakdowns episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "mastersofscale",
@@ -576,6 +605,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Scaling strategies from the co-founder of LinkedIn and Greylock partner","Creative storytelling format mixing founder interviews with narration","Battle-tested frameworks for growing companies from zero to massive scale","Guest list reads like a who's-who of tech: Zuckerberg, Hastings, Bezos"],
     hostBios: [{"name":"Reid Hoffman","bio":"Co-founder of LinkedIn, partner at Greylock, and bestselling author of Blitzscaling and The Startup of You. One of Silicon Valley's most connected and influential entrepreneurs and investors."}],
     relatedSlugs: ["howibuiltthis","founders","acquired"],
+    aboutPodcast: "Masters of Scale is a podcast hosted by Reid Hoffman covering how legendary entrepreneurs grew their companies from zero to massive scale. Each episode of Masters of Scale dives into scaling strategies, startup growth, leadership decisions, and innovation frameworks, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Masters of Scale or discovering Reid Hoffman for the first time, PodCap delivers a concise summary of every new Masters of Scale episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "biggerpockets",
@@ -595,6 +625,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The go-to podcast for real estate investing education","Step-by-step strategies for buying rental properties and building portfolios","Stories from everyday investors who achieved financial freedom through real estate","BRRRR strategy and house-hacking deep dives"],
     hostBios: [{"name":"BiggerPockets","bio":"Hosted by a rotating team from BiggerPockets, the largest real estate investing community in the world with over 2 million members. Features interviews with investors at every level."}],
     relatedSlugs: ["ramseyshow","themoneyguyshow","financialaudit"],
+    aboutPodcast: "BiggerPockets Real Estate Podcast is a podcast hosted by David Greene & Rob Abasolo covering real estate investing strategies for beginners and experienced investors alike. Each episode of BiggerPockets Real Estate Podcast dives into real estate investing, property analysis, rental strategies, and wealth building through real estate, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BiggerPockets Real Estate Podcast or discovering David Greene & Rob Abasolo for the first time, PodCap delivers a concise summary of every new BiggerPockets Real Estate Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "theindicator",
@@ -614,6 +645,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Bite-sized daily economics in under 10 minutes","Planet Money's quick-hit companion for the daily commute","Explaining economic indicators and trends with clarity and humor","Perfect for listeners who want economics without the time commitment"],
     hostBios: [{"name":"NPR Team","bio":"Produced by NPR's Planet Money team, featuring rotating hosts who distill complex economic data into quick, accessible daily episodes."}],
     relatedSlugs: ["planetmoney","thedaily","thejournal"],
+    aboutPodcast: "The Indicator from Planet Money is a podcast hosted by NPR covering quick, smart takes on the economy and what the numbers really mean. Each episode of The Indicator from Planet Money dives into economics, markets, business trends, financial data, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Indicator from Planet Money or discovering NPR for the first time, PodCap delivers a concise summary of every new The Indicator from Planet Money episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "mastersinbusiness",
@@ -633,6 +665,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Long-form interviews with Wall Street legends and investment titans","Barry Ritholtz's deep knowledge of markets and financial history","Guests include Ray Dalio, Howard Marks, and other investing icons","Bloomberg's premier finance interview podcast"],
     hostBios: [{"name":"Barry Ritholtz","bio":"Chairman and CIO of Ritholtz Wealth Management, Bloomberg Opinion columnist, and bestselling author of Bailout Nation. One of the most widely followed financial commentators in the world."}],
     relatedSlugs: ["acquired","allin","businessbreakdowns"],
+    aboutPodcast: "Masters in Business is a podcast hosted by Barry Ritholtz covering conversations with leaders in finance, investing, and business. Each episode of Masters in Business dives into investing philosophy, market analysis, financial industry insights, and business leadership, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Masters in Business or discovering Barry Ritholtz for the first time, PodCap delivers a concise summary of every new Masters in Business episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "themoneyguyshow",
@@ -652,6 +685,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The Financial Order of Operations (FOO) framework for every life stage","Practical wealth-building strategies with specific numbers and benchmarks","Content tailored to different ages: 20s, 30s, 40s, and beyond","Making complex financial planning feel approachable and actionable"],
     hostBios: [{"name":"Brian Preston","bio":"Certified Financial Planner and founder of Abound Wealth Management. Created the Financial Mutant framework and the popular Financial Order of Operations."},{"name":"Bo Hanson","bio":"CPA, CFP, and partner at Abound Wealth Management. Brings tax expertise and analytical rigor to the show's financial guidance."}],
     relatedSlugs: ["ramseyshow","financialaudit","biggerpockets"],
+    aboutPodcast: "The Money Guy Show is a podcast hosted by Brian Preston & Bo Hanson covering practical financial planning advice for building wealth at every stage of life. Each episode of The Money Guy Show dives into financial planning, investing strategies, retirement planning, and wealth management, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Money Guy Show or discovering Brian Preston & Bo Hanson for the first time, PodCap delivers a concise summary of every new The Money Guy Show episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "equity",
@@ -671,6 +705,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["TechCrunch's insider view on startup fundraising and venture capital deals","Quick, news-driven format covering the week's biggest funding rounds","Analysis of IPOs, acquisitions, and the startup ecosystem","Essential listening for anyone in the startup world"],
     hostBios: [{"name":"TechCrunch","bio":"Hosted by TechCrunch's senior reporters and editors, providing startup ecosystem coverage from the most recognized name in tech journalism."}],
     relatedSlugs: ["a16z","allin","bg2pod"],
+    aboutPodcast: "Equity is a podcast hosted by TechCrunch covering the business of startups — funding rounds, exits, and the venture capital landscape. Each episode of Equity dives into startup funding, venture capital deals, IPOs, tech business news, and emerging companies, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Equity or discovering TechCrunch for the first time, PodCap delivers a concise summary of every new Equity episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "onpurpose",
@@ -690,6 +725,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Combining ancient wisdom with modern psychology for personal growth","Jay Shetty's unique perspective as a former monk turned content creator","Celebrity guests opening up about purpose, relationships, and mental health","Meditations and practical exercises listeners can use daily"],
     hostBios: [{"name":"Jay Shetty","bio":"Former monk, bestselling author of Think Like a Monk, and purpose coach. His content has been viewed over 10 billion times. He brings Eastern philosophy and mindfulness to a global audience."}],
     relatedSlugs: ["melrobbins","diaryofaceo","hubermanlab"],
+    aboutPodcast: "On Purpose with Jay Shetty is a podcast hosted by Jay Shetty covering conversations about purpose, mindfulness, relationships, and personal transformation. Each episode of On Purpose with Jay Shetty dives into personal growth, mindfulness practices, relationship advice, and purpose discovery, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of On Purpose with Jay Shetty or discovering Jay Shetty for the first time, PodCap delivers a concise summary of every new On Purpose with Jay Shetty episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "melrobbins",
@@ -709,6 +745,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Science-backed strategies for motivation, habits, and overcoming anxiety","The 5-Second Rule framework used by millions worldwide","Deeply personal stories mixed with research and actionable advice","Episodes that feel like a conversation with your most supportive friend"],
     hostBios: [{"name":"Mel Robbins","bio":"Bestselling author, motivational speaker, and one of the most booked speakers in the world. Creator of The 5-Second Rule. Her podcast has reached #1 on Apple Podcasts globally."}],
     relatedSlugs: ["onpurpose","diaryofaceo","hubermanlab"],
+    aboutPodcast: "The Mel Robbins Podcast is a podcast hosted by Mel Robbins covering science-backed strategies for motivation, confidence, habits, and personal change. Each episode of The Mel Robbins Podcast dives into motivation science, habit formation, confidence building, and neuroscience of change, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Mel Robbins Podcast or discovering Mel Robbins for the first time, PodCap delivers a concise summary of every new The Mel Robbins Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "armchairexpert",
@@ -728,6 +765,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Celebrity interviews that go deeper than typical press junkets","Honest conversations about addiction, recovery, and mental health","The \"Fact Check\" segment where Monica and Dax verify their claims","A uniquely vulnerable approach to celebrity podcasting"],
     hostBios: [{"name":"Dax Shepard","bio":"Actor, writer, and director known for Parenthood, Hit & Run, and CHiPs. Openly shares his journey with addiction recovery, bringing radical honesty to every conversation."},{"name":"Monica Padman","bio":"Actress, writer, and producer who started as Dax's babysitter before becoming his co-host. Provides a grounded, relatable counterpoint to Dax's Hollywood perspective."}],
     relatedSlugs: ["smartless","conanobrien","callherdaddy"],
+    aboutPodcast: "Armchair Expert with Dax Shepard is a podcast hosted by Dax Shepard & Monica Padman covering candid celebrity conversations exploring the messy truths of being human. Each episode of Armchair Expert with Dax Shepard dives into celebrity interviews, vulnerability, addiction recovery, parenting, and human psychology, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Armchair Expert with Dax Shepard or discovering Dax Shepard & Monica Padman for the first time, PodCap delivers a concise summary of every new Armchair Expert with Dax Shepard episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "conanobrien",
@@ -747,6 +785,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Conan's legendary wit and self-deprecating humor in podcast form","Celebrity interviews that feel like hanging out with a hilarious friend","Running bits with assistant Sona Movsesian and producer Matt Gourley","A natural extension of Conan's beloved late-night talk show persona"],
     hostBios: [{"name":"Conan O'Brien","bio":"Legendary comedian, writer, and former host of Late Night and The Tonight Show. Harvard Lampoon president turned comedy icon who has redefined the talk show format multiple times across his career."}],
     relatedSlugs: ["smartless","armchairexpert","officeladies"],
+    aboutPodcast: "Conan O'Brien Needs a Friend is a podcast hosted by Conan O'Brien covering hilarious conversations as Conan tries to make genuine friendships with celebrity guests. Each episode of Conan O'Brien Needs a Friend dives into comedy interviews, celebrity conversations, improvised humor, and entertainment stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Conan O'Brien Needs a Friend or discovering Conan O'Brien for the first time, PodCap delivers a concise summary of every new Conan O'Brien Needs a Friend episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "meidastouch",
@@ -766,6 +805,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Sharp political commentary and legal analysis of current events","The Meiselas brothers bringing legal expertise to political accountability","Rapid-response coverage of breaking political and legal news","One of the fastest-growing political media brands in the country"],
     hostBios: [{"name":"Ben Meiselas","bio":"Civil rights attorney and founding partner of Meiselas & Li. Known for high-profile legal cases and political commentary."},{"name":"Brett Meiselas","bio":"Emmy-nominated video editor and digital media producer who created MeidasTouch's signature viral political content."},{"name":"Jordan Meiselas","bio":"Political strategist and MeidasTouch co-founder who brings campaign and political operations expertise."}],
     relatedSlugs: ["podsaveamerica","thedaily","pivot"],
+    aboutPodcast: "The MeidasTouch Podcast is a podcast hosted by Ben Meiselas, Brett Meiselas & Jordan Meiselas covering political analysis, legal commentary, and accountability journalism. Each episode of The MeidasTouch Podcast dives into political news analysis, legal case breakdowns, constitutional law, and government accountability, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The MeidasTouch Podcast or discovering Ben Meiselas, Brett Meiselas & Jordan Meiselas for the first time, PodCap delivers a concise summary of every new The MeidasTouch Podcast episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "shawnryanshow",
@@ -785,6 +825,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Raw, unfiltered interviews with military veterans and special operators","Conversations that reveal classified or little-known military stories","Exploring geopolitics, intelligence, and national security from those who lived it","A platform giving voice to veterans' experiences and perspectives"],
     hostBios: [{"name":"Shawn Ryan","bio":"Former Navy SEAL and CIA contractor who served in Iraq and Afghanistan. Founded Vigilance Elite and uses his platform to share the stories of those who serve in the shadows."}],
     relatedSlugs: ["joerogan","lexfridman","newheights"],
+    aboutPodcast: "Shawn Ryan Show is a podcast hosted by Shawn Ryan covering military, intelligence, and national security stories from special operations veterans. Each episode of Shawn Ryan Show dives into military operations, intelligence community, national security, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Shawn Ryan Show or discovering Shawn Ryan for the first time, PodCap delivers a concise summary of every new Shawn Ryan Show episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thisamericanlife",
@@ -804,6 +845,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Pioneering narrative journalism that defined the podcast medium","True stories told with extraordinary craft and emotional depth","Theme-based episodes with multiple acts exploring different perspectives","The gold standard for radio storytelling that inspired an entire industry"],
     hostBios: [{"name":"Ira Glass","bio":"Journalist and creator of This American Life, which he has hosted since 1995. Widely credited with inventing the modern narrative podcast format. His show has won every major broadcasting award."}],
     relatedSlugs: ["searchengine","hiddenbrain","freshair"],
+    aboutPodcast: "This American Life is a podcast hosted by Ira Glass covering extraordinary true stories of everyday life in America, told with unmatched storytelling craft. Each episode of This American Life dives into true stories, American life, investigative journalism, human interest, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of This American Life or discovering Ira Glass for the first time, PodCap delivers a concise summary of every new This American Life episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "freshair",
@@ -823,6 +865,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The most respected interview show in broadcasting, period","Terry Gross's legendary ability to ask questions no one else thinks of","Coverage spanning books, film, music, politics, and culture","Interviews that reveal surprising depths in even the most guarded subjects"],
     hostBios: [{"name":"Terry Gross","bio":"Legendary journalist and broadcaster who has hosted Fresh Air since 1985. Recipient of a Peabody Award and the Edward R. Murrow Award. Widely considered the greatest interviewer in American media."},{"name":"Tonya Mosley","bio":"Journalist and co-host of Fresh Air. Previously hosted Here & Now on NPR and worked as a reporter covering technology and culture."}],
     relatedSlugs: ["thisamericanlife","hiddenbrain","thedaily"],
+    aboutPodcast: "Fresh Air is a podcast hosted by Terry Gross & Tonya Mosley covering in-depth interviews with creators, thinkers, and newsmakers shaping arts and culture. Each episode of Fresh Air dives into author interviews, film and TV discussions, music industry insights, and cultural criticism, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Fresh Air or discovering Terry Gross & Tonya Mosley for the first time, PodCap delivers a concise summary of every new Fresh Air episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "podsaveamerica",
@@ -842,6 +885,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Political analysis from former Obama White House insiders","Breaking down policy and elections in an accessible, engaging way","The Crooked Media empire it spawned, including multiple spinoff shows","Mobilizing political engagement beyond just commentary"],
     hostBios: [{"name":"Jon Favreau","bio":"Former Director of Speechwriting for President Obama. Co-founded Crooked Media and has become one of the most influential voices in progressive political media."},{"name":"Jon Lovett","bio":"Former Obama speechwriter and creator of Lovett or Leave It. Known for his sharp wit and willingness to challenge conventional political thinking."},{"name":"Dan Pfeiffer","bio":"Former Senior Advisor to President Obama and CNN political commentator. Author of Yes We (Still) Can."},{"name":"Tommy Vietor","bio":"Former NSC Spokesman for President Obama. Also hosts Pod Save the World, covering foreign policy and national security."}],
     relatedSlugs: ["meidastouch","thedaily","pivot"],
+    aboutPodcast: "Pod Save America is a podcast hosted by Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor covering political analysis and commentary from former Obama White House staffers. Each episode of Pod Save America dives into political strategy, election analysis, progressive politics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Pod Save America or discovering Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor for the first time, PodCap delivers a concise summary of every new Pod Save America episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hiddenbrain",
@@ -861,6 +905,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Revealing the unconscious patterns that drive human behavior","Making psychology and neuroscience research compelling and relatable","Shankar Vedantam's warm, curious storytelling style","Episodes that change how you think about everyday decisions"],
     hostBios: [{"name":"Shankar Vedantam","bio":"Journalist, author of The Hidden Brain, and former Washington Post science reporter. Uses storytelling to make social science research accessible and fascinating to millions of listeners."}],
     relatedSlugs: ["searchengine","thisamericanlife","freshair"],
+    aboutPodcast: "Hidden Brain is a podcast hosted by Shankar Vedantam covering the unconscious patterns that drive human behavior, choices, and relationships. Each episode of Hidden Brain dives into behavioral psychology, unconscious bias, decision-making, social psychology, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Hidden Brain or discovering Shankar Vedantam for the first time, PodCap delivers a concise summary of every new Hidden Brain episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "tedtalksdaily",
@@ -880,6 +925,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The best TED Talks delivered as a daily podcast","Bite-sized inspiration covering technology, science, business, and creativity","Access to world-class speakers and breakthrough ideas","A daily dose of intellectual curiosity in under 20 minutes"],
     hostBios: [{"name":"TED","bio":"The media organization devoted to spreading ideas, usually in the form of short, powerful talks. TED began in 1984 and now covers almost every topic from science to business to global issues."}],
     relatedSlugs: ["hiddenbrain","hbrideacast","mastersofscale"],
+    aboutPodcast: "TED Talks Daily is a podcast hosted by TED covering the world's most inspiring talks on technology, science, business, and creativity. Each episode of TED Talks Daily dives into breakthrough ideas, innovation, social impact, creative thinking, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of TED Talks Daily or discovering TED for the first time, PodCap delivers a concise summary of every new TED Talks Daily episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "officeladies",
@@ -899,6 +945,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Episode-by-episode rewatch of The Office from two of its stars","Behind-the-scenes production secrets and deleted scene insights","Cast member guest appearances sharing their own Office memories","The definitive companion podcast for Office fans"],
     hostBios: [{"name":"Jenna Fischer","bio":"Actress best known for playing Pam Beesly on The Office. Also appeared in Walk Hard, Blades of Glory, and Hall Pass."},{"name":"Angela Kinsey","bio":"Actress best known for playing Angela Martin on The Office. Her real-life friendship with Jenna Fischer mirrors their on-screen dynamic."}],
     relatedSlugs: ["conanobrien","smartless","armchairexpert"],
+    aboutPodcast: "Office Ladies is a podcast hosted by Jenna Fischer & Angela Kinsey covering behind-the-scenes stories from The Office, episode by episode, from two of its stars. Each episode of Office Ladies dives into The Office, behind-the-scenes stories, TV production, comedy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Office Ladies or discovering Jenna Fischer & Angela Kinsey for the first time, PodCap delivers a concise summary of every new Office Ladies episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "moderncto",
@@ -918,6 +965,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Interviews with CTOs from the world's largest and most innovative companies","Practical advice on engineering team management and tech leadership","Discussions on architecture decisions, tech debt, and scaling systems","A go-to resource for technology leaders navigating complex organizations"],
     hostBios: [{"name":"Joel Beasley","bio":"Author of Modern CTO, speaker, and technology leader who has interviewed hundreds of CTOs. Provides a platform for sharing technology leadership wisdom across the industry."}],
     relatedSlugs: ["a16z","decoder","waveform"],
+    aboutPodcast: "Modern CTO is a podcast hosted by Joel Beasley covering technology leadership insights and interviews with CTOs from the world's top companies. Each episode of Modern CTO dives into technology leadership, engineering management, software architecture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Modern CTO or discovering Joel Beasley for the first time, PodCap delivers a concise summary of every new Modern CTO episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "stuffyoushouldknow",
@@ -937,6 +985,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making every topic imaginable fascinating — from the mundane to the bizarre","The easygoing chemistry between Josh and Chuck built over 15+ years","Short Stuff episodes for quick knowledge hits alongside deep dives","One of the original and longest-running podcast hits"],
     hostBios: [{"name":"Josh Clark","bio":"Author, producer, and podcast host. Co-creator of the HowStuffWorks podcast network and filmmaker behind the documentary The End of the World."},{"name":"Chuck Bryant","bio":"Podcast host and former HowStuffWorks editor. His laid-back style and genuine curiosity have made him one of the most beloved voices in podcasting."}],
     relatedSlugs: ["searchengine","hiddenbrain","thisamericanlife"],
+    aboutPodcast: "Stuff You Should Know is a podcast hosted by Josh Clark & Chuck Bryant covering fascinating deep dives into how everything works — from science to history to pop culture. Each episode of Stuff You Should Know dives into science, history, pop culture, technology, general knowledge, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Stuff You Should Know or discovering Josh Clark & Chuck Bryant for the first time, PodCap delivers a concise summary of every new Stuff You Should Know episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "myfirstmillion",
@@ -958,6 +1007,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Brainstorming million-dollar business ideas live on air","Sam and Shaan's electric chemistry and rapid-fire banter","Interviews with unconventional entrepreneurs who built wealth creatively","The \"idea generation\" format that inspired thousands of founders"],
     hostBios: [{"name":"Sam Parr","bio":"Entrepreneur and co-founder of The Hustle, which he sold to HubSpot for a reported $27M. Known for his scrappy, bold approach to business building."},{"name":"Shaan Puri","bio":"Former CEO of Bebo (acquired by Twitch) and operator at Twitch. Known for his creative business ideas and philosophy on building wealth."}],
     relatedSlugs: ["allin","timferriss","howibuiltthis"],
+    aboutPodcast: "My First Million is a podcast hosted by Sam Parr & Shaan Puri covering business ideas, side hustles, and startup strategies. Each episode of My First Million dives into startup ideas, side hustles, business trends, entrepreneurship, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of My First Million or discovering Sam Parr & Shaan Puri for the first time, PodCap delivers a concise summary of every new My First Million episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "empowerher",
@@ -977,6 +1027,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Faith-based personal development for ambitious women","Actionable strategies for confidence, entrepreneurship, and relationships","Kacia's authentic storytelling about overcoming challenges","Building a supportive community of women pursuing their purpose"],
     hostBios: [{"name":"Kacia Ghetmiri","bio":"Entrepreneur, speaker, and host of empowerHER. Passionate about helping women step into their purpose through faith, confidence, and personal development."}],
     relatedSlugs: ["melrobbins","onpurpose","diaryofaceo"],
+    aboutPodcast: "empowerHER is a podcast hosted by Kacia Ghetmiri covering personal growth insights, empowerment strategies, and inspiration. Each episode of empowerHER dives into personal development, women's empowerment, faith, confidence, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of empowerHER or discovering Kacia Ghetmiri for the first time, PodCap delivers a concise summary of every new empowerHER episode — so you never miss the key takeaways, even on your busiest days.",
   },
 ];
 

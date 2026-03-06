@@ -126,7 +126,7 @@ export default function PodcastLandingGeneric() {
     return null;
   }
 
-  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs } = config;
+  const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast } = config;
   const podcapFaqItems = generatePodcapFaqItems(name);
   const appleUrl = `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
@@ -336,9 +336,15 @@ export default function PodcastLandingGeneric() {
           className="w-full max-w-4xl pb-20"
           data-testid="section-about-podcast"
         >
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-6">
             About the {name} Podcast
           </h2>
+
+          {aboutPodcast && (
+            <p className="text-[17px] leading-[1.8] text-muted-foreground text-center max-w-3xl mx-auto mb-10" data-testid="text-about-podcast">
+              {aboutPodcast}
+            </p>
+          )}
 
           {snapshotItems.length > 0 && (
             <div className="mb-10" data-testid="section-snapshot">
