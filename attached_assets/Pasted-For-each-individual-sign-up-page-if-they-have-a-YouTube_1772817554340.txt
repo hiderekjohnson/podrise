@@ -1,0 +1,100 @@
+For each individual sign up page, if they have a YouTube channel for their podcast, can you link to it from the page, near where you link to spotify and iTunes. use the following information on where to link for each podcast.
+
+Podcast
+YouTube Channel
+The Joe Rogan Experience
+https://www.youtube.com/@joerogan
+The Diary of a CEO with Steven Bartlett
+https://www.youtube.com/@TheDiaryOfACEO
+All-In Podcast
+https://www.youtube.com/@allin
+The Daily
+No dedicated podcast YouTube channel
+Lex Fridman Podcast
+https://www.youtube.com/@lexfridman
+SmartLess
+https://www.youtube.com/@SmartLess
+Huberman Lab
+https://www.youtube.com/@hubermanlab
+New Heights with Jason & Travis Kelce
+https://www.youtube.com/@newheightshow
+The Tim Ferriss Show
+https://www.youtube.com/@timferriss
+Call Her Daddy
+https://www.youtube.com/@callherdaddy
+Pivot
+No dedicated podcast YouTube channel
+Acquired
+https://www.youtube.com/@AcquiredFM
+Hard Fork
+No dedicated podcast YouTube channel
+Waveform: The MKBHD Podcast
+https://www.youtube.com/@Waveform
+The Vergecast
+No dedicated podcast YouTube channel
+Search Engine
+No dedicated podcast YouTube channel
+a16z Podcast
+https://www.youtube.com/@a16z
+BG2 Pod
+https://www.youtube.com/@bg2pod
+Decoder with Nilay Patel
+No dedicated podcast YouTube channel
+The AI Daily Brief
+https://www.youtube.com/@TheAIDailyBrief
+Planet Money
+https://www.youtube.com/@planetmoney
+The Journal
+No dedicated podcast YouTube channel
+How I Built This
+No dedicated podcast YouTube channel
+The Ramsey Show
+https://www.youtube.com/@TheRamseyShow
+HBR IdeaCast
+No dedicated podcast YouTube channel
+Financial Audit with Caleb Hammer
+https://www.youtube.com/@CalebHammer
+Founders
+No dedicated podcast YouTube channel
+Business Breakdowns
+No dedicated podcast YouTube channel
+Masters of Scale
+https://www.youtube.com/@mastersofscale
+BiggerPockets Real Estate
+https://www.youtube.com/@biggerpockets
+The Indicator from Planet Money
+No dedicated podcast YouTube channel
+Masters in Business
+No dedicated podcast YouTube channel
+The Money Guy Show
+https://www.youtube.com/@MoneyGuyShow
+Equity
+No dedicated podcast YouTube channel
+On Purpose with Jay Shetty
+https://www.youtube.com/@JayShettyPodcast
+The Mel Robbins Podcast
+https://www.youtube.com/@melrobbins
+Armchair Expert with Dax Shepard
+https://www.youtube.com/@ArmchairExpertPod
+Conan O’Brien Needs a Friend
+No dedicated podcast YouTube channel
+The MeidasTouch Podcast
+https://www.youtube.com/@MeidasTouch
+Shawn Ryan Show
+https://www.youtube.com/@ShawnRyanShow
+This American Life
+https://www.youtube.com/@ThisAmericanLife
+Fresh Air
+No dedicated podcast YouTube channel
+Pod Save America
+https://www.youtube.com/@crookedmedia
+Hidden Brain
+https://www.youtube.com/@hiddenbrain
+TED Talks Daily
+No dedicated podcast YouTube channel
+Office Ladies
+https://www.youtube.com/@officeladies
+Modern CTO
+https://www.youtube.com/@ModernCTO
+Stuff You Should Know
+No dedicated podcast YouTube channel

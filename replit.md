@@ -17,6 +17,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
 - `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs; tabbed interface (defaults to Pending tab)
 - `/podcasts/myfirstmillion` — SEO landing page for My First Million podcast; email-only signup auto-adds MFM; FAQ, Apple/Spotify links, PodCap-branded
+- `/podcasts/:slug` — Generic SEO landing pages for ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); each shows example AI recap when available (fetched from `podcast_example_recaps` table)
 
 ## Database Schema
 - `users` table: id, email (unique), podcasts (text array), delivery_time, delivery_timezone, stripe_customer_id, stripe_subscription_id, plan (default "free"), created_at
@@ -27,6 +28,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `email_template_settings` table: id, key (unique), value — stores admin-editable email template settings (key-value pairs)
 - `pending_emails` table: id, user_id, recipient_email, podcasts (text array), recap_date, summary, email_html, subject, scheduled_for, timezone, status (pending/sent/cancelled/error), sent_at, error_message, created_at — pre-generated emails awaiting delivery
 - `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at — logs each transcript fetch attempt during recap generation
+- `podcast_example_recaps` table: id, slug (unique), podcast_name, itunes_id, episode_title, episode_date, episode_duration, tldl, what_happened, key_insights (text array), quote, quote_attribution, updated_at — stores AI-generated example recaps for podcast landing pages
 - `stripe.*` tables: managed automatically by `stripe-replit-sync` (products, prices, customers, subscriptions, etc.)
 
 ## Auth Flow
@@ -111,7 +113,9 @@ A full-stack web application that lets users create and manage personalized dail
 - `server/taddyClient.ts` — Taddy GraphQL API client for podcast search + transcript fetching
 - `server/resendClient.ts` — Resend email client (via Replit connector)
 - `server/emailTemplate.ts` — Markdown-to-HTML email template converter
-- `server/emailScheduler.ts` — Background scheduler for automated daily email delivery
+- `server/emailScheduler.ts` — Background scheduler for automated daily email delivery; also saves example recaps for landing pages when generating user recaps
+- `server/podcastLandingMap.ts` — Server-side mapping of iTunes IDs to landing page slugs
+- `client/src/components/ExampleRecapSection.tsx` — Reusable component showing AI-generated example recap on landing pages
 - `server/seed-products.ts` — Script to create Stripe products
 - `server/index.ts` — Server entry point (Stripe init + webhook route before JSON middleware)
 - `client/src/hooks/use-auth.ts` — Auth hooks

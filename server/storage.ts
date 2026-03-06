@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
@@ -37,6 +37,9 @@ export interface IStorage {
   getPendingEmailsForUser(userId: number, recapDate: string): Promise<PendingEmail[]>;
   deletePendingEmail(id: number): Promise<void>;
   clearOldPendingEmails(daysOld: number): Promise<number>;
+  getExampleRecap(slug: string): Promise<PodcastExampleRecap | undefined>;
+  upsertExampleRecap(data: InsertPodcastExampleRecap): Promise<PodcastExampleRecap>;
+  getAllExampleRecaps(): Promise<PodcastExampleRecap[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -336,6 +339,38 @@ export class DatabaseStorage implements IStorage {
       )
     ).returning();
     return result.length;
+  }
+  async getExampleRecap(slug: string): Promise<PodcastExampleRecap | undefined> {
+    const [recap] = await db.select().from(podcastExampleRecaps).where(eq(podcastExampleRecaps.slug, slug));
+    return recap;
+  }
+
+  async upsertExampleRecap(data: InsertPodcastExampleRecap): Promise<PodcastExampleRecap> {
+    const [result] = await db
+      .insert(podcastExampleRecaps)
+      .values(data)
+      .onConflictDoUpdate({
+        target: podcastExampleRecaps.slug,
+        set: {
+          podcastName: data.podcastName,
+          itunesId: data.itunesId,
+          episodeTitle: data.episodeTitle,
+          episodeDate: data.episodeDate,
+          episodeDuration: data.episodeDuration,
+          tldl: data.tldl,
+          whatHappened: data.whatHappened,
+          keyInsights: data.keyInsights,
+          quote: data.quote,
+          quoteAttribution: data.quoteAttribution,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  async getAllExampleRecaps(): Promise<PodcastExampleRecap[]> {
+    return db.select().from(podcastExampleRecaps).orderBy(desc(podcastExampleRecaps.updatedAt));
   }
 }
 

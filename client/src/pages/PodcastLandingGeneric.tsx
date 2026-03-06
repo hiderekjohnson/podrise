@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
+import { ExampleRecapSection } from "@/components/ExampleRecapSection";
 import { getPodcastBySlug } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
@@ -291,6 +292,8 @@ export default function PodcastLandingGeneric() {
             </div>
           </div>
         </motion.section>
+
+        <ExampleRecapSection slug={slug || ""} podcastName={name} />
 
         <motion.section
           initial={{ opacity: 0, y: 20 }}

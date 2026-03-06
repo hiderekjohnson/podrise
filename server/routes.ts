@@ -386,6 +386,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/example-recap", async (req, res) => {
+    try {
+      const recap = await storage.getExampleRecap(req.params.slug);
+      if (!recap) return res.status(404).json({ error: "No example recap found" });
+      res.json(recap);
+    } catch {
+      res.status(500).json({ error: "Failed to fetch example recap" });
+    }
+  });
+
   app.get("/api/leaderboard", async (_req, res) => {
     try {
       const topPodcasts = await storage.getTopPodcasts(50);
@@ -732,6 +742,158 @@ export async function registerRoutes(
       res.json({ message: "Pre-generation started. Check back in a few minutes." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger pre-generation" });
+    }
+  });
+
+  app.post("/api/admin/generate-landing-recaps", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
+      const { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } = await import("./taddyClient");
+      const { openai } = await import("./replit_integrations/image/client");
+
+      const entries = Object.entries(ITUNES_ID_TO_SLUG);
+      const results: { slug: string; status: string; episodeTitle?: string }[] = [];
+
+      const templateSettings = await storage.getEmailTemplateSettings();
+      const customPrompt = templateSettings.recapPrompt || "";
+
+      res.writeHead(200, { "Content-Type": "application/json", "Transfer-Encoding": "chunked" });
+
+      for (const [itunesId, slug] of entries) {
+        try {
+          const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=5&sort=recent`;
+          const lookupRes = await fetch(lookupUrl);
+          const lookupJson = await lookupRes.json();
+          const allResults = lookupJson.results || [];
+          const podcastInfo = allResults.find((r: any) => r.wrapperType === "collection");
+          const episodes = allResults.filter((r: any) => r.wrapperType === "podcastEpisode");
+
+          if (episodes.length === 0) {
+            results.push({ slug, status: "no_episodes" });
+            res.write(JSON.stringify({ slug, status: "no_episodes" }) + "\n");
+            continue;
+          }
+
+          const ep = episodes[0];
+          const podcastName = podcastInfo?.collectionName || ep.collectionName || "Unknown Podcast";
+          const epTitle = ep.trackName || "Untitled Episode";
+          const durationMs = ep.trackTimeMillis || 0;
+          const durationMin = Math.round(durationMs / 60000);
+          const durationStr = durationMin >= 60
+            ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+            : `${durationMin} minutes`;
+          const releaseDate = ep.releaseDate
+            ? new Date(ep.releaseDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+            : "";
+
+          let transcriptText: string | null = null;
+          try {
+            const taddyPodcast = await searchPodcastByItunesId(itunesId);
+            if (taddyPodcast?.uuid) {
+              const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 5);
+              const normalizeTitle = (t: string) => t.toLowerCase().trim().replace(/\s+/g, " ");
+              const matchedEp = taddyEpisodes.find((te: any) =>
+                normalizeTitle(te.name || "") === normalizeTitle(epTitle)
+              ) || taddyEpisodes[0];
+              if (matchedEp?.uuid) {
+                transcriptText = await getEpisodeTranscript(matchedEp.uuid);
+              }
+            }
+          } catch (taddyErr) {
+            console.warn(`[LandingRecaps] Taddy error for ${slug}:`, taddyErr);
+          }
+
+          const transcriptNote = transcriptText
+            ? `A real transcript is provided. Base your recap on the transcript content.`
+            : `No transcript available. Write a recap based on the episode title and description only. Be upfront that details are limited.`;
+
+          const episodeBlock = `PODCAST: ${podcastName}\nEPISODE: ${epTitle}\nDURATION: ${durationStr}\nDESCRIPTION: ${ep.description || ep.shortDescription || "No description available."}\n${transcriptText ? `TRANSCRIPT:\n${transcriptText.slice(0, 15000)}` : ""}`;
+
+          const formatInstructions = customPrompt || `Respond with a JSON object containing episode recaps. Each episode must include tldl, whatHappened (2-4 narrative paragraphs), keyInsights (4 bullet points), quote, and quoteAttribution. Write like a sharp friend catching someone up. Be specific and concrete. Never fabricate quotes or facts — use only what's in the transcript.`;
+
+          const prompt = `You are PodCap, an AI that writes podcast digest summaries. Generate a recap for a single episode.
+
+${transcriptNote}
+
+Source episode:
+${episodeBlock}
+
+Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text). The JSON must have this exact structure:
+
+{
+  "episodes": [
+    {
+      "podcastName": "PODCAST NAME IN CAPS",
+      "episodeTitle": "The Episode Title",
+      "tldl": "2-3 sentence summary of the core thesis.",
+      "whatHappened": "2-4 paragraphs telling the story of the episode. Separate paragraphs with \\n\\n.",
+      "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
+      "quoteAttribution": "Speaker Name on topic",
+      "quote": "A memorable quotable line from the episode"
+    }
+  ]
+}
+
+${formatInstructions}`;
+
+          const aiRes = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            max_tokens: 2000,
+          });
+
+          const content = aiRes.choices[0]?.message?.content || "";
+          let jsonContent = content.trim();
+          if (jsonContent.startsWith("```")) {
+            jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+          }
+
+          const parsed = JSON.parse(jsonContent);
+          const epData = parsed.episodes?.[0];
+
+          if (!epData) {
+            results.push({ slug, status: "ai_no_episode" });
+            res.write(JSON.stringify({ slug, status: "ai_no_episode" }) + "\n");
+            continue;
+          }
+
+          await storage.upsertExampleRecap({
+            slug,
+            podcastName: epData.podcastName || podcastName,
+            itunesId,
+            episodeTitle: epData.episodeTitle || epTitle,
+            episodeDate: releaseDate,
+            episodeDuration: durationStr,
+            tldl: epData.tldl || "",
+            whatHappened: (epData.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
+            keyInsights: Array.isArray(epData.keyInsights) ? epData.keyInsights : [],
+            quote: epData.quote || null,
+            quoteAttribution: epData.quoteAttribution || null,
+          });
+
+          results.push({ slug, status: "success", episodeTitle: epTitle });
+          res.write(JSON.stringify({ slug, status: "success", episodeTitle: epTitle }) + "\n");
+          console.log(`[LandingRecaps] Generated recap for ${slug}: ${epTitle}`);
+
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (err: any) {
+          console.error(`[LandingRecaps] Error for ${slug}:`, err);
+          results.push({ slug, status: "error", episodeTitle: err?.message });
+          res.write(JSON.stringify({ slug, status: "error", error: err?.message }) + "\n");
+        }
+      }
+
+      res.write(JSON.stringify({ done: true, total: entries.length, success: results.filter(r => r.status === "success").length }) + "\n");
+      res.end();
+    } catch (err: any) {
+      console.error("[LandingRecaps] Fatal error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: err?.message || "Failed to generate landing recaps" });
+      }
     }
   });
 

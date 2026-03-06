@@ -14,10 +14,23 @@ export interface EpisodeStats {
   details: { podcast: string; status: "included" | "no_new_episode" | "error"; episodeCount?: number; errorMessage?: string }[];
 }
 
+export interface ParsedEpisode {
+  podcastName: string;
+  episodeTitle: string;
+  episodeDuration?: string;
+  episodeDate?: string;
+  tldl: string;
+  whatHappened: string;
+  keyInsights: string[];
+  quote?: string;
+  quoteAttribution?: string;
+}
+
 interface RecapResult {
   summary: string;
   dateStr: string;
   episodeStats: EpisodeStats;
+  parsedEpisodes: ParsedEpisode[];
 }
 
 type RecapMode = "yesterday" | "latest";
@@ -129,6 +142,7 @@ export async function generateRecap(
   const podcastNamesWithEpisodes: string[] = [];
   let hasAnyEpisodes = false;
   let totalDurationMin = 0;
+  const episodeMetadata: Map<string, { duration: string; date: string; podcastId: string }> = new Map();
   const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
   const stats: EpisodeStats = { included: 0, noNewEpisode: 0, error: 0, details: [] };
 
@@ -168,6 +182,10 @@ export async function generateRecap(
           const durationStr = durationMin >= 60
             ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
             : `${durationMin} minutes`;
+
+          const releaseDate = ep.releaseDate ? new Date(ep.releaseDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "";
+          const epTitle = ep.trackName || "Untitled Episode";
+          episodeMetadata.set(`${podcast.name}::${epTitle}`, { duration: durationStr, date: releaseDate, podcastId: podcast.id });
 
           const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
           const spotifySearchUrl = buildSpotifySearchUrl(podcast.name, ep.trackName || "");
@@ -335,10 +353,32 @@ export async function generateRecap(
       markdownSections.push(lines.join("\n"));
     }
 
+    const parsedEpisodes: ParsedEpisode[] = parsed.episodes.map((ep: any) => {
+      const metaKey = `${ep.podcastName || ""}::${ep.episodeTitle || ""}`;
+      const metaKeyLower = metaKey.toLowerCase();
+      let meta = episodeMetadata.get(metaKey);
+      if (!meta) {
+        for (const [k, v] of episodeMetadata) {
+          if (k.toLowerCase() === metaKeyLower) { meta = v; break; }
+        }
+      }
+      return {
+        podcastName: ep.podcastName || "Unknown Podcast",
+        episodeTitle: ep.episodeTitle || "Untitled Episode",
+        episodeDuration: meta?.duration,
+        episodeDate: meta?.date,
+        tldl: ep.tldl || "",
+        whatHappened: (ep.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
+        keyInsights: Array.isArray(ep.keyInsights) ? ep.keyInsights : [],
+        quote: ep.quote,
+        quoteAttribution: ep.quoteAttribution,
+      };
+    });
+
     const summary = markdownSections.join("\n\n");
-    return { summary, dateStr, episodeStats: stats };
+    return { summary, dateStr, episodeStats: stats, parsedEpisodes };
   } catch (parseErr) {
     console.warn(`[Recap] Failed to parse AI JSON response for user ${user.id}, falling back to raw content. Error:`, parseErr);
-    return { summary: content, dateStr, episodeStats: stats };
+    return { summary: content, dateStr, episodeStats: stats, parsedEpisodes: [] };
   }
 }

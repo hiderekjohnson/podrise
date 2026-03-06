@@ -1,7 +1,8 @@
 import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
-import { generateRecap } from "./recapGenerator";
+import { generateRecap, type ParsedEpisode } from "./recapGenerator";
+import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
 const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
@@ -26,6 +27,43 @@ async function sendAdminNotification(userEmail: string, subject: string) {
     `,
   });
   console.log(`[EmailScheduler] Admin notification sent to ${ADMIN_NOTIFY_EMAIL}`);
+}
+
+async function updateLandingPageRecaps(userPodcasts: string[], parsedEpisodes: ParsedEpisode[]) {
+  const podcastIdMap = new Map<string, string>();
+  const podcastNameMap = new Map<string, string>();
+  for (const raw of userPodcasts) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.id && parsed.name) {
+        podcastIdMap.set(parsed.name.toLowerCase(), parsed.id);
+        podcastNameMap.set(parsed.name.toLowerCase(), parsed.name);
+      }
+    } catch {}
+  }
+
+  for (const ep of parsedEpisodes) {
+    const epNameLower = (ep.podcastName || "").toLowerCase();
+    const itunesId = podcastIdMap.get(epNameLower);
+    if (!itunesId) continue;
+    const slug = ITUNES_ID_TO_SLUG[itunesId];
+    if (!slug) continue;
+
+    await storage.upsertExampleRecap({
+      slug,
+      podcastName: ep.podcastName,
+      itunesId,
+      episodeTitle: ep.episodeTitle,
+      episodeDate: ep.episodeDate || "",
+      episodeDuration: ep.episodeDuration,
+      tldl: ep.tldl,
+      whatHappened: ep.whatHappened,
+      keyInsights: ep.keyInsights,
+      quote: ep.quote || null,
+      quoteAttribution: ep.quoteAttribution || null,
+    });
+    console.log(`[EmailScheduler] Updated landing page example recap for ${slug} (${ep.episodeTitle})`);
+  }
 }
 
 function getUserLocalDate(timezone: string): string {
@@ -159,6 +197,12 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     });
 
     console.log(`[EmailScheduler] Email generated and held for review — user ${user.id} (${deliveryTime} ${timezone})`);
+
+    try {
+      await updateLandingPageRecaps(user.podcasts, result.parsedEpisodes);
+    } catch (lpErr) {
+      console.warn(`[EmailScheduler] Failed to update landing page recaps:`, lpErr);
+    }
 
     try {
       await sendAdminNotification(user.email, subject);

@@ -1,0 +1,137 @@
+Please update all podcast-specific signup pages on PodCap with the following SEO and content improvements. The goal is to make each page stronger for search, more useful for users, and still conversion-focused around the email signup.
+
+Keep all new content clean, compact, and indexable by search engines.
+
+Top-of-page tagline
+
+Add this tagline near the top of every podcast signup page, under the main page header and above or near the signup form:
+
+Your favorite podcasts recapped daily
+We listen so you don’t have to.
+
+This should reinforce what PodCap does immediately.
+
+Podcast Snapshot
+
+Add a compact section titled:
+
+Podcast Snapshot
+
+Include these fields when available:
+	•	Category
+	•	Average episode length
+	•	Publishing frequency, for example daily, weekly, twice per week
+	•	Total number of episodes
+	•	Year started
+
+If exact values are not available, estimate conservatively from feed data or recent episodes.
+
+If a specific field is unavailable, hide that field rather than showing blanks.
+
+What This Podcast Is Known For
+
+Add a short section titled:
+
+What This Podcast Is Known For
+
+Use AI to generate this content based on:
+	•	podcast description
+	•	episode titles
+	•	guest patterns
+	•	recurring themes
+	•	historical episode topics
+
+Output should be either:
+	•	3 to 5 short bullet points, or
+	•	a short paragraph
+
+This content must feel specific to each podcast, not generic.
+
+Examples of what this section might describe:
+	•	main themes
+	•	style of conversation
+	•	type of guests
+	•	why listeners follow the show
+
+About the Host or Hosts
+
+Add a section that dynamically uses one of these titles:
+	•	About the Host
+	•	About the Hosts
+
+If there is one host, use “About the Host.”
+If there are multiple hosts, use “About the Hosts.”
+
+For each host, include:
+	•	name
+	•	short bio, 1 to 3 sentences
+	•	relevant background, company, or expertise if known
+
+If there are multiple hosts, list each one separately.
+
+If host information is unavailable, hide the section instead of showing placeholders.
+
+Internal linking to other podcast signup pages
+
+At the bottom of each page, add a section titled:
+
+People who follow this podcast also get recaps of:
+
+Under that section, show 3 internal links to other podcast signup pages on PodCap only.
+
+Important:
+	•	These links must go only to other PodCap podcast signup pages
+	•	Do not link to external podcast platforms
+	•	Choose related podcasts based on category, audience overlap, topic, or format
+	•	Place this section below the main signup CTA so it supports SEO without hurting conversion
+
+Example linked podcasts:
+	•	All-In Podcast
+	•	Acquired
+	•	Invest Like the Best
+
+Again, these should link to their PodCap signup pages, not outside sites.
+
+Dynamic time-saved stat
+
+Add a small stat that updates automatically for each podcast page.
+
+Example:
+PodCap readers have saved 1,284 hours by reading summaries of this podcast instead of listening.
+
+This can be calculated using:
+	•	average episode length
+	•	number of summaries generated for that podcast
+	•	estimated reading time per summary
+
+Also consider displaying supporting stats nearby, such as:
+	•	Average episode length: 74 minutes
+	•	Average recap read time: 2 minutes
+
+This should help users instantly understand the value of the product.
+
+SEO title tag format
+
+Update the HTML title tag on every podcast signup page.
+
+Do not use generic titles like:
+My First Million Podcast
+
+Use this format instead:
+[Podcast Name] Podcast Summary, Latest Episode Recap
+
+Examples:
+	•	My First Million Podcast Summary, Latest Episode Recap
+	•	All-In Podcast Summary, Latest Episode Recap
+	•	Acquired Podcast Summary, Latest Episode Recap
+
+Apply this programmatically across all podcast pages.
+
+Implementation requirements
+	•	Keep the signup form and CTA prominent
+	•	Do not clutter the page
+	•	Do not add full transcripts
+	•	Make sure content is server-rendered or otherwise crawlable and indexable
+	•	Hide missing fields instead of showing empty placeholders
+	•	AI-generated text must be specific to the actual podcast
+	•	Internal linking must go to other PodCap podcast signup pages only

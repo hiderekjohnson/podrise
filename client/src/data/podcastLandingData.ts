@@ -1,6 +1,7 @@
 export interface PodcastLandingConfig {
   slug: string;
   name: string;
+  itunesId: string;
   category: string;
   hosts: string;
   description: string;
@@ -13,6 +14,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "joerogan",
     name: "The Joe Rogan Experience",
+    itunesId: "360084272",
     category: "Interviews / Culture",
     hosts: "Joe Rogan",
     description: "long-form interviews covering MMA, comedy, politics, science, and culture",
@@ -23,6 +25,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "diaryofaceo",
     name: "The Diary of a CEO with Steven Bartlett",
+    itunesId: "1291423644",
     category: "Business / Growth",
     hosts: "Steven Bartlett",
     description: "deep-dive conversations on business, personal growth, health, and entrepreneurship",
@@ -33,6 +36,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "allin",
     name: "All-In Podcast",
+    itunesId: "1502871393",
     category: "Tech / Venture Capital",
     hosts: "Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg",
     description: "tech industry analysis, venture capital insights, economic policy, and geopolitics",
@@ -43,6 +47,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "thedaily",
     name: "The Daily",
+    itunesId: "1200361736",
     category: "Business / News",
     hosts: "The New York Times",
     description: "essential news stories and in-depth reporting from The New York Times",
@@ -53,6 +58,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "lexfridman",
     name: "Lex Fridman Podcast",
+    itunesId: "1434243584",
     category: "AI / Tech / Science",
     hosts: "Lex Fridman",
     description: "deep conversations about AI, technology, science, philosophy, and the nature of intelligence",
@@ -63,6 +69,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "smartless",
     name: "SmartLess",
+    itunesId: "1521578868",
     category: "Interviews / Comedy",
     hosts: "Jason Bateman, Sean Hayes & Will Arnett",
     description: "surprise celebrity interviews with comedic commentary from three Hollywood friends",
@@ -73,6 +80,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "hubermanlab",
     name: "Huberman Lab",
+    itunesId: "1545953110",
     category: "Health / Performance Science",
     hosts: "Dr. Andrew Huberman",
     description: "neuroscience-based tools for health, performance, sleep, stress, and focus",
@@ -83,6 +91,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "newheights",
     name: "New Heights with Jason & Travis Kelce",
+    itunesId: "1643745036",
     category: "Sports / Business",
     hosts: "Jason Kelce & Travis Kelce",
     description: "NFL insights, sports culture, and behind-the-scenes stories from two Super Bowl-winning brothers",
@@ -93,6 +102,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "timferriss",
     name: "The Tim Ferriss Show",
+    itunesId: "863897795",
     category: "Productivity / Business",
     hosts: "Tim Ferriss",
     description: "tactics, routines, and habits of world-class performers across business, sports, and science",
@@ -103,6 +113,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "callherdaddy",
     name: "Call Her Daddy",
+    itunesId: "1418960261",
     category: "Interviews / Relationships",
     hosts: "Alex Cooper",
     description: "candid conversations about relationships, dating, sex, and modern life",
@@ -113,6 +124,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "pivot",
     name: "Pivot",
+    itunesId: "1073226719",
     category: "Tech / Business",
     hosts: "Kara Swisher & Scott Galloway",
     description: "sharp analysis of tech, business, and politics from two of media's most outspoken voices",
@@ -123,6 +135,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "acquired",
     name: "Acquired",
+    itunesId: "1050462261",
     category: "Business History / Tech Deals",
     hosts: "Ben Gilbert & David Rosenthal",
     description: "deep-dive stories behind the world's greatest companies, acquisitions, and IPOs",
@@ -133,6 +146,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "hardfork",
     name: "Hard Fork",
+    itunesId: "1528594034",
     category: "AI / Tech Trends",
     hosts: "Kevin Roose & Casey Newton",
     description: "the latest in AI, social media, and technology trends from The New York Times",
@@ -143,6 +157,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "waveform",
     name: "Waveform: The MKBHD Podcast",
+    itunesId: "1474429475",
     category: "Consumer Tech",
     hosts: "Marques Brownlee (MKBHD) & Andrew Manganelli",
     description: "consumer tech reviews, gadget news, and technology culture discussions",
@@ -153,6 +168,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "thevergecast",
     name: "The Vergecast",
+    itunesId: "430333725",
     category: "Tech News",
     hosts: "The Verge Editorial Team",
     description: "weekly tech news roundup covering gadgets, platforms, and the future of technology",
@@ -163,6 +179,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "searchengine",
     name: "Search Engine",
+    itunesId: "1614253637",
     category: "Internet Culture / Tech",
     hosts: "PJ Vogt",
     description: "deep investigations into the questions the internet can't stop asking",
@@ -173,6 +190,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "a16z",
     name: "a16z Podcast",
+    itunesId: "842818711",
     category: "Venture Capital / Software",
     hosts: "Andreessen Horowitz",
     description: "venture capital perspectives on software, AI, crypto, bio, and the future of technology",
@@ -183,6 +201,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "bg2pod",
     name: "BG2 Pod",
+    itunesId: "1727278168",
     category: "VC / AI",
     hosts: "Bill Gurley & Brad Gerstner",
     description: "venture capital insights and AI industry analysis from two legendary investors",
@@ -193,6 +212,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "decoder",
     name: "Decoder with Nilay Patel",
+    itunesId: "1011668648",
     category: "Business of Tech",
     hosts: "Nilay Patel",
     description: "interviews with CEOs and leaders about how they make decisions and run their companies",
@@ -203,6 +223,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "aidailybrief",
     name: "The AI Daily Brief",
+    itunesId: "1680633614",
     category: "AI / Tech",
     hosts: "Nathaniel Whittemore",
     description: "daily coverage of the most important developments in artificial intelligence",
@@ -213,6 +234,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "planetmoney",
     name: "Planet Money",
+    itunesId: "290783428",
     category: "Economics",
     hosts: "NPR",
     description: "entertaining stories that explain how the economy actually works",
@@ -223,6 +245,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "thejournal",
     name: "The Journal",
+    itunesId: "1469394914",
     category: "Business News",
     hosts: "The Wall Street Journal",
     description: "the biggest business and finance stories from The Wall Street Journal's reporting team",
@@ -233,6 +256,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "howibuiltthis",
     name: "How I Built This",
+    itunesId: "1150510297",
     category: "Entrepreneurship",
     hosts: "Guy Raz",
     description: "the stories behind the world's best-known companies and the founders who built them",
@@ -243,6 +267,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "ramseyshow",
     name: "The Ramsey Show",
+    itunesId: "77001367",
     category: "Personal Finance",
     hosts: "Dave Ramsey",
     description: "practical personal finance advice on budgeting, debt elimination, and wealth building",
@@ -253,6 +278,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "hbrideacast",
     name: "HBR IdeaCast",
+    itunesId: "152022135",
     category: "Management / Strategy",
     hosts: "Harvard Business Review",
     description: "management ideas and business strategy from the world's top thinkers and practitioners",
@@ -263,6 +289,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "financialaudit",
     name: "Financial Audit with Caleb Hammer",
+    itunesId: "1691595080",
     category: "Finance / Interviews",
     hosts: "Caleb Hammer",
     description: "real people open their books for a candid financial review and money advice",
@@ -273,6 +300,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "founders",
     name: "Founders",
+    itunesId: "1141877104",
     category: "Lessons from History",
     hosts: "David Senra",
     description: "lessons from the biographies and autobiographies of history's greatest entrepreneurs",
@@ -283,6 +311,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "businessbreakdowns",
     name: "Business Breakdowns",
+    itunesId: "1559120677",
     category: "Company Analysis",
     hosts: "Colossus",
     description: "detailed analysis of how the world's most interesting companies operate and make money",
@@ -293,6 +322,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "mastersofscale",
     name: "Masters of Scale",
+    itunesId: "1227971746",
     category: "Entrepreneurship",
     hosts: "Reid Hoffman",
     description: "proven strategies for scaling a business from zero to massive from LinkedIn's co-founder",
@@ -303,6 +333,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "biggerpockets",
     name: "BiggerPockets Real Estate",
+    itunesId: "594419649",
     category: "Investing",
     hosts: "BiggerPockets",
     description: "real estate investing strategies, deal analysis, and wealth building through property",
@@ -313,6 +344,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "theindicator",
     name: "The Indicator from Planet Money",
+    itunesId: "1320118593",
     category: "Economic Trends",
     hosts: "NPR",
     description: "short daily episodes explaining the economic forces shaping our world",
@@ -323,6 +355,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "mastersinbusiness",
     name: "Masters in Business",
+    itunesId: "730188152",
     category: "Finance / Interviews",
     hosts: "Barry Ritholtz",
     description: "in-depth interviews with the biggest names in finance, investing, and business",
@@ -333,6 +366,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "themoneyguyshow",
     name: "The Money Guy Show",
+    itunesId: "121362031",
     category: "Finance Strategy",
     hosts: "Brian Preston & Bo Hanson",
     description: "wealth-building strategies and financial planning advice for every stage of life",
@@ -343,6 +377,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "equity",
     name: "Equity",
+    itunesId: "1215439780",
     category: "Startup Funding",
     hosts: "TechCrunch",
     description: "startup funding news, venture capital deals, and the business of technology startups",
@@ -353,6 +388,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "onpurpose",
     name: "On Purpose with Jay Shetty",
+    itunesId: "1450994021",
     category: "Growth / Mindset",
     hosts: "Jay Shetty",
     description: "conversations about purpose, mindfulness, relationships, and personal transformation",
@@ -363,6 +399,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "melrobbins",
     name: "The Mel Robbins Podcast",
+    itunesId: "1646101002",
     category: "Motivation / Science",
     hosts: "Mel Robbins",
     description: "science-backed strategies for motivation, confidence, habits, and personal change",
@@ -373,6 +410,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "armchairexpert",
     name: "Armchair Expert with Dax Shepard",
+    itunesId: "1345682353",
     category: "Human Stories",
     hosts: "Dax Shepard & Monica Padman",
     description: "candid celebrity conversations exploring the messy truths of being human",
@@ -383,6 +421,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "conanobrien",
     name: "Conan O'Brien Needs a Friend",
+    itunesId: "1438054347",
     category: "Comedy / Interviews",
     hosts: "Conan O'Brien",
     description: "hilarious conversations as Conan tries to make genuine friendships with celebrity guests",
@@ -393,6 +432,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "meidastouch",
     name: "The MeidasTouch Podcast",
+    itunesId: "1510240831",
     category: "Politics / Law",
     hosts: "Ben Meiselas, Brett Meiselas & Jordan Meiselas",
     description: "political analysis, legal commentary, and accountability journalism",
@@ -403,6 +443,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "shawnryanshow",
     name: "Shawn Ryan Show",
+    itunesId: "1492492083",
     category: "Interviews / Society",
     hosts: "Shawn Ryan",
     description: "raw, unfiltered conversations with military veterans, law enforcement, and cultural figures",
@@ -413,6 +454,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "thisamericanlife",
     name: "This American Life",
+    itunesId: "201671138",
     category: "Narrative / Culture",
     hosts: "Ira Glass",
     description: "extraordinary true stories told through compelling narrative journalism",
@@ -423,6 +465,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "freshair",
     name: "Fresh Air",
+    itunesId: "214089682",
     category: "Arts / Culture Interviews",
     hosts: "Terry Gross & Tonya Mosley",
     description: "in-depth interviews with creators, thinkers, and newsmakers shaping arts and culture",
@@ -433,6 +476,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "podsaveamerica",
     name: "Pod Save America",
+    itunesId: "1192761536",
     category: "Politics / Interviews",
     hosts: "Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor",
     description: "political analysis and commentary from former Obama White House staffers",
@@ -443,6 +487,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "hiddenbrain",
     name: "Hidden Brain",
+    itunesId: "1028908750",
     category: "Psychology / Behavior",
     hosts: "Shankar Vedantam",
     description: "the unconscious patterns that drive human behavior, choices, and relationships",
@@ -453,6 +498,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "tedtalksdaily",
     name: "TED Talks Daily",
+    itunesId: "160904630",
     category: "Big Ideas",
     hosts: "TED",
     description: "the world's most inspiring talks on technology, science, business, and creativity",
@@ -463,6 +509,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "officeladies",
     name: "Office Ladies",
+    itunesId: "1480311435",
     category: "TV / Entertainment",
     hosts: "Jenna Fischer & Angela Kinsey",
     description: "behind-the-scenes stories from The Office, episode by episode, from two of its stars",
@@ -473,6 +520,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "moderncto",
     name: "Modern CTO",
+    itunesId: "1325942361",
     category: "Tech Leadership",
     hosts: "Joel Beasley",
     description: "technology leadership insights and interviews with CTOs from the world's top companies",
@@ -483,6 +531,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "stuffyoushouldknow",
     name: "Stuff You Should Know",
+    itunesId: "278981407",
     category: "General Knowledge",
     hosts: "Josh Clark & Chuck Bryant",
     description: "fascinating deep dives into how everything works — from science to history to pop culture",

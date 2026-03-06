@@ -496,6 +496,46 @@ export default function Admin() {
                       </div>
                     </div>
 
+                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-landing-recaps">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Landing Page Example Recaps</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Generate AI recaps for all ~50 podcast landing pages using their latest episodes.</p>
+                      </div>
+                      <button
+                        data-testid="button-generate-landing-recaps"
+                        onClick={async () => {
+                          if (!confirm("This will generate example recaps for all 50 landing pages. It may take several minutes. Continue?")) return;
+                          try {
+                            const res = await apiRequest("POST", "/api/admin/generate-landing-recaps");
+                            const reader = res.body?.getReader();
+                            if (reader) {
+                              const decoder = new TextDecoder();
+                              let successCount = 0;
+                              while (true) {
+                                const { done, value } = await reader.read();
+                                if (done) break;
+                                const lines = decoder.decode(value).split("\n").filter(Boolean);
+                                for (const line of lines) {
+                                  try {
+                                    const data = JSON.parse(line);
+                                    if (data.status === "success") successCount++;
+                                    if (data.done) {
+                                      toast({ title: "Landing Recaps Generated", description: `${data.success}/${data.total} recaps created successfully.` });
+                                    }
+                                  } catch {}
+                                }
+                              }
+                            }
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err?.message || "Failed to generate landing recaps", variant: "destructive" });
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
+                      >
+                        Generate All
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="glass-panel rounded-2xl p-6" data-testid="chart-top-podcasts">
                         <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">

@@ -133,3 +133,22 @@ export const transcriptLogs = pgTable("transcript_logs", {
 });
 
 export type TranscriptLog = typeof transcriptLogs.$inferSelect;
+
+export const podcastExampleRecaps = pgTable("podcast_example_recaps", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  podcastName: text("podcast_name").notNull(),
+  itunesId: text("itunes_id"),
+  episodeTitle: text("episode_title").notNull(),
+  episodeDate: text("episode_date").notNull(),
+  episodeDuration: text("episode_duration"),
+  tldl: text("tldl").notNull(),
+  whatHappened: text("what_happened").notNull(),
+  keyInsights: text("key_insights").array().notNull(),
+  quote: text("quote"),
+  quoteAttribution: text("quote_attribution"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type PodcastExampleRecap = typeof podcastExampleRecaps.$inferSelect;
+export type InsertPodcastExampleRecap = typeof podcastExampleRecaps.$inferInsert;
