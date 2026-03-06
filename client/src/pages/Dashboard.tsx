@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -130,6 +130,7 @@ export default function Dashboard() {
 
   const [vacationUntil, setVacationUntil] = useState<string | null>(null);
   const [vacationInput, setVacationInput] = useState("");
+  const [showWelcome, setShowWelcome] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
 
@@ -153,17 +154,6 @@ export default function Dashboard() {
     }
   };
 
-  const generateRecap = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/recaps/generate"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/recaps"] });
-      toast({ title: "Recap generated!", description: "Your daily podcast digest is ready to view." });
-    },
-    onError: (err: Error) => {
-      toast({ title: "Generation failed", description: err.message, variant: "destructive" });
-    },
-  });
-
   const sendEmail = useMutation({
     mutationFn: (recapId: number) => apiRequest("POST", "/api/recaps/send-email", { recapId }),
     onSuccess: () => {
@@ -186,6 +176,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    if (params.get("welcome") === "true") {
+      setShowWelcome(true);
+      window.history.replaceState({}, "", "/dashboard");
+    }
     if (params.get("upgraded") === "true" && user) {
       apiRequest("POST", "/api/stripe/sync-subscription")
         .then((res) => res.json())
@@ -339,6 +333,57 @@ export default function Dashboard() {
                   {podcastsOverLimit ? "Never mind" : "Keep my subscription"}
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowWelcome(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 16 }}
+              transition={{ duration: 0.35, type: "spring", bounce: 0.3 }}
+              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-md p-8 flex flex-col items-center gap-5 text-center"
+              data-testid="modal-welcome"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <PartyPopper className="w-8 h-8 text-primary" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-display font-extrabold text-2xl text-foreground" data-testid="text-welcome-title">
+                  You're all set!
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Your podcast recap is locked and loaded. If any of your favorite shows drop a new episode today, you'll get your first digest <span className="font-semibold text-foreground">tomorrow morning</span> — like a personal assistant who actually listens to podcasts for you.
+                </p>
+              </div>
+
+              <div className="w-full rounded-xl bg-primary/[0.04] border border-primary/10 p-4">
+                <p className="text-xs text-muted-foreground">
+                  So far, we've saved PodCap listeners an estimated <span className="font-bold text-primary">2,400+ hours</span> of listening time. We're excited to start saving you some too — so you can get back to doom-scrolling, touching grass, or whatever it is you enjoy.
+                </p>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                In the meantime, feel free to add or remove podcasts from your settings below. Go wild.
+              </p>
+
+              <button
+                data-testid="button-close-welcome"
+                onClick={() => setShowWelcome(false)}
+                className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
+              >
+                Let's go!
+              </button>
             </motion.div>
           </motion.div>
         )}
@@ -703,27 +748,9 @@ export default function Dashboard() {
                       <h3 className="text-lg font-display font-bold text-foreground mb-1">
                         No recaps yet
                       </h3>
-                      <p className="text-sm text-muted-foreground max-w-sm mb-5">
-                        Generate your first AI-powered podcast digest now, or check back after your scheduled delivery time.
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        Your first recap will arrive after your next scheduled delivery time. Sit tight!
                       </p>
-                      <button
-                        data-testid="button-generate-recap"
-                        onClick={() => generateRecap.mutate()}
-                        disabled={generateRecap.isPending}
-                        className="inline-flex items-center gap-2 px-6 h-12 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
-                      >
-                        {generateRecap.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4" />
-                            Generate Recap Now
-                          </>
-                        )}
-                      </button>
                     </div>
                   ) : (
                     <div>
@@ -731,24 +758,6 @@ export default function Dashboard() {
                         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                           {recaps.length} recap{recaps.length !== 1 ? "s" : ""}
                         </h3>
-                        <button
-                          data-testid="button-generate-recap"
-                          onClick={() => generateRecap.mutate()}
-                          disabled={generateRecap.isPending}
-                          className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg font-semibold text-sm bg-primary text-primary-foreground shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
-                        >
-                          {generateRecap.isPending ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-3.5 h-3.5" />
-                              Generate
-                            </>
-                          )}
-                        </button>
                       </div>
                       <div className="overflow-x-auto">
                       <table className="w-full" data-testid="table-recaps">

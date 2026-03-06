@@ -78,11 +78,7 @@ export default function Home() {
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Success!",
-            description: "Your digest has been created. Redirecting to your dashboard...",
-          });
-          navigate("/dashboard");
+          navigate("/dashboard?welcome=true");
         },
         onError: (err) => {
           toast({

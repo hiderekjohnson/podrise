@@ -170,8 +170,7 @@ export default function PodcastLandingGeneric() {
       },
       {
         onSuccess: () => {
-          toast({ title: "You're in!", description: `Your ${name} digest is set up. Redirecting...` });
-          navigate("/dashboard");
+          navigate("/dashboard?welcome=true");
         },
         onError: (err) => {
           toast({
