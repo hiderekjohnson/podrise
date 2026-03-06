@@ -232,6 +232,48 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
         </AnimatePresence>
       </div>
 
+      {selectedPodcasts.length > 0 && (
+        <div className="space-y-2">
+          <AnimatePresence initial={false}>
+            {selectedPodcasts.map((podcast) => (
+              <motion.div
+                key={podcast.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                data-testid={`card-podcast-${podcast.id}`}
+                className="flex items-center gap-4 p-3 bg-white border border-black/[0.06] rounded-2xl shadow-sm shadow-black/[0.02] group"
+              >
+                {podcast.artworkUrl ? (
+                  <img
+                    src={hiResArtwork(podcast.artworkUrl)}
+                    alt={podcast.name}
+                    className="w-12 h-12 rounded-xl object-cover shrink-0"
+                    data-testid={`img-podcast-${podcast.id}`}
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                    <Podcast className="w-5 h-5 text-primary" />
+                  </div>
+                )}
+                <p className="flex-1 min-w-0 font-semibold text-[15px] text-foreground truncate" data-testid={`text-podcast-name-${podcast.id}`}>
+                  {podcast.name}
+                </p>
+                <button
+                  data-testid={`button-remove-podcast-${podcast.id}`}
+                  onClick={() => onRemove(podcast.id)}
+                  className="p-2 rounded-xl text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                  aria-label={`Remove ${podcast.name}`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
     </div>
   );
 }
