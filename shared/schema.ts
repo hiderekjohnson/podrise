@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   plan: text("plan").notNull().default("free"),
+  vacationUntil: text("vacation_until"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -28,7 +29,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type CreateUserRequest = InsertUser;
-export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "podcasts" | "deliveryTime" | "deliveryTimezone">>;
+export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "podcasts" | "deliveryTime" | "deliveryTimezone">> & { vacationUntil?: string | null };
 export type UserResponse = User;
 
 export const recaps = pgTable("recaps", {

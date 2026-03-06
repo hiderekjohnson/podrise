@@ -23,6 +23,7 @@ const userResponseSchema = z.object({
   plan: z.string().optional(),
   stripeCustomerId: z.string().nullable().optional(),
   stripeSubscriptionId: z.string().nullable().optional(),
+  vacationUntil: z.string().nullable().optional(),
   createdAt: z.string().nullable(),
 });
 
@@ -71,6 +72,7 @@ export const api = {
         podcasts: z.array(z.string()).min(1, "Select at least one podcast").optional(),
         deliveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
         deliveryTimezone: z.string().optional(),
+        vacationUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format").nullable().optional(),
       }),
       responses: {
         200: userResponseSchema,

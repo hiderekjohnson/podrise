@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield, Check } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Sparkles, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -128,6 +128,8 @@ export default function Dashboard() {
     enabled: !!user && isPro,
   });
 
+  const [vacationUntil, setVacationUntil] = useState<string | null>(null);
+  const [vacationInput, setVacationInput] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
 
@@ -178,6 +180,7 @@ export default function Dashboard() {
       setEmail(user.email);
       setDeliveryTime(user.deliveryTime || "07:00");
       setDeliveryTimezone(user.deliveryTimezone || "America/New_York");
+      setVacationUntil((user as any).vacationUntil || null);
     }
   }, [user]);
 
@@ -480,6 +483,91 @@ export default function Dashboard() {
                         />
                       </div>
                     </div>
+                  </section>
+
+                  <div className="border-t border-black/[0.06]" />
+
+                  <section className="flex flex-col gap-4">
+                    <h2 className="text-lg font-display font-bold text-foreground flex items-center gap-2">
+                      <Palmtree className="w-4.5 h-4.5 text-amber-500" />
+                      Vacation Mode
+                    </h2>
+
+                    {vacationUntil ? (
+                      <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5" data-testid="section-vacation-active">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">
+                              Recaps paused until {new Date(vacationUntil + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">Your daily podcast recaps are on hold. You won't receive emails until this date.</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 mt-4">
+                          <input
+                            data-testid="input-vacation-update"
+                            type="date"
+                            value={vacationInput || vacationUntil}
+                            min={new Date().toISOString().split("T")[0]}
+                            onChange={(e) => setVacationInput(e.target.value)}
+                            className="h-10 px-3 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all"
+                          />
+                          {vacationInput && vacationInput !== vacationUntil && (
+                            <button
+                              data-testid="button-update-vacation"
+                              onClick={() => {
+                                setVacationUntil(vacationInput);
+                                autoSave({ vacationUntil: vacationInput });
+                                setVacationInput("");
+                              }}
+                              className="h-10 px-4 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:brightness-105 transition-all"
+                            >
+                              Update
+                            </button>
+                          )}
+                          <button
+                            data-testid="button-cancel-vacation"
+                            onClick={() => {
+                              setVacationUntil(null);
+                              setVacationInput("");
+                              autoSave({ vacationUntil: null });
+                            }}
+                            className="h-10 px-4 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-500/[0.06] transition-all flex items-center gap-1.5"
+                          >
+                            <CalendarOff className="w-3.5 h-3.5" />
+                            Cancel Vacation
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-black/[0.06] bg-black/[0.02] p-5" data-testid="section-vacation-off">
+                        <p className="text-sm text-muted-foreground mb-3">Going on a trip? Pause your daily recaps until a specific date.</p>
+                        <div className="flex items-center gap-3">
+                          <input
+                            data-testid="input-vacation-date"
+                            type="date"
+                            value={vacationInput}
+                            min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                            onChange={(e) => setVacationInput(e.target.value)}
+                            className="h-10 px-3 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all"
+                          />
+                          <button
+                            data-testid="button-enable-vacation"
+                            disabled={!vacationInput}
+                            onClick={() => {
+                              setVacationUntil(vacationInput);
+                              autoSave({ vacationUntil: vacationInput });
+                              setVacationInput("");
+                              toast({ title: "Vacation mode enabled", description: `Your recaps are paused until ${new Date(vacationInput + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" })}.` });
+                            }}
+                            className="h-10 px-4 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                          >
+                            <Palmtree className="w-3.5 h-3.5" />
+                            Enable
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </section>
 
                   <div className="border-t border-black/[0.06]" />

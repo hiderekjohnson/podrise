@@ -128,8 +128,20 @@ function getYesterdayInTimezone(timezone: string): { start: Date; end: Date; lab
   }
 }
 
+function isUserOnVacation(user: any): boolean {
+  if (!user.vacationUntil) return false;
+  const timezone = user.deliveryTimezone || "America/New_York";
+  const userLocalDate = getUserLocalDate(timezone);
+  return userLocalDate < user.vacationUntil;
+}
+
 async function generateForUser(user: any, force: boolean, recapPrompt?: string): Promise<"generated" | "skipped" | "failed"> {
   if (!user.podcasts || user.podcasts.length === 0 || !user.email) {
+    return "skipped";
+  }
+
+  if (isUserOnVacation(user)) {
+    console.log(`[EmailScheduler] Skipping user ${user.id}: on vacation until ${user.vacationUntil}`);
     return "skipped";
   }
 
@@ -234,6 +246,7 @@ async function processSchedulerTick() {
 
   for (const user of users) {
     if (!user.podcasts || user.podcasts.length === 0 || !user.email) continue;
+    if (isUserOnVacation(user)) continue;
 
     const timezone = user.deliveryTimezone || "America/New_York";
     const deliveryTime = user.deliveryTime || "07:00";
