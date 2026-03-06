@@ -271,10 +271,16 @@ export default function PodcastDeals() {
                   )}
 
                   {deal.specialLink && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <a
+                      href={deal.specialLink.startsWith("http") ? deal.specialLink : `https://${deal.specialLink}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                      data-testid={`deal-link-${deal.id}`}
+                    >
                       <ExternalLink className="w-3 h-3" />
                       <span className="truncate" title={deal.specialLink}>{deal.specialLink}</span>
-                    </div>
+                    </a>
                   )}
 
                   <div className="mt-auto pt-3 border-t border-black/[0.04] flex items-center justify-between">
