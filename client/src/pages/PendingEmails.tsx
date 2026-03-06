@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail, Info } from "lucide-react";
+import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -92,25 +92,6 @@ function formatDateTime(dateStr: string | null) {
   });
 }
 
-function ScheduleDisclosure() {
-  return (
-    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200/60 text-sm text-blue-800" data-testid="schedule-disclosure">
-      <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
-      <div>
-        <p className="font-semibold">How email delivery works</p>
-        <p className="mt-0.5 text-blue-700/80">
-          Each user's recap is automatically generated at their chosen delivery time in their timezone. Once generated, emails are <span className="font-semibold">held for review</span> — they will not be sent until you manually approve and send each one.
-        </p>
-        <p className="mt-1.5 text-blue-700/80">
-          <span className="font-semibold">Your workflow:</span> Check this page periodically for new "Held for Review" emails → Preview them → Click Send or Cancel for each one.
-        </p>
-        <p className="mt-1 text-blue-600/70 text-xs">
-          You can also use "Generate Now" to manually create emails for all users immediately.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default function PendingEmails() {
   const { toast } = useToast();
@@ -197,7 +178,6 @@ export default function PendingEmails() {
 
   return (
     <div className="space-y-4">
-      <ScheduleDisclosure />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <button
