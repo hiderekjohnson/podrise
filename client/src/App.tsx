@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Upgrade from "./pages/Upgrade";
 import Admin from "./pages/Admin";
 import PodcastLandingGeneric from "./pages/PodcastLandingGeneric";
+import EpisodeRecapPage from "./pages/EpisodeRecapPage";
 import Leaderboard from "./pages/Leaderboard";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/upgrade" component={Upgrade} />
       <Route path="/admin" component={Admin} />
+      <Route path="/podcasts/:podcastSlug/:episodeSlug" component={EpisodeRecapPage} />
       <Route path="/podcasts/:slug" component={PodcastLandingGeneric} />
       <Route path="/podcasts" component={Leaderboard} />
       <Route path="/podcast-deals" component={PodcastDeals} />

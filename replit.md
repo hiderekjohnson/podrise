@@ -17,7 +17,8 @@ A full-stack web application that lets users create and manage personalized dail
 - `/upgrade` — Pro upgrade page ($9.99/month for unlimited podcasts) with Stripe Checkout
 - `/admin` — Admin dashboard (password-protected): pending emails queue, users, email send logs, analytics, email template editor, AI prompt editor, transcript logs (2 tabs: Successful / Errors); tabbed interface (defaults to Pending tab)
 - `/podcasts` — Most Popular Podcasts directory/leaderboard
-- `/podcasts/:slug` — SEO landing pages for ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); centered artwork hero, email signup, Apple/Spotify/YouTube links, feature cards, example AI recap, snapshot stats, known-for bullets, host bios, time-saved stat, related podcasts, FAQ with schema markup
+- `/podcasts/:slug` — SEO landing pages for ~50 podcasts (data in `client/src/data/podcastLandingData.ts`); centered artwork hero, email signup, Apple/Spotify/YouTube links, feature cards, example AI recap, episode list (if episodes exist), snapshot stats, known-for bullets, host bios, related podcasts, FAQ with schema markup, aboutPodcast SEO description
+- `/podcasts/:podcastSlug/:episodeSlug` — Individual episode recap pages (data in `client/src/data/episodeRecaps.ts`); artwork + title hero, TLDL box, recap sections, prev/next episode nav, signup CTA, related podcasts, full SEO (canonical, OG, twitter tags). Currently 5 My First Million episodes as test
 - `/podcast-deals` — SEO page listing sponsor deals extracted from podcast transcripts (promo codes, free trials, special links, discounts). FAQ schema, ItemList schema, internal linking. Admin triggers extraction via "Extract Deals" button
 - `/updates` — What's New changelog + feature request form. SEO-optimized with JSON-LD, meta tags. Changelog entries first, feature request form at bottom
 - `/support` — Help & Support contact form

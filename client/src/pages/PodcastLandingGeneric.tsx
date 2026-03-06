@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { useLocation, useParams } from "wouter";
+import { useLocation, useParams, Link } from "wouter";
 import { Loader2, ArrowRight, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { ExampleRecapSection } from "@/components/ExampleRecapSection";
-import { getPodcastBySlug } from "@/data/podcastLandingData";
+import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
+import { getEpisodesByPodcast } from "@/data/episodeRecaps";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 function generatePodcapFaqItems(name: string) {
@@ -135,6 +136,8 @@ export default function PodcastLandingGeneric() {
     .map(s => getPodcastBySlug(s))
     .filter((p): p is PodcastLandingConfig => !!p)
     .slice(0, 3);
+
+  const episodeRecaps = getEpisodesByPodcast(slug || "");
 
   const snapshotItems = [
     category ? { icon: Star, label: "Category", value: category } : null,
@@ -279,6 +282,36 @@ export default function PodcastLandingGeneric() {
 
         <ExampleRecapSection slug={slug || ""} podcastName={name} hideHeading artworkUrl={artworkUrl} />
 
+        {episodeRecaps.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.12 }}
+            className="w-full max-w-4xl pb-20"
+            data-testid="section-episode-list"
+          >
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-8">
+              Recent {name} Episode Recaps
+            </h2>
+            <div className="space-y-3">
+              {episodeRecaps.map((ep) => {
+                const date = new Date(ep.publishDate + "T00:00:00");
+                const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                return (
+                  <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
+                    <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-4 flex items-center gap-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors truncate sm:whitespace-normal">{ep.episodeTitle}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{formatted}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary shrink-0 transition-colors" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
 
         <motion.section
           initial={{ opacity: 0, y: 16 }}
