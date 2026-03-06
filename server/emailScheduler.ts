@@ -169,6 +169,7 @@ async function pregenerateAllEmails(force = false) {
         subject,
         scheduledFor: deliveryTime,
         timezone,
+        source: force ? "manual" : "scheduled",
         status: "pending",
       });
 

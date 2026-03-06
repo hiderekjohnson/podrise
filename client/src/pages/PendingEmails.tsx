@@ -13,6 +13,7 @@ interface PendingEmailEntry {
   subject: string;
   scheduledFor: string;
   timezone: string;
+  source: string;
   status: string;
   sentAt: string | null;
   errorMessage: string | null;
@@ -58,7 +59,7 @@ function statusBadge(status: string) {
   }
 }
 
-function parsePodcastNames(podcasts: string[]): string {
+function parsePodcastNamesList(podcasts: string[]): string[] {
   return podcasts.map(raw => {
     try {
       const p = JSON.parse(raw);
@@ -66,7 +67,7 @@ function parsePodcastNames(podcasts: string[]): string {
     } catch {
       return raw;
     }
-  }).join(", ");
+  });
 }
 
 function formatDeliveryTime(time: string): string {
@@ -229,6 +230,7 @@ export default function PendingEmails() {
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Recipient</th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Podcasts</th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Delivery</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Source</th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
@@ -245,11 +247,24 @@ export default function PendingEmails() {
                     <p className="text-xs text-muted-foreground/60 mt-0.5">User #{email.userId} · {email.recapDate}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-[13px] text-foreground max-w-[200px] truncate">{parsePodcastNames(email.podcasts)}</p>
+                    <div className="flex flex-wrap gap-1 max-w-[280px]">
+                      {parsePodcastNamesList(email.podcasts).map((name, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-black/[0.06]" data-testid={`pill-podcast-${idx}`}>
+                          <span className="text-primary">🎙</span>
+                          <span className="max-w-[160px] truncate">{name}</span>
+                        </span>
+                      ))}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-[13px] font-semibold text-foreground">{formatDeliveryTime(email.scheduledFor)}</p>
                     <p className="text-xs text-muted-foreground/60 mt-0.5">{email.recapDate} · {email.timezone.replace(/_/g, " ")}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${email.source === "manual" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600"}`} data-testid={`badge-source-${email.id}`}>
+                      {email.source === "manual" ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                      {email.source === "manual" ? "Manual" : "Scheduled"}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     {statusBadge(email.status)}

@@ -107,6 +107,7 @@ export const pendingEmails = pgTable("pending_emails", {
   subject: text("subject").notNull(),
   scheduledFor: text("scheduled_for").notNull(),
   timezone: text("timezone").notNull().default("America/New_York"),
+  source: text("source").notNull().default("scheduled"),
   status: text("status").notNull().default("pending"),
   sentAt: timestamp("sent_at"),
   errorMessage: text("error_message"),
