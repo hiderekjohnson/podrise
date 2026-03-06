@@ -7,9 +7,17 @@ interface PodcastInfo {
   id: string;
 }
 
+export interface EpisodeStats {
+  included: number;
+  noNewEpisode: number;
+  error: number;
+  details: { podcast: string; status: "included" | "no_new_episode" | "error"; episodeCount?: number; errorMessage?: string }[];
+}
+
 interface RecapResult {
   summary: string;
   dateStr: string;
+  episodeStats: EpisodeStats;
 }
 
 type RecapMode = "yesterday" | "latest";
@@ -122,6 +130,7 @@ export async function generateRecap(
   let hasAnyEpisodes = false;
   let totalDurationMin = 0;
   const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
+  const stats: EpisodeStats = { included: 0, noNewEpisode: 0, error: 0, details: [] };
 
   for (const podcast of podcastInfos) {
     try {
@@ -129,6 +138,11 @@ export async function generateRecap(
       const lookupRes = await fetch(lookupUrl);
       const lookupJson = await lookupRes.json();
       const episodes = selectEpisodes(lookupJson.results || [], mode, yesterdayStart, yesterdayEnd);
+
+      if (episodes.length === 0) {
+        stats.noNewEpisode++;
+        stats.details.push({ podcast: podcast.name, status: "no_new_episode" });
+      }
 
       if (episodes.length > 0) {
 
@@ -221,12 +235,18 @@ export async function generateRecap(
           hasAnyEpisodes = true;
           podcastNamesWithEpisodes.push(podcast.name);
           episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
+          stats.included++;
+          stats.details.push({ podcast: podcast.name, status: "included", episodeCount: epDetails.length });
         } else {
           console.log(`[Recap] No transcripts found for any episodes of ${podcast.name} — skipping podcast entirely`);
+          stats.error++;
+          stats.details.push({ podcast: podcast.name, status: "error", errorMessage: "No transcripts available for new episodes" });
         }
       }
     } catch (outerErr) {
       console.error(`[Recap] Error processing podcast ${podcast.name}:`, outerErr);
+      stats.error++;
+      stats.details.push({ podcast: podcast.name, status: "error", errorMessage: outerErr instanceof Error ? outerErr.message : String(outerErr) });
     }
   }
 
@@ -316,9 +336,9 @@ export async function generateRecap(
     }
 
     const summary = markdownSections.join("\n\n");
-    return { summary, dateStr };
+    return { summary, dateStr, episodeStats: stats };
   } catch (parseErr) {
     console.warn(`[Recap] Failed to parse AI JSON response for user ${user.id}, falling back to raw content. Error:`, parseErr);
-    return { summary: content, dateStr };
+    return { summary: content, dateStr, episodeStats: stats };
   }
 }

@@ -4,6 +4,13 @@ import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshC
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface EpisodeStatsData {
+  included: number;
+  noNewEpisode: number;
+  error: number;
+  details: { podcast: string; status: string; episodeCount?: number; errorMessage?: string }[];
+}
+
 interface PendingEmailEntry {
   id: number;
   userId: number;
@@ -13,6 +20,7 @@ interface PendingEmailEntry {
   subject: string;
   scheduledFor: string;
   timezone: string;
+  episodeStats: string | null;
   source: string;
   status: string;
   sentAt: string | null;
@@ -57,17 +65,6 @@ function statusBadge(status: string) {
         </span>
       );
   }
-}
-
-function parsePodcastNamesList(podcasts: string[]): string[] {
-  return podcasts.map(raw => {
-    try {
-      const p = JSON.parse(raw);
-      return p.name || raw;
-    } catch {
-      return raw;
-    }
-  });
 }
 
 function formatDeliveryTime(time: string): string {
@@ -276,7 +273,7 @@ export default function PendingEmails() {
             <thead>
               <tr className="bg-black/[0.02] border-b border-black/[0.06]">
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Recipient</th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Podcasts</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Episodes</th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Delivery</th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Source</th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
@@ -295,14 +292,50 @@ export default function PendingEmails() {
                     <p className="text-xs text-muted-foreground/60 mt-0.5">User #{email.userId} · {email.recapDate}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1 max-w-[280px]">
-                      {parsePodcastNamesList(email.podcasts).map((name, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-black/[0.06]" data-testid={`pill-podcast-${idx}`}>
-                          <span className="text-primary">🎙</span>
-                          <span className="max-w-[160px] truncate">{name}</span>
-                        </span>
-                      ))}
-                    </div>
+                    {(() => {
+                      const stats: EpisodeStatsData | null = email.episodeStats ? (() => { try { return JSON.parse(email.episodeStats); } catch { return null; } })() : null;
+                      if (!stats) {
+                        return <span className="text-xs text-muted-foreground italic">No data</span>;
+                      }
+                      return (
+                        <div className="space-y-1" data-testid={`episode-stats-${email.id}`}>
+                          <div className="flex items-center gap-3">
+                            {stats.included > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700" data-testid={`stat-included-${email.id}`}>
+                                <CheckCircle2 className="w-3 h-3" />
+                                {stats.included} included
+                              </span>
+                            )}
+                            {stats.noNewEpisode > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500" data-testid={`stat-no-new-${email.id}`}>
+                                <Ban className="w-3 h-3" />
+                                {stats.noNewEpisode} no new ep
+                              </span>
+                            )}
+                            {stats.error > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600" data-testid={`stat-error-${email.id}`}>
+                                <XCircle className="w-3 h-3" />
+                                {stats.error} error
+                              </span>
+                            )}
+                          </div>
+                          {stats.details.length > 0 && (
+                            <div className="text-[11px] text-muted-foreground/70 leading-relaxed">
+                              {stats.details.map((d, i) => (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <span className={d.status === "included" ? "text-green-600" : d.status === "no_new_episode" ? "text-gray-400" : "text-red-500"}>
+                                    {d.status === "included" ? "✓" : d.status === "no_new_episode" ? "—" : "✗"}
+                                  </span>
+                                  <span className="truncate max-w-[140px]" title={d.podcast}>{d.podcast}</span>
+                                  {d.status === "included" && d.episodeCount && <span className="text-green-600">({d.episodeCount} ep)</span>}
+                                  {d.status === "error" && d.errorMessage && <span className="text-red-400 truncate max-w-[100px]" title={d.errorMessage}>({d.errorMessage})</span>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-[13px] font-semibold text-foreground">{formatDeliveryTime(email.scheduledFor)}</p>
