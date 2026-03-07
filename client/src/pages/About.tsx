@@ -14,20 +14,20 @@ const fadeUp = {
 
 export default function About() {
   useEffect(() => {
-    document.title = "About PodCap - The Story Behind Your Daily Podcast Summaries";
+    document.title = "About Us - The Story Behind Your Daily Podcast Summaries | PodCap";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
     setMeta("name", "description", "The team at PodCap came together with a shared love of podcasts and a common problem: we couldn't keep up. So we built an AI-powered daily podcast summary service.");
-    setMeta("property", "og:title", "About PodCap - The Story Behind Your Daily Podcast Summaries");
+    setMeta("property", "og:title", "About Us - The Story Behind Your Daily Podcast Summaries | PodCap");
     setMeta("property", "og:description", "The team at PodCap came together with a shared love of podcasts and a common problem: we couldn't keep up. Learn the story behind the daily podcast recap service.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
-    setMeta("name", "twitter:title", "About PodCap - The Story Behind Your Daily Podcast Summaries");
+    setMeta("name", "twitter:title", "About Us - The Story Behind Your Daily Podcast Summaries | PodCap");
     setMeta("name", "twitter:description", "The team at PodCap came together with a shared love of podcasts and a common problem: we couldn't keep up. Learn the story behind the daily podcast recap service.");
     setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
@@ -60,7 +60,7 @@ export default function About() {
           {...fadeUp}
           data-testid="section-hero"
         >
-          <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-4">About PodCap</p>
+          <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-4">About Us</p>
           <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight leading-[1.15] mb-6" data-testid="text-hero-title">
             We love podcasts. We just don't have<br className="hidden md:block" /> two hours for every episode.
           </h1>
