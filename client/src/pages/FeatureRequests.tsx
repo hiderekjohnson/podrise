@@ -15,6 +15,12 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    title: "PodCap is now on X",
+    description: "We created an X account where we'll be posting our top episode recaps daily. Follow us to discover great episodes and stay in the loop.",
+    link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
+    emoji: "𝕏",
+  },
+  {
     title: "For Podcasters — we're here to help, not hurt",
     description: "There was some confusion from podcasters that PodCap might lower listening. It's far from the truth. We built a dedicated page to explain how PodCap actually helps podcasters by keeping superfans engaged, boosting completion rates, and improving algorithm performance. We love podcasters, and this service is completely free for creators.",
     link: { url: "/for-podcasters", label: "Read our message to podcasters" },
