@@ -170,6 +170,18 @@ export default function ForPodcasters() {
           </div>
         </section>
 
+        <section className="pb-16 sm:pb-20" data-testid="section-free">
+          <div className="max-w-3xl mx-auto px-6">
+            <div className="relative bg-gradient-to-br from-emerald-50 to-emerald-50/50 border border-emerald-200/40 rounded-2xl p-8 sm:p-10 text-center">
+              <p className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-2" data-testid="text-free-label">Oh, and one more thing</p>
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">This is completely free for podcasters</h2>
+              <p className="text-[17px] leading-[1.7] text-muted-foreground max-w-xl mx-auto">
+                PodCap doesn't cost you a thing. No fees, no contracts, no catch. We recap your episodes, send your fans daily updates, and create searchable pages for your show. Remember, we said we love you guys.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section className="py-16 sm:py-20 bg-slate-50/50" data-testid="section-problem">
           <div className="max-w-3xl mx-auto px-6">
             <div className="bg-white border border-black/[0.06] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm" data-testid="card-problem">
