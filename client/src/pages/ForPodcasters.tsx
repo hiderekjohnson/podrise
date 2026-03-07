@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Heart, Search, TrendingUp, Headphones, ArrowRight, Mail, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2 } from "lucide-react";
+import { Heart, Search, TrendingUp, Headphones, ArrowRight, Mail, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Trophy } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -366,6 +366,12 @@ export default function ForPodcasters() {
         {/* ── Podcast Pages Grid ── */}
         <section className="py-16 sm:py-20" data-testid="section-podcast-pages">
           <div className="max-w-3xl mx-auto px-6">
+            <div className="flex justify-center mb-4">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase">
+                <Trophy className="w-3.5 h-3.5" />
+                Top Podcasts
+              </div>
+            </div>
             <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-pages-title">
               Custom pages for top podcasts
             </h2>
