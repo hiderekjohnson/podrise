@@ -20,15 +20,10 @@ interface SelectedPodcast {
 interface PodcastSearchProps {
   selectedPodcasts: SelectedPodcast[];
   onAdd: (podcast: SelectedPodcast) => void;
-  onRemove: (id: string) => void;
   maxSelection?: number;
 }
 
-function hiResArtwork(url: string) {
-  return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
-}
-
-export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection }: PodcastSearchProps) {
+export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: PodcastSearchProps) {
   const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<PodcastResult[]>([]);
@@ -84,7 +79,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
   };
 
   return (
-    <div className="space-y-4">
+    <div>
       {createPortal(
         <AnimatePresence>
           {showUpgradeModal && (
@@ -109,10 +104,10 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
-                    You've reached your free plan limit
+                    Free plan limit reached
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    The free plan includes up to 3 podcasts. Upgrade to Pro for unlimited podcasts for $9.99/month.
+                    You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
                   </p>
                 </div>
                 <div className="w-full space-y-2.5">
@@ -132,7 +127,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                     Not now
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground/60">You can cancel anytime.</p>
+                <p className="text-xs text-muted-foreground/60">Cancel anytime. No questions asked.</p>
               </motion.div>
             </motion.div>
           )}
@@ -147,10 +142,10 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
             <input
               data-testid="input-search-podcasts"
               type="search"
-              placeholder="Search podcasts..."
+              placeholder="Search for a podcast to add..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-14 pl-12 pr-10 bg-white border border-black/[0.08] rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
+              className="w-full h-12 pl-12 pr-10 bg-white border border-black/[0.08] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium text-sm"
             />
             {searchQuery && (
               <button
@@ -171,7 +166,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
               animate={{ opacity: 1, y: 8, scale: 1 }}
               exit={{ opacity: 0, y: 4, scale: 0.98 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="absolute left-0 right-0 z-50 bg-white rounded-3xl shadow-2xl shadow-black/[0.12] border border-black/[0.06] overflow-hidden max-h-[360px] overflow-y-auto"
+              className="absolute left-0 right-0 z-50 bg-white rounded-2xl shadow-2xl shadow-black/[0.12] border border-black/[0.06] overflow-hidden max-h-[360px] overflow-y-auto"
             >
               {isSearching ? (
                 <div className="flex items-center justify-center gap-2.5 px-6 py-10 text-sm text-muted-foreground">
@@ -180,7 +175,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                 </div>
               ) : filteredResults.length > 0 ? (
                 <div className="py-2">
-                  <p className="px-6 pt-3 pb-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                  <p className="px-5 pt-3 pb-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
                     Results
                   </p>
                   {filteredResults.map((podcast) => (
@@ -188,24 +183,24 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                         key={podcast.id}
                         data-testid={`button-add-podcast-${podcast.id}`}
                         onClick={() => handleAddClick(podcast)}
-                        className="flex items-center gap-4 px-6 py-3.5 w-full text-left transition-colors group/row hover:bg-black/[0.03] cursor-pointer"
+                        className="flex items-center gap-3.5 px-5 py-3 w-full text-left transition-colors group/row hover:bg-black/[0.03] cursor-pointer"
                       >
                         {podcast.artworkUrl ? (
                           <img
                             src={podcast.artworkUrl}
                             alt={podcast.name}
-                            className="w-12 h-12 rounded-xl object-cover shrink-0"
+                            className="w-11 h-11 rounded-lg object-cover shrink-0"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                          <div className="w-11 h-11 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
                             <Podcast className="w-5 h-5 text-primary" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground text-[15px] truncate">
+                          <p className="font-semibold text-foreground text-sm truncate">
                             {podcast.name}
                           </p>
-                          <p className="text-[13px] text-muted-foreground/60 truncate mt-0.5">
+                          <p className="text-xs text-muted-foreground/60 truncate mt-0.5">
                             {podcast.artistName}
                           </p>
                         </div>
@@ -223,49 +218,6 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
           )}
         </AnimatePresence>
       </div>
-
-      {selectedPodcasts.length > 0 && (
-        <div className="space-y-2">
-          <AnimatePresence initial={false}>
-            {selectedPodcasts.map((podcast) => (
-              <motion.div
-                key={podcast.id}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                data-testid={`card-podcast-${podcast.id}`}
-                className="flex items-center gap-4 p-3 bg-white border border-black/[0.06] rounded-2xl shadow-sm shadow-black/[0.02] group"
-              >
-                {podcast.artworkUrl ? (
-                  <img
-                    src={hiResArtwork(podcast.artworkUrl)}
-                    alt={podcast.name}
-                    className="w-12 h-12 rounded-xl object-cover shrink-0"
-                    data-testid={`img-podcast-${podcast.id}`}
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                    <Podcast className="w-5 h-5 text-primary" />
-                  </div>
-                )}
-                <p className="flex-1 min-w-0 font-semibold text-[15px] text-foreground truncate" data-testid={`text-podcast-name-${podcast.id}`}>
-                  {podcast.name}
-                </p>
-                <button
-                  data-testid={`button-remove-podcast-${podcast.id}`}
-                  onClick={() => onRemove(podcast.id)}
-                  className="p-2 rounded-xl text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
-                  aria-label={`Remove ${podcast.name}`}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
-
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, ChevronRight, Zap } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -158,6 +158,7 @@ export default function Dashboard() {
   const [vacationInput, setVacationInput] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
@@ -292,6 +293,14 @@ export default function Dashboard() {
     });
   };
 
+  const handleSuggestionAdd = (podcast: { id: string; name: string; artworkUrl: string }) => {
+    if (!isPro && podcasts.length >= 3) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    handleAdd(podcast);
+  };
+
   const handleLogout = () => {
     setLoggingOut(true);
     logout(undefined, {
@@ -387,6 +396,56 @@ export default function Dashboard() {
                   {podcastsOverLimit ? "Never mind" : "Keep my subscription"}
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {showUpgradeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowUpgradeModal(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
+              data-testid="modal-upgrade-dashboard"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Crown className="w-7 h-7 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-display font-extrabold text-xl text-foreground">
+                  Free plan limit reached
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
+                </p>
+              </div>
+              <div className="w-full space-y-2.5">
+                <button
+                  data-testid="button-upgrade-modal-dashboard"
+                  onClick={() => { setShowUpgradeModal(false); setActiveTab("plan"); }}
+                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                >
+                  <Crown className="w-4 h-4" />
+                  Upgrade to Pro — $9.99/month
+                </button>
+                <button
+                  data-testid="button-dismiss-upgrade-dashboard"
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                >
+                  Not now
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground/60">Cancel anytime. No questions asked.</p>
             </motion.div>
           </motion.div>
         )}
@@ -513,137 +572,154 @@ export default function Dashboard() {
               transition={{ duration: 0.15 }}
               className="space-y-6"
             >
+              {podcasts.length > 0 && (
+                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                  <div className="px-6 pt-6 pb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-your-podcasts">
+                        Your Podcasts
+                      </h2>
+                      {!isPro && (
+                        <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full" data-testid="text-podcast-count">
+                          {podcasts.length} / 3 free
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">We'll recap new episodes from these shows.</p>
+                  </div>
+                  <div className="px-6 pb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <AnimatePresence initial={false}>
+                        {podcasts.map((podcast) => (
+                          <motion.div
+                            key={podcast.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            data-testid={`card-podcast-${podcast.id}`}
+                            className="flex items-center gap-3.5 p-3 bg-[#f8f9fb] border border-black/[0.04] rounded-xl group"
+                          >
+                            {podcast.artworkUrl ? (
+                              <img
+                                src={hiResArtwork(podcast.artworkUrl)}
+                                alt={podcast.name}
+                                className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm"
+                                data-testid={`img-podcast-${podcast.id}`}
+                              />
+                            ) : (
+                              <div className="w-14 h-14 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                                <Podcast className="w-6 h-6 text-primary" />
+                              </div>
+                            )}
+                            <p className="flex-1 min-w-0 font-semibold text-sm text-foreground truncate" data-testid={`text-podcast-name-${podcast.id}`}>
+                              {podcast.name}
+                            </p>
+                            <button
+                              data-testid={`button-remove-podcast-${podcast.id}`}
+                              onClick={() => handleRemove(podcast.id)}
+                              className="p-1.5 rounded-lg text-muted-foreground/30 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+                              aria-label={`Remove ${podcast.name}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 pt-6 pb-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-your-podcasts">
-                      Your Podcasts
+                  <div className="flex items-center gap-2 mb-1">
+                    <Plus className="w-4 h-4 text-primary" />
+                    <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-add-podcasts">
+                      Add Podcasts
                     </h2>
-                    {!isPro && (
-                      <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full" data-testid="text-podcast-count">
-                        {podcasts.length} / 3 free
-                      </span>
-                    )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {podcasts.length === 0 ? "Search and add podcasts to get daily recaps." : "We'll recap new episodes from these shows."}
+                    {podcasts.length === 0 ? "Search for podcasts to start getting daily recaps." : "Search or browse below to add more shows."}
                   </p>
                 </div>
 
-                <div className="px-6 pb-4">
+                <div className="px-6 pb-5">
                   <PodcastSearch
                     selectedPodcasts={podcasts}
                     onAdd={handleAdd}
-                    onRemove={handleRemove}
                     maxSelection={isPro ? undefined : 3}
                   />
                 </div>
 
-                {!isPro && podcasts.length >= 2 && (
-                  <div className="mx-6 mb-6 rounded-xl bg-gradient-to-r from-primary/[0.06] to-primary/[0.02] border border-primary/10 p-4 flex items-center gap-4" data-testid="banner-upgrade-inline">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Crown className="w-5 h-5 text-primary" />
+                {popularPodcasts.length > 0 && (
+                  <div className="px-6 pb-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                      <h3 className="text-sm font-display font-bold text-foreground" data-testid="heading-popular">
+                        Popular with PodCap Users
+                      </h3>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground">Want more podcasts?</p>
-                      <p className="text-xs text-muted-foreground">Upgrade to Pro for unlimited podcasts — $9.99/mo</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      {popularPodcasts.map(podcast => (
+                        <button
+                          key={podcast.id}
+                          data-testid={`button-suggest-popular-${podcast.id}`}
+                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl })}
+                          className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
+                        >
+                          {podcast.artworkUrl ? (
+                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-12 h-12 rounded-lg object-cover shrink-0 shadow-sm" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                              <Podcast className="w-5 h-5 text-primary" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{podcast.artist}</p>
+                          </div>
+                          <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
+                        </button>
+                      ))}
                     </div>
-                    <button
-                      data-testid="button-upgrade-inline"
-                      onClick={() => setActiveTab("plan")}
-                      className="shrink-0 h-9 px-4 rounded-lg text-xs font-bold bg-primary text-white shadow-sm shadow-primary/20 hover:brightness-105 transition-all"
-                    >
-                      Upgrade
-                    </button>
+                  </div>
+                )}
+
+                {recommendedPodcasts.length > 0 && (
+                  <div className="px-6 pb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <h3 className="text-sm font-display font-bold text-foreground" data-testid="heading-recommended">
+                        Recommended for You
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      {recommendedPodcasts.map(podcast => (
+                        <button
+                          key={podcast.id}
+                          data-testid={`button-suggest-rec-${podcast.id}`}
+                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl })}
+                          className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
+                        >
+                          {podcast.artworkUrl ? (
+                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-12 h-12 rounded-lg object-cover shrink-0 shadow-sm" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                              <Podcast className="w-5 h-5 text-primary" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{podcast.genres.slice(0, 2).join(" · ")}</p>
+                          </div>
+                          <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-
-              {popularPodcasts.length > 0 && (
-                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                  <div className="px-6 pt-6 pb-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="w-4 h-4 text-primary" />
-                      <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-popular">
-                        Popular with PodCap Users
-                      </h2>
-                    </div>
-                    <p className="text-sm text-muted-foreground">The most-followed podcasts on PodCap right now.</p>
-                  </div>
-                  <div className="px-6 pb-6 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {popularPodcasts.map(podcast => (
-                      <button
-                        key={podcast.id}
-                        data-testid={`button-suggest-popular-${podcast.id}`}
-                        onClick={() => {
-                          if (!isPro && podcasts.length >= 3) {
-                            setActiveTab("plan");
-                            return;
-                          }
-                          handleAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl });
-                        }}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
-                      >
-                        {podcast.artworkUrl ? (
-                          <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-11 h-11 rounded-lg object-cover shrink-0" />
-                        ) : (
-                          <div className="w-11 h-11 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                            <Podcast className="w-5 h-5 text-primary" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{podcast.artist}</p>
-                        </div>
-                        <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {recommendedPodcasts.length > 0 && (
-                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                  <div className="px-6 pt-6 pb-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-recommended">
-                        Recommended for You
-                      </h2>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Based on the genres you listen to.</p>
-                  </div>
-                  <div className="px-6 pb-6 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {recommendedPodcasts.map(podcast => (
-                      <button
-                        key={podcast.id}
-                        data-testid={`button-suggest-rec-${podcast.id}`}
-                        onClick={() => {
-                          if (!isPro && podcasts.length >= 3) {
-                            setActiveTab("plan");
-                            return;
-                          }
-                          handleAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl });
-                        }}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
-                      >
-                        {podcast.artworkUrl ? (
-                          <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-11 h-11 rounded-lg object-cover shrink-0" />
-                        ) : (
-                          <div className="w-11 h-11 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                            <Podcast className="w-5 h-5 text-primary" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{podcast.genres.slice(0, 2).join(" · ")}</p>
-                        </div>
-                        <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </motion.div>
           )}
 
