@@ -127,10 +127,11 @@ export default function Support() {
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-10">
         <div className="text-center mb-12">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <HelpCircle className="w-6 h-6 text-primary" />
+          <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-4 mx-auto">
+            <HelpCircle className="w-5 h-5" />
+            Help & Support
           </div>
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Help & Support</h1>
+          <h1 className="sr-only">Help & Support</h1>
           <p className="text-muted-foreground">Find answers to common questions about your daily podcast recaps, or get in touch with our team.</p>
         </div>
 

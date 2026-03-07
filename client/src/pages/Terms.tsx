@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { FileText } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
@@ -12,8 +13,14 @@ export default function Terms() {
       </header>
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Terms & Conditions</h1>
-        <p className="text-sm text-muted-foreground mb-8">Last updated: January 1, 2026</p>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-4">
+            <FileText className="w-5 h-5" />
+            Terms & Conditions
+          </div>
+          <h1 className="sr-only">Terms & Conditions</h1>
+          <p className="text-sm text-muted-foreground">Last updated: January 1, 2026</p>
+        </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-foreground/80">
           <section>

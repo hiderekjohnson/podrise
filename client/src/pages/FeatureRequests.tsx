@@ -179,16 +179,11 @@ export default function FeatureRequests() {
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center gap-4"
           >
-            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-primary/[0.06] border border-primary/[0.1] rounded-full">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide uppercase">Product Updates</span>
+            <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest">
+              <Sparkles className="w-5 h-5" />
+              What's New
             </div>
-            <h1
-              className="text-[2rem] sm:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
-              data-testid="heading-main"
-            >
-              What's New at PodCap
-            </h1>
+            <h1 className="sr-only">What's New at PodCap</h1>
             <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
               Everything we've shipped to make your daily podcast summaries better.
             </p>
