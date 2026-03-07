@@ -807,29 +807,70 @@ export async function registerRoutes(
 
         let totalDurationMin = 0;
         const podcastIds: string[] = [];
+        const podcastNames: string[] = [];
         for (const p of email.podcasts) {
           try {
             const parsed = JSON.parse(p);
             if (parsed.id) podcastIds.push(parsed.id);
+            if (parsed.name) podcastNames.push(parsed.name);
           } catch {}
         }
 
-        const summaryLower = summary.toLowerCase();
-        for (const pid of podcastIds) {
+        interface EpInfo { title: string; durationMin: number; durationStr: string; releaseDate: string; appleUrl: string; spotifyUrl: string; podcastName: string; }
+        const matchedEpisodes: EpInfo[] = [];
+
+        for (let pi = 0; pi < podcastIds.length; pi++) {
+          const pid = podcastIds[pi];
+          const pName = podcastNames[pi] || "";
           try {
             const lookupUrl = `https://itunes.apple.com/lookup?id=${pid}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
             const lookupRes = await fetch(lookupUrl);
             const lookupJson = await lookupRes.json() as any;
             const results = lookupJson.results || [];
             for (const ep of results) {
-              if (ep.wrapperType === "podcastEpisode" && ep.trackTimeMillis) {
-                const epTitle = (ep.trackName || "").trim();
-                if (epTitle.length > 5 && summaryLower.includes(epTitle.substring(0, Math.min(epTitle.length, 25)).toLowerCase())) {
-                  totalDurationMin += Math.round(ep.trackTimeMillis / 60000);
-                }
+              if (ep.wrapperType !== "podcastEpisode" || !ep.trackTimeMillis) continue;
+              const epTitle = (ep.trackName || "").trim();
+              if (!epTitle) continue;
+              const titleInSummary = summary.includes(`**${epTitle}**`);
+              if (titleInSummary) {
+                const durationMin = Math.round(ep.trackTimeMillis / 60000);
+                totalDurationMin += durationMin;
+                const durationStr = durationMin >= 60
+                  ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+                  : `${durationMin} minutes`;
+                const releaseDate = ep.releaseDate
+                  ? new Date(ep.releaseDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+                  : "";
+                const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
+                const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(pName + " " + epTitle)}`;
+                matchedEpisodes.push({ title: epTitle, durationMin, durationStr, releaseDate, appleUrl, spotifyUrl, podcastName: pName });
               }
             }
           } catch {}
+        }
+
+        for (const ep of matchedEpisodes) {
+          const titleLine = `**${ep.title}**`;
+          const titleIdx = summary.indexOf(titleLine);
+          if (titleIdx === -1) continue;
+          const afterTitle = titleIdx + titleLine.length;
+          const restAfterTitle = summary.substring(afterTitle);
+          const nextLineEnd = restAfterTitle.indexOf("\n");
+          const insertPos = afterTitle + (nextLineEnd >= 0 ? nextLineEnd + 1 : 0);
+          const existingAfter = summary.substring(insertPos, insertPos + 100);
+          if (/^\d+\s*(hr|min|hour|minute)/i.test(existingAfter.trim()) || /^🎧/.test(existingAfter.trim())) continue;
+
+          const metaParts: string[] = [];
+          if (ep.durationStr) metaParts.push(ep.durationStr);
+          if (ep.releaseDate) metaParts.push(ep.releaseDate);
+          const metaLine = metaParts.join(" · ");
+          const linkParts: string[] = [];
+          if (ep.appleUrl) linkParts.push(`[Apple Podcasts](${ep.appleUrl})`);
+          if (ep.spotifyUrl) linkParts.push(`[Spotify](${ep.spotifyUrl})`);
+          const linksLine = linkParts.length > 0 ? `🎧 ${linkParts.join(" · ")}` : "";
+
+          const insertLines = [metaLine, linksLine].filter(Boolean).join("\n") + "\n";
+          summary = summary.substring(0, insertPos) + "\n" + insertLines + summary.substring(insertPos);
         }
 
         if (totalDurationMin > 0) {
