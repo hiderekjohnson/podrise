@@ -604,23 +604,25 @@ export default function Dashboard() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
                             data-testid={`card-podcast-${podcast.id}`}
-                            className="flex items-center gap-3.5 p-3 bg-[#f8f9fb] border border-black/[0.04] rounded-xl group"
+                            className="flex items-center gap-3 p-3 bg-[#f8f9fb] border border-black/[0.04] rounded-xl group"
                           >
                             {podcast.artworkUrl ? (
                               <img
                                 src={hiResArtwork(podcast.artworkUrl)}
                                 alt={podcast.name}
-                                className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm"
+                                className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm"
                                 data-testid={`img-podcast-${podcast.id}`}
                               />
                             ) : (
-                              <div className="w-20 h-20 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                                <Podcast className="w-8 h-8 text-primary" />
+                              <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                                <Podcast className="w-7 h-7 text-primary" />
                               </div>
                             )}
-                            <p className="flex-1 min-w-0 font-semibold text-sm text-foreground truncate" data-testid={`text-podcast-name-${podcast.id}`}>
-                              {podcast.name}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground line-clamp-2 leading-snug" data-testid={`text-podcast-name-${podcast.id}`}>
+                                {podcast.name}
+                              </p>
+                            </div>
                             <button
                               data-testid={`button-remove-podcast-${podcast.id}`}
                               onClick={() => handleRemove(podcast.id)}
@@ -666,24 +668,24 @@ export default function Dashboard() {
                         Popular with PodCap Users
                       </h3>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {popularPodcasts.map(podcast => (
                         <button
                           key={podcast.id}
                           data-testid={`button-suggest-popular-${podcast.id}`}
                           onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl })}
-                          className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
+                          className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                         >
                           {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm" />
+                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" />
                           ) : (
-                            <div className="w-20 h-20 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                              <Podcast className="w-8 h-8 text-primary" />
+                            <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                              <Podcast className="w-7 h-7 text-primary" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{podcast.artist}</p>
+                            <p className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">{podcast.name}</p>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
                           </div>
                           <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
                         </button>
@@ -700,24 +702,24 @@ export default function Dashboard() {
                         Recommended for You
                       </h3>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {recommendedPodcasts.map(podcast => (
                         <button
                           key={podcast.id}
                           data-testid={`button-suggest-rec-${podcast.id}`}
                           onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl })}
-                          className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
+                          className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                         >
                           {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm" />
+                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" />
                           ) : (
-                            <div className="w-20 h-20 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                              <Podcast className="w-8 h-8 text-primary" />
+                            <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                              <Podcast className="w-7 h-7 text-primary" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{podcast.genres.slice(0, 2).join(" · ")}</p>
+                            <p className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">{podcast.name}</p>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.genres.slice(0, 2).join(" · ")}</p>
                           </div>
                           <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
                         </button>
