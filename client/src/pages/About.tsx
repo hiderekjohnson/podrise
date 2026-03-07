@@ -140,7 +140,7 @@ export default function About() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
             <Quote className="w-10 h-10 text-primary/10 mb-4" />
             <blockquote className="text-xl sm:text-2xl font-display leading-relaxed text-foreground italic mb-8">
-              "We had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If none of us could keep up, maybe the problem isn't the person. It's the format."
+              "After I stepped back from running my company, I had more free time and started listening to a lot more podcasts. The funny thing is, even with more time, I kept falling hopelessly behind. That's when it hit me. If even someone with time on their hands can't keep up, maybe the problem isn't the person. It's the format."
             </blockquote>
             <div className="flex items-center gap-4">
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
