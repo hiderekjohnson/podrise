@@ -790,6 +790,27 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/regenerate-pending-html", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const held = await storage.getPendingEmails("held");
+      const pending = await storage.getPendingEmails("pending");
+      const allPending = [...held, ...pending];
+      const templateSettings = await storage.getEmailTemplateSettings();
+      let updated = 0;
+      for (const email of allPending) {
+        const newHtml = markdownToEmailHtml(email.summary, email.recipientEmail, templateSettings);
+        await storage.updatePendingEmailHtml(email.id, newHtml);
+        updated++;
+      }
+      res.json({ message: `Regenerated HTML for ${updated} pending emails` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to regenerate" });
+    }
+  });
+
   app.post("/api/admin/generate-landing-recaps", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
