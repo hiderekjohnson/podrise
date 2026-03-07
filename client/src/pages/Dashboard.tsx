@@ -527,16 +527,6 @@ export default function Dashboard() {
             <img src={logoPath} alt="PodCap" className="h-7 object-contain" />
           </a>
           <div className="flex items-center gap-4">
-            {!isPro && (
-              <button
-                data-testid="button-header-upgrade"
-                onClick={() => setActiveTab("plan")}
-                className="hidden sm:flex items-center gap-1.5 h-8 px-3.5 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
-              >
-                <Crown className="w-3.5 h-3.5" />
-                Upgrade
-              </button>
-            )}
             <button
               data-testid="button-logout"
               onClick={handleLogout}
