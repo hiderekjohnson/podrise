@@ -599,12 +599,12 @@ export default function Dashboard() {
                               <img
                                 src={hiResArtwork(podcast.artworkUrl)}
                                 alt={podcast.name}
-                                className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm"
+                                className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm"
                                 data-testid={`img-podcast-${podcast.id}`}
                               />
                             ) : (
-                              <div className="w-14 h-14 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                                <Podcast className="w-6 h-6 text-primary" />
+                              <div className="w-20 h-20 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                                <Podcast className="w-8 h-8 text-primary" />
                               </div>
                             )}
                             <p className="flex-1 min-w-0 font-semibold text-sm text-foreground truncate" data-testid={`text-podcast-name-${podcast.id}`}>
@@ -664,10 +664,10 @@ export default function Dashboard() {
                           className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                         >
                           {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-12 h-12 rounded-lg object-cover shrink-0 shadow-sm" />
+                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm" />
                           ) : (
-                            <div className="w-12 h-12 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                              <Podcast className="w-5 h-5 text-primary" />
+                            <div className="w-20 h-20 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                              <Podcast className="w-8 h-8 text-primary" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
@@ -698,10 +698,10 @@ export default function Dashboard() {
                           className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                         >
                           {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-12 h-12 rounded-lg object-cover shrink-0 shadow-sm" />
+                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm" />
                           ) : (
-                            <div className="w-12 h-12 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                              <Podcast className="w-5 h-5 text-primary" />
+                            <div className="w-20 h-20 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                              <Podcast className="w-8 h-8 text-primary" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
