@@ -854,10 +854,15 @@ export async function registerRoutes(
           } catch {}
         }
 
-        for (const ep of matchedEpisodes.reverse()) {
+        console.log(`[regen] Email ${email.id}: matched ${matchedEpisodes.length} episodes, totalDuration=${totalDurationMin}min`);
+        for (const ep of matchedEpisodes) {
+          console.log(`[regen]   - "${ep.title}" ${ep.durationStr} ${ep.releaseDate}`);
+        }
+
+        for (const ep of [...matchedEpisodes].reverse()) {
           const marker = `**${ep.title}**`;
           const idx = summary.indexOf(marker);
-          if (idx === -1) continue;
+          if (idx === -1) { console.log(`[regen] marker not found for "${ep.title}"`); continue; }
           const insertAfter = idx + marker.length;
           const rest = summary.substring(insertAfter);
           const nlPos = rest.indexOf("\n");
@@ -870,6 +875,7 @@ export async function registerRoutes(
           const linksLine = linkParts.length > 0 ? `🎧 ${linkParts.join(" · ")}` : "";
           const block = "\n" + [metaLine, linksLine].filter(Boolean).join("\n") + "\n";
 
+          console.log(`[regen] Inserting metadata for "${ep.title}" at pos ${insertPos}`);
           summary = summary.substring(0, insertPos) + block + summary.substring(insertPos);
         }
 
