@@ -803,7 +803,13 @@ export async function registerRoutes(
       for (const email of allPending) {
         let summary = email.summary;
 
-        summary = summary.split("\n").filter(l => !/^\*\*.*?\*\*\s*Total duration/i.test(l)).join("\n");
+        const cleanLines = summary.split("\n").filter(l => {
+          if (/^\*\*.*?\*\*\s*Total duration/i.test(l)) return false;
+          if (/^\d+\s*(hr|min|hour|minute).*·.*\d{4}/i.test(l.trim())) return false;
+          if (/^🎧\s*\[/.test(l.trim())) return false;
+          return true;
+        });
+        summary = cleanLines.join("\n");
 
         let totalDurationMin = 0;
         const podcastIds: string[] = [];
@@ -816,7 +822,7 @@ export async function registerRoutes(
           } catch {}
         }
 
-        interface EpInfo { title: string; durationMin: number; durationStr: string; releaseDate: string; appleUrl: string; spotifyUrl: string; podcastName: string; }
+        interface EpInfo { title: string; durationMin: number; durationStr: string; releaseDate: string; appleUrl: string; spotifyUrl: string; }
         const matchedEpisodes: EpInfo[] = [];
 
         for (let pi = 0; pi < podcastIds.length; pi++) {
@@ -831,8 +837,7 @@ export async function registerRoutes(
               if (ep.wrapperType !== "podcastEpisode" || !ep.trackTimeMillis) continue;
               const epTitle = (ep.trackName || "").trim();
               if (!epTitle) continue;
-              const titleInSummary = summary.includes(`**${epTitle}**`);
-              if (titleInSummary) {
+              if (summary.includes(`**${epTitle}**`)) {
                 const durationMin = Math.round(ep.trackTimeMillis / 60000);
                 totalDurationMin += durationMin;
                 const durationStr = durationMin >= 60
@@ -843,34 +848,29 @@ export async function registerRoutes(
                   : "";
                 const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
                 const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(pName + " " + epTitle)}`;
-                matchedEpisodes.push({ title: epTitle, durationMin, durationStr, releaseDate, appleUrl, spotifyUrl, podcastName: pName });
+                matchedEpisodes.push({ title: epTitle, durationMin, durationStr, releaseDate, appleUrl, spotifyUrl });
               }
             }
           } catch {}
         }
 
-        for (const ep of matchedEpisodes) {
-          const titleLine = `**${ep.title}**`;
-          const titleIdx = summary.indexOf(titleLine);
-          if (titleIdx === -1) continue;
-          const afterTitle = titleIdx + titleLine.length;
-          const restAfterTitle = summary.substring(afterTitle);
-          const nextLineEnd = restAfterTitle.indexOf("\n");
-          const insertPos = afterTitle + (nextLineEnd >= 0 ? nextLineEnd + 1 : 0);
-          const existingAfter = summary.substring(insertPos, insertPos + 100);
-          if (/^\d+\s*(hr|min|hour|minute)/i.test(existingAfter.trim()) || /^🎧/.test(existingAfter.trim())) continue;
+        for (const ep of matchedEpisodes.reverse()) {
+          const marker = `**${ep.title}**`;
+          const idx = summary.indexOf(marker);
+          if (idx === -1) continue;
+          const insertAfter = idx + marker.length;
+          const rest = summary.substring(insertAfter);
+          const nlPos = rest.indexOf("\n");
+          const insertPos = insertAfter + (nlPos >= 0 ? nlPos + 1 : 0);
 
-          const metaParts: string[] = [];
-          if (ep.durationStr) metaParts.push(ep.durationStr);
-          if (ep.releaseDate) metaParts.push(ep.releaseDate);
-          const metaLine = metaParts.join(" · ");
+          const metaLine = [ep.durationStr, ep.releaseDate].filter(Boolean).join(" · ");
           const linkParts: string[] = [];
           if (ep.appleUrl) linkParts.push(`[Apple Podcasts](${ep.appleUrl})`);
           if (ep.spotifyUrl) linkParts.push(`[Spotify](${ep.spotifyUrl})`);
           const linksLine = linkParts.length > 0 ? `🎧 ${linkParts.join(" · ")}` : "";
+          const block = "\n" + [metaLine, linksLine].filter(Boolean).join("\n") + "\n";
 
-          const insertLines = [metaLine, linksLine].filter(Boolean).join("\n") + "\n";
-          summary = summary.substring(0, insertPos) + "\n" + insertLines + summary.substring(insertPos);
+          summary = summary.substring(0, insertPos) + block + summary.substring(insertPos);
         }
 
         if (totalDurationMin > 0) {
