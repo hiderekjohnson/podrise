@@ -296,25 +296,34 @@ function buildTldlSummary(episodes: ParsedEpisode[]): string {
     </div>`;
 }
 
-function buildEpisodeCard(episode: ParsedEpisode): string {
+function buildEpisodeCard(episode: ParsedEpisode, recipientEmail: string): string {
   const metaParts = episode.metaLine.split(/\s*·\s*/).map(p => p.trim()).filter(Boolean);
   let guestHtml = "";
   let durationHtml = "";
+  let publishDateHtml = "";
 
-  if (metaParts.length >= 3) {
+  if (metaParts.length >= 3 && !/\d{4}/.test(metaParts[0])) {
     const guestName = metaParts[0];
     const guestTitle = metaParts[1];
-    durationHtml = metaParts[metaParts.length - 1];
+    durationHtml = metaParts.find(p => /\d+\s*(hr|min|hour|minute)/i.test(p)) || metaParts[metaParts.length - 1];
+    publishDateHtml = metaParts.find(p => /\d{4}/.test(p) && /[A-Za-z]/.test(p)) || "";
     guestHtml = `
         <td style="vertical-align:top;padding-left:20px;">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">GUEST</div>
           <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(guestName)}</div>
           <div style="font-size:13px;color:#6b7280;">${escapeHtml(guestTitle)}</div>
         </td>`;
-  } else if (metaParts.length === 2) {
-    durationHtml = metaParts[1];
-  } else {
-    durationHtml = metaParts[0] || "";
+  } else if (metaParts.length >= 2) {
+    durationHtml = metaParts.find(p => /\d+\s*(hr|min|hour|minute)/i.test(p)) || metaParts[0] || "";
+    publishDateHtml = metaParts.find(p => /\d{4}/.test(p) && /[A-Za-z]/.test(p)) || "";
+  } else if (metaParts.length === 1) {
+    if (/\d+\s*(hr|min|hour|minute)/i.test(metaParts[0])) {
+      durationHtml = metaParts[0];
+    } else if (/\d{4}/.test(metaParts[0])) {
+      publishDateHtml = metaParts[0];
+    } else {
+      durationHtml = metaParts[0];
+    }
   }
 
   const insightsHtml = episode.keyInsights
@@ -372,9 +381,17 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
             ${guestHtml}
           </tr>
         </table>
-        ${durationHtml ? `<div style="margin-top:12px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">LENGTH</div>
-          <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(durationHtml)}</div>
+        ${(durationHtml || publishDateHtml) ? `<div style="margin-top:12px;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            ${durationHtml ? `<td style="vertical-align:top;padding-right:24px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">LENGTH</div>
+              <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(durationHtml)}</div>
+            </td>` : ""}
+            ${publishDateHtml ? `<td style="vertical-align:top;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;">PUBLISHED</div>
+              <div style="font-size:15px;font-weight:600;color:#1a1a1a;">${escapeHtml(publishDateHtml)}</div>
+            </td>` : ""}
+          </tr></table>
         </div>` : ""}
         ${renderLinks(episode.linksLine)}
         ${whatHappenedHtml}
@@ -385,6 +402,9 @@ function buildEpisodeCard(episode: ParsedEpisode): string {
           </table>
         </div>` : ""}
         ${quoteHtml}
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #f0f0f0;">
+          <a href="https://podcap.io/dashboard" style="font-size:12px;color:#94a3b8;text-decoration:none;" target="_blank">Manage your podcasts →</a>
+        </div>
       </div>
     </div>`;
 }
@@ -489,7 +509,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, te
   const psLine2 = escapeHtml(replaceMergeTags(t.psLine2, mergeVars));
   const footerText = escapeHtml(replaceMergeTags(t.footerText, mergeVars));
 
-  const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep)).join("");
+  const episodeCardsHtml = parsed.episodes.map(ep => buildEpisodeCard(ep, recipientEmail)).join("");
 
   const showPs = t.showPs === "true";
 

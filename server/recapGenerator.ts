@@ -145,6 +145,8 @@ export async function generateRecap(
   let hasAnyEpisodes = false;
   let totalDurationMin = 0;
   const episodeMetadata: Map<string, { duration: string; date: string; podcastId: string }> = new Map();
+  const episodeLinks: Map<string, string> = new Map();
+  const episodeSpotifyLinks: Map<string, string> = new Map();
   const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
   const stats: EpisodeStats = { included: 0, noNewEpisode: 0, error: 0, details: [] };
 
@@ -187,10 +189,13 @@ export async function generateRecap(
 
           const releaseDate = ep.releaseDate ? new Date(ep.releaseDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "";
           const epTitle = ep.trackName || "Untitled Episode";
-          episodeMetadata.set(`${podcast.name}::${epTitle}`, { duration: durationStr, date: releaseDate, podcastId: podcast.id });
+          const metaKey = `${podcast.name}::${epTitle}`;
+          episodeMetadata.set(metaKey, { duration: durationStr, date: releaseDate, podcastId: podcast.id });
 
           const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
           const spotifySearchUrl = buildSpotifySearchUrl(podcast.name, ep.trackName || "");
+          if (appleUrl) episodeLinks.set(metaKey, appleUrl);
+          if (spotifySearchUrl) episodeSpotifyLinks.set(metaKey, spotifySearchUrl);
 
           const episodeGuid = ep.episodeGuid || `${podcast.id}_${ep.trackId || ep.trackName}`;
           let transcriptText: string | null = null;
@@ -330,6 +335,29 @@ export async function generateRecap(
       lines.push(`## ${(ep.podcastName || "UNKNOWN PODCAST").toUpperCase()}`);
       lines.push("");
       lines.push(`**${ep.episodeTitle || "Untitled Episode"}**`);
+      lines.push("");
+      const metaKey = `${ep.podcastName || ""}::${ep.episodeTitle || ""}`;
+      const metaKeyLower = metaKey.toLowerCase();
+      let meta = episodeMetadata.get(metaKey);
+      if (!meta) {
+        for (const [k, v] of episodeMetadata) {
+          if (k.toLowerCase() === metaKeyLower) { meta = v; break; }
+        }
+      }
+      if (meta) {
+        const metaParts: string[] = [];
+        if (meta.duration) metaParts.push(meta.duration);
+        if (meta.date) metaParts.push(meta.date);
+        if (metaParts.length > 0) lines.push(metaParts.join(" · "));
+      }
+      const epAppleUrl = episodeLinks.get(metaKey) || episodeLinks.get(metaKeyLower) || "";
+      const epSpotifyUrl = episodeSpotifyLinks.get(metaKey) || episodeSpotifyLinks.get(metaKeyLower) || "";
+      if (epAppleUrl || epSpotifyUrl) {
+        const linkParts: string[] = [];
+        if (epAppleUrl) linkParts.push(`[Apple Podcasts](${epAppleUrl})`);
+        if (epSpotifyUrl) linkParts.push(`[Spotify](${epSpotifyUrl})`);
+        lines.push(`🎧 ${linkParts.join(" · ")}`);
+      }
       lines.push("");
       if (ep.tldl) {
         lines.push(`**TLDL:** ${ep.tldl}`);
