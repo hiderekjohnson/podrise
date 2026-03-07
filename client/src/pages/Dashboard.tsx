@@ -10,7 +10,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import ReactMarkdown from "react-markdown";
-import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface SelectedPodcast {
@@ -1150,7 +1149,9 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <Footer />
+      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4">
+        <p className="text-xs text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodCap. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
