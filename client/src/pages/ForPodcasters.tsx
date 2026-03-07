@@ -115,22 +115,9 @@ export default function ForPodcasters() {
             <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-6" data-testid="text-hero-title">
               Your best fans are falling behind. We help them keep up.
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-10" data-testid="text-hero-subtitle">
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto" data-testid="text-hero-subtitle">
               Even your most dedicated listeners miss episodes. PodCap sends them a daily recap so they always know what's happening on your show, and they come back to listen to the episodes that matter most to them.
             </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <a href="mailto:hello@podcap.io" data-testid="button-hero-contact">
-                <Button size="lg" className="rounded-xl font-display font-bold text-base px-8 h-12 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Get in Touch
-                </Button>
-              </a>
-              <Link href="/podcasts" data-testid="button-hero-browse">
-                <Button variant="outline" size="lg" className="rounded-xl font-display font-bold text-base px-8 h-12 hover:-translate-y-0.5 transition-all">
-                  Browse Podcasts
-                </Button>
-              </Link>
-            </div>
           </div>
         </section>
 
