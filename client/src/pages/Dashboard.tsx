@@ -1029,15 +1029,18 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="px-6 pb-6">
-                    {!isPro ? (
-                      <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
-                        Your current plan
-                      </div>
-                    ) : (
-                      <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-medium text-muted-foreground">
-                        &nbsp;
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      {!isPro ? (
+                        <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
+                          Your current plan
+                        </div>
+                      ) : (
+                        <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-medium text-muted-foreground">
+                          &nbsp;
+                        </div>
+                      )}
+                      <p className="text-center text-xs text-muted-foreground invisible">placeholder</p>
+                    </div>
                   </div>
                 </div>
 
