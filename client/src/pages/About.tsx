@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart } from "lucide-react";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import derekPhoto from "@assets/Derek_Johnson_nobg.png";
 
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
@@ -61,7 +62,7 @@ export default function About() {
         >
           <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-4">About PodCap</p>
           <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight leading-[1.15] mb-6" data-testid="text-hero-title">
-            Built for people who love podcasts,<br className="hidden md:block" /> but have lives.
+            We love podcasts. We just don't have<br className="hidden md:block" /> two hours for every episode.
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
             Our team at PodCap came together with a shared love of podcasts and a common problem. We couldn't keep up with all the great episodes. So we built the solution we wished existed.
@@ -134,8 +135,12 @@ export default function About() {
             <blockquote className="relative z-10 text-lg md:text-xl font-display leading-relaxed text-foreground italic pl-6 border-l-4 border-primary/30">
               "We had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If none of us could keep up, maybe the problem isn't the person. It's the format."
             </blockquote>
-            <div className="mt-5 pl-6">
-              <p className="text-sm font-bold text-foreground">The PodCap Team</p>
+            <div className="mt-5 pl-6 flex items-center gap-3">
+              <img src={derekPhoto} alt="Derek Johnson" className="w-10 h-10 rounded-full object-cover object-top bg-muted" />
+              <div>
+                <p className="text-sm font-bold text-foreground">Derek Johnson</p>
+                <p className="text-xs text-muted-foreground">Founder, PodCap</p>
+              </div>
             </div>
           </div>
         </motion.section>
@@ -173,27 +178,6 @@ export default function About() {
               <p className="text-sm font-bold text-foreground mb-1">Decide what's worth it</p>
               <p className="text-xs text-muted-foreground leading-relaxed">Choose which episodes deserve your full attention.</p>
             </div>
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="max-w-3xl mx-auto px-6 pb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          data-testid="section-built-for-us"
-        >
-          <h2 className="text-2xl font-display font-bold mb-3">Built for us. Built for you.</h2>
-          <div className="space-y-4 text-[17px] leading-[1.8] text-muted-foreground">
-            <p>
-              PodCap was built selfishly, in the best possible way. We wanted it for ourselves. We use it ourselves. We pay for it ourselves. We may also be the only team who can honestly say we became our own first paying customers out of necessity.
-            </p>
-            <p>
-              This isn't "we identified a market opportunity." This is "this problem annoyed us enough that we built the solution we wanted." It turns out we're not the only people with more great podcasts than available hours.
-            </p>
-            <p className="text-sm italic text-muted-foreground/80">
-              No productivity guilt required.
-            </p>
           </div>
         </motion.section>
 
