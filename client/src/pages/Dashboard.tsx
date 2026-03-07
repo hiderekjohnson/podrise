@@ -978,122 +978,113 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15 }}
-              className="space-y-6"
             >
-              {isPro ? (
-                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                  <div className="px-6 pt-6 pb-6 space-y-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Crown className="w-5.5 h-5.5 text-primary" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-lg font-display font-bold text-foreground">PodCap Pro</h2>
-                          <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full" data-testid="badge-plan-active">Active</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className={`bg-white border rounded-2xl overflow-hidden flex flex-col ${!isPro ? "border-black/[0.06] ring-2 ring-primary/20" : "border-black/[0.06]"}`}>
+                  <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
+                          <Podcast className="w-4.5 h-4.5 text-muted-foreground" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Unlimited podcast recaps</p>
+                        <h2 className="text-base font-display font-bold text-foreground">Free</h2>
                       </div>
+                      {!isPro && (
+                        <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full" data-testid="badge-current-plan">Current</span>
+                      )}
                     </div>
-
-                    <div className="rounded-xl border border-black/[0.04] divide-y divide-black/[0.04]">
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-sm text-muted-foreground">Monthly fee</span>
-                        <span className="text-sm font-semibold text-foreground">$9.99/month</span>
+                    <div className="mb-5">
+                      <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
+                      <span className="text-sm text-muted-foreground font-medium">/month</span>
+                    </div>
+                    <div className="space-y-3 flex-1">
+                      {["Up to 3 podcasts", "Daily email recaps", "Episode summaries"].map((feature) => (
+                        <div key={feature} className="flex items-center gap-2.5">
+                          <Check className="w-4 h-4 text-green-500 shrink-0" />
+                          <span className="text-sm text-foreground">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="px-6 pb-6">
+                    {!isPro ? (
+                      <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
+                        Your current plan
                       </div>
-                      {subscriptionData?.subscription?.current_period_end && (
-                        <div className="flex items-center justify-between px-4 py-3">
-                          <span className="text-sm text-muted-foreground">Next billing date</span>
-                          <span className="text-sm font-semibold text-foreground">
-                            {new Date(
+                    ) : (
+                      <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-medium text-muted-foreground">
+                        &nbsp;
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className={`border rounded-2xl overflow-hidden flex flex-col ${isPro ? "bg-white border-primary/20 ring-2 ring-primary/20" : "bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] border-primary/10"}`}>
+                  <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Crown className="w-4.5 h-4.5 text-primary" />
+                        </div>
+                        <h2 className="text-base font-display font-bold text-foreground">Pro</h2>
+                      </div>
+                      {isPro && (
+                        <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full" data-testid="badge-plan-active">Active</span>
+                      )}
+                    </div>
+                    <div className="mb-5">
+                      <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
+                      <span className="text-sm text-muted-foreground font-medium">/month</span>
+                    </div>
+                    <div className="space-y-3 flex-1">
+                      {["Unlimited podcasts", "Daily email recaps", "Episode summaries", "Cancel anytime"].map((feature) => (
+                        <div key={feature} className="flex items-center gap-2.5">
+                          <Check className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-sm text-foreground">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="px-6 pb-6">
+                    {isPro ? (
+                      <div className="space-y-3">
+                        {subscriptionData?.subscription?.current_period_end && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            Next billing: {new Date(
                               typeof subscriptionData.subscription.current_period_end === "number"
                                 ? subscriptionData.subscription.current_period_end * 1000
                                 : subscriptionData.subscription.current_period_end
                             ).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-sm text-muted-foreground">Podcasts</span>
-                        <span className="text-sm font-semibold text-foreground">{podcasts.length} selected (unlimited)</span>
+                          </p>
+                        )}
+                        <button
+                          data-testid="button-cancel-subscription"
+                          onClick={() => setShowCancelModal(true)}
+                          className="w-full text-center text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          Cancel subscription
+                        </button>
                       </div>
-                    </div>
-
-                    <button
-                      data-testid="button-cancel-subscription"
-                      onClick={() => setShowCancelModal(true)}
-                      className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
-                    >
-                      Cancel subscription
-                    </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <button
+                          data-testid="button-subscribe"
+                          onClick={handleSubscribe}
+                          disabled={isCheckingOut}
+                          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-[0.99] disabled:opacity-60"
+                        >
+                          {isCheckingOut ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" />Redirecting...</>
+                          ) : (
+                            <><Crown className="w-4 h-4" />Upgrade to Pro</>
+                          )}
+                        </button>
+                        <p className="text-center text-xs text-muted-foreground">Cancel anytime.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ) : (
-                <>
-                  <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                    <div className="px-6 pt-6 pb-6 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-black/[0.04] flex items-center justify-center">
-                          <Podcast className="w-5.5 h-5.5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <h2 className="text-lg font-display font-bold text-foreground">Free Plan</h2>
-                          <p className="text-sm text-muted-foreground">Up to 3 podcasts</p>
-                        </div>
-                      </div>
-                      <div className="rounded-xl border border-black/[0.04] divide-y divide-black/[0.04]">
-                        <div className="flex items-center justify-between px-4 py-3">
-                          <span className="text-sm text-muted-foreground">Podcasts</span>
-                          <span className="text-sm font-semibold text-foreground">{podcasts.length} / 3</span>
-                        </div>
-                        <div className="flex items-center justify-between px-4 py-3">
-                          <span className="text-sm text-muted-foreground">Daily email recaps</span>
-                          <Check className="w-4 h-4 text-green-500" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] border border-primary/10 rounded-2xl overflow-hidden">
-                    <div className="px-6 pt-6 pb-6 space-y-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Crown className="w-5.5 h-5.5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <h2 className="text-lg font-display font-bold text-foreground">Upgrade to Pro</h2>
-                          <p className="text-sm text-muted-foreground">Unlimited podcasts for $9.99/month</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        {["Unlimited podcast recaps", "Daily email with all your shows", "Adjustable reading length", "Cancel anytime"].map((feature) => (
-                          <div key={feature} className="flex items-center gap-2.5">
-                            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <Check className="w-3 h-3 text-primary" />
-                            </div>
-                            <span className="text-sm text-foreground">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <button
-                        data-testid="button-subscribe"
-                        onClick={handleSubscribe}
-                        disabled={isCheckingOut}
-                        className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-[0.99] disabled:opacity-60"
-                      >
-                        {isCheckingOut ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" />Redirecting...</>
-                        ) : (
-                          <><Crown className="w-4 h-4" />Upgrade to Pro — $9.99/month</>
-                        )}
-                      </button>
-                      <p className="text-center text-xs text-muted-foreground">Cancel anytime. No questions asked.</p>
-                    </div>
-                  </div>
-                </>
-              )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
