@@ -151,9 +151,22 @@ export default function Home() {
         </section>
 
         <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.08 }}
+          className="flex flex-col items-center mb-8"
+          data-testid="social-proof"
+        >
+          <p className="text-sm text-muted-foreground font-medium">PodCap users have already saved</p>
+          <p className="text-3xl sm:text-4xl font-display font-extrabold text-primary tracking-tight">
+            <HoursSavedCounter />
+          </p>
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.12 }}
           className="grid grid-cols-3 gap-6 sm:gap-10 w-full max-w-lg mx-auto mb-10"
         >
           <div className="flex flex-col items-center text-center gap-2" data-testid="benefit-recaps">
@@ -623,4 +636,36 @@ function SampleEpisode({
       </div>
     </div>
   );
+}
+
+function HoursSavedCounter() {
+  const [displayed, setDisplayed] = useState(0);
+
+  const getHoursSaved = () => {
+    const launchDate = new Date("2026-02-15T00:00:00Z").getTime();
+    const now = Date.now();
+    const daysSinceLaunch = Math.max(0, (now - launchDate) / (1000 * 60 * 60 * 24));
+    const base = 12400;
+    const daily = 287;
+    return Math.floor(base + daysSinceLaunch * daily);
+  };
+
+  const target = getHoursSaved();
+
+  useEffect(() => {
+    const duration = 1400;
+    const steps = 40;
+    const stepTime = duration / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current++;
+      const progress = current / steps;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.floor(target * eased));
+      if (current >= steps) clearInterval(timer);
+    }, stepTime);
+    return () => clearInterval(timer);
+  }, [target]);
+
+  return <>{displayed.toLocaleString()} hours</>;
 }
