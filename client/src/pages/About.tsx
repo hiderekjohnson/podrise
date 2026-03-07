@@ -266,6 +266,10 @@ export default function About() {
                 <p>
                   That's what PodCap does. It gives you a summary before you spend 60 minutes listening, only to find out the episode isn't a great fit for you right now. Instead, you can focus your time on the episodes that are. Skip the noise, keep the signal.
                 </p>
+
+                <p>
+                  We're also committed to supporting the creators who make these shows. <a href="/for-podcasters" className="text-primary font-medium hover:underline">Find out how we support podcasters</a>.
+                </p>
                 <p className="text-foreground font-semibold text-lg">
                   Long live podcasts. :)
                 </p>
