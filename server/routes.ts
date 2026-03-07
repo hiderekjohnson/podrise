@@ -829,7 +829,7 @@ export async function registerRoutes(
           const pid = podcastIds[pi];
           const pName = podcastNames[pi] || "";
           try {
-            const lookupUrl = `https://itunes.apple.com/lookup?id=${pid}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
+            const lookupUrl = `https://itunes.apple.com/lookup?id=${pid}&media=podcast&entity=podcastEpisode&limit=25&sort=recent`;
             const lookupRes = await fetch(lookupUrl);
             const lookupJson = await lookupRes.json() as any;
             const results = lookupJson.results || [];
@@ -837,10 +837,7 @@ export async function registerRoutes(
               if (ep.wrapperType !== "podcastEpisode" || !ep.trackTimeMillis) continue;
               const epTitle = (ep.trackName || "").trim();
               if (!epTitle) continue;
-              const searchStr = `**${epTitle}**`;
-              const found = summary.includes(searchStr);
-              console.log(`[regen] iTunes ep: "${epTitle}" | search="${searchStr}" | found=${found}`);
-              if (found) {
+              if (summary.includes(`**${epTitle}**`)) {
                 const durationMin = Math.round(ep.trackTimeMillis / 60000);
                 totalDurationMin += durationMin;
                 const durationStr = durationMin >= 60
@@ -857,15 +854,10 @@ export async function registerRoutes(
           } catch {}
         }
 
-        console.log(`[regen] Email ${email.id}: matched ${matchedEpisodes.length} episodes, totalDuration=${totalDurationMin}min`);
-        for (const ep of matchedEpisodes) {
-          console.log(`[regen]   - "${ep.title}" ${ep.durationStr} ${ep.releaseDate}`);
-        }
-
         for (const ep of [...matchedEpisodes].reverse()) {
           const marker = `**${ep.title}**`;
           const idx = summary.indexOf(marker);
-          if (idx === -1) { console.log(`[regen] marker not found for "${ep.title}"`); continue; }
+          if (idx === -1) continue;
           const insertAfter = idx + marker.length;
           const rest = summary.substring(insertAfter);
           const nlPos = rest.indexOf("\n");
@@ -878,7 +870,6 @@ export async function registerRoutes(
           const linksLine = linkParts.length > 0 ? `🎧 ${linkParts.join(" · ")}` : "";
           const block = "\n" + [metaLine, linksLine].filter(Boolean).join("\n") + "\n";
 
-          console.log(`[regen] Inserting metadata for "${ep.title}" at pos ${insertPos}`);
           summary = summary.substring(0, insertPos) + block + summary.substring(insertPos);
         }
 
