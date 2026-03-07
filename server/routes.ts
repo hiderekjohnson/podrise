@@ -362,6 +362,19 @@ export async function registerRoutes(
     });
   });
 
+  if (process.env.NODE_ENV === "development") {
+    app.get("/api/auth/dev-login", async (req, res) => {
+      const email = req.query.email as string;
+      if (!email) return res.status(400).json({ message: "Email required" });
+      const user = await storage.getUserByEmail(email);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      req.session.userId = user.id;
+      req.session.save(() => {
+        res.redirect("/dashboard");
+      });
+    });
+  }
+
   app.post(api.auth.logout.path, (req, res) => {
     req.session.destroy(() => {
       res.json({ message: "Logged out" });
