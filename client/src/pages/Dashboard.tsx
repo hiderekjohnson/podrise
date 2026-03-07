@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -526,6 +526,14 @@ export default function Dashboard() {
             <img src={logoPath} alt="PodCap" className="h-7 object-contain" />
           </a>
           <div className="flex items-center gap-4">
+            <a
+              href="/help"
+              data-testid="link-help"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Help</span>
+            </a>
             <button
               data-testid="button-logout"
               onClick={handleLogout}
@@ -1149,10 +1157,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4 flex items-center justify-center gap-3">
-        <p className="text-xs text-muted-foreground/50">© {new Date().getFullYear()} PodCap</p>
-        <span className="text-xs text-muted-foreground/30">·</span>
-        <a href="/help" className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors" data-testid="link-help">Help & Support</a>
+      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4">
+        <p className="text-xs text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodCap. All rights reserved.</p>
       </footer>
     </div>
   );
