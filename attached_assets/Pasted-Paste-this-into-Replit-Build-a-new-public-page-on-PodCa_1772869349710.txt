@@ -1,0 +1,128 @@
+Paste this into Replit:
+
+Build a new public page on PodCap at:
+
+URL: /for-podcasters
+
+This page is meant for podcast creators. The goal is to make a strong, respectful case that PodCap helps podcasts grow by improving discovery, qualifying listeners, and giving fans another way to stay connected to shows they love.
+
+This should not feel defensive. It should feel warm, thoughtful, and strategically persuasive. We want podcasters to land on this page and think: “These people actually respect creators, and this could help my show.”
+
+Keep the design consistent with the PodCap homepage and overall visual system. Clean, modern, easy to scan, high trust. Use your judgment on layout and presentation.
+
+SEO
+
+Use these defaults unless you think there is a clearly better implementation:
+	•	URL: /for-podcasters
+	•	SEO title: For Podcasters, How PodCap Helps Grow Podcast Discovery and Listeners
+	•	Meta description: PodCap helps listeners discover podcast episodes faster with short episode recaps and summaries. Learn how PodCap can improve podcast discovery, attract more qualified listeners, and help fans stay connected to your show.
+
+Also add this page to the footer as:
+
+For Podcasters
+
+Core tone
+
+This page should sound like real fans of podcasts. Not a corporate FAQ. Not legal copy. Not a blog post. Not “we’re sorry.” We genuinely admire podcasters and want that to come through.
+
+At the very top, include a line like:
+
+WE ❤️ PODCASTERS
+
+Near the top, include a short section that says, in substance:
+
+Running a great podcast is incredibly hard. Showing up consistently, preparing, researching, interviewing, editing, publishing, and keeping an audience engaged takes real skill and discipline. We genuinely admire podcasters. If we had the talent to run a great podcast ourselves, we’d probably be doing that instead of building another web tool.
+
+Then transition into why PodCap exists:
+
+The issue is not that podcasts are bad. The issue is that there are too many great episodes and not enough time in the day. Even people who love podcasts fall behind. PodCap exists to help listeners quickly understand what an episode is about so they can decide what is worth their time.
+
+Main message to communicate
+
+PodCap is not replacing podcasts. It helps people discover which episodes they want to listen to.
+
+The page should make the argument that:
+	•	Many potential listeners never start long episodes because they are unsure whether the episode is worth the time
+	•	A recap reduces that friction
+	•	When someone reads a recap and realizes an episode is for them, that can lead to a more qualified listen
+	•	More qualified listeners may lead to better engagement and completion behavior
+	•	Summary pages also create more search entry points for podcasts and individual episodes
+	•	Superfans still listen, and many casual fans may listen more often when they know what an episode covers
+
+You do not need to use those exact words, but that logic should be clear.
+
+Suggested page structure
+
+Use your judgment, but the page should roughly cover these ideas:
+	1.	Hero section
+	•	“WE ❤️ PODCASTERS”
+	•	Strong headline
+	•	Short supporting copy
+	•	The page should immediately feel respectful and creator-friendly
+	2.	Why PodCap exists
+	•	Time is the bottleneck
+	•	Even big podcast fans cannot keep up
+	•	PodCap helps people quickly decide what to listen to
+	3.	How PodCap can help podcasts
+	•	Discovery
+	•	Qualified listens
+	•	Engagement/completion logic
+	•	Search visibility / SEO value
+	•	This should be persuasive but grounded, not overly absolute
+	4.	We want PodCap to help podcasters
+	•	Explicitly say that if there is anything we can build to make life easier for podcasters, drive more listens, improve discoverability, or better support creators, we want to hear it
+	•	Include a clear contact / feedback CTA
+	•	This should feel collaborative
+	5.	Custom Pages for Top Podcasts
+	•	Explain that for many major podcasts we have created dedicated PodCap pages
+	•	These pages serve two purposes:
+	•	they give a show’s fans a place to sign up for recaps
+	•	they create searchable hubs where people can discover episode summaries and learn about the show
+	•	Show real podcast cards here, using examples from our existing podcast pages
+	•	Each card should include:
+	•	artwork
+	•	podcast name
+	•	short one-line description
+	•	button like “View Podcast Page”
+	•	Use real internal links, for example:
+	•	/podcasts/myfirstmillion
+	•	/podcasts/founders
+	•	/podcasts/all-in
+	•	and any other strong examples we already have
+	•	Keep this visually consistent with how podcasts are shown elsewhere on the site
+	6.	Close / collaboration CTA
+	•	Invite podcasters to claim their page, suggest ideas, or reach out if they want PodCap to better support creators
+	•	The ending should feel open, friendly, and partnership-oriented
+
+Important content guidance
+	•	Do not make extreme claims like “PodCap increases listens” as a hard fact unless we are clearly framing it as a belief or likely benefit
+	•	Keep the language credible and calm
+	•	Avoid sounding combative or like we are arguing with podcasters
+	•	Avoid sounding apologetic
+	•	Keep the copy simple, smart, and easy to skim
+	•	This page should work for both human trust and SEO
+
+SEO intent for the page
+
+Please naturally optimize the page around themes like:
+	•	for podcasters
+	•	podcast discovery
+	•	podcast summaries
+	•	episode summaries
+	•	podcast listeners
+	•	podcast growth
+	•	help fans discover podcast episodes
+
+Do this naturally, not with keyword stuffing.
+
+Design direction
+
+Match the homepage quality. Good spacing, clean sections, strong visual hierarchy, easy scanning. Feel free to use callouts, cards, small diagrams, or simple visual logic if it helps make the argument clearer. Let the design breathe.
+
+Main outcome
+
+When a podcaster visits this page, they should feel respected and think:
+
+“PodCap is built by people who love podcasts, and this may actually help more people discover my show.”
+
+If needed, you can write the copy from scratch in the brand voice, as long as it follows the above strategy.

@@ -18,6 +18,7 @@ import Support from "./pages/Support";
 import FeatureRequests from "./pages/FeatureRequests";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import ForPodcasters from "./pages/ForPodcasters";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/updates" component={FeatureRequests} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
+      <Route path="/for-podcasters" component={ForPodcasters} />
       <Route component={NotFound} />
     </Switch>
   );
