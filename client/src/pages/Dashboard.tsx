@@ -61,6 +61,17 @@ function hiResArtwork(url: string) {
   return url.replace(/\/\d+x\d+bb\./, "/200x200bb.");
 }
 
+function fixMarkdownLinks(md: string): string {
+  return md.replace(/\[([^\]]+)\]\(([^)]*\([^)]*\)[^)]*)\)/g, (match, text, url) => {
+    const fixedUrl = url.replace(/\(/g, "%28").replace(/\)/g, "%29");
+    return `[${text}](${fixedUrl})`;
+  }).replace(/\[Spotify\]\(([^)]*)\)(\S+)/g, (match, url, trailing) => {
+    const fullUrl = url + trailing.replace(/\)$/, "");
+    const cleanUrl = fullUrl.replace(/\(/g, "%28").replace(/\)/g, "%29");
+    return `[Spotify](${cleanUrl})`;
+  });
+}
+
 const TABS: { key: TabKey; label: string; icon: typeof Podcast }[] = [
   { key: "podcasts", label: "Podcasts", icon: Podcast },
   { key: "recaps", label: "Recaps", icon: FileText },
@@ -1141,8 +1152,14 @@ export default function Dashboard() {
                     </span>
                   ))}
                 </div>
-                <div className="prose prose-sm max-w-none text-foreground" data-testid="text-recap-summary">
-                  <ReactMarkdown>{viewingRecap.summary}</ReactMarkdown>
+                <div className="prose prose-sm max-w-none text-foreground break-words" style={{ overflowWrap: "anywhere" }} data-testid="text-recap-summary">
+                  <ReactMarkdown
+                    components={{
+                      a: ({ href, children, ...props }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" {...props}>{children}</a>
+                      ),
+                    }}
+                  >{fixMarkdownLinks(viewingRecap.summary)}</ReactMarkdown>
                 </div>
               </div>
             </motion.div>
