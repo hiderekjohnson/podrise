@@ -13,21 +13,21 @@ const fadeUp = {
 
 export default function About() {
   useEffect(() => {
-    document.title = "About PodCap — The Story Behind Your Daily Podcast Summaries";
+    document.title = "About PodCap - The Story Behind Your Daily Podcast Summaries";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "The team at PodCap came together with a shared love of podcasts and a common problem — we couldn't keep up. So we built an AI-powered daily podcast summary service.");
-    setMeta("property", "og:title", "About PodCap — The Story Behind Your Daily Podcast Summaries");
-    setMeta("property", "og:description", "The team at PodCap came together with a shared love of podcasts and a common problem — we couldn't keep up. Learn the story behind the daily podcast recap service.");
+    setMeta("name", "description", "The team at PodCap came together with a shared love of podcasts and a common problem: we couldn't keep up. So we built an AI-powered daily podcast summary service.");
+    setMeta("property", "og:title", "About PodCap - The Story Behind Your Daily Podcast Summaries");
+    setMeta("property", "og:description", "The team at PodCap came together with a shared love of podcasts and a common problem: we couldn't keep up. Learn the story behind the daily podcast recap service.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
-    setMeta("name", "twitter:title", "About PodCap — The Story Behind Your Daily Podcast Summaries");
-    setMeta("name", "twitter:description", "The team at PodCap came together with a shared love of podcasts and a common problem — we couldn't keep up. Learn the story behind the daily podcast recap service.");
+    setMeta("name", "twitter:title", "About PodCap - The Story Behind Your Daily Podcast Summaries");
+    setMeta("name", "twitter:description", "The team at PodCap came together with a shared love of podcasts and a common problem: we couldn't keep up. Learn the story behind the daily podcast recap service.");
     setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -64,7 +64,7 @@ export default function About() {
             Built for people who love podcasts,<br className="hidden md:block" /> but have lives.
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
-            Our team at PodCap came together with a shared love of podcasts — and a common problem. We couldn't keep up with all the great episodes. So we built the solution we wished existed.
+            Our team at PodCap came together with a shared love of podcasts and a common problem. We couldn't keep up with all the great episodes. So we built the solution we wished existed.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a
@@ -108,7 +108,7 @@ export default function About() {
           <h2 className="text-2xl font-display font-bold mb-6">The origin story</h2>
           <div className="space-y-4 text-[17px] leading-[1.8] text-muted-foreground">
             <p>
-              We all had the same problem. Every week brought more episodes from shows we loved — great interviews, smart conversations, business breakdowns, tech debates. And every week, the backlog grew a little longer.
+              We all had the same problem. Every week brought more episodes from shows we loved. Great interviews, smart conversations, business breakdowns, tech debates. And every week, the backlog grew a little longer.
             </p>
             <p className="text-foreground font-medium">
               There was just one issue.
@@ -132,7 +132,7 @@ export default function About() {
           <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 md:p-10">
             <Quote className="w-8 h-8 text-primary/20 absolute top-6 left-6" />
             <blockquote className="relative z-10 text-lg md:text-xl font-display leading-relaxed text-foreground italic pl-6 border-l-4 border-primary/30">
-              "We had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If none of us could keep up, maybe the problem isn't the person — it's the format."
+              "We had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If none of us could keep up, maybe the problem isn't the person. It's the format."
             </blockquote>
             <div className="mt-5 pl-6">
               <p className="text-sm font-bold text-foreground">The PodCap Team</p>
@@ -260,7 +260,7 @@ export default function About() {
           <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8">
             <h2 className="text-xl font-display font-bold mb-3">Constantly improving</h2>
             <p className="text-[15px] leading-[1.8] text-muted-foreground mb-5">
-              We're constantly improving PodCap — adding features, refining summaries, and making it easier to keep up with the podcasts you care about. This isn't a "set it and forget it" project. It's an active product with real momentum.
+              We're constantly improving PodCap. Adding features, refining summaries, and making it easier to keep up with the podcasts you care about. This isn't a "set it and forget it" project. It's an active product with real momentum.
             </p>
             <Link
               href="/updates"
