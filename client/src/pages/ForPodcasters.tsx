@@ -163,8 +163,8 @@ export default function ForPodcasters() {
         <section className="relative overflow-hidden pt-20 pb-20 sm:pt-28 sm:pb-24" data-testid="section-hero">
           <div className="absolute inset-0 bg-gradient-to-b from-red-50/30 via-background to-background" />
           <div className="relative max-w-2xl mx-auto px-6 text-center">
-            <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-red-50 text-red-500 text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-love">
-              WE <Heart className="w-5 h-5 fill-red-500" /> PODCASTERS
+            <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-love">
+              WE <Heart className="w-5 h-5 fill-current" /> PODCASTERS
             </div>
             <h1 className="text-[1.75rem] sm:text-[2.1rem] md:text-[2.5rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5" data-testid="text-hero-title">
               Your best fans are falling behind.{" "}
