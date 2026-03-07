@@ -1,6 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Heart, Search, TrendingUp, Headphones, ArrowRight, Mail, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap } from "lucide-react";
+import { Heart, Search, TrendingUp, Headphones, ArrowRight, Mail, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
@@ -13,6 +16,113 @@ const FEATURED_PODCASTS = [
   { slug: "hubermanlab", name: "Huberman Lab", description: "Neuroscience-based tools for health, performance, and focus", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/aa/f1/51/aaf151f6-8661-833a-c9d3-7c4ce22f8868/mza_253061105143942369.jpg/600x600bb.jpg" },
   { slug: "howibuiltthis", name: "How I Built This", description: "The stories behind the world's best-known companies", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/64/45/06/644506b5-c44f-f661-f74e-f63a4b2511bc/mza_14892199991035639268.jpeg/600x600bb.jpg" },
 ];
+
+function ContactSection() {
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/support", { email, message });
+    },
+    onSuccess: () => {
+      toast({ title: "Message sent", description: "We'll get back to you as soon as possible." });
+      setEmail("");
+      setMessage("");
+      setSent(true);
+    },
+    onError: () => {
+      toast({ title: "Something went wrong", description: "Please try again or email us directly at hello@podcap.io.", variant: "destructive" });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !message.trim()) return;
+    submitMutation.mutate();
+  };
+
+  return (
+    <section className="py-16 sm:py-20 bg-muted/30 border-t border-black/[0.04]" data-testid="section-contact">
+      <div className="max-w-2xl mx-auto px-6">
+        <div className="text-center mb-8">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
+            <Headphones className="w-5 h-5 text-emerald-600" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-display font-bold mb-3" data-testid="text-contact-title">
+            Let's work together
+          </h2>
+          <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Want to claim your podcast's page, suggest a feature, or explore how PodCap can help your show? We'd love to hear from you.
+          </p>
+        </div>
+
+        {sent ? (
+          <div className="bg-white border border-black/[0.06] rounded-2xl p-8 text-center" data-testid="contact-success">
+            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
+            <h3 className="text-lg font-display font-bold mb-2">Message sent</h3>
+            <p className="text-[15px] text-muted-foreground">We'll get back to you as soon as possible.</p>
+            <button
+              onClick={() => setSent(false)}
+              className="mt-4 text-[13px] text-primary font-display font-bold hover:underline"
+              data-testid="button-send-another"
+            >
+              Send another message
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-white border border-black/[0.06] rounded-2xl p-6 sm:p-8 space-y-4" data-testid="form-contact">
+            <div>
+              <label htmlFor="podcaster-email" className="block text-[13px] font-display font-semibold mb-1.5">
+                Your email
+              </label>
+              <input
+                id="podcaster-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@yourpodcast.com"
+                className="w-full h-10 px-3.5 rounded-xl border border-black/[0.08] bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                data-testid="input-email"
+              />
+            </div>
+            <div>
+              <label htmlFor="podcaster-message" className="block text-[13px] font-display font-semibold mb-1.5">
+                Your message
+              </label>
+              <textarea
+                id="podcaster-message"
+                required
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Tell us about your podcast, or what you'd like us to build..."
+                rows={4}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+                data-testid="input-message"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={submitMutation.isPending || !email.trim() || !message.trim()}
+              className="w-full rounded-xl font-display font-bold text-[14px] h-10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+              data-testid="button-submit"
+            >
+              {submitMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-3.5 h-3.5 mr-2" />
+              )}
+              {submitMutation.isPending ? "Sending..." : "Send Message"}
+            </Button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function ForPodcasters() {
   useEffect(() => {
@@ -286,55 +396,8 @@ export default function ForPodcasters() {
           </div>
         </section>
 
-        {/* ── Collaboration ── */}
-        <section className="py-16 sm:py-20 bg-muted/30 border-y border-black/[0.04]" data-testid="section-collaboration">
-          <div className="max-w-2xl mx-auto px-6 text-center">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
-              <Headphones className="w-5 h-5 text-emerald-600" />
-            </div>
-            <h2 className="text-xl sm:text-2xl font-display font-bold mb-5" data-testid="text-collaboration-title">
-              We want to build this with you
-            </h2>
-            <div className="text-[15px] sm:text-[16px] leading-[1.8] text-muted-foreground space-y-4 max-w-xl mx-auto">
-              <p>
-                If there's anything we can build to help you keep your fans engaged, drive more listens, or improve discoverability, we want to hear about it. Your feedback directly shapes what we build next.
-              </p>
-              <p>
-                Whether you want to claim your podcast's page, suggest a feature, or just tell us what would make PodCap more useful for your show, reach out.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Final CTA ── */}
-        <section className="py-16 sm:py-20" data-testid="section-cta">
-          <div className="max-w-xl mx-auto px-6">
-            <div className="relative bg-gradient-to-br from-primary/[0.03] to-primary/[0.06] border border-primary/[0.06] rounded-2xl p-8 sm:p-10 text-center overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.05),transparent_60%)]" />
-              <div className="relative">
-                <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-cta-title">
-                  Let's keep your fans listening
-                </h2>
-                <p className="text-[15px] text-muted-foreground mb-6 max-w-sm mx-auto leading-relaxed">
-                  We're podcast fans first and builders second. If you run a podcast and want to explore how PodCap can help, we'd love to talk.
-                </p>
-                <div className="flex items-center justify-center gap-3 flex-wrap">
-                  <a href="mailto:hello@podcap.io" data-testid="button-cta-email">
-                    <Button size="sm" className="rounded-xl font-display font-bold text-[13px] h-9 px-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                      <Mail className="w-3.5 h-3.5 mr-1.5" />
-                      hello@podcap.io
-                    </Button>
-                  </a>
-                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" data-testid="button-cta-x">
-                    <Button variant="outline" size="sm" className="rounded-xl font-display font-bold text-[13px] h-9 px-5 hover:-translate-y-0.5 transition-all">
-                      Message Us on X
-                    </Button>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ── Contact Form ── */}
+        <ContactSection />
 
       </main>
 
