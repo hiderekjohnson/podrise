@@ -1387,6 +1387,65 @@ ${formatInstructions}`;
     res.json({ message: "Recap prompt saved" });
   });
 
+  app.get("/api/admin/podcast-directory", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const entries = await storage.getPodcastDirectory();
+    res.json(entries);
+  });
+
+  app.post("/api/admin/podcast-directory", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { itunesId, name, twitterHandle, hostHandle, followers } = req.body;
+      const trimmedId = typeof itunesId === "string" ? itunesId.trim() : "";
+      const trimmedName = typeof name === "string" ? name.trim() : "";
+      if (!trimmedId || !trimmedName) {
+        return res.status(400).json({ message: "itunesId and name are required" });
+      }
+      if (!/^\d+$/.test(trimmedId)) {
+        return res.status(400).json({ message: "itunesId must be a numeric string" });
+      }
+      let parsedFollowers: number | null = null;
+      if (followers !== undefined && followers !== null && followers !== "") {
+        const num = Number(followers);
+        if (!Number.isInteger(num) || num < 0) {
+          return res.status(400).json({ message: "followers must be a non-negative integer" });
+        }
+        parsedFollowers = num;
+      }
+      const entry = await storage.upsertPodcastDirectoryEntry({
+        itunesId: trimmedId,
+        name: trimmedName,
+        twitterHandle: typeof twitterHandle === "string" && twitterHandle.trim() ? twitterHandle.trim() : null,
+        hostHandle: typeof hostHandle === "string" && hostHandle.trim() ? hostHandle.trim() : null,
+        followers: parsedFollowers,
+      });
+      res.json(entry);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to save podcast directory entry" });
+    }
+  });
+
+  app.delete("/api/admin/podcast-directory/:id", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid id" });
+      }
+      await storage.deletePodcastDirectoryEntry(id);
+      res.json({ message: "Deleted" });
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to delete entry" });
+    }
+  });
+
   app.get("/api/auth/impersonation-status", (req, res) => {
     if (req.session.isAdmin && req.session.impersonatingUserId) {
       res.json({ impersonating: true, userId: req.session.impersonatingUserId });

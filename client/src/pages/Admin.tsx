@@ -6,6 +6,7 @@ const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
 const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
 const TranscriptLogs = lazy(() => import("./TranscriptLogs"));
 const PendingEmails = lazy(() => import("./PendingEmails"));
+const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -58,7 +59,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending">("pending");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory">("pending");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
@@ -298,8 +299,20 @@ export default function Admin() {
                   <FileText className="w-4 h-4" />
                   Transcripts
                 </button>
+                <button
+                  data-testid="tab-directory"
+                  onClick={() => { setActiveTab("directory"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === "directory"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <Podcast className="w-4 h-4" />
+                  Podcasts
+                </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && (
+              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -759,6 +772,16 @@ export default function Admin() {
                 </div>
               }>
                 <PendingEmails />
+              </Suspense>
+            )}
+
+            {activeTab === "directory" && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              }>
+                <PodcastDirectory />
               </Suspense>
             )}
           </motion.div>

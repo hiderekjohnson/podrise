@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
@@ -44,6 +44,10 @@ export interface IStorage {
   upsertExampleRecap(data: InsertPodcastExampleRecap): Promise<PodcastExampleRecap>;
   getAllExampleRecaps(): Promise<PodcastExampleRecap[]>;
   getRecentTranscripts(limit?: number): Promise<EpisodeTranscript[]>;
+  getPodcastDirectory(): Promise<PodcastDirectoryEntry[]>;
+  getPodcastDirectoryEntry(itunesId: string): Promise<PodcastDirectoryEntry | undefined>;
+  upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry>;
+  deletePodcastDirectoryEntry(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -403,6 +407,37 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentTranscripts(limit: number = 50): Promise<EpisodeTranscript[]> {
     return db.select().from(episodeTranscripts).orderBy(desc(episodeTranscripts.fetchedAt)).limit(limit);
+  }
+
+  async getPodcastDirectory(): Promise<PodcastDirectoryEntry[]> {
+    return db.select().from(podcastDirectory).orderBy(podcastDirectory.name);
+  }
+
+  async getPodcastDirectoryEntry(itunesId: string): Promise<PodcastDirectoryEntry | undefined> {
+    const [entry] = await db.select().from(podcastDirectory).where(eq(podcastDirectory.itunesId, itunesId));
+    return entry;
+  }
+
+  async upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry> {
+    const [entry] = await db
+      .insert(podcastDirectory)
+      .values(data)
+      .onConflictDoUpdate({
+        target: podcastDirectory.itunesId,
+        set: {
+          name: data.name,
+          twitterHandle: data.twitterHandle,
+          hostHandle: data.hostHandle,
+          followers: data.followers,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return entry;
+  }
+
+  async deletePodcastDirectoryEntry(id: number): Promise<void> {
+    await db.delete(podcastDirectory).where(eq(podcastDirectory.id, id));
   }
 }
 
