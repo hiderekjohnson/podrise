@@ -742,7 +742,9 @@ export async function registerRoutes(
     if (!pending) {
       return res.status(404).json({ message: "Pending email not found" });
     }
-    res.json({ html: pending.emailHtml });
+    const templateSettings = await storage.getEmailTemplateSettings();
+    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, templateSettings);
+    res.json({ html: freshHtml });
   });
 
   app.post("/api/admin/pending-emails/:id/cancel", async (req, res) => {
@@ -780,9 +782,11 @@ export async function registerRoutes(
     }
 
     try {
+      const templateSettings = await storage.getEmailTemplateSettings();
+      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, templateSettings);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
-      const htmlWithTracking = pending.emailHtml.replace("</body>", `${trackingPixel}</body>`);
+      const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
@@ -797,13 +801,14 @@ export async function registerRoutes(
         return res.status(500).json({ message: `Send failed: ${sendResult.error.message}` });
       }
 
+      await storage.updatePendingEmailHtml(id, freshHtml);
       await storage.updatePendingEmailStatus(id, "sent");
       await storage.logEmail({
         userId: pending.userId,
         recipientEmail: pending.recipientEmail,
         podcasts: pending.podcasts,
         source: "manual",
-        emailHtml: pending.emailHtml,
+        emailHtml: freshHtml,
       });
 
       res.json({ message: "Email sent successfully" });

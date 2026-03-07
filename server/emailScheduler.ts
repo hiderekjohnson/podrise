@@ -316,11 +316,14 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
     throw new Error("Email has no episode content");
   }
 
+  const templateSettings = await storage.getEmailTemplateSettings();
+  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, templateSettings);
+
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
     : "https://podcap.io";
   const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
-  const htmlWithTracking = pending.emailHtml.replace("</body>", `${trackingPixel}</body>`);
+  const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
 
   const { client, fromEmail } = await getUncachableResendClient();
   const sendResult = await client.emails.send({
@@ -336,6 +339,7 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   }
 
   console.log(`[EmailScheduler] Held email ${pending.id} sent to ${pending.recipientEmail}, id: ${sendResult.data?.id}`);
+  await storage.updatePendingEmailHtml(pending.id, freshHtml);
   await storage.updatePendingEmailStatus(pending.id, "sent");
 
   await storage.logEmail({
@@ -343,7 +347,7 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
     recipientEmail: pending.recipientEmail,
     podcasts: pending.podcasts,
     source: pending.source || "scheduled",
-    emailHtml: pending.emailHtml,
+    emailHtml: freshHtml,
   });
 }
 
