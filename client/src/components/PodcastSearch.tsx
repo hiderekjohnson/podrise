@@ -73,6 +73,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
       id: podcast.id,
       name: podcast.name,
       artworkUrl: podcast.artworkUrl,
+      artist: podcast.artistName,
     });
     setSearchQuery("");
     setResults([]);

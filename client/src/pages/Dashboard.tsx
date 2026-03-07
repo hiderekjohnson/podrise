@@ -16,6 +16,7 @@ interface SelectedPodcast {
   id: string;
   name: string;
   artworkUrl: string;
+  artist?: string;
 }
 
 interface RecapData {
@@ -303,7 +304,7 @@ export default function Dashboard() {
     });
   };
 
-  const handleSuggestionAdd = (podcast: { id: string; name: string; artworkUrl: string }) => {
+  const handleSuggestionAdd = (podcast: { id: string; name: string; artworkUrl: string; artist?: string }) => {
     if (!isPro && podcasts.length >= 3) {
       setShowUpgradeModal(true);
       return;
@@ -619,6 +620,9 @@ export default function Dashboard() {
                               <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2" data-testid={`text-podcast-name-${podcast.id}`}>
                                 {podcast.name}
                               </p>
+                              {podcast.artist && (
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
+                              )}
                             </div>
                             <button
                               data-testid={`button-remove-podcast-${podcast.id}`}
@@ -670,7 +674,7 @@ export default function Dashboard() {
                         <button
                           key={podcast.id}
                           data-testid={`button-suggest-popular-${podcast.id}`}
-                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl })}
+                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl, artist: podcast.artist })}
                           className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                         >
                           {podcast.artworkUrl ? (
@@ -704,7 +708,7 @@ export default function Dashboard() {
                         <button
                           key={podcast.id}
                           data-testid={`button-suggest-rec-${podcast.id}`}
-                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl })}
+                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl, artist: podcast.genres?.slice(0, 2).join(" · ") })}
                           className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                         >
                           {podcast.artworkUrl ? (
