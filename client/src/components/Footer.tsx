@@ -12,9 +12,8 @@ export function Footer() {
             &copy; {new Date().getFullYear()} PodCap, Inc. All rights reserved.
           </p>
 
-          <div className="w-full h-px bg-black/[0.06] dark:bg-white/[0.06] mb-6" />
-
-          <div className="flex items-center justify-center mb-4" data-testid="footer-social">
+          <div className="w-full flex items-center gap-6 mb-6">
+            <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
             <a
               href="https://x.com/podcap_io"
               target="_blank"
@@ -25,6 +24,7 @@ export function Footer() {
             >
               <SiX className="w-[18px] h-[18px]" />
             </a>
+            <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
           </div>
 
           <div className="flex items-center justify-center gap-3 md:gap-5 flex-wrap">
