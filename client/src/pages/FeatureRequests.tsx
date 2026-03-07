@@ -16,6 +16,21 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    title: "Listen to the full episode",
+    description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear.",
+    emoji: "🎧",
+  },
+  {
+    title: "Delete your account",
+    description: "Free-tier users can now permanently delete their account and all associated data from the Settings tab in the dashboard. Because your data is yours.",
+    emoji: "🗑️",
+  },
+  {
+    title: "Pro plan management",
+    description: "Pro subscribers can now view billing history, update their payment method, and manage their subscription directly from the Your Plan tab — no need to dig through emails.",
+    emoji: "💳",
+  },
+  {
     title: "About Us page",
     description: "A lot of people were asking about who built PodCap and why, so we put together an About Us page with the story behind the project and the team.",
     link: { url: "/about", label: "Read our story" },
