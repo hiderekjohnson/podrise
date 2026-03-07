@@ -1024,14 +1024,9 @@ export default function Dashboard() {
                       <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
                       <span className="text-sm text-muted-foreground font-medium">/month</span>
                     </div>
-                    <div className="space-y-3 flex-1">
-                      {["Up to 3 podcasts", "Daily email recaps", "Episode summaries"].map((feature) => (
-                        <div key={feature} className="flex items-center gap-2.5">
-                          <Check className="w-4 h-4 text-green-500 shrink-0" />
-                          <span className="text-sm text-foreground">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
+                    </p>
                   </div>
                   <div className="px-6 pb-6">
                     {!isPro ? (
@@ -1063,14 +1058,9 @@ export default function Dashboard() {
                       <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
                       <span className="text-sm text-muted-foreground font-medium">/month</span>
                     </div>
-                    <div className="space-y-3 flex-1">
-                      {["Unlimited podcasts", "Daily email recaps", "Episode summaries", "Cancel anytime"].map((feature) => (
-                        <div key={feature} className="flex items-center gap-2.5">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span className="text-sm text-foreground">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
+                    </p>
                   </div>
                   <div className="px-6 pb-6">
                     {isPro ? (
