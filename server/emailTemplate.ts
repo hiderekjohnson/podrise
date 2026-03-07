@@ -472,7 +472,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, te
   const t: EmailTemplateConfig = { ...DEFAULT_TEMPLATE, ...templateOverrides };
 
   const mergeVars: Record<string, string> = {
-    audio_length: totalDuration || `${parsed.episodes.length} episode${parsed.episodes.length !== 1 ? "s" : ""} of`,
+    audio_length: totalDuration || "hours",
     episode_count: String(parsed.episodes.length),
     podcast_names: parsed.podcastNames || "",
     date: dateStr,

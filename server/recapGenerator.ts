@@ -322,6 +322,7 @@ export async function generateRecap(
 
     const markdownSections: string[] = [];
     markdownSections.push(podcastNames);
+    markdownSections.push(`**${durationLong}** Total duration · ${parsed.episodes.length} episode${parsed.episodes.length !== 1 ? "s" : ""}`);
     markdownSections.push("---");
 
     for (const ep of parsed.episodes) {
