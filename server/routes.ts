@@ -1534,6 +1534,69 @@ ${formatInstructions}`;
     }
   });
 
+  app.get("/api/stripe/payment-method", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user || !user.stripeCustomerId) {
+      return res.json({ paymentMethod: null });
+    }
+    try {
+      const stripe = await getUncachableStripeClient();
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: user.stripeCustomerId,
+        type: "card",
+        limit: 1,
+      });
+      const pm = paymentMethods.data[0];
+      if (!pm || !pm.card) {
+        return res.json({ paymentMethod: null });
+      }
+      res.json({
+        paymentMethod: {
+          brand: pm.card.brand,
+          last4: pm.card.last4,
+          expMonth: pm.card.exp_month,
+          expYear: pm.card.exp_year,
+        },
+      });
+    } catch (err: any) {
+      console.error("Payment method error:", err);
+      res.json({ paymentMethod: null });
+    }
+  });
+
+  app.get("/api/stripe/invoices", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user || !user.stripeCustomerId) {
+      return res.json({ invoices: [] });
+    }
+    try {
+      const stripe = await getUncachableStripeClient();
+      const invoices = await stripe.invoices.list({
+        customer: user.stripeCustomerId,
+        limit: 12,
+      });
+      res.json({
+        invoices: invoices.data.map((inv) => ({
+          id: inv.id,
+          date: inv.created,
+          amount: inv.amount_paid,
+          currency: inv.currency,
+          status: inv.status,
+          invoiceUrl: inv.hosted_invoice_url,
+        })),
+      });
+    } catch (err: any) {
+      console.error("Invoices error:", err);
+      res.json({ invoices: [] });
+    }
+  });
+
   app.post("/api/stripe/sync-subscription", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });

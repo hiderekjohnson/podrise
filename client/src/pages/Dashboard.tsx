@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Receipt } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -161,6 +161,16 @@ export default function Dashboard() {
     enabled: !!user && isPro,
   });
 
+  const { data: paymentMethodData } = useQuery<{ paymentMethod: { brand: string; last4: string; expMonth: number; expYear: number } | null }>({
+    queryKey: ["/api/stripe/payment-method"],
+    enabled: !!user && isPro,
+  });
+
+  const { data: invoicesData } = useQuery<{ invoices: { id: string; date: number; amount: number; currency: string; status: string; invoiceUrl: string | null }[] }>({
+    queryKey: ["/api/stripe/invoices"],
+    enabled: !!user && isPro,
+  });
+
   const { data: leaderboardData } = useQuery<LeaderboardPodcast[]>({
     queryKey: ["/api/leaderboard"],
     enabled: !!user,
@@ -208,6 +218,18 @@ export default function Dashboard() {
       toast({ title: "Error", description: err.message || "Failed to start checkout", variant: "destructive" });
     } finally {
       setIsCheckingOut(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      const res = await apiRequest("POST", "/api/stripe/portal");
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to open billing portal", variant: "destructive" });
     }
   };
 
@@ -1006,86 +1028,159 @@ export default function Dashboard() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15 }}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className={`bg-white border rounded-2xl overflow-hidden flex flex-col ${!isPro ? "border-black/[0.06] ring-2 ring-primary/20" : "border-black/[0.06]"}`}>
-                  <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
-                    <div className="flex items-center justify-between mb-4">
+              {isPro ? (
+                <div className="space-y-4">
+                  <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Crown className="w-4.5 h-4.5 text-primary" />
+                        </div>
+                        <div>
+                          <h2 className="text-base font-display font-bold text-foreground">Pro Plan</h2>
+                          <p className="text-sm text-muted-foreground">$9.99/month — unlimited podcasts</p>
+                        </div>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
+                    </div>
+                    {subscriptionData?.subscription?.current_period_end && (
+                      <p className="text-sm text-muted-foreground mt-4">
+                        Next bill: <span className="font-semibold text-foreground">{new Date(
+                          typeof subscriptionData.subscription.current_period_end === "number"
+                            ? subscriptionData.subscription.current_period_end * 1000
+                            : subscriptionData.subscription.current_period_end
+                        ).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
-                          <Podcast className="w-4.5 h-4.5 text-muted-foreground" />
+                          <CreditCard className="w-4.5 h-4.5 text-muted-foreground" />
                         </div>
-                        <h2 className="text-base font-display font-bold text-foreground">Free</h2>
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground">Payment Method</h3>
+                          {paymentMethodData?.paymentMethod ? (
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              {paymentMethodData.paymentMethod.brand.charAt(0).toUpperCase() + paymentMethodData.paymentMethod.brand.slice(1)} ending in {paymentMethodData.paymentMethod.last4}
+                              <span className="text-xs ml-2">Exp {paymentMethodData.paymentMethod.expMonth.toString().padStart(2, "0")}/{paymentMethodData.paymentMethod.expYear}</span>
+                            </p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground mt-0.5">No card on file</p>
+                          )}
+                        </div>
                       </div>
-                      {!isPro && (
-                        <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full" data-testid="badge-current-plan">Current</span>
-                      )}
+                      <button
+                        data-testid="button-update-card"
+                        onClick={handleManageBilling}
+                        className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Update
+                      </button>
                     </div>
-                    <div className="mb-5">
-                      <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
-                      <span className="text-sm text-muted-foreground font-medium">/month</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                      Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
-                    </p>
                   </div>
-                  <div className="px-6 pb-6">
-                    <div className="space-y-2">
-                      {!isPro ? (
+
+                  {invoicesData?.invoices && invoicesData.invoices.length > 0 && (
+                    <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
+                          <Receipt className="w-4.5 h-4.5 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-sm font-semibold text-foreground">Billing History</h3>
+                      </div>
+                      <div className="divide-y divide-black/[0.04]">
+                        {invoicesData.invoices.map((inv) => (
+                          <div key={inv.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0" data-testid={`invoice-${inv.id}`}>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">
+                                ${(inv.amount / 100).toFixed(2)} {inv.currency.toUpperCase()}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(inv.date * 1000).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${inv.status === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                                {inv.status === "paid" ? "Paid" : inv.status}
+                              </span>
+                              {inv.invoiceUrl && (
+                                <a
+                                  href={inv.invoiceUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-muted-foreground hover:text-foreground transition-colors"
+                                  data-testid={`link-invoice-${inv.id}`}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-2">
+                    <button
+                      data-testid="button-cancel-subscription"
+                      onClick={() => setShowCancelModal(true)}
+                      className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Cancel subscription
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-white border border-black/[0.06] ring-2 ring-primary/20 rounded-2xl overflow-hidden flex flex-col">
+                    <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
+                            <Podcast className="w-4.5 h-4.5 text-muted-foreground" />
+                          </div>
+                          <h2 className="text-base font-display font-bold text-foreground">Free</h2>
+                        </div>
+                        <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full" data-testid="badge-current-plan">Current</span>
+                      </div>
+                      <div className="mb-5">
+                        <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
+                        <span className="text-sm text-muted-foreground font-medium">/month</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                        Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
+                      </p>
+                    </div>
+                    <div className="px-6 pb-6">
+                      <div className="space-y-2">
                         <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
                           Your current plan
                         </div>
-                      ) : (
-                        <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-medium text-muted-foreground">
-                          &nbsp;
-                        </div>
-                      )}
-                      <p className="text-center text-xs text-muted-foreground invisible">placeholder</p>
+                        <p className="text-center text-xs text-muted-foreground invisible">placeholder</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className={`border rounded-2xl overflow-hidden flex flex-col ${isPro ? "bg-white border-primary/20 ring-2 ring-primary/20" : "bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] border-primary/10"}`}>
-                  <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2.5">
+                  <div className="bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] border border-primary/10 rounded-2xl overflow-hidden flex flex-col">
+                    <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
+                      <div className="flex items-center gap-2.5 mb-4">
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                           <Crown className="w-4.5 h-4.5 text-primary" />
                         </div>
                         <h2 className="text-base font-display font-bold text-foreground">Pro</h2>
                       </div>
-                      {isPro && (
-                        <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full" data-testid="badge-plan-active">Active</span>
-                      )}
-                    </div>
-                    <div className="mb-5">
-                      <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
-                      <span className="text-sm text-muted-foreground font-medium">/month</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                      Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
-                    </p>
-                  </div>
-                  <div className="px-6 pb-6">
-                    {isPro ? (
-                      <div className="space-y-3">
-                        {subscriptionData?.subscription?.current_period_end && (
-                          <p className="text-xs text-muted-foreground text-center">
-                            Next billing: {new Date(
-                              typeof subscriptionData.subscription.current_period_end === "number"
-                                ? subscriptionData.subscription.current_period_end * 1000
-                                : subscriptionData.subscription.current_period_end
-                            ).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                          </p>
-                        )}
-                        <button
-                          data-testid="button-cancel-subscription"
-                          onClick={() => setShowCancelModal(true)}
-                          className="w-full text-center text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
-                        >
-                          Cancel subscription
-                        </button>
+                      <div className="mb-5">
+                        <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
+                        <span className="text-sm text-muted-foreground font-medium">/month</span>
                       </div>
-                    ) : (
+                      <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                        Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
+                      </p>
+                    </div>
+                    <div className="px-6 pb-6">
                       <div className="space-y-2">
                         <button
                           data-testid="button-subscribe"
@@ -1101,10 +1196,10 @@ export default function Dashboard() {
                         </button>
                         <p className="text-center text-xs text-muted-foreground">Cancel anytime.</p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
