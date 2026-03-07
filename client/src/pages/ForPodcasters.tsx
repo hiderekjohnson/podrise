@@ -64,9 +64,9 @@ const BENEFITS = [
     color: "text-amber-600 bg-amber-50",
   },
   {
-    icon: Globe,
-    title: "More Search Entry Points",
-    description: "Every episode recap becomes a new searchable page. People searching for topics you've covered can discover specific episodes through Google, creating new entry points to your show that didn't exist before.",
+    icon: Clock,
+    title: "Prevent the Backlog Drop-Off",
+    description: "Once someone falls a few weeks behind, they rarely come back. A daily recap prevents that from happening. Even if they can't listen today, they stay up to date and connected to your show.",
     color: "text-purple-600 bg-purple-50",
   },
 ];
@@ -184,7 +184,53 @@ export default function ForPodcasters() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20" data-testid="section-the-logic">
+        <section className="py-16 sm:py-20" data-testid="section-secondary-benefits">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-[-0.02em] mb-4 text-center" data-testid="text-secondary-title">
+              And that's not all
+            </h2>
+            <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-10">
+              Beyond keeping fans engaged, PodCap handles things you probably don't have time for.
+            </p>
+            <div className="space-y-5">
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-7 shadow-sm flex gap-5 items-start" data-testid="card-secondary-search">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  <Search className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-display font-bold mb-1">Your fans are already searching for recaps</h3>
+                  <p className="text-[15px] leading-[1.7] text-muted-foreground">
+                    A lot of your superfans are already Googling things like "podcast name recap" or "episode summary." They want a quick way to catch up. PodCap makes sure they land on a high-quality recap page for your show instead of some random AI-generated blog post.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-7 shadow-sm flex gap-5 items-start" data-testid="card-secondary-summaries">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                  <Mic className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-display font-bold mb-1">Episode summaries, done for you</h3>
+                  <p className="text-[15px] leading-[1.7] text-muted-foreground">
+                    Writing up summaries for every episode takes time you don't have. PodCap creates detailed, accurate recaps of every episode automatically. You don't need to lift a finger. Just point your audience to your PodCap page and let us handle the rest.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-7 shadow-sm flex gap-5 items-start" data-testid="card-secondary-seo">
+                <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-display font-bold mb-1">Free discoverability you're not getting today</h3>
+                  <p className="text-[15px] leading-[1.7] text-muted-foreground">
+                    Every episode recap is a new indexed page on Google. That's a new entry point for someone who's never heard of your show but is searching for a topic you've covered. It's organic discovery that works 24/7, and you don't have to do a thing.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20 bg-slate-50/50" data-testid="section-the-logic">
           <div className="max-w-3xl mx-auto px-6">
             <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-[-0.02em] mb-4 text-center" data-testid="text-logic-title">
               The right fans, listening to the right episodes
