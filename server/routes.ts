@@ -381,6 +381,25 @@ export async function registerRoutes(
     });
   });
 
+  const TRACKING_PIXEL = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
+  app.get("/api/track/open/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (!isNaN(id)) {
+        await storage.markEmailOpened(id);
+      }
+    } catch (e) {
+    }
+    res.set({
+      "Content-Type": "image/gif",
+      "Content-Length": String(TRACKING_PIXEL.length),
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0",
+    });
+    res.end(TRACKING_PIXEL);
+  });
+
   app.get("/api/founder-podcasts", async (req, res) => {
     try {
       const FOUNDER_EMAIL = "hiderekjohnson@gmail.com";
@@ -761,12 +780,16 @@ export async function registerRoutes(
     }
 
     try {
+      const baseUrl = "https://podcap.io";
+      const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
+      const htmlWithTracking = pending.emailHtml.replace("</body>", `${trackingPixel}</body>`);
+
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
         from: `PodCap Daily <${fromEmail}>`,
         to: pending.recipientEmail,
         subject: pending.subject,
-        html: pending.emailHtml,
+        html: htmlWithTracking,
       });
 
       if (sendResult.error) {

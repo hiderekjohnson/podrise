@@ -316,12 +316,18 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
     throw new Error("Email has no episode content");
   }
 
+  const baseUrl = process.env.REPLIT_DEV_DOMAIN
+    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+    : "https://podcap.io";
+  const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
+  const htmlWithTracking = pending.emailHtml.replace("</body>", `${trackingPixel}</body>`);
+
   const { client, fromEmail } = await getUncachableResendClient();
   const sendResult = await client.emails.send({
     from: `PodCap Daily <${fromEmail}>`,
     to: pending.recipientEmail,
     subject: pending.subject,
-    html: pending.emailHtml,
+    html: htmlWithTracking,
   });
 
   if (sendResult.error) {

@@ -36,6 +36,7 @@ export interface IStorage {
   updatePendingEmailStatus(id: number, status: string, errorMessage?: string): Promise<PendingEmail>;
   updatePendingEmailHtml(id: number, emailHtml: string): Promise<PendingEmail>;
   updatePendingEmailSummary(id: number, summary: string): Promise<PendingEmail>;
+  markEmailOpened(id: number): Promise<void>;
   getPendingEmailsForUser(userId: number, recapDate: string): Promise<PendingEmail[]>;
   deletePendingEmail(id: number): Promise<void>;
   clearOldPendingEmails(daysOld: number): Promise<number>;
@@ -330,6 +331,12 @@ export class DatabaseStorage implements IStorage {
   async updatePendingEmailSummary(id: number, summary: string): Promise<PendingEmail> {
     const [updated] = await db.update(pendingEmails).set({ summary }).where(eq(pendingEmails.id, id)).returning();
     return updated;
+  }
+
+  async markEmailOpened(id: number): Promise<void> {
+    await db.update(pendingEmails)
+      .set({ emailOpenedAt: new Date() })
+      .where(and(eq(pendingEmails.id, id), isNull(pendingEmails.emailOpenedAt)));
   }
 
   async getPendingEmailsForUser(userId: number, recapDate: string): Promise<PendingEmail[]> {

@@ -113,6 +113,7 @@ export const pendingEmails = pgTable("pending_emails", {
   status: text("status").notNull().default("pending"),
   sentAt: timestamp("sent_at"),
   errorMessage: text("error_message"),
+  emailOpenedAt: timestamp("email_opened_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

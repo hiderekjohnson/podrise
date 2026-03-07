@@ -25,6 +25,7 @@ interface PendingEmailEntry {
   status: string;
   sentAt: string | null;
   errorMessage: string | null;
+  emailOpenedAt: string | null;
   createdAt: string | null;
 }
 
@@ -292,6 +293,12 @@ export default function PendingEmails() {
                     )}
                     {email.sentAt && (
                       <p className="text-xs text-muted-foreground/60 mt-0.5">{formatDateTime(email.sentAt)}</p>
+                    )}
+                    {email.status === "sent" && (
+                      <span className={`inline-flex items-center gap-1 text-xs mt-1 ${email.emailOpenedAt ? "text-green-600" : "text-muted-foreground/40"}`} data-testid={`badge-opened-${email.id}`}>
+                        <Mail className="w-3 h-3" />
+                        {email.emailOpenedAt ? `Opened ${formatDateTime(email.emailOpenedAt)}` : "Not opened"}
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-3">
