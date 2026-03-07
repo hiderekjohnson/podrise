@@ -803,49 +803,51 @@ export async function registerRoutes(
       for (const email of allPending) {
         let summary = email.summary;
 
-        const hasDuration = /\*\*.*?\*\*\s*Total duration/i.test(summary);
-        if (!hasDuration) {
-          let totalDurationMin = 0;
-          const podcastIds: string[] = [];
-          for (const p of email.podcasts) {
-            try {
-              const parsed = JSON.parse(p);
-              if (parsed.id) podcastIds.push(parsed.id);
-            } catch {}
-          }
-          for (const pid of podcastIds) {
-            try {
-              const lookupUrl = `https://itunes.apple.com/lookup?id=${pid}&media=podcast&entity=podcastEpisode&limit=5&sort=recent`;
-              const lookupRes = await fetch(lookupUrl);
-              const lookupJson = await lookupRes.json() as any;
-              const results = lookupJson.results || [];
-              for (const ep of results) {
-                if (ep.wrapperType === "podcastEpisode" && ep.trackTimeMillis) {
-                  const epTitle = (ep.trackName || "").toLowerCase();
-                  if (summary.toLowerCase().includes(epTitle.substring(0, 30))) {
-                    totalDurationMin += Math.round(ep.trackTimeMillis / 60000);
-                  }
+        summary = summary.split("\n").filter(l => !/^\*\*.*?\*\*\s*Total duration/i.test(l)).join("\n");
+
+        let totalDurationMin = 0;
+        const podcastIds: string[] = [];
+        for (const p of email.podcasts) {
+          try {
+            const parsed = JSON.parse(p);
+            if (parsed.id) podcastIds.push(parsed.id);
+          } catch {}
+        }
+
+        const summaryLower = summary.toLowerCase();
+        for (const pid of podcastIds) {
+          try {
+            const lookupUrl = `https://itunes.apple.com/lookup?id=${pid}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
+            const lookupRes = await fetch(lookupUrl);
+            const lookupJson = await lookupRes.json() as any;
+            const results = lookupJson.results || [];
+            for (const ep of results) {
+              if (ep.wrapperType === "podcastEpisode" && ep.trackTimeMillis) {
+                const epTitle = (ep.trackName || "").trim();
+                if (epTitle.length > 5 && summaryLower.includes(epTitle.substring(0, Math.min(epTitle.length, 25)).toLowerCase())) {
+                  totalDurationMin += Math.round(ep.trackTimeMillis / 60000);
                 }
               }
-            } catch {}
-          }
-          if (totalDurationMin > 0) {
-            const hours = Math.floor(totalDurationMin / 60);
-            const mins = totalDurationMin % 60;
-            const durationStr = hours > 0
-              ? (mins > 0 ? `${hours} hour${hours !== 1 ? "s" : ""} and ${mins} minute${mins !== 1 ? "s" : ""}` : `${hours} hour${hours !== 1 ? "s" : ""}`)
-              : `${mins} minute${mins !== 1 ? "s" : ""}`;
-            const lines = summary.split("\n");
-            const dashIdx = lines.findIndex(l => l.trim() === "---");
-            if (dashIdx >= 0) {
-              lines.splice(dashIdx, 0, `**${durationStr}** Total duration`);
-            } else {
-              lines.splice(1, 0, `**${durationStr}** Total duration`);
             }
-            summary = lines.join("\n");
-            await storage.updatePendingEmailSummary(email.id, summary);
-          }
+          } catch {}
         }
+
+        if (totalDurationMin > 0) {
+          const hours = Math.floor(totalDurationMin / 60);
+          const mins = totalDurationMin % 60;
+          const durationStr = hours > 0
+            ? (mins > 0 ? `${hours} hour${hours !== 1 ? "s" : ""} and ${mins} minute${mins !== 1 ? "s" : ""}` : `${hours} hour${hours !== 1 ? "s" : ""}`)
+            : `${mins} minute${mins !== 1 ? "s" : ""}`;
+          const lines = summary.split("\n");
+          const dashIdx = lines.findIndex(l => l.trim() === "---");
+          if (dashIdx >= 0) {
+            lines.splice(dashIdx, 0, `**${durationStr}** Total duration`);
+          } else {
+            lines.splice(1, 0, `**${durationStr}** Total duration`);
+          }
+          summary = lines.join("\n");
+        }
+        await storage.updatePendingEmailSummary(email.id, summary);
 
         const newHtml = markdownToEmailHtml(summary, email.recipientEmail, templateSettings);
         await storage.updatePendingEmailHtml(email.id, newHtml);
