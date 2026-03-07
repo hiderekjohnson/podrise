@@ -1034,67 +1034,62 @@ export default function Dashboard() {
               </AnimatePresence>
 
               {!isPro && (
-                <div className="border border-red-200 rounded-2xl overflow-hidden mt-2">
-                  <div className="px-6 pt-6 pb-2">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
-                      <h2 className="text-lg font-display font-bold text-red-600">Danger Zone</h2>
+                <div className="mt-6 pt-5 border-t border-border">
+                  <button
+                    data-testid="button-delete-account"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="text-sm text-muted-foreground hover:text-red-500 transition-colors"
+                  >
+                    Delete account
+                  </button>
+                </div>
+              )}
+
+              {showDeleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}>
+                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()} data-testid="section-delete-confirm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                      <h3 className="text-lg font-display font-bold text-red-600">Delete Account</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">Permanently delete your account and all associated data.</p>
-                  </div>
-                  <div className="px-6 pb-6 pt-3">
-                    {!showDeleteConfirm ? (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      This will permanently delete your account, saved podcasts, recap history, and all email data. This action cannot be undone.
+                    </p>
+                    <div className="mt-4">
+                      <label className="text-xs font-semibold text-red-700 mb-1.5 block">
+                        Type <span className="font-mono bg-red-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm
+                      </label>
+                      <input
+                        data-testid="input-delete-confirm"
+                        type="text"
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                        placeholder="DELETE"
+                        className="h-9 w-full px-3 bg-white border border-red-200 rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-red-300 transition-all font-mono"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 mt-4">
                       <button
-                        data-testid="button-delete-account"
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="h-9 px-4 rounded-lg text-xs font-bold text-red-600 border border-red-200 hover:bg-red-50 transition-all flex items-center gap-1.5"
+                        data-testid="button-confirm-delete"
+                        disabled={deleteConfirmText !== "DELETE" || deleteAccountMutation.isPending}
+                        onClick={() => deleteAccountMutation.mutate()}
+                        className="h-9 px-4 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Delete my account
+                        {deleteAccountMutation.isPending ? (
+                          <><Loader2 className="w-3.5 h-3.5 animate-spin" />Deleting...</>
+                        ) : (
+                          <><Trash2 className="w-3.5 h-3.5" />Delete my account</>
+                        )}
                       </button>
-                    ) : (
-                      <div className="rounded-xl border border-red-200 bg-red-50/60 p-4" data-testid="section-delete-confirm">
-                        <p className="text-sm font-semibold text-red-700 mb-1">Are you sure? This cannot be undone.</p>
-                        <p className="text-xs text-red-600/80 mb-3">
-                          This will permanently delete your account, saved podcasts, recap history, and all email data. You will not be able to recover any of this information.
-                        </p>
-                        <div className="mb-3">
-                          <label className="text-xs font-semibold text-red-700 mb-1.5 block">
-                            Type <span className="font-mono bg-red-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm
-                          </label>
-                          <input
-                            data-testid="input-delete-confirm"
-                            type="text"
-                            value={deleteConfirmText}
-                            onChange={(e) => setDeleteConfirmText(e.target.value)}
-                            placeholder="DELETE"
-                            className="h-9 w-48 px-3 bg-white border border-red-200 rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-red-300 transition-all font-mono"
-                            autoComplete="off"
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            data-testid="button-confirm-delete"
-                            disabled={deleteConfirmText !== "DELETE" || deleteAccountMutation.isPending}
-                            onClick={() => deleteAccountMutation.mutate()}
-                            className="h-9 px-4 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
-                          >
-                            {deleteAccountMutation.isPending ? (
-                              <><Loader2 className="w-3.5 h-3.5 animate-spin" />Deleting...</>
-                            ) : (
-                              <><Trash2 className="w-3.5 h-3.5" />Permanently delete my account</>
-                            )}
-                          </button>
-                          <button
-                            data-testid="button-cancel-delete"
-                            onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
-                            className="h-9 px-3 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-gray-100 transition-all"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      <button
+                        data-testid="button-cancel-delete"
+                        onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
+                        className="h-9 px-3 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-gray-100 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
