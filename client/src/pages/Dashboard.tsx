@@ -103,6 +103,7 @@ export default function Dashboard() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [viewingRecap, setViewingRecap] = useState<RecapData | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const discoverRef = useRef<HTMLDivElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const emailDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -633,12 +634,16 @@ export default function Dashboard() {
                       </AnimatePresence>
                       {!isPro && podcasts.length < 3 && (
                         Array.from({ length: 3 - podcasts.length }).map((_, i) => (
-                          <div key={`empty-${i}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
-                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] flex items-center justify-center">
-                              <Plus className="w-5 h-5 text-muted-foreground/30" />
+                          <button
+                            key={`empty-${i}`}
+                            onClick={() => discoverRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                            className="flex flex-col items-center gap-2 shrink-0 w-20 group/slot"
+                          >
+                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] group-hover/slot:border-primary/30 flex items-center justify-center transition-colors">
+                              <Plus className="w-5 h-5 text-muted-foreground/30 group-hover/slot:text-primary/50 transition-colors" />
                             </div>
-                            <p className="text-xs text-muted-foreground/40 text-center leading-tight">Add show</p>
-                          </div>
+                            <p className="text-xs text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
+                          </button>
                         ))
                       )}
                     </div>
@@ -647,12 +652,16 @@ export default function Dashboard() {
                   <div className="px-6 pb-5">
                     <div className="flex gap-4">
                       {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={`empty-${i}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
-                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] flex items-center justify-center">
-                            <Plus className="w-5 h-5 text-muted-foreground/30" />
+                        <button
+                          key={`empty-${i}`}
+                          onClick={() => discoverRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                          className="flex flex-col items-center gap-2 shrink-0 w-20 group/slot"
+                        >
+                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] group-hover/slot:border-primary/30 flex items-center justify-center transition-colors">
+                            <Plus className="w-5 h-5 text-muted-foreground/30 group-hover/slot:text-primary/50 transition-colors" />
                           </div>
-                          <p className="text-xs text-muted-foreground/40 text-center leading-tight">Add show</p>
-                        </div>
+                          <p className="text-xs text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
+                        </button>
                       ))}
                     </div>
                     <p className="text-sm text-muted-foreground mt-3">Search below to add podcasts and start getting daily recaps.</p>
@@ -660,7 +669,7 @@ export default function Dashboard() {
                 )}
               </div>
 
-              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+              <div ref={discoverRef} className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 pt-5 pb-4">
                   <h2 className="text-base font-display font-bold text-foreground mb-1" data-testid="heading-add-podcasts">
                     Discover Podcasts
