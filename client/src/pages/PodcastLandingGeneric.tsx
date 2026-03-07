@@ -10,7 +10,6 @@ import { Footer } from "@/components/Footer";
 import { ExampleRecapSection } from "@/components/ExampleRecapSection";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-import { getEpisodesByPodcast } from "@/data/episodeRecaps";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 function generatePodcapFaqItems(name: string) {
@@ -178,7 +177,15 @@ export default function PodcastLandingGeneric() {
     .filter((p): p is PodcastLandingConfig => !!p)
     .slice(0, 3);
 
-  const episodeRecaps = getEpisodesByPodcast(slug || "");
+  const { data: episodeRecaps = [] } = useQuery<any[]>({
+    queryKey: ["/api/podcasts", slug, "recaps"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=10`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!slug,
+  });
 
   const snapshotItems = [
     category ? { icon: Star, label: "Category", value: category } : null,

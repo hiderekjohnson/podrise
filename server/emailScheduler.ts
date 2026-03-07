@@ -1,7 +1,8 @@
 import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
-import { generateRecap, type ParsedEpisode } from "./recapGenerator";
+import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } from "./taddyClient";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
@@ -351,8 +352,186 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   });
 }
 
+function slugifyEpisodeTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/['']/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .split("-")
+    .slice(0, 8)
+    .join("-");
+}
+
+function normalizeTitleForMatch(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/^\d+[\.\)\-:\s]+\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .replace(/[''""]/g, "'")
+    .trim();
+}
+
+let landingPageRefreshRanToday = "";
+
+export async function refreshLandingPageRecaps(force: boolean = false) {
+  const todayKey = new Date().toISOString().split("T")[0];
+  if (!force && landingPageRefreshRanToday === todayKey) return;
+
+  console.log(`[LandingRecaps] Starting daily landing page recap refresh...`);
+
+  let landingPodcasts: any[];
+  try {
+    const allDir = await storage.getPodcastDirectory();
+    landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.itunesId && p.slug);
+  } catch (err) {
+    console.error("[LandingRecaps] Failed to fetch podcast directory:", err);
+    return;
+  }
+
+  console.log(`[LandingRecaps] Processing ${landingPodcasts.length} landing page podcasts...`);
+  let newRecaps = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  for (const podcast of landingPodcasts) {
+    try {
+      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=5&sort=recent`;
+      const lookupRes = await fetch(lookupUrl);
+      const lookupJson = await lookupRes.json();
+      const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+
+      if (episodes.length === 0) {
+        skipped++;
+        continue;
+      }
+
+      const latestEp = episodes[0];
+      const epTitle = latestEp.trackName || "Untitled";
+      const epSlug = slugifyEpisodeTitle(epTitle);
+
+      const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
+      if (existingRecap) {
+        skipped++;
+        continue;
+      }
+
+      const episodeGuid = latestEp.episodeGuid || `${podcast.itunesId}_${latestEp.trackId || epTitle}`;
+      let transcriptText: string | null = null;
+
+      const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
+      if (cached) {
+        transcriptText = cached.transcript;
+      } else {
+        try {
+          const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
+          if (taddyPodcast?.uuid) {
+            const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
+            const itunesNorm = normalizeTitleForMatch(epTitle);
+            const taddyMatch = taddyEpisodes.find((te: any) => {
+              if (!te.name) return false;
+              const taddyNorm = normalizeTitleForMatch(te.name);
+              return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
+            });
+            if (taddyMatch?.uuid) {
+              const fetched = await getEpisodeTranscript(taddyMatch.uuid);
+              if (fetched) {
+                transcriptText = fetched;
+                await storage.saveTranscript({
+                  podcastId: podcast.itunesId,
+                  episodeGuid,
+                  episodeTitle: epTitle,
+                  transcript: transcriptText,
+                });
+              }
+            }
+          }
+        } catch (taddyErr) {
+          console.warn(`[LandingRecaps] Taddy lookup failed for ${podcast.name}:`, taddyErr);
+        }
+      }
+
+      if (!transcriptText) {
+        console.log(`[LandingRecaps] No transcript for ${podcast.name} - "${epTitle}", skipping`);
+        skipped++;
+        continue;
+      }
+
+      const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
+      if (!recap) {
+        errors++;
+        continue;
+      }
+
+      const durationMs = latestEp.trackTimeMillis || 0;
+      const durationMin = Math.round(durationMs / 60000);
+      const durationStr = durationMin >= 60
+        ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+        : `${durationMin} min`;
+      const releaseDate = latestEp.releaseDate
+        ? new Date(latestEp.releaseDate).toISOString().split("T")[0]
+        : todayKey;
+
+      await storage.upsertLandingPageRecap({
+        slug: podcast.slug,
+        itunesId: podcast.itunesId,
+        podcastName: podcast.name,
+        episodeTitle: recap.episodeTitle,
+        episodeSlug: epSlug,
+        publishDate: releaseDate,
+        duration: durationStr,
+        artworkUrl: podcast.artworkUrl || latestEp.artworkUrl600 || null,
+        hosts: podcast.hosts || null,
+        tldl: recap.tldl,
+        whatHappened: recap.whatHappened,
+        keyInsights: recap.keyInsights,
+        quote: recap.quote || null,
+        quoteAttribution: recap.quoteAttribution || null,
+      });
+
+      await storage.upsertExampleRecap({
+        slug: podcast.slug,
+        podcastName: podcast.name,
+        itunesId: podcast.itunesId,
+        episodeTitle: recap.episodeTitle,
+        episodeDate: releaseDate,
+        episodeDuration: durationStr,
+        tldl: recap.tldl,
+        whatHappened: recap.whatHappened,
+        keyInsights: recap.keyInsights,
+        quote: recap.quote || null,
+        quoteAttribution: recap.quoteAttribution || null,
+      });
+
+      newRecaps++;
+      console.log(`[LandingRecaps] Generated recap for ${podcast.name} - "${epTitle}"`);
+    } catch (err) {
+      console.error(`[LandingRecaps] Error processing ${podcast.name}:`, err);
+      errors++;
+    }
+  }
+
+  landingPageRefreshRanToday = todayKey;
+  console.log(`[LandingRecaps] Complete: ${newRecaps} new recaps, ${skipped} skipped, ${errors} errors`);
+}
+
 export function startEmailScheduler() {
   console.log(`[EmailScheduler] Starting email scheduler (per-user generation at delivery time, emails held for review)...`);
   setInterval(processSchedulerTick, SCHEDULER_INTERVAL_MS);
   setTimeout(processSchedulerTick, 5000);
+
+  setInterval(() => {
+    const now = new Date();
+    const etHour = parseInt(now.toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false, hour: "2-digit" }));
+    if (etHour === 5) {
+      refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Refresh error:", err));
+    }
+  }, 15 * 60 * 1000);
+
+  setTimeout(() => {
+    refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
+  }, 30000);
 }

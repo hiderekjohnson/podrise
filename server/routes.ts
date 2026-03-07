@@ -513,6 +513,26 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/recaps", async (req, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 500);
+      const recaps = await storage.getLandingPageRecaps(req.params.slug, limit);
+      res.json(recaps);
+    } catch {
+      res.status(500).json({ error: "Failed to fetch recaps" });
+    }
+  });
+
+  app.get("/api/podcasts/:slug/recaps/:episodeSlug", async (req, res) => {
+    try {
+      const recap = await storage.getLandingPageRecapBySlug(req.params.slug, req.params.episodeSlug);
+      if (!recap) return res.status(404).json({ error: "Recap not found" });
+      res.json(recap);
+    } catch {
+      res.status(500).json({ error: "Failed to fetch recap" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/example-recap", async (req, res) => {
     try {
       const recap = await storage.getExampleRecap(req.params.slug);
@@ -878,6 +898,19 @@ export async function registerRoutes(
       res.json({ message: "Pre-generation started. Check back in a few minutes." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger pre-generation" });
+    }
+  });
+
+  app.post("/api/admin/refresh-landing-recaps", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { refreshLandingPageRecaps } = await import("./emailScheduler");
+      refreshLandingPageRecaps(true);
+      res.json({ message: "Landing page recap refresh started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger refresh" });
     }
   });
 

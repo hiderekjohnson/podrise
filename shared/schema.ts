@@ -155,6 +155,28 @@ export const podcastExampleRecaps = pgTable("podcast_example_recaps", {
 export type PodcastExampleRecap = typeof podcastExampleRecaps.$inferSelect;
 export type InsertPodcastExampleRecap = typeof podcastExampleRecaps.$inferInsert;
 
+export const landingPageRecaps = pgTable("landing_page_recaps", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull(),
+  itunesId: text("itunes_id"),
+  podcastName: text("podcast_name").notNull(),
+  episodeTitle: text("episode_title").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  publishDate: text("publish_date").notNull(),
+  duration: text("duration"),
+  artworkUrl: text("artwork_url"),
+  hosts: text("hosts"),
+  tldl: text("tldl").notNull(),
+  whatHappened: text("what_happened").notNull(),
+  keyInsights: text("key_insights").array().notNull(),
+  quote: text("quote"),
+  quoteAttribution: text("quote_attribution"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type LandingPageRecap = typeof landingPageRecaps.$inferSelect;
+export type InsertLandingPageRecap = typeof landingPageRecaps.$inferInsert;
+
 export const podcastDirectory = pgTable("podcast_directory", {
   id: serial("id").primaryKey(),
   itunesId: text("itunes_id").notNull().unique(),

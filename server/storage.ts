@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
@@ -49,6 +49,10 @@ export interface IStorage {
   getPodcastDirectoryBySlug(slug: string): Promise<PodcastDirectoryEntry | undefined>;
   upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry>;
   deletePodcastDirectoryEntry(id: number): Promise<void>;
+  getLandingPageRecaps(slug: string, limit?: number): Promise<LandingPageRecap[]>;
+  getLandingPageRecapBySlug(podcastSlug: string, episodeSlug: string): Promise<LandingPageRecap | undefined>;
+  upsertLandingPageRecap(data: InsertLandingPageRecap): Promise<LandingPageRecap>;
+  getLandingPageRecapSlugs(): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -445,6 +449,48 @@ export class DatabaseStorage implements IStorage {
 
   async deletePodcastDirectoryEntry(id: number): Promise<void> {
     await db.delete(podcastDirectory).where(eq(podcastDirectory.id, id));
+  }
+
+  async getLandingPageRecaps(slug: string, limit: number = 10): Promise<LandingPageRecap[]> {
+    return db.select().from(landingPageRecaps)
+      .where(eq(landingPageRecaps.slug, slug))
+      .orderBy(desc(landingPageRecaps.publishDate), desc(landingPageRecaps.createdAt))
+      .limit(limit);
+  }
+
+  async getLandingPageRecapBySlug(podcastSlug: string, episodeSlug: string): Promise<LandingPageRecap | undefined> {
+    const [recap] = await db.select().from(landingPageRecaps)
+      .where(and(eq(landingPageRecaps.slug, podcastSlug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
+    return recap;
+  }
+
+  async upsertLandingPageRecap(data: InsertLandingPageRecap): Promise<LandingPageRecap> {
+    const [result] = await db
+      .insert(landingPageRecaps)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [landingPageRecaps.slug, landingPageRecaps.episodeSlug],
+        set: {
+          podcastName: data.podcastName,
+          episodeTitle: data.episodeTitle,
+          publishDate: data.publishDate,
+          duration: data.duration,
+          artworkUrl: data.artworkUrl,
+          hosts: data.hosts,
+          tldl: data.tldl,
+          whatHappened: data.whatHappened,
+          keyInsights: data.keyInsights,
+          quote: data.quote,
+          quoteAttribution: data.quoteAttribution,
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  async getLandingPageRecapSlugs(): Promise<string[]> {
+    const results = await db.selectDistinct({ slug: landingPageRecaps.slug }).from(landingPageRecaps);
+    return results.map(r => r.slug);
   }
 }
 

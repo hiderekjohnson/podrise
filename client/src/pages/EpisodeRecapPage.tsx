@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, ExternalLink } from "lucide-react";
 import { SiApplepodcasts, SiSpotify } from "react-icons/si";
-import { getEpisodeBySlug, getAdjacentEpisodes } from "../data/episodeRecaps";
+import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "../data/podcastLandingData";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -18,9 +18,31 @@ export default function EpisodeRecapPage() {
   const [email, setEmail] = useState("");
   const register = useRegister();
 
-  const episode = getEpisodeBySlug(podcastSlug, episodeSlug);
+  const { data: episode, isLoading: episodeLoading } = useQuery<any>({
+    queryKey: ["/api/podcasts", podcastSlug, "recaps", episodeSlug],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${podcastSlug}/recaps/${episodeSlug}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!podcastSlug && !!episodeSlug,
+  });
+
+  const { data: allRecaps = [] } = useQuery<any[]>({
+    queryKey: ["/api/podcasts", podcastSlug, "recaps"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${podcastSlug}/recaps?limit=50`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!podcastSlug,
+  });
+
+  const currentIndex = allRecaps.findIndex((r: any) => r.episodeSlug === episodeSlug);
+  const prev = currentIndex > 0 ? allRecaps[currentIndex - 1] : null;
+  const next = currentIndex >= 0 && currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null;
+
   const podcastConfig = getPodcastBySlug(podcastSlug);
-  const { prev, next } = getAdjacentEpisodes(podcastSlug, episodeSlug);
 
   const relatedPodcasts = podcastConfig?.relatedSlugs
     ?.map(s => PODCAST_LANDINGS.find(p => p.slug === s))
@@ -110,6 +132,14 @@ export default function EpisodeRecapPage() {
       }
     );
   };
+
+  if (episodeLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!episode || !podcastConfig) {
     return (

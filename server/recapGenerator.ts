@@ -441,3 +441,70 @@ export async function generateRecap(
     return { summary: content, dateStr, episodeStats: stats, parsedEpisodes: [], recappedPodcasts };
   }
 }
+
+export async function generateRecapFromTranscript(
+  transcript: string,
+  podcastName: string,
+  episodeTitle: string,
+): Promise<ParsedEpisode | null> {
+  const truncated = transcript.slice(0, 8000);
+  const prompt = `You are PodCap, an AI that writes podcast episode recaps. Generate a recap for this episode.
+
+All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content.
+
+Podcast: ${podcastName}
+Episode: "${episodeTitle}"
+Transcript (excerpt):
+${truncated}
+
+Respond ONLY with a valid JSON object (no markdown, no code fences):
+
+{
+  "podcastName": "${podcastName}",
+  "episodeTitle": "${episodeTitle}",
+  "tldl": "2-3 sentence summary of the core thesis.",
+  "whatHappened": "2-4 paragraphs in narrative style. Separate paragraphs with \\n\\n.",
+  "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
+  "quote": "A memorable line from the transcript",
+  "quoteAttribution": "Speaker Name on topic"
+}
+
+RULES:
+- All fields required: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution
+- Write like a sharp friend catching you up
+- Be specific and concrete
+- Quotes MUST be from the transcript
+- Use \\n\\n to separate paragraphs in whatHappened`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 4000,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return null;
+
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith("```")) {
+      jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+    }
+
+    const parsed = JSON.parse(jsonContent);
+    return {
+      podcastName: parsed.podcastName || podcastName,
+      episodeTitle: parsed.episodeTitle || episodeTitle,
+      tldl: parsed.tldl || "",
+      whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
+      keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
+      quote: parsed.quote,
+      quoteAttribution: parsed.quoteAttribution,
+    };
+  } catch (err) {
+    console.error(`[RecapGenerator] Failed to generate recap for "${episodeTitle}":`, err);
+    return null;
+  }
+}

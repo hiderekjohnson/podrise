@@ -1,8 +1,8 @@
 import { useParams, Link } from "wouter";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
-import { getEpisodesByPodcastPaginated } from "../data/episodeRecaps";
+import { ArrowRight, ChevronLeft, ChevronRight, Calendar, Clock, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
@@ -15,7 +15,20 @@ export default function EpisodeArchivePage() {
   const perPage = 25;
 
   const podcastConfig = getPodcastBySlug(slug);
-  const { episodes, totalPages, total } = getEpisodesByPodcastPaginated(slug, page, perPage);
+
+  const { data: allRecaps = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/podcasts", slug, "recaps", "all"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=500`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!slug,
+  });
+
+  const total = allRecaps.length;
+  const totalPages = Math.ceil(total / perPage);
+  const episodes = allRecaps.slice((page - 1) * perPage, page * perPage);
 
   useEffect(() => {
     window.scrollTo(0, 0);

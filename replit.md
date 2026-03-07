@@ -19,7 +19,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `/podcasts` — Most Popular Podcasts directory/leaderboard
 - `/podcasts/:slug` — SEO landing pages for podcasts (data from `podcast_directory` DB table, fallback to `client/src/data/podcastLandingData.ts`); centered artwork hero, email signup, Apple/Spotify/YouTube/X links, feature cards, example AI recap, episode list with snippets + "Read Summary" links (max 10 shown, with "View All Episodes" button), snapshot stats, known-for bullets, host bios, related podcasts, FAQ with schema markup, aboutPodcast SEO description
 - `/podcasts/:slug/episodes` — Episode archive page listing all episodes for a podcast; paginated (25 per page), each entry shows title, TLDL snippet, date, duration, "Read Summary" link; SEO meta tags + server-side OG injection
-- `/podcasts/:podcastSlug/:episodeSlug` — Individual episode recap pages (data in `client/src/data/episodeRecaps.ts`); artwork + title hero, duration display, Apple Podcasts + Spotify listen buttons, TLDL box, What Happened narrative, Key Insights cards, Quote blockquote, prev/next episode nav, signup CTA, related podcasts, full SEO (canonical, OG, twitter tags). 461 total recaps across all 50 podcasts (10 MFM + 451 AI-generated from real Taddy transcripts for 46 other podcasts; hbrideacast had no transcripts)
+- `/podcasts/:podcastSlug/:episodeSlug` — Individual episode recap pages (data from `landing_page_recaps` DB table via API); artwork + title hero, duration display, Apple Podcasts + Spotify listen buttons, TLDL box, What Happened narrative, Key Insights cards, Quote blockquote, prev/next episode nav, signup CTA, related podcasts, full SEO (canonical, OG, twitter tags). 500+ total recaps across all 50 podcasts, automatically refreshed daily
 - `/about` — Founder-led About page with Derek Johnson's story (founded Tatango.com, 15 years, helped nonprofits raise $1B, semi-retired, built PodCap); sections: hero, origin story, founder quote + LinkedIn link, value props, "Founder. Owner. Customer.", Derek's podcast recaps (dynamic from `/api/founder-podcasts` pulling from hiderekjohnson@gmail.com account with "Get Recaps" buttons), who it's for, "I Still Love Podcasts" section (favorites: Spotify, MFM, AirPods, on a walk), What's New link, final CTA. External links open in new tabs.
 - `/podcast-deals` — SEO page listing sponsor deals extracted from podcast transcripts (promo codes, free trials, special links, discounts). FAQ schema, ItemList schema, internal linking. Admin triggers extraction via "Extract Deals" button
 - `/updates` — What's New changelog + feature request form. SEO-optimized with JSON-LD, meta tags. Changelog entries first, feature request form at bottom
@@ -38,6 +38,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `transcript_logs` table: id, user_id, podcast_name, podcast_id, episode_title, taddy_uuid, status, transcript_length, error_message, created_at
 - `podcast_example_recaps` table: id, slug (unique), podcast_name, itunes_id, episode_title, episode_date, episode_duration, tldl, what_happened, key_insights (text array), quote, quote_attribution, updated_at
 - `podcast_deals` table: id, podcast_name, podcast_id, podcast_slug, episode_title, episode_date, sponsor_name, offer_summary, promo_code, special_link, deal_type, deal_category, detected_at
+- `landing_page_recaps` table: id, slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights (text[]), quote, quote_attribution, created_at — **episode recaps for landing pages**; 500+ recaps across 50 podcasts; automatically refreshed daily at 5 AM ET by `refreshLandingPageRecaps()` in emailScheduler; also refreshed whenever user recaps are generated. API: `GET /api/podcasts/:slug/recaps`, `GET /api/podcasts/:slug/recaps/:episodeSlug`
 - `podcast_directory` table: id, itunes_id (unique), slug (unique), name, hosts, category, description, keywords, faq_topics, artwork_url, apple_url, spotify_url, youtube_url, twitter_handle, host_handle, followers, avg_episode_length, frequency, total_episodes, year_started, known_for (text[]), host_bios (jsonb), related_slugs (text[]), about_podcast, has_landing_page (boolean), created_at, updated_at — **central source of truth for all podcast metadata**; landing pages read from this table; auto-populated when users add podcasts; managed via admin Podcasts tab
 - `stripe.*` tables: managed automatically by `stripe-replit-sync`
 
@@ -85,7 +86,9 @@ A full-stack web application that lets users create and manage personalized dail
 - `POST /api/stripe/portal` — Create Stripe billing portal session
 - `POST /api/stripe/sync-subscription` — Sync subscription status
 - `POST /api/stripe/cancel-subscription` — Cancel subscription (handles null subscription ID gracefully)
-- `GET /api/podcasts/:slug/example-recap` — Get example recap for podcast landing page
+- `GET /api/podcasts/:slug/recaps?limit=10` — Get episode recaps for podcast landing page (from `landing_page_recaps` table)
+- `GET /api/podcasts/:slug/recaps/:episodeSlug` — Get individual episode recap
+- `GET /api/podcasts/:slug/example-recap` — Get featured example recap for podcast landing page
 - `GET /api/podcast-deals` — Get extracted podcast deals
 - `POST /api/support` — Submit support/feature request (sends email via Resend)
 
