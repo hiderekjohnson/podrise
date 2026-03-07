@@ -619,7 +619,7 @@ export default function Dashboard() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground line-clamp-2 leading-snug" data-testid={`text-podcast-name-${podcast.id}`}>
+                              <p className="text-sm font-semibold text-foreground truncate" data-testid={`text-podcast-name-${podcast.id}`}>
                                 {podcast.name}
                               </p>
                             </div>
@@ -684,7 +684,7 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">{podcast.name}</p>
+                            <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
                             <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
                           </div>
                           <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
@@ -718,7 +718,7 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">{podcast.name}</p>
+                            <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
                             <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.genres.slice(0, 2).join(" · ")}</p>
                           </div>
                           <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
