@@ -134,7 +134,56 @@ export default function ForPodcasters() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20" data-testid="section-problem">
+        <section className="py-16 sm:py-20" data-testid="section-time-gap">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-[-0.02em] mb-3 text-center" data-testid="text-time-gap-title">
+              Why listeners fall behind
+            </h2>
+            <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-10">
+              Even dedicated podcast fans simply do not have enough time to listen to every episode they subscribe to.
+            </p>
+
+            <div className="grid sm:grid-cols-3 gap-5 mb-12">
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-6 text-center" data-testid="stat-subscriptions">
+                <p className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight mb-2">6–8</p>
+                <p className="text-sm font-display font-semibold mb-1">podcasts subscribed</p>
+                <p className="text-[11px] text-muted-foreground/50 leading-snug">Edison Research – The Infinite Dial / Podcast Consumer reports</p>
+              </div>
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-6 text-center" data-testid="stat-listening-time">
+                <p className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight mb-2">8 hrs</p>
+                <p className="text-sm font-display font-semibold mb-1">weekly listening time</p>
+                <p className="text-[11px] text-muted-foreground/50 leading-snug">Edison Research – Podcast Consumer</p>
+              </div>
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-6 text-center" data-testid="stat-episode-length">
+                <p className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight mb-2">60–120</p>
+                <p className="text-sm font-display font-semibold mb-1">minutes per episode</p>
+                <p className="text-[11px] text-muted-foreground/50 leading-snug">Industry average across top podcasts</p>
+              </div>
+            </div>
+
+            <div className="max-w-xl mx-auto">
+              <h3 className="text-xl font-display font-bold mb-4">The math doesn't work</h3>
+              <div className="text-[17px] leading-[1.8] text-muted-foreground space-y-4">
+                <p>
+                  If a listener follows 6–8 podcasts and each episode is 60–120 minutes long, that's 6–16 hours of listening every week.
+                </p>
+                <p>
+                  But the average listener only has about 8 hours available.
+                </p>
+                <p>
+                  Episodes pile up.<br />
+                  Listeners fall behind.<br />
+                  And once someone feels too far behind, they often stop listening entirely.
+                </p>
+                <p className="font-display font-bold text-foreground">
+                  PodCap solves the backlog problem by keeping listeners up to date with short daily recaps, so they stay connected and jump into the episodes that matter most.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20 bg-slate-50/50" data-testid="section-problem">
           <div className="max-w-3xl mx-auto px-6">
             <div className="bg-white border border-black/[0.06] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm" data-testid="card-problem">
               <div className="flex items-center gap-3 mb-6">
