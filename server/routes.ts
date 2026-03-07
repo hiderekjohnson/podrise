@@ -837,7 +837,10 @@ export async function registerRoutes(
               if (ep.wrapperType !== "podcastEpisode" || !ep.trackTimeMillis) continue;
               const epTitle = (ep.trackName || "").trim();
               if (!epTitle) continue;
-              if (summary.includes(`**${epTitle}**`)) {
+              const searchStr = `**${epTitle}**`;
+              const found = summary.includes(searchStr);
+              console.log(`[regen] iTunes ep: "${epTitle}" | search="${searchStr}" | found=${found}`);
+              if (found) {
                 const durationMin = Math.round(ep.trackTimeMillis / 60000);
                 totalDurationMin += durationMin;
                 const durationStr = durationMin >= 60
