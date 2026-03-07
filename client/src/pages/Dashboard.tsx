@@ -574,82 +574,99 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15 }}
-              className="space-y-6"
+              className="space-y-5"
             >
-              {podcasts.length > 0 && (
-                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                  <div className="px-6 pt-6 pb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-your-podcasts">
-                        Your Podcasts
-                      </h2>
-                      {!isPro && (
-                        <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full" data-testid="text-podcast-count">
-                          {podcasts.length} / 3 free
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">We'll recap new episodes from these shows.</p>
+              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                <div className="px-6 pt-5 pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-your-podcasts">
+                      Your Podcasts
+                    </h2>
+                    {!isPro && (
+                      <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-full" data-testid="text-podcast-count">
+                        {podcasts.length}/3
+                      </span>
+                    )}
                   </div>
-                  <div className="px-6 pb-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                </div>
+                {podcasts.length > 0 ? (
+                  <div className="px-6 pb-5">
+                    <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-1">
                       <AnimatePresence initial={false}>
                         {podcasts.map((podcast) => (
                           <motion.div
                             key={podcast.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.2 }}
                             data-testid={`card-podcast-${podcast.id}`}
-                            className="flex items-center gap-3 p-3 bg-[#f8f9fb] border border-black/[0.04] rounded-xl group"
+                            className="flex flex-col items-center gap-2 shrink-0 group relative w-20"
                           >
-                            {podcast.artworkUrl ? (
-                              <img
-                                src={hiResArtwork(podcast.artworkUrl)}
-                                alt={podcast.name}
-                                className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm"
-                                data-testid={`img-podcast-${podcast.id}`}
-                              />
-                            ) : (
-                              <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                                <Podcast className="w-7 h-7 text-primary" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2" data-testid={`text-podcast-name-${podcast.id}`}>
-                                {podcast.name}
-                              </p>
-                              {podcast.artist && (
-                                <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
+                            <div className="relative">
+                              {podcast.artworkUrl ? (
+                                <img
+                                  src={hiResArtwork(podcast.artworkUrl)}
+                                  alt={podcast.name}
+                                  className="w-16 h-16 rounded-xl object-cover shadow-sm"
+                                  data-testid={`img-podcast-${podcast.id}`}
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center">
+                                  <Podcast className="w-7 h-7 text-primary" />
+                                </div>
                               )}
+                              <button
+                                data-testid={`button-remove-podcast-${podcast.id}`}
+                                onClick={() => handleRemove(podcast.id)}
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-black/10 shadow-sm flex items-center justify-center text-muted-foreground/50 hover:text-red-500 hover:border-red-200 transition-colors opacity-0 group-hover:opacity-100"
+                                aria-label={`Remove ${podcast.name}`}
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
                             </div>
-                            <button
-                              data-testid={`button-remove-podcast-${podcast.id}`}
-                              onClick={() => handleRemove(podcast.id)}
-                              className="p-1.5 rounded-lg text-muted-foreground/30 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
-                              aria-label={`Remove ${podcast.name}`}
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                            <p className="text-xs font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
+                              {podcast.name}
+                            </p>
                           </motion.div>
                         ))}
                       </AnimatePresence>
+                      {!isPro && podcasts.length < 3 && (
+                        Array.from({ length: 3 - podcasts.length }).map((_, i) => (
+                          <div key={`empty-${i}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
+                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] flex items-center justify-center">
+                              <Plus className="w-5 h-5 text-muted-foreground/30" />
+                            </div>
+                            <p className="text-xs text-muted-foreground/40 text-center leading-tight">Add show</p>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="px-6 pb-5">
+                    <div className="flex gap-4">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={`empty-${i}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
+                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] flex items-center justify-center">
+                            <Plus className="w-5 h-5 text-muted-foreground/30" />
+                          </div>
+                          <p className="text-xs text-muted-foreground/40 text-center leading-tight">Add show</p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3">Search below to add podcasts and start getting daily recaps.</p>
+                  </div>
+                )}
+              </div>
 
               <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                <div className="px-6 pt-6 pb-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Plus className="w-4 h-4 text-primary" />
-                    <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-add-podcasts">
-                      Add Podcasts
-                    </h2>
-                  </div>
+                <div className="px-6 pt-5 pb-4">
+                  <h2 className="text-base font-display font-bold text-foreground mb-1" data-testid="heading-add-podcasts">
+                    Discover Podcasts
+                  </h2>
                   <p className="text-sm text-muted-foreground">
-                    {podcasts.length === 0 ? "Search for podcasts to start getting daily recaps." : "Search or browse below to add more shows."}
+                    Search or browse popular shows to add to your daily recap.
                   </p>
                 </div>
 
