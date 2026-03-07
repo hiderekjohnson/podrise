@@ -445,7 +445,26 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, te
   const parsed = parseDigestMarkdown(markdown);
 
   const durationMatch = parsed.statsHeader.match(/\*?\*?([^*]+)\*?\*?\s*Total duration/i);
-  const totalDuration = durationMatch ? durationMatch[1].replace(/\*/g, "").trim() : "";
+  let totalDuration = durationMatch ? durationMatch[1].replace(/\*/g, "").trim() : "";
+
+  if (!totalDuration && parsed.episodes.length > 0) {
+    let totalMinutes = 0;
+    for (const ep of parsed.episodes) {
+      const metaParts = ep.metaLine.split(/\s*·\s*/).map(p => p.trim()).filter(Boolean);
+      const durPart = metaParts[metaParts.length - 1] || "";
+      const hrMatch = durPart.match(/(\d+)\s*hr/);
+      const minMatch = durPart.match(/(\d+)\s*min/);
+      if (hrMatch) totalMinutes += parseInt(hrMatch[1]) * 60;
+      if (minMatch) totalMinutes += parseInt(minMatch[1]);
+    }
+    if (totalMinutes > 0) {
+      const hours = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+      totalDuration = hours > 0
+        ? (mins > 0 ? `${hours} hour${hours !== 1 ? "s" : ""} and ${mins} minute${mins !== 1 ? "s" : ""}` : `${hours} hour${hours !== 1 ? "s" : ""}`)
+        : `${mins} minute${mins !== 1 ? "s" : ""}`;
+    }
+  }
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
@@ -453,7 +472,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, te
   const t: EmailTemplateConfig = { ...DEFAULT_TEMPLATE, ...templateOverrides };
 
   const mergeVars: Record<string, string> = {
-    audio_length: totalDuration || parsed.episodes.length + " of your favorite podcasts",
+    audio_length: totalDuration || `${parsed.episodes.length} episode${parsed.episodes.length !== 1 ? "s" : ""} of`,
     episode_count: String(parsed.episodes.length),
     podcast_names: parsed.podcastNames || "",
     date: dateStr,
