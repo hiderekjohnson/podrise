@@ -1024,7 +1024,7 @@ export default function Dashboard() {
                       <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
                       <span className="text-sm text-muted-foreground font-medium">/month</span>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                       Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
                     </p>
                   </div>
@@ -1058,7 +1058,7 @@ export default function Dashboard() {
                       <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
                       <span className="text-sm text-muted-foreground font-medium">/month</span>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                       Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
                     </p>
                   </div>
