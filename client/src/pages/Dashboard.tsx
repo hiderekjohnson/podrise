@@ -1149,8 +1149,10 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4">
-        <p className="text-xs text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodCap. All rights reserved.</p>
+      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4 flex items-center justify-center gap-3">
+        <p className="text-xs text-muted-foreground/50">© {new Date().getFullYear()} PodCap</p>
+        <span className="text-xs text-muted-foreground/30">·</span>
+        <a href="/help" className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors" data-testid="link-help">Help & Support</a>
       </footer>
     </div>
   );
