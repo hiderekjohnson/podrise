@@ -179,7 +179,14 @@ export class DatabaseStorage implements IStorage {
     return (row?.count ?? 0) > 0;
   }
   async deleteUser(id: number): Promise<void> {
+    const user = await this.getUserById(id);
+    await db.delete(pendingEmails).where(eq(pendingEmails.userId, id));
+    await db.delete(emailLogs).where(eq(emailLogs.userId, id));
+    await db.delete(transcriptLogs).where(eq(transcriptLogs.userId, id));
     await db.delete(recaps).where(eq(recaps.userId, id));
+    if (user?.email) {
+      await db.delete(magicLinks).where(eq(magicLinks.email, user.email));
+    }
     await db.delete(users).where(eq(users.id, id));
   }
 

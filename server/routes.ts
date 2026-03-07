@@ -381,6 +381,32 @@ export async function registerRoutes(
     });
   });
 
+  app.delete("/api/account", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const { confirmation } = req.body || {};
+    if (confirmation !== "DELETE") {
+      return res.status(400).json({ message: "Please type DELETE to confirm account deletion" });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.plan === "pro") {
+      return res.status(400).json({ message: "Please cancel your Pro subscription before deleting your account" });
+    }
+    try {
+      await storage.deleteUser(user.id);
+      req.session.destroy(() => {
+        res.json({ message: "Account deleted successfully" });
+      });
+    } catch (err: any) {
+      console.error("Failed to delete account:", err);
+      res.status(500).json({ message: "Failed to delete account" });
+    }
+  });
+
   const TRACKING_PIXEL = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
   app.get("/api/track/open/:id", async (req, res) => {
     try {

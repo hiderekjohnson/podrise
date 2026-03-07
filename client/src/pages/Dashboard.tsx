@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Receipt } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Receipt, Trash2, AlertTriangle } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -85,6 +85,19 @@ export default function Dashboard() {
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
   const { mutate: logout } = useLogout();
   const { toast } = useToast();
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", "/api/account", { confirmation: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.clear();
+      navigate("/");
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message || "Failed to delete account", variant: "destructive" });
+    },
+  });
 
   const hasInvalidatedAuth = useRef(false);
   useEffect(() => {
@@ -178,6 +191,8 @@ export default function Dashboard() {
 
   const [vacationUntil, setVacationUntil] = useState<string | null>(null);
   const [vacationInput, setVacationInput] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -1017,6 +1032,72 @@ export default function Dashboard() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {!isPro && (
+                <div className="border border-red-200 rounded-2xl overflow-hidden mt-2">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
+                      <h2 className="text-lg font-display font-bold text-red-600">Danger Zone</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">Permanently delete your account and all associated data.</p>
+                  </div>
+                  <div className="px-6 pb-6 pt-3">
+                    {!showDeleteConfirm ? (
+                      <button
+                        data-testid="button-delete-account"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="h-9 px-4 rounded-lg text-xs font-bold text-red-600 border border-red-200 hover:bg-red-50 transition-all flex items-center gap-1.5"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete my account
+                      </button>
+                    ) : (
+                      <div className="rounded-xl border border-red-200 bg-red-50/60 p-4" data-testid="section-delete-confirm">
+                        <p className="text-sm font-semibold text-red-700 mb-1">Are you sure? This cannot be undone.</p>
+                        <p className="text-xs text-red-600/80 mb-3">
+                          This will permanently delete your account, saved podcasts, recap history, and all email data. You will not be able to recover any of this information.
+                        </p>
+                        <div className="mb-3">
+                          <label className="text-xs font-semibold text-red-700 mb-1.5 block">
+                            Type <span className="font-mono bg-red-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm
+                          </label>
+                          <input
+                            data-testid="input-delete-confirm"
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="DELETE"
+                            className="h-9 w-48 px-3 bg-white border border-red-200 rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-red-300 transition-all font-mono"
+                            autoComplete="off"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            data-testid="button-confirm-delete"
+                            disabled={deleteConfirmText !== "DELETE" || deleteAccountMutation.isPending}
+                            onClick={() => deleteAccountMutation.mutate()}
+                            className="h-9 px-4 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                          >
+                            {deleteAccountMutation.isPending ? (
+                              <><Loader2 className="w-3.5 h-3.5 animate-spin" />Deleting...</>
+                            ) : (
+                              <><Trash2 className="w-3.5 h-3.5" />Permanently delete my account</>
+                            )}
+                          </button>
+                          <button
+                            data-testid="button-cancel-delete"
+                            onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
+                            className="h-9 px-3 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-gray-100 transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
