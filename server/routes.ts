@@ -1163,6 +1163,31 @@ ${formatInstructions}`;
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, count]) => ({ date, count }));
 
+      const allPendingEmails = await storage.getPendingEmails();
+      const sentEmails = allPendingEmails.filter(e => e.status === "sent");
+      const openedEmails = sentEmails.filter(e => e.emailOpenedAt);
+      const totalSent = sentEmails.length;
+      const totalOpened = openedEmails.length;
+      const openRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
+
+      const openRateByDay: Record<string, { sent: number; opened: number }> = {};
+      for (const email of sentEmails) {
+        const date = email.sentAt
+          ? new Date(email.sentAt).toISOString().split("T")[0]
+          : email.recapDate;
+        if (!openRateByDay[date]) openRateByDay[date] = { sent: 0, opened: 0 };
+        openRateByDay[date].sent++;
+        if (email.emailOpenedAt) openRateByDay[date].opened++;
+      }
+      const openRateTrend = Object.entries(openRateByDay)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, { sent, opened }]) => ({
+          date,
+          sent,
+          opened,
+          rate: sent > 0 ? Math.round((opened / sent) * 100) : 0,
+        }));
+
       res.json({
         totalUsers,
         totalRecaps,
@@ -1172,6 +1197,8 @@ ${formatInstructions}`;
         topPodcasts,
         userGrowth: userGrowthCumulative,
         emailActivity,
+        emailOpenStats: { totalSent, totalOpened, openRate },
+        openRateTrend,
       });
     } catch (err) {
       console.error("Analytics error:", err);

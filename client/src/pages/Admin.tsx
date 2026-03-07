@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
 const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
@@ -29,6 +29,8 @@ interface AnalyticsData {
   topPodcasts: { name: string; artworkUrl: string; count: number }[];
   userGrowth: { date: string; newUsers: number; totalUsers: number }[];
   emailActivity: { date: string; count: number }[];
+  emailOpenStats: { totalSent: number; totalOpened: number; openRate: number };
+  openRateTrend: { date: string; sent: number; opened: number; rate: number }[];
 }
 
 function parsePodcastName(raw: string): string {
@@ -619,6 +621,36 @@ export default function Admin() {
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-tracked">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                            <Send className="w-4.5 h-4.5 text-blue-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sent</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.totalSent ?? 0}</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-opened">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
+                            <Eye className="w-4.5 h-4.5 text-green-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Opened</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.totalOpened ?? 0}</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-open-rate">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                            <TrendingUp className="w-4.5 h-4.5 text-emerald-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Open Rate</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.openRate ?? 0}%</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="glass-panel rounded-2xl p-6" data-testid="chart-email-activity">
                         <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
@@ -653,6 +685,37 @@ export default function Admin() {
                         )}
                       </div>
 
+                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-open-rate-trend">
+                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-green-500" />
+                          Open Rate Trend
+                        </h3>
+                        {!analytics.openRateTrend || analytics.openRateTrend.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">No tracking data yet</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {(() => {
+                              const recent = analytics.openRateTrend.slice(-14);
+                              return recent.map((point, i) => (
+                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`open-rate-day-${i}`}>
+                                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
+                                    {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </span>
+                                  <div className="flex-1 h-2 bg-black/[0.04] rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${point.rate >= 50 ? "bg-green-500/60" : point.rate >= 25 ? "bg-amber-500/60" : "bg-red-500/40"}`}
+                                      style={{ width: `${point.rate}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-bold text-foreground w-20 text-right tabular-nums">
+                                    {point.rate}% ({point.opened}/{point.sent})
+                                  </span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ) : null}
