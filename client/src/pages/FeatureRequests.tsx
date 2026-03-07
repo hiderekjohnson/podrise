@@ -11,23 +11,26 @@ interface ChangelogEntry {
   description: string;
   link?: { url: string; label: string };
   emoji: string;
-  tag?: string;
 }
 
 const changelog: ChangelogEntry[] = [
+  {
+    title: "For Podcasters — we're here to help, not hurt",
+    description: "There was some confusion from podcasters that PodCap might lower listening. It's far from the truth. We built a dedicated page to explain how PodCap actually helps podcasters by keeping superfans engaged, boosting completion rates, and improving algorithm performance. We love podcasters, and this service is completely free for creators.",
+    link: { url: "/for-podcasters", label: "Read our message to podcasters" },
+    emoji: "❤️",
+  },
   {
     title: "AI-generated episode recaps on every podcast page",
     description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily podcast recap looks like before signing up.",
     link: { url: "/podcasts/joerogan", label: "Read Joe Rogan's latest episode summary" },
     emoji: "📝",
-    tag: "Podcast Summaries",
   },
   {
     title: "Dedicated podcast summary pages for individual shows",
     description: "Podcasters reached out and asked for their own sign-up pages — so we built them. Each page is a hub for that podcast's daily recaps, episode summaries, and show info. If you're a podcaster and want your own page, we'd love to hear from you.",
     link: { url: "/podcasts/myfirstmillion", label: "See the My First Million podcast summary page" },
     emoji: "🎙️",
-    tag: "Podcast Pages",
   },
   {
     title: "Help & Support center",
@@ -39,21 +42,12 @@ const changelog: ChangelogEntry[] = [
     title: "PodCap Pro — unlimited podcast summaries",
     description: "Follow more than 3 podcasts with our Pro plan for $9.99/month. Get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
     emoji: "⭐",
-    tag: "Pro",
   },
   {
-    title: "Podcast deals & promo codes",
-    description: "We now extract sponsor deals, promo codes, and exclusive offers mentioned in podcast episodes — so you never miss a discount from your favorite shows.",
-    link: { url: "/podcast-deals", label: "Browse the latest podcast deals and promo codes" },
-    emoji: "🏷️",
-    tag: "Deals",
-  },
-  {
-    title: "Most popular podcasts directory",
-    description: "Browse and discover the most popular podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
-    link: { url: "/podcasts", label: "Explore the most popular podcast summaries" },
+    title: "Top podcasts directory",
+    description: "Browse and discover the top podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
+    link: { url: "/podcasts", label: "Explore the top podcast summaries" },
     emoji: "📊",
-    tag: "Discovery",
   },
   {
     title: "View and re-send past recaps from your dashboard",
@@ -210,14 +204,7 @@ export default function FeatureRequests() {
                       {entry.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <h3 className="text-[15px] font-bold text-foreground leading-snug">{entry.title}</h3>
-                        {entry.tag && (
-                          <span className="inline-flex px-2 py-0.5 bg-primary/[0.06] text-primary text-[10px] font-semibold uppercase tracking-wider rounded-full whitespace-nowrap">
-                            {entry.tag}
-                          </span>
-                        )}
-                      </div>
+                      <h3 className="text-[15px] font-bold text-foreground leading-snug mb-1.5">{entry.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">{entry.description}</p>
                       {entry.link && (
                         <a
