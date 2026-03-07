@@ -389,7 +389,7 @@ export default function PodcastLandingGeneric() {
           </h2>
 
           {aboutPodcast && (
-            <p className="text-[17px] leading-[1.8] text-muted-foreground text-center max-w-3xl mx-auto mb-10" data-testid="text-about-podcast">
+            <p className="text-[17px] leading-[1.8] text-muted-foreground text-left sm:text-center max-w-3xl mx-auto mb-10" data-testid="text-about-podcast">
               {aboutPodcast}
             </p>
           )}

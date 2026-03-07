@@ -147,16 +147,16 @@ export default function Leaderboard() {
                   <button
                     key={podcast.id}
                     onClick={() => setSelectedPodcast(podcast)}
-                    className="flex items-center gap-5 sm:gap-6 px-6 sm:px-8 py-5 w-full text-left transition-colors hover:bg-black/[0.015] group/row"
+                    className="flex items-center gap-4 sm:gap-6 px-4 sm:px-8 py-4 sm:py-5 w-full text-left transition-colors hover:bg-black/[0.015] group/row"
                     data-testid={`leaderboard-row-${index}`}
                   >
-                    <span className="text-base font-bold text-muted-foreground/40 w-7 text-right shrink-0 tabular-nums" data-testid={`rank-${index}`}>
+                    <span className="text-base font-bold text-muted-foreground/40 w-6 sm:w-7 text-right shrink-0 tabular-nums" data-testid={`rank-${index}`}>
                       {index + 1}
                     </span>
                     <img
                       src={podcast.artworkUrl}
                       alt={podcast.name}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0 shadow-md shadow-black/[0.06]"
+                      className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0 shadow-md shadow-black/[0.06]"
                       data-testid={`artwork-${index}`}
                     />
                     <div className="flex-1 min-w-0">
@@ -165,39 +165,39 @@ export default function Leaderboard() {
                         return slug ? (
                           <a
                             href={`/podcasts/${slug}`}
-                            className="text-base sm:text-lg font-bold text-foreground hover:underline truncate block transition-colors"
+                            className="text-sm sm:text-lg font-bold text-foreground hover:underline line-clamp-2 sm:truncate block transition-colors"
                             data-testid={`name-${index}`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {podcast.name}
                           </a>
                         ) : (
-                          <p className="text-base sm:text-lg font-bold text-foreground truncate" data-testid={`name-${index}`}>
+                          <p className="text-sm sm:text-lg font-bold text-foreground line-clamp-2 sm:truncate" data-testid={`name-${index}`}>
                             {podcast.name}
                           </p>
                         );
                       })()}
                       {podcast.artist && (
-                        <p className="text-sm text-muted-foreground/70 truncate mt-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground/70 truncate mt-0.5 sm:mt-1">
                           {podcast.artist}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
                         {podcast.genres?.slice(0, 2).map((genre) => (
-                          <span key={genre} className="text-xs font-semibold text-muted-foreground/70 bg-black/[0.04] px-2.5 py-1 rounded-full">
+                          <span key={genre} className="text-[11px] sm:text-xs font-semibold text-muted-foreground/70 bg-black/[0.04] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
                             {genre}
                           </span>
                         ))}
                         {podcast.episodeCount > 0 && (
-                          <span className="text-xs text-muted-foreground/50">
+                          <span className="text-[11px] sm:text-xs text-muted-foreground/50">
                             {podcast.episodeCount} episodes
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="shrink-0 flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20" data-testid={`button-recap-${index}`}>
+                    <div className="shrink-0 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/[0.08] text-primary transition-all group-hover/row:bg-primary group-hover/row:text-white group-hover/row:shadow-md group-hover/row:shadow-primary/20" data-testid={`button-recap-${index}`}>
                       Get Recaps
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                   </button>
                 ))}
