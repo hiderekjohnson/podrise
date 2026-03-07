@@ -553,11 +553,6 @@ export default function Dashboard() {
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
-              {tab.key === "recaps" && recaps && recaps.length > 0 && (
-                <span className={`ml-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? "bg-white/20" : "bg-primary/10 text-primary"}`}>
-                  {recaps.length}
-                </span>
-              )}
             </button>
           ))}
         </div>
