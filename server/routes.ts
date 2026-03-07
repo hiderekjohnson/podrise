@@ -165,6 +165,26 @@ Disallow: /api/
 Sitemap: ${DOMAIN}/sitemap.xml
 `;
 
+async function autoPopulateDirectory(podcasts: string[]) {
+  for (const raw of podcasts) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") continue;
+      const itunesId = String(parsed.itunesId || parsed.id || "");
+      const name = parsed.name || "";
+      if (!itunesId || !name) continue;
+      const existing = await storage.getPodcastDirectoryEntry(itunesId);
+      if (!existing) {
+        await storage.upsertPodcastDirectoryEntry({
+          itunesId,
+          name,
+          artworkUrl: parsed.artworkUrl || parsed.imageUrl || null,
+        });
+      }
+    } catch {}
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -260,6 +280,10 @@ export async function registerRoutes(
       const user = await storage.createUser(input);
       req.session.userId = user.id;
       res.status(201).json(user);
+
+      if (input.podcasts && input.podcasts.length > 0) {
+        autoPopulateDirectory(input.podcasts).catch(() => {});
+      }
 
       sendNewUserNotification(user, req, req.body.signupSource).catch((err) =>
         console.error("[NewUserNotify] Failed:", err)
@@ -1393,6 +1417,12 @@ ${formatInstructions}`;
     res.json({ twitterHandle: entry.twitterHandle, hostHandle: entry.hostHandle });
   });
 
+  app.get("/api/podcasts/by-slug/:slug", async (req, res) => {
+    const entry = await storage.getPodcastDirectoryBySlug(req.params.slug);
+    if (!entry) return res.json(null);
+    res.json(entry);
+  });
+
   app.get("/api/admin/podcast-directory", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -1406,30 +1436,46 @@ ${formatInstructions}`;
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
-      const { itunesId, name, twitterHandle, hostHandle, followers } = req.body;
-      const trimmedId = typeof itunesId === "string" ? itunesId.trim() : "";
-      const trimmedName = typeof name === "string" ? name.trim() : "";
+      const b = req.body;
+      const trimmedId = typeof b.itunesId === "string" ? b.itunesId.trim() : "";
+      const trimmedName = typeof b.name === "string" ? b.name.trim() : "";
       if (!trimmedId || !trimmedName) {
         return res.status(400).json({ message: "itunesId and name are required" });
       }
       if (!/^\d+$/.test(trimmedId)) {
         return res.status(400).json({ message: "itunesId must be a numeric string" });
       }
-      let parsedFollowers: number | null = null;
-      if (followers !== undefined && followers !== null && followers !== "") {
-        const num = Number(followers);
-        if (!Number.isInteger(num) || num < 0) {
-          return res.status(400).json({ message: "followers must be a non-negative integer" });
-        }
-        parsedFollowers = num;
-      }
-      const entry = await storage.upsertPodcastDirectoryEntry({
-        itunesId: trimmedId,
-        name: trimmedName,
-        twitterHandle: typeof twitterHandle === "string" && twitterHandle.trim() ? twitterHandle.trim() : null,
-        hostHandle: typeof hostHandle === "string" && hostHandle.trim() ? hostHandle.trim() : null,
-        followers: parsedFollowers,
-      });
+      const trimStr = (v: any) => typeof v === "string" && v.trim() ? v.trim() : null;
+      const parseOptInt = (v: any) => {
+        if (v === undefined || v === null || v === "") return undefined;
+        const n = Number(v);
+        return Number.isInteger(n) && n >= 0 ? n : undefined;
+      };
+      const data: any = { itunesId: trimmedId, name: trimmedName };
+      if ("slug" in b) data.slug = trimStr(b.slug);
+      if ("hosts" in b) data.hosts = trimStr(b.hosts);
+      if ("category" in b) data.category = trimStr(b.category);
+      if ("description" in b) data.description = trimStr(b.description);
+      if ("keywords" in b) data.keywords = trimStr(b.keywords);
+      if ("faqTopics" in b) data.faqTopics = trimStr(b.faqTopics);
+      if ("artworkUrl" in b) data.artworkUrl = trimStr(b.artworkUrl);
+      if ("appleUrl" in b) data.appleUrl = trimStr(b.appleUrl);
+      if ("spotifyUrl" in b) data.spotifyUrl = trimStr(b.spotifyUrl);
+      if ("youtubeUrl" in b) data.youtubeUrl = trimStr(b.youtubeUrl);
+      if ("twitterHandle" in b) data.twitterHandle = trimStr(b.twitterHandle);
+      if ("hostHandle" in b) data.hostHandle = trimStr(b.hostHandle);
+      if ("followers" in b) data.followers = parseOptInt(b.followers) ?? null;
+      if ("avgEpisodeLength" in b) data.avgEpisodeLength = parseOptInt(b.avgEpisodeLength) ?? null;
+      if ("frequency" in b) data.frequency = trimStr(b.frequency);
+      if ("totalEpisodes" in b) data.totalEpisodes = parseOptInt(b.totalEpisodes) ?? null;
+      if ("yearStarted" in b) data.yearStarted = parseOptInt(b.yearStarted) ?? null;
+      if ("knownFor" in b) data.knownFor = Array.isArray(b.knownFor) ? b.knownFor : undefined;
+      if ("hostBios" in b) data.hostBios = b.hostBios || undefined;
+      if ("relatedSlugs" in b) data.relatedSlugs = Array.isArray(b.relatedSlugs) ? b.relatedSlugs : undefined;
+      if ("aboutPodcast" in b) data.aboutPodcast = trimStr(b.aboutPodcast);
+      if ("hasLandingPage" in b) data.hasLandingPage = typeof b.hasLandingPage === "boolean" ? b.hasLandingPage : false;
+
+      const entry = await storage.upsertPodcastDirectoryEntry(data);
       res.json(entry);
     } catch (err: any) {
       res.status(500).json({ message: "Failed to save podcast directory entry" });
@@ -1467,6 +1513,11 @@ ${formatInstructions}`;
     try {
       const input = api.users.update.input.parse(req.body);
       const updated = await storage.updateUser(req.session.userId, input);
+
+      if (input.podcasts && input.podcasts.length > 0) {
+        autoPopulateDirectory(input.podcasts).catch(() => {});
+      }
+
       res.json(updated);
     } catch (err) {
       if (err instanceof z.ZodError) {

@@ -41,7 +41,7 @@ function generatePodcapFaqItems(name: string) {
 export default function PodcastLandingGeneric() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const config = getPodcastBySlug(slug || "");
+  const staticConfig = getPodcastBySlug(slug || "");
 
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
@@ -49,6 +49,35 @@ export default function PodcastLandingGeneric() {
   const { mutate: register, isPending } = useRegister();
   const [email, setEmail] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const { data: dbEntry } = useQuery<any>({
+    queryKey: ["/api/podcasts/by-slug", slug],
+    enabled: !!slug,
+  });
+
+  const config = dbEntry ? {
+    slug: dbEntry.slug,
+    name: dbEntry.name,
+    itunesId: dbEntry.itunesId,
+    category: dbEntry.category || "",
+    hosts: dbEntry.hosts || "",
+    description: dbEntry.description || "",
+    keywords: dbEntry.keywords || "",
+    faqTopics: dbEntry.faqTopics || "",
+    artworkUrl: dbEntry.artworkUrl || "",
+    appleUrl: dbEntry.appleUrl,
+    spotifyUrl: dbEntry.spotifyUrl,
+    youtubeUrl: dbEntry.youtubeUrl,
+    avgEpisodeLength: dbEntry.avgEpisodeLength,
+    frequency: dbEntry.frequency,
+    totalEpisodes: dbEntry.totalEpisodes,
+    yearStarted: dbEntry.yearStarted,
+    knownFor: dbEntry.knownFor,
+    hostBios: (() => { try { return typeof dbEntry.hostBios === "string" ? JSON.parse(dbEntry.hostBios) : Array.isArray(dbEntry.hostBios) ? dbEntry.hostBios : undefined; } catch { return undefined; } })(),
+    relatedSlugs: dbEntry.relatedSlugs,
+    aboutPodcast: dbEntry.aboutPodcast,
+    twitterHandle: dbEntry.twitterHandle,
+  } as PodcastLandingConfig & { twitterHandle?: string | null } : staticConfig ? { ...staticConfig, twitterHandle: null as string | null } : null;
 
   useEffect(() => {
     if (!config) return;
@@ -102,9 +131,9 @@ export default function PodcastLandingGeneric() {
       const ld = document.querySelector('script[data-seo="podcast-landing"]');
       if (ld) ld.remove();
     };
-  }, [config]);
+  }, [config?.name]);
 
-  if (!config) {
+  if (!config && !dbEntry && !staticConfig) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
@@ -124,21 +153,24 @@ export default function PodcastLandingGeneric() {
     );
   }
 
+  if (!config) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (user) {
     navigate("/dashboard");
     return null;
   }
 
   const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast } = config;
-
-  const { data: directoryEntry } = useQuery<{ twitterHandle: string | null; hostHandle: string | null } | null>({
-    queryKey: ["/api/podcast-directory/by-itunes", itunesId],
-    enabled: !!itunesId,
-  });
-  const twitterHandle = directoryEntry?.twitterHandle;
+  const twitterHandle = (config as any).twitterHandle as string | null | undefined;
 
   const podcapFaqItems = generatePodcapFaqItems(name);
-  const appleUrl = `https://podcasts.apple.com/podcast/id${itunesId}`;
+  const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
 
   const relatedPodcasts = (relatedSlugs || [])

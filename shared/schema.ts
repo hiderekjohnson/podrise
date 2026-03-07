@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -158,10 +158,29 @@ export type InsertPodcastExampleRecap = typeof podcastExampleRecaps.$inferInsert
 export const podcastDirectory = pgTable("podcast_directory", {
   id: serial("id").primaryKey(),
   itunesId: text("itunes_id").notNull().unique(),
+  slug: text("slug").unique(),
   name: text("name").notNull(),
+  hosts: text("hosts"),
+  category: text("category"),
+  description: text("description"),
+  keywords: text("keywords"),
+  faqTopics: text("faq_topics"),
+  artworkUrl: text("artwork_url"),
+  appleUrl: text("apple_url"),
+  spotifyUrl: text("spotify_url"),
+  youtubeUrl: text("youtube_url"),
   twitterHandle: text("twitter_handle"),
   hostHandle: text("host_handle"),
   followers: integer("followers"),
+  avgEpisodeLength: integer("avg_episode_length"),
+  frequency: text("frequency"),
+  totalEpisodes: integer("total_episodes"),
+  yearStarted: integer("year_started"),
+  knownFor: text("known_for").array(),
+  hostBios: jsonb("host_bios"),
+  relatedSlugs: text("related_slugs").array(),
+  aboutPodcast: text("about_podcast"),
+  hasLandingPage: boolean("has_landing_page").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -46,6 +46,7 @@ export interface IStorage {
   getRecentTranscripts(limit?: number): Promise<EpisodeTranscript[]>;
   getPodcastDirectory(): Promise<PodcastDirectoryEntry[]>;
   getPodcastDirectoryEntry(itunesId: string): Promise<PodcastDirectoryEntry | undefined>;
+  getPodcastDirectoryBySlug(slug: string): Promise<PodcastDirectoryEntry | undefined>;
   upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry>;
   deletePodcastDirectoryEntry(id: number): Promise<void>;
 }
@@ -418,19 +419,25 @@ export class DatabaseStorage implements IStorage {
     return entry;
   }
 
+  async getPodcastDirectoryBySlug(slug: string): Promise<PodcastDirectoryEntry | undefined> {
+    const [entry] = await db.select().from(podcastDirectory).where(eq(podcastDirectory.slug, slug));
+    return entry;
+  }
+
   async upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry> {
+    const { itunesId, ...rest } = data;
+    const updateFields: Record<string, any> = { updatedAt: new Date() };
+    for (const [key, value] of Object.entries(rest)) {
+      if (value !== undefined) {
+        updateFields[key] = value;
+      }
+    }
     const [entry] = await db
       .insert(podcastDirectory)
       .values(data)
       .onConflictDoUpdate({
         target: podcastDirectory.itunesId,
-        set: {
-          name: data.name,
-          twitterHandle: data.twitterHandle,
-          hostHandle: data.hostHandle,
-          followers: data.followers,
-          updatedAt: new Date(),
-        },
+        set: updateFields,
       })
       .returning();
     return entry;
