@@ -56,8 +56,8 @@ export default function About() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           data-testid="section-hero"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.07] text-primary text-[11px] font-bold uppercase tracking-widest mb-6">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-xs font-bold uppercase tracking-widest mb-6">
+            <Sparkles className="w-4 h-4" />
             About Us
           </div>
           <h1 className="text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
