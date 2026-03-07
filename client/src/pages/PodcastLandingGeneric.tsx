@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { Loader2, ArrowRight, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star } from "lucide-react";
+import { SiX } from "react-icons/si";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
@@ -128,6 +130,13 @@ export default function PodcastLandingGeneric() {
   }
 
   const { name, hosts, category, faqTopics, description: desc, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast } = config;
+
+  const { data: directoryEntry } = useQuery<{ twitterHandle: string | null; hostHandle: string | null } | null>({
+    queryKey: ["/api/podcast-directory/by-itunes", itunesId],
+    enabled: !!itunesId,
+  });
+  const twitterHandle = directoryEntry?.twitterHandle;
+
   const podcapFaqItems = generatePodcapFaqItems(name);
   const appleUrl = `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
@@ -482,6 +491,18 @@ export default function PodcastLandingGeneric() {
                   >
                     YouTube
                     <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  </a>
+                )}
+                {twitterHandle && (
+                  <a
+                    href={`https://x.com/${twitterHandle.replace("@", "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-5 py-3 bg-black/[0.03] hover:bg-black/[0.06] border border-black/[0.06] rounded-xl text-[15px] font-medium text-foreground transition-colors"
+                    data-testid="link-x-profile"
+                  >
+                    <SiX className="w-3.5 h-3.5" />
+                    {twitterHandle}
                   </a>
                 )}
               </div>

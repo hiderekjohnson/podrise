@@ -1387,6 +1387,12 @@ ${formatInstructions}`;
     res.json({ message: "Recap prompt saved" });
   });
 
+  app.get("/api/podcast-directory/by-itunes/:itunesId", async (req, res) => {
+    const entry = await storage.getPodcastDirectoryEntry(req.params.itunesId);
+    if (!entry) return res.json(null);
+    res.json({ twitterHandle: entry.twitterHandle, hostHandle: entry.hostHandle });
+  });
+
   app.get("/api/admin/podcast-directory", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
