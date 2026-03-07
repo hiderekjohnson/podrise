@@ -2,21 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Smile, MapPin } from "lucide-react";
-import { SiLinkedin, SiSpotify } from "react-icons/si";
-import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart } from "lucide-react";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
-
-interface FounderPodcast {
-  id: string;
-  name: string;
-  artistName: string;
-  artworkUrl: string;
-}
-
-function hiResArtwork(url: string) {
-  return url.replace(/\/\d+x\d+bb\./, "/200x200bb.");
-}
 
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
@@ -25,11 +12,6 @@ const fadeUp = {
 };
 
 export default function About() {
-  const { data: founderPodcasts, isLoading: podcastsLoading } = useQuery<FounderPodcast[]>({
-    queryKey: ["/api/founder-podcasts"],
-    select: (data: any) => data.podcasts,
-  });
-
   useEffect(() => {
     document.title = "About PodCap — The Story Behind Your Daily Podcast Summaries";
     const setMeta = (attr: string, key: string, content: string) => {
@@ -37,15 +19,15 @@ export default function About() {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "PodCap was built by Derek Johnson after 15 years running Tatango.com. Even semi-retired, he couldn't keep up with his favorite podcasts. So he built an AI-powered daily podcast summary service.");
+    setMeta("name", "description", "The team at PodCap came together with a shared love of podcasts and a common problem — we couldn't keep up. So we built an AI-powered daily podcast summary service.");
     setMeta("property", "og:title", "About PodCap — The Story Behind Your Daily Podcast Summaries");
-    setMeta("property", "og:description", "PodCap was built by Derek Johnson because even semi-retirement wasn't enough to catch up on podcasts. Learn the founder story behind the daily podcast recap service.");
+    setMeta("property", "og:description", "The team at PodCap came together with a shared love of podcasts and a common problem — we couldn't keep up. Learn the story behind the daily podcast recap service.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
     setMeta("name", "twitter:title", "About PodCap — The Story Behind Your Daily Podcast Summaries");
-    setMeta("name", "twitter:description", "PodCap was built by Derek Johnson because even semi-retirement wasn't enough to catch up on podcasts. Learn the founder story behind the daily podcast recap service.");
+    setMeta("name", "twitter:description", "The team at PodCap came together with a shared love of podcasts and a common problem — we couldn't keep up. Learn the story behind the daily podcast recap service.");
     setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -82,7 +64,7 @@ export default function About() {
             Built for people who love podcasts,<br className="hidden md:block" /> but have lives.
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
-            PodCap started with a simple problem: even after building and running a company for 15 years, and then finally having more time, Derek Johnson still could not keep up with his podcast queue.
+            Our team at PodCap came together with a shared love of podcasts — and a common problem. We couldn't keep up with all the great episodes. So we built the solution we wished existed.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a
@@ -121,24 +103,21 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          data-testid="section-founder-story"
+          data-testid="section-origin-story"
         >
           <h2 className="text-2xl font-display font-bold mb-6">The origin story</h2>
           <div className="space-y-4 text-[17px] leading-[1.8] text-muted-foreground">
             <p>
-              Derek Johnson founded <a href="https://www.tatango.com" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium hover:text-primary transition-colors">Tatango.com</a> and spent 15 years building it into a leading SMS marketing platform that helped nonprofits raise over $1 billion. After finally stepping back into something resembling semi-retirement, he expected to have more time for things he enjoyed. One of those things was podcasts.
+              We all had the same problem. Every week brought more episodes from shows we loved — great interviews, smart conversations, business breakdowns, tech debates. And every week, the backlog grew a little longer.
             </p>
             <p className="text-foreground font-medium">
               There was just one issue.
             </p>
             <p>
-              Even with more free time than he'd had in over a decade, he still could not keep up. Every week brought more episodes from favorite shows. Great interviews. Smart conversations. Business breakdowns. Tech debates. Weird startup ideas. Somehow, "having time" still did not translate into "listening to all of them."
-            </p>
-            <p>
-              Instead, the backlog kept growing, and with it, the quiet guilt of being 17 episodes behind on a show you swear you still follow.
+              No matter how much free time we had, we still couldn't keep up. Somehow, "having time" never translated into "listening to all of them." Instead, the backlog kept growing, and with it, the quiet guilt of being 17 episodes behind on a show you swear you still follow.
             </p>
             <p className="text-foreground font-medium">
-              So he built PodCap.
+              So we built PodCap.
             </p>
           </div>
         </motion.section>
@@ -148,28 +127,15 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          data-testid="section-founder-quote"
+          data-testid="section-team-quote"
         >
           <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 md:p-10">
             <Quote className="w-8 h-8 text-primary/20 absolute top-6 left-6" />
             <blockquote className="relative z-10 text-lg md:text-xl font-display leading-relaxed text-foreground italic pl-6 border-l-4 border-primary/30">
-              "I had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If a semi-retired person can't keep up, maybe the problem isn't the person."
+              "We had more free time, listened to more podcasts, and somehow still fell hopelessly behind. If none of us could keep up, maybe the problem isn't the person — it's the format."
             </blockquote>
-            <div className="mt-5 pl-6 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-foreground">Derek Johnson</p>
-                <p className="text-xs text-muted-foreground">Founder of PodCap &middot; Previously founded Tatango.com (15 years)</p>
-              </div>
-              <a
-                href="https://www.linkedin.com/in/derekjohnson/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0A66C2] hover:text-[#004182] transition-colors"
-                data-testid="link-linkedin"
-              >
-                <SiLinkedin className="w-4 h-4" />
-                Connect on LinkedIn
-              </a>
+            <div className="mt-5 pl-6">
+              <p className="text-sm font-bold text-foreground">The PodCap Team</p>
             </div>
           </div>
         </motion.section>
@@ -215,15 +181,15 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          data-testid="section-built-for-me"
+          data-testid="section-built-for-us"
         >
-          <h2 className="text-2xl font-display font-bold mb-3">Founder. Owner. Customer.</h2>
+          <h2 className="text-2xl font-display font-bold mb-3">Built for us. Built for you.</h2>
           <div className="space-y-4 text-[17px] leading-[1.8] text-muted-foreground">
             <p>
-              PodCap was built selfishly, in the best possible way. Derek wanted it for himself. He uses it himself. He pays for it himself. He may also be the only founder who can honestly say he became his own first paying customer out of necessity.
+              PodCap was built selfishly, in the best possible way. We wanted it for ourselves. We use it ourselves. We pay for it ourselves. We may also be the only team who can honestly say we became our own first paying customers out of necessity.
             </p>
             <p>
-              This isn't "we identified a market opportunity." This is "this problem annoyed me enough that I built the solution I wanted." It turns out he's not the only person with more great podcasts than available hours.
+              This isn't "we identified a market opportunity." This is "this problem annoyed us enough that we built the solution we wanted." It turns out we're not the only people with more great podcasts than available hours.
             </p>
             <p className="text-sm italic text-muted-foreground/80">
               No productivity guilt required.
@@ -236,59 +202,6 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          data-testid="section-derek-podcasts"
-        >
-          <h2 className="text-2xl font-display font-bold mb-3">Derek's podcast recaps</h2>
-          <p className="text-[15px] leading-[1.8] text-muted-foreground mb-6">
-            These are the podcasts Derek actually follows on PodCap. Every morning, he gets a recap of each new episode so he can decide what's worth a full listen. You can get the same recaps, free.
-          </p>
-          {podcastsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-3 animate-pulse">
-                  <div className="w-12 h-12 rounded-lg bg-muted shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-muted rounded w-3/4" />
-                    <div className="h-3 bg-muted rounded w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : founderPodcasts && founderPodcasts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="grid-founder-podcasts">
-              {founderPodcasts.map((podcast) => (
-                <div
-                  key={podcast.id}
-                  className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-3"
-                  data-testid={`card-podcast-${podcast.id}`}
-                >
-                  <img
-                    src={hiResArtwork(podcast.artworkUrl)}
-                    alt={podcast.name}
-                    className="w-12 h-12 rounded-lg object-cover shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-foreground truncate">{podcast.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{podcast.artistName}</p>
-                  </div>
-                  <a
-                    href={`/?podcast=${podcast.id}`}
-                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
-                    data-testid={`link-get-recaps-${podcast.id}`}
-                  >
-                    Get Recaps
-                  </a>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </motion.section>
-
-        <motion.section
-          className="max-w-3xl mx-auto px-6 pb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
           data-testid="section-who-its-for"
         >
           <h2 className="text-2xl font-display font-bold mb-3">Who it's for</h2>
@@ -315,17 +228,17 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
           data-testid="section-still-love-podcasts"
         >
           <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 md:p-10">
             <div className="flex items-center gap-3 mb-4">
               <Heart className="w-6 h-6 text-red-500 fill-red-500" />
-              <h2 className="text-2xl font-display font-bold">I still love podcasts</h2>
+              <h2 className="text-2xl font-display font-bold">We still love podcasts</h2>
             </div>
             <div className="space-y-4 text-[15px] leading-[1.8] text-muted-foreground">
               <p>
-                I didn't create PodCap to have people stop listening to podcasts. Quite the opposite. I want people to listen to the <span className="text-foreground font-medium">right</span> podcast episodes at the <span className="text-foreground font-medium">right</span> time.
+                We didn't create PodCap to have people stop listening to podcasts. Quite the opposite. We want people to listen to the <span className="text-foreground font-medium">right</span> podcast episodes at the <span className="text-foreground font-medium">right</span> time.
               </p>
               <p>
                 That's what PodCap does. It gives you a summary before you spend 60 minutes listening, only to find out the episode isn't a great fit for you right now. Instead, you can focus your time on the episodes that are. Skip the noise, keep the signal.
@@ -334,47 +247,6 @@ export default function About() {
                 Long live podcasts. :)
               </p>
             </div>
-            <div className="mt-8 pt-6 border-t border-black/[0.06] dark:border-white/[0.06]">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Derek's podcast setup</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#1DB954]/10 flex items-center justify-center shrink-0">
-                    <SiSpotify className="w-4 h-4 text-[#1DB954]" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Favorite podcast app</p>
-                    <p className="text-sm font-semibold text-foreground">Spotify</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Headphones className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Favorite podcast</p>
-                    <a href="/podcasts/myfirstmillion" className="text-sm font-semibold text-foreground hover:text-primary transition-colors" data-testid="link-fav-podcast">My First Million</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <Smile className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Favorite podcast headphones</p>
-                    <p className="text-sm font-semibold text-foreground">AirPods</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Favorite place to listen</p>
-                    <p className="text-sm font-semibold text-foreground">On a walk</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </motion.section>
 
@@ -382,7 +254,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.45 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
           data-testid="section-whats-new"
         >
           <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8">
@@ -405,7 +277,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
           data-testid="section-final-cta"
         >
           <div className="text-center bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-2xl p-10 md:p-14">
