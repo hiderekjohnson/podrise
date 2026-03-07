@@ -160,19 +160,19 @@ export default function Home() {
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Clock className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-sm sm:text-[15px] font-display font-bold text-foreground leading-tight">2-minute recaps</span>
+            <span className="text-sm sm:text-[15px] font-display font-medium text-foreground leading-tight">2-minute recaps</span>
           </div>
           <div className="flex flex-col items-center text-center gap-2" data-testid="benefit-digest">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Mail className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-sm sm:text-[15px] font-display font-bold text-foreground leading-tight">Daily email digest</span>
+            <span className="text-sm sm:text-[15px] font-display font-medium text-foreground leading-tight">Daily email digest</span>
           </div>
           <div className="flex flex-col items-center text-center gap-2" data-testid="benefit-free">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Podcast className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-sm sm:text-[15px] font-display font-bold text-foreground leading-tight">Free for 3 podcasts</span>
+            <span className="text-sm sm:text-[15px] font-display font-medium text-foreground leading-tight">Free for 3 podcasts</span>
           </div>
         </motion.div>
 
