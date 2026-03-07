@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, ChevronRight, Zap } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +28,17 @@ interface RecapData {
   createdAt: string | null;
 }
 
+interface LeaderboardPodcast {
+  id: string;
+  name: string;
+  artworkUrl: string;
+  userCount: number;
+  artist: string;
+  genres: string[];
+}
+
+type TabKey = "podcasts" | "settings" | "recaps" | "plan";
+
 function parsePodcasts(raw: string[]): SelectedPodcast[] {
   return raw.map((item) => {
     try {
@@ -46,6 +57,16 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
+function hiResArtwork(url: string) {
+  return url.replace(/\/\d+x\d+bb\./, "/200x200bb.");
+}
+
+const TABS: { key: TabKey; label: string; icon: typeof Podcast }[] = [
+  { key: "podcasts", label: "Podcasts", icon: Podcast },
+  { key: "recaps", label: "Recaps", icon: FileText },
+  { key: "settings", label: "Settings", icon: Settings },
+  { key: "plan", label: "Your Plan", icon: CreditCard },
+];
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
@@ -62,7 +83,7 @@ export default function Dashboard() {
     }
   }, []);
 
-  const [activeTab, setActiveTab] = useState<"settings" | "recaps">("settings");
+  const [activeTab, setActiveTab] = useState<TabKey>("podcasts");
   const [podcasts, setPodcasts] = useState<SelectedPodcast[]>([]);
   const [email, setEmail] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
@@ -128,11 +149,17 @@ export default function Dashboard() {
     enabled: !!user && isPro,
   });
 
+  const { data: leaderboardData } = useQuery<LeaderboardPodcast[]>({
+    queryKey: ["/api/leaderboard"],
+    enabled: !!user,
+  });
+
   const [vacationUntil, setVacationUntil] = useState<string | null>(null);
   const [vacationInput, setVacationInput] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleCancelSubscription = async () => {
     setIsCanceling(true);
@@ -151,6 +178,23 @@ export default function Dashboard() {
       toast({ title: "Error", description: "Failed to cancel subscription.", variant: "destructive" });
     } finally {
       setIsCanceling(false);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    setIsCheckingOut(true);
+    try {
+      const res = await apiRequest("POST", "/api/stripe/create-checkout");
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast({ title: "Error", description: "Could not start checkout.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to start checkout", variant: "destructive" });
+    } finally {
+      setIsCheckingOut(false);
     }
   };
 
@@ -192,6 +236,11 @@ export default function Dashboard() {
         .catch(() => {});
       window.history.replaceState({}, "", "/dashboard");
     }
+    if (params.get("tab")) {
+      const t = params.get("tab") as TabKey;
+      if (["podcasts", "settings", "recaps", "plan"].includes(t)) setActiveTab(t);
+      window.history.replaceState({}, "", "/dashboard");
+    }
   }, [user]);
 
   if (isLoading || isFetching) {
@@ -211,39 +260,36 @@ export default function Dashboard() {
     list.map((p) => JSON.stringify(p));
 
   const handleAdd = (podcast: SelectedPodcast) => {
-    const newList = [...podcasts, podcast];
-    setPodcasts(newList);
-    updateUser(
-      { podcasts: serializePodcasts(newList) },
-      {
-        onError: () => {
-          if (user) setPodcasts(parsePodcasts(user.podcasts));
-          toast({
-            title: "Failed to update",
-            description: "Could not update your podcast list.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
+    setPodcasts((prev) => {
+      if (prev.some(p => p.id === podcast.id)) return prev;
+      const newList = [...prev, podcast];
+      updateUser(
+        { podcasts: serializePodcasts(newList) },
+        {
+          onError: () => {
+            if (user) setPodcasts(parsePodcasts(user.podcasts));
+            toast({ title: "Failed to update", description: "Could not update your podcast list.", variant: "destructive" });
+          },
+        }
+      );
+      return newList;
+    });
   };
 
   const handleRemove = (id: string) => {
-    const newList = podcasts.filter((p) => p.id !== id);
-    setPodcasts(newList);
-    updateUser(
-      { podcasts: serializePodcasts(newList) },
-      {
-        onError: () => {
-          if (user) setPodcasts(parsePodcasts(user.podcasts));
-          toast({
-            title: "Failed to update",
-            description: "Could not update your podcast list.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
+    setPodcasts((prev) => {
+      const newList = prev.filter((p) => p.id !== id);
+      updateUser(
+        { podcasts: serializePodcasts(newList) },
+        {
+          onError: () => {
+            if (user) setPodcasts(parsePodcasts(user.podcasts));
+            toast({ title: "Failed to update", description: "Could not update your podcast list.", variant: "destructive" });
+          },
+        }
+      );
+      return newList;
+    });
   };
 
   const handleLogout = () => {
@@ -261,8 +307,23 @@ export default function Dashboard() {
   const podcastsOverLimit = podcasts.length > 3;
   const podcastsToRemove = podcasts.length - 3;
 
+  const selectedIds = new Set(podcasts.map(p => p.id));
+  const popularPodcasts = (leaderboardData || []).filter(p => !selectedIds.has(p.id)).slice(0, 6);
+  const popularIds = new Set(popularPodcasts.map(p => p.id));
+
+  const userGenres = new Set<string>();
+  if (leaderboardData) {
+    for (const p of podcasts) {
+      const match = leaderboardData.find(l => l.id === p.id);
+      if (match) match.genres.forEach(g => userGenres.add(g));
+    }
+  }
+  const recommendedPodcasts = (leaderboardData || [])
+    .filter(p => !selectedIds.has(p.id) && !popularIds.has(p.id) && p.genres.some(g => userGenres.has(g)))
+    .slice(0, 6);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#f8f9fb]">
       <AnimatePresence>
         {showCancelModal && (
           <motion.div
@@ -291,11 +352,11 @@ export default function Dashboard() {
                 {podcastsOverLimit ? (
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     The free plan supports up to 3 podcasts. You currently have <span className="font-semibold text-foreground">{podcasts.length}</span> selected.
-                    Please remove {podcastsToRemove} podcast{podcastsToRemove > 1 ? "s" : ""} from your list before canceling.
+                    Please remove {podcastsToRemove} podcast{podcastsToRemove > 1 ? "s" : ""} before canceling.
                   </p>
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    You'll lose access to unlimited podcasts and be moved to the free plan (up to 3 podcasts). This takes effect immediately.
+                    You'll lose access to unlimited podcasts and be moved to the free plan (up to 3 podcasts).
                   </p>
                 )}
               </div>
@@ -315,14 +376,7 @@ export default function Dashboard() {
                     disabled={isCanceling}
                     className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
                   >
-                    {isCanceling ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Canceling...
-                      </>
-                    ) : (
-                      "Yes, cancel subscription"
-                    )}
+                    {isCanceling ? (<><Loader2 className="w-4 h-4 animate-spin" />Canceling...</>) : "Yes, cancel subscription"}
                   </button>
                 )}
                 <button
@@ -357,26 +411,19 @@ export default function Dashboard() {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <PartyPopper className="w-8 h-8 text-primary" />
               </div>
-
               <div className="space-y-2">
                 <h3 className="font-display font-extrabold text-2xl text-foreground" data-testid="text-welcome-title">
                   You're all set!
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Your podcast recap is locked and loaded. If any of your favorite shows drop a new episode today, you'll get your first digest <span className="font-semibold text-foreground">tomorrow morning</span> — like a personal assistant who actually listens to podcasts for you.
+                  Your podcast recap is locked and loaded. If any of your favorite shows drop a new episode today, you'll get your first digest <span className="font-semibold text-foreground">tomorrow morning</span>.
                 </p>
               </div>
-
               <div className="w-full rounded-xl bg-primary/[0.04] border border-primary/10 p-4">
                 <p className="text-xs text-muted-foreground">
-                  So far, we've saved PodCap listeners an estimated <span className="font-bold text-primary">2,400+ hours</span> of listening time. We're excited to start saving you some too — so you can get back to doom-scrolling, touching grass, or whatever it is you enjoy.
+                  We've saved PodCap listeners an estimated <span className="font-bold text-primary">2,400+ hours</span> of listening time. We're excited to start saving you some too.
                 </p>
               </div>
-
-              <p className="text-xs text-muted-foreground">
-                In the meantime, feel free to add or remove podcasts from your settings below. Go wild.
-              </p>
-
               <button
                 data-testid="button-close-welcome"
                 onClick={() => setShowWelcome(false)}
@@ -392,9 +439,7 @@ export default function Dashboard() {
       {impersonationStatus?.impersonating && (
         <div className="w-full bg-amber-500 text-white px-4 py-2.5 flex items-center justify-center gap-3" data-testid="banner-impersonating">
           <Shield className="w-4 h-4" />
-          <span className="text-sm font-semibold">
-            Viewing as {user?.email}
-          </span>
+          <span className="text-sm font-semibold">Viewing as {user?.email}</span>
           <button
             data-testid="button-stop-impersonating"
             onClick={() => stopImpersonating.mutate()}
@@ -405,282 +450,477 @@ export default function Dashboard() {
           </button>
         </div>
       )}
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="img-logo">
-          <img
-            src={logoPath}
-            alt="PodCap"
-            className="h-9 object-contain"
-          />
-        </a>
-        <button
-          data-testid="button-logout"
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          Log out
-        </button>
-      </header>
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
-        <section className="w-full max-w-3xl text-center pt-10 sm:pt-14 pb-6 sm:pb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-3"
-          >
-            <h1
-              className="text-[1.75rem] sm:text-4xl md:text-[2.65rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
-            >
-              Manage Your Recap
-            </h1>
-          </motion.div>
-        </section>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-2xl"
-        >
-          <div className="flex bg-black/[0.04] p-1.5 rounded-2xl w-full max-w-xs mx-auto mb-8">
+      <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] bg-white/80 backdrop-blur-xl">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <a href="/" className="flex items-center" data-testid="img-logo">
+            <img src={logoPath} alt="PodCap" className="h-7 object-contain" />
+          </a>
+          <div className="flex items-center gap-4">
+            {!isPro && (
+              <button
+                data-testid="button-header-upgrade"
+                onClick={() => setActiveTab("plan")}
+                className="hidden sm:flex items-center gap-1.5 h-8 px-3.5 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+              >
+                <Crown className="w-3.5 h-3.5" />
+                Upgrade
+              </button>
+            )}
             <button
-              data-testid="tab-settings"
-              onClick={() => setActiveTab("settings")}
-              className={`relative flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${activeTab === "settings" ? "text-primary" : "text-muted-foreground"}`}
+              data-testid="button-logout"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              {activeTab === "settings" && (
-                <motion.div
-                  layoutId="dashboardTabSwitch"
-                  className="absolute inset-0 bg-white shadow-sm rounded-xl border border-black/[0.04]"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <Settings className="w-4 h-4 relative z-10" />
-              <span className="relative z-10">Settings</span>
-            </button>
-            <button
-              data-testid="tab-recaps"
-              onClick={() => setActiveTab("recaps")}
-              className={`relative flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${activeTab === "recaps" ? "text-primary" : "text-muted-foreground"}`}
-            >
-              {activeTab === "recaps" && (
-                <motion.div
-                  layoutId="dashboardTabSwitch"
-                  className="absolute inset-0 bg-white shadow-sm rounded-xl border border-black/[0.04]"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <FileText className="w-4 h-4 relative z-10" />
-              <span className="relative z-10">Daily Recaps</span>
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Log out</span>
             </button>
           </div>
+        </div>
+      </header>
 
-          <AnimatePresence mode="wait">
-            {activeTab === "settings" ? (
-              <motion.div
-                key="settings"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
-                  <section className="flex flex-col gap-4">
-                    <h2 className="text-lg font-display font-bold text-foreground">
-                      Your podcasts
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+        <div className="flex items-center gap-1 bg-white border border-black/[0.06] rounded-xl p-1 mb-6 overflow-x-auto hide-scrollbar" data-testid="nav-tabs">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              data-testid={`tab-${tab.key}`}
+              onClick={() => setActiveTab(tab.key)}
+              className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                activeTab === tab.key
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+              {tab.key === "recaps" && recaps && recaps.length > 0 && (
+                <span className={`ml-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? "bg-white/20" : "bg-primary/10 text-primary"}`}>
+                  {recaps.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {activeTab === "podcasts" && (
+            <motion.div
+              key="podcasts"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-6"
+            >
+              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                <div className="px-6 pt-6 pb-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-your-podcasts">
+                      Your Podcasts
                     </h2>
-                    <PodcastSearch
-                      selectedPodcasts={podcasts}
-                      onAdd={handleAdd}
-                      onRemove={handleRemove}
-                      maxSelection={isPro ? undefined : 3}
-                    />
-                  </section>
+                    {!isPro && (
+                      <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full" data-testid="text-podcast-count">
+                        {podcasts.length} / 3 free
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {podcasts.length === 0 ? "Search and add podcasts to get daily recaps." : "We'll recap new episodes from these shows."}
+                  </p>
+                </div>
 
-                  <div className="border-t border-black/[0.06]" />
+                <div className="px-6 pb-4">
+                  <PodcastSearch
+                    selectedPodcasts={podcasts}
+                    onAdd={handleAdd}
+                    onRemove={handleRemove}
+                    maxSelection={isPro ? undefined : 3}
+                  />
+                </div>
 
-                  <section className="flex flex-col gap-4">
-                    <h2 className="text-lg font-display font-bold text-foreground">
-                      Email recap delivery time
-                    </h2>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1">
-                        <label className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mb-2">
-                          <Clock className="w-3.5 h-3.5" />
-                          Time
-                        </label>
-                        <TimePicker
-                          value={deliveryTime}
-                          onChange={(t) => { setDeliveryTime(t); autoSave({ deliveryTime: t }); }}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mb-2">
-                          <Globe className="w-3.5 h-3.5" />
-                          Timezone
-                        </label>
-                        <TimezoneSelect
-                          value={deliveryTimezone}
-                          onChange={(tz) => { setDeliveryTimezone(tz); autoSave({ deliveryTimezone: tz }); }}
-                        />
+                {!isPro && podcasts.length >= 2 && (
+                  <div className="mx-6 mb-6 rounded-xl bg-gradient-to-r from-primary/[0.06] to-primary/[0.02] border border-primary/10 p-4 flex items-center gap-4" data-testid="banner-upgrade-inline">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Crown className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Want more podcasts?</p>
+                      <p className="text-xs text-muted-foreground">Upgrade to Pro for unlimited podcasts — $9.99/mo</p>
+                    </div>
+                    <button
+                      data-testid="button-upgrade-inline"
+                      onClick={() => setActiveTab("plan")}
+                      className="shrink-0 h-9 px-4 rounded-lg text-xs font-bold bg-primary text-white shadow-sm shadow-primary/20 hover:brightness-105 transition-all"
+                    >
+                      Upgrade
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {popularPodcasts.length > 0 && (
+                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-primary" />
+                      <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-popular">
+                        Popular with PodCap Users
+                      </h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">The most-followed podcasts on PodCap right now.</p>
+                  </div>
+                  <div className="px-6 pb-6 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {popularPodcasts.map(podcast => (
+                      <button
+                        key={podcast.id}
+                        data-testid={`button-suggest-popular-${podcast.id}`}
+                        onClick={() => {
+                          if (!isPro && podcasts.length >= 3) {
+                            setActiveTab("plan");
+                            return;
+                          }
+                          handleAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl });
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
+                      >
+                        {podcast.artworkUrl ? (
+                          <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-11 h-11 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                            <Podcast className="w-5 h-5 text-primary" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{podcast.artist}</p>
+                        </div>
+                        <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {recommendedPodcasts.length > 0 && (
+                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-recommended">
+                        Recommended for You
+                      </h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Based on the genres you listen to.</p>
+                  </div>
+                  <div className="px-6 pb-6 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {recommendedPodcasts.map(podcast => (
+                      <button
+                        key={podcast.id}
+                        data-testid={`button-suggest-rec-${podcast.id}`}
+                        onClick={() => {
+                          if (!isPro && podcasts.length >= 3) {
+                            setActiveTab("plan");
+                            return;
+                          }
+                          handleAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl });
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
+                      >
+                        {podcast.artworkUrl ? (
+                          <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-11 h-11 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                            <Podcast className="w-5 h-5 text-primary" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{podcast.genres.slice(0, 2).join(" · ")}</p>
+                        </div>
+                        <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === "recaps" && (
+            <motion.div
+              key="recaps"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+            >
+              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                {recapsLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : !recaps || recaps.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                      <FileText className="w-7 h-7 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-display font-bold text-foreground mb-1">No recaps yet</h3>
+                    <p className="text-sm text-muted-foreground max-w-xs">
+                      Your first recap will arrive after your next scheduled delivery time.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="px-6 pt-6 pb-3 flex items-center justify-between">
+                      <h2 className="text-lg font-display font-bold text-foreground">Daily Recaps</h2>
+                      <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full">
+                        {recaps.length} recap{recaps.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="px-6 pb-6">
+                      <div className="divide-y divide-black/[0.04]">
+                        {recaps.map((recap) => (
+                          <div key={recap.id} className="flex items-center gap-4 py-4" data-testid={`row-recap-${recap.id}`}>
+                            <div className="w-10 h-10 rounded-xl bg-primary/[0.06] flex items-center justify-center shrink-0">
+                              <FileText className="w-4.5 h-4.5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground">{formatRecapDate(recap.recapDate)}</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {recap.podcasts.slice(0, 3).map((p, i) => (
+                                  <span key={i} className="text-xs text-muted-foreground">{parsePodcastName(p)}{i < Math.min(recap.podcasts.length, 3) - 1 ? "," : ""}</span>
+                                ))}
+                                {recap.podcasts.length > 3 && (
+                                  <span className="text-xs text-muted-foreground">+{recap.podcasts.length - 3} more</span>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              data-testid={`button-view-recap-${recap.id}`}
+                              onClick={() => setViewingRecap(recap)}
+                              className="shrink-0 h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/[0.06] transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              View
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </section>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
 
-                  <div className="border-t border-black/[0.06]" />
+          {activeTab === "settings" && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-6"
+            >
+              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                <div className="px-6 pt-6 pb-2">
+                  <h2 className="text-lg font-display font-bold text-foreground">Delivery Schedule</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Choose when to receive your daily recap email.</p>
+                </div>
+                <div className="px-6 pb-6 pt-3">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        <Clock className="w-3.5 h-3.5" />
+                        Time
+                      </label>
+                      <TimePicker
+                        value={deliveryTime}
+                        onChange={(t) => { setDeliveryTime(t); autoSave({ deliveryTime: t }); }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        <Globe className="w-3.5 h-3.5" />
+                        Timezone
+                      </label>
+                      <TimezoneSelect
+                        value={deliveryTimezone}
+                        onChange={(tz) => { setDeliveryTimezone(tz); autoSave({ deliveryTimezone: tz }); }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                  <section className="flex flex-col gap-4">
-                    <h2 className="text-lg font-display font-bold text-foreground flex items-center gap-2">
-                      <Palmtree className="w-4.5 h-4.5 text-amber-500" />
-                      Vacation Mode
-                    </h2>
-
-                    {vacationUntil ? (
-                      <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5" data-testid="section-vacation-active">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">
-                              Recaps paused until {new Date(vacationUntil + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">Your daily podcast recaps are on hold. You won't receive emails until this date.</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 mt-4">
-                          <input
-                            data-testid="input-vacation-update"
-                            type="date"
-                            value={vacationInput || vacationUntil}
-                            min={new Date().toISOString().split("T")[0]}
-                            onChange={(e) => setVacationInput(e.target.value)}
-                            className="h-10 px-3 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all"
-                          />
-                          {vacationInput && vacationInput !== vacationUntil && (
-                            <button
-                              data-testid="button-update-vacation"
-                              onClick={() => {
-                                setVacationUntil(vacationInput);
-                                autoSave({ vacationUntil: vacationInput });
-                                setVacationInput("");
-                              }}
-                              className="h-10 px-4 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:brightness-105 transition-all"
-                            >
-                              Update
-                            </button>
-                          )}
-                          <button
-                            data-testid="button-cancel-vacation"
-                            onClick={() => {
-                              setVacationUntil(null);
-                              setVacationInput("");
-                              autoSave({ vacationUntil: null });
-                            }}
-                            className="h-10 px-4 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-500/[0.06] transition-all flex items-center gap-1.5"
-                          >
-                            <CalendarOff className="w-3.5 h-3.5" />
-                            Cancel Vacation
-                          </button>
-                        </div>
+              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                <div className="px-6 pt-6 pb-2">
+                  <h2 className="text-lg font-display font-bold text-foreground">Email Address</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Where we send your daily recap.</p>
+                </div>
+                <div className="px-6 pb-6 pt-3">
+                  {editingEmail ? (
+                    <div className="flex items-center gap-3">
+                      <input
+                        data-testid="input-edit-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        autoFocus
+                        className="flex-1 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium"
+                      />
+                      <button
+                        data-testid="button-edit-email"
+                        onClick={() => setEditingEmail(false)}
+                        className="h-11 px-4 rounded-xl text-sm font-semibold bg-primary text-white hover:brightness-105 transition-all"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span data-testid="text-user-email" className="text-sm font-medium text-foreground truncate">{email}</span>
                       </div>
-                    ) : (
-                      <div className="rounded-2xl border border-black/[0.06] bg-black/[0.02] p-5" data-testid="section-vacation-off">
-                        <p className="text-sm text-muted-foreground mb-3">Going on a trip? Pause your daily recaps until a specific date.</p>
-                        <div className="flex items-center gap-3">
-                          <input
-                            data-testid="input-vacation-date"
-                            type="date"
-                            value={vacationInput}
-                            min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
-                            onChange={(e) => setVacationInput(e.target.value)}
-                            className="h-10 px-3 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all"
-                          />
-                          <button
-                            data-testid="button-enable-vacation"
-                            disabled={!vacationInput}
-                            onClick={() => {
-                              setVacationUntil(vacationInput);
-                              autoSave({ vacationUntil: vacationInput });
-                              setVacationInput("");
-                              toast({ title: "Vacation mode enabled", description: `Your recaps are paused until ${new Date(vacationInput + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" })}.` });
-                            }}
-                            className="h-10 px-4 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
-                          >
-                            <Palmtree className="w-3.5 h-3.5" />
-                            Enable
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </section>
+                      <button
+                        data-testid="button-edit-email"
+                        onClick={() => setEditingEmail(true)}
+                        className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                  <div className="border-t border-black/[0.06]" />
-
-                  <section className="flex flex-col gap-4">
-                    <h2 className="text-lg font-display font-bold text-foreground">
-                      Where should we send your daily recap?
-                    </h2>
-                    {editingEmail ? (
-                      <div className="flex items-center gap-3">
+              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                <div className="px-6 pt-6 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Palmtree className="w-4.5 h-4.5 text-amber-500" />
+                    <h2 className="text-lg font-display font-bold text-foreground">Vacation Mode</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">Pause your daily recaps while you're away.</p>
+                </div>
+                <div className="px-6 pb-6 pt-3">
+                  {vacationUntil ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4" data-testid="section-vacation-active">
+                      <p className="text-sm font-semibold text-foreground mb-1">
+                        Recaps paused until {new Date(vacationUntil + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">You won't receive emails until this date.</p>
+                      <div className="flex items-center gap-2">
                         <input
-                          data-testid="input-edit-email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => handleEmailChange(e.target.value)}
-                          autoFocus
-                          className="flex-1 h-14 px-5 bg-white border border-black/[0.08] rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
+                          data-testid="input-vacation-update"
+                          type="date"
+                          value={vacationInput || vacationUntil}
+                          min={new Date().toISOString().split("T")[0]}
+                          onChange={(e) => setVacationInput(e.target.value)}
+                          className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
                         />
+                        {vacationInput && vacationInput !== vacationUntil && (
+                          <button
+                            data-testid="button-update-vacation"
+                            onClick={() => { setVacationUntil(vacationInput); autoSave({ vacationUntil: vacationInput }); setVacationInput(""); }}
+                            className="h-9 px-3 rounded-lg text-xs font-semibold bg-primary text-white hover:brightness-105 transition-all"
+                          >
+                            Update
+                          </button>
+                        )}
                         <button
-                          data-testid="button-edit-email"
-                          onClick={() => setEditingEmail(false)}
-                          className="text-sm font-semibold text-primary shrink-0"
+                          data-testid="button-cancel-vacation"
+                          onClick={() => { setVacationUntil(null); setVacationInput(""); autoSave({ vacationUntil: null }); }}
+                          className="h-9 px-3 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-50 transition-all flex items-center gap-1"
                         >
-                          Done
+                          <CalendarOff className="w-3 h-3" />
+                          Cancel
                         </button>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <span
-                          data-testid="text-user-email"
-                          className="text-foreground font-medium"
-                        >
-                          {email}
-                        </span>
-                        <button
-                          data-testid="button-edit-email"
-                          onClick={() => setEditingEmail(true)}
-                          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    )}
-                  </section>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <input
+                        data-testid="input-vacation-date"
+                        type="date"
+                        value={vacationInput}
+                        min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                        onChange={(e) => setVacationInput(e.target.value)}
+                        className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
+                      />
+                      <button
+                        data-testid="button-enable-vacation"
+                        disabled={!vacationInput}
+                        onClick={() => {
+                          setVacationUntil(vacationInput);
+                          autoSave({ vacationUntil: vacationInput });
+                          setVacationInput("");
+                          toast({ title: "Vacation mode enabled", description: `Your recaps are paused until ${new Date(vacationInput + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" })}.` });
+                        }}
+                        className="h-9 px-4 rounded-lg text-xs font-bold bg-primary text-white shadow-sm shadow-primary/20 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                      >
+                        <Palmtree className="w-3.5 h-3.5" />
+                        Enable
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                  {isPro && (
-                  <>
-                  <div className="border-t border-black/[0.06]" />
-                  <section className="flex flex-col gap-4">
-                    <h2 className="text-lg font-display font-bold text-foreground">
-                      Subscription
-                    </h2>
-                    <div className="rounded-2xl border border-black/[0.06] bg-black/[0.02] p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Crown className="w-5 h-5 text-primary" />
-                          <span className="font-display font-bold text-foreground">PodCap Pro</span>
-                          <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full">Active</span>
-                        </div>
+              <AnimatePresence>
+                {autoSaveStatus !== "idle" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground py-1"
+                  >
+                    {autoSaveStatus === "saving" ? (
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving...</>
+                    ) : (
+                      <><Check className="w-3.5 h-3.5 text-green-500" /><span className="text-green-600">Saved</span></>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+
+          {activeTab === "plan" && (
+            <motion.div
+              key="plan"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-6"
+            >
+              {isPro ? (
+                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                  <div className="px-6 pt-6 pb-6 space-y-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Crown className="w-5.5 h-5.5 text-primary" />
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Monthly fee</span>
-                        <span className="font-semibold text-foreground">$9.99/month</span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-display font-bold text-foreground">PodCap Pro</h2>
+                          <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full" data-testid="badge-plan-active">Active</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Unlimited podcast recaps</p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/[0.04] divide-y divide-black/[0.04]">
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-sm text-muted-foreground">Monthly fee</span>
+                        <span className="text-sm font-semibold text-foreground">$9.99/month</span>
                       </div>
                       {subscriptionData?.subscription?.current_period_end && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Next billing date</span>
-                          <span className="font-semibold text-foreground">
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-sm text-muted-foreground">Next billing date</span>
+                          <span className="text-sm font-semibold text-foreground">
                             {new Date(
                               typeof subscriptionData.subscription.current_period_end === "number"
                                 ? subscriptionData.subscription.current_period_end * 1000
@@ -689,126 +929,90 @@ export default function Dashboard() {
                           </span>
                         </div>
                       )}
-                      <div className="pt-1">
-                        <button
-                          data-testid="button-cancel-subscription"
-                          onClick={() => setShowCancelModal(true)}
-                          className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
-                        >
-                          Cancel subscription
-                        </button>
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-sm text-muted-foreground">Podcasts</span>
+                        <span className="text-sm font-semibold text-foreground">{podcasts.length} selected (unlimited)</span>
                       </div>
                     </div>
-                  </section>
-                  </>
-                  )}
 
-                  <AnimatePresence>
-                    {autoSaveStatus !== "idle" && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 4 }}
-                        className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground py-2"
+                    <button
+                      data-testid="button-cancel-subscription"
+                      onClick={() => setShowCancelModal(true)}
+                      className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Cancel subscription
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
+                    <div className="px-6 pt-6 pb-6 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-black/[0.04] flex items-center justify-center">
+                          <Podcast className="w-5.5 h-5.5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-display font-bold text-foreground">Free Plan</h2>
+                          <p className="text-sm text-muted-foreground">Up to 3 podcasts</p>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-black/[0.04] divide-y divide-black/[0.04]">
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-sm text-muted-foreground">Podcasts</span>
+                          <span className="text-sm font-semibold text-foreground">{podcasts.length} / 3</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-sm text-muted-foreground">Daily email recaps</span>
+                          <Check className="w-4 h-4 text-green-500" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] border border-primary/10 rounded-2xl overflow-hidden">
+                    <div className="px-6 pt-6 pb-6 space-y-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <Crown className="w-5.5 h-5.5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h2 className="text-lg font-display font-bold text-foreground">Upgrade to Pro</h2>
+                          <p className="text-sm text-muted-foreground">Unlimited podcasts for $9.99/month</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {["Unlimited podcast recaps", "Daily email with all your shows", "Adjustable reading length", "Cancel anytime"].map((feature) => (
+                          <div key={feature} className="flex items-center gap-2.5">
+                            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <Check className="w-3 h-3 text-primary" />
+                            </div>
+                            <span className="text-sm text-foreground">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        data-testid="button-subscribe"
+                        onClick={handleSubscribe}
+                        disabled={isCheckingOut}
+                        className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-[0.99] disabled:opacity-60"
                       >
-                        {autoSaveStatus === "saving" ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            Saving...
-                          </>
+                        {isCheckingOut ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" />Redirecting...</>
                         ) : (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-green-500" />
-                            <span className="text-green-600">Saved</span>
-                          </>
+                          <><Crown className="w-4 h-4" />Upgrade to Pro — $9.99/month</>
                         )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="recaps"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8">
-                  {recapsLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </button>
+                      <p className="text-center text-xs text-muted-foreground">Cancel anytime. No questions asked.</p>
                     </div>
-                  ) : !recaps || recaps.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                        <FileText className="w-7 h-7 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-display font-bold text-foreground mb-1">
-                        No recaps yet
-                      </h3>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Your first recap will arrive after your next scheduled delivery time. Sit tight!
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                          {recaps.length} recap{recaps.length !== 1 ? "s" : ""}
-                        </h3>
-                      </div>
-                      <div className="overflow-x-auto">
-                      <table className="w-full" data-testid="table-recaps">
-                        <thead>
-                          <tr className="border-b border-black/[0.06]">
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider pb-3 pr-4">Date</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider pb-3 pr-4">Recapped Podcasts</th>
-                            <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider pb-3">Summary</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-black/[0.04]">
-                          {recaps.map((recap) => (
-                            <tr key={recap.id} className="group" data-testid={`row-recap-${recap.id}`}>
-                              <td className="py-4 pr-4 text-sm font-medium text-foreground whitespace-nowrap">
-                                {formatRecapDate(recap.recapDate)}
-                              </td>
-                              <td className="py-4 pr-4">
-                                <div className="flex flex-wrap gap-1.5">
-                                  {recap.podcasts.map((p, i) => (
-                                    <span
-                                      key={i}
-                                      className="inline-flex items-center gap-1 bg-secondary text-foreground px-2 py-0.5 rounded-full text-xs font-medium"
-                                    >
-                                      <Podcast className="w-3 h-3 text-primary" />
-                                      {parsePodcastName(p)}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                              <td className="py-4 text-right">
-                                <button
-                                  data-testid={`button-view-recap-${recap.id}`}
-                                  onClick={() => setViewingRecap(recap)}
-                                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                  View
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <AnimatePresence>
@@ -857,14 +1061,10 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-
               <div className="px-6 sm:px-8 py-6 sm:py-8">
                 <div className="flex flex-wrap gap-1.5 mb-6">
                   {viewingRecap.podcasts.map((p, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1 bg-secondary text-foreground px-2.5 py-1 rounded-full text-xs font-medium"
-                    >
+                    <span key={i} className="inline-flex items-center gap-1 bg-black/[0.04] text-foreground px-2.5 py-1 rounded-full text-xs font-medium">
                       <Podcast className="w-3 h-3 text-primary" />
                       {parsePodcastName(p)}
                     </span>

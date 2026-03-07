@@ -118,7 +118,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, onRemove, maxSelection 
                 <div className="w-full space-y-2.5">
                   <button
                     data-testid="button-upgrade-modal"
-                    onClick={() => { setShowUpgradeModal(false); navigate("/upgrade"); }}
+                    onClick={() => { setShowUpgradeModal(false); navigate("/dashboard?tab=plan"); }}
                     className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                   >
                     <Crown className="w-4 h-4" />
