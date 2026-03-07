@@ -134,10 +134,10 @@ export default function Home() {
               data-testid="text-headline"
               className="text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-display font-extrabold text-foreground leading-[1.08] tracking-[-0.025em]"
             >
-              Your favorite podcasts recapped daily
+              All your favorite podcasts. One daily recap email.
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground font-medium max-w-lg">
-              We listen so you don't have to.
+              Skip the 2-hour episodes. Get the key ideas from your favorite podcasts in a 2-minute read.
             </p>
             <button
               data-testid="link-sample-email"
@@ -149,45 +149,6 @@ export default function Home() {
             </button>
           </motion.div>
         </section>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.08 }}
-          className="flex flex-col items-center mb-8"
-          data-testid="social-proof"
-        >
-          <p className="text-sm text-muted-foreground font-medium">PodCap users have already saved</p>
-          <p className="text-3xl sm:text-4xl font-display font-extrabold text-primary tracking-tight">
-            <HoursSavedCounter />
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.12 }}
-          className="grid grid-cols-3 gap-6 sm:gap-10 w-full max-w-lg mx-auto mb-10"
-        >
-          <div className="flex flex-col items-center text-center gap-2" data-testid="benefit-recaps">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-sm sm:text-[15px] font-display font-medium text-foreground leading-tight">2-minute recaps</span>
-          </div>
-          <div className="flex flex-col items-center text-center gap-2" data-testid="benefit-digest">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Mail className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-sm sm:text-[15px] font-display font-medium text-foreground leading-tight">Daily email digest</span>
-          </div>
-          <div className="flex flex-col items-center text-center gap-2" data-testid="benefit-free">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Podcast className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-sm sm:text-[15px] font-display font-medium text-foreground leading-tight">Free for 3 podcasts</span>
-          </div>
-        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -638,34 +599,3 @@ function SampleEpisode({
   );
 }
 
-function HoursSavedCounter() {
-  const [displayed, setDisplayed] = useState(0);
-
-  const getHoursSaved = () => {
-    const launchDate = new Date("2026-02-15T00:00:00Z").getTime();
-    const now = Date.now();
-    const daysSinceLaunch = Math.max(0, (now - launchDate) / (1000 * 60 * 60 * 24));
-    const base = 12400;
-    const daily = 287;
-    return Math.floor(base + daysSinceLaunch * daily);
-  };
-
-  const target = getHoursSaved();
-
-  useEffect(() => {
-    const duration = 1400;
-    const steps = 40;
-    const stepTime = duration / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current++;
-      const progress = current / steps;
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.floor(target * eased));
-      if (current >= steps) clearInterval(timer);
-    }, stepTime);
-    return () => clearInterval(timer);
-  }, [target]);
-
-  return <>{displayed.toLocaleString()} hours</>;
-}
