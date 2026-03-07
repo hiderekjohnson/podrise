@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Heart } from "lucide-react";
 import { SiX } from "react-icons/si";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
@@ -53,14 +54,6 @@ export function Footer() {
             </Link>
             <span className="text-muted-foreground/20">|</span>
             <Link
-              href="/for-podcasters"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
-              data-testid="link-for-podcasters"
-            >
-              For Podcasters
-            </Link>
-            <span className="text-muted-foreground/20">|</span>
-            <Link
               href="/support"
               className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-support"
@@ -90,6 +83,16 @@ export function Footer() {
               data-testid="link-terms"
             >
               Terms & Conditions
+            </Link>
+          </div>
+
+          <div className="mt-6">
+            <Link
+              href="/for-podcasters"
+              className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground/50 hover:text-red-500 transition-colors"
+              data-testid="link-for-podcasters"
+            >
+              WE <Heart className="w-3 h-3 fill-red-400 text-red-400" /> PODCASTERS
             </Link>
           </div>
         </div>
