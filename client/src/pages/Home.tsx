@@ -148,6 +148,26 @@ export default function Home() {
               See sample email
             </button>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="grid grid-cols-3 gap-4 sm:gap-6 w-full max-w-xl"
+          >
+            <div className="flex flex-col items-center text-center gap-1.5" data-testid="benefit-recaps">
+              <Clock className="w-5 h-5 text-primary" />
+              <span className="text-sm sm:text-base font-display font-bold text-foreground">2-minute recaps</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-1.5" data-testid="benefit-digest">
+              <Mail className="w-5 h-5 text-primary" />
+              <span className="text-sm sm:text-base font-display font-bold text-foreground">Daily email digest</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-1.5" data-testid="benefit-free">
+              <Podcast className="w-5 h-5 text-primary" />
+              <span className="text-sm sm:text-base font-display font-bold text-foreground">Free for 3 podcasts</span>
+            </div>
+          </motion.div>
         </section>
 
         <motion.div
