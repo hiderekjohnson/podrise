@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDeals, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDeal, type InsertPodcastDeal } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
@@ -40,9 +40,6 @@ export interface IStorage {
   getExampleRecap(slug: string): Promise<PodcastExampleRecap | undefined>;
   upsertExampleRecap(data: InsertPodcastExampleRecap): Promise<PodcastExampleRecap>;
   getAllExampleRecaps(): Promise<PodcastExampleRecap[]>;
-  saveDeal(deal: InsertPodcastDeal): Promise<PodcastDeal>;
-  getRecentDeals(limit?: number): Promise<PodcastDeal[]>;
-  deleteAllDeals(): Promise<void>;
   getRecentTranscripts(limit?: number): Promise<EpisodeTranscript[]>;
 }
 
@@ -377,18 +374,6 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(podcastExampleRecaps).orderBy(desc(podcastExampleRecaps.updatedAt));
   }
 
-  async saveDeal(deal: InsertPodcastDeal): Promise<PodcastDeal> {
-    const [saved] = await db.insert(podcastDeals).values(deal).returning();
-    return saved;
-  }
-
-  async getRecentDeals(limit: number = 100): Promise<PodcastDeal[]> {
-    return db.select().from(podcastDeals).orderBy(desc(podcastDeals.detectedAt)).limit(limit);
-  }
-
-  async deleteAllDeals(): Promise<void> {
-    await db.delete(podcastDeals);
-  }
 
   async getRecentTranscripts(limit: number = 50): Promise<EpisodeTranscript[]> {
     return db.select().from(episodeTranscripts).orderBy(desc(episodeTranscripts.fetchedAt)).limit(limit);

@@ -37,14 +37,6 @@ export function Footer() {
             </Link>
             <span className="text-muted-foreground/20">|</span>
             <Link
-              href="/podcast-deals"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
-              data-testid="link-podcast-deals"
-            >
-              Deals
-            </Link>
-            <span className="text-muted-foreground/20">|</span>
-            <Link
               href="/about"
               className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-about"

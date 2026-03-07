@@ -15,7 +15,6 @@ import Leaderboard from "./pages/Leaderboard";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Support from "./pages/Support";
-import PodcastDeals from "./pages/PodcastDeals";
 import FeatureRequests from "./pages/FeatureRequests";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -33,7 +32,6 @@ function Router() {
       <Route path="/podcasts/:podcastSlug/:episodeSlug" component={EpisodeRecapPage} />
       <Route path="/podcasts/:slug" component={PodcastLandingGeneric} />
       <Route path="/podcasts" component={Leaderboard} />
-      <Route path="/podcast-deals" component={PodcastDeals} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/support" component={Support} />

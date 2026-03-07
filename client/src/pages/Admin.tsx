@@ -534,37 +534,6 @@ export default function Admin() {
                       >
                         Generate All
                       </button>
-                      <button
-                        data-testid="button-extract-deals"
-                        onClick={async () => {
-                          if (!confirm("This will extract sponsor deals from all cached transcripts. Continue?")) return;
-                          try {
-                            const res = await apiRequest("POST", "/api/admin/extract-deals");
-                            const reader = res.body?.getReader();
-                            if (reader) {
-                              const decoder = new TextDecoder();
-                              let totalDeals = 0;
-                              while (true) {
-                                const { done, value } = await reader.read();
-                                if (done) break;
-                                const lines = decoder.decode(value).split("\n").filter(Boolean);
-                                for (const line of lines) {
-                                  try {
-                                    const obj = JSON.parse(line);
-                                    if (obj.done) totalDeals = obj.totalDeals;
-                                  } catch {}
-                                }
-                              }
-                              alert(`Deal extraction complete! ${totalDeals} deals found.`);
-                            }
-                          } catch (err) {
-                            alert("Deal extraction failed: " + String(err));
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors whitespace-nowrap"
-                      >
-                        Extract Deals
-                      </button>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
