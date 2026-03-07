@@ -244,12 +244,33 @@ function escapeHtml(text: string): string {
 
 function renderLinks(linksLine: string): string {
   if (!linksLine) return "";
-  const rendered = linksLine
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:none;font-weight:600;" target="_blank">$1</a>')
-    .replace(/🎧\s*/, "");
-  return `<div style="margin:12px 0 0 0;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:6px;">LISTEN TO THE FULL EPISODE</div>
-          <p style="margin:0;font-size:13px;color:#6b7280;">&#127911; ${rendered}</p>
+  const links: { label: string; url: string }[] = [];
+  const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+(?:\([^\s)]*\))*[^\s)]*)\)/g;
+  let match;
+  while ((match = linkRegex.exec(linksLine)) !== null) {
+    links.push({ label: match[1], url: match[2] });
+  }
+  if (links.length === 0) return "";
+  const buttonHtml = links.map(link => {
+    const isApple = /apple|itunes/i.test(link.label);
+    const isSpotify = /spotify/i.test(link.label);
+    const icon = isApple ? "&#127822;" : isSpotify ? "&#127925;" : "&#127911;";
+    return `<a href="${escapeHtml(link.url)}" style="display:inline-block;padding:8px 16px;background:#f0f4ff;color:#2563eb;font-size:13px;font-weight:700;text-decoration:none;border-radius:8px;border:1px solid #dbeafe;margin-right:8px;margin-bottom:4px;" target="_blank">${icon} ${escapeHtml(link.label)}</a>`;
+  }).join("");
+  return `<div style="margin:16px 0 0 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">LISTEN TO THE FULL EPISODE</div>
+          ${buttonHtml}
+        </div>`;
+}
+
+function renderFallbackLinks(podcastName: string, episodeTitle: string): string {
+  if (!podcastName || !episodeTitle) return "";
+  const query = encodeURIComponent(`${podcastName} ${episodeTitle}`);
+  const spotifyUrl = `https://open.spotify.com/search/${query}`;
+  const appleUrl = `https://podcasts.apple.com/search?term=${query}`;
+  return `<div style="margin:16px 0 0 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;">LISTEN TO THE FULL EPISODE</div>
+          <a href="${escapeHtml(appleUrl)}" style="display:inline-block;padding:8px 16px;background:#f0f4ff;color:#2563eb;font-size:13px;font-weight:700;text-decoration:none;border-radius:8px;border:1px solid #dbeafe;margin-right:8px;margin-bottom:4px;" target="_blank">&#127822; Apple Podcasts</a><a href="${escapeHtml(spotifyUrl)}" style="display:inline-block;padding:8px 16px;background:#f0f4ff;color:#2563eb;font-size:13px;font-weight:700;text-decoration:none;border-radius:8px;border:1px solid #dbeafe;margin-right:8px;margin-bottom:4px;" target="_blank">&#127925; Spotify</a>
         </div>`;
 }
 
@@ -393,7 +414,7 @@ function buildEpisodeCard(episode: ParsedEpisode, recipientEmail: string): strin
             </td>` : ""}
           </tr></table>
         </div>` : ""}
-        ${renderLinks(episode.linksLine)}
+        ${renderLinks(episode.linksLine) || renderFallbackLinks(episode.podcastName, episode.episodeTitle)}
         ${whatHappenedHtml}
         ${insightsHtml ? `<div style="margin:16px 0 0 0;">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#2563eb;margin-bottom:10px;">KEY INSIGHTS</div>

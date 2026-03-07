@@ -350,8 +350,18 @@ export async function generateRecap(
         if (meta.date) metaParts.push(meta.date);
         if (metaParts.length > 0) lines.push(metaParts.join(" · "));
       }
-      const epAppleUrl = episodeLinks.get(metaKey) || episodeLinks.get(metaKeyLower) || "";
-      const epSpotifyUrl = episodeSpotifyLinks.get(metaKey) || episodeSpotifyLinks.get(metaKeyLower) || "";
+      let epAppleUrl = episodeLinks.get(metaKey) || "";
+      let epSpotifyUrl = episodeSpotifyLinks.get(metaKey) || "";
+      if (!epAppleUrl) {
+        for (const [k, v] of episodeLinks) {
+          if (k.toLowerCase() === metaKeyLower) { epAppleUrl = v; break; }
+        }
+      }
+      if (!epSpotifyUrl) {
+        for (const [k, v] of episodeSpotifyLinks) {
+          if (k.toLowerCase() === metaKeyLower) { epSpotifyUrl = v; break; }
+        }
+      }
       if (epAppleUrl || epSpotifyUrl) {
         const linkParts: string[] = [];
         if (epAppleUrl) linkParts.push(`[Apple Podcasts](${epAppleUrl})`);
