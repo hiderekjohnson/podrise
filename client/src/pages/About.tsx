@@ -40,7 +40,7 @@ export default function About() {
         </a>
         <div className="flex items-center gap-4">
           <Link href="/podcasts" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-podcasts">
-            Most Popular
+            Top Podcasts
           </Link>
           <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
             Log In
@@ -301,7 +301,7 @@ export default function About() {
                 className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="link-browse-podcasts"
               >
-                Most Popular
+                Top Podcasts
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

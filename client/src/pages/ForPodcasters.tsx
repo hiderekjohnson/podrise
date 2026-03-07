@@ -148,7 +148,7 @@ export default function ForPodcasters() {
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/podcasts" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-podcasts">
-              Most Popular
+              Top Podcasts
             </Link>
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-login">
               Log In

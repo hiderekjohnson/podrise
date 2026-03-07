@@ -34,7 +34,7 @@ export function Footer() {
               className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-podcasts"
             >
-              Podcasts
+              Top Podcasts
             </Link>
             <span className="text-muted-foreground/20">|</span>
             <Link

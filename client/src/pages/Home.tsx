@@ -110,7 +110,7 @@ export default function Home() {
             className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors"
           >
             <Trophy className="w-3.5 h-3.5" />
-            Most Popular
+            Top Podcasts
           </button>
           <button
             data-testid="link-login"
