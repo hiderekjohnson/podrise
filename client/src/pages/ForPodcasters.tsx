@@ -289,8 +289,76 @@ export default function ForPodcasters() {
           </div>
         </section>
 
+        {/* ── The Real Problem ── */}
+        <section className="py-16 sm:py-20 bg-muted/30 border-y border-black/[0.04]" data-testid="section-unintentional-listens">
+          <div className="max-w-2xl mx-auto px-6">
+            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-unintentional-title">
+              The real problem is unintentional listening
+            </h2>
+            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
+              Habit plays don't help your metrics. Intentional plays do.
+            </p>
+
+            <div className="space-y-6">
+              <p className="text-[15px] leading-[1.75] text-muted-foreground">
+                A fan sees a new episode drop. They don't really know the topic or guest. They press play out of habit. Five minutes in, they realize the episode isn't for them and they abandon it.
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-5" data-testid="card-without-podcap">
+                  <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-3">Without PodCap</p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-red-700/80">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                      Low completion rates
+                    </li>
+                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-red-700/80">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                      Short listening sessions
+                    </li>
+                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-red-700/80">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                      Early drop-offs that hurt rankings
+                    </li>
+                  </ul>
+                </div>
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5" data-testid="card-with-podcap">
+                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3">With PodCap</p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-emerald-700/80">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                      Higher completion rates
+                    </li>
+                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-emerald-700/80">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                      Longer listening sessions
+                    </li>
+                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-emerald-700/80">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                      Fewer early drop-offs
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <p className="text-[15px] leading-[1.75] text-muted-foreground">
+                Instead of guessing, the listener reads a 60-second recap first. They know the guest, the ideas, and the takeaways. When they decide to press play, they're doing it intentionally.
+              </p>
+
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-6 shadow-sm" data-testid="card-pitch">
+                <p className="text-[15px] leading-[1.75] text-foreground font-medium">
+                  PodCap helps fans decide which episodes to listen to before they hit play. That means the people who start your episode are far more likely to finish it.
+                </p>
+                <p className="text-[14px] text-muted-foreground mt-2">
+                  Those are exactly the engagement signals platforms reward.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── How It Works (steps) ── */}
-        <section className="py-16 sm:py-20 bg-muted/30 border-y border-black/[0.04]" data-testid="section-the-logic">
+        <section className="py-16 sm:py-20" data-testid="section-the-logic">
           <div className="max-w-2xl mx-auto px-6">
             <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-logic-title">
               The right fans, listening to the right episodes
