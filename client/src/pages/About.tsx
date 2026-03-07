@@ -56,9 +56,10 @@ export default function About() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           data-testid="section-hero"
         >
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-[-0.02em] text-foreground mb-6" data-testid="text-page-title">
+          <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-6">
+            <Sparkles className="w-5 h-5" />
             About Us
-          </h2>
+          </div>
           <h1 className="text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
             We love podcasts. We just don't have two hours for every episode.
           </h1>
