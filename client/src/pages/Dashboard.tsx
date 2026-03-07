@@ -384,7 +384,7 @@ export default function Dashboard() {
                 {podcastsOverLimit ? (
                   <button
                     data-testid="button-remove-podcasts-first"
-                    onClick={() => setShowCancelModal(false)}
+                    onClick={() => { setShowCancelModal(false); setActiveTab("podcasts"); }}
                     className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
                   >
                     Remove podcasts first
