@@ -15,6 +15,12 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    title: "About Us page",
+    description: "A lot of people were asking about who built PodCap and why, so we put together an About Us page with the story behind the project and the team.",
+    link: { url: "/about", label: "Read our story" },
+    emoji: "👋",
+  },
+  {
     title: "PodCap is now on X",
     description: "We created an X account where we'll be posting our top episode recaps daily. Follow us to discover great episodes and stay in the loop.",
     link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
