@@ -175,9 +175,15 @@ export default function ForPodcasters() {
             <div className="relative bg-gradient-to-br from-emerald-50 to-emerald-50/50 border border-emerald-200/40 rounded-2xl p-8 sm:p-10 text-center">
               <p className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-2" data-testid="text-free-label">Oh, and one more thing</p>
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">This is completely free for podcasters</h2>
-              <p className="text-[17px] leading-[1.7] text-muted-foreground max-w-xl mx-auto">
+              <p className="text-[17px] leading-[1.7] text-muted-foreground max-w-xl mx-auto mb-6">
                 PodCap doesn't cost you a thing. No fees, no contracts, no catch. We recap your episodes, send your fans daily updates, and create searchable pages for your show. Remember, we said we love you guys.
               </p>
+              <div className="border-t border-emerald-200/40 pt-6 max-w-xl mx-auto">
+                <p className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-2" data-testid="text-bonus-label">Bonus</p>
+                <p className="text-[17px] leading-[1.7] text-muted-foreground">
+                  We promote standout episode recaps daily on our social media, including <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold hover:text-primary transition-colors">X</a>, driving new listeners to discover your show who may have never even heard of it before.
+                </p>
+              </div>
             </div>
           </div>
         </section>
