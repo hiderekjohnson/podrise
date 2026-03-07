@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Send, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, Sparkles, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
