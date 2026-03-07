@@ -60,8 +60,8 @@ export default function About() {
             <Sparkles className="w-3.5 h-3.5" />
             About Us
           </div>
-          <h1 className="text-[2.5rem] sm:text-5xl md:text-[3.5rem] font-display font-extrabold tracking-[-0.03em] leading-[1.1] mb-5" data-testid="text-hero-title">
-            We love podcasts. We just don't have<br className="hidden md:block" /> two hours for every episode.
+          <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
+            We love podcasts. We just don't have two hours for every episode.
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
             Our team at PodCap came together with a shared love of podcasts and a common problem. We couldn't keep up with all the great episodes. So we built the solution we wished existed.
