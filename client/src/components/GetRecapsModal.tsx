@@ -95,11 +95,11 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
               )}
 
               <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2" data-testid="text-modal-title">
-                Get daily recaps of {podcastName}
+                Get recaps of every new {podcastName} episode
               </h2>
 
               <p className="text-[15px] text-muted-foreground leading-relaxed mb-6" data-testid="text-modal-subtitle">
-                Enter your email and we'll send you a summary every time a new episode drops.
+                Enter your email and we'll send a recap whenever a new episode drops.
               </p>
 
               <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4" data-testid="form-modal-signup">
@@ -126,7 +126,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      Get Free Summaries
+                      Get Free Recaps
                       <ArrowRight className="w-5 h-5" />
                     </>
                   )}
@@ -136,14 +136,6 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
               <p className="text-xs text-muted-foreground/60 mt-4 leading-relaxed" data-testid="text-modal-disclaimer">
                 Free forever for up to 3 podcasts. No credit card required.
               </p>
-
-              <button
-                onClick={handleClose}
-                className="mt-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="button-modal-cancel"
-              >
-                Cancel
-              </button>
             </div>
           </motion.div>
         </div>

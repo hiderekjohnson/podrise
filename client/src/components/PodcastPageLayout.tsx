@@ -105,7 +105,7 @@ export function PodcastPageLayout({
         rightContent={
           <button
             onClick={() => setShowRecapsModal(true)}
-            className="h-9 px-4 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            className="h-7 px-3 rounded-md font-display font-bold text-xs bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
             data-testid="button-get-recaps"
           >
             Get Recaps
