@@ -1,21 +1,51 @@
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight, Calendar, Clock, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
 import { EpisodeCard } from "@/components/EpisodeCard";
+import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayout";
 
 export default function EpisodeArchivePage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug || "";
+  const [, navigate] = useLocation();
 
   const searchParams = new URLSearchParams(window.location.search);
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const perPage = 25;
 
   const podcastConfig = getPodcastBySlug(slug);
+
+  const { data: dbEntry } = useQuery<any>({
+    queryKey: ["/api/podcasts/by-slug", slug],
+    enabled: !!slug,
+  });
+
+  const config = dbEntry ? {
+    slug: dbEntry.slug,
+    name: dbEntry.name,
+    itunesId: dbEntry.itunesId,
+    category: dbEntry.category || "",
+    hosts: dbEntry.hosts || "",
+    description: dbEntry.description || "",
+    keywords: dbEntry.keywords || "",
+    faqTopics: dbEntry.faqTopics || "",
+    artworkUrl: dbEntry.artworkUrl || "",
+    appleUrl: dbEntry.appleUrl,
+    spotifyUrl: dbEntry.spotifyUrl,
+    youtubeUrl: dbEntry.youtubeUrl,
+    avgEpisodeLength: dbEntry.avgEpisodeLength,
+    frequency: dbEntry.frequency,
+    totalEpisodes: dbEntry.totalEpisodes,
+    yearStarted: dbEntry.yearStarted,
+    knownFor: dbEntry.knownFor,
+    hostBios: (() => { try { return typeof dbEntry.hostBios === "string" ? JSON.parse(dbEntry.hostBios) : Array.isArray(dbEntry.hostBios) ? dbEntry.hostBios : undefined; } catch { return undefined; } })(),
+    relatedSlugs: dbEntry.relatedSlugs,
+    aboutPodcast: dbEntry.aboutPodcast,
+    twitterHandle: dbEntry.twitterHandle,
+  } as any : podcastConfig ? { ...podcastConfig, twitterHandle: null } : null;
 
   const { data: allRecaps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/podcasts", slug, "recaps", "all"],
@@ -36,11 +66,11 @@ export default function EpisodeArchivePage() {
   }, [slug, page]);
 
   useEffect(() => {
-    if (!podcastConfig) {
+    if (!config) {
       document.title = "Podcast Not Found | PodCap";
       return;
     }
-    const name = podcastConfig.name;
+    const name = config.name;
     const pageTitle = page > 1
       ? `All ${name} Episode Recaps — Page ${page} | PodCap`
       : `All ${name} Episode Recaps | PodCap`;
@@ -84,9 +114,9 @@ export default function EpisodeArchivePage() {
       document.title = "PodCap | Daily Podcast Recaps from Your Favorite Shows";
       if (canonical) canonical.remove();
     };
-  }, [podcastConfig, slug, page, total]);
+  }, [config, slug, page, total]);
 
-  if (!podcastConfig) {
+  if (!config) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -100,40 +130,28 @@ export default function EpisodeArchivePage() {
     );
   }
 
-  const name = podcastConfig.name;
+  const handleTabChange = (tab: PodcastTab) => {
+    if (tab === "episodes") return;
+    navigate(`/podcasts/${slug}?tab=${tab}`);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/">
-            <img src={logoPath} alt="PodCap" className="h-7" data-testid="link-home-logo" />
-          </Link>
-          <Link href={`/podcasts/${slug}`}>
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-podcast-hub">
-              ← {name}
-            </span>
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
+    <PodcastPageLayout
+      config={config}
+      activeTab="episodes"
+      onTabChange={handleTabChange}
+    >
+      <section className="pb-16" data-testid="section-all-episodes">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center gap-4 mb-2">
-            <img
-              src={podcastConfig.artworkUrl}
-              alt={name}
-              className="w-14 h-14 rounded-xl object-cover shadow-md shadow-black/[0.06] ring-1 ring-black/[0.04]"
-              data-testid="img-podcast-artwork"
-            />
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground" data-testid="text-archive-title">
-                All {name} Recaps
-              </h1>
+              <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground" data-testid="text-archive-title">
+                All {config.name} Recaps
+              </h2>
               <p className="text-sm text-muted-foreground mt-1" data-testid="text-episode-count">
                 {total} episode {total === 1 ? "recap" : "recaps"}
               </p>
@@ -145,72 +163,70 @@ export default function EpisodeArchivePage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
-          className="mt-8"
         >
-          <div className="space-y-5">
-            {episodes.map((ep) => (
-              <EpisodeCard
-                key={ep.episodeSlug}
-                episodeSlug={ep.episodeSlug}
-                podcastSlug={slug}
-                publishDate={ep.publishDate}
-                episodeTitle={ep.episodeTitle}
-                tldl={ep.tldl}
-                duration={ep.duration}
-              />
-            ))}
-          </div>
-
-          {episodes.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground">No episode recaps found for this page.</p>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
-          )}
+          ) : (
+            <>
+              <div className="space-y-5">
+                {episodes.map((ep) => (
+                  <EpisodeCard
+                    key={ep.episodeSlug}
+                    episodeSlug={ep.episodeSlug}
+                    podcastSlug={slug}
+                    publishDate={ep.publishDate}
+                    episodeTitle={ep.episodeTitle}
+                    tldl={ep.tldl}
+                    duration={ep.duration}
+                  />
+                ))}
+              </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-10" data-testid="pagination">
-              {page > 1 ? (
-                <Link href={`/podcasts/${slug}/episodes${page > 2 ? `?page=${page - 1}` : ""}`}>
-                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-prev-page">
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </span>
-                </Link>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground/40 cursor-not-allowed">
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </span>
+              {episodes.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground">No episode recaps found for this page.</p>
+                </div>
               )}
-              <span className="text-sm text-muted-foreground" data-testid="text-page-info">
-                Page {page} of {totalPages}
-              </span>
-              {page < totalPages ? (
-                <Link href={`/podcasts/${slug}/episodes?page=${page + 1}`}>
-                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-next-page">
-                    Next
-                    <ChevronRight className="w-4 h-4" />
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-10" data-testid="pagination">
+                  {page > 1 ? (
+                    <Link href={`/podcasts/${slug}/episodes${page > 2 ? `?page=${page - 1}` : ""}`}>
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-prev-page">
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </span>
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground/40 cursor-not-allowed">
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </span>
+                  )}
+                  <span className="text-sm text-muted-foreground" data-testid="text-page-info">
+                    Page {page} of {totalPages}
                   </span>
-                </Link>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground/40 cursor-not-allowed">
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </span>
+                  {page < totalPages ? (
+                    <Link href={`/podcasts/${slug}/episodes?page=${page + 1}`}>
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-next-page">
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </span>
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground/40 cursor-not-allowed">
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </span>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         </motion.div>
-
-        <footer className="mt-16 pt-8 border-t border-black/[0.06] text-center">
-          <Link href="/">
-            <img src={logoPath} alt="PodCap" className="h-6 mx-auto mb-3 opacity-40" />
-          </Link>
-          <p className="text-xs text-muted-foreground">
-            PodCap is not affiliated with {name}. Recaps are generated from publicly available episode information.
-          </p>
-        </footer>
-      </main>
-    </div>
+      </section>
+    </PodcastPageLayout>
   );
 }

@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search } from "lucide-react";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapHeader } from "@/components/PodCapHeader";
+import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 
@@ -143,13 +144,7 @@ export function EpisodePageLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center">
-          <Link href="/">
-            <img src={logoPath} alt="PodCap" className="h-7" data-testid="link-home-logo" />
-          </Link>
-        </div>
-      </header>
+      <PodCapHeader />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
         <motion.div
@@ -365,15 +360,9 @@ export function EpisodePageLayout({
           </motion.section>
         )}
 
-        <footer className="mt-16 pt-8 border-t border-black/[0.06] text-center">
-          <Link href="/">
-            <img src={logoPath} alt="PodCap" className="h-6 mx-auto mb-3 opacity-40" />
-          </Link>
-          <p className="text-xs text-muted-foreground">
-            PodCap is not affiliated with {episode.podcastName}. Content is generated from publicly available episode information.
-          </p>
-        </footer>
       </main>
+
+      <Footer />
 
       <AnimatePresence>
         {showStickyBar && !stickyDismissed && (
