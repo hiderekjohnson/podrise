@@ -261,6 +261,24 @@ export default function EpisodeRecapPage() {
             </div>
           </div>
 
+          <div className="flex items-center border-b border-black/[0.06] mb-10" data-testid="nav-recap-transcript-tabs">
+            <span
+              className="flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+              data-testid="tab-recap-active"
+            >
+              <FileText className="w-4 h-4" />
+              Episode Recap
+            </span>
+            <a
+              href={`/podcasts/${podcastSlug}/${episodeSlug}/transcript`}
+              className="flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors"
+              data-testid="tab-transcript-link"
+            >
+              <FileText className="w-4 h-4" />
+              Full Transcript
+            </a>
+          </div>
+
           <div className="relative bg-gradient-to-br from-primary/[0.05] to-primary/[0.02] border border-primary/[0.1] rounded-2xl px-6 py-5 sm:px-7 sm:py-6 mb-12" data-testid="section-tldl">
             <div className="flex items-center gap-2 mb-3">
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/[0.1]">
@@ -331,22 +349,16 @@ export default function EpisodeRecapPage() {
               </div>
             </section>
           )}
-          <section className="mb-12" data-testid="section-transcript-link">
+          <p className="text-sm text-muted-foreground mb-12" data-testid="section-transcript-link">
+            Prefer the source material?{" "}
             <a
               href={`/podcasts/${podcastSlug}/${episodeSlug}/transcript`}
-              className="flex items-center gap-3 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl px-6 py-5 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all group"
+              className="text-primary font-medium hover:underline"
               data-testid="link-full-transcript"
             >
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/[0.06] shrink-0">
-                <FileText className="w-5 h-5 text-primary" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">Read Full Transcript</p>
-                <p className="text-sm text-muted-foreground">Timestamped, searchable transcript with direct links to any moment</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-primary/50 group-hover:text-primary shrink-0 transition-colors" />
+              Read the full transcript
             </a>
-          </section>
+          </p>
         </motion.article>
 
         <motion.div

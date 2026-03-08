@@ -169,13 +169,30 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       pointer-events: none;
     }
 
-    .recap-link-box {
-      background: linear-gradient(135deg, rgba(26,140,255,0.04), rgba(26,140,255,0.02));
-      border: 1px solid rgba(26,140,255,0.1); border-radius: 12px;
-      padding: 14px 18px; margin-bottom: 32px;
-      font-size: 14px;
+    .page-tabs {
+      display: flex; align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      margin-bottom: 24px;
     }
-    .recap-link-box a { font-weight: 600; }
+    .page-tab {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 20px;
+      font-size: 14px; font-weight: 600;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      color: #64748b;
+      text-decoration: none;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .page-tab:hover { color: #1a1a2e; border-color: rgba(0,0,0,0.08); text-decoration: none; }
+    .page-tab.active { color: #1a8cff; border-color: #1a8cff; }
+    .page-tab svg { width: 16px; height: 16px; }
+
+    .recap-helper {
+      font-size: 14px; color: #64748b;
+      margin-bottom: 24px;
+    }
+    .recap-helper a { font-weight: 600; }
 
     .seg {
       padding: 14px 16px;
@@ -317,9 +334,20 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       <span class="search-count" id="search-count"></span>
     </div>
 
-    <div class="recap-link-box">
-      Looking for a quick summary? <a href="${recapUrl}">Read the episode recap &rarr;</a>
-    </div>
+    <nav class="page-tabs" data-testid="nav-recap-transcript-tabs">
+      <a href="${recapUrl}" class="page-tab" data-testid="tab-recap-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Episode Recap
+      </a>
+      <span class="page-tab active" data-testid="tab-transcript-active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Full Transcript
+      </span>
+    </nav>
+
+    <p class="recap-helper">
+      Too long to read? <a href="${recapUrl}">View the 2-minute episode recap</a>.
+    </p>
 
     <article id="segments-container">
       ${segmentsHtml}
