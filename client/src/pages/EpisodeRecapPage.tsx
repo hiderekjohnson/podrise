@@ -437,15 +437,15 @@ export default function EpisodeRecapPage() {
             <h2 className="text-lg font-display font-bold text-foreground mb-5">
               More from {episode.podcastName}
             </h2>
-            <div className="space-y-2.5">
+            <div className="space-y-5">
               {previousEpisodes
                 .map((ep: any) => {
                   const d = new Date(ep.publishDate + "T00:00:00");
                   const fmt = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                   return (
                     <Link key={ep.episodeSlug} href={`/podcasts/${podcastSlug}/${ep.episodeSlug}`}>
-                      <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-more-episode-${ep.episodeSlug}`}>
-                        <div className="flex items-center gap-2 mb-1.5">
+                      <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-5 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-more-episode-${ep.episodeSlug}`}>
+                        <div className="flex items-center gap-2 mb-2">
                           <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
                           <span className="text-xs font-semibold text-muted-foreground/60">{fmt}</span>
                           {ep.duration && (
@@ -456,7 +456,8 @@ export default function EpisodeRecapPage() {
                           )}
                         </div>
                         <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-2">
+                        {ep.tldl && <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{ep.tldl}</p>}
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-3">
                           See full episode recap
                           <ArrowRight className="w-3.5 h-3.5" />
                         </span>
