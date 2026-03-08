@@ -239,3 +239,19 @@ export const insertPodcastDirectorySchema = createInsertSchema(podcastDirectory)
 export type PodcastDirectoryEntry = typeof podcastDirectory.$inferSelect;
 export type InsertPodcastDirectoryEntry = z.infer<typeof insertPodcastDirectorySchema>;
 
+export const rssFeeds = pgTable("rss_feeds", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slugKey: text("slug_key").notNull().unique(),
+  podcastSlugs: text("podcast_slugs").array().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRssFeedSchema = createInsertSchema(rssFeeds).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type RssFeed = typeof rssFeeds.$inferSelect;
+export type InsertRssFeed = z.infer<typeof insertRssFeedSchema>;
+

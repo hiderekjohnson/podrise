@@ -216,6 +216,113 @@ export async function registerRoutes(
     res.send(await buildSitemap());
   });
 
+  function escapeXml(str: string): string {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  }
+
+  function buildRssXml(recaps: any[], feedTitle: string, feedDescription: string, feedLink: string): string {
+    const DOMAIN = "https://podcap.io";
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">\n`;
+    xml += `<channel>\n`;
+    xml += `  <title>${escapeXml(feedTitle)}</title>\n`;
+    xml += `  <link>${DOMAIN}</link>\n`;
+    xml += `  <description>${escapeXml(feedDescription)}</description>\n`;
+    xml += `  <atom:link href="${escapeXml(feedLink)}" rel="self" type="application/rss+xml"/>\n`;
+    xml += `  <language>en-us</language>\n`;
+    xml += `  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n`;
+    xml += `  <image>\n`;
+    xml += `    <url>${DOMAIN}/podcap-logo.png</url>\n`;
+    xml += `    <title>${escapeXml(feedTitle)}</title>\n`;
+    xml += `    <link>${DOMAIN}</link>\n`;
+    xml += `  </image>\n`;
+
+    for (const recap of recaps) {
+      const episodeUrl = `${DOMAIN}/podcasts/${recap.slug}/${recap.episodeSlug}`;
+      const pubDate = recap.publishDate ? new Date(recap.publishDate).toUTCString() : new Date(recap.createdAt).toUTCString();
+
+      let insightsHtml = "";
+      if (recap.keyInsights && recap.keyInsights.length > 0) {
+        insightsHtml = `<h3>Key Insights</h3><ul>${recap.keyInsights.map((i: string) => `<li>${escapeXml(i)}</li>`).join("")}</ul>`;
+      }
+
+      let quoteHtml = "";
+      if (recap.quote) {
+        quoteHtml = `<blockquote>"${escapeXml(recap.quote)}"${recap.quoteAttribution ? ` — ${escapeXml(recap.quoteAttribution)}` : ""}</blockquote>`;
+      }
+
+      const contentHtml = `<h2>${escapeXml(recap.episodeTitle)}</h2>` +
+        `<p><strong>Podcast:</strong> ${escapeXml(recap.podcastName)}</p>` +
+        (recap.hosts ? `<p><strong>Hosts:</strong> ${escapeXml(recap.hosts)}</p>` : "") +
+        (recap.duration ? `<p><strong>Duration:</strong> ${escapeXml(recap.duration)}</p>` : "") +
+        `<h3>TL;DL (Too Long; Didn't Listen)</h3><p>${escapeXml(recap.tldl)}</p>` +
+        `<h3>What Happened</h3><p>${escapeXml(recap.whatHappened)}</p>` +
+        insightsHtml +
+        quoteHtml +
+        `<p><a href="${episodeUrl}">Read full recap on PodCap</a></p>` +
+        (recap.appleEpisodeUrl ? `<p><a href="${escapeXml(recap.appleEpisodeUrl)}">Listen on Apple Podcasts</a></p>` : "");
+
+      xml += `  <item>\n`;
+      xml += `    <title>${escapeXml(recap.podcastName + " — " + recap.episodeTitle)}</title>\n`;
+      xml += `    <link>${episodeUrl}</link>\n`;
+      xml += `    <guid isPermaLink="true">${episodeUrl}</guid>\n`;
+      xml += `    <pubDate>${pubDate}</pubDate>\n`;
+      xml += `    <dc:creator>${escapeXml(recap.podcastName)}</dc:creator>\n`;
+      xml += `    <category>${escapeXml(recap.podcastName)}</category>\n`;
+      xml += `    <description>${escapeXml(recap.tldl)}</description>\n`;
+      xml += `    <content:encoded><![CDATA[${contentHtml}]]></content:encoded>\n`;
+      if (recap.artworkUrl) {
+        xml += `    <enclosure url="${escapeXml(recap.artworkUrl)}" type="image/jpeg" length="0"/>\n`;
+      }
+      xml += `  </item>\n`;
+    }
+
+    xml += `</channel>\n</rss>`;
+    return xml;
+  }
+
+  app.get("/rss/all", async (_req, res) => {
+    try {
+      const recaps = await storage.getRecentRecapsForRss(null, 200);
+      const DOMAIN = "https://podcap.io";
+      const xml = buildRssXml(
+        recaps,
+        "PodCap — All Podcast Recaps",
+        "AI-generated recaps of the latest episodes from top podcasts, delivered daily.",
+        `${DOMAIN}/rss/all`
+      );
+      res.set("Content-Type", "application/rss+xml; charset=utf-8");
+      res.set("Cache-Control", "public, max-age=900");
+      res.send(xml);
+    } catch (err) {
+      console.error("RSS all feed error:", err);
+      res.status(500).send("RSS feed error");
+    }
+  });
+
+  app.get("/rss/feed/:slugKey", async (req, res) => {
+    try {
+      const feed = await storage.getRssFeedBySlugKey(req.params.slugKey);
+      if (!feed) {
+        return res.status(404).send("Feed not found");
+      }
+      const recaps = await storage.getRecentRecapsForRss(feed.podcastSlugs, 200);
+      const DOMAIN = "https://podcap.io";
+      const xml = buildRssXml(
+        recaps,
+        `PodCap — ${feed.name}`,
+        `Custom podcast recap feed: ${feed.name}`,
+        `${DOMAIN}/rss/feed/${feed.slugKey}`
+      );
+      res.set("Content-Type", "application/rss+xml; charset=utf-8");
+      res.set("Cache-Control", "public, max-age=900");
+      res.send(xml);
+    } catch (err) {
+      console.error("RSS custom feed error:", err);
+      res.status(500).send("RSS feed error");
+    }
+  });
+
   app.get("/robots.txt", (_req, res) => {
     res.set("Content-Type", "text/plain");
     res.set("Cache-Control", "public, max-age=86400");
@@ -1722,6 +1829,98 @@ ${formatInstructions}`;
       res.json({ message: "Deleted" });
     } catch (err: any) {
       res.status(500).json({ message: "Failed to delete entry" });
+    }
+  });
+
+  app.get("/api/admin/rss-feeds", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const feeds = await storage.getRssFeeds();
+      res.json(feeds);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch RSS feeds" });
+    }
+  });
+
+  app.post("/api/admin/rss-feeds", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { name, slugKey, podcastSlugs } = req.body;
+      if (!name || typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ message: "Feed name is required" });
+      }
+      if (!slugKey || typeof slugKey !== "string" || !slugKey.trim()) {
+        return res.status(400).json({ message: "URL slug is required" });
+      }
+      if (!podcastSlugs || !Array.isArray(podcastSlugs)) {
+        return res.status(400).json({ message: "podcastSlugs must be an array" });
+      }
+      const validSlugs = podcastSlugs.filter((s: any) => typeof s === "string" && s.trim());
+      if (validSlugs.length === 0) {
+        return res.status(400).json({ message: "At least one podcast slug is required" });
+      }
+      const cleanSlugKey = slugKey.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      if (!cleanSlugKey) {
+        return res.status(400).json({ message: "Invalid slug key" });
+      }
+      const feed = await storage.createRssFeed({ name: name.trim(), slugKey: cleanSlugKey, podcastSlugs: validSlugs });
+      res.json(feed);
+    } catch (err: any) {
+      if (err.code === "23505") {
+        return res.status(409).json({ message: "A feed with this slug key already exists" });
+      }
+      res.status(500).json({ message: "Failed to create RSS feed" });
+    }
+  });
+
+  app.patch("/api/admin/rss-feeds/:id", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid id" });
+      }
+      const updates: any = {};
+      if (req.body.name && typeof req.body.name === "string") updates.name = req.body.name.trim();
+      if (req.body.podcastSlugs && Array.isArray(req.body.podcastSlugs)) {
+        const slugs = req.body.podcastSlugs.filter((s: any) => typeof s === "string" && s.trim());
+        if (slugs.length === 0) {
+          return res.status(400).json({ message: "At least one podcast slug is required" });
+        }
+        updates.podcastSlugs = slugs;
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No valid updates provided" });
+      }
+      const feed = await storage.updateRssFeed(id, updates);
+      if (!feed) {
+        return res.status(404).json({ message: "Feed not found" });
+      }
+      res.json(feed);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update RSS feed" });
+    }
+  });
+
+  app.delete("/api/admin/rss-feeds/:id", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid id" });
+      }
+      await storage.deleteRssFeed(id);
+      res.json({ message: "Deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete RSS feed" });
     }
   });
 

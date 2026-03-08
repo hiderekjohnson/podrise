@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment } from "@shared/schema";
-import { eq, desc, sql, and, gt, isNull, asc } from "drizzle-orm";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed } from "@shared/schema";
+import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   createUser(user: CreateUserRequest): Promise<UserResponse>;
@@ -58,6 +58,12 @@ export interface IStorage {
   getTranscriptSegments(episodeGuid: string): Promise<TranscriptSegment[]>;
   getTranscriptSegmentsBySlug(podcastSlug: string, episodeSlug: string): Promise<TranscriptSegment[]>;
   hasTranscriptSegments(episodeGuid: string): Promise<boolean>;
+  getRssFeeds(): Promise<RssFeed[]>;
+  getRssFeedBySlugKey(slugKey: string): Promise<RssFeed | undefined>;
+  createRssFeed(data: InsertRssFeed): Promise<RssFeed>;
+  updateRssFeed(id: number, data: Partial<InsertRssFeed>): Promise<RssFeed>;
+  deleteRssFeed(id: number): Promise<void>;
+  getRecentRecapsForRss(podcastSlugs: string[] | null, limit: number): Promise<LandingPageRecap[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -542,6 +548,45 @@ export class DatabaseStorage implements IStorage {
       .from(transcriptSegments)
       .where(eq(transcriptSegments.episodeGuid, episodeGuid));
     return (result[0]?.count ?? 0) > 0;
+  }
+
+  async getRssFeeds(): Promise<RssFeed[]> {
+    return db.select().from(rssFeeds).orderBy(asc(rssFeeds.name));
+  }
+
+  async getRssFeedBySlugKey(slugKey: string): Promise<RssFeed | undefined> {
+    const [feed] = await db.select().from(rssFeeds).where(eq(rssFeeds.slugKey, slugKey));
+    return feed;
+  }
+
+  async createRssFeed(data: InsertRssFeed): Promise<RssFeed> {
+    const [feed] = await db.insert(rssFeeds).values(data).returning();
+    return feed;
+  }
+
+  async updateRssFeed(id: number, data: Partial<InsertRssFeed>): Promise<RssFeed> {
+    const [feed] = await db.update(rssFeeds).set(data).where(eq(rssFeeds.id, id)).returning();
+    return feed;
+  }
+
+  async deleteRssFeed(id: number): Promise<void> {
+    await db.delete(rssFeeds).where(eq(rssFeeds.id, id));
+  }
+
+  async getRecentRecapsForRss(podcastSlugs: string[] | null, limit: number): Promise<LandingPageRecap[]> {
+    if (podcastSlugs && podcastSlugs.length > 0) {
+      return db
+        .select()
+        .from(landingPageRecaps)
+        .where(inArray(landingPageRecaps.slug, podcastSlugs))
+        .orderBy(desc(landingPageRecaps.createdAt))
+        .limit(limit);
+    }
+    return db
+      .select()
+      .from(landingPageRecaps)
+      .orderBy(desc(landingPageRecaps.createdAt))
+      .limit(limit);
   }
 }
 
