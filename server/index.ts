@@ -139,6 +139,26 @@ process.on("uncaughtException", (err) => {
   console.log("PORT:", process.env.PORT || "5000 (default)");
 
   try {
+    const { pool } = await import("./db");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS podcast_hosts (
+        id SERIAL PRIMARY KEY,
+        podcast_slug TEXT NOT NULL,
+        name TEXT NOT NULL,
+        bio TEXT,
+        photo_url TEXT,
+        twitter_handle TEXT,
+        linkedin_url TEXT,
+        instagram_handle TEXT,
+        website_url TEXT,
+        sort_order INTEGER DEFAULT 0
+      )
+    `);
+  } catch (err) {
+    console.warn("podcast_hosts table migration skipped:", err);
+  }
+
+  try {
     await registerRoutes(httpServer, app);
     console.log("Routes registered successfully");
   } catch (err) {

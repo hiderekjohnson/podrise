@@ -1606,6 +1606,39 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.get("/api/podcasts/:slug/hosts", async (req, res) => {
+    try {
+      const hosts = await storage.getHostsByPodcastSlug(req.params.slug);
+      res.json(hosts);
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to fetch hosts" });
+    }
+  });
+
+  app.post("/api/admin/podcasts/:slug/hosts", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const host = await storage.upsertHost({ ...req.body, podcastSlug: req.params.slug });
+      res.json(host);
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to save host" });
+    }
+  });
+
+  app.delete("/api/admin/podcasts/hosts/:id", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      await storage.deleteHost(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to delete host" });
+    }
+  });
+
   app.post("/api/admin/enrich-podcast-metadata", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

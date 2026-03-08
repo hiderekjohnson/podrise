@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare } from "lucide-react";
-import { SiX, SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
+import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram } from "react-icons/si";
+import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
@@ -405,6 +406,16 @@ export default function PodcastLandingGeneric() {
     enabled: !!slug,
   });
 
+  const { data: podcastHosts } = useQuery<any[]>({
+    queryKey: ["/api/podcasts", slug, "hosts"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${slug}/hosts`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!slug,
+  });
+
   const config = dbEntry ? {
     slug: dbEntry.slug,
     name: dbEntry.name,
@@ -638,26 +649,64 @@ export default function PodcastLandingGeneric() {
             </div>
           )}
 
-          {hostBios && hostBios.length > 0 && (
-            <div className="mb-6" data-testid="section-host-bios">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                {hostBios.length === 1 ? "Host" : "Hosts"}
-              </h3>
-              <div className={`grid gap-3 ${hostBios.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
-                {hostBios.map((host: any, i: number) => (
-                  <div key={i} className="bg-white border border-black/[0.06] rounded-xl p-5" data-testid={`host-bio-${i}`}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/[0.08] flex items-center justify-center shrink-0">
-                        <Users className="w-[18px] h-[18px] text-primary/60" />
+          {(() => {
+            const richHosts = podcastHosts && podcastHosts.length > 0 ? podcastHosts : null;
+            const fallbackHosts = !richHosts && hostBios && hostBios.length > 0 ? hostBios : null;
+            const displayHosts = richHosts || fallbackHosts;
+            if (!displayHosts || displayHosts.length === 0) return null;
+            return (
+              <div className="mb-6" data-testid="section-host-bios">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                  {displayHosts.length === 1 ? "Host" : "Hosts"}
+                </h3>
+                <div className={`grid gap-3 ${displayHosts.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+                  {displayHosts.map((host: any, i: number) => (
+                    <div key={host.id || i} className="bg-white border border-black/[0.06] rounded-xl p-5" data-testid={`host-bio-${i}`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        {host.photoUrl ? (
+                          <img src={host.photoUrl} alt={host.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-primary/[0.08] flex items-center justify-center shrink-0">
+                            <Users className="w-[18px] h-[18px] text-primary/60" />
+                          </div>
+                        )}
+                        <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
                       </div>
-                      <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
+                      {host.bio && <p className="text-sm text-muted-foreground leading-relaxed mb-3">{host.bio}</p>}
+                      {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {host.twitterHandle && (
+                            <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
+                              <SiX className="w-3 h-3" />
+                              {host.twitterHandle.startsWith('@') ? host.twitterHandle : `@${host.twitterHandle}`}
+                            </a>
+                          )}
+                          {host.linkedinUrl && (
+                            <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
+                              <SiLinkedin className="w-3 h-3" />
+                              LinkedIn
+                            </a>
+                          )}
+                          {host.instagramHandle && (
+                            <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
+                              <SiInstagram className="w-3 h-3" />
+                              {host.instagramHandle.startsWith('@') ? host.instagramHandle : `@${host.instagramHandle}`}
+                            </a>
+                          )}
+                          {host.websiteUrl && (
+                            <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
+                              <ExternalLink className="w-3 h-3" />
+                              Website
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{host.bio}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           <div className="mb-6" data-testid="section-listen">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>

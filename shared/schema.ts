@@ -266,6 +266,23 @@ export const podcastTopQuestions = pgTable("podcast_top_questions", {
 
 export type PodcastTopQuestion = typeof podcastTopQuestions.$inferSelect;
 
+export const podcastHosts = pgTable("podcast_hosts", {
+  id: serial("id").primaryKey(),
+  podcastSlug: text("podcast_slug").notNull(),
+  name: text("name").notNull(),
+  bio: text("bio"),
+  photoUrl: text("photo_url"),
+  twitterHandle: text("twitter_handle"),
+  linkedinUrl: text("linkedin_url"),
+  instagramHandle: text("instagram_handle"),
+  websiteUrl: text("website_url"),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const insertPodcastHostSchema = createInsertSchema(podcastHosts).omit({ id: true });
+export type InsertPodcastHost = z.infer<typeof insertPodcastHostSchema>;
+export type PodcastHost = typeof podcastHosts.$inferSelect;
+
 export const adminSettings = pgTable("admin_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
