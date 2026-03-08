@@ -614,6 +614,139 @@ export async function backfillTopicsAndQuestions() {
   }
 }
 
+export async function enrichPodcastMetadata(singleItunesId?: string) {
+  const { openai } = await import("./replit_integrations/image/client");
+  const { pool: dbPool } = await import("./db");
+
+  let podcasts: any[];
+  if (singleItunesId) {
+    const entry = await storage.getPodcastDirectoryEntry(singleItunesId);
+    if (!entry) {
+      console.warn(`[Enrich] No directory entry for iTunes ID ${singleItunesId}`);
+      return { enriched: 0, errors: 0 };
+    }
+    podcasts = [entry];
+  } else {
+    const allDir = await storage.getPodcastDirectory();
+    podcasts = allDir.filter((p: any) => p.hasLandingPage && (!p.aboutPodcast || !p.knownFor || !p.hostBios));
+  }
+
+  console.log(`[Enrich] Enriching metadata for ${podcasts.length} podcasts...`);
+  let enriched = 0;
+  let errors = 0;
+
+  for (const podcast of podcasts) {
+    try {
+      let itunesData: any = null;
+      try {
+        const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast`);
+        const lookupJson = await lookupRes.json();
+        itunesData = lookupJson.results?.[0];
+      } catch {}
+
+      let episodeSummaries = "";
+      try {
+        const client = await dbPool.connect();
+        try {
+          const { rows } = await client.query(
+            `SELECT episode_title, tldl FROM landing_page_recaps WHERE slug = $1 ORDER BY publish_date DESC LIMIT 10`,
+            [podcast.slug]
+          );
+          if (rows.length > 0) {
+            episodeSummaries = rows.map((r: any) => `- "${r.episode_title}": ${r.tldl}`).join("\n");
+          }
+        } finally {
+          client.release();
+        }
+      } catch {}
+
+      const itunesDescription = itunesData?.description || itunesData?.collectionName || "";
+      const itunesTrackCount = itunesData?.trackCount;
+      const itunesGenre = itunesData?.primaryGenreName || "";
+      const releaseDate = itunesData?.releaseDate;
+      const artworkUrl = itunesData?.artworkUrl600 || itunesData?.artworkUrl100 || podcast.artworkUrl;
+
+      const prompt = `You are generating metadata for a podcast page on PodCap.io. Be factual and concise.
+
+Podcast: "${podcast.name}"
+${podcast.hosts ? `Known hosts: ${podcast.hosts}` : ""}
+${itunesDescription ? `iTunes description: ${itunesDescription}` : ""}
+${itunesGenre ? `Genre: ${itunesGenre}` : ""}
+${episodeSummaries ? `Recent episode summaries:\n${episodeSummaries}` : ""}
+
+Generate the following as a JSON object:
+{
+  "aboutPodcast": "A 2-3 sentence description of this podcast — what it covers, who hosts it, and who it's for. Write in third person, factual tone.",
+  "knownFor": ["4-6 short phrases this podcast is known for, like 'Long-form tech founder interviews' or 'Deep dives into AI research'. Be specific to this show."],
+  "hostBios": [{"name": "Host Name", "bio": "1-2 sentence bio of this host. Include their role/background."}],
+  "frequency": "Weekly|Twice weekly|Daily|Biweekly|Monthly",
+  "category": "One of: Technology, Business, Society & Culture, Comedy, News, Science, Education, Health & Fitness, Sports, True Crime, Arts",
+  "avgEpisodeLength": estimated average episode length in minutes as an integer
+}
+
+RULES:
+- Only include hosts you are confident about. If unsure of hosts, use the podcast name context.
+- hostBios must be an array of objects with "name" and "bio" keys.
+- frequency should be your best estimate based on the podcast.
+- avgEpisodeLength should be an integer (minutes).
+- Be factual — don't invent details you don't know.
+- Respond ONLY with valid JSON, no markdown.`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 2000,
+        temperature: 0.3,
+        response_format: { type: "json_object" },
+      });
+
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        errors++;
+        continue;
+      }
+
+      const parsed = JSON.parse(content.trim());
+
+      const updateData: any = {
+        itunesId: podcast.itunesId,
+        slug: podcast.slug,
+        name: podcast.name,
+        hasLandingPage: true,
+      };
+
+      if (!podcast.aboutPodcast && parsed.aboutPodcast) updateData.aboutPodcast = parsed.aboutPodcast;
+      if (!podcast.knownFor && Array.isArray(parsed.knownFor)) updateData.knownFor = parsed.knownFor;
+      if (!podcast.hostBios && Array.isArray(parsed.hostBios)) updateData.hostBios = parsed.hostBios;
+      if (!podcast.frequency && parsed.frequency) updateData.frequency = parsed.frequency;
+      if (!podcast.category && parsed.category) updateData.category = parsed.category;
+      if (!podcast.avgEpisodeLength && parsed.avgEpisodeLength) updateData.avgEpisodeLength = parseInt(parsed.avgEpisodeLength);
+      if (!podcast.description && itunesDescription) updateData.description = itunesDescription;
+      if (!podcast.artworkUrl && artworkUrl) updateData.artworkUrl = artworkUrl;
+      if (!podcast.totalEpisodes && itunesTrackCount) updateData.totalEpisodes = itunesTrackCount;
+      if (!podcast.yearStarted && releaseDate) {
+        const firstYear = new Date(releaseDate).getFullYear();
+        if (firstYear > 2000 && firstYear <= new Date().getFullYear()) updateData.yearStarted = firstYear;
+      }
+      if (!podcast.hosts && parsed.hostBios?.length > 0) {
+        updateData.hosts = parsed.hostBios.map((h: any) => h.name).join(" & ");
+      }
+
+      await storage.upsertPodcastDirectoryEntry(updateData);
+      enriched++;
+      console.log(`[Enrich] ✓ ${podcast.name}`);
+
+      await new Promise(r => setTimeout(r, 300));
+    } catch (err) {
+      errors++;
+      console.error(`[Enrich] Failed for ${podcast.name}:`, err);
+    }
+  }
+
+  console.log(`[Enrich] Complete: ${enriched} enriched, ${errors} errors`);
+  return { enriched, errors };
+}
+
 let batchExpansionRunning = false;
 let batchExpansionProgress: {
   status: "idle" | "running" | "completed" | "error";
@@ -979,6 +1112,17 @@ async function ensureLandingPageDirectoryEntries() {
   }
   if (updated > 0) {
     console.log(`[LandingRecaps] Ensured ${updated} podcast directory entries with has_landing_page=true`);
+  }
+
+  try {
+    const allDirAfter = await storage.getPodcastDirectory();
+    const needsEnrichment = allDirAfter.filter((p: any) => p.hasLandingPage && (!p.aboutPodcast || !p.knownFor || !p.hostBios));
+    if (needsEnrichment.length > 0) {
+      console.log(`[LandingRecaps] Auto-enriching ${needsEnrichment.length} podcasts missing about metadata...`);
+      enrichPodcastMetadata().catch(err => console.error("[LandingRecaps] Auto-enrich error:", err));
+    }
+  } catch (enrichErr) {
+    console.error("[LandingRecaps] Auto-enrich check error:", enrichErr);
   }
 }
 

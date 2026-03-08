@@ -802,6 +802,28 @@ export default function Admin() {
                       </button>
                     </div>
 
+                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-enrich-metadata">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Enrich Podcast Metadata</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Auto-generate About, Known For, Host Bios, and other metadata for podcasts missing it.</p>
+                      </div>
+                      <button
+                        data-testid="button-enrich-metadata"
+                        onClick={async () => {
+                          if (!confirm("This will use AI to generate about info, host bios, and known-for for all podcasts missing this metadata. Continue?")) return;
+                          try {
+                            await apiRequest("POST", "/api/admin/enrich-podcast-metadata");
+                            toast({ title: "Enrichment Started", description: "Podcast metadata enrichment is running in the background." });
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err?.message || "Failed to start enrichment", variant: "destructive" });
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                      >
+                        Enrich All
+                      </button>
+                    </div>
+
                     <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-topics">
                       <div>
                         <h3 className="text-sm font-bold text-foreground">Backfill Key Topics & Questions</h3>

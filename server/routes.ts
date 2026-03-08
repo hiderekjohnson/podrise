@@ -1592,6 +1592,19 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.post("/api/admin/enrich-podcast-metadata", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { enrichPodcastMetadata } = await import("./emailScheduler");
+      enrichPodcastMetadata();
+      res.json({ message: "Podcast metadata enrichment started for all podcasts missing about info." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to start enrichment" });
+    }
+  });
+
   app.post("/api/admin/reingest-transcript-segments", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
