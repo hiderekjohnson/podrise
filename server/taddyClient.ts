@@ -120,19 +120,20 @@ export async function getEpisodesByItunesId(
 }
 
 export async function searchEpisodeByName(
-  podcastItunesId: string,
+  podcastName: string,
   episodeName: string
 ): Promise<{ uuid: string; name: string } | null> {
-  const cleanName = episodeName.replace(/"/g, '\\"').slice(0, 100);
-  const numericId = parseInt(podcastItunesId, 10);
-  if (isNaN(numericId)) return null;
+  const searchTerm = `${podcastName} ${episodeName}`.replace(/"/g, '\\"').slice(0, 150);
 
   const query = `{
-    searchForTerm(term: "${cleanName}", filterForTypes: PODCASTEPISODE, filterForPodcasts: [${numericId}], limitPerPage: 5) {
+    searchForTerm(term: "${searchTerm}", filterForTypes: PODCASTEPISODE, limitPerPage: 5) {
       searchId
       podcastEpisodes {
         uuid
         name
+        podcastSeries {
+          name
+        }
       }
     }
   }`;
@@ -143,7 +144,13 @@ export async function searchEpisodeByName(
     return null;
   }
 
-  return episodes[0];
+  const podcastNorm = podcastName.toLowerCase().trim();
+  const match = episodes.find((ep: any) => {
+    const seriesName = ep.podcastSeries?.name?.toLowerCase()?.trim() || "";
+    return seriesName.includes(podcastNorm) || podcastNorm.includes(seriesName);
+  });
+
+  return match || null;
 }
 
 export async function getEpisodeTranscriptSegments(episodeUuid: string): Promise<TaddyTranscriptSegment[] | null> {

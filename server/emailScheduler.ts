@@ -911,7 +911,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               }
 
               if (!taddyEpisodeUuid) {
-                const searchResult = await searchEpisodeByName(podcast.itunesId, epTitle);
+                const searchResult = await searchEpisodeByName(podcast.name, epTitle);
                 if (searchResult?.uuid) taddyEpisodeUuid = searchResult.uuid;
               }
 
