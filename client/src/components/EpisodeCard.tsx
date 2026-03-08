@@ -1,0 +1,51 @@
+import { Link } from "wouter";
+import { Calendar, ArrowRight } from "lucide-react";
+
+interface EpisodeCardProps {
+  episodeSlug: string;
+  podcastSlug: string;
+  publishDate: string;
+  episodeTitle: string;
+  tldl?: string;
+  duration?: string;
+  testIdPrefix?: string;
+}
+
+export function EpisodeCard({
+  episodeSlug,
+  podcastSlug,
+  publishDate,
+  episodeTitle,
+  tldl,
+  duration,
+  testIdPrefix = "card-episode",
+}: EpisodeCardProps) {
+  const date = new Date(publishDate + "T00:00:00");
+  const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+  return (
+    <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`}>
+      <div
+        className="bg-white border border-black/[0.06] rounded-xl px-5 py-5 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group"
+        data-testid={`${testIdPrefix}-${episodeSlug}`}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
+          <span className="text-xs font-semibold text-muted-foreground/60">{formatted}</span>
+          {duration && (
+            <>
+              <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
+              <span className="text-xs text-muted-foreground/50">{duration}</span>
+            </>
+          )}
+        </div>
+        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{episodeTitle}</p>
+        {tldl && <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{tldl}</p>}
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-3">
+          See full episode recap
+          <ArrowRight className="w-3.5 h-3.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}

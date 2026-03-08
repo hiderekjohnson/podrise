@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { EpisodeCard } from "@/components/EpisodeCard";
 
 function highlightMatch(text: string, query: string) {
   if (!query) return text;
@@ -495,32 +496,17 @@ export default function PodcastLandingGeneric() {
                     Quick summaries of the latest episodes — key takeaways in minutes, not hours.
                   </p>
                   <div className="space-y-5">
-                    {episodeRecaps.slice(0, 10).map((ep: any) => {
-                      const date = new Date(ep.publishDate + "T00:00:00");
-                      const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                      return (
-                        <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
-                          <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-5 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
-                              <span className="text-xs font-semibold text-muted-foreground/60">{formatted}</span>
-                              {ep.duration && (
-                                <>
-                                  <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
-                                  <span className="text-xs text-muted-foreground/50">{ep.duration}</span>
-                                </>
-                              )}
-                            </div>
-                            <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{ep.tldl}</p>
-                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-3">
-                              See full episode recap
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
+                    {episodeRecaps.slice(0, 10).map((ep: any) => (
+                      <EpisodeCard
+                        key={ep.episodeSlug}
+                        episodeSlug={ep.episodeSlug}
+                        podcastSlug={slug}
+                        publishDate={ep.publishDate}
+                        episodeTitle={ep.episodeTitle}
+                        tldl={ep.tldl}
+                        duration={ep.duration}
+                      />
+                    ))}
                   </div>
                   <div className="flex justify-center mt-8">
                     <Link href={`/podcasts/${slug}/episodes`}>
