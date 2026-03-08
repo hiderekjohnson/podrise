@@ -34,14 +34,15 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
     debounceRef.current = setTimeout(() => setDebouncedQuery(val), 400);
   }, []);
 
-  const { data, isLoading } = useQuery<{ results: Array<{ episodeTitle: string; mentions: number; snippets: string[]; date: string }>; query: string; total: number }>({
+  const { data, isLoading, isError } = useQuery<{ results: Array<{ episodeTitle: string; mentions: number; snippets: string[]; date: string }>; query: string; total: number }>({
     queryKey: ["/api/podcasts", slug, "search", debouncedQuery],
     queryFn: async () => {
       const res = await fetch(`/api/podcasts/${slug}/search?q=${encodeURIComponent(debouncedQuery)}`);
-      if (!res.ok) return { results: [], query: debouncedQuery, total: 0 };
+      if (!res.ok) throw new Error("Search failed");
       return res.json();
     },
     enabled: debouncedQuery.length >= 2,
+    retry: 1,
   });
 
   return (
@@ -91,7 +92,13 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
             </div>
           )}
 
-          {!isLoading && data && data.results.length === 0 && (
+          {!isLoading && isError && (
+            <div className="text-center py-8" data-testid="search-error">
+              <p className="text-muted-foreground text-sm">Search is temporarily unavailable. Please try again.</p>
+            </div>
+          )}
+
+          {!isLoading && !isError && data && data.results.length === 0 && (
             <div className="text-center py-8" data-testid="search-no-results">
               <p className="text-muted-foreground text-sm">No mentions of "{debouncedQuery}" found in available transcripts.</p>
             </div>

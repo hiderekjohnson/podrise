@@ -86,6 +86,7 @@ A full-stack web application that lets users create and manage personalized dail
 - `POST /api/stripe/portal` — Create Stripe billing portal session
 - `POST /api/stripe/sync-subscription` — Sync subscription status
 - `POST /api/stripe/cancel-subscription` — Cancel subscription (handles null subscription ID gracefully)
+- `GET /api/podcasts/:slug/search?q=term` — Search episode transcripts for a podcast by keyword; returns top 10 matching episodes with mention counts + text snippets with context; uses pg_trgm GIN index
 - `GET /api/podcasts/:slug/recaps?limit=10` — Get episode recaps for podcast landing page (from `landing_page_recaps` table)
 - `GET /api/podcasts/:slug/recaps/:episodeSlug` — Get individual episode recap
 - `GET /api/podcasts/:slug/example-recap` — Get featured example recap for podcast landing page
