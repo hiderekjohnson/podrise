@@ -598,9 +598,15 @@ export async function registerRoutes(
 
   app.get("/api/podcasts/:slug/recaps", async (req, res) => {
     try {
-      const limit = Math.min(parseInt(req.query.limit as string) || 10, 500);
-      const recaps = await storage.getLandingPageRecaps(req.params.slug, limit);
-      res.json(recaps);
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
+      const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
+      const recaps = await storage.getLandingPageRecaps(req.params.slug, limit, offset);
+      if (req.query.offset !== undefined || req.query.count === "true") {
+        const total = await storage.getLandingPageRecapCount(req.params.slug);
+        res.json({ recaps, total, limit, offset });
+      } else {
+        res.json(recaps);
+      }
     } catch {
       res.status(500).json({ error: "Failed to fetch recaps" });
     }

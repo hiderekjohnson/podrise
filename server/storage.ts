@@ -49,7 +49,8 @@ export interface IStorage {
   getPodcastDirectoryBySlug(slug: string): Promise<PodcastDirectoryEntry | undefined>;
   upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry>;
   deletePodcastDirectoryEntry(id: number): Promise<void>;
-  getLandingPageRecaps(slug: string, limit?: number): Promise<LandingPageRecap[]>;
+  getLandingPageRecaps(slug: string, limit?: number, offset?: number): Promise<LandingPageRecap[]>;
+  getLandingPageRecapCount(slug: string): Promise<number>;
   getLandingPageRecapBySlug(podcastSlug: string, episodeSlug: string): Promise<LandingPageRecap | undefined>;
   upsertLandingPageRecap(data: InsertLandingPageRecap): Promise<LandingPageRecap>;
   getLandingPageRecapSlugs(): Promise<string[]>;
@@ -455,11 +456,18 @@ export class DatabaseStorage implements IStorage {
     await db.delete(podcastDirectory).where(eq(podcastDirectory.id, id));
   }
 
-  async getLandingPageRecaps(slug: string, limit: number = 10): Promise<LandingPageRecap[]> {
+  async getLandingPageRecaps(slug: string, limit: number = 10, offset: number = 0): Promise<LandingPageRecap[]> {
     return db.select().from(landingPageRecaps)
       .where(eq(landingPageRecaps.slug, slug))
       .orderBy(desc(landingPageRecaps.publishDate), desc(landingPageRecaps.createdAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getLandingPageRecapCount(slug: string): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(*)` }).from(landingPageRecaps)
+      .where(eq(landingPageRecaps.slug, slug));
+    return Number(result?.count || 0);
   }
 
   async getLandingPageRecapBySlug(podcastSlug: string, episodeSlug: string): Promise<LandingPageRecap | undefined> {

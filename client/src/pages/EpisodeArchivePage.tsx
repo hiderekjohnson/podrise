@@ -47,19 +47,21 @@ export default function EpisodeArchivePage() {
     twitterHandle: dbEntry.twitterHandle,
   } as any : podcastConfig ? { ...podcastConfig, twitterHandle: null } : null;
 
-  const { data: allRecaps = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/podcasts", slug, "recaps", "all"],
+  const offset = (page - 1) * perPage;
+
+  const { data: recapData, isLoading } = useQuery<{ recaps: any[]; total: number }>({
+    queryKey: ["/api/podcasts", slug, "recaps", "page", page],
     queryFn: async () => {
-      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=500`);
-      if (!res.ok) return [];
+      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=${perPage}&offset=${offset}`);
+      if (!res.ok) return { recaps: [], total: 0 };
       return res.json();
     },
     enabled: !!slug,
   });
 
-  const total = allRecaps.length;
+  const episodes = recapData?.recaps || [];
+  const total = recapData?.total || 0;
   const totalPages = Math.ceil(total / perPage);
-  const episodes = allRecaps.slice((page - 1) * perPage, page * perPage);
 
   useEffect(() => {
     window.scrollTo(0, 0);
