@@ -913,52 +913,104 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         return res.status(404).json({ error: "No episodes found for this podcast" });
       }
 
-      const allRecapSummaries = recaps.slice(0, 50).map(r =>
-        `Episode: "${r.episodeTitle}"\nSummary: ${r.tldl || ""}\n${r.whatHappened ? r.whatHappened.slice(0, 400) : ""}`
-      ).join("\n\n");
+      const { db } = await import("./db");
+      const { sql } = await import("drizzle-orm");
 
-      const searchTerms = question.trim().toLowerCase().split(/\s+/).filter(w => w.length > 2 && !["the","and","for","are","you","how","what","why","who","does","this","that","with","from","about","many","have","been","they","their","there","which","when","where","looking"].includes(w));
+      const episodesWithTranscripts = await db.execute(sql`
+        SELECT DISTINCT episode_slug FROM transcript_segments WHERE podcast_slug = ${slug}
+      `);
+      const transcriptEpisodeSlugs = new Set((episodesWithTranscripts.rows as any[]).map(r => r.episode_slug));
 
-      let contextSegments: { text: string; episodeTitle: string }[] = [];
+      const searchTerms = question.trim().toLowerCase()
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !["the","and","for","are","you","how","what","why","who","does","this","that","with","from","about","many","have","been","they","their","there","which","when","where","looking","episode","episodes","podcast"].includes(w));
 
-      if (searchTerms.length > 0) {
-        const { db } = await import("./db");
-        const { sql } = await import("drizzle-orm");
+      const tsQuery = searchTerms.slice(0, 6).join(" | ");
 
-        for (const term of searchTerms.slice(0, 4)) {
-          if (contextSegments.length >= 60) break;
-          const termPattern = `%${term.replace(/%/g, "\\%")}%`;
-          const termResults = await db.execute(sql`
-            SELECT ts.episode_slug, ts.text, lpr.episode_title
-            FROM transcript_segments ts
-            LEFT JOIN landing_page_recaps lpr ON lpr.slug = ts.podcast_slug AND lpr.episode_slug = ts.episode_slug
-            WHERE ts.podcast_slug = ${slug}
-              AND ts.text ILIKE ${termPattern}
-            ORDER BY lpr.publish_date DESC NULLS LAST, ts.sequence_index ASC
-            LIMIT 20
+      let ftsSegments: { text: string; episodeSlug: string; episodeTitle: string; rank: number }[] = [];
+      if (tsQuery) {
+        const ftsResults = await db.execute(sql`
+          SELECT ts.episode_slug, ts.text, lpr.episode_title,
+                 ts_rank(to_tsvector('english', ts.text), to_tsquery('english', ${tsQuery})) as rank
+          FROM transcript_segments ts
+          LEFT JOIN landing_page_recaps lpr ON lpr.slug = ts.podcast_slug AND lpr.episode_slug = ts.episode_slug
+          WHERE ts.podcast_slug = ${slug}
+            AND to_tsvector('english', ts.text) @@ to_tsquery('english', ${tsQuery})
+          ORDER BY rank DESC
+          LIMIT 100
+        `);
+        if (ftsResults.rows) {
+          ftsSegments = (ftsResults.rows as any[]).map(r => ({
+            text: r.text,
+            episodeSlug: r.episode_slug,
+            episodeTitle: r.episode_title || r.episode_slug,
+            rank: Number(r.rank),
+          }));
+        }
+      }
+
+      const segmentsByEpisode = new Map<string, { text: string; episodeTitle: string; rank: number }[]>();
+      for (const seg of ftsSegments) {
+        if (!segmentsByEpisode.has(seg.episodeSlug)) {
+          segmentsByEpisode.set(seg.episodeSlug, []);
+        }
+        segmentsByEpisode.get(seg.episodeSlug)!.push({ text: seg.text, episodeTitle: seg.episodeTitle, rank: seg.rank });
+      }
+
+      let transcriptContext = "";
+      const maxTranscriptChars = 60000;
+      let usedChars = 0;
+
+      if (ftsSegments.length > 0) {
+        const episodeEntries = [...segmentsByEpisode.entries()]
+          .sort((a, b) => {
+            const maxRankA = Math.max(...a[1].map(s => s.rank));
+            const maxRankB = Math.max(...b[1].map(s => s.rank));
+            return maxRankB - maxRankA;
+          });
+
+        for (const [epSlug, segments] of episodeEntries) {
+          if (usedChars >= maxTranscriptChars) break;
+          const topSegs = segments.sort((a, b) => b.rank - a.rank).slice(0, 8);
+          for (const seg of topSegs) {
+            if (usedChars >= maxTranscriptChars) break;
+            const line = `[${seg.episodeTitle}]: ${seg.text}`;
+            transcriptContext += line + "\n\n";
+            usedChars += line.length;
+          }
+        }
+      }
+
+      for (const recap of recaps) {
+        if (usedChars >= maxTranscriptChars) break;
+        if (recap.episodeSlug && transcriptEpisodeSlugs.has(recap.episodeSlug) && !segmentsByEpisode.has(recap.episodeSlug)) {
+          const sampleSegs = await db.execute(sql`
+            SELECT text FROM transcript_segments
+            WHERE podcast_slug = ${slug} AND episode_slug = ${recap.episodeSlug}
+            ORDER BY sequence_index ASC
+            LIMIT 5
           `);
-          if (termResults.rows) {
-            for (const r of termResults.rows as any[]) {
-              if (contextSegments.length >= 60) break;
-              const already = contextSegments.some(c => c.text === r.text);
-              if (!already) {
-                contextSegments.push({ text: r.text, episodeTitle: r.episode_title || r.episode_slug });
-              }
+          if (sampleSegs.rows) {
+            for (const r of sampleSegs.rows as any[]) {
+              if (usedChars >= maxTranscriptChars) break;
+              const line = `[${recap.episodeTitle}]: ${r.text}`;
+              transcriptContext += line + "\n\n";
+              usedChars += line.length;
             }
           }
         }
       }
 
-      const transcriptContext = contextSegments.length > 0
-        ? contextSegments.slice(0, 30).map(s => `[${s.episodeTitle}]: ${s.text}`).join("\n\n").slice(0, 8000)
-        : "";
+      const allRecapSummaries = recaps.slice(0, 50).map(r =>
+        `Episode: "${r.episodeTitle}"\nSummary: ${r.tldl || ""}\n${r.whatHappened ? r.whatHappened.slice(0, 300) : ""}`
+      ).join("\n\n");
 
       const episodesCited = [
         ...new Set([
-          ...contextSegments.map(s => s.episodeTitle),
+          ...ftsSegments.map(s => s.episodeTitle),
           ...recaps.slice(0, 20).map(r => r.episodeTitle),
         ])
-      ].filter(Boolean).slice(0, 12);
+      ].filter(Boolean).slice(0, 15);
 
       const { openai } = await import("./replit_integrations/image/client");
       const completion = await openai.chat.completions.create({
@@ -966,11 +1018,11 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         messages: [
           {
             role: "system",
-            content: `You are PodCap, an AI assistant that answers questions about the podcast "${recaps[0]?.podcastName || slug}". You have access to summaries from ${recaps.length} episodes of this podcast${transcriptContext ? ", plus relevant transcript excerpts" : ""}. Answer in 2-3 paragraphs. Draw from multiple episodes when possible. Reference specific episodes by name when relevant. If you don't have enough information to answer fully, say so honestly.`
+            content: `You are PodCap, an AI assistant that answers questions about the podcast "${recaps[0]?.podcastName || slug}". You have access to transcript data from ${transcriptEpisodeSlugs.size} episodes and summaries from ${recaps.length} total episodes. Answer in 2-3 paragraphs. Draw from multiple episodes when possible. Reference specific episodes by name when relevant. If you don't have enough information to answer fully, say so honestly.`
           },
           {
             role: "user",
-            content: `Episode summaries (${recaps.length} episodes total):\n${allRecapSummaries.slice(0, 12000)}${transcriptContext ? `\n\nRelevant transcript excerpts:\n${transcriptContext}` : ""}\n\nQuestion: ${question.trim()}`
+            content: `Episode summaries (${recaps.length} episodes total):\n${allRecapSummaries.slice(0, 10000)}\n\nTranscript excerpts from ${transcriptEpisodeSlugs.size} episodes:\n${transcriptContext}\n\nQuestion: ${question.trim()}`
           }
         ],
         max_tokens: 1500,

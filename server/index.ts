@@ -159,6 +159,17 @@ process.on("uncaughtException", (err) => {
   }
 
   try {
+    const { pool } = await import("./db");
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_transcript_segments_fts
+      ON transcript_segments
+      USING GIN (to_tsvector('english', text))
+    `);
+  } catch (err) {
+    console.warn("FTS index migration skipped:", err);
+  }
+
+  try {
     await registerRoutes(httpServer, app);
     console.log("Routes registered successfully");
   } catch (err) {
