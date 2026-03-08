@@ -531,7 +531,58 @@ export function startEmailScheduler() {
     }
   }, 15 * 60 * 1000);
 
-  setTimeout(() => {
+  setTimeout(async () => {
+    try {
+      await ensureLandingPageDirectoryEntries();
+    } catch (err) {
+      console.error("[LandingRecaps] Directory seed error:", err);
+    }
     refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
   }, 30000);
+}
+
+async function ensureLandingPageDirectoryEntries() {
+  const { SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
+  const allDir = await storage.getPodcastDirectory();
+  const existingByItunes = new Map(allDir.map((p: any) => [p.itunesId, p]));
+
+  let updated = 0;
+  for (const [slug, itunesId] of Object.entries(SLUG_TO_ITUNES_ID)) {
+    const existing = existingByItunes.get(itunesId);
+    if (existing) {
+      if (!existing.hasLandingPage || existing.slug !== slug) {
+        await storage.upsertPodcastDirectoryEntry({
+          ...existing,
+          slug,
+          hasLandingPage: true,
+        });
+        updated++;
+      }
+    } else {
+      try {
+        const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${itunesId}&media=podcast`);
+        const lookupData = await lookupRes.json();
+        const info = lookupData.results?.[0];
+        await storage.upsertPodcastDirectoryEntry({
+          itunesId,
+          slug,
+          name: info?.collectionName || slug,
+          artworkUrl: info?.artworkUrl600 || info?.artworkUrl100 || null,
+          hasLandingPage: true,
+        });
+        updated++;
+      } catch {
+        await storage.upsertPodcastDirectoryEntry({
+          itunesId,
+          slug,
+          name: slug,
+          hasLandingPage: true,
+        });
+        updated++;
+      }
+    }
+  }
+  if (updated > 0) {
+    console.log(`[LandingRecaps] Ensured ${updated} podcast directory entries with has_landing_page=true`);
+  }
 }
