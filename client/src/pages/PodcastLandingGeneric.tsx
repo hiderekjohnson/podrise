@@ -104,51 +104,69 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
             <div data-testid="search-results">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {data.total} episode{data.total !== 1 ? "s" : ""} matched
+                  Found in {data.total} episode{data.total !== 1 ? "s" : ""}
                 </p>
                 <span className="text-xs text-muted-foreground/50">
                   "{data.query}"
                 </span>
               </div>
-              <div className="space-y-3">
-                {data.results.map((result, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white border border-black/[0.06] rounded-xl overflow-hidden"
-                    data-testid={`search-result-${idx}`}
-                  >
-                    <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-black/[0.04] bg-black/[0.01]">
-                      <Link href={`/podcasts/${slug}/${result.episodeSlug}`}>
-                        <span className="text-[15px] font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-snug" data-testid={`search-result-title-${idx}`}>
-                          {result.episodeTitle}
-                        </span>
-                      </Link>
-                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-primary/[0.08] text-primary">
-                        {result.mentions}
-                      </span>
-                    </div>
-                    <div className="divide-y divide-black/[0.03]">
-                      {result.hits.map((hit, sIdx) => (
-                        <a
-                          key={sIdx}
-                          href={`/podcasts/${slug}/${result.episodeSlug}/transcript#${hit.anchorId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-start gap-2.5 px-5 py-3 hover:bg-primary/[0.03] transition-colors group"
-                          data-testid={`search-hit-${idx}-${sIdx}`}
-                        >
-                          {hit.timestampLabel && (
-                            <span className="shrink-0 text-[11px] font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
-                              {hit.timestampLabel}
+              <div className="space-y-4">
+                {data.results.map((result, idx) => {
+                  const dateStr = result.publishDate
+                    ? new Date(result.publishDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                    : null;
+                  return (
+                    <div
+                      key={idx}
+                      className="bg-white border border-black/[0.06] rounded-xl overflow-hidden"
+                      data-testid={`search-result-${idx}`}
+                    >
+                      <div className="px-5 py-3.5 border-b border-black/[0.04] bg-black/[0.01]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <Link href={`/podcasts/${slug}/${result.episodeSlug}`}>
+                              <span className="text-[15px] font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-snug" data-testid={`search-result-title-${idx}`}>
+                                {result.episodeTitle}
+                              </span>
+                            </Link>
+                            {dateStr && (
+                              <p className="text-[11px] text-muted-foreground/50 mt-0.5 flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {dateStr}
+                              </p>
+                            )}
+                          </div>
+                          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-primary/[0.08] text-primary">
+                            {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="divide-y divide-black/[0.03]">
+                        {result.hits.map((hit, sIdx) => (
+                          <a
+                            key={sIdx}
+                            href={`/podcasts/${slug}/${result.episodeSlug}/transcript#${hit.anchorId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-start gap-2.5 px-5 py-3 hover:bg-primary/[0.03] transition-colors group"
+                            data-testid={`search-hit-${idx}-${sIdx}`}
+                          >
+                            {hit.timestampLabel && (
+                              <span className="shrink-0 text-[11px] font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
+                                {hit.timestampLabel}
+                              </span>
+                            )}
+                            <span className="flex-1 text-[13px] text-muted-foreground leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
+                            <span className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
+                              View in transcript
+                              <ArrowRight className="w-3 h-3" />
                             </span>
-                          )}
-                          <span className="flex-1 text-[13px] text-muted-foreground leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
-                          <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary mt-0.5 transition-colors" />
-                        </a>
-                      ))}
+                          </a>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
