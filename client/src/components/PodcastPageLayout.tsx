@@ -251,7 +251,7 @@ export function PodcastPageLayout({
                   Get {name} recaps in your inbox
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Free daily summaries. No app needed.
+                  We'll send a recap whenever a new episode drops.
                 </p>
               </div>
               <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-bottom">
