@@ -14,7 +14,7 @@ async function sendAdminNotification(userEmail: string, subject: string) {
   await client.emails.send({
     from: `PodCap System <${fromEmail}>`,
     to: ADMIN_NOTIFY_EMAIL,
-    subject: `⚡ New email pending approval — ${userEmail} (${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })})`,
+    subject: `⚡ New email pending approval — ${userEmail} (${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" })} ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })})`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
         <h2 style="margin: 0 0 16px; font-size: 18px; color: #1a1a1a;">New Email Pending Approval</h2>
