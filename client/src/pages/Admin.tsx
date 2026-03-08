@@ -564,6 +564,28 @@ export default function Admin() {
                       </button>
                     </div>
 
+                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-topics">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Backfill Key Topics & Questions</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Generate key topics and top questions for all recaps that don't have them yet.</p>
+                      </div>
+                      <button
+                        data-testid="button-backfill-topics"
+                        onClick={async () => {
+                          if (!confirm("This will backfill key topics and top questions for all existing recaps. This may take a while. Continue?")) return;
+                          try {
+                            await apiRequest("POST", "/api/admin/backfill-topics-questions");
+                            toast({ title: "Backfill Started", description: "Key topics and questions backfill is running in the background." });
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors whitespace-nowrap"
+                      >
+                        Start Backfill
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="glass-panel rounded-2xl p-6" data-testid="chart-top-podcasts">
                         <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">

@@ -718,6 +718,59 @@ export async function registerRoutes(
     }
   });
 
+  const askRateLimit = new Map<string, number[]>();
+  app.post("/api/podcasts/:slug/:episodeSlug/ask", async (req, res) => {
+    try {
+      const clientIp = req.ip || req.socket.remoteAddress || "unknown";
+      const now = Date.now();
+      const windowMs = 60000;
+      const maxRequests = 10;
+      const reqs = (askRateLimit.get(clientIp) || []).filter(t => now - t < windowMs);
+      if (reqs.length >= maxRequests) {
+        return res.status(429).json({ error: "Too many requests. Please wait a moment." });
+      }
+      reqs.push(now);
+      askRateLimit.set(clientIp, reqs);
+
+      const { slug, episodeSlug } = req.params;
+      const { question } = req.body;
+      if (!question || typeof question !== "string" || question.trim().length < 3 || question.trim().length > 500) {
+        return res.status(400).json({ error: "Please provide a valid question (3-500 characters)" });
+      }
+
+      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
+      if (!segments || segments.length === 0) {
+        return res.status(404).json({ error: "Transcript not available for this episode" });
+      }
+
+      const transcriptText = segments.map(s => s.text).join(" ").slice(0, 12000);
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+
+      const { openai } = await import("./replit_integrations/image/client");
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are PodCap, an AI assistant that answers questions about podcast episodes based on their transcripts. Answer concisely in 2-3 paragraphs. Only use information from the transcript provided. If the transcript doesn't contain relevant information, say so honestly.`
+          },
+          {
+            role: "user",
+            content: `Podcast: ${recap?.podcastName || slug}\nEpisode: "${recap?.episodeTitle || episodeSlug}"\n\nTranscript excerpt:\n${transcriptText}\n\nQuestion: ${question.trim()}`
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.5,
+      });
+
+      const answer = completion.choices[0]?.message?.content || "Unable to generate an answer.";
+      res.json({ answer, question: question.trim() });
+    } catch (err) {
+      console.error("[AskEpisode] Error:", err);
+      res.status(500).json({ error: "Failed to generate answer" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/search", async (req, res) => {
     try {
       const { slug } = req.params;
@@ -1173,6 +1226,19 @@ export async function registerRoutes(
       res.json({ message: "Landing page recap refresh started." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger refresh" });
+    }
+  });
+
+  app.post("/api/admin/backfill-topics-questions", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { backfillTopicsAndQuestions } = await import("./emailScheduler");
+      backfillTopicsAndQuestions();
+      res.json({ message: "Backfill of key topics and top questions started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
     }
   });
 

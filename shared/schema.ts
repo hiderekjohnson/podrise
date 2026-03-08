@@ -173,6 +173,8 @@ export const landingPageRecaps = pgTable("landing_page_recaps", {
   quoteAttribution: text("quote_attribution"),
   appleEpisodeUrl: text("apple_episode_url"),
   audioUrl: text("audio_url"),
+  keyTopics: text("key_topics").array(),
+  topQuestions: text("top_questions"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

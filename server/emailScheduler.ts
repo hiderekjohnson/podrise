@@ -538,6 +538,8 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           quoteAttribution: recap.quoteAttribution || null,
           appleEpisodeUrl: appleEpisodeUrl,
           audioUrl: ep.episodeUrl || null,
+          keyTopics: recap.keyTopics || null,
+          topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
         });
 
         if (podcastNewRecaps === 0) {
@@ -568,6 +570,48 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
 
   landingPageRefreshRanToday = todayKey;
   console.log(`[LandingRecaps] Complete: ${newRecaps} new recaps, ${skipped} skipped, ${errors} errors`);
+}
+
+export async function backfillTopicsAndQuestions() {
+  const { pool: dbPool } = await import("./db");
+  const { generateRecapFromTranscript } = await import("./recapGenerator");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recaps } = await client.query(
+      `SELECT id, slug, episode_slug, podcast_name, episode_title FROM landing_page_recaps WHERE key_topics IS NULL OR top_questions IS NULL ORDER BY id`
+    );
+    console.log(`[BackfillTopics] Found ${recaps.length} recaps missing key topics/questions`);
+
+    let updated = 0;
+    let errors = 0;
+    for (const recap of recaps) {
+      try {
+        const segments = await storage.getTranscriptSegmentsBySlug(recap.slug, recap.episode_slug);
+        if (!segments || segments.length === 0) {
+          continue;
+        }
+
+        const transcriptText = segments.map(s => s.text).join(" ");
+        const result = await generateRecapFromTranscript(transcriptText, recap.podcast_name, recap.episode_title);
+        if (!result || !result.keyTopics?.length) {
+          continue;
+        }
+
+        await client.query(
+          `UPDATE landing_page_recaps SET key_topics = $1, top_questions = $2 WHERE id = $3`,
+          [result.keyTopics, result.topQuestions ? JSON.stringify(result.topQuestions) : null, recap.id]
+        );
+        updated++;
+        console.log(`[BackfillTopics] Updated ${recap.podcast_name} - "${recap.episode_title}" (${updated}/${recaps.length})`);
+      } catch (err) {
+        errors++;
+        console.warn(`[BackfillTopics] Error processing recap ${recap.id}:`, err);
+      }
+    }
+    console.log(`[BackfillTopics] Complete: ${updated} updated, ${errors} errors, ${recaps.length - updated - errors} skipped`);
+  } finally {
+    client.release();
+  }
 }
 
 export function startEmailScheduler() {

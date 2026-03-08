@@ -24,6 +24,8 @@ export interface ParsedEpisode {
   keyInsights: string[];
   quote?: string;
   quoteAttribution?: string;
+  keyTopics?: string[];
+  topQuestions?: { question: string; answer: string }[];
 }
 
 interface RecapResult {
@@ -466,21 +468,31 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "whatHappened": "2-4 paragraphs in narrative style. Separate paragraphs with \\n\\n.",
   "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
   "quote": "A memorable line from the transcript",
-  "quoteAttribution": "Speaker Name on topic"
+  "quoteAttribution": "Speaker Name on topic",
+  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
+  "topQuestions": [
+    {"question": "Question 1?", "answer": "2-3 paragraph answer from transcript."},
+    {"question": "Question 2?", "answer": "2-3 paragraph answer from transcript."},
+    {"question": "Question 3?", "answer": "2-3 paragraph answer from transcript."},
+    {"question": "Question 4?", "answer": "2-3 paragraph answer from transcript."},
+    {"question": "Question 5?", "answer": "2-3 paragraph answer from transcript."}
+  ]
 }
 
 RULES:
-- All fields required: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution
+- All fields required: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5)
 - Write like a sharp friend catching you up
 - Be specific and concrete
 - Quotes MUST be from the transcript
-- Use \\n\\n to separate paragraphs in whatHappened`;
+- Use \\n\\n to separate paragraphs in whatHappened
+- keyTopics: 4-6 short phrases about companies, strategies, industries, or concepts discussed. Avoid generic phrases like "business ideas" or "podcast discussion"
+- topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 4000,
+      max_tokens: 8000,
       temperature: 0.7,
       response_format: { type: "json_object" },
     });
@@ -502,6 +514,8 @@ RULES:
       keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
       quote: parsed.quote,
       quoteAttribution: parsed.quoteAttribution,
+      keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
+      topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
     };
   } catch (err) {
     console.error(`[RecapGenerator] Failed to generate recap for "${episodeTitle}":`, err);
