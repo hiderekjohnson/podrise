@@ -588,68 +588,69 @@ export async function registerRoutes(
     try {
       const { slug } = req.params;
       const q = (req.query.q as string || "").trim();
-      if (!q || q.length < 2) return res.json({ results: [] });
-
-      const dirEntry = await storage.getPodcastDirectoryBySlug(slug);
-      if (!dirEntry) return res.status(404).json({ error: "Podcast not found" });
+      if (!q || q.length < 2) return res.json({ results: [], query: q, total: 0 });
 
       const { pool } = await import("./db");
       const client = await pool.connect();
       try {
         const result = await client.query(
-          `SELECT episode_title, transcript, fetched_at
-           FROM episode_transcripts
-           WHERE podcast_id = $1 AND transcript ILIKE '%' || $2 || '%'
-           ORDER BY fetched_at DESC`,
-          [dirEntry.itunesId, q]
+          `SELECT ts.episode_guid, ts.episode_slug, ts.text, ts.anchor_id, ts.timestamp_label, ts.speaker_name,
+                  lpr.episode_title, lpr.publish_date
+           FROM transcript_segments ts
+           LEFT JOIN landing_page_recaps lpr ON lpr.slug = ts.podcast_slug AND lpr.episode_slug = ts.episode_slug
+           WHERE ts.podcast_slug = $1 AND ts.text ILIKE '%' || $2 || '%'
+           ORDER BY lpr.publish_date DESC NULLS LAST, ts.sequence_index ASC
+           LIMIT 200`,
+          [slug, q]
         );
 
-        const searchResults: Array<{
+        const episodeMap = new Map<string, {
           episodeTitle: string;
-          mentions: number;
-          snippets: string[];
-          date: string;
-        }> = [];
+          episodeSlug: string;
+          publishDate: string;
+          hits: Array<{ text: string; anchorId: string; timestampLabel: string | null; speakerName: string | null }>;
+        }>();
 
         for (const row of result.rows) {
-          const transcript: string = row.transcript;
-          const lowerTranscript = transcript.toLowerCase();
-          const lowerQ = q.toLowerCase();
-          const snippets: string[] = [];
-          let pos = 0;
-
-          while (snippets.length < 3) {
-            const idx = lowerTranscript.indexOf(lowerQ, pos);
-            if (idx === -1) break;
-            const start = Math.max(0, idx - 100);
-            const end = Math.min(transcript.length, idx + q.length + 100);
-            let snippet = transcript.substring(start, end).replace(/\s+/g, " ").trim();
+          const epSlug = row.episode_slug;
+          if (!episodeMap.has(epSlug)) {
+            episodeMap.set(epSlug, {
+              episodeTitle: row.episode_title || epSlug,
+              episodeSlug: epSlug,
+              publishDate: row.publish_date || "",
+              hits: [],
+            });
+          }
+          const entry = episodeMap.get(epSlug)!;
+          if (entry.hits.length < 5) {
+            const fullText = row.text as string;
+            const lowerText = fullText.toLowerCase();
+            const lowerQ = q.toLowerCase();
+            const idx = lowerText.indexOf(lowerQ);
+            if (idx === -1) continue;
+            const start = Math.max(0, idx - 150);
+            const end = Math.min(fullText.length, idx + q.length + 150);
+            let snippet = fullText.substring(start, end).replace(/\s+/g, " ").trim();
             if (start > 0) snippet = "..." + snippet;
-            if (end < transcript.length) snippet = snippet + "...";
-            snippets.push(snippet);
-            pos = idx + q.length;
-          }
+            if (end < fullText.length) snippet = snippet + "...";
 
-          let mentions = 0;
-          let countPos = 0;
-          while (true) {
-            const idx = lowerTranscript.indexOf(lowerQ, countPos);
-            if (idx === -1) break;
-            mentions++;
-            countPos = idx + lowerQ.length;
-          }
-
-          if (snippets.length > 0) {
-            searchResults.push({
-              episodeTitle: row.episode_title,
-              mentions,
-              snippets,
-              date: row.fetched_at ? new Date(row.fetched_at).toISOString().split("T")[0] : "",
+            entry.hits.push({
+              text: snippet,
+              anchorId: row.anchor_id,
+              timestampLabel: row.timestamp_label,
+              speakerName: row.speaker_name,
             });
           }
         }
 
-        searchResults.sort((a, b) => b.mentions - a.mentions);
+        const searchResults = Array.from(episodeMap.values()).map(ep => ({
+          episodeTitle: ep.episodeTitle,
+          episodeSlug: ep.episodeSlug,
+          publishDate: ep.publishDate,
+          mentions: result.rows.filter(r => r.episode_slug === ep.episodeSlug).length,
+          hits: ep.hits,
+        }));
+
         res.json({ results: searchResults.slice(0, 10), query: q, total: searchResults.length });
       } finally {
         client.release();

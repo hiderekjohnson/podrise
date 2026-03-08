@@ -34,7 +34,11 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
     debounceRef.current = setTimeout(() => setDebouncedQuery(val), 400);
   }, []);
 
-  const { data, isLoading, isError } = useQuery<{ results: Array<{ episodeTitle: string; mentions: number; snippets: string[]; date: string }>; query: string; total: number }>({
+  type SearchHit = { text: string; anchorId: string; timestampLabel: string | null; speakerName: string | null };
+  type SearchResult = { episodeTitle: string; episodeSlug: string; publishDate: string; mentions: number; hits: SearchHit[] };
+  type SearchResponse = { results: SearchResult[]; query: string; total: number };
+
+  const { data, isLoading, isError } = useQuery<SearchResponse>({
     queryKey: ["/api/podcasts", slug, "search", debouncedQuery],
     queryFn: async () => {
       const res = await fetch(`/api/podcasts/${slug}/search?q=${encodeURIComponent(debouncedQuery)}`);
@@ -109,24 +113,46 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
               <p className="text-sm text-muted-foreground mb-4 text-center">
                 Found "{data.query}" in {data.total} episode{data.total !== 1 ? "s" : ""}
               </p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {data.results.map((result, idx) => (
                   <div
                     key={idx}
                     className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4"
                     data-testid={`search-result-${idx}`}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <p className="text-base font-bold text-foreground leading-snug">{result.episodeTitle}</p>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <p className="text-xs font-semibold text-primary/60 uppercase tracking-wide mb-0.5">Episode</p>
+                        <Link href={`/podcasts/${slug}/${result.episodeSlug}`}>
+                          <span className="text-base font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-snug">
+                            {result.episodeTitle}
+                          </span>
+                        </Link>
+                      </div>
                       <span className="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/[0.08] text-primary">
                         {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
                       </span>
                     </div>
                     <div className="space-y-2">
-                      {result.snippets.map((snippet, sIdx) => (
-                        <p key={sIdx} className="text-[13px] text-muted-foreground leading-relaxed bg-muted/30 rounded-lg px-3 py-2">
-                          {highlightMatch(snippet, data.query)}
-                        </p>
+                      {result.hits.map((hit, sIdx) => (
+                        <a
+                          key={sIdx}
+                          href={`/podcasts/${slug}/${result.episodeSlug}/transcript#${hit.anchorId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-[13px] text-muted-foreground leading-relaxed bg-muted/30 rounded-lg px-3 py-2.5 hover:bg-primary/[0.04] hover:border-primary/10 border border-transparent transition-colors group"
+                          data-testid={`search-hit-${idx}-${sIdx}`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {hit.timestampLabel && (
+                              <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/[0.08] rounded px-1.5 py-0.5 mt-0.5 font-mono">
+                                {hit.timestampLabel}
+                              </span>
+                            )}
+                            <span className="flex-1">{highlightMatch(hit.text, data.query)}</span>
+                            <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary/60 mt-0.5 transition-colors" />
+                          </div>
+                        </a>
                       ))}
                     </div>
                   </div>
