@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles } from "lucide-react";
+import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { Link } from "wouter";
@@ -169,6 +169,18 @@ export default function EpisodeRecapPage() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const sectionNumber = (() => {
+    let n = 0;
+    return () => ++n;
+  })();
+
+  const tldlNum = sectionNumber();
+  const insightsNum = episode.keyInsights?.length > 0 ? sectionNumber() : 0;
+  const breakdownNum = sectionNumber();
+  const topicsNum = hasKeyTopics ? sectionNumber() : 0;
+  const questionsNum = hasTopQuestions ? sectionNumber() : 0;
+  const askNum = sectionNumber();
+
   return (
     <EpisodePageLayout
       episode={episode}
@@ -193,16 +205,17 @@ export default function EpisodeRecapPage() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
+        className="space-y-6"
       >
-        <nav className="flex items-center gap-2 flex-wrap mb-8 pb-4 border-b border-black/[0.05] dark:border-white/[0.05]" data-testid="nav-in-page">
+        <nav className="flex items-center gap-2 flex-wrap pb-2" data-testid="nav-in-page">
           <button
             onClick={() => scrollTo("section-tldl")}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/[0.06] text-primary hover:bg-primary/[0.12] transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/[0.08] text-primary hover:bg-primary/[0.14] transition-colors"
             data-testid="nav-tldl"
           >
             TLDL
           </button>
-          {episode.keyInsights.length > 0 && (
+          {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}
               className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
@@ -241,105 +254,131 @@ export default function EpisodeRecapPage() {
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
             data-testid="nav-ask"
           >
-            Ask About This Episode
+            Ask AI
           </button>
         </nav>
 
-        <div id="section-tldl" className="relative bg-gradient-to-br from-primary/[0.05] to-primary/[0.02] border border-primary/[0.1] rounded-2xl px-6 py-5 sm:px-7 sm:py-6 mb-12" data-testid="section-tldl">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/[0.1]">
-              <Clock className="w-3.5 h-3.5 text-primary" />
-            </span>
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">TLDL — Too Long, Didn't Listen</span>
+        <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
+          <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-primary/[0.12] text-[11px] font-bold text-primary">{tldlNum}</span>
+            <Clock className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-primary uppercase tracking-wider">TLDL — Too Long, Didn't Listen</span>
           </div>
-          <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
-        </div>
+          <div className="px-6 py-5">
+            <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
+          </div>
+          {episode.quote && (
+            <div className="mx-6 mb-5 bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] rounded-xl px-5 py-4" data-testid="section-quote">
+              <div className="flex gap-3">
+                <Quote className="w-5 h-5 text-primary/30 shrink-0 mt-0.5" />
+                <div>
+                  <blockquote className="text-[15px] leading-[1.75] text-foreground/80 italic">
+                    "{episode.quote}"
+                  </blockquote>
+                  {episode.quoteAttribution && (
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">— {episode.quoteAttribution}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
-        {episode.keyInsights.length > 0 && (
-          <section id="section-key-insights" className="mb-12" data-testid="section-key-insights">
-            <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
-              <span className="w-1 h-6 rounded-full bg-amber-400" />
-              Key Insights
-            </h2>
-            <div className="grid gap-3">
-              {episode.keyInsights.map((insight, i) => (
+        {episode.keyInsights?.length > 0 && (
+          <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-amber-500/[0.12] text-[11px] font-bold text-amber-600">{insightsNum}</span>
+              <Lightbulb className="w-4 h-4 text-amber-500" />
+              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Insights</span>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              {episode.keyInsights.map((insight: string, i: number) => (
                 <div
                   key={i}
-                  className="flex gap-4 items-start bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-xl px-5 py-4 shadow-sm shadow-black/[0.02]"
+                  className="flex gap-3.5 items-start"
                   data-testid={`insight-${i}`}
                 >
-                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
-                    <Lightbulb className="w-4 h-4" />
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 text-xs font-bold">
+                    {i + 1}
                   </span>
-                  <p className="text-[16px] leading-[1.7] text-muted-foreground">{insight}</p>
+                  <p className="text-[15px] leading-[1.75] text-muted-foreground">{insight}</p>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {whatHappenedParagraphs.length > 0 && (
-          <section id="section-what-happened" className="mb-12" data-testid="section-what-happened">
-            <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
-              <span className="w-1 h-6 rounded-full bg-primary" />
-              Episode Breakdown
-            </h2>
-            <div className="space-y-5">
-              {whatHappenedParagraphs.map((paragraph, i) => (
-                <p key={i} className="text-[17px] leading-[1.85] text-muted-foreground">
-                  {i === 0 && <span className="text-foreground font-semibold">{paragraph.split(" ").slice(0, 3).join(" ")} </span>}
-                  {i === 0 ? paragraph.split(" ").slice(3).join(" ") : paragraph}
-                </p>
-              ))}
-            </div>
-          </section>
-        )}
+        <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
+          <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-primary/[0.12] text-[11px] font-bold text-primary">{breakdownNum}</span>
+            <BookOpen className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-primary uppercase tracking-wider">Episode Breakdown</span>
+          </div>
+          <div className="px-6 py-5 space-y-5">
+            {whatHappenedParagraphs.map((paragraph: string, i: number) => (
+              <p key={i} className="text-[16px] leading-[1.85] text-muted-foreground">
+                {i === 0 && <span className="text-foreground font-semibold">{paragraph.split(" ").slice(0, 3).join(" ")} </span>}
+                {i === 0 ? paragraph.split(" ").slice(3).join(" ") : paragraph}
+              </p>
+            ))}
+          </div>
+          <div className="px-6 pb-5">
+            <Link
+              href={`/podcasts/${podcastSlug}/${episodeSlug}/transcript`}
+              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+              data-testid="link-full-transcript"
+            >
+              Read the full transcript →
+            </Link>
+          </div>
+        </section>
 
         {hasKeyTopics && (
-          <section id="section-key-topics" className="mb-12" data-testid="section-key-topics">
-            <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
-              <span className="w-1 h-6 rounded-full bg-emerald-400" />
-              Key Topics From This Episode
-            </h2>
-            <div className="flex flex-wrap gap-2.5">
-              {keyTopics.map((topic, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleTopicClick(topic)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[14px] font-medium text-foreground hover:border-primary/30 hover:bg-primary/[0.04] hover:text-primary transition-all shadow-sm shadow-black/[0.02] active:scale-[0.97]"
-                  data-testid={`topic-chip-${i}`}
-                >
-                  <Tag className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  {topic}
-                </button>
-              ))}
+          <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-emerald-500/[0.12] text-[11px] font-bold text-emerald-600">{topicsNum}</span>
+              <Tag className="w-4 h-4 text-emerald-500" />
+              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics</span>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-xs text-muted-foreground mb-3">Click a topic to ask the AI about it</p>
+              <div className="flex flex-wrap gap-2">
+                {keyTopics.map((topic: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => handleTopicClick(topic)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/[0.04] border border-emerald-500/[0.1] rounded-lg text-[13px] font-medium text-foreground hover:border-emerald-500/30 hover:bg-emerald-500/[0.08] transition-all active:scale-[0.97]"
+                    data-testid={`topic-chip-${i}`}
+                  >
+                    <Tag className="w-3 h-3 text-emerald-500 shrink-0" />
+                    {topic}
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
         )}
 
         {hasTopQuestions && (
-          <section id="section-top-questions" className="mb-12" data-testid="section-top-questions">
-            <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
-              <span className="w-1 h-6 rounded-full bg-violet-400" />
-              Top Questions From This Episode
-            </h2>
-            <div className="space-y-3">
+          <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-violet-500/[0.12] text-[11px] font-bold text-violet-600">{questionsNum}</span>
+              <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
+              <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Top Questions</span>
+            </div>
+            <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
               {topQuestions.map((item, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-xl overflow-hidden shadow-sm shadow-black/[0.02]"
-                  data-testid={`question-item-${i}`}
-                >
+                <div key={i} data-testid={`question-item-${i}`}>
                   <button
                     onClick={() => setExpandedQuestion(expandedQuestion === i ? null : i)}
-                    className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                    className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-black/[0.015] dark:hover:bg-white/[0.02] transition-colors"
                     data-testid={`question-toggle-${i}`}
                   >
                     <div className="flex items-start gap-3 min-w-0">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-500 shrink-0 mt-0.5">
-                        <HelpCircle className="w-3.5 h-3.5" />
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-500 shrink-0 mt-0.5">
+                        <HelpCircle className="w-3 h-3" />
                       </span>
-                      <span className="text-[15px] font-semibold text-foreground leading-snug">{item.question}</span>
+                      <span className="text-[14px] font-semibold text-foreground leading-snug">{item.question}</span>
                     </div>
                     {expandedQuestion === i ? (
                       <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -356,9 +395,9 @@ export default function EpisodeRecapPage() {
                         transition={{ duration: 0.25, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
-                        <div className="px-5 pb-5 pl-14">
+                        <div className="px-6 pb-5 pl-[3.25rem]">
                           {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
-                            <p key={j} className="text-[15px] leading-[1.8] text-muted-foreground mb-3 last:mb-0">{p}</p>
+                            <p key={j} className="text-[14px] leading-[1.8] text-muted-foreground mb-2.5 last:mb-0">{p}</p>
                           ))}
                         </div>
                       </motion.div>
@@ -370,42 +409,22 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {episode.quote && (
-          <section className="mb-12" data-testid="section-quote">
-            <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl px-6 py-6 sm:px-8 sm:py-7 overflow-hidden">
-              <div className="absolute top-4 right-5 opacity-[0.04]">
-                <Quote className="w-24 h-24 text-foreground" />
-              </div>
-              <div className="relative">
-                <Quote className="w-5 h-5 text-primary/40 mb-3" />
-                <blockquote className="text-[18px] sm:text-[20px] leading-[1.7] text-foreground font-medium italic">
-                  "{episode.quote}"
-                </blockquote>
-                {episode.quoteAttribution && (
-                  <p className="mt-4 text-sm font-semibold text-muted-foreground">
-                    — {episode.quoteAttribution}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section id="section-ask-episode" ref={askSectionRef} className="mb-12" data-testid="section-ask-episode">
-          <div className="relative bg-gradient-to-br from-violet-500/[0.04] to-primary/[0.03] border border-violet-500/[0.1] rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/[0.1]">
-                <Sparkles className="w-3.5 h-3.5 text-violet-500" />
-              </span>
-              <span className="text-sm font-bold text-foreground">Ask About This Episode</span>
-            </div>
+        <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-ask-episode">
+          <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-violet-500/[0.12] text-[11px] font-bold text-violet-600">{askNum}</span>
+            <Sparkles className="w-4 h-4 text-violet-500" />
+            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask About This Episode</span>
+            <span className="ml-auto text-[10px] font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">Powered by AI</span>
+          </div>
+          <div className="px-6 py-5">
+            <p className="text-sm text-muted-foreground mb-4">Ask any question and get an answer based on the episode transcript.</p>
             <form onSubmit={handleAskSubmit} className="flex gap-2" data-testid="form-ask-episode">
               <input
                 type="text"
                 value={askInput}
                 onChange={(e) => setAskInput(e.target.value)}
                 placeholder="What did this episode say about..."
-                className="flex-1 h-11 px-4 bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[14px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
+                className="flex-1 h-11 px-4 bg-black/[0.02] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[14px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
                 data-testid="input-ask-episode"
               />
               <button
@@ -425,8 +444,8 @@ export default function EpisodeRecapPage() {
 
             {topQuestions.length > 0 && !askAnswer && !askMutation.isPending && (
               <div className="mt-4" data-testid="ask-example-prompts">
-                <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2.5">Example questions:</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Try asking:</p>
+                <div className="flex flex-wrap gap-1.5">
                   {topQuestions.slice(0, 4).map((item, i) => (
                     <button
                       key={i}
@@ -435,7 +454,7 @@ export default function EpisodeRecapPage() {
                         setAskAnswer(null);
                         askMutation.mutate(item.question);
                       }}
-                      className="text-[13px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
+                      className="text-[12px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
                       data-testid={`ask-example-${i}`}
                     >
                       {item.question}
@@ -452,7 +471,7 @@ export default function EpisodeRecapPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ duration: 0.3 }}
-                  className="mt-5 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4"
+                  className="mt-5 bg-violet-500/[0.03] border border-violet-500/[0.1] rounded-xl px-5 py-4"
                   data-testid="ask-answer-container"
                 >
                   {askMutation.isPending ? (
@@ -467,7 +486,7 @@ export default function EpisodeRecapPage() {
                         <span className="text-xs font-bold text-violet-500 uppercase tracking-wider">Answer</span>
                       </div>
                       {askAnswer.split("\n\n").filter(Boolean).map((p, i) => (
-                        <p key={i} className="text-[15px] leading-[1.8] text-muted-foreground">{p}</p>
+                        <p key={i} className="text-[14px] leading-[1.8] text-muted-foreground">{p}</p>
                       ))}
                     </div>
                   ) : null}
@@ -482,17 +501,6 @@ export default function EpisodeRecapPage() {
             )}
           </div>
         </section>
-
-        <p className="text-sm text-muted-foreground mb-12" data-testid="section-transcript-link">
-          Prefer the source material?{" "}
-          <Link
-            href={`/podcasts/${podcastSlug}/${episodeSlug}/transcript`}
-            className="text-primary font-medium hover:underline"
-            data-testid="link-full-transcript"
-          >
-            Read the full transcript
-          </Link>
-        </p>
       </motion.article>
     </EpisodePageLayout>
   );
