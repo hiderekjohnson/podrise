@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, ExternalLink, Calendar, Mic, Users, Star, Search, X, Compass } from "lucide-react";
-import { SiX } from "react-icons/si";
+import { Loader2, ArrowRight, Clock, ExternalLink, Calendar, Mic, Users, Star, Search, X, Compass, Headphones } from "lucide-react";
+import { SiX, SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useRegister, useAuth } from "@/hooks/use-auth";
@@ -282,7 +282,7 @@ export default function PodcastLandingGeneric() {
     return null;
   }
 
-  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast } = config;
+  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast, description } = config;
   const twitterHandle = (config as any).twitterHandle as string | null | undefined;
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
@@ -357,42 +357,102 @@ export default function PodcastLandingGeneric() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
 
-        <section className="w-full max-w-5xl pt-10 sm:pt-16 pb-10 sm:pb-14">
+        <section className="w-full max-w-5xl pt-8 sm:pt-12 pb-8 sm:pb-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-8 sm:gap-12 items-center sm:items-start"
+            className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-center sm:items-start"
           >
             {artworkUrl && (
               <div className="relative shrink-0">
-                <div className="absolute -inset-4 bg-primary/[0.04] rounded-[2rem] blur-2xl" />
+                <div className="absolute -inset-4 bg-primary/[0.06] rounded-[2rem] blur-2xl" />
                 <img
                   src={artworkUrl}
                   alt={`${name} Podcast Cover Art`}
-                  className="relative w-40 h-40 sm:w-44 sm:h-44 rounded-2xl shadow-2xl shadow-black/[0.10] object-cover"
+                  className="relative w-48 h-48 sm:w-52 sm:h-52 rounded-2xl shadow-2xl shadow-black/[0.12] object-cover ring-1 ring-black/[0.04]"
                   data-testid="img-podcast-artwork"
                 />
               </div>
             )}
 
-            <div className="flex flex-col gap-4 text-center sm:text-left flex-1 min-w-0">
+            <div className="flex flex-col gap-3 text-center sm:text-left flex-1 min-w-0">
+              {category && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider" data-testid="text-category">
+                  <Headphones className="w-3.5 h-3.5" />
+                  {category}
+                </span>
+              )}
+
               <h1
-                className="text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
+                className="text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
                 data-testid="heading-main"
               >
                 {name}
               </h1>
 
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg">
-                {aboutPodcast || description}
+              <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
+                {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
               </p>
 
-              {hosts && (
-                <p className="text-sm text-muted-foreground/70">
-                  Hosted by <span className="font-medium text-foreground/80">{hosts}</span>
-                </p>
-              )}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
+                {hosts && (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-hosts">
+                    <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    <span className="font-medium text-foreground/80">{hosts}</span>
+                  </span>
+                )}
+                {totalEpisodes && (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-episodes">
+                    <Mic className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    {totalEpisodes}+ episodes
+                  </span>
+                )}
+                {yearStarted && (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-since">
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    Since {yearStarted}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2.5 mt-2 justify-center sm:justify-start" data-testid="hero-listen-links">
+                <a
+                  href={appleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  data-testid="hero-link-apple"
+                  title="Listen on Apple Podcasts"
+                >
+                  <SiApplepodcasts className="w-4 h-4 text-[#9933CC]" />
+                  Apple Podcasts
+                </a>
+                <a
+                  href={effectiveSpotifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  data-testid="hero-link-spotify"
+                  title="Listen on Spotify"
+                >
+                  <SiSpotify className="w-4 h-4 text-[#1DB954]" />
+                  Spotify
+                </a>
+                {youtubeUrl && (
+                  <a
+                    href={youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                    data-testid="hero-link-youtube"
+                    title="Watch on YouTube"
+                  >
+                    <SiYoutube className="w-4 h-4 text-[#FF0000]" />
+                    YouTube
+                  </a>
+                )}
+              </div>
             </div>
           </motion.div>
         </section>
