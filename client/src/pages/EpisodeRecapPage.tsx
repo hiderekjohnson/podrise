@@ -216,7 +216,7 @@ export default function EpisodeRecapPage() {
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
             data-testid="nav-what-happened"
           >
-            What Happened
+            Episode Breakdown
           </button>
           {hasKeyTopics && (
             <button
@@ -282,7 +282,7 @@ export default function EpisodeRecapPage() {
           <section id="section-what-happened" className="mb-12" data-testid="section-what-happened">
             <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
               <span className="w-1 h-6 rounded-full bg-primary" />
-              What Happened
+              Episode Breakdown
             </h2>
             <div className="space-y-5">
               {whatHappenedParagraphs.map((paragraph, i) => (
