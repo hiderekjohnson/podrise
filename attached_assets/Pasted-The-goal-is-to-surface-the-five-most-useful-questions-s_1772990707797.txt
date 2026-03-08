@@ -1,0 +1,75 @@
+The goal is to surface the five most useful questions someone might search in Google about this podcast, along with concise answers.
+
+How it should work:
+	1.	Generate 5 SEO-friendly questions
+
+Analyze all episode transcripts from the podcast and generate five questions that people are most likely to search for about this podcast or the topics it covers.
+
+The questions should be:
+
+• clear and specific
+• phrased like real Google searches
+• focused on themes, strategies, or ideas commonly discussed on the podcast
+
+Avoid vague questions like:
+
+• What is this podcast about?
+• What do the hosts talk about?
+
+Examples for a podcast like My First Million might look like:
+
+• What business ideas are discussed on My First Million?
+• How do Sam Parr and Shaan Puri evaluate startup ideas?
+• What are common ways to build a million dollar business?
+• What industries do My First Million hosts think have opportunity?
+• What are the most popular business strategies discussed on My First Million?
+	2.	Generate answers
+
+Each question should have a short answer (2–3 paragraphs) summarizing what the podcast typically says about that topic based on the transcripts.
+
+The answers should reference the themes that come up across multiple episodes.
+	3.	Display format
+
+On the AI Search page show:
+
+Top Questions About This Podcast
+
+Then list the questions in an accordion style list where clicking the question reveals the answer.
+
+Example layout:
+
+Top Questions About This Podcast
+
+▸ What business ideas are discussed on My First Million?
+(answer appears when expanded)
+
+▸ How do the hosts evaluate startup ideas?
+
+▸ What types of businesses do the hosts believe are most profitable?
+
+▸ What industries are frequently discussed on My First Million?
+
+▸ What advice do the hosts give for building a million dollar business?
+	4.	Add the AI search box below the questions
+
+Below this section include the existing AI search box with the prompt:
+
+Ask your own question about this podcast
+
+Example placeholder text:
+
+Ask anything about My First Million…
+
+Example prompts:
+
+• What did they say about SaaS businesses?
+• What startup ideas have they discussed recently?
+• What advice do they give for building an audience?
+	5.	Purpose
+
+This section serves two purposes:
+
+• It helps users quickly understand what the podcast covers
+• It adds SEO-friendly content to the page so search engines can index common questions about the podcast
+
+Users can either read the top answers or ask their own question using the AI search box.

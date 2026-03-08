@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -177,6 +177,146 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
 }
 
 
+function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }) {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<{ answer: string; episodesCited: string[] } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (q?: string) => {
+    const finalQ = (q || question).trim();
+    if (!finalQ || finalQ.length < 3) return;
+    setIsLoading(true);
+    setError(null);
+    setAnswer(null);
+    try {
+      const res = await fetch(`/api/podcasts/${slug}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: finalQ }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to get answer");
+      }
+      const data = await res.json();
+      setAnswer(data);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const exampleQuestions = [
+    `What are the most discussed topics on ${podcastName}?`,
+    `What's the most controversial opinion shared on the show?`,
+    `What advice do the hosts give most often?`,
+  ];
+
+  return (
+    <div data-testid="section-ask-podcast">
+      <div className="relative bg-gradient-to-br from-violet-500/[0.04] to-primary/[0.03] border border-violet-500/[0.1] rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/[0.1]">
+            <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+          </span>
+          <span className="text-sm font-bold text-foreground">Ask About This Podcast</span>
+          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none">Powered by AI</span>
+        </div>
+        <p className="text-sm text-muted-foreground mb-5">
+          Ask any question and get an answer drawn from across all episodes of {podcastName}.
+        </p>
+
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+          className="flex gap-2"
+          data-testid="form-ask-podcast"
+        >
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder={`Ask anything about ${podcastName}...`}
+            className="flex-1 h-11 px-4 bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[14px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
+            data-testid="input-ask-podcast"
+          />
+          <button
+            type="submit"
+            disabled={!question.trim() || isLoading}
+            className="h-11 px-5 flex items-center gap-2 rounded-xl font-bold text-sm bg-violet-500 text-white shadow-sm hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+            data-testid="button-ask-podcast-submit"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+            Ask
+          </button>
+        </form>
+
+        {!answer && !isLoading && !error && (
+          <div className="mt-4" data-testid="ask-podcast-examples">
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2.5">Try asking:</p>
+            <div className="flex flex-wrap gap-2">
+              {exampleQuestions.map((eq, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setQuestion(eq); handleSubmit(eq); }}
+                  className="text-[13px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
+                  data-testid={`ask-podcast-example-${i}`}
+                >
+                  {eq}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="mt-5 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4">
+            <div className="flex items-center gap-3 py-2">
+              <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
+              <span className="text-sm text-muted-foreground">Searching across all episodes...</span>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-5 bg-red-50/50 dark:bg-red-900/10 border border-red-200/50 dark:border-red-800/30 rounded-xl px-5 py-4">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
+        {answer && (
+          <div className="mt-5 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4" data-testid="ask-podcast-answer">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageSquare className="w-3.5 h-3.5 text-violet-500" />
+              <span className="text-xs font-bold text-violet-500 uppercase tracking-wider">Answer</span>
+            </div>
+            <div className="space-y-3">
+              {answer.answer.split("\n\n").filter(Boolean).map((p, i) => (
+                <p key={i} className="text-[15px] leading-[1.8] text-muted-foreground">{p}</p>
+              ))}
+            </div>
+            {answer.episodesCited && answer.episodesCited.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
+                <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Sources</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {answer.episodesCited.map((ep, i) => (
+                    <span key={i} className="text-[12px] text-muted-foreground bg-black/[0.03] dark:bg-white/[0.06] px-2 py-1 rounded-md">{ep}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function PodcastLandingGeneric() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -186,7 +326,7 @@ export default function PodcastLandingGeneric() {
 
   const initialTab = (() => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (urlTab === "search" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes") return urlTab;
+    if (urlTab === "search" || urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes") return urlTab;
     return "episodes" as PodcastTab;
   })();
   const [activeTab, setActiveTab] = useState<PodcastTab>(initialTab);
@@ -382,6 +522,12 @@ export default function PodcastLandingGeneric() {
       {activeTab === "search" && (
         <section className="pb-16">
           <TranscriptSearch slug={slug || ""} podcastName={name} />
+        </section>
+      )}
+
+      {activeTab === "ask" && (
+        <section className="pb-16">
+          <AskPodcast slug={slug || ""} podcastName={name} />
         </section>
       )}
 

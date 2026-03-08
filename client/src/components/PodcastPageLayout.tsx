@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PodCapHeader } from "@/components/PodCapHeader";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 
-export type PodcastTab = "episodes" | "search" | "about" | "discover";
+export type PodcastTab = "episodes" | "search" | "ask" | "about" | "discover";
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
@@ -91,7 +91,8 @@ export function PodcastPageLayout({
 
   const tabs: { id: PodcastTab; label: string; icon: typeof Mic }[] = [
     { id: "episodes", label: "Episode Recaps", icon: Mic },
-    { id: "search", label: "Search", icon: Search },
+    { id: "search", label: "Search Transcripts", icon: Search },
+    { id: "ask", label: "Ask About This Podcast", icon: Sparkles },
     { id: "about", label: "About Podcast", icon: Users },
     { id: "discover", label: "Discover", icon: Compass },
   ];
@@ -224,8 +225,8 @@ export function PodcastPageLayout({
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
-                {tab.id === "search" && (
-                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-primary/10 text-primary leading-none" data-testid="badge-search-beta">beta</span>
+                {tab.id === "ask" && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
                 )}
               </button>
             ))}
