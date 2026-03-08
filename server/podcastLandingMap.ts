@@ -71,6 +71,21 @@ export const ITUNES_ID_TO_SLUG: Record<string, string> = {
   "1347973549": "modernwisdom",
   "315114957": "thisweekinstartups",
   "928159684": "garyvee",
+  "354668519": "freakonomics",
+  "1400828889": "peterattia",
+  "990149481": "knowledgeproject",
+  "1154105909": "investlikethebest",
+  "958230465": "twentyminutevc",
+  "928933489": "westudybillionaires",
+  "1056200096": "oddlots",
+  "1548604447": "ezraklein",
+  "1223764016": "capitalallocators",
+  "1344999619": "jordanharbinger",
+  "152249110": "radiolab",
+  "1296350485": "darknetdiaries",
+  "1522960417": "bigtechnology",
+  "983795625": "conversationswithtyler",
+  "1278815517": "ologies",
 };
 
 export const SLUG_TO_ITUNES_ID: Record<string, string> = Object.fromEntries(
