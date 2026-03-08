@@ -399,7 +399,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
 
   for (const podcast of landingPodcasts) {
     try {
-      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=5&sort=recent`;
+      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
       const lookupRes = await fetch(lookupUrl);
       const lookupJson = await lookupRes.json();
       const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
@@ -409,121 +409,125 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
         continue;
       }
 
-      const latestEp = episodes[0];
-      const epTitle = latestEp.trackName || "Untitled";
-      const epSlug = slugifyEpisodeTitle(epTitle);
+      let podcastNewRecaps = 0;
+      for (const ep of episodes) {
+        const epTitle = ep.trackName || "Untitled";
+        const epSlug = slugifyEpisodeTitle(epTitle);
 
-      const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
-      if (existingRecap) {
-        skipped++;
-        continue;
-      }
-
-      const episodeGuid = latestEp.episodeGuid || `${podcast.itunesId}_${latestEp.trackId || epTitle}`;
-      let transcriptText: string | null = null;
-
-      const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
-      if (cached) {
-        transcriptText = cached.transcript;
-      } else {
-        const { pool: dbPool } = await import("./db");
-        const client = await dbPool.connect();
-        try {
-          const titleMatch = await client.query(
-            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
-            [podcast.itunesId, epTitle]
-          );
-          if (titleMatch.rows.length > 0) {
-            transcriptText = titleMatch.rows[0].transcript;
-          }
-        } finally {
-          client.release();
+        const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
+        if (existingRecap) {
+          skipped++;
+          continue;
         }
-      }
 
-      if (!transcriptText) {
-        try {
-          const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
-          if (taddyPodcast?.uuid) {
-            const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
-            const itunesNorm = normalizeTitleForMatch(epTitle);
-            const taddyMatch = taddyEpisodes.find((te: any) => {
-              if (!te.name) return false;
-              const taddyNorm = normalizeTitleForMatch(te.name);
-              return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
-            });
-            if (taddyMatch?.uuid) {
-              const fetched = await getEpisodeTranscript(taddyMatch.uuid);
-              if (fetched) {
-                transcriptText = fetched;
-                await storage.saveTranscript({
-                  podcastId: podcast.itunesId,
-                  episodeGuid,
-                  episodeTitle: epTitle,
-                  transcript: transcriptText,
-                });
+        const episodeGuid = ep.episodeGuid || `${podcast.itunesId}_${ep.trackId || epTitle}`;
+        let transcriptText: string | null = null;
+
+        const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
+        if (cached) {
+          transcriptText = cached.transcript;
+        } else {
+          const { pool: dbPool } = await import("./db");
+          const client = await dbPool.connect();
+          try {
+            const titleMatch = await client.query(
+              `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+              [podcast.itunesId, epTitle]
+            );
+            if (titleMatch.rows.length > 0) {
+              transcriptText = titleMatch.rows[0].transcript;
+            }
+          } finally {
+            client.release();
+          }
+        }
+
+        if (!transcriptText) {
+          try {
+            const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
+            if (taddyPodcast?.uuid) {
+              const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
+              const itunesNorm = normalizeTitleForMatch(epTitle);
+              const taddyMatch = taddyEpisodes.find((te: any) => {
+                if (!te.name) return false;
+                const taddyNorm = normalizeTitleForMatch(te.name);
+                return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
+              });
+              if (taddyMatch?.uuid) {
+                const fetched = await getEpisodeTranscript(taddyMatch.uuid);
+                if (fetched) {
+                  transcriptText = fetched;
+                  await storage.saveTranscript({
+                    podcastId: podcast.itunesId,
+                    episodeGuid,
+                    episodeTitle: epTitle,
+                    transcript: transcriptText,
+                  });
+                }
               }
             }
+          } catch (taddyErr) {
+            console.warn(`[LandingRecaps] Taddy lookup failed for ${podcast.name}:`, taddyErr);
           }
-        } catch (taddyErr) {
-          console.warn(`[LandingRecaps] Taddy lookup failed for ${podcast.name}:`, taddyErr);
         }
+
+        if (!transcriptText) {
+          skipped++;
+          continue;
+        }
+
+        const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
+        if (!recap) {
+          errors++;
+          continue;
+        }
+
+        const durationMs = ep.trackTimeMillis || 0;
+        const durationMin = Math.round(durationMs / 60000);
+        const durationStr = durationMin >= 60
+          ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+          : `${durationMin} min`;
+        const releaseDate = ep.releaseDate
+          ? new Date(ep.releaseDate).toISOString().split("T")[0]
+          : todayKey;
+
+        await storage.upsertLandingPageRecap({
+          slug: podcast.slug,
+          itunesId: podcast.itunesId,
+          podcastName: podcast.name,
+          episodeTitle: recap.episodeTitle,
+          episodeSlug: epSlug,
+          publishDate: releaseDate,
+          duration: durationStr,
+          artworkUrl: podcast.artworkUrl || ep.artworkUrl600 || null,
+          hosts: podcast.hosts || null,
+          tldl: recap.tldl,
+          whatHappened: recap.whatHappened,
+          keyInsights: recap.keyInsights,
+          quote: recap.quote || null,
+          quoteAttribution: recap.quoteAttribution || null,
+        });
+
+        if (podcastNewRecaps === 0) {
+          await storage.upsertExampleRecap({
+            slug: podcast.slug,
+            podcastName: podcast.name,
+            itunesId: podcast.itunesId,
+            episodeTitle: recap.episodeTitle,
+            episodeDate: releaseDate,
+            episodeDuration: durationStr,
+            tldl: recap.tldl,
+            whatHappened: recap.whatHappened,
+            keyInsights: recap.keyInsights,
+            quote: recap.quote || null,
+            quoteAttribution: recap.quoteAttribution || null,
+          });
+        }
+
+        podcastNewRecaps++;
+        newRecaps++;
+        console.log(`[LandingRecaps] Generated recap for ${podcast.name} - "${epTitle}"`);
       }
-
-      if (!transcriptText) {
-        console.log(`[LandingRecaps] No transcript for ${podcast.name} - "${epTitle}", skipping`);
-        skipped++;
-        continue;
-      }
-
-      const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
-      if (!recap) {
-        errors++;
-        continue;
-      }
-
-      const durationMs = latestEp.trackTimeMillis || 0;
-      const durationMin = Math.round(durationMs / 60000);
-      const durationStr = durationMin >= 60
-        ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
-        : `${durationMin} min`;
-      const releaseDate = latestEp.releaseDate
-        ? new Date(latestEp.releaseDate).toISOString().split("T")[0]
-        : todayKey;
-
-      await storage.upsertLandingPageRecap({
-        slug: podcast.slug,
-        itunesId: podcast.itunesId,
-        podcastName: podcast.name,
-        episodeTitle: recap.episodeTitle,
-        episodeSlug: epSlug,
-        publishDate: releaseDate,
-        duration: durationStr,
-        artworkUrl: podcast.artworkUrl || latestEp.artworkUrl600 || null,
-        hosts: podcast.hosts || null,
-        tldl: recap.tldl,
-        whatHappened: recap.whatHappened,
-        keyInsights: recap.keyInsights,
-        quote: recap.quote || null,
-        quoteAttribution: recap.quoteAttribution || null,
-      });
-
-      await storage.upsertExampleRecap({
-        slug: podcast.slug,
-        podcastName: podcast.name,
-        itunesId: podcast.itunesId,
-        episodeTitle: recap.episodeTitle,
-        episodeDate: releaseDate,
-        episodeDuration: durationStr,
-        tldl: recap.tldl,
-        whatHappened: recap.whatHappened,
-        keyInsights: recap.keyInsights,
-        quote: recap.quote || null,
-        quoteAttribution: recap.quoteAttribution || null,
-      });
-
-      newRecaps++;
-      console.log(`[LandingRecaps] Generated recap for ${podcast.name} - "${epTitle}"`);
     } catch (err) {
       console.error(`[LandingRecaps] Error processing ${podcast.name}:`, err);
       errors++;
