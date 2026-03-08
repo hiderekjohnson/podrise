@@ -220,7 +220,7 @@ export function renderEpisodePageHero(data: EpisodePageData): string {
   }
   <div class="tab-search">
     <svg class="tab-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-    <input type="text" class="tab-search-input" id="tab-search-input" placeholder="Search transcript..." autocomplete="off" data-testid="input-tab-search" />
+    <input type="text" class="tab-search-input" id="tab-search-input" placeholder="Search episode..." autocomplete="off" data-testid="input-tab-search" />
   </div>
 </nav>`;
 }

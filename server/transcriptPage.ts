@@ -12,25 +12,51 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function formatSegmentText(text: string): string {
+  const escaped = escapeHtml(text);
+  if (escaped.length < 300) return `<p class="seg-text">${escaped}</p>`;
+
+  const sentences = escaped.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [escaped];
+  const paragraphs: string[] = [];
+  let current = "";
+
+  for (const sentence of sentences) {
+    if (current.length + sentence.length > 250 && current.length > 0) {
+      paragraphs.push(current.trim());
+      current = sentence;
+    } else {
+      current += sentence;
+    }
+  }
+  if (current.trim()) paragraphs.push(current.trim());
+
+  if (paragraphs.length <= 1) return `<p class="seg-text">${escaped}</p>`;
+  return paragraphs.map(p => `<p class="seg-text">${p}</p>`).join("\n    ");
+}
+
 function renderSegment(seg: TranscriptSegment, baseUrl: string): string {
   const anchorUrl = `${baseUrl}#${seg.anchorId}`;
   const timestampHtml = seg.timestampLabel
     ? `<a href="#${seg.anchorId}" class="ts-link" data-anchor="${seg.anchorId}">${escapeHtml(seg.timestampLabel)}</a>`
     : "";
-  const speakerHtml = seg.speakerName
+  const speakerTrimmed = (seg.speakerName || "").trim();
+  const wordCount = speakerTrimmed.split(/\s+/).length;
+  const validSpeaker = speakerTrimmed.length > 0 && speakerTrimmed.length <= 30 && wordCount <= 4 && /^[A-Z]/.test(speakerTrimmed) && /^[A-Za-z0-9\s'\-&.]+$/.test(speakerTrimmed) && !/^(And|But|Or|The|A|An|So|If|It|This|That|Then|Also|Second|Third|First|In|On|At|For|With|From|What|How|Why|Where|When|Who)\s/i.test(speakerTrimmed);
+  const speakerHtml = validSpeaker
     ? `<span class="speaker">${escapeHtml(seg.speakerName)}</span>`
     : "";
   const copyBtn = `<button class="copy-btn" data-url="${escapeHtml(anchorUrl)}" title="Copy link to this moment" aria-label="Copy link">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
   </button>`;
 
-  return `<div class="seg" id="${seg.anchorId}">
-  <div class="seg-meta">
-    ${timestampHtml}
-    ${speakerHtml}
-    ${copyBtn}
-  </div>
-  <p class="seg-text">${escapeHtml(seg.text)}</p>
+  const hasMeta = timestampHtml || speakerHtml;
+  const metaHtml = hasMeta
+    ? `<div class="seg-meta">\n    ${timestampHtml}\n    ${speakerHtml}\n    ${copyBtn}\n  </div>`
+    : "";
+
+  return `<div class="seg${hasMeta ? "" : " no-meta"}" id="${seg.anchorId}">
+  ${metaHtml}
+  ${formatSegmentText(seg.text)}
 </div>`;
 }
 
@@ -178,6 +204,12 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       display: flex; align-items: center; gap: 10px;
       margin-bottom: 6px; min-height: 22px;
     }
+    .seg.no-meta {
+      border-color: transparent;
+      background: transparent;
+      padding: 4px 16px;
+      margin-bottom: 0;
+    }
     .ts-link {
       font-size: 12px; font-weight: 700; color: #1a8cff;
       font-variant-numeric: tabular-nums;
@@ -202,6 +234,9 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     .copy-btn.copied { color: #22c55e; opacity: 1; }
     .seg-text {
       font-size: 15px; line-height: 1.75; color: #334155;
+    }
+    .seg-text + .seg-text {
+      margin-top: 8px;
     }
     mark {
       background: rgba(26,140,255,0.15);
@@ -453,7 +488,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
 
     <div class="search-bar">
       <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" id="transcript-search" placeholder="Search transcript..." autocomplete="off" />
+      <input type="text" id="transcript-search" placeholder="Search episode..." autocomplete="off" />
       <span class="search-count" id="search-count"></span>
     </div>
 
@@ -575,28 +610,35 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
         if (!query) {
           segments.forEach(function(seg) {
             seg.classList.remove('search-hidden', 'search-match');
-            var textEl = seg.querySelector('.seg-text');
-            textEl.innerHTML = textEl.textContent;
+            var textEls = seg.querySelectorAll('.seg-text');
+            textEls.forEach(function(el) { el.innerHTML = el.textContent; });
           });
           searchCount.textContent = '';
           return;
         }
         var matchCount = 0;
+        var lowerQuery = query.toLowerCase();
+        var escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        var regex = new RegExp('(' + escaped + ')', 'gi');
         segments.forEach(function(seg) {
-          var textEl = seg.querySelector('.seg-text');
-          var originalText = textEl.textContent;
-          var lowerText = originalText.toLowerCase();
-          if (lowerText.includes(query.toLowerCase())) {
+          var textEls = seg.querySelectorAll('.seg-text');
+          var segMatched = false;
+          textEls.forEach(function(el) {
+            var originalText = el.textContent;
+            if (originalText.toLowerCase().includes(lowerQuery)) {
+              el.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+              segMatched = true;
+            } else {
+              el.innerHTML = originalText;
+            }
+          });
+          if (segMatched) {
             seg.classList.remove('search-hidden');
             seg.classList.add('search-match');
             matchCount++;
-            var escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            var regex = new RegExp('(' + escaped + ')', 'gi');
-            textEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
           } else {
             seg.classList.add('search-hidden');
             seg.classList.remove('search-match');
-            textEl.innerHTML = originalText;
           }
         });
         searchCount.textContent = matchCount + ' match' + (matchCount !== 1 ? 'es' : '');
