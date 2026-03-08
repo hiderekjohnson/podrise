@@ -1,10 +1,10 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, ExternalLink, FileText } from "lucide-react";
+import { Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, FileText } from "lucide-react";
 import { SiApplepodcasts, SiSpotify } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
-import { getPodcastBySlug, PODCAST_LANDINGS } from "../data/podcastLandingData";
+import { getPodcastBySlug } from "../data/podcastLandingData";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
@@ -38,16 +38,7 @@ export default function EpisodeRecapPage() {
     enabled: !!podcastSlug,
   });
 
-  const currentIndex = allRecaps.findIndex((r: any) => r.episodeSlug === episodeSlug);
-  const prev = currentIndex > 0 ? allRecaps[currentIndex - 1] : null;
-  const next = currentIndex >= 0 && currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null;
-
   const podcastConfig = getPodcastBySlug(podcastSlug);
-
-  const relatedPodcasts = podcastConfig?.relatedSlugs
-    ?.map(s => PODCAST_LANDINGS.find(p => p.slug === s))
-    .filter(Boolean)
-    .slice(0, 3) || [];
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -166,40 +157,20 @@ export default function EpisodeRecapPage() {
 
   const whatHappenedParagraphs = episode.whatHappened.split("\n\n").filter(Boolean);
 
+  const currentIdx = allRecaps.findIndex((r: any) => r.episodeSlug === episodeSlug);
+  const previousEpisodes = currentIdx >= 0 ? allRecaps.slice(currentIdx + 1, currentIdx + 6) : [];
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center">
           <Link href="/">
             <img src={logoPath} alt="PodCap" className="h-7" data-testid="link-home-logo" />
-          </Link>
-          <Link href={`/podcasts/${podcastSlug}`}>
-            <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-podcast-page">
-              ← All {episode.podcastName} Recaps
-            </span>
           </Link>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
-        <nav className="flex items-center justify-between mb-10" data-testid="nav-episode-arrows">
-          {prev ? (
-            <Link href={`/podcasts/${podcastSlug}/${prev.episodeSlug}`}>
-              <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group" data-testid="link-prev-episode">
-                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                Previous
-              </span>
-            </Link>
-          ) : <span />}
-          {next ? (
-            <Link href={`/podcasts/${podcastSlug}/${next.episodeSlug}`}>
-              <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group" data-testid="link-next-episode">
-                Newer
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </span>
-            </Link>
-          ) : <span />}
-        </nav>
 
         <motion.article
           initial={{ opacity: 0, y: 16 }}
@@ -409,32 +380,51 @@ export default function EpisodeRecapPage() {
           </div>
         </motion.div>
 
-        {relatedPodcasts.length > 0 && (
+        {previousEpisodes.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            data-testid="section-related-podcasts"
+            data-testid="section-more-episodes"
           >
             <h2 className="text-lg font-display font-bold text-foreground mb-5">
-              Listeners of {episode.podcastName} also enjoy
+              More from {episode.podcastName}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {relatedPodcasts.map((rp: any) => (
-                <Link key={rp.slug} href={`/podcasts/${rp.slug}`}>
-                  <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 flex items-center gap-4 hover:shadow-md hover:shadow-black/[0.04] hover:-translate-y-0.5 transition-all cursor-pointer" data-testid={`card-related-${rp.slug}`}>
-                    <img
-                      src={rp.artworkUrl}
-                      alt={rp.name}
-                      className="w-14 h-14 rounded-lg object-cover shadow-sm shadow-black/[0.04] shrink-0 ring-1 ring-black/[0.04]"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-foreground truncate">{rp.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{rp.hosts}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+            <div className="space-y-2.5">
+              {previousEpisodes
+                .map((ep: any) => {
+                  const d = new Date(ep.publishDate + "T00:00:00");
+                  const fmt = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                  return (
+                    <Link key={ep.episodeSlug} href={`/podcasts/${podcastSlug}/${ep.episodeSlug}`}>
+                      <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-more-episode-${ep.episodeSlug}`}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
+                          <span className="text-xs font-semibold text-muted-foreground/60">{fmt}</span>
+                          {ep.duration && (
+                            <>
+                              <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
+                              <span className="text-xs text-muted-foreground/50">{ep.duration}</span>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-2">
+                          See full episode recap
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+            </div>
+            <div className="flex justify-center mt-6">
+              <Link href={`/podcasts/${podcastSlug}`}>
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-sm bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                  View all {episode.podcastName} episodes
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
             </div>
           </motion.section>
         )}
