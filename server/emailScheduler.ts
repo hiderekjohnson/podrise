@@ -426,6 +426,22 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
       if (cached) {
         transcriptText = cached.transcript;
       } else {
+        const { pool: dbPool } = await import("./db");
+        const client = await dbPool.connect();
+        try {
+          const titleMatch = await client.query(
+            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+            [podcast.itunesId, epTitle]
+          );
+          if (titleMatch.rows.length > 0) {
+            transcriptText = titleMatch.rows[0].transcript;
+          }
+        } finally {
+          client.release();
+        }
+      }
+
+      if (!transcriptText) {
         try {
           const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
           if (taddyPodcast?.uuid) {
