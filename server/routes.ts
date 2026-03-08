@@ -913,31 +913,20 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         return res.status(404).json({ error: "No episodes found for this podcast" });
       }
 
-      const searchTerms = question.trim().toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      const allRecapSummaries = recaps.slice(0, 50).map(r =>
+        `Episode: "${r.episodeTitle}"\nSummary: ${r.tldl || ""}\n${r.whatHappened ? r.whatHappened.slice(0, 400) : ""}`
+      ).join("\n\n");
 
-      const { db } = await import("./db");
-      const { sql } = await import("drizzle-orm");
-      const searchPattern = `%${question.trim().replace(/%/g, "\\%")}%`;
-      const segmentResults = await db.execute(sql`
-        SELECT ts.episode_slug, ts.text, lpr.episode_title
-        FROM transcript_segments ts
-        LEFT JOIN landing_page_recaps lpr ON lpr.slug = ts.podcast_slug AND lpr.episode_slug = ts.episode_slug
-        WHERE ts.podcast_slug = ${slug}
-          AND ts.text ILIKE ${searchPattern}
-        ORDER BY lpr.publish_date DESC NULLS LAST, ts.sequence_index ASC
-        LIMIT 60
-      `);
+      const searchTerms = question.trim().toLowerCase().split(/\s+/).filter(w => w.length > 2 && !["the","and","for","are","you","how","what","why","who","does","this","that","with","from","about","many","have","been","they","their","there","which","when","where","looking"].includes(w));
 
       let contextSegments: { text: string; episodeTitle: string }[] = [];
-      if (segmentResults.rows && segmentResults.rows.length > 0) {
-        contextSegments = segmentResults.rows.map((r: any) => ({
-          text: r.text,
-          episodeTitle: r.episode_title || r.episode_slug,
-        }));
-      }
 
-      if (contextSegments.length < 10) {
-        for (const term of searchTerms.slice(0, 3)) {
+      if (searchTerms.length > 0) {
+        const { db } = await import("./db");
+        const { sql } = await import("drizzle-orm");
+
+        for (const term of searchTerms.slice(0, 4)) {
+          if (contextSegments.length >= 60) break;
           const termPattern = `%${term.replace(/%/g, "\\%")}%`;
           const termResults = await db.execute(sql`
             SELECT ts.episode_slug, ts.text, lpr.episode_title
@@ -946,7 +935,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
             WHERE ts.podcast_slug = ${slug}
               AND ts.text ILIKE ${termPattern}
             ORDER BY lpr.publish_date DESC NULLS LAST, ts.sequence_index ASC
-            LIMIT 30
+            LIMIT 20
           `);
           if (termResults.rows) {
             for (const r of termResults.rows as any[]) {
@@ -960,36 +949,16 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         }
       }
 
-      if (contextSegments.length === 0) {
-        const recentRecaps = recaps.slice(0, 10);
-        const summaryContext = recentRecaps.map(r =>
-          `Episode: "${r.episodeTitle}"\nSummary: ${r.tldl || ""}\n${r.whatHappened ? r.whatHappened.slice(0, 300) : ""}`
-        ).join("\n\n");
+      const transcriptContext = contextSegments.length > 0
+        ? contextSegments.slice(0, 30).map(s => `[${s.episodeTitle}]: ${s.text}`).join("\n\n").slice(0, 8000)
+        : "";
 
-        const { openai } = await import("./replit_integrations/image/client");
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are PodCap, an AI assistant that answers questions about the podcast "${recaps[0]?.podcastName || slug}" based on episode summaries. Answer in 2-3 paragraphs. If you don't have enough information, say so honestly. Mention which episodes your answer draws from.`
-            },
-            {
-              role: "user",
-              content: `Recent episode summaries:\n${summaryContext}\n\nQuestion: ${question.trim()}`
-            }
-          ],
-          max_tokens: 1500,
-          temperature: 0.5,
-        });
-        const answer = completion.choices[0]?.message?.content || "Unable to generate an answer.";
-        return res.json({ answer, question: question.trim(), episodesCited: recentRecaps.map(r => r.episodeTitle).filter(Boolean) });
-      }
-
-      const episodesCited = [...new Set(contextSegments.map(s => s.episodeTitle))].slice(0, 8);
-      const contextText = contextSegments.slice(0, 40).map(s =>
-        `[${s.episodeTitle}]: ${s.text}`
-      ).join("\n\n").slice(0, 15000);
+      const episodesCited = [
+        ...new Set([
+          ...contextSegments.map(s => s.episodeTitle),
+          ...recaps.slice(0, 20).map(r => r.episodeTitle),
+        ])
+      ].filter(Boolean).slice(0, 12);
 
       const { openai } = await import("./replit_integrations/image/client");
       const completion = await openai.chat.completions.create({
@@ -997,11 +966,11 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         messages: [
           {
             role: "system",
-            content: `You are PodCap, an AI assistant that answers questions about the podcast "${recaps[0]?.podcastName || slug}" using transcript excerpts from multiple episodes. Answer in 2-3 paragraphs. Only use information from the provided transcripts. Reference which episodes your information comes from when relevant. If the transcripts don't contain enough relevant information, say so honestly.`
+            content: `You are PodCap, an AI assistant that answers questions about the podcast "${recaps[0]?.podcastName || slug}". You have access to summaries from ${recaps.length} episodes of this podcast${transcriptContext ? ", plus relevant transcript excerpts" : ""}. Answer in 2-3 paragraphs. Draw from multiple episodes when possible. Reference specific episodes by name when relevant. If you don't have enough information to answer fully, say so honestly.`
           },
           {
             role: "user",
-            content: `Transcript excerpts from multiple episodes:\n${contextText}\n\nQuestion: ${question.trim()}`
+            content: `Episode summaries (${recaps.length} episodes total):\n${allRecapSummaries.slice(0, 12000)}${transcriptContext ? `\n\nRelevant transcript excerpts:\n${transcriptContext}` : ""}\n\nQuestion: ${question.trim()}`
           }
         ],
         max_tokens: 1500,
