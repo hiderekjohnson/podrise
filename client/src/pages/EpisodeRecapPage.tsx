@@ -222,12 +222,14 @@ export default function EpisodeRecapPage() {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <div className="flex items-start gap-5 sm:gap-6 mb-10">
-            <img
-              src={episode.artworkUrl}
-              alt={episode.podcastName}
-              className="w-[88px] h-[88px] sm:w-28 sm:h-28 rounded-2xl object-cover shadow-lg shadow-black/[0.08] shrink-0 ring-1 ring-black/[0.04]"
-              data-testid="img-episode-artwork"
-            />
+            <Link href={`/podcasts/${podcastSlug}`}>
+              <img
+                src={episode.artworkUrl}
+                alt={episode.podcastName}
+                className="w-[88px] h-[88px] sm:w-28 sm:h-28 rounded-2xl object-cover shadow-lg shadow-black/[0.08] shrink-0 ring-1 ring-black/[0.04] cursor-pointer hover:shadow-xl hover:shadow-black/[0.12] transition-shadow"
+                data-testid="img-episode-artwork"
+              />
+            </Link>
             <div className="min-w-0 pt-1">
               <Link href={`/podcasts/${podcastSlug}`}>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider hover:underline" data-testid="link-podcast-name">
