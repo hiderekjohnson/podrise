@@ -1267,7 +1267,24 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       return res.status(400).json({ message: "Password is required" });
     }
 
-    if (parsed.data.password !== process.env.ADMIN_PASSWORD) {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { adminSettings } = await import("@shared/schema");
+    const bcrypt = await import("bcryptjs");
+
+    let isValid = false;
+    try {
+      const dbPw = await db.select().from(adminSettings).where(eq(adminSettings.key, "admin_password_hash")).limit(1);
+      if (dbPw.length > 0) {
+        isValid = await bcrypt.compare(parsed.data.password, dbPw[0].value);
+      } else {
+        isValid = parsed.data.password === process.env.ADMIN_PASSWORD;
+      }
+    } catch {
+      isValid = parsed.data.password === process.env.ADMIN_PASSWORD;
+    }
+
+    if (!isValid) {
       const entry = adminLoginAttempts.get(ip)!;
       entry.count++;
       return res.status(401).json({ message: "Invalid admin password" });
@@ -1276,6 +1293,51 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     adminLoginAttempts.delete(ip);
     req.session.isAdmin = true;
     res.json({ message: "Admin authenticated" });
+  });
+
+  app.post("/api/admin/change-password", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const parsed = z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    }).safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: parsed.error.errors[0]?.message || "Invalid input" });
+    }
+
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { adminSettings } = await import("@shared/schema");
+    const bcrypt = await import("bcryptjs");
+
+    let isCurrentValid = false;
+    try {
+      const dbPw = await db.select().from(adminSettings).where(eq(adminSettings.key, "admin_password_hash")).limit(1);
+      if (dbPw.length > 0) {
+        isCurrentValid = await bcrypt.compare(parsed.data.currentPassword, dbPw[0].value);
+      } else {
+        isCurrentValid = parsed.data.currentPassword === process.env.ADMIN_PASSWORD;
+      }
+    } catch {
+      isCurrentValid = parsed.data.currentPassword === process.env.ADMIN_PASSWORD;
+    }
+
+    if (!isCurrentValid) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(parsed.data.newPassword, 12);
+    await db.insert(adminSettings).values({
+      key: "admin_password_hash",
+      value: hashedPassword,
+    }).onConflictDoUpdate({
+      target: adminSettings.key,
+      set: { value: hashedPassword, updatedAt: new Date() },
+    });
+
+    res.json({ message: "Password updated successfully" });
   });
 
   app.get("/api/admin/me", (req, res) => {

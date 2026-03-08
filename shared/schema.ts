@@ -266,3 +266,9 @@ export const podcastTopQuestions = pgTable("podcast_top_questions", {
 
 export type PodcastTopQuestion = typeof podcastTopQuestions.$inferSelect;
 
+export const adminSettings = pgTable("admin_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+

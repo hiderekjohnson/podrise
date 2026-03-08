@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye, Rss } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye, Rss, Key } from "lucide-react";
 import { motion } from "framer-motion";
 const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
 const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
@@ -86,6 +86,26 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
       queryClient.removeQueries({ queryKey: ["/api/admin/users"] });
+    },
+  });
+
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+
+  const changePwMutation = useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      apiRequest("POST", "/api/admin/change-password", data),
+    onSuccess: () => {
+      toast({ title: "Password updated", description: "Your admin password has been changed." });
+      setShowChangePw(false);
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmPw("");
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed", description: err.message || "Could not change password.", variant: "destructive" });
     },
   });
 
@@ -206,15 +226,90 @@ export default function Admin() {
           </a>
           <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase tracking-wide">Admin</span>
         </div>
-        <button
-          data-testid="button-admin-logout"
-          onClick={() => logoutMutation.mutate()}
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          Log out
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            data-testid="button-change-password"
+            onClick={() => setShowChangePw(!showChangePw)}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Key className="w-4 h-4" />
+            Change Password
+          </button>
+          <button
+            data-testid="button-admin-logout"
+            onClick={() => logoutMutation.mutate()}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Log out
+          </button>
+        </div>
       </header>
+
+      {showChangePw && (
+        <div className="w-full max-w-md mx-auto px-4 mb-4">
+          <div className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm" data-testid="section-change-password">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+              <Key className="w-4 h-4 text-primary" />
+              Change Admin Password
+            </h3>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newPw !== confirmPw) {
+                  toast({ title: "Mismatch", description: "New passwords don't match.", variant: "destructive" });
+                  return;
+                }
+                changePwMutation.mutate({ currentPassword: currentPw, newPassword: newPw });
+              }}
+              className="space-y-3"
+            >
+              <input
+                type="password"
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                placeholder="Current password"
+                className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                data-testid="input-current-password"
+              />
+              <input
+                type="password"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                placeholder="New password (min 6 characters)"
+                className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                data-testid="input-new-password"
+              />
+              <input
+                type="password"
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                data-testid="input-confirm-password"
+              />
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={!currentPw || !newPw || !confirmPw || newPw.length < 6 || changePwMutation.isPending}
+                  className="h-9 px-4 rounded-lg font-bold text-sm bg-primary text-white hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  data-testid="button-submit-password"
+                >
+                  {changePwMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Password"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowChangePw(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
+                  className="h-9 px-4 rounded-lg font-bold text-sm text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
+                  data-testid="button-cancel-password"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
         <section className="w-full max-w-5xl pt-8 pb-6">
