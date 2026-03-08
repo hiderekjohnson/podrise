@@ -76,6 +76,9 @@ export async function getRecentEpisodesWithTranscripts(
   }`;
 
   const data = await taddyRequest(query);
+  if (!data?.data?.getPodcastSeries?.episodes) {
+    console.log(`[Taddy] Episodes response for ${podcastUuid}:`, JSON.stringify(data?.data?.getPodcastSeries || data?.errors || "null").slice(0, 500));
+  }
   const episodes = data?.data?.getPodcastSeries?.episodes || [];
   episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
   return episodes;

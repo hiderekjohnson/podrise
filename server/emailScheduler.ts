@@ -706,21 +706,39 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
         const needed = targetPerPodcast - existingCount;
         console.log(`[BatchExpand] ${podcast.name}: has ${existingCount}, needs ${needed} more`);
 
-        const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
-        if (!taddyPodcast?.uuid) {
-          console.warn(`[BatchExpand] ${podcast.name}: Taddy lookup failed, skipping`);
+        const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=${Math.min(targetPerPodcast + 10, 200)}&sort=recent`;
+        const lookupRes = await fetch(lookupUrl);
+        const lookupJson = await lookupRes.json();
+        const itunesEpisodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+        console.log(`[BatchExpand] ${podcast.name}: iTunes returned ${itunesEpisodes.length} episodes`);
+
+        if (itunesEpisodes.length === 0) {
           batchExpansionProgress.podcastsProcessed++;
           continue;
         }
 
-        const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, targetPerPodcast);
-        console.log(`[BatchExpand] ${podcast.name}: Taddy returned ${taddyEpisodes.length} episodes`);
+        let taddyPodcastUuid: string | null = null;
+        try {
+          const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
+          taddyPodcastUuid = taddyPodcast?.uuid || null;
+        } catch {
+          console.warn(`[BatchExpand] ${podcast.name}: Taddy podcast lookup failed`);
+        }
+
+        let taddyEpisodesList: any[] = [];
+        if (taddyPodcastUuid) {
+          try {
+            taddyEpisodesList = await getRecentEpisodesWithTranscripts(taddyPodcastUuid, 50);
+          } catch {
+            console.warn(`[BatchExpand] ${podcast.name}: Taddy episodes fetch failed`);
+          }
+        }
 
         let podcastCreated = 0;
-        for (const ep of taddyEpisodes) {
+        for (const ep of itunesEpisodes) {
           if (podcastCreated >= needed) break;
 
-          const epTitle = ep.name || "Untitled";
+          const epTitle = ep.trackName || "Untitled";
           const epSlug = slugifyEpisodeTitle(epTitle);
 
           const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
@@ -729,7 +747,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
             continue;
           }
 
-          const episodeGuid = `taddy_${ep.uuid}`;
+          const episodeGuid = ep.episodeGuid || `${podcast.itunesId}_${ep.trackId || epTitle}`;
 
           let transcriptText: string | null = null;
           let rawSegments: any[] | null = null;
@@ -754,25 +772,33 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
             }
           }
 
-          if (!transcriptText) {
+          if (!transcriptText && taddyEpisodesList.length > 0) {
             try {
-              rawSegments = await getEpisodeTranscriptSegments(ep.uuid);
-              if (rawSegments && rawSegments.length > 0) {
-                const lines: string[] = [];
-                for (const seg of rawSegments) {
-                  const speaker = seg.speaker ? `[${seg.speaker}] ` : "";
-                  lines.push(`${speaker}${seg.text}`);
+              const itunesNorm = normalizeTitleForMatch(epTitle);
+              const taddyMatch = taddyEpisodesList.find((te: any) => {
+                if (!te.name) return false;
+                const taddyNorm = normalizeTitleForMatch(te.name);
+                return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
+              });
+              if (taddyMatch?.uuid) {
+                rawSegments = await getEpisodeTranscriptSegments(taddyMatch.uuid);
+                if (rawSegments && rawSegments.length > 0) {
+                  const lines: string[] = [];
+                  for (const seg of rawSegments) {
+                    const speaker = seg.speaker ? `[${seg.speaker}] ` : "";
+                    lines.push(`${speaker}${seg.text}`);
+                  }
+                  transcriptText = lines.join("\n");
+                  await storage.saveTranscript({
+                    podcastId: podcast.itunesId,
+                    episodeGuid,
+                    episodeTitle: epTitle,
+                    transcript: transcriptText,
+                  });
                 }
-                transcriptText = lines.join("\n");
-                await storage.saveTranscript({
-                  podcastId: podcast.itunesId,
-                  episodeGuid,
-                  episodeTitle: epTitle,
-                  transcript: transcriptText,
-                });
               }
             } catch (taddyErr) {
-              console.warn(`[BatchExpand] Transcript fetch failed for "${epTitle}":`, taddyErr);
+              console.warn(`[BatchExpand] Taddy transcript fetch failed for "${epTitle}":`, taddyErr);
             }
           }
 
@@ -814,9 +840,18 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               continue;
             }
 
-            const publishDate = ep.datePublished
-              ? new Date(ep.datePublished).toISOString().split("T")[0]
+            const durationMs = ep.trackTimeMillis || 0;
+            const durationMin = Math.round(durationMs / 60000);
+            const durationStr = durationMin >= 60
+              ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+              : `${durationMin} min`;
+            const releaseDate = ep.releaseDate
+              ? new Date(ep.releaseDate).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0];
+
+            const appleEpisodeUrl = ep.trackViewUrl
+              ? ep.trackViewUrl.replace(/&uo=\d+/, "")
+              : null;
 
             await storage.upsertLandingPageRecap({
               slug: podcast.slug,
@@ -824,17 +859,17 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               podcastName: podcast.name,
               episodeTitle: recap.episodeTitle,
               episodeSlug: epSlug,
-              publishDate,
-              duration: null,
-              artworkUrl: podcast.artworkUrl || null,
+              publishDate: releaseDate,
+              duration: durationStr,
+              artworkUrl: podcast.artworkUrl || ep.artworkUrl600 || null,
               hosts: podcast.hosts || null,
               tldl: recap.tldl,
               whatHappened: recap.whatHappened,
               keyInsights: recap.keyInsights,
               quote: recap.quote || null,
               quoteAttribution: recap.quoteAttribution || null,
-              appleEpisodeUrl: null,
-              audioUrl: ep.audioUrl || null,
+              appleEpisodeUrl: appleEpisodeUrl,
+              audioUrl: ep.episodeUrl || null,
               keyTopics: recap.keyTopics || null,
               topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
             });
