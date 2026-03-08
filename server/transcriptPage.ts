@@ -133,6 +133,11 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
       outline: 1px solid rgba(0,0,0,0.04);
       outline-offset: -1px;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    .artwork:hover {
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.12);
     }
     @media (min-width: 640px) {
       .artwork { width: 112px; height: 112px; }
@@ -141,7 +146,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     .podcast-name {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 12px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.05em; color: #1a8cff; margin-bottom: 8px;
+      letter-spacing: 0.05em; color: #1a8cff;
     }
     .podcast-name:hover { text-decoration: underline; }
     .podcast-name svg { width: 14px; height: 14px; }
@@ -215,7 +220,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     .page-tabs {
       display: flex; align-items: center;
       border-bottom: 1px solid rgba(0,0,0,0.06);
-      margin-bottom: 24px;
+      margin-bottom: 40px;
     }
     .page-tab {
       display: flex; align-items: center; gap: 8px;
@@ -307,6 +312,86 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     }
     .scroll-top:hover { transform: scale(1.1); color: #1a8cff; }
     .scroll-top.visible { display: flex; }
+
+    .inline-cta {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(26,140,255,0.06), rgba(26,140,255,0.03), transparent);
+      border: 1px solid rgba(26,140,255,0.1);
+      border-radius: 16px;
+      padding: 28px; margin-top: 48px; margin-bottom: 64px;
+    }
+    @media (min-width: 640px) {
+      .inline-cta { padding: 36px; }
+    }
+    .inline-cta-bg {
+      position: absolute; bottom: -32px; right: -32px; opacity: 0.04;
+    }
+    .inline-cta-bg svg { width: 160px; height: 160px; color: #1a8cff; }
+    .inline-cta-inner {
+      position: relative;
+      display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center;
+    }
+    @media (min-width: 768px) {
+      .inline-cta-inner { grid-template-columns: 1fr auto; gap: 40px; }
+    }
+    .inline-cta-content { display: flex; flex-direction: column; gap: 16px; text-align: center; }
+    @media (min-width: 768px) {
+      .inline-cta-content { text-align: left; }
+    }
+    .inline-cta h2 {
+      font-size: 20px; font-weight: 800; color: #1a1a2e; line-height: 1.3;
+    }
+    @media (min-width: 640px) {
+      .inline-cta h2 { font-size: 24px; }
+    }
+    .inline-cta-desc {
+      font-size: 15px; color: #64748b; line-height: 1.6; max-width: 28rem;
+    }
+    .inline-cta-form {
+      display: flex; flex-direction: column; gap: 12px; margin-top: 4px;
+    }
+    @media (min-width: 640px) {
+      .inline-cta-form { flex-direction: row; }
+    }
+    .inline-cta-input {
+      flex: 1; height: 48px; padding: 0 16px;
+      background: white; border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px; font-size: 16px; color: #1a1a2e;
+      font-weight: 500; outline: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .inline-cta-input:focus {
+      border-color: rgba(26,140,255,0.3);
+      box-shadow: 0 0 0 3px rgba(26,140,255,0.08);
+    }
+    .inline-cta-input::placeholder { color: rgba(148,163,184,0.4); }
+    .inline-cta-submit {
+      height: 48px; padding: 0 24px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 12px; border: none;
+      font-size: 16px; font-weight: 700;
+      background: #1a8cff; color: white;
+      cursor: pointer; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(26,140,255,0.2);
+      transition: filter 0.15s, box-shadow 0.15s;
+    }
+    .inline-cta-submit:hover { filter: brightness(1.05); box-shadow: 0 6px 16px rgba(26,140,255,0.25); }
+    .inline-cta-submit svg { width: 16px; height: 16px; }
+    .inline-cta-artwork {
+      display: none;
+      width: 128px; height: 128px; border-radius: 16px;
+      object-fit: cover;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08);
+      outline: 1px solid rgba(0,0,0,0.04);
+      outline-offset: -1px;
+    }
+    @media (min-width: 768px) {
+      .inline-cta-artwork { display: block; }
+    }
+    @media (min-width: 1024px) {
+      .inline-cta-artwork { width: 144px; height: 144px; }
+    }
 
     .more-episodes { margin-top: 48px; }
     .more-episodes h2 {
@@ -496,6 +581,26 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
     </button>
 
+    <section class="inline-cta" id="inline-cta" data-testid="section-episode-cta">
+      <div class="inline-cta-bg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      </div>
+      <div class="inline-cta-inner">
+        <div class="inline-cta-content">
+          <h2>Get ${escapeHtml(podcastName)} recaps<br /> in your inbox</h2>
+          <p class="inline-cta-desc">Never miss an episode. PodCap sends you a concise recap of every new ${escapeHtml(podcastName)} episode — free, no app needed.</p>
+          <form class="inline-cta-form" id="inline-cta-form" data-testid="form-signup-episode">
+            <input class="inline-cta-input" type="email" placeholder="your@email.com" required data-testid="input-email-episode" />
+            <button class="inline-cta-submit" type="submit" data-testid="button-signup-episode">
+              Get Free Recaps
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </button>
+          </form>
+        </div>
+        ${artworkUrl ? `<img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(podcastName)}" class="inline-cta-artwork" data-testid="img-cta-artwork" />` : ""}
+      </div>
+    </section>
+
     ${otherEpisodes.length > 0 ? `
     <section class="more-episodes" data-testid="section-more-episodes">
       <h2>More from ${escapeHtml(podcastName)}</h2>
@@ -618,7 +723,13 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
 
       var scrollBtn = document.getElementById('scroll-top');
       var stickyBar = document.getElementById('sticky-bar');
+      var inlineCta = document.getElementById('inline-cta');
       var stickyDismissed = false;
+
+      function isInView(el) {
+        var rect = el.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
+      }
 
       window.addEventListener('scroll', function() {
         if (window.scrollY > 600) {
@@ -628,7 +739,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
         }
 
         if (stickyDismissed) return;
-        if (window.scrollY > 600) {
+        if (window.scrollY > 600 && !isInView(inlineCta)) {
           stickyBar.classList.add('visible');
         } else {
           stickyBar.classList.remove('visible');
@@ -647,28 +758,32 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       });
 
       var podcastMeta = ${JSON.stringify({ id: itunesId, name: podcastName, artworkUrl: artworkUrl })};
-      document.getElementById('sticky-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var emailInput = this.querySelector('input[type="email"]');
-        var emailVal = emailInput.value.trim();
-        if (!emailVal || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(emailVal)) return;
-        fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: emailVal,
-            podcasts: [JSON.stringify(podcastMeta)]
-          })
-        }).then(function(res) {
-          if (res.ok) {
-            window.location.href = '/dashboard?welcome=true';
-          } else {
-            alert('This email may already be registered. Try logging in.');
-          }
-        }).catch(function() {
-          alert('Something went wrong. Please try again.');
+      function handleSignup(form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var emailInput = this.querySelector('input[type="email"]');
+          var emailVal = emailInput.value.trim();
+          if (!emailVal || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(emailVal)) return;
+          fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: emailVal,
+              podcasts: [JSON.stringify(podcastMeta)]
+            })
+          }).then(function(res) {
+            if (res.ok) {
+              window.location.href = '/dashboard?welcome=true';
+            } else {
+              alert('This email may already be registered. Try logging in.');
+            }
+          }).catch(function() {
+            alert('Something went wrong. Please try again.');
+          });
         });
-      });
+      }
+      handleSignup(document.getElementById('sticky-form'));
+      handleSignup(document.getElementById('inline-cta-form'));
     })();
   </script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-J16JE1L8GE"></script>
