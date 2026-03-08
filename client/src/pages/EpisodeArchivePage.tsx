@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Calendar, Clock, Loader2 } from 
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { EpisodeCard } from "@/components/EpisodeCard";
 
 export default function EpisodeArchivePage() {
   const params = useParams<{ slug: string }>();
@@ -146,40 +147,18 @@ export default function EpisodeArchivePage() {
           transition={{ duration: 0.4, delay: 0.08 }}
           className="mt-8"
         >
-          <div className="space-y-3">
-            {episodes.map((ep) => {
-              const date = new Date(ep.publishDate + "T00:00:00");
-              const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-              return (
-                <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
-                  <div
-                    className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all cursor-pointer group"
-                    data-testid={`card-episode-${ep.episodeSlug}`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                        <p className="text-[15px] text-muted-foreground mt-2 line-clamp-2">{ep.tldl}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground/70">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {formatted}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {ep.duration}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="flex items-center gap-1 text-sm font-medium text-primary/60 group-hover:text-primary shrink-0 mt-1 transition-colors">
-                        Read Summary
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="space-y-5">
+            {episodes.map((ep) => (
+              <EpisodeCard
+                key={ep.episodeSlug}
+                episodeSlug={ep.episodeSlug}
+                podcastSlug={slug}
+                publishDate={ep.publishDate}
+                episodeTitle={ep.episodeTitle}
+                tldl={ep.tldl}
+                duration={ep.duration}
+              />
+            ))}
           </div>
 
           {episodes.length === 0 && (
