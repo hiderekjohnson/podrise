@@ -1041,6 +1041,19 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/backfill-transcript-segments", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { backfillTranscriptSegments } = await import("./emailScheduler");
+      backfillTranscriptSegments();
+      res.json({ message: "Transcript segment backfill started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
