@@ -202,6 +202,15 @@ export default function EpisodeRecapPage() {
           >
             TLDL
           </button>
+          {episode.keyInsights.length > 0 && (
+            <button
+              onClick={() => scrollTo("section-key-insights")}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+              data-testid="nav-key-insights"
+            >
+              Key Insights
+            </button>
+          )}
           <button
             onClick={() => scrollTo("section-what-happened")}
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
@@ -245,6 +254,29 @@ export default function EpisodeRecapPage() {
           </div>
           <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
         </div>
+
+        {episode.keyInsights.length > 0 && (
+          <section id="section-key-insights" className="mb-12" data-testid="section-key-insights">
+            <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
+              <span className="w-1 h-6 rounded-full bg-amber-400" />
+              Key Insights
+            </h2>
+            <div className="grid gap-3">
+              {episode.keyInsights.map((insight, i) => (
+                <div
+                  key={i}
+                  className="flex gap-4 items-start bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-xl px-5 py-4 shadow-sm shadow-black/[0.02]"
+                  data-testid={`insight-${i}`}
+                >
+                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                    <Lightbulb className="w-4 h-4" />
+                  </span>
+                  <p className="text-[16px] leading-[1.7] text-muted-foreground">{insight}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {whatHappenedParagraphs.length > 0 && (
           <section id="section-what-happened" className="mb-12" data-testid="section-what-happened">
@@ -332,29 +364,6 @@ export default function EpisodeRecapPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {episode.keyInsights.length > 0 && (
-          <section className="mb-12" data-testid="section-key-insights">
-            <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
-              <span className="w-1 h-6 rounded-full bg-amber-400" />
-              Key Insights
-            </h2>
-            <div className="grid gap-3">
-              {episode.keyInsights.map((insight, i) => (
-                <div
-                  key={i}
-                  className="flex gap-4 items-start bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-xl px-5 py-4 shadow-sm shadow-black/[0.02]"
-                  data-testid={`insight-${i}`}
-                >
-                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
-                    <Lightbulb className="w-4 h-4" />
-                  </span>
-                  <p className="text-[16px] leading-[1.7] text-muted-foreground">{insight}</p>
                 </div>
               ))}
             </div>
