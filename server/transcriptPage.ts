@@ -84,10 +84,13 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
   <meta name="twitter:title" content="${escapeHtml(pageTitle)}" />
   <meta name="twitter:description" content="${escapeHtml(metaDesc)}" />
   <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: #f8f9fb;
       color: #1a1a2e;
       line-height: 1.7;
@@ -104,19 +107,30 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       border-bottom: 1px solid rgba(0,0,0,0.04);
     }
     .header-inner {
-      max-width: 720px; margin: 0 auto;
+      max-width: 896px; margin: 0 auto;
       padding: 0 16px; height: 56px;
       display: flex; align-items: center;
     }
+    @media (min-width: 640px) {
+      .header-inner { padding: 0 24px; }
+    }
     .logo { height: 28px; }
 
-    .container { max-width: 720px; margin: 0 auto; padding: 40px 16px 80px; }
+    .container { max-width: 768px; margin: 0 auto; padding: 40px 16px 80px; }
+    @media (min-width: 640px) {
+      .container { padding: 40px 24px 80px; }
+    }
 
-    .hero { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 0; }
+    .hero { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 40px; }
+    @media (min-width: 640px) {
+      .hero { gap: 24px; }
+    }
     .artwork {
       width: 88px; height: 88px; border-radius: 16px;
       object-fit: cover; flex-shrink: 0;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+      outline: 1px solid rgba(0,0,0,0.04);
+      outline-offset: -1px;
     }
     @media (min-width: 640px) {
       .artwork { width: 112px; height: 112px; }
@@ -129,7 +143,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     }
     .podcast-name:hover { text-decoration: underline; }
     .podcast-name svg { width: 14px; height: 14px; }
-    .ep-title { font-size: 22px; font-weight: 800; line-height: 1.25; color: #1a1a2e; margin-bottom: 12px; }
+    .ep-title { font-size: 22px; font-weight: 800; line-height: 1.25; color: #1a1a2e; margin-top: 8px; margin-bottom: 12px; }
     @media (min-width: 640px) { .ep-title { font-size: 28px; } }
     .ep-meta {
       font-size: 14px; color: #94a3b8;
@@ -383,7 +397,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
         </div>
         <div class="listen-buttons">
           <a href="${escapeHtml(appleLink)}" target="_blank" rel="noopener noreferrer" class="listen-btn" data-testid="link-apple-podcasts">
-            <svg viewBox="0 0 24 24" fill="#9933CC"><path d="M12.28 2C6.88 2 2.45 6.43 2.45 11.83c0 3.46 1.83 6.58 4.67 8.37-.08-.7-.15-1.77.03-2.53.16-.69 1.05-4.45 1.05-4.45s-.27-.54-.27-1.33c0-1.24.72-2.17 1.62-2.17.76 0 1.13.57 1.13 1.26 0 .77-.49 1.92-.74 2.98-.21.89.45 1.62 1.33 1.62 1.6 0 2.83-1.69 2.83-4.12 0-2.15-1.55-3.66-3.76-3.66-2.56 0-4.06 1.92-4.06 3.91 0 .77.3 1.6.67 2.05.07.09.08.17.06.26-.07.28-.22.89-.25 1.02-.04.17-.13.2-.31.12-1.16-.54-1.88-2.23-1.88-3.59 0-2.93 2.13-5.62 6.14-5.62 3.22 0 5.73 2.3 5.73 5.37 0 3.2-2.02 5.78-4.82 5.78-.94 0-1.83-.49-2.13-1.07l-.58 2.21c-.21.81-.78 1.82-1.16 2.44.87.27 1.79.41 2.75.41 5.4 0 9.83-4.43 9.83-9.83C22.11 6.43 17.68 2 12.28 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#9933CC"><path d="M8.25 17.553c-.527 0-1.016.072-1.408.283-.572.309-.893.818-.893 1.381 0 .583.344 1.088.892 1.387.393.215.882.286 1.409.286h7.5c.527 0 1.016-.071 1.409-.286.548-.299.891-.804.891-1.387 0-.563-.32-1.072-.891-1.381-.393-.211-.882-.283-1.409-.283h-7.5zM12 2C6.477 2 2 6.477 2 12c0 2.797 1.148 5.326 3 7.142V18.8c0-.903.517-1.716 1.287-2.131.569-.307 1.243-.416 1.963-.416h7.5c.72 0 1.394.109 1.963.416.77.415 1.287 1.228 1.287 2.131v.342A9.96 9.96 0 0022 12c0-5.523-4.477-10-10-10zm0 4a3.5 3.5 0 110 7 3.5 3.5 0 010-7z"/></svg>
             Listen on Apple Podcasts
           </a>
           <a href="${escapeHtml(spotifyLink)}" target="_blank" rel="noopener noreferrer" class="listen-btn" data-testid="link-spotify">
