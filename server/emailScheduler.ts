@@ -685,3 +685,79 @@ export async function backfillTranscriptSegments() {
     console.log(`[TranscriptBackfill] Backfilled ${totalProcessed} transcripts into segments`);
   }
 }
+
+export async function reIngestTranscriptSegments() {
+  const { pool: dbPool } = await import("./db");
+  const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
+  let upgraded = 0;
+  let errors = 0;
+
+  const client = await dbPool.connect();
+  try {
+    const { rows: transcripts } = await client.query(
+      `SELECT DISTINCT et.id, et.podcast_id, et.episode_guid, et.episode_title
+       FROM episode_transcripts et
+       INNER JOIN transcript_segments ts ON ts.episode_guid = et.episode_guid
+       WHERE ts.timestamp_seconds IS NULL
+       AND et.podcast_id IN (SELECT itunes_id FROM podcast_directory WHERE has_landing_page = true)
+       LIMIT 200`
+    );
+
+    if (transcripts.length === 0) {
+      console.log("[TranscriptReIngest] No transcripts need re-ingestion");
+      return;
+    }
+
+    console.log(`[TranscriptReIngest] Re-ingesting ${transcripts.length} transcripts from Taddy for timestamps...`);
+
+    const podcastCache = new Map<string, string>();
+
+    for (const t of transcripts) {
+      try {
+        const podcastSlug = ITUNES_ID_TO_SLUG[t.podcast_id] || t.podcast_id;
+        const episodeSlug = slugifyEpisodeTitle(t.episode_title);
+
+        let taddyPodcastUuid = podcastCache.get(t.podcast_id);
+        if (!taddyPodcastUuid) {
+          const taddyPodcast = await searchPodcastByItunesId(t.podcast_id);
+          if (taddyPodcast?.uuid) {
+            taddyPodcastUuid = taddyPodcast.uuid;
+            podcastCache.set(t.podcast_id, taddyPodcastUuid);
+          }
+        }
+
+        if (!taddyPodcastUuid) continue;
+
+        const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcastUuid, 25);
+        const itunesNorm = normalizeTitleForMatch(t.episode_title);
+        const taddyMatch = taddyEpisodes.find((te: any) => {
+          if (!te.name) return false;
+          const taddyNorm = normalizeTitleForMatch(te.name);
+          return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
+        });
+
+        if (!taddyMatch?.uuid) continue;
+
+        const rawSegments = await getEpisodeTranscriptSegments(taddyMatch.uuid);
+        if (!rawSegments || rawSegments.length === 0) continue;
+
+        const hasTimestamps = rawSegments.some(s => s.startTimecode != null);
+        if (!hasTimestamps) continue;
+
+        const parsedSegments = parseRawTaddySegments(rawSegments, podcastSlug, episodeSlug, t.episode_guid, t.id);
+        if (parsedSegments.length > 0) {
+          await storage.saveTranscriptSegments(parsedSegments);
+          upgraded++;
+          console.log(`[TranscriptReIngest] Upgraded "${t.episode_title}" (${parsedSegments.length} segments with timestamps)`);
+        }
+      } catch (err) {
+        errors++;
+        console.warn(`[TranscriptReIngest] Error for "${t.episode_title}":`, err);
+      }
+    }
+
+    console.log(`[TranscriptReIngest] Complete: ${upgraded} upgraded, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}

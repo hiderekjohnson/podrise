@@ -49,6 +49,10 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     ? new Date(publishDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
     : "";
 
+  const totalWords = segments.reduce((sum, s) => sum + s.text.split(/\s+/).length, 0);
+  const readingMinutes = Math.ceil(totalWords / 200);
+  const hasTimestamps = segments.some(s => s.timestampLabel);
+
   const recapUrl = `/podcasts/${podcastSlug}/${episodeSlug}`;
   const podcastUrl = `/podcasts/${podcastSlug}`;
   const canonicalUrl = `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
@@ -85,6 +89,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     }
     a { color: #1a8cff; text-decoration: none; }
     a:hover { text-decoration: underline; }
+
     .header {
       position: sticky; top: 0; z-index: 50;
       background: rgba(248,249,251,0.92);
@@ -92,18 +97,21 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       border-bottom: 1px solid rgba(0,0,0,0.04);
     }
     .header-inner {
-      max-width: 800px; margin: 0 auto;
+      max-width: 760px; margin: 0 auto;
       padding: 0 20px; height: 56px;
       display: flex; align-items: center; justify-content: space-between;
     }
     .logo { height: 28px; }
     .back-link { font-size: 14px; font-weight: 500; color: #64748b; }
     .back-link:hover { color: #1a1a2e; text-decoration: none; }
-    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+
     .breadcrumb { font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
     .breadcrumb a { color: #64748b; }
     .breadcrumb span { margin: 0 6px; }
-    .hero { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 32px; }
+
+    .hero { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
     .artwork {
       width: 80px; height: 80px; border-radius: 16px;
       object-fit: cover; flex-shrink: 0;
@@ -116,13 +124,51 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     }
     .ep-title { font-size: 22px; font-weight: 800; line-height: 1.3; color: #1a1a2e; margin-bottom: 8px; }
     .ep-meta { font-size: 13px; color: #94a3b8; display: flex; gap: 12px; flex-wrap: wrap; }
-    .transcript-label {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.08em; color: #94a3b8;
-      padding: 6px 12px; background: rgba(0,0,0,0.03);
-      border-radius: 8px; margin-bottom: 24px;
+
+    .stats-bar {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      font-size: 13px; color: #64748b;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 12px;
+      margin-bottom: 16px;
     }
+    .stats-bar svg { flex-shrink: 0; }
+    .stat-item { display: flex; align-items: center; gap: 5px; }
+    .stat-divider { width: 1px; height: 16px; background: rgba(0,0,0,0.08); }
+
+    .search-bar {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-bar input {
+      width: 100%; height: 44px;
+      padding: 0 16px 0 40px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      background: white;
+      font-size: 14px; color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-bar input:focus {
+      border-color: #1a8cff;
+      box-shadow: 0 0 0 3px rgba(26,140,255,0.1);
+    }
+    .search-bar input::placeholder { color: #94a3b8; }
+    .search-bar .search-icon {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8; pointer-events: none;
+    }
+    .search-count {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px; color: #94a3b8;
+      pointer-events: none;
+    }
+
     .recap-link-box {
       background: linear-gradient(135deg, rgba(26,140,255,0.04), rgba(26,140,255,0.02));
       border: 1px solid rgba(26,140,255,0.1); border-radius: 12px;
@@ -130,53 +176,93 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       font-size: 14px;
     }
     .recap-link-box a { font-weight: 600; }
+
     .seg {
-      padding: 16px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.04);
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 6px;
       scroll-margin-top: 80px;
       transition: background-color 0.3s ease;
+      background: white;
+      border: 1px solid rgba(0,0,0,0.04);
     }
     .seg.highlighted {
       background: rgba(26,140,255,0.06);
-      border-radius: 8px;
-      padding-left: 16px; padding-right: 16px;
-      margin-left: -16px; margin-right: -16px;
+      border-color: rgba(26,140,255,0.15);
+    }
+    .seg.search-match {
+      border-color: rgba(26,140,255,0.2);
+    }
+    .seg.search-hidden {
+      display: none;
     }
     .seg-meta {
       display: flex; align-items: center; gap: 10px;
       margin-bottom: 6px; min-height: 22px;
     }
     .ts-link {
-      font-size: 13px; font-weight: 600; color: #1a8cff;
+      font-size: 12px; font-weight: 700; color: #1a8cff;
       font-variant-numeric: tabular-nums;
       cursor: pointer; text-decoration: none;
+      background: rgba(26,140,255,0.08);
+      padding: 2px 8px;
+      border-radius: 6px;
     }
-    .ts-link:hover { text-decoration: underline; }
+    .ts-link:hover { background: rgba(26,140,255,0.14); text-decoration: none; }
     .speaker {
-      font-size: 14px; font-weight: 700; color: #1a1a2e;
+      font-size: 13px; font-weight: 700; color: #1a1a2e;
     }
     .copy-btn {
       background: none; border: none; cursor: pointer;
       color: #94a3b8; padding: 2px; border-radius: 4px;
       opacity: 0; transition: opacity 0.15s, color 0.15s;
       display: inline-flex; align-items: center;
+      margin-left: auto;
     }
     .seg:hover .copy-btn { opacity: 1; }
     .copy-btn:hover { color: #1a8cff; }
     .copy-btn.copied { color: #22c55e; opacity: 1; }
-    .seg-text { font-size: 15px; line-height: 1.8; color: #334155; }
+    .seg-text {
+      font-size: 15px; line-height: 1.75; color: #334155;
+    }
+    mark {
+      background: rgba(26,140,255,0.15);
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+
+    .scroll-top {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      color: #64748b;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 40;
+    }
+    .scroll-top:hover { transform: scale(1.1); color: #1a8cff; }
+    .scroll-top.visible { display: flex; }
+
     .footer {
       margin-top: 48px; padding-top: 24px;
       border-top: 1px solid rgba(0,0,0,0.06);
       text-align: center; font-size: 12px; color: #94a3b8;
     }
     .footer img { height: 20px; opacity: 0.3; margin-bottom: 8px; }
+
     @media (max-width: 640px) {
       .hero { gap: 14px; }
       .artwork { width: 60px; height: 60px; border-radius: 12px; }
       .ep-title { font-size: 18px; }
-      .seg-text { font-size: 14px; }
+      .seg-text { font-size: 14px; line-height: 1.7; }
+      .seg { padding: 12px 14px; }
       .container { padding: 24px 16px 60px; }
+      .stats-bar { gap: 10px; font-size: 12px; }
     }
   </style>
 </head>
@@ -186,16 +272,16 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       <a href="/">
         <img src="/favicon.png" alt="PodCap" class="logo" />
       </a>
-      <a href="${recapUrl}" class="back-link">← Episode Recap</a>
+      <a href="${recapUrl}" class="back-link">&larr; Episode Recap</a>
     </div>
   </header>
 
   <main class="container">
     <nav class="breadcrumb">
       <a href="${podcastUrl}">${escapeHtml(podcastName)}</a>
-      <span>›</span>
+      <span>&rsaquo;</span>
       <a href="${recapUrl}">Episode Recap</a>
-      <span>›</span>
+      <span>&rsaquo;</span>
       Transcript
     </nav>
 
@@ -212,24 +298,42 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       </div>
     </div>
 
-    <div class="transcript-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Full Transcript — ${segments.length} segments
+    <div class="stats-bar">
+      <div class="stat-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Full Transcript
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">${segments.length.toLocaleString()} segments</div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">${totalWords.toLocaleString()} words</div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">~${readingMinutes} min read</div>
+    </div>
+
+    <div class="search-bar">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="transcript-search" placeholder="Search transcript..." autocomplete="off" />
+      <span class="search-count" id="search-count"></span>
     </div>
 
     <div class="recap-link-box">
-      Looking for a quick summary? <a href="${recapUrl}">Read the episode recap →</a>
+      Looking for a quick summary? <a href="${recapUrl}">Read the episode recap &rarr;</a>
     </div>
 
-    <article>
+    <article id="segments-container">
       ${segmentsHtml}
     </article>
+
+    <button class="scroll-top" id="scroll-top" title="Back to top" aria-label="Scroll to top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
 
     <footer class="footer">
       <a href="/"><img src="/favicon.png" alt="PodCap" /></a>
       <p>PodCap is not affiliated with ${escapeHtml(podcastName)}. Transcripts are generated from publicly available episode data.</p>
       <p style="margin-top: 8px;">
-        <a href="${recapUrl}">Episode Recap</a> · <a href="${podcastUrl}">${escapeHtml(podcastName)} Hub</a> · <a href="/">PodCap Home</a>
+        <a href="${recapUrl}">Episode Recap</a> &middot; <a href="${podcastUrl}">${escapeHtml(podcastName)} Hub</a> &middot; <a href="/">PodCap Home</a>
       </p>
     </footer>
   </main>
@@ -269,6 +373,58 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
             setTimeout(function() { btn.classList.remove('copied'); }, 1500);
           });
         }
+      });
+
+      var searchInput = document.getElementById('transcript-search');
+      var searchCount = document.getElementById('search-count');
+      var segments = document.querySelectorAll('.seg');
+      var debounceTimer;
+
+      searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+          var query = searchInput.value.trim().toLowerCase();
+          if (!query) {
+            segments.forEach(function(seg) {
+              seg.classList.remove('search-hidden', 'search-match');
+              var textEl = seg.querySelector('.seg-text');
+              textEl.innerHTML = textEl.textContent;
+            });
+            searchCount.textContent = '';
+            return;
+          }
+          var matchCount = 0;
+          segments.forEach(function(seg) {
+            var textEl = seg.querySelector('.seg-text');
+            var originalText = textEl.textContent;
+            var lowerText = originalText.toLowerCase();
+            if (lowerText.includes(query)) {
+              seg.classList.remove('search-hidden');
+              seg.classList.add('search-match');
+              matchCount++;
+              var escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+              var regex = new RegExp('(' + escaped + ')', 'gi');
+              textEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+            } else {
+              seg.classList.add('search-hidden');
+              seg.classList.remove('search-match');
+              textEl.innerHTML = originalText;
+            }
+          });
+          searchCount.textContent = matchCount + ' match' + (matchCount !== 1 ? 'es' : '');
+        }, 200);
+      });
+
+      var scrollBtn = document.getElementById('scroll-top');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 600) {
+          scrollBtn.classList.add('visible');
+        } else {
+          scrollBtn.classList.remove('visible');
+        }
+      });
+      scrollBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     })();
   </script>

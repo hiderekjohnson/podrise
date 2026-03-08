@@ -1054,6 +1054,19 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/reingest-transcript-segments", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { reIngestTranscriptSegments } = await import("./emailScheduler");
+      reIngestTranscriptSegments();
+      res.json({ message: "Transcript re-ingestion started (fetching timestamps from Taddy)." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger re-ingestion" });
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

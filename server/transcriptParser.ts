@@ -98,13 +98,23 @@ export function parseRawTaddySegments(
     const text = seg.text?.trim() || "";
     if (!text) continue;
 
-    if (speaker !== currentSpeaker || (currentText.length > 800 && seg.startTimecode != null)) {
+    const startSec = seg.startTimecode != null ? Math.floor(seg.startTimecode / 1000) : null;
+
+    const speakerChanged = speaker !== currentSpeaker;
+    const tooLong = currentText.length > 400;
+    const hasNewTimestamp = startSec != null;
+    const shouldSplit = speakerChanged || (tooLong && hasNewTimestamp);
+
+    if (shouldSplit) {
       if (currentText) flush();
       currentSpeaker = speaker;
       currentText = text;
-      currentStartTime = seg.startTimecode != null ? Math.floor(seg.startTimecode) : null;
+      currentStartTime = startSec;
     } else {
       currentText += " " + text;
+      if (currentStartTime == null && startSec != null) {
+        currentStartTime = startSec;
+      }
     }
   }
 
