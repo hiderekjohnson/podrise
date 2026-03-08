@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, ExternalLink, Calendar, Mic, Users, Star, Search, X, Compass, Headphones } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -51,8 +51,11 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
 
   return (
     <div data-testid="section-transcript-search">
+      <p className="text-sm text-muted-foreground mb-4">
+        Search across every episode transcript to find exactly where a topic was discussed.
+      </p>
       <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/40" />
         <input
           ref={inputRef}
           data-testid="input-transcript-search"
@@ -60,85 +63,101 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
           value={query}
           onChange={(e) => { handleChange(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}
-          placeholder={`Search topics in ${podcastName}... (e.g. "Airbnb", "AI", "investing")`}
-          className="w-full h-12 pl-12 pr-10 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+          placeholder={`Search "${podcastName}" transcripts...`}
+          className="w-full h-12 pl-12 pr-10 bg-white border border-black/[0.06] rounded-xl text-foreground text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.02]"
         />
         {query && (
           <button
             data-testid="button-clear-search"
             onClick={() => { setQuery(""); setDebouncedQuery(""); setIsOpen(false); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-black/[0.04] transition-all"
           >
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
+      {!isOpen && debouncedQuery.length < 2 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="search-suggestions">
+          {["AI", "investing", "strategy", "growth"].map((term) => (
+            <button
+              key={term}
+              onClick={() => { setQuery(term); setDebouncedQuery(term); setIsOpen(true); }}
+              className="px-3 py-2 rounded-lg bg-black/[0.03] hover:bg-primary/[0.06] text-sm text-muted-foreground hover:text-primary font-medium transition-colors text-center"
+              data-testid={`suggestion-${term}`}
+            >
+              {term}
+            </button>
+          ))}
+        </div>
+      )}
+
       {isOpen && debouncedQuery.length >= 2 && (
         <div>
           {isLoading && (
-            <div className="flex items-center justify-center py-8 text-muted-foreground gap-2" data-testid="search-loading">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span className="text-sm">Searching transcripts...</span>
+            <div className="flex items-center justify-center py-10 text-muted-foreground gap-2.5" data-testid="search-loading">
+              <Loader2 className="w-5 h-5 animate-spin text-primary/50" />
+              <span className="text-sm font-medium">Searching transcripts...</span>
             </div>
           )}
 
           {!isLoading && isError && (
-            <div className="text-center py-8" data-testid="search-error">
+            <div className="text-center py-10 bg-red-50/50 rounded-xl border border-red-100" data-testid="search-error">
               <p className="text-muted-foreground text-sm">Search is temporarily unavailable. Please try again.</p>
             </div>
           )}
 
           {!isLoading && !isError && data && data.results.length === 0 && (
-            <div className="text-center py-8" data-testid="search-no-results">
-              <p className="text-muted-foreground text-sm">No mentions of "{debouncedQuery}" found in available transcripts.</p>
+            <div className="text-center py-10" data-testid="search-no-results">
+              <Search className="w-8 h-8 text-muted-foreground/15 mx-auto mb-2" />
+              <p className="text-muted-foreground text-sm">No mentions of "<span className="font-semibold text-foreground/70">{debouncedQuery}</span>" found in transcripts.</p>
             </div>
           )}
 
           {!isLoading && data && data.results.length > 0 && (
             <div data-testid="search-results">
-              <p className="text-sm text-muted-foreground mb-4 text-center">
-                Found "{data.query}" in {data.total} episode{data.total !== 1 ? "s" : ""}
-              </p>
-              <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {data.total} episode{data.total !== 1 ? "s" : ""} matched
+                </p>
+                <span className="text-xs text-muted-foreground/50">
+                  "{data.query}"
+                </span>
+              </div>
+              <div className="space-y-3">
                 {data.results.map((result, idx) => (
                   <div
                     key={idx}
-                    className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4"
+                    className="bg-white border border-black/[0.06] rounded-xl overflow-hidden"
                     data-testid={`search-result-${idx}`}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <p className="text-xs font-semibold text-primary/60 uppercase tracking-wide mb-0.5">Episode</p>
-                        <Link href={`/podcasts/${slug}/${result.episodeSlug}`}>
-                          <span className="text-base font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-snug">
-                            {result.episodeTitle}
-                          </span>
-                        </Link>
-                      </div>
-                      <span className="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/[0.08] text-primary">
-                        {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
+                    <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-black/[0.04] bg-black/[0.01]">
+                      <Link href={`/podcasts/${slug}/${result.episodeSlug}`}>
+                        <span className="text-[15px] font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-snug" data-testid={`search-result-title-${idx}`}>
+                          {result.episodeTitle}
+                        </span>
+                      </Link>
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-primary/[0.08] text-primary">
+                        {result.mentions}
                       </span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="divide-y divide-black/[0.03]">
                       {result.hits.map((hit, sIdx) => (
                         <a
                           key={sIdx}
                           href={`/podcasts/${slug}/${result.episodeSlug}/transcript#${hit.anchorId}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-[13px] text-muted-foreground leading-relaxed bg-muted/30 rounded-lg px-3 py-2.5 hover:bg-primary/[0.04] hover:border-primary/10 border border-transparent transition-colors group"
+                          className="flex items-start gap-2.5 px-5 py-3 hover:bg-primary/[0.03] transition-colors group"
                           data-testid={`search-hit-${idx}-${sIdx}`}
                         >
-                          <div className="flex items-start gap-2">
-                            {hit.timestampLabel && (
-                              <span className="shrink-0 text-[11px] font-bold text-primary bg-primary/[0.08] rounded px-1.5 py-0.5 mt-0.5 font-mono">
-                                {hit.timestampLabel}
-                              </span>
-                            )}
-                            <span className="flex-1">{highlightMatch(hit.text, data.query)}</span>
-                            <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary/60 mt-0.5 transition-colors" />
-                          </div>
+                          {hit.timestampLabel && (
+                            <span className="shrink-0 text-[11px] font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
+                              {hit.timestampLabel}
+                            </span>
+                          )}
+                          <span className="flex-1 text-[13px] text-muted-foreground leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
+                          <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary mt-0.5 transition-colors" />
                         </a>
                       ))}
                     </div>
@@ -490,42 +509,58 @@ export default function PodcastLandingGeneric() {
             <section className="pb-16" data-testid="section-episode-list">
               {episodeRecaps.length > 0 ? (
                 <>
-                  <div className="space-y-3">
-                    {episodeRecaps.slice(0, 10).map((ep: any) => {
+                  <p className="text-sm text-muted-foreground mb-5">
+                    Quick summaries of the latest episodes — key takeaways in minutes, not hours.
+                  </p>
+                  <div className="space-y-2.5">
+                    {episodeRecaps.slice(0, 10).map((ep: any, i: number) => {
                       const date = new Date(ep.publishDate + "T00:00:00");
                       const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                       return (
                         <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
-                          <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
-                            <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                            <p className="text-[15px] text-muted-foreground mt-1.5 leading-relaxed">{ep.tldl}</p>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="text-xs text-muted-foreground/60">{formatted} · {ep.duration}</span>
-                              <span className="inline-flex items-center gap-1 text-sm font-medium text-primary/60 group-hover:text-primary transition-colors">
-                                See Full Recap
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </span>
+                          <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
+                            <div className="flex items-start gap-4">
+                              <div className="shrink-0 w-9 h-9 rounded-lg bg-primary/[0.06] flex items-center justify-center mt-0.5">
+                                <span className="text-xs font-bold text-primary/60">{i + 1}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-3">
+                                  <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
+                                  <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary mt-0.5 transition-colors" />
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1 leading-relaxed line-clamp-2">{ep.tldl}</p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider">{formatted}</span>
+                                  {ep.duration && (
+                                    <>
+                                      <span className="w-0.5 h-0.5 rounded-full bg-black/[0.15]" />
+                                      <span className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider">{ep.duration}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </Link>
                       );
                     })}
                   </div>
-                  {episodeRecaps.length > 0 && (
-                    <div className="flex justify-center mt-8">
-                      <Link href={`/podcasts/${slug}/episodes`}>
-                        <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-view-all-episodes">
-                          View All Episodes
-                          <ArrowRight className="w-4 h-4" />
-                        </span>
-                      </Link>
-                    </div>
-                  )}
+                  <div className="flex justify-center mt-8">
+                    <Link href={`/podcasts/${slug}/episodes`}>
+                      <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-bold text-sm bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-view-all-episodes">
+                        View All Episode Recaps
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </Link>
+                  </div>
                 </>
               ) : (
-                <div className="text-center py-12">
-                  <Mic className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-muted-foreground">Episode recaps are being generated. Check back soon.</p>
+                <div className="text-center py-16">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/[0.06] flex items-center justify-center mx-auto mb-4">
+                    <Mic className="w-6 h-6 text-primary/30" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">Episode recaps are being generated.</p>
+                  <p className="text-sm text-muted-foreground/60 mt-1">Check back soon for the latest summaries.</p>
                 </div>
               )}
             </section>
@@ -540,18 +575,18 @@ export default function PodcastLandingGeneric() {
           {activeTab === "about" && (
             <section className="pb-16" data-testid="section-about-podcast">
               {aboutPodcast && (
-                <p className="text-[17px] leading-[1.8] text-muted-foreground mb-8" data-testid="text-about-podcast">
-                  {aboutPodcast}
-                </p>
+                <div className="bg-white border border-black/[0.06] rounded-xl p-6 mb-6" data-testid="text-about-podcast">
+                  <p className="text-[15px] leading-[1.85] text-foreground/75">{aboutPodcast}</p>
+                </div>
               )}
 
               {snapshotItems.length > 0 && (
-                <div className="mb-8" data-testid="section-snapshot">
-                  <h3 className="text-base font-display font-bold text-foreground mb-4">Podcast Snapshot</h3>
-                  <div className={`grid gap-4 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
+                <div className="mb-6" data-testid="section-snapshot">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">At a Glance</h3>
+                  <div className={`grid gap-3 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
                     {snapshotItems.map((item, i) => (
-                      <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-5 py-5 text-center" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{item.label}</p>
+                      <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-4 py-4" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
+                        <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1">{item.label}</p>
                         <p className="text-base font-bold text-foreground">{item.value}</p>
                       </div>
                     ))}
@@ -560,14 +595,14 @@ export default function PodcastLandingGeneric() {
               )}
 
               {knownFor && knownFor.length > 0 && (
-                <div className="mb-8" data-testid="section-known-for">
-                  <h3 className="text-base font-display font-bold text-foreground mb-4">What {name} Is Known For</h3>
-                  <div className="bg-white border border-black/[0.06] rounded-2xl p-7">
-                    <ul className="space-y-4">
+                <div className="mb-6" data-testid="section-known-for">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Known For</h3>
+                  <div className="bg-white border border-black/[0.06] rounded-xl p-5">
+                    <ul className="space-y-3">
                       {knownFor.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3.5" data-testid={`known-for-${i}`}>
-                          <span className="shrink-0 mt-2.5 w-2 h-2 rounded-full bg-primary" />
-                          <span className="text-[15px] text-foreground/80 leading-relaxed">{item}</span>
+                        <li key={i} className="flex items-start gap-3" data-testid={`known-for-${i}`}>
+                          <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-primary" />
+                          <span className="text-sm text-foreground/75 leading-relaxed">{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -576,59 +611,59 @@ export default function PodcastLandingGeneric() {
               )}
 
               {hostBios && hostBios.length > 0 && (
-                <div className="mb-8" data-testid="section-host-bios">
-                  <h3 className="text-base font-display font-bold text-foreground mb-4">
-                    {hostBios.length === 1 ? "About the Host" : "About the Hosts"}
+                <div className="mb-6" data-testid="section-host-bios">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                    {hostBios.length === 1 ? "Host" : "Hosts"}
                   </h3>
-                  <div className={`grid gap-5 ${hostBios.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+                  <div className={`grid gap-3 ${hostBios.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
                     {hostBios.map((host: any, i: number) => (
-                      <div key={i} className="bg-white border border-black/[0.06] rounded-2xl p-6" data-testid={`host-bio-${i}`}>
-                        <div className="flex items-center gap-3.5 mb-4">
-                          <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <Users className="w-5 h-5 text-primary" />
+                      <div key={i} className="bg-white border border-black/[0.06] rounded-xl p-5" data-testid={`host-bio-${i}`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/[0.08] flex items-center justify-center shrink-0">
+                            <Users className="w-[18px] h-[18px] text-primary/60" />
                           </div>
-                          <h4 className="text-base font-display font-bold text-foreground">{host.name}</h4>
+                          <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
                         </div>
-                        <p className="text-[15px] text-muted-foreground leading-relaxed">{host.bio}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{host.bio}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="mb-8" data-testid="section-listen">
-                <h3 className="text-base font-display font-bold text-foreground mb-4">Listen to {name}</h3>
-                <div className="flex flex-wrap gap-3">
+              <div className="mb-6" data-testid="section-listen">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>
+                <div className="flex flex-wrap gap-2.5">
                   <a
                     href={appleUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-5 py-3 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-[15px] font-medium text-foreground transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
                     data-testid="link-apple-podcasts"
                   >
+                    <SiApplepodcasts className="w-4 h-4 text-[#872EC4]" />
                     Apple Podcasts
-                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
                   </a>
                   <a
                     href={effectiveSpotifyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-5 py-3 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-[15px] font-medium text-foreground transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
                     data-testid="link-spotify"
                   >
+                    <SiSpotify className="w-4 h-4 text-[#1DB954]" />
                     Spotify
-                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
                   </a>
                   {youtubeUrl && (
                     <a
                       href={youtubeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2.5 px-5 py-3 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-[15px] font-medium text-foreground transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
                       data-testid="link-youtube"
                     >
+                      <SiYoutube className="w-4 h-4 text-[#FF0000]" />
                       YouTube
-                      <ExternalLink className="w-4 h-4 text-muted-foreground" />
                     </a>
                   )}
                   {twitterHandle && (
@@ -636,7 +671,7 @@ export default function PodcastLandingGeneric() {
                       href={`https://x.com/${twitterHandle.replace("@", "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2.5 px-5 py-3 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-[15px] font-medium text-foreground transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
                       data-testid="link-x-profile"
                     >
                       <SiX className="w-3.5 h-3.5" />
@@ -646,7 +681,7 @@ export default function PodcastLandingGeneric() {
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground/50 italic mt-6">
+              <p className="text-[11px] text-muted-foreground/40 mt-8">
                 PodCap is not affiliated with, endorsed by, or sponsored by {name}, {hosts}, or any podcast listed on this site.
               </p>
             </section>
@@ -656,38 +691,40 @@ export default function PodcastLandingGeneric() {
             <section className="pb-16" data-testid="section-discover">
               {relatedPodcasts.length > 0 ? (
                 <>
-                  <h3 className="text-base font-display font-bold text-foreground mb-2">
-                    Similar to {name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Podcasts that listeners of {name} also enjoy — with episode recaps available on PodCap.
+                  <p className="text-sm text-muted-foreground mb-5">
+                    Podcasts that listeners of {name} also enjoy — with recaps available on PodCap.
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {relatedPodcasts.map((rp) => (
                       <a
                         key={rp.slug}
                         href={`/podcasts/${rp.slug}`}
-                        className="bg-white border border-black/[0.06] rounded-2xl p-5 flex items-center gap-4 hover:border-black/[0.12] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
+                        className="bg-white border border-black/[0.06] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
                         data-testid={`related-podcast-${rp.slug}`}
                       >
-                        {rp.artworkUrl && (
-                          <img src={rp.artworkUrl} alt={rp.name} className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/[0.06] shrink-0" />
+                        {rp.artworkUrl ? (
+                          <img src={rp.artworkUrl} alt={rp.name} className="w-14 h-14 rounded-xl object-cover shadow-sm shadow-black/[0.06] shrink-0 ring-1 ring-black/[0.04]" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-primary/[0.06] flex items-center justify-center shrink-0">
+                            <Headphones className="w-5 h-5 text-primary/30" />
+                          </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="text-base font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
-                          <p className="text-sm text-muted-foreground mt-0.5">{rp.category}</p>
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-primary/60 group-hover:text-primary transition-colors mt-1.5">
-                            View Recaps <ArrowRight className="w-3 h-3" />
-                          </span>
+                          <p className="text-[15px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
+                          <p className="text-xs text-muted-foreground/60 mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
                         </div>
+                        <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
                       </a>
                     ))}
                   </div>
                 </>
               ) : (
-                <div className="text-center py-12">
-                  <Compass className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-muted-foreground">Discovering similar podcasts…</p>
+                <div className="text-center py-16">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/[0.06] flex items-center justify-center mx-auto mb-4">
+                    <Compass className="w-6 h-6 text-primary/30" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">Discovering similar podcasts...</p>
+                  <p className="text-sm text-muted-foreground/60 mt-1">We're finding shows you might enjoy.</p>
                 </div>
               )}
             </section>
