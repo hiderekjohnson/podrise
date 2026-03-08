@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Mail, ExternalLink, Calendar, Mic, Users, Star, Search, X } from "lucide-react";
+import { Loader2, ArrowRight, Clock, ExternalLink, Calendar, Mic, Users, Star, Search, X, Compass } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -164,7 +164,7 @@ export default function PodcastLandingGeneric() {
   const { toast } = useToast();
   const { mutate: register, isPending } = useRegister();
   const [email, setEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<"episodes" | "search" | "about">("episodes");
+  const [activeTab, setActiveTab] = useState<"episodes" | "search" | "about" | "discover">("episodes");
 
   const { data: dbEntry } = useQuery<any>({
     queryKey: ["/api/podcasts/by-slug", slug],
@@ -381,42 +381,18 @@ export default function PodcastLandingGeneric() {
                 className="text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
                 data-testid="heading-main"
               >
-                {name} Podcast Recaps
+                {name}
               </h1>
 
               <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg">
-                Get a short recap of every new episode, delivered to your inbox. Search full transcripts instantly.
+                {aboutPodcast || description}
               </p>
 
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2.5 mt-1 w-full max-w-lg" data-testid="form-signup">
-                <div className="relative flex-1">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground/40" />
-                  <input
-                    data-testid="input-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full h-11 pl-10 pr-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
-                  />
-                </div>
-                <button
-                  data-testid="button-signup"
-                  type="submit"
-                  disabled={isPending}
-                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  {isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      Get Free Recaps
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </button>
-              </form>
-              <p className="text-xs text-muted-foreground/50">Free. No credit card required.</p>
+              {hosts && (
+                <p className="text-sm text-muted-foreground/70">
+                  Hosted by <span className="font-medium text-foreground/80">{hosts}</span>
+                </p>
+              )}
             </div>
           </motion.div>
         </section>
@@ -427,16 +403,17 @@ export default function PodcastLandingGeneric() {
           transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-4xl"
         >
-          <div className="flex items-center border-b border-black/[0.06] mb-8" data-testid="section-tabs">
+          <div className="flex items-center border-b border-black/[0.06] mb-8 overflow-x-auto" data-testid="section-tabs">
             {([
-              { id: "episodes" as const, label: "Episodes", icon: Mic },
-              { id: "search" as const, label: "Search Transcripts", icon: Search },
-              { id: "about" as const, label: "About", icon: Users },
+              { id: "episodes" as const, label: "Episode Recaps", icon: Mic },
+              { id: "search" as const, label: "Search", icon: Search },
+              { id: "about" as const, label: "About Podcast", icon: Users },
+              { id: "discover" as const, label: "Discover", icon: Compass },
             ]).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08]"
@@ -444,8 +421,7 @@ export default function PodcastLandingGeneric() {
                 data-testid={`tab-${tab.id}`}
               >
                 <tab.icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.id === "search" ? "Search" : tab.label}</span>
+                {tab.label}
               </button>
             ))}
           </div>
@@ -615,39 +591,48 @@ export default function PodcastLandingGeneric() {
               </p>
             </section>
           )}
-        </motion.div>
 
-        {relatedPodcasts.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full max-w-4xl pb-16"
-            data-testid="section-related-podcasts"
-          >
-            <h3 className="text-base font-display font-bold text-foreground mb-4">
-              People who follow {name} also get recaps of
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {relatedPodcasts.map((rp) => (
-                <a
-                  key={rp.slug}
-                  href={`/podcasts/${rp.slug}`}
-                  className="bg-white border border-black/[0.06] rounded-2xl p-5 flex flex-col items-center gap-4 hover:border-black/[0.12] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
-                  data-testid={`related-podcast-${rp.slug}`}
-                >
-                  {rp.artworkUrl && (
-                    <img src={rp.artworkUrl} alt={rp.name} className="w-20 h-20 rounded-xl object-cover shadow-md shadow-black/[0.06]" />
-                  )}
-                  <div className="text-center min-w-0 w-full">
-                    <p className="text-base font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">{rp.category}</p>
+          {activeTab === "discover" && (
+            <section className="pb-16" data-testid="section-discover">
+              {relatedPodcasts.length > 0 ? (
+                <>
+                  <h3 className="text-base font-display font-bold text-foreground mb-2">
+                    Similar to {name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Podcasts that listeners of {name} also enjoy — with episode recaps available on PodCap.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {relatedPodcasts.map((rp) => (
+                      <a
+                        key={rp.slug}
+                        href={`/podcasts/${rp.slug}`}
+                        className="bg-white border border-black/[0.06] rounded-2xl p-5 flex items-center gap-4 hover:border-black/[0.12] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
+                        data-testid={`related-podcast-${rp.slug}`}
+                      >
+                        {rp.artworkUrl && (
+                          <img src={rp.artworkUrl} alt={rp.name} className="w-16 h-16 rounded-xl object-cover shadow-md shadow-black/[0.06] shrink-0" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-base font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{rp.category}</p>
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-primary/60 group-hover:text-primary transition-colors mt-1.5">
+                            View Recaps <ArrowRight className="w-3 h-3" />
+                          </span>
+                        </div>
+                      </a>
+                    ))}
                   </div>
-                </a>
-              ))}
-            </div>
-          </motion.section>
-        )}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <Compass className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                  <p className="text-muted-foreground">Discovering similar podcasts…</p>
+                </div>
+              )}
+            </section>
+          )}
+        </motion.div>
 
         <motion.section
           initial={{ opacity: 0, y: 16 }}
