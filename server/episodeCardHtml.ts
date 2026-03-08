@@ -43,8 +43,9 @@ export function getEpisodeCardStyles(): string {
     .more-ep-card {
       display: block;
       background: white; border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 12px; padding: 20px 20px;
+      border-radius: 12px; padding: 24px 24px;
       margin-bottom: 20px; text-decoration: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       transition: box-shadow 0.15s, border-color 0.15s;
     }
     .more-ep-card:hover {
