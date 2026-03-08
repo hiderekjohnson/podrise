@@ -217,6 +217,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.get("/podcap-logo.png", (_req, res) => {
+    res.sendFile("Podcap_logo_1772731738179.png", { root: "attached_assets", maxAge: "30d" });
+  });
+
   app.get("/sitemap.xml", async (_req, res) => {
     res.set("Content-Type", "application/xml");
     res.set("Cache-Control", "public, max-age=3600");

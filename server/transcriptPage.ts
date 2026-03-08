@@ -139,17 +139,17 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     .ep-meta .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.15); }
 
     .listen-buttons {
-      display: flex; align-items: center; gap: 8px; margin-top: 16px;
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
     }
     .listen-btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 6px 14px; border-radius: 8px;
       font-size: 12px; font-weight: 600;
       background: rgba(0,0,0,0.04); color: #1a1a2e;
-      text-decoration: none; transition: background 0.15s;
+      text-decoration: none; transition: background-color 0.15s;
     }
     .listen-btn:hover { background: rgba(0,0,0,0.08); text-decoration: none; }
-    .listen-btn svg { width: 14px; height: 14px; }
+    .listen-btn svg, .listen-btn img { width: 14px; height: 14px; flex-shrink: 0; }
 
     .stats-bar {
       display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -314,7 +314,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
   <header class="header">
     <div class="header-inner">
       <a href="/">
-        <img src="/favicon.png" alt="PodCap" class="logo" />
+        <img src="/podcap-logo.png" alt="PodCap" class="logo" />
       </a>
       <a href="${podcastUrl}" class="back-link">&larr; All ${escapeHtml(podcastName)} Recaps</a>
     </div>
@@ -322,7 +322,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
 
   <main class="container">
     <div class="hero">
-      ${artworkUrl ? `<img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(podcastName)}" class="artwork" />` : ""}
+      ${artworkUrl ? `<a href="${podcastUrl}"><img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(podcastName)}" class="artwork" /></a>` : ""}
       <div class="hero-info">
         <a href="${podcastUrl}" class="podcast-name">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
@@ -388,7 +388,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     </button>
 
     <footer class="footer">
-      <a href="/"><img src="/favicon.png" alt="PodCap" /></a>
+      <a href="/"><img src="/podcap-logo.png" alt="PodCap" /></a>
       <p>PodCap is not affiliated with ${escapeHtml(podcastName)}. Transcripts are generated from publicly available episode data.</p>
       <p style="margin-top: 8px;">
         <a href="${recapUrl}">Episode Recap</a> &middot; <a href="${podcastUrl}">${escapeHtml(podcastName)} Hub</a> &middot; <a href="/">PodCap Home</a>
