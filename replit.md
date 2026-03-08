@@ -14,7 +14,7 @@ PodCap is a full-stack web application designed to provide users with personaliz
 **Pages**:
 - **Onboarding/Home**: `/` for a 2-step signup.
 - **User Management**: `/login`, `/dashboard` (manage subscriptions, delivery, billing), `/upgrade`.
-- **Content Discovery**: `/podcasts` (popular directory), `/podcasts/:slug` (SEO landing pages for podcasts with recaps and episode lists), `/podcasts/:slug/episodes` (episode archive), `/podcasts/:podcastSlug/:episodeSlug` (individual episode recaps), `/podcasts/:podcastSlug/:episodeSlug/transcript` (server-rendered full transcripts for SEO).
+- **Content Discovery**: `/podcasts` (popular directory), `/podcasts/:slug` (SEO landing pages for podcasts with recaps and episode lists), `/podcasts/:slug/episodes` (episode archive), `/podcasts/:podcastSlug/:episodeSlug` (individual episode recaps with tab-row search that navigates to transcript with `?q=`), `/podcasts/:podcastSlug/:episodeSlug/transcript` (server-rendered full transcripts for SEO, supports `?q=` deep-link for pre-filled search).
 - **Informational/Admin**: `/about`, `/podcast-deals`, `/updates` (changelog + feature requests), `/support`, `/privacy`, `/terms`, `/admin` (password-protected admin dashboard with tools for managing emails, users, analytics, and content templates).
 **AI Integration**: Utilizes OpenAI (GPT-4o-mini) for generating daily podcast recaps and extracting sponsor deals from transcripts. Transcripts are processed from Taddy GraphQL API. AI prompts are admin-editable.
 **Email System**: Uses Resend for email delivery, with a two-phase scheduler for generating and delivering daily recaps based on user preferences and timezones. An admin panel allows monitoring and management of email operations.

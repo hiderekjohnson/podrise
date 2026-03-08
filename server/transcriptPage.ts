@@ -566,44 +566,75 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       });
 
       var searchInput = document.getElementById('transcript-search');
+      var tabSearchInput = document.getElementById('tab-search-input');
       var searchCount = document.getElementById('search-count');
       var segments = document.querySelectorAll('.seg');
       var debounceTimer;
 
-      searchInput.addEventListener('input', function() {
+      function runSearch(query) {
+        if (!query) {
+          segments.forEach(function(seg) {
+            seg.classList.remove('search-hidden', 'search-match');
+            var textEl = seg.querySelector('.seg-text');
+            textEl.innerHTML = textEl.textContent;
+          });
+          searchCount.textContent = '';
+          return;
+        }
+        var matchCount = 0;
+        segments.forEach(function(seg) {
+          var textEl = seg.querySelector('.seg-text');
+          var originalText = textEl.textContent;
+          var lowerText = originalText.toLowerCase();
+          if (lowerText.includes(query.toLowerCase())) {
+            seg.classList.remove('search-hidden');
+            seg.classList.add('search-match');
+            matchCount++;
+            var escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            var regex = new RegExp('(' + escaped + ')', 'gi');
+            textEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+          } else {
+            seg.classList.add('search-hidden');
+            seg.classList.remove('search-match');
+            textEl.innerHTML = originalText;
+          }
+        });
+        searchCount.textContent = matchCount + ' match' + (matchCount !== 1 ? 'es' : '');
+      }
+
+      function syncInputs(source, target, value) {
+        if (target && target !== source) target.value = value;
+      }
+
+      function handleSearchInput(e) {
+        var val = e.target.value;
+        syncInputs(e.target, searchInput, val);
+        syncInputs(e.target, tabSearchInput, val);
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function() {
-          var query = searchInput.value.trim().toLowerCase();
-          if (!query) {
-            segments.forEach(function(seg) {
-              seg.classList.remove('search-hidden', 'search-match');
-              var textEl = seg.querySelector('.seg-text');
-              textEl.innerHTML = textEl.textContent;
-            });
-            searchCount.textContent = '';
-            return;
-          }
-          var matchCount = 0;
-          segments.forEach(function(seg) {
-            var textEl = seg.querySelector('.seg-text');
-            var originalText = textEl.textContent;
-            var lowerText = originalText.toLowerCase();
-            if (lowerText.includes(query)) {
-              seg.classList.remove('search-hidden');
-              seg.classList.add('search-match');
-              matchCount++;
-              var escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-              var regex = new RegExp('(' + escaped + ')', 'gi');
-              textEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
-            } else {
-              seg.classList.add('search-hidden');
-              seg.classList.remove('search-match');
-              textEl.innerHTML = originalText;
-            }
-          });
-          searchCount.textContent = matchCount + ' match' + (matchCount !== 1 ? 'es' : '');
+          runSearch(val.trim());
         }, 200);
-      });
+      }
+
+      searchInput.addEventListener('input', handleSearchInput);
+      if (tabSearchInput) {
+        tabSearchInput.addEventListener('input', handleSearchInput);
+        tabSearchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') e.preventDefault();
+        });
+      }
+
+      var urlParams = new URLSearchParams(window.location.search);
+      var initialQuery = urlParams.get('q');
+      if (initialQuery) {
+        searchInput.value = initialQuery;
+        if (tabSearchInput) tabSearchInput.value = initialQuery;
+        runSearch(initialQuery.trim());
+        setTimeout(function() {
+          var firstMatch = document.querySelector('.seg.search-match');
+          if (firstMatch) firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
 
       var scrollBtn = document.getElementById('scroll-top');
       var stickyBar = document.getElementById('sticky-bar');

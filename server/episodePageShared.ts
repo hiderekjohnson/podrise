@@ -129,6 +129,36 @@ export function getEpisodePageTopStyles(): string {
     .page-tab:hover { color: #1a1a2e; border-color: rgba(0,0,0,0.08); text-decoration: none; }
     .page-tab.active { color: #1a8cff; border-color: #1a8cff; }
     .page-tab svg { width: 16px; height: 16px; }
+
+    .tab-search {
+      margin-left: auto;
+      position: relative;
+      margin-bottom: -1px;
+    }
+    .tab-search-input {
+      width: 200px; height: 36px;
+      padding: 0 12px 0 34px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      background: white;
+      font-size: 13px; color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, width 0.2s;
+    }
+    .tab-search-input:focus {
+      border-color: #1a8cff;
+      box-shadow: 0 0 0 3px rgba(26,140,255,0.1);
+      width: 260px;
+    }
+    .tab-search-input::placeholder { color: #94a3b8; }
+    .tab-search-icon {
+      position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8; pointer-events: none;
+    }
+    @media (max-width: 639px) {
+      .tab-search { display: none; }
+    }
   `;
 }
 
@@ -188,5 +218,9 @@ export function renderEpisodePageHero(data: EpisodePageData): string {
     ? `<span class="page-tab active" data-testid="tab-transcript-active">${FILETEXT_SVG} Full Transcript</span>`
     : `<a href="${transcriptUrl}" class="page-tab" data-testid="tab-transcript-link">${FILETEXT_SVG} Full Transcript</a>`
   }
+  <div class="tab-search">
+    <svg class="tab-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" class="tab-search-input" id="tab-search-input" placeholder="Search transcript..." autocomplete="off" data-testid="input-tab-search" />
+  </div>
 </nav>`;
 }

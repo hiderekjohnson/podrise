@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, FileText, Mail, X } from "lucide-react";
+import { Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, FileText, Mail, X, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { useRegister } from "@/hooks/use-auth";
@@ -306,6 +306,27 @@ export default function EpisodeRecapPage() {
               <FileText className="w-4 h-4" />
               Full Transcript
             </a>
+            <div className="ml-auto relative -mb-px hidden sm:block">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search transcript..."
+                autoComplete="off"
+                data-testid="input-tab-search"
+                className="w-[200px] h-9 pl-[34px] pr-3 border border-black/[0.08] rounded-lg bg-white text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-[3px] focus:ring-primary/10 focus:w-[260px] transition-all"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const q = (e.target as HTMLInputElement).value.trim();
+                    if (q) {
+                      window.location.href = `/podcasts/${podcastSlug}/${episodeSlug}/transcript?q=${encodeURIComponent(q)}`;
+                    } else {
+                      window.location.href = `/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
+                    }
+                  }
+                }}
+              />
+            </div>
           </div>
 
           <div className="relative bg-gradient-to-br from-primary/[0.05] to-primary/[0.02] border border-primary/[0.1] rounded-2xl px-6 py-5 sm:px-7 sm:py-6 mb-12" data-testid="section-tldl">
