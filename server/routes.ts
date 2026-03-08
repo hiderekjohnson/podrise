@@ -10,6 +10,7 @@ import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClie
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
 import { generateRecap, DEFAULT_RECAP_PROMPT } from "./recapGenerator";
+import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 declare module "express-session" {
   interface SessionData {
@@ -114,19 +115,7 @@ const STATIC_PAGES = [
   { path: "/support", priority: "0.5", changefreq: "monthly" },
 ];
 
-const PODCAST_SLUGS = [
-  "myfirstmillion", "empowerher",
-  "joerogan", "diaryofaceo", "allin", "thedaily", "lexfridman", "smartless",
-  "hubermanlab", "newheights", "timferriss", "callherdaddy", "pivot", "acquired",
-  "hardfork", "waveform", "thevergecast", "searchengine", "a16z", "bg2pod",
-  "decoder", "aidailybrief", "planetmoney", "thejournal", "howibuiltthis",
-  "ramseyshow", "hbrideacast", "financialaudit", "founders", "businessbreakdowns",
-  "mastersofscale", "biggerpockets", "theindicator", "mastersinbusiness",
-  "themoneyguyshow", "equity", "onpurpose", "melrobbins", "armchairexpert",
-  "conanobrien", "meidastouch", "shawnryanshow", "thisamericanlife", "freshair",
-  "podsaveamerica", "hiddenbrain", "tedtalksdaily", "officeladies", "moderncto",
-  "stuffyoushouldknow",
-];
+const PODCAST_SLUGS = Object.values(ITUNES_ID_TO_SLUG);
 
 async function buildSitemap(): Promise<string> {
   const today = new Date().toISOString().split("T")[0];
