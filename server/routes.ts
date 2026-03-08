@@ -128,7 +128,7 @@ const PODCAST_SLUGS = [
   "stuffyoushouldknow",
 ];
 
-function buildSitemap(): string {
+async function buildSitemap(): Promise<string> {
   const today = new Date().toISOString().split("T")[0];
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
@@ -149,6 +149,34 @@ function buildSitemap(): string {
     xml += `    <changefreq>weekly</changefreq>\n`;
     xml += `    <priority>0.8</priority>\n`;
     xml += `  </url>\n`;
+    xml += `  <url>\n`;
+    xml += `    <loc>${DOMAIN}/podcasts/${slug}/episodes</loc>\n`;
+    xml += `    <lastmod>${today}</lastmod>\n`;
+    xml += `    <changefreq>weekly</changefreq>\n`;
+    xml += `    <priority>0.6</priority>\n`;
+    xml += `  </url>\n`;
+  }
+
+  try {
+    for (const slug of PODCAST_SLUGS) {
+      const recaps = await storage.getLandingPageRecaps(slug, 100);
+      for (const recap of recaps) {
+        xml += `  <url>\n`;
+        xml += `    <loc>${DOMAIN}/podcasts/${slug}/${recap.episodeSlug}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>monthly</changefreq>\n`;
+        xml += `    <priority>0.7</priority>\n`;
+        xml += `  </url>\n`;
+        xml += `  <url>\n`;
+        xml += `    <loc>${DOMAIN}/podcasts/${slug}/${recap.episodeSlug}/transcript</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>monthly</changefreq>\n`;
+        xml += `    <priority>0.5</priority>\n`;
+        xml += `  </url>\n`;
+      }
+    }
+  } catch (err) {
+    console.error("[Sitemap] Error fetching recaps:", err);
   }
 
   xml += `</urlset>`;
@@ -189,10 +217,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  app.get("/sitemap.xml", (_req, res) => {
+  app.get("/sitemap.xml", async (_req, res) => {
     res.set("Content-Type", "application/xml");
     res.set("Cache-Control", "public, max-age=3600");
-    res.send(buildSitemap());
+    res.send(await buildSitemap());
   });
 
   app.get("/robots.txt", (_req, res) => {
@@ -510,6 +538,29 @@ export async function registerRoutes(
       res.json({ results });
     } catch {
       res.json({ results: [] });
+    }
+  });
+
+  app.get("/podcasts/:podcastSlug/:episodeSlug/transcript", async (req, res) => {
+    try {
+      const { renderTranscriptPage } = await import("./transcriptPage");
+      const html = await renderTranscriptPage(req.params.podcastSlug, req.params.episodeSlug);
+      if (!html) return res.status(404).send("Transcript not found");
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
+      res.send(html);
+    } catch (err) {
+      console.error("[TranscriptPage] Error:", err);
+      res.status(500).send("Error loading transcript");
+    }
+  });
+
+  app.get("/api/podcasts/:slug/:episodeSlug/transcript-segments", async (req, res) => {
+    try {
+      const segments = await storage.getTranscriptSegmentsBySlug(req.params.slug, req.params.episodeSlug);
+      res.json(segments);
+    } catch {
+      res.status(500).json({ error: "Failed to fetch transcript segments" });
     }
   });
 

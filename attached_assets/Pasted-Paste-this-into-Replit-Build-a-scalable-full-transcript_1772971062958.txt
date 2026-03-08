@@ -1,0 +1,269 @@
+Paste this into Replit:
+
+Build a scalable full transcript page system for podcast episodes. This should be phase one of a larger transcript architecture that will eventually support search across all transcripts on the platform.
+
+The goal is to create transcript pages that are:
+	1.	scalable for tens of thousands of podcasts and very long episodes,
+	2.	crawlable and indexable for SEO,
+	3.	readable for humans,
+	4.	linkable to exact moments in the conversation,
+	5.	structured so future transcript search can point to exact timestamps.
+
+Use this three-level content hierarchy across the site:
+
+Podcast page, authority hub
+/podcasts/[podcast-slug]
+
+Episode recap page, primary episode page
+/podcasts/[podcast-slug]/[episode-slug]
+
+Episode transcript page, supporting page
+/podcasts/[podcast-slug]/[episode-slug]/transcript
+
+Example:
+
+Podcast page
+/podcasts/myfirstmillion
+
+Episode recap page
+/podcasts/myfirstmillion/i-asked-a-450m-vc-where-to-invest-in-2026
+
+Episode transcript page
+/podcasts/myfirstmillion/i-asked-a-450m-vc-where-to-invest-in-2026/transcript
+
+Important SEO intent:
+
+The podcast page is the main authority page for that show.
+The episode recap page is the main content page for the episode.
+The transcript page is supporting content that captures long-tail search traffic and provides full context.
+
+Do not treat transcript pages as the primary page.
+
+Internal linking should follow this structure:
+
+Podcast page should link to episode recap pages.
+
+Episode recap page must link to:
+	•	the podcast page
+	•	the full transcript page
+
+Transcript page must link back to:
+	•	the episode recap page
+	•	optionally the podcast page
+
+This should create a clean hierarchy:
+Podcast → Episode recap → Transcript → Episode recap
+
+Do not canonical transcript pages to recap pages. Transcript pages should be indexable on their own.
+
+Transcript page requirements:
+
+Create a transcript page for every episode at:
+/podcasts/[podcast-slug]/[episode-slug]/transcript
+
+Each transcript page should include:
+	•	episode title
+	•	podcast name
+	•	publish date
+	•	link back to the episode recap page
+	•	full transcript rendered in readable timestamped sections
+
+Scalability requirements:
+
+This architecture must support tens of thousands of podcasts and very long transcripts, including episodes up to 2 hours or more.
+
+Build this in a way that scales for:
+	•	transcript storage
+	•	page generation
+	•	future within-podcast search
+	•	future cross-podcast search
+	•	exact timestamp links
+	•	term highlighting later
+
+Do not store or render transcripts as one giant blob if that makes future search and linking harder.
+
+Instead, store transcripts in structured segments.
+
+Recommended transcript segment structure:
+	•	episode_id
+	•	sequence_index
+	•	timestamp_seconds
+	•	timestamp_label
+	•	speaker_name, nullable
+	•	text
+	•	anchor_id
+
+Transcript ingestion requirements:
+
+At ingestion time, normalize and segment transcripts once before saving.
+
+Do not do heavy transcript parsing or formatting on every page request.
+
+Segmentation should happen when the transcript is first saved so the stored transcript is already clean, structured, and ready to render.
+
+Human readability requirements:
+
+Transcripts should read like a clean conversation, not a raw speech-to-text dump.
+
+At ingestion time, clean transcripts for readability using these rules:
+
+Speaker formatting:
+	•	if speaker labels exist, preserve them
+	•	clearly associate each transcript segment with the speaker
+
+Paragraph cleanup:
+	•	break large blocks into readable paragraphs
+	•	avoid huge walls of text
+
+Sentence cleanup:
+	•	remove obvious transcription artifacts only
+	•	clean repeated filler words when clearly accidental
+	•	clean duplicated phrases
+	•	clean stutters like “I I I think”
+	•	remove stray punctuation caused by auto transcription
+
+Do not aggressively rewrite the transcript.
+Preserve the original words and meaning.
+This is a cleanup pass, not an editorial rewrite.
+
+Text normalization:
+	•	normalize apostrophes, quotes, and punctuation so the transcript reads cleanly
+	•	remove malformed punctuation from low-quality transcript sources
+
+Segment sizing:
+	•	segments should be readable chunks
+	•	ideally one speaker turn per segment
+	•	if that is not possible, segment into roughly 20 to 60 seconds of speech
+	•	avoid making segments so tiny that the page feels fragmented
+	•	avoid making segments so large that they become hard to read
+
+Rendering requirements:
+
+Transcript pages must be server-rendered or statically generated in a scalable way.
+
+The transcript text must exist in the HTML so Google can crawl it.
+
+Do not rely on client-side rendering for the core transcript content.
+
+Do not choose an architecture that requires rebuilding the entire site on every deploy as new episodes are added.
+
+Use an approach that supports:
+	•	on-demand generation, incremental static generation, or equivalent
+	•	caching after first render
+	•	efficient addition of new episode transcript pages without global rebuilds
+
+Performance requirements:
+
+Transcript pages may be very long, so optimize for speed.
+
+Requirements:
+	•	render transcript content directly in HTML
+	•	keep frontend logic lightweight
+	•	avoid heavy client-side JavaScript
+	•	only use minimal JS for anchor behavior or lightweight enhancements if needed
+	•	prioritize fast page load and crawlability over fancy frontend behavior
+
+Transcript formatting on page:
+
+Do not render the transcript as one giant wall of text.
+
+Render it in readable sections.
+
+Each rendered transcript section should include:
+	•	timestamp
+	•	speaker name if available
+	•	transcript text
+	•	stable anchor id
+
+Example visual structure:
+
+23:10
+Sam Parr:
+The Airbnb story is actually crazy. The founders were completely broke and had to sell cereal boxes to survive.
+
+23:32
+Shaan Puri:
+Yeah, and that’s the part people always forget. It wasn’t some smooth rocket ship from day one.
+
+Direct linking to exact moments:
+
+Every transcript segment must have a unique anchor id based on the timestamp.
+
+Example anchor format:
+#t-23m10s
+
+Example full URL:
+/podcasts/myfirstmillion/i-asked-a-450m-vc-where-to-invest-in-2026/transcript#t-23m10s
+
+Requirements:
+	•	every segment must have a stable anchor id
+	•	timestamps should be clickable
+	•	clicking a timestamp should update the URL anchor
+	•	if someone opens a transcript URL with an anchor, the page should scroll to that segment
+	•	the linked segment should be visually highlighted so the referenced moment is obvious
+
+Anchor ids should be generated at ingestion time when transcript segments are created, not generated dynamically at render time.
+
+This is important so links remain stable.
+
+Optional but recommended:
+	•	add a small “copy link to this moment” button beside each timestamp
+
+Example copied link:
+https://podcap.io/podcasts/myfirstmillion/i-asked-a-450m-vc-where-to-invest-in-2026/transcript#t-23m10s
+
+Future-proofing requirements:
+
+Even though we are not building transcript search yet, the transcript architecture must be designed so it can later support:
+	•	search within one podcast’s transcripts
+	•	search across all podcast transcripts
+	•	search results that point back to exact transcript timestamps
+	•	transcript snippets tied to timestamps
+	•	term highlighting on matched segments
+
+This means transcript storage and structure should be designed with future indexing in mind.
+
+Do not build the future search now.
+Just make sure the transcript pages and data model are built the way we would want if transcript search is the next major feature.
+
+SEO requirements:
+
+Each transcript page should have:
+	•	a unique title tag in this format:
+[Podcast Name], [Episode Title], Full Transcript
+	•	a meta description describing the transcript page
+	•	a canonical URL pointing to the transcript page itself
+	•	transcript content visible in HTML
+	•	basic internal links from recap to transcript and transcript back to recap
+
+Transcript pages should be indexable because they will capture long-tail search traffic.
+
+Again: do not canonical transcript pages to the recap pages.
+
+UI expectations for this phase:
+
+Keep the transcript page design simple, clean, and readable.
+Do not overbuild the UI yet.
+
+Focus first on:
+	•	correct URL structure
+	•	scalable transcript storage
+	•	formatted transcript ingestion
+	•	readable transcript rendering
+	•	stable timestamp anchors
+	•	server-rendered crawlable output
+	•	correct internal linking
+	•	future search-readiness
+
+Success criteria for this phase:
+	•	every episode has a dedicated transcript page
+	•	transcript pages are crawlable by search engines
+	•	transcript text is rendered in HTML
+	•	transcript content is segmented into readable timestamped blocks
+	•	transcript blocks are cleaned for human readability
+	•	every segment has a stable direct-link anchor
+	•	recap pages link to transcript pages
+	•	transcript pages link back to recap pages
+	•	the underlying transcript data model is ready for future search across all transcripts
+
+Please implement this in a way that matches the current PodCap site structure and stays fast and scalable as the content library grows.

@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap } from "@shared/schema";
-import { eq, desc, sql, and, gt, isNull } from "drizzle-orm";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment } from "@shared/schema";
+import { eq, desc, sql, and, gt, isNull, asc } from "drizzle-orm";
 
 export interface IStorage {
   createUser(user: CreateUserRequest): Promise<UserResponse>;
@@ -53,6 +53,10 @@ export interface IStorage {
   getLandingPageRecapBySlug(podcastSlug: string, episodeSlug: string): Promise<LandingPageRecap | undefined>;
   upsertLandingPageRecap(data: InsertLandingPageRecap): Promise<LandingPageRecap>;
   getLandingPageRecapSlugs(): Promise<string[]>;
+  saveTranscriptSegments(segments: InsertTranscriptSegment[]): Promise<void>;
+  getTranscriptSegments(episodeGuid: string): Promise<TranscriptSegment[]>;
+  getTranscriptSegmentsBySlug(podcastSlug: string, episodeSlug: string): Promise<TranscriptSegment[]>;
+  hasTranscriptSegments(episodeGuid: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -491,6 +495,43 @@ export class DatabaseStorage implements IStorage {
   async getLandingPageRecapSlugs(): Promise<string[]> {
     const results = await db.selectDistinct({ slug: landingPageRecaps.slug }).from(landingPageRecaps);
     return results.map(r => r.slug);
+  }
+
+  async saveTranscriptSegments(segments: InsertTranscriptSegment[]): Promise<void> {
+    if (segments.length === 0) return;
+    const episodeGuid = segments[0].episodeGuid;
+    await db.delete(transcriptSegments).where(eq(transcriptSegments.episodeGuid, episodeGuid));
+    const batchSize = 100;
+    for (let i = 0; i < segments.length; i += batchSize) {
+      await db.insert(transcriptSegments).values(segments.slice(i, i + batchSize));
+    }
+  }
+
+  async getTranscriptSegments(episodeGuid: string): Promise<TranscriptSegment[]> {
+    return db
+      .select()
+      .from(transcriptSegments)
+      .where(eq(transcriptSegments.episodeGuid, episodeGuid))
+      .orderBy(asc(transcriptSegments.sequenceIndex));
+  }
+
+  async getTranscriptSegmentsBySlug(podcastSlug: string, episodeSlug: string): Promise<TranscriptSegment[]> {
+    return db
+      .select()
+      .from(transcriptSegments)
+      .where(and(
+        eq(transcriptSegments.podcastSlug, podcastSlug),
+        eq(transcriptSegments.episodeSlug, episodeSlug)
+      ))
+      .orderBy(asc(transcriptSegments.sequenceIndex));
+  }
+
+  async hasTranscriptSegments(episodeGuid: string): Promise<boolean> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(transcriptSegments)
+      .where(eq(transcriptSegments.episodeGuid, episodeGuid));
+    return (result[0]?.count ?? 0) > 0;
   }
 }
 

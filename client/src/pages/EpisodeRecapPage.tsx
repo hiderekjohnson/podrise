@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, ExternalLink, FileText } from "lucide-react";
 import { SiApplepodcasts, SiSpotify } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "../data/podcastLandingData";
@@ -331,6 +331,22 @@ export default function EpisodeRecapPage() {
               </div>
             </section>
           )}
+          <section className="mb-12" data-testid="section-transcript-link">
+            <a
+              href={`/podcasts/${podcastSlug}/${episodeSlug}/transcript`}
+              className="flex items-center gap-3 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl px-6 py-5 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all group"
+              data-testid="link-full-transcript"
+            >
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/[0.06] shrink-0">
+                <FileText className="w-5 h-5 text-primary" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">Read Full Transcript</p>
+                <p className="text-sm text-muted-foreground">Timestamped, searchable transcript with direct links to any moment</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-primary/50 group-hover:text-primary shrink-0 transition-colors" />
+            </a>
+          </section>
         </motion.article>
 
         <motion.div

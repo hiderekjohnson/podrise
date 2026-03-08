@@ -11,7 +11,7 @@ interface TaddyEpisode {
   audioUrl: string;
 }
 
-interface TaddyTranscriptSegment {
+export interface TaddyTranscriptSegment {
   id: string;
   text: string;
   speaker: string | null;
@@ -79,6 +79,37 @@ export async function getRecentEpisodesWithTranscripts(
   const episodes = data?.data?.getPodcastSeries?.episodes || [];
   episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
   return episodes;
+}
+
+export async function getEpisodeTranscriptSegments(episodeUuid: string): Promise<TaddyTranscriptSegment[] | null> {
+  const query = `{
+    getEpisodeTranscript(uuid: "${episodeUuid}") {
+      id
+      text
+      speaker
+      startTimecode
+      endTimecode
+    }
+  }`;
+
+  const data = await taddyRequest(query);
+
+  if (data?.errors?.length) {
+    const errMsg = data.errors[0]?.message || "";
+    if (errMsg.includes("Pro or Business")) {
+      console.warn(`[Taddy] Transcript requires paid plan for episode ${episodeUuid}`);
+    } else {
+      console.warn(`[Taddy] Transcript error for ${episodeUuid}: ${errMsg}`);
+    }
+    return null;
+  }
+
+  const segments: TaddyTranscriptSegment[] = data?.data?.getEpisodeTranscript;
+  if (!segments || !Array.isArray(segments) || segments.length === 0) {
+    return null;
+  }
+
+  return segments;
 }
 
 export async function getEpisodeTranscript(episodeUuid: string): Promise<string | null> {

@@ -2,7 +2,8 @@ import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
-import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } from "./taddyClient";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments } from "./taddyClient";
+import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
@@ -454,15 +455,28 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
                 return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
               });
               if (taddyMatch?.uuid) {
-                const fetched = await getEpisodeTranscript(taddyMatch.uuid);
-                if (fetched) {
-                  transcriptText = fetched;
+                const rawSegments = await getEpisodeTranscriptSegments(taddyMatch.uuid);
+                if (rawSegments && rawSegments.length > 0) {
+                  const lines: string[] = [];
+                  for (const seg of rawSegments) {
+                    const speaker = seg.speaker ? `[${seg.speaker}] ` : "";
+                    lines.push(`${speaker}${seg.text}`);
+                  }
+                  transcriptText = lines.join("\n");
                   await storage.saveTranscript({
                     podcastId: podcast.itunesId,
                     episodeGuid,
                     episodeTitle: epTitle,
                     transcript: transcriptText,
                   });
+                  try {
+                    const parsedSegments = parseRawTaddySegments(rawSegments, podcast.slug, epSlug, episodeGuid);
+                    if (parsedSegments.length > 0) {
+                      await storage.saveTranscriptSegments(parsedSegments);
+                    }
+                  } catch (segErr) {
+                    console.warn(`[LandingRecaps] Segment parsing failed for ${podcast.name}:`, segErr);
+                  }
                 }
               }
             }
@@ -474,6 +488,18 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
         if (!transcriptText) {
           skipped++;
           continue;
+        }
+
+        try {
+          const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
+          if (!hasSegs) {
+            const segments = parseTranscriptToSegments(transcriptText, podcast.slug, epSlug, episodeGuid);
+            if (segments.length > 0) {
+              await storage.saveTranscriptSegments(segments);
+            }
+          }
+        } catch (segErr) {
+          console.warn(`[LandingRecaps] Backfill segments failed for ${podcast.name}:`, segErr);
         }
 
         const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
@@ -557,6 +583,11 @@ export function startEmailScheduler() {
     } catch (err) {
       console.error("[LandingRecaps] Directory seed error:", err);
     }
+    try {
+      await backfillTranscriptSegments();
+    } catch (err) {
+      console.error("[TranscriptBackfill] Backfill error:", err);
+    }
     refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
   }, 30000);
 }
@@ -604,5 +635,53 @@ async function ensureLandingPageDirectoryEntries() {
   }
   if (updated > 0) {
     console.log(`[LandingRecaps] Ensured ${updated} podcast directory entries with has_landing_page=true`);
+  }
+}
+
+export async function backfillTranscriptSegments() {
+  const { pool: dbPool } = await import("./db");
+  const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
+  let totalProcessed = 0;
+
+  while (true) {
+    const client = await dbPool.connect();
+    try {
+      const { rows: transcripts } = await client.query(
+        `SELECT et.id, et.podcast_id, et.episode_guid, et.episode_title, et.transcript
+         FROM episode_transcripts et
+         WHERE NOT EXISTS (
+           SELECT 1 FROM transcript_segments ts WHERE ts.episode_guid = et.episode_guid
+         )
+         LIMIT 50`
+      );
+
+      if (transcripts.length === 0) break;
+
+      for (const t of transcripts) {
+        try {
+          const podcastSlug = ITUNES_ID_TO_SLUG[t.podcast_id] || t.podcast_id;
+          const episodeSlug = slugifyEpisodeTitle(t.episode_title);
+          const segments = parseTranscriptToSegments(
+            t.transcript,
+            podcastSlug,
+            episodeSlug,
+            t.episode_guid,
+            t.id
+          );
+          if (segments.length > 0) {
+            await storage.saveTranscriptSegments(segments);
+            totalProcessed++;
+          }
+        } catch (err) {
+          console.warn(`[TranscriptBackfill] Error processing ${t.episode_title}:`, err);
+        }
+      }
+    } finally {
+      client.release();
+    }
+  }
+
+  if (totalProcessed > 0) {
+    console.log(`[TranscriptBackfill] Backfilled ${totalProcessed} transcripts into segments`);
   }
 }

@@ -207,6 +207,27 @@ export const podcastDirectory = pgTable("podcast_directory", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const transcriptSegments = pgTable("transcript_segments", {
+  id: serial("id").primaryKey(),
+  transcriptId: integer("transcript_id"),
+  episodeGuid: text("episode_guid").notNull(),
+  podcastSlug: text("podcast_slug").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  sequenceIndex: integer("sequence_index").notNull(),
+  timestampSeconds: integer("timestamp_seconds"),
+  timestampLabel: text("timestamp_label"),
+  speakerName: text("speaker_name"),
+  text: text("text").notNull(),
+  anchorId: text("anchor_id").notNull(),
+});
+
+export const insertTranscriptSegmentSchema = createInsertSchema(transcriptSegments).omit({
+  id: true,
+});
+
+export type TranscriptSegment = typeof transcriptSegments.$inferSelect;
+export type InsertTranscriptSegment = z.infer<typeof insertTranscriptSegmentSchema>;
+
 export const insertPodcastDirectorySchema = createInsertSchema(podcastDirectory).omit({
   id: true,
   createdAt: true,
