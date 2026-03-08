@@ -182,7 +182,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
   const [answer, setAnswer] = useState<{ answer: string; episodesCited: string[] } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(0);
 
   type TopQ = { question: string; answer: string };
   const { data: topQData, isLoading: topQLoading } = useQuery<{ questions: TopQ[] }>({
@@ -229,6 +229,12 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
 
   return (
     <div data-testid="section-ask-podcast">
+      <div className="mb-8">
+        <p className="text-[15px] leading-relaxed text-muted-foreground">
+          Ask anything about {podcastName} — its themes, topics, hosts, and past episodes. Explore common questions below or ask your own.
+        </p>
+      </div>
+
       {topQLoading && (
         <div className="flex items-center justify-center py-10 text-muted-foreground gap-2.5 mb-8">
           <Loader2 className="w-5 h-5 animate-spin text-primary/50" />

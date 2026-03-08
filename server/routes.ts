@@ -824,14 +824,14 @@ export async function registerRoutes(
           messages: [
             {
               role: "system",
-              content: `You are an SEO expert analyzing the podcast "${podcastName}". Generate exactly 5 questions that people would most likely search for on Google about this podcast and the topics it covers.
+              content: `You are an SEO expert analyzing the podcast "${podcastName}". Generate exactly 5 questions that people would most likely type into Google when trying to learn about this podcast.
 
 Rules:
-- Questions must be clear, specific, and phrased like real Google searches
-- Focus on themes, strategies, ideas, and topics commonly discussed on the podcast
-- Avoid generic questions like "What is this podcast about?" or "What do the hosts talk about?"
-- Each answer should be 2-3 paragraphs summarizing what the podcast typically says about that topic based on the episodes provided
-- Reference themes that come up across multiple episodes
+- Questions should reflect common search queries about the podcast — what it covers, who hosts it, notable episodes, key topics, and why people listen
+- Use natural, search-friendly phrasing. Examples of good questions: "What is the ${podcastName} about?", "Who hosts ${podcastName}?", "What topics are commonly discussed on ${podcastName}?", "What are some popular episodes of ${podcastName}?", "Why do people listen to ${podcastName}?"
+- Include the podcast name in most questions for SEO value
+- Each answer should be 1-2 paragraphs, clear and informative, summarizing across the podcast's episodes — not just one episode
+- The goal is to help someone who has never heard of this podcast understand what it covers and why it's interesting
 
 Return a JSON array of exactly 5 objects with "question" and "answer" fields. Return ONLY the JSON array, no other text.`
             },
@@ -1589,6 +1589,20 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       res.json(getBatchExpansionProgress());
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to get progress" });
+    }
+  });
+
+  app.post("/api/admin/regenerate-podcast-top-questions", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { db } = await import("./db");
+      const { podcastTopQuestions } = await import("@shared/schema");
+      await db.delete(podcastTopQuestions);
+      res.json({ message: "All podcast top questions cleared. They will regenerate with the new SEO prompt on next visit." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to clear top questions" });
     }
   });
 
