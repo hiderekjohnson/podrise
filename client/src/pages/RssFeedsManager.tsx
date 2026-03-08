@@ -87,6 +87,21 @@ const AVAILABLE_PODCASTS: { slug: string; name: string }[] = [
   { slug: "modernwisdom", name: "Modern Wisdom" },
   { slug: "thisweekinstartups", name: "This Week in Startups" },
   { slug: "garyvee", name: "GaryVee" },
+  { slug: "freakonomics", name: "Freakonomics Radio" },
+  { slug: "peterattia", name: "The Peter Attia Drive" },
+  { slug: "knowledgeproject", name: "The Knowledge Project" },
+  { slug: "investlikethebest", name: "Invest Like the Best" },
+  { slug: "twentyminutevc", name: "The Twenty Minute VC" },
+  { slug: "westudybillionaires", name: "We Study Billionaires" },
+  { slug: "oddlots", name: "Odd Lots" },
+  { slug: "ezraklein", name: "The Ezra Klein Show" },
+  { slug: "capitalallocators", name: "Capital Allocators" },
+  { slug: "jordanharbinger", name: "The Jordan Harbinger Show" },
+  { slug: "radiolab", name: "Radiolab" },
+  { slug: "darknetdiaries", name: "Darknet Diaries" },
+  { slug: "bigtechnology", name: "Big Technology Podcast" },
+  { slug: "conversationswithtyler", name: "Conversations with Tyler" },
+  { slug: "ologies", name: "Ologies with Alie Ward" },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 export default function RssFeedsManager() {

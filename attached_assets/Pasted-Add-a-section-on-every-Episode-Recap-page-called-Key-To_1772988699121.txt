@@ -1,0 +1,82 @@
+Add a section on every Episode Recap page called:
+
+Key Topics From This Episode
+
+This section should list 4–6 important topics discussed in the episode, extracted from the transcript.
+
+Each topic should be a short phrase, such as:
+
+• Formula 1 business model
+• Liberty Media acquisition
+• Ferrari brand economics
+• Drive to Survive impact on Formula 1
+• F1 revenue model
+
+Topics should focus on companies, strategies, industries, or concepts discussed in the episode.
+
+Avoid generic phrases like:
+
+• business ideas
+• podcast discussion
+• interesting moments
+
+Display these topics as clickable chips or buttons.
+
+Example layout:
+
+Key Topics From This Episode
+
+[ Formula 1 business model ]
+[ Liberty Media acquisition ]
+[ Ferrari brand economics ]
+[ Drive to Survive impact ]
+[ F1 revenue model ]
+
+When a user clicks a topic, it should open the AI search within this episode, automatically asking a question about that topic.
+
+Example behavior:
+
+Click
+Formula 1 business model
+
+Auto-populate the AI search box with:
+
+“What did this episode say about the Formula 1 business model?”
+
+Then generate the answer from the transcript.
+
+This keeps users inside the episode page and lets them quickly explore specific ideas discussed in the episode.
+
+Goals of this feature:
+
+• Make long episodes easier to explore
+• Help users jump directly to topics they care about
+• Encourage interaction with the AI search feature
+• Improve navigation within the recap page
+
+Place this section on the Episode Recap page, near the Top Questions From This Episode section.
+
+For each episode recap page, we need it to be easier to navigate to whatever on the page is most interesting to you. TLDL, What Happened, key topics, and Top 5 Question from this Episode
+
+For each episode recap page, add a section called Top Questions From This Episode.
+
+Automatically generate 5 concise questions based on the transcript that represent the most important ideas discussed in the episode.
+
+These questions should:
+
+• Reflect what a reader would naturally want to understand after reading the recap
+• Be phrased like real Google searches
+• Focus on key companies, people, strategies, or concepts discussed in the episode
+• Avoid vague questions like “What did they talk about?”
+
+Each question should expand to show a 2–3 paragraph answer generated from the transcript, with a link to jump to the relevant section in the full transcript.
+
+Examples:
+
+Why did Liberty Media buy Formula 1?
+How does Formula 1 make money?
+Why is Ferrari so valuable in Formula 1?
+How did Netflix’s Drive to Survive grow Formula 1?
+How much revenue does Formula 1 generate?
+
+Below the questions include an Ask About This Episode input box where users can ask their own questions about the episode transcript.
