@@ -389,12 +389,16 @@ export default function PodcastLandingGeneric() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
 
-  const initialTab = (() => {
+  const getTabFromUrl = () => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
     if (urlTab === "search" || urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes") return urlTab;
     return "episodes" as PodcastTab;
-  })();
-  const [activeTab, setActiveTab] = useState<PodcastTab>(initialTab);
+  };
+  const [activeTab, setActiveTab] = useState<PodcastTab>(getTabFromUrl);
+
+  useEffect(() => {
+    setActiveTab(getTabFromUrl());
+  }, [slug]);
 
   const { data: dbEntry } = useQuery<any>({
     queryKey: ["/api/podcasts/by-slug", slug],
