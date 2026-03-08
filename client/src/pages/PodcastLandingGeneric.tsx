@@ -494,7 +494,7 @@ export default function PodcastLandingGeneric() {
                   <p className="text-sm text-muted-foreground mb-5">
                     Quick summaries of the latest episodes — key takeaways in minutes, not hours.
                   </p>
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {episodeRecaps.slice(0, 10).map((ep: any) => {
                       const date = new Date(ep.publishDate + "T00:00:00");
                       const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
