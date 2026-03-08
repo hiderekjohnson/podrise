@@ -396,12 +396,6 @@ export default function PodcastLandingGeneric() {
             )}
 
             <div className="flex flex-col gap-3 text-center sm:text-left flex-1 min-w-0">
-              {category && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider" data-testid="text-category">
-                  <Headphones className="w-3.5 h-3.5" />
-                  {category}
-                </span>
-              )}
 
               <h1
                 className="text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
@@ -512,34 +506,29 @@ export default function PodcastLandingGeneric() {
                   <p className="text-sm text-muted-foreground mb-5">
                     Quick summaries of the latest episodes — key takeaways in minutes, not hours.
                   </p>
-                  <div className="space-y-2.5">
-                    {episodeRecaps.slice(0, 10).map((ep: any, i: number) => {
+                  <div className="space-y-4">
+                    {episodeRecaps.slice(0, 10).map((ep: any) => {
                       const date = new Date(ep.publishDate + "T00:00:00");
                       const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                       return (
                         <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
-                          <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
-                            <div className="flex items-start gap-4">
-                              <div className="shrink-0 w-9 h-9 rounded-lg bg-primary/[0.06] flex items-center justify-center mt-0.5">
-                                <span className="text-xs font-bold text-primary/60">{i + 1}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-3">
-                                  <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                                  <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary mt-0.5 transition-colors" />
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1 leading-relaxed line-clamp-2">{ep.tldl}</p>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <span className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider">{formatted}</span>
-                                  {ep.duration && (
-                                    <>
-                                      <span className="w-0.5 h-0.5 rounded-full bg-black/[0.15]" />
-                                      <span className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider">{ep.duration}</span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
+                          <div className="bg-white border border-black/[0.06] rounded-xl px-5 py-5 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
+                              <span className="text-xs font-semibold text-muted-foreground/60">{formatted}</span>
+                              {ep.duration && (
+                                <>
+                                  <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
+                                  <span className="text-xs text-muted-foreground/50">{ep.duration}</span>
+                                </>
+                              )}
                             </div>
+                            <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
+                            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{ep.tldl}</p>
+                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-3">
+                              See full episode recap
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </span>
                           </div>
                         </Link>
                       );

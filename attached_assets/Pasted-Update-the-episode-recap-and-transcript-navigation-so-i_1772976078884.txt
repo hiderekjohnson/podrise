@@ -1,0 +1,60 @@
+Update the episode recap and transcript navigation so it behaves like tabs visually, but uses separate URLs for SEO.
+
+Goal:
+Make it easy for users to switch between the recap and the full transcript, while keeping each as its own indexable page.
+
+Required structure:
+For every episode, keep these two separate URLs:
+	•	Recap page:
+/podcasts/[podcast-slug]/[episode-slug]
+	•	Transcript page:
+/podcasts/[podcast-slug]/[episode-slug]/transcript
+
+What to build:
+Directly under the listen buttons on both pages, add a two-item navigation that looks like tabs:
+	•	Episode Recap
+	•	Full Transcript
+
+Behavior:
+	•	On the recap page, “Episode Recap” should appear active, and “Full Transcript” should be a clickable link to the transcript URL
+	•	On the transcript page, “Full Transcript” should appear active, and “Episode Recap” should be a clickable link back to the recap URL
+
+Important:
+These should not be client-side tabs that swap content on the same page.
+They should be normal links that load a new URL.
+The design should feel like tabs, but technically this must be page-to-page navigation.
+
+Why:
+	•	Better SEO because recap and transcript can both be indexed separately
+	•	Better internal linking between tightly related pages
+	•	Better crawlability as the site scales to thousands of episodes
+	•	Better shareability because recap and transcript each have their own URL
+
+Design guidance:
+	•	Make the control look like a clean, native tab switcher
+	•	Keep it visually lightweight and consistent with the rest of the PodCap design system
+	•	Place it directly below the listen buttons and above the main summary/transcript content
+	•	Active state should be visually obvious
+	•	Inactive state should still look clickable and polished
+
+Copy guidance:
+On the recap page, keep the active tab label:
+	•	Episode Recap
+
+On the transcript page, keep the active tab label:
+	•	Full Transcript
+
+Additional improvement:
+On the transcript page, directly below or near the tab switcher, add a small line of helper copy that links back to the recap page. Use something like:
+
+Too long to read? View the 2-minute episode recap.
+
+That sentence should link to the recap page for the same episode.
+
+Optional but recommended:
+On the recap page, somewhere near the summary box or below it, add a small link to the transcript page using copy like:
+
+Prefer the source material? Read the full transcript.
+
+Implementation note:
+Please make this scalable across all podcasts and episodes, not hardcoded for Acquired or any specific show.
