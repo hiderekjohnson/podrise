@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search } from "lucide-react";
+import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search, Users } from "lucide-react";
+import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodCapHeader } from "@/components/PodCapHeader";
@@ -9,18 +10,6 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-
-const APPLE_PODCASTS_SVG = (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5">
-    <defs><linearGradient id="ap-grad" x1="12" y1="24" x2="12" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#822cbe"/><stop offset="1" stopColor="#d94afa"/></linearGradient></defs>
-    <rect width="24" height="24" rx="5.4" fill="url(#ap-grad)"/>
-    <path d="M12 5.6a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM12 13.1a1.15 1.15 0 0 0-1.15 1.15v.1l.35 4.3a.8.8 0 0 0 .8.75h.01a.8.8 0 0 0 .8-.75l.34-4.3v-.1A1.15 1.15 0 0 0 12 13.1Z" fill="white"/>
-  </svg>
-);
-
-const SPOTIFY_SVG = (
-  <svg viewBox="0 0 24 24" fill="#1DB954" className="w-3.5 h-3.5"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-);
 
 interface EpisodePageLayoutProps {
   episode: {
@@ -77,6 +66,7 @@ export function EpisodePageLayout({
 
   const appleLink = episode.appleEpisodeUrl || `https://podcasts.apple.com/podcast/id${podcastConfig?.itunesId}`;
   const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(episode.episodeTitle + ' ' + episode.podcastName)}`;
+  const effectiveYoutubeUrl = podcastConfig.youtubeUrl;
 
   useEffect(() => {
     if (stickyDismissed) return;
@@ -158,81 +148,110 @@ export function EpisodePageLayout({
         }
       />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <div className="flex items-start gap-5 sm:gap-6 mb-10">
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
+        <section className="w-full max-w-5xl pt-8 sm:pt-12 pb-8 sm:pb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-center sm:items-start"
+          >
             <Link href={`/podcasts/${podcastSlug}`}>
-              <img
-                src={episode.artworkUrl}
-                alt={episode.podcastName}
-                className="w-[88px] h-[88px] sm:w-28 sm:h-28 rounded-2xl object-cover shadow-lg shadow-black/[0.08] shrink-0 ring-1 ring-black/[0.04] cursor-pointer hover:shadow-xl hover:shadow-black/[0.12] transition-shadow"
-                data-testid="img-episode-artwork"
-              />
+              <div className="relative shrink-0 cursor-pointer">
+                <div className="absolute -inset-4 bg-primary/[0.06] rounded-[2rem] blur-2xl" />
+                <img
+                  src={episode.artworkUrl}
+                  alt={episode.podcastName}
+                  className="relative w-48 h-48 sm:w-52 sm:h-52 rounded-2xl shadow-2xl shadow-black/[0.12] object-cover ring-1 ring-black/[0.04] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.2)] transition-shadow"
+                  data-testid="img-episode-artwork"
+                />
+              </div>
             </Link>
-            <div className="min-w-0 pt-1">
-              <Link href={`/podcasts/${podcastSlug}`}>
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider hover:underline" data-testid="link-podcast-name">
-                  <Headphones className="w-3.5 h-3.5" />
-                  {episode.podcastName}
-                </span>
-              </Link>
-              <h1 className="text-[22px] sm:text-[28px] font-display font-extrabold text-foreground leading-[1.25] mt-2" data-testid="text-episode-title">
+
+            <div className="flex flex-col gap-3 text-center sm:text-left flex-1 min-w-0">
+              <h1
+                className="text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
+                data-testid="text-episode-title"
+              >
                 {episode.episodeTitle}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5" data-testid="text-episode-date">
-                  <Calendar className="w-3.5 h-3.5" />
+
+              <Link href={`/podcasts/${podcastSlug}`}>
+                <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-md hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
+                  {episode.podcastName}
+                </p>
+              </Link>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
+                <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-episode-date">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground/50" />
                   {formattedDate}
                 </span>
                 {episode.duration && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-black/[0.15]" />
-                    <span className="flex items-center gap-1.5" data-testid="text-episode-duration">
-                      <Clock className="w-3.5 h-3.5" />
-                      {episode.duration}
-                    </span>
-                  </>
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-episode-duration">
+                    <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    {episode.duration}
+                  </span>
                 )}
                 {episode.hosts && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-black/[0.15]" />
-                    <span>{episode.hosts}</span>
-                  </>
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-hosts">
+                    <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    <span className="font-medium text-foreground/80">{episode.hosts}</span>
+                  </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 mt-4" data-testid="listen-buttons">
+
+              <div className="flex items-center gap-2.5 mt-2 justify-center sm:justify-start" data-testid="listen-buttons">
                 <a
                   href={appleLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.06] text-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
                   data-testid="link-apple-podcasts"
+                  title="Listen on Apple Podcasts"
                 >
-                  {APPLE_PODCASTS_SVG}
-                  Listen on Apple Podcasts
+                  <SiApplepodcasts className="w-4 h-4 text-[#9933CC]" />
+                  Apple Podcasts
                 </a>
                 <a
                   href={spotifyLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.06] text-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
                   data-testid="link-spotify"
+                  title="Listen on Spotify"
                 >
-                  {SPOTIFY_SVG}
-                  Listen on Spotify
+                  <SiSpotify className="w-4 h-4 text-[#1DB954]" />
+                  Spotify
                 </a>
+                {effectiveYoutubeUrl && (
+                  <a
+                    href={effectiveYoutubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                    data-testid="link-youtube"
+                    title="Watch on YouTube"
+                  >
+                    <SiYoutube className="w-4 h-4 text-[#FF0000]" />
+                    YouTube
+                  </a>
+                )}
               </div>
             </div>
-          </div>
+          </motion.div>
+        </section>
 
-          <div className="flex items-center border-b border-black/[0.06] mb-10" data-testid="nav-recap-transcript-tabs">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="w-full max-w-4xl"
+        >
+          <div className="flex items-center border-b border-black/[0.06] mb-8" data-testid="nav-recap-transcript-tabs">
             {activeTab === "recap" ? (
               <span
-                className="flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+                className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
                 data-testid="tab-recap-active"
               >
                 <FileText className="w-4 h-4" />
@@ -241,7 +260,7 @@ export function EpisodePageLayout({
             ) : (
               <Link href={recapUrl}>
                 <span
-                  className="flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
                   data-testid="tab-recap-link"
                 >
                   <FileText className="w-4 h-4" />
@@ -252,7 +271,7 @@ export function EpisodePageLayout({
 
             {activeTab === "transcript" ? (
               <span
-                className="flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+                className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
                 data-testid="tab-transcript-active"
               >
                 <FileText className="w-4 h-4" />
@@ -261,7 +280,7 @@ export function EpisodePageLayout({
             ) : (
               <Link href={transcriptUrl}>
                 <span
-                  className="flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
                   data-testid="tab-transcript-link"
                 >
                   <FileText className="w-4 h-4" />
@@ -284,55 +303,44 @@ export function EpisodePageLayout({
               />
             </div>
           </div>
-        </motion.div>
 
-        {children}
+          {children}
+        </motion.div>
 
         <motion.div
           ref={ctaSectionRef}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="relative overflow-hidden bg-gradient-to-br from-primary/[0.06] via-primary/[0.03] to-transparent border border-primary/[0.1] rounded-2xl p-7 sm:p-9 mb-16"
-          data-testid="section-episode-cta"
+          className="w-full max-w-4xl pb-16"
         >
-          <div className="absolute -bottom-8 -right-8 opacity-[0.04]">
-            <Headphones className="w-40 h-40 text-primary" />
-          </div>
-          <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-10 items-center">
-            <div className="flex flex-col gap-4 text-center md:text-left">
-              <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug">
-                Get {episode.podcastName} recaps<br className="hidden sm:block" /> in your inbox
-              </h2>
-              <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md">
-                Never miss an episode. PodCap sends you a concise recap of every new {episode.podcastName} episode — free, no app needed.
-              </p>
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mt-1" data-testid="form-signup-episode">
+          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
+            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+              <div className="flex-1 text-center sm:text-left">
+                <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
+                  Get {episode.podcastName} recaps in your inbox
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Free daily summaries. No app needed.
+                </p>
+              </div>
+              <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-episode">
                 <input
                   data-testid="input-email-episode"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 h-12 px-4 bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
                 />
                 <button
                   data-testid="button-signup-episode"
                   type="submit"
-                  className="h-12 px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-[0.98] whitespace-nowrap"
+                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
                 >
-                  Get Free Recaps
-                  <ArrowRight className="w-4 h-4" />
+                  Get Started
                 </button>
               </form>
-            </div>
-            <div className="hidden md:flex justify-center">
-              <img
-                src={episode.artworkUrl}
-                alt={episode.podcastName}
-                className="w-32 h-32 lg:w-36 lg:h-36 rounded-2xl object-cover shadow-xl shadow-black/[0.08] ring-1 ring-black/[0.04]"
-                data-testid="img-cta-artwork"
-              />
             </div>
           </div>
         </motion.div>
@@ -342,6 +350,7 @@ export function EpisodePageLayout({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-full max-w-4xl pb-16"
             data-testid="section-more-episodes"
           >
             <h2 className="text-lg font-display font-bold text-foreground mb-5">
@@ -371,7 +380,6 @@ export function EpisodePageLayout({
             </div>
           </motion.section>
         )}
-
       </main>
 
       <Footer />
