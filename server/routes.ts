@@ -1562,6 +1562,36 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.post("/api/admin/batch-expand", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { batchExpandEpisodes, getBatchExpansionProgress } = await import("./emailScheduler");
+      const current = getBatchExpansionProgress();
+      if (current.status === "running") {
+        return res.status(409).json({ message: "Batch expansion already running", progress: current });
+      }
+      const target = Math.min(Math.max(parseInt(req.body.target) || 50, 1), 100);
+      batchExpandEpisodes(target);
+      res.json({ message: `Batch expansion started (target: ${target} episodes per podcast)` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to start batch expansion" });
+    }
+  });
+
+  app.get("/api/admin/batch-expand/progress", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { getBatchExpansionProgress } = await import("./emailScheduler");
+      res.json(getBatchExpansionProgress());
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to get progress" });
+    }
+  });
+
   app.post("/api/admin/reingest-transcript-segments", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

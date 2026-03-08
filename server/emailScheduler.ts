@@ -614,6 +614,265 @@ export async function backfillTopicsAndQuestions() {
   }
 }
 
+let batchExpansionRunning = false;
+let batchExpansionProgress: {
+  status: "idle" | "running" | "completed" | "error";
+  currentPodcast: string;
+  podcastsProcessed: number;
+  podcastsTotal: number;
+  episodesCreated: number;
+  episodesSkipped: number;
+  episodesFailed: number;
+  errors: string[];
+  startedAt: string | null;
+  completedAt: string | null;
+} = {
+  status: "idle",
+  currentPodcast: "",
+  podcastsProcessed: 0,
+  podcastsTotal: 0,
+  episodesCreated: 0,
+  episodesSkipped: 0,
+  episodesFailed: 0,
+  errors: [],
+  startedAt: null,
+  completedAt: null,
+};
+
+export function getBatchExpansionProgress() {
+  return { ...batchExpansionProgress };
+}
+
+export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
+  if (batchExpansionRunning) {
+    console.log("[BatchExpand] Already running, skipping");
+    return;
+  }
+
+  batchExpansionRunning = true;
+  batchExpansionProgress = {
+    status: "running",
+    currentPodcast: "",
+    podcastsProcessed: 0,
+    podcastsTotal: 0,
+    episodesCreated: 0,
+    episodesSkipped: 0,
+    episodesFailed: 0,
+    errors: [],
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+  };
+
+  const { pool: dbPool } = await import("./db");
+
+  try {
+    let landingPodcasts: any[];
+    try {
+      const allDir = await storage.getPodcastDirectory();
+      landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.itunesId && p.slug);
+    } catch (err) {
+      console.error("[BatchExpand] Failed to fetch podcast directory:", err);
+      batchExpansionProgress.status = "error";
+      batchExpansionProgress.errors.push("Failed to fetch podcast directory");
+      batchExpansionRunning = false;
+      return;
+    }
+
+    batchExpansionProgress.podcastsTotal = landingPodcasts.length;
+    console.log(`[BatchExpand] Starting batch expansion for ${landingPodcasts.length} podcasts (target: ${targetPerPodcast} episodes each)`);
+
+    for (const podcast of landingPodcasts) {
+      batchExpansionProgress.currentPodcast = podcast.name;
+
+      try {
+        const client = await dbPool.connect();
+        let existingCount: number;
+        try {
+          const { rows } = await client.query(
+            `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE slug = $1`,
+            [podcast.slug]
+          );
+          existingCount = rows[0].count;
+        } finally {
+          client.release();
+        }
+
+        if (existingCount >= targetPerPodcast) {
+          console.log(`[BatchExpand] ${podcast.name}: already has ${existingCount}/${targetPerPodcast} episodes, skipping`);
+          batchExpansionProgress.podcastsProcessed++;
+          continue;
+        }
+
+        const needed = targetPerPodcast - existingCount;
+        console.log(`[BatchExpand] ${podcast.name}: has ${existingCount}, needs ${needed} more`);
+
+        const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
+        if (!taddyPodcast?.uuid) {
+          console.warn(`[BatchExpand] ${podcast.name}: Taddy lookup failed, skipping`);
+          batchExpansionProgress.podcastsProcessed++;
+          continue;
+        }
+
+        const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, targetPerPodcast);
+        console.log(`[BatchExpand] ${podcast.name}: Taddy returned ${taddyEpisodes.length} episodes`);
+
+        let podcastCreated = 0;
+        for (const ep of taddyEpisodes) {
+          if (podcastCreated >= needed) break;
+
+          const epTitle = ep.name || "Untitled";
+          const epSlug = slugifyEpisodeTitle(epTitle);
+
+          const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
+          if (existingRecap) {
+            batchExpansionProgress.episodesSkipped++;
+            continue;
+          }
+
+          const episodeGuid = `taddy_${ep.uuid}`;
+
+          let transcriptText: string | null = null;
+          let rawSegments: any[] | null = null;
+
+          const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
+          if (cached) {
+            transcriptText = cached.transcript;
+          }
+
+          if (!transcriptText) {
+            const dbClient = await dbPool.connect();
+            try {
+              const titleMatch = await dbClient.query(
+                `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+                [podcast.itunesId, epTitle]
+              );
+              if (titleMatch.rows.length > 0) {
+                transcriptText = titleMatch.rows[0].transcript;
+              }
+            } finally {
+              dbClient.release();
+            }
+          }
+
+          if (!transcriptText) {
+            try {
+              rawSegments = await getEpisodeTranscriptSegments(ep.uuid);
+              if (rawSegments && rawSegments.length > 0) {
+                const lines: string[] = [];
+                for (const seg of rawSegments) {
+                  const speaker = seg.speaker ? `[${seg.speaker}] ` : "";
+                  lines.push(`${speaker}${seg.text}`);
+                }
+                transcriptText = lines.join("\n");
+                await storage.saveTranscript({
+                  podcastId: podcast.itunesId,
+                  episodeGuid,
+                  episodeTitle: epTitle,
+                  transcript: transcriptText,
+                });
+              }
+            } catch (taddyErr) {
+              console.warn(`[BatchExpand] Transcript fetch failed for "${epTitle}":`, taddyErr);
+            }
+          }
+
+          if (!transcriptText) {
+            batchExpansionProgress.episodesSkipped++;
+            continue;
+          }
+
+          if (rawSegments && rawSegments.length > 0) {
+            try {
+              const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
+              if (!hasSegs) {
+                const parsedSegments = parseRawTaddySegments(rawSegments, podcast.slug, epSlug, episodeGuid);
+                if (parsedSegments.length > 0) {
+                  await storage.saveTranscriptSegments(parsedSegments);
+                }
+              }
+            } catch (segErr) {
+              console.warn(`[BatchExpand] Segment save failed for "${epTitle}":`, segErr);
+            }
+          } else {
+            try {
+              const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
+              if (!hasSegs) {
+                const segments = parseTranscriptToSegments(transcriptText, podcast.slug, epSlug, episodeGuid);
+                if (segments.length > 0) {
+                  await storage.saveTranscriptSegments(segments);
+                }
+              }
+            } catch (segErr) {
+              console.warn(`[BatchExpand] Segment parse failed for "${epTitle}":`, segErr);
+            }
+          }
+
+          try {
+            const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
+            if (!recap) {
+              batchExpansionProgress.episodesFailed++;
+              continue;
+            }
+
+            const publishDate = ep.datePublished
+              ? new Date(ep.datePublished).toISOString().split("T")[0]
+              : new Date().toISOString().split("T")[0];
+
+            await storage.upsertLandingPageRecap({
+              slug: podcast.slug,
+              itunesId: podcast.itunesId,
+              podcastName: podcast.name,
+              episodeTitle: recap.episodeTitle,
+              episodeSlug: epSlug,
+              publishDate,
+              duration: null,
+              artworkUrl: podcast.artworkUrl || null,
+              hosts: podcast.hosts || null,
+              tldl: recap.tldl,
+              whatHappened: recap.whatHappened,
+              keyInsights: recap.keyInsights,
+              quote: recap.quote || null,
+              quoteAttribution: recap.quoteAttribution || null,
+              appleEpisodeUrl: null,
+              audioUrl: ep.audioUrl || null,
+              keyTopics: recap.keyTopics || null,
+              topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+            });
+
+            podcastCreated++;
+            batchExpansionProgress.episodesCreated++;
+            console.log(`[BatchExpand] ✓ ${podcast.name} - "${epTitle}" (${existingCount + podcastCreated}/${targetPerPodcast})`);
+
+            await new Promise(r => setTimeout(r, 500));
+          } catch (recapErr) {
+            batchExpansionProgress.episodesFailed++;
+            const errMsg = `${podcast.name} - "${epTitle}": ${recapErr}`;
+            batchExpansionProgress.errors.push(errMsg);
+            console.error(`[BatchExpand] Recap generation failed: ${errMsg}`);
+          }
+        }
+      } catch (podcastErr) {
+        const errMsg = `${podcast.name}: ${podcastErr}`;
+        batchExpansionProgress.errors.push(errMsg);
+        console.error(`[BatchExpand] Error processing ${podcast.name}:`, podcastErr);
+      }
+
+      batchExpansionProgress.podcastsProcessed++;
+    }
+
+    batchExpansionProgress.status = "completed";
+    batchExpansionProgress.completedAt = new Date().toISOString();
+    batchExpansionProgress.currentPodcast = "";
+    console.log(`[BatchExpand] Complete: ${batchExpansionProgress.episodesCreated} created, ${batchExpansionProgress.episodesSkipped} skipped, ${batchExpansionProgress.episodesFailed} failed`);
+  } catch (err) {
+    batchExpansionProgress.status = "error";
+    batchExpansionProgress.errors.push(`Fatal error: ${err}`);
+    console.error("[BatchExpand] Fatal error:", err);
+  } finally {
+    batchExpansionRunning = false;
+  }
+}
+
 export function startEmailScheduler() {
   console.log(`[EmailScheduler] Starting email scheduler (per-user generation at delivery time, emails held for review)...`);
   setInterval(processSchedulerTick, SCHEDULER_INTERVAL_MS);

@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye, Rss, Key } from "lucide-react";
 import { motion } from "framer-motion";
@@ -53,6 +53,149 @@ function formatDate(dateStr: string | null): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function BatchExpansionPanel() {
+  const { toast } = useToast();
+  const [isRunning, setIsRunning] = useState(false);
+  const [progress, setProgress] = useState<any>(null);
+  const [polling, setPolling] = useState(false);
+
+  const startExpansion = async () => {
+    if (!confirm("This will expand all podcasts to 50 episodes each. This process fetches transcripts from Taddy and generates AI recaps — it may take a while. Continue?")) return;
+    try {
+      setIsRunning(true);
+      const res = await fetch("/api/admin/batch-expand", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ target: 50 }),
+      });
+      if (res.status === 409) {
+        toast({ title: "Already Running", description: "Batch expansion is already in progress." });
+        setPolling(true);
+        pollProgress();
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to start");
+      toast({ title: "Batch Expansion Started", description: "Expanding all podcasts to 50 episodes. Check progress below." });
+      setPolling(true);
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+      setIsRunning(false);
+    }
+  };
+
+  const pollProgress = async () => {
+    try {
+      const res = await fetch("/api/admin/batch-expand/progress", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setProgress(data);
+        if (data.status === "running") {
+          setPolling(true);
+          setIsRunning(true);
+        } else {
+          setPolling(false);
+          setIsRunning(false);
+        }
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    pollProgress();
+  }, []);
+
+  useEffect(() => {
+    if (!polling) return;
+    const interval = setInterval(pollProgress, 3000);
+    return () => clearInterval(interval);
+  }, [polling]);
+
+  return (
+    <div className="glass-panel rounded-2xl p-5" data-testid="action-batch-expand">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-primary" />
+            Batch Episode Expansion
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">Expand all podcasts to 50 episodes each via Taddy transcripts + AI recaps.</p>
+        </div>
+        <button
+          data-testid="button-batch-expand"
+          onClick={startExpansion}
+          disabled={isRunning}
+          className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors whitespace-nowrap disabled:opacity-50"
+        >
+          {isRunning ? "Running..." : "Start Expansion"}
+        </button>
+      </div>
+
+      {progress && progress.status !== "idle" && (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className={`inline-block w-2 h-2 rounded-full ${progress.status === "running" ? "bg-emerald-500 animate-pulse" : progress.status === "completed" ? "bg-blue-500" : "bg-red-500"}`} />
+            <span className="text-xs font-semibold text-foreground capitalize">{progress.status}</span>
+            {progress.currentPodcast && <span className="text-xs text-muted-foreground">— {progress.currentPodcast}</span>}
+          </div>
+
+          {progress.podcastsTotal > 0 && (
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${Math.round((progress.podcastsProcessed / progress.podcastsTotal) * 100)}%` }}
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-2">
+              <p className="text-lg font-bold text-emerald-600">{progress.episodesCreated}</p>
+              <p className="text-[10px] text-muted-foreground">Created</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-2">
+              <p className="text-lg font-bold text-muted-foreground">{progress.episodesSkipped}</p>
+              <p className="text-[10px] text-muted-foreground">Skipped</p>
+            </div>
+            <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-2">
+              <p className="text-lg font-bold text-red-500">{progress.episodesFailed}</p>
+              <p className="text-[10px] text-muted-foreground">Failed</p>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-muted-foreground">
+            Podcasts: {progress.podcastsProcessed}/{progress.podcastsTotal}
+            {progress.startedAt && <> · Started {new Date(progress.startedAt).toLocaleTimeString()}</>}
+            {progress.completedAt && <> · Finished {new Date(progress.completedAt).toLocaleTimeString()}</>}
+          </p>
+
+          {progress.errors.length > 0 && (
+            <details className="text-xs">
+              <summary className="text-red-500 cursor-pointer font-medium">
+                {progress.errors.length} error(s)
+              </summary>
+              <div className="mt-1 max-h-32 overflow-y-auto space-y-1">
+                {progress.errors.map((e: string, i: number) => (
+                  <p key={i} className="text-red-400 text-[10px] break-all">{e}</p>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {!polling && progress.status !== "idle" && (
+            <button
+              onClick={() => { setPolling(true); pollProgress(); }}
+              className="text-xs text-primary hover:underline"
+            >
+              Refresh Status
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Admin() {
@@ -680,6 +823,8 @@ export default function Admin() {
                         Start Backfill
                       </button>
                     </div>
+
+                    <BatchExpansionPanel />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="glass-panel rounded-2xl p-6" data-testid="chart-top-podcasts">
