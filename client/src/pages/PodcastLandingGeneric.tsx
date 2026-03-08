@@ -664,15 +664,59 @@ export default function PodcastLandingGeneric() {
                     <div key={host.id || i} className="bg-white border border-black/[0.06] rounded-xl p-5" data-testid={`host-bio-${i}`}>
                       <div className="flex items-center gap-3 mb-3">
                         {host.photoUrl ? (
-                          <img src={host.photoUrl} alt={host.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                          <img src={host.photoUrl} alt={host.name} className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-black/[0.04]" />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/[0.08] flex items-center justify-center shrink-0">
-                            <Users className="w-[18px] h-[18px] text-primary/60" />
+                          <div className="w-12 h-12 rounded-full bg-primary/[0.08] flex items-center justify-center shrink-0">
+                            <Users className="w-5 h-5 text-primary/60" />
                           </div>
                         )}
                         <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
                       </div>
-                      {host.bio && <p className="text-sm text-muted-foreground leading-relaxed mb-3">{host.bio}</p>}
+                      {host.bio && (() => {
+                        const paragraphs = host.bio.split(/\n\n+/).filter((p: string) => p.trim());
+                        return (
+                          <div className="text-sm text-muted-foreground leading-relaxed mb-3 space-y-2.5">
+                            {paragraphs.map((para: string, pi: number) => {
+                              const lines = para.split('\n').filter((l: string) => l.trim());
+                              const bulletLines = lines.filter((l: string) => /^[•\-\*]\s/.test(l.trim()));
+                              if (bulletLines.length > 0 && bulletLines.length === lines.length) {
+                                return (
+                                  <ul key={pi} className="space-y-1 pl-1">
+                                    {bulletLines.map((line: string, li: number) => (
+                                      <li key={li} className="flex items-start gap-2">
+                                        <span className="text-primary/50 mt-[3px] text-[10px]">●</span>
+                                        <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                );
+                              }
+                              const hasInlineBullets = para.includes('•') && !para.startsWith('•');
+                              if (hasInlineBullets) {
+                                const parts = para.split(/\s*•\s*/);
+                                const intro = parts[0];
+                                const items = parts.slice(1).filter((s: string) => s.trim());
+                                return (
+                                  <div key={pi}>
+                                    {intro && <p className="mb-1.5">{intro}</p>}
+                                    {items.length > 0 && (
+                                      <ul className="space-y-1 pl-1">
+                                        {items.map((item: string, li: number) => (
+                                          <li key={li} className="flex items-start gap-2">
+                                            <span className="text-primary/50 mt-[3px] text-[10px]">●</span>
+                                            <span>{item.trim()}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              return <p key={pi}>{para}</p>;
+                            })}
+                          </div>
+                        );
+                      })()}
                       {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
                         <div className="flex items-center gap-2 flex-wrap">
                           {host.twitterHandle && (
