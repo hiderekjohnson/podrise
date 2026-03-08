@@ -16,6 +16,37 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    title: "Full episode transcripts",
+    description: "Every episode now has a full, searchable transcript you can read right alongside the recap.",
+    link: { url: "/podcasts/myfirstmillion", label: "Read a transcript" },
+    emoji: "📜",
+  },
+  {
+    title: "Search across transcripts",
+    description: "Search any keyword across all episodes of a podcast and find exactly where it was discussed, with direct links to the relevant transcript sections.",
+    emoji: "🔍",
+  },
+  {
+    title: "Ask AI about any podcast",
+    description: "Ask questions about any podcast and get AI-powered answers drawn from real transcripts and episode summaries across the entire show's history.",
+    emoji: "🤖",
+  },
+  {
+    title: "Host bios and photos",
+    description: "Every podcast page now shows host bios and profile photos pulled from their social media accounts. We love our hosts!",
+    emoji: "👤",
+  },
+  {
+    title: "Redesigned episode recaps",
+    description: "Episode recap pages now organize content into clean, numbered cards — TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI — so you can scan or deep-dive however you prefer.",
+    emoji: "✨",
+  },
+  {
+    title: "Key Topics and Top Questions",
+    description: "Each episode recap now highlights the main topics discussed and the most interesting questions raised during the episode.",
+    emoji: "💡",
+  },
+  {
     title: "Listen to the full episode",
     description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear.",
     emoji: "🎧",
