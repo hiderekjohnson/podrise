@@ -2,7 +2,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, FileText, Mail, X } from "lucide-react";
-import { SiApplepodcasts, SiSpotify } from "react-icons/si";
+import { SiSpotify } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { useRegister } from "@/hooks/use-auth";
@@ -262,7 +262,11 @@ export default function EpisodeRecapPage() {
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.06] text-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
                   data-testid="link-apple-podcasts"
                 >
-                  <SiApplepodcasts className="w-3.5 h-3.5 text-[#9933CC]" />
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5">
+                    <defs><linearGradient id="ap-grad" x1="12" y1="24" x2="12" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#822cbe"/><stop offset="1" stopColor="#d94afa"/></linearGradient></defs>
+                    <rect width="24" height="24" rx="5.4" fill="url(#ap-grad)"/>
+                    <path d="M12 5.6a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM12 13.1a1.15 1.15 0 0 0-1.15 1.15v.1l.35 4.3a.8.8 0 0 0 .8.75h.01a.8.8 0 0 0 .8-.75l.34-4.3v-.1A1.15 1.15 0 0 0 12 13.1Z" fill="white"/>
+                  </svg>
                   Listen on Apple Podcasts
                 </a>
                 <a
