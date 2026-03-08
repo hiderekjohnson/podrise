@@ -257,3 +257,12 @@ export const insertRssFeedSchema = createInsertSchema(rssFeeds).omit({
 export type RssFeed = typeof rssFeeds.$inferSelect;
 export type InsertRssFeed = z.infer<typeof insertRssFeedSchema>;
 
+export const podcastTopQuestions = pgTable("podcast_top_questions", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  questions: text("questions").notNull(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
+
+export type PodcastTopQuestion = typeof podcastTopQuestions.$inferSelect;
+

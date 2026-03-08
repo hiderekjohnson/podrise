@@ -771,6 +771,123 @@ export async function registerRoutes(
     }
   });
 
+  const topQRateLimit = new Map<string, number[]>();
+  const topQInFlight = new Map<string, Promise<any>>();
+  app.get("/api/podcasts/:slug/top-questions", async (req, res) => {
+    try {
+      const clientIp = req.ip || req.socket.remoteAddress || "unknown";
+      const now = Date.now();
+      const reqs = (topQRateLimit.get(clientIp) || []).filter(t => now - t < 60000);
+      if (reqs.length >= 15) {
+        return res.status(429).json({ error: "Too many requests. Please wait." });
+      }
+      reqs.push(now);
+      topQRateLimit.set(clientIp, reqs);
+
+      const { slug } = req.params;
+      const { db } = await import("./db");
+      const { eq } = await import("drizzle-orm");
+      const { podcastTopQuestions } = await import("@shared/schema");
+
+      const existing = await db.select().from(podcastTopQuestions).where(eq(podcastTopQuestions.slug, slug)).limit(1);
+      if (existing.length > 0) {
+        let parsed: any[] = [];
+        try { parsed = JSON.parse(existing[0].questions); } catch { parsed = []; }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return res.json({ questions: parsed, slug, cached: true });
+        }
+      }
+
+      if (topQInFlight.has(slug)) {
+        try {
+          const result = await topQInFlight.get(slug);
+          return res.json(result);
+        } catch {
+          return res.status(500).json({ error: "Failed to generate top questions" });
+        }
+      }
+
+      const generatePromise = (async () => {
+        const recaps = await storage.getLandingPageRecaps(slug, 50, 0);
+        if (!recaps || recaps.length === 0) {
+          return { questions: [], slug };
+        }
+
+        const podcastName = recaps[0]?.podcastName || slug;
+        const summaryContext = recaps.slice(0, 30).map(r =>
+          `Episode: "${r.episodeTitle}"\nSummary: ${r.tldl || ""}\n${r.whatHappened ? r.whatHappened.slice(0, 200) : ""}`
+        ).join("\n\n").slice(0, 12000);
+
+        const { openai } = await import("./replit_integrations/image/client");
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are an SEO expert analyzing the podcast "${podcastName}". Generate exactly 5 questions that people would most likely search for on Google about this podcast and the topics it covers.
+
+Rules:
+- Questions must be clear, specific, and phrased like real Google searches
+- Focus on themes, strategies, ideas, and topics commonly discussed on the podcast
+- Avoid generic questions like "What is this podcast about?" or "What do the hosts talk about?"
+- Each answer should be 2-3 paragraphs summarizing what the podcast typically says about that topic based on the episodes provided
+- Reference themes that come up across multiple episodes
+
+Return a JSON array of exactly 5 objects with "question" and "answer" fields. Return ONLY the JSON array, no other text.`
+            },
+            {
+              role: "user",
+              content: `Here are summaries from recent episodes of "${podcastName}":\n\n${summaryContext}\n\nGenerate 5 SEO-optimized questions and answers about this podcast.`
+            }
+          ],
+          max_tokens: 3000,
+          temperature: 0.7,
+        });
+
+        const raw = completion.choices[0]?.message?.content || "[]";
+        let questions: { question: string; answer: string }[] = [];
+        try {
+          const jsonMatch = raw.match(/\[[\s\S]*\]/);
+          questions = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+          if (!Array.isArray(questions)) questions = [];
+          questions = questions.slice(0, 5).map(q => ({
+            question: String(q.question || ""),
+            answer: String(q.answer || ""),
+          })).filter(q => q.question && q.answer);
+        } catch {
+          console.error("[TopQuestions] Failed to parse AI response for", slug);
+          return { questions: [], slug };
+        }
+
+        if (questions.length > 0) {
+          await db.insert(podcastTopQuestions).values({
+            slug,
+            questions: JSON.stringify(questions),
+          }).onConflictDoUpdate({
+            target: podcastTopQuestions.slug,
+            set: { questions: JSON.stringify(questions), generatedAt: new Date() },
+          });
+        }
+
+        return { questions, slug, cached: false };
+      })();
+
+      topQInFlight.set(slug, generatePromise);
+      try {
+        const result = await generatePromise;
+        res.json(result);
+      } catch (err) {
+        console.error("[TopQuestions] Generation error:", err);
+        res.status(500).json({ error: "Failed to generate top questions" });
+      } finally {
+        topQInFlight.delete(slug);
+      }
+    } catch (err) {
+      console.error("[TopQuestions] Error:", err);
+      res.status(500).json({ error: "Failed to generate top questions" });
+    }
+  });
+
   const podcastAskRateLimit = new Map<string, number[]>();
   app.post("/api/podcasts/:slug/ask", async (req, res) => {
     try {

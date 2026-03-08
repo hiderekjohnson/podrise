@@ -182,6 +182,19 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
   const [answer, setAnswer] = useState<{ answer: string; episodesCited: string[] } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  type TopQ = { question: string; answer: string };
+  const { data: topQData, isLoading: topQLoading } = useQuery<{ questions: TopQ[] }>({
+    queryKey: ["/api/podcasts", slug, "top-questions"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${slug}/top-questions`);
+      if (!res.ok) throw new Error("Failed to load");
+      return res.json();
+    },
+  });
+
+  const topQuestions = topQData?.questions || [];
 
   const handleSubmit = async (q?: string) => {
     const finalQ = (q || question).trim();
@@ -209,19 +222,65 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
   };
 
   const exampleQuestions = [
-    `What are the most discussed topics on ${podcastName}?`,
-    `What's the most controversial opinion shared on the show?`,
-    `What advice do the hosts give most often?`,
+    `What did they say about SaaS businesses?`,
+    `What startup ideas have they discussed recently?`,
+    `What advice do they give for building an audience?`,
   ];
 
   return (
     <div data-testid="section-ask-podcast">
+      {topQLoading && (
+        <div className="flex items-center justify-center py-10 text-muted-foreground gap-2.5 mb-8">
+          <Loader2 className="w-5 h-5 animate-spin text-primary/50" />
+          <span className="text-sm font-medium">Loading top questions...</span>
+        </div>
+      )}
+
+      {topQuestions.length > 0 && (
+        <div className="mb-10" data-testid="section-top-questions-podcast">
+          <h2 className="text-xl sm:text-[22px] font-display font-bold text-foreground mb-5 flex items-center gap-2.5">
+            <span className="w-1 h-6 rounded-full bg-violet-400" />
+            Top Questions About {podcastName}
+          </h2>
+          <div className="space-y-3">
+            {topQuestions.map((item, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-xl overflow-hidden shadow-sm shadow-black/[0.02]"
+                data-testid={`top-q-item-${i}`}
+              >
+                <button
+                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                  data-testid={`top-q-toggle-${i}`}
+                >
+                  <span className="text-[15px] font-semibold text-foreground leading-snug">{item.question}</span>
+                  <svg
+                    className={`w-4 h-4 text-muted-foreground/40 shrink-0 transition-transform duration-200 ${expandedFaq === i ? "rotate-180" : ""}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {expandedFaq === i && (
+                  <div className="px-5 pb-5 pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+                    {item.answer.split("\n\n").filter(Boolean).map((p, pi) => (
+                      <p key={pi} className="text-[15px] leading-[1.8] text-muted-foreground mb-3 last:mb-0">{p}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="relative bg-gradient-to-br from-violet-500/[0.04] to-primary/[0.03] border border-violet-500/[0.1] rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/[0.1]">
             <Sparkles className="w-3.5 h-3.5 text-violet-500" />
           </span>
-          <span className="text-sm font-bold text-foreground">Ask About This Podcast</span>
+          <span className="text-sm font-bold text-foreground">Ask your own question about this podcast</span>
           <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none">Powered by AI</span>
         </div>
         <p className="text-sm text-muted-foreground mb-5">
