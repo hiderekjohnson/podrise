@@ -132,6 +132,7 @@ export async function searchEpisodeByName(
         uuid
         name
         podcastSeries {
+          uuid
           name
         }
       }
