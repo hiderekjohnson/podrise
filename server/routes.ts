@@ -545,24 +545,52 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/podcasts/:podcastSlug/:episodeSlug/transcript", async (req, res) => {
-    try {
-      const { renderTranscriptPage } = await import("./transcriptPage");
-      const html = await renderTranscriptPage(req.params.podcastSlug, req.params.episodeSlug);
-      if (!html) return res.status(404).send("Transcript not found");
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
-      res.send(html);
-    } catch (err) {
-      console.error("[TranscriptPage] Error:", err);
-      res.status(500).send("Error loading transcript");
-    }
-  });
-
   app.get("/api/podcasts/:slug/:episodeSlug/transcript-segments", async (req, res) => {
     try {
-      const segments = await storage.getTranscriptSegmentsBySlug(req.params.slug, req.params.episodeSlug);
-      res.json(segments);
+      const { slug, episodeSlug } = req.params;
+      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
+      if (!segments || segments.length === 0) {
+        return res.status(404).json({ error: "Transcript not found" });
+      }
+
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+      const allRecaps = await storage.getLandingPageRecaps(slug, 50);
+      const itunesId = recap?.itunesId || allRecaps.find(r => r.itunesId)?.itunesId || "";
+
+      const totalWords = segments.reduce((sum, s) => sum + s.text.split(/\s+/).length, 0);
+      const readingMinutes = Math.ceil(totalWords / 200);
+      const hasTimestamps = segments.some(s => s.timestampLabel);
+
+      const appleEpisodeUrl = (recap as any)?.appleEpisodeUrl || "";
+      const podcastName = recap?.podcastName || slug;
+      const episodeTitle = recap?.episodeTitle || episodeSlug;
+
+      res.json({
+        segments: segments.map(s => ({
+          id: s.id,
+          text: s.text,
+          anchorId: s.anchorId,
+          timestampLabel: s.timestampLabel,
+          speakerName: s.speakerName,
+          sequenceIndex: s.sequenceIndex,
+        })),
+        meta: {
+          podcastName,
+          podcastSlug: slug,
+          episodeTitle,
+          episodeSlug,
+          itunesId,
+          publishDate: recap?.publishDate || "",
+          duration: recap?.duration || "",
+          artworkUrl: recap?.artworkUrl || "",
+          hosts: recap?.hosts || "",
+          appleEpisodeUrl,
+          totalSegments: segments.length,
+          totalWords,
+          readingMinutes,
+          hasTimestamps,
+        },
+      });
     } catch {
       res.status(500).json({ error: "Failed to fetch transcript segments" });
     }
