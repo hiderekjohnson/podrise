@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
-import { ExampleRecapSection } from "@/components/ExampleRecapSection";
+
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
@@ -442,22 +442,6 @@ export default function PodcastLandingGeneric() {
         </section>
 
 
-        <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.08 }}
-          className="w-full max-w-4xl pb-6"
-        >
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-3" data-testid="heading-example-intro">
-            Podcast Recap Example
-          </h2>
-          <p className="text-base text-muted-foreground text-center mb-8 max-w-xl mx-auto leading-relaxed">
-            Here's exactly what lands in your inbox — a real recap from a recent {name} episode.
-          </p>
-        </motion.section>
-
-        <ExampleRecapSection slug={slug || ""} podcastName={name} hideHeading artworkUrl={artworkUrl} />
-
         {episodeRecaps.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 16 }}
@@ -473,12 +457,12 @@ export default function PodcastLandingGeneric() {
               {episodeRecaps.slice(0, 10).map((ep) => {
                 const date = new Date(ep.publishDate + "T00:00:00");
                 const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                const snippet = ep.tldl.length > 120 ? ep.tldl.slice(0, 120).replace(/\s+\S*$/, "") + "..." : ep.tldl;
+                const snippet = ep.tldl;
                 return (
                   <Link key={ep.episodeSlug} href={`/podcasts/${slug}/${ep.episodeSlug}`}>
                     <div className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4 hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.12] transition-all cursor-pointer group" data-testid={`card-episode-${ep.episodeSlug}`}>
                       <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                      <p className="text-[15px] text-muted-foreground mt-1.5 line-clamp-2">{snippet}</p>
+                      <p className="text-[15px] text-muted-foreground mt-1.5 leading-relaxed">{snippet}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground/60">{formatted} · {ep.duration}</span>
                         <span className="inline-flex items-center gap-1 text-sm font-medium text-primary/60 group-hover:text-primary transition-colors">
