@@ -486,6 +486,8 @@ export class DatabaseStorage implements IStorage {
           keyInsights: data.keyInsights,
           quote: data.quote,
           quoteAttribution: data.quoteAttribution,
+          appleEpisodeUrl: data.appleEpisodeUrl,
+          audioUrl: data.audioUrl,
         },
       })
       .returning();

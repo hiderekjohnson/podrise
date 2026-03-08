@@ -517,6 +517,10 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           ? new Date(ep.releaseDate).toISOString().split("T")[0]
           : todayKey;
 
+        const appleEpisodeUrl = ep.trackViewUrl
+          ? ep.trackViewUrl.replace(/&uo=\d+/, "")
+          : null;
+
         await storage.upsertLandingPageRecap({
           slug: podcast.slug,
           itunesId: podcast.itunesId,
@@ -532,6 +536,8 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           keyInsights: recap.keyInsights,
           quote: recap.quote || null,
           quoteAttribution: recap.quoteAttribution || null,
+          appleEpisodeUrl: appleEpisodeUrl,
+          audioUrl: ep.episodeUrl || null,
         });
 
         if (podcastNewRecaps === 0) {
@@ -757,6 +763,61 @@ export async function reIngestTranscriptSegments() {
     }
 
     console.log(`[TranscriptReIngest] Complete: ${upgraded} upgraded, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function backfillAppleEpisodeUrls() {
+  const { pool: dbPool } = await import("./db");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recaps } = await client.query(
+      `SELECT id, slug, itunes_id, episode_title FROM landing_page_recaps WHERE apple_episode_url IS NULL AND itunes_id IS NOT NULL`
+    );
+    console.log(`[BackfillAppleUrls] Found ${recaps.length} recaps missing Apple episode URLs`);
+
+    const byItunesId = new Map<string, typeof recaps>();
+    for (const r of recaps) {
+      const list = byItunesId.get(r.itunes_id) || [];
+      list.push(r);
+      byItunesId.set(r.itunes_id, list);
+    }
+
+    let updated = 0;
+    let errors = 0;
+
+    for (const [itunesId, podcastRecaps] of byItunesId) {
+      try {
+        const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=50&sort=recent`;
+        const lookupRes = await fetch(lookupUrl);
+        const lookupJson = await lookupRes.json();
+        const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+
+        for (const recap of podcastRecaps) {
+          const titleNorm = recap.episode_title.toLowerCase().trim();
+          const match = episodes.find((ep: any) => {
+            const epNorm = (ep.trackName || "").toLowerCase().trim();
+            return epNorm === titleNorm || epNorm.includes(titleNorm) || titleNorm.includes(epNorm);
+          });
+          if (match?.trackViewUrl) {
+            const cleanUrl = match.trackViewUrl.replace(/&uo=\d+/, "");
+            await client.query(
+              `UPDATE landing_page_recaps SET apple_episode_url = $1, audio_url = COALESCE(audio_url, $2) WHERE id = $3`,
+              [cleanUrl, match.episodeUrl || null, recap.id]
+            );
+            updated++;
+          }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (err) {
+        errors++;
+        console.warn(`[BackfillAppleUrls] Error for iTunes ID ${itunesId}:`, err);
+      }
+    }
+
+    console.log(`[BackfillAppleUrls] Complete: ${updated} updated, ${errors} errors`);
   } finally {
     client.release();
   }

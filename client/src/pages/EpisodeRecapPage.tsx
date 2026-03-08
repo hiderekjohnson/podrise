@@ -238,14 +238,14 @@ export default function EpisodeRecapPage() {
               </div>
               <div className="flex items-center gap-2 mt-4" data-testid="listen-buttons">
                 <a
-                  href={`https://podcasts.apple.com/podcast/id${podcastConfig.itunesId}`}
+                  href={episode.appleEpisodeUrl || `https://podcasts.apple.com/podcast/id${podcastConfig?.itunesId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-black/[0.04] dark:bg-white/[0.06] text-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
                   data-testid="link-apple-podcasts"
                 >
                   <SiApplepodcasts className="w-3.5 h-3.5 text-[#9933CC]" />
-                  Apple Podcasts
+                  Listen on Apple Podcasts
                 </a>
                 <a
                   href={`https://open.spotify.com/search/${encodeURIComponent(episode.episodeTitle + ' ' + episode.podcastName)}`}
@@ -255,7 +255,7 @@ export default function EpisodeRecapPage() {
                   data-testid="link-spotify"
                 >
                   <SiSpotify className="w-3.5 h-3.5 text-[#1DB954]" />
-                  Spotify
+                  Listen on Spotify
                 </a>
               </div>
             </div>
