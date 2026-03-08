@@ -466,7 +466,7 @@ export default function PodcastLandingGeneric() {
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground/60">{formatted} · {ep.duration}</span>
                         <span className="inline-flex items-center gap-1 text-sm font-medium text-primary/60 group-hover:text-primary transition-colors">
-                          Read Summary
+                          See Full Recap
                           <ArrowRight className="w-3.5 h-3.5" />
                         </span>
                       </div>
