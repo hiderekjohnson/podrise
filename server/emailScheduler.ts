@@ -628,7 +628,8 @@ export async function enrichPodcastMetadata(singleItunesId?: string) {
     podcasts = [entry];
   } else {
     const allDir = await storage.getPodcastDirectory();
-    podcasts = allDir.filter((p: any) => p.hasLandingPage && (!p.aboutPodcast || !p.knownFor || !p.hostBios));
+    const currentYear = new Date().getFullYear();
+    podcasts = allDir.filter((p: any) => p.hasLandingPage && (!p.aboutPodcast || !p.knownFor || !p.hostBios || !p.yearStarted || p.yearStarted >= currentYear));
   }
 
   console.log(`[Enrich] Enriching metadata for ${podcasts.length} podcasts...`);
@@ -681,7 +682,8 @@ Generate the following as a JSON object:
   "hostBios": [{"name": "Host Name", "bio": "1-2 sentence bio of this host. Include their role/background."}],
   "frequency": "Weekly|Twice weekly|Daily|Biweekly|Monthly",
   "category": "One of: Technology, Business, Society & Culture, Comedy, News, Science, Education, Health & Fitness, Sports, True Crime, Arts",
-  "avgEpisodeLength": estimated average episode length in minutes as an integer
+  "avgEpisodeLength": estimated average episode length in minutes as an integer,
+  "yearStarted": the year this podcast first launched/premiered as an integer (e.g. 2017)
 }
 
 RULES:
@@ -724,9 +726,12 @@ RULES:
       if (!podcast.description && itunesDescription) updateData.description = itunesDescription;
       if (!podcast.artworkUrl && artworkUrl) updateData.artworkUrl = artworkUrl;
       if (!podcast.totalEpisodes && itunesTrackCount) updateData.totalEpisodes = itunesTrackCount;
-      if (!podcast.yearStarted && releaseDate) {
-        const firstYear = new Date(releaseDate).getFullYear();
-        if (firstYear > 2000 && firstYear <= new Date().getFullYear()) updateData.yearStarted = firstYear;
+      if (parsed.yearStarted) {
+        const yr = parseInt(parsed.yearStarted);
+        const curYear = new Date().getFullYear();
+        if (yr > 2000 && yr < curYear && (!podcast.yearStarted || podcast.yearStarted >= curYear)) {
+          updateData.yearStarted = yr;
+        }
       }
       if (!podcast.hosts && parsed.hostBios?.length > 0) {
         updateData.hosts = parsed.hostBios.map((h: any) => h.name).join(" & ");
