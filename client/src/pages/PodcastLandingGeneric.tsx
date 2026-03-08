@@ -480,6 +480,9 @@ export default function PodcastLandingGeneric() {
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
+                {tab.id === "search" && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-primary/10 text-primary leading-none" data-testid="badge-search-beta">beta</span>
+                )}
               </button>
             ))}
           </div>
