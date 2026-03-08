@@ -533,6 +533,82 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/search", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const q = (req.query.q as string || "").trim();
+      if (!q || q.length < 2) return res.json({ results: [] });
+
+      const dirEntry = await storage.getPodcastDirectoryBySlug(slug);
+      if (!dirEntry) return res.status(404).json({ error: "Podcast not found" });
+
+      const { pool } = await import("./db");
+      const client = await pool.connect();
+      try {
+        const result = await client.query(
+          `SELECT episode_title, transcript, fetched_at
+           FROM episode_transcripts
+           WHERE podcast_id = $1 AND transcript ILIKE '%' || $2 || '%'
+           ORDER BY fetched_at DESC`,
+          [dirEntry.itunesId, q]
+        );
+
+        const searchResults: Array<{
+          episodeTitle: string;
+          mentions: number;
+          snippets: string[];
+          date: string;
+        }> = [];
+
+        for (const row of result.rows) {
+          const transcript: string = row.transcript;
+          const lowerTranscript = transcript.toLowerCase();
+          const lowerQ = q.toLowerCase();
+          const snippets: string[] = [];
+          let pos = 0;
+
+          while (snippets.length < 3) {
+            const idx = lowerTranscript.indexOf(lowerQ, pos);
+            if (idx === -1) break;
+            const start = Math.max(0, idx - 100);
+            const end = Math.min(transcript.length, idx + q.length + 100);
+            let snippet = transcript.substring(start, end).replace(/\s+/g, " ").trim();
+            if (start > 0) snippet = "..." + snippet;
+            if (end < transcript.length) snippet = snippet + "...";
+            snippets.push(snippet);
+            pos = idx + q.length;
+          }
+
+          let mentions = 0;
+          let countPos = 0;
+          while (true) {
+            const idx = lowerTranscript.indexOf(lowerQ, countPos);
+            if (idx === -1) break;
+            mentions++;
+            countPos = idx + lowerQ.length;
+          }
+
+          if (snippets.length > 0) {
+            searchResults.push({
+              episodeTitle: row.episode_title,
+              mentions,
+              snippets,
+              date: row.fetched_at ? new Date(row.fetched_at).toISOString().split("T")[0] : "",
+            });
+          }
+        }
+
+        searchResults.sort((a, b) => b.mentions - a.mentions);
+        res.json({ results: searchResults.slice(0, 10), query: q, total: searchResults.length });
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      console.error("Transcript search error:", err);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/example-recap", async (req, res) => {
     try {
       const recap = await storage.getExampleRecap(req.params.slug);

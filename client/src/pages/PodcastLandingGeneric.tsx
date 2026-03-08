@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Mail, ChevronDown, ExternalLink, Calendar, Mic, Users, Star, Search, X } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +11,127 @@ import { ExampleRecapSection } from "@/components/ExampleRecapSection";
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
+
+function highlightMatch(text: string, query: string) {
+  if (!query) return text;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    regex.test(part) ? <mark key={i} className="bg-primary/20 text-foreground rounded px-0.5">{part}</mark> : part
+  );
+}
+
+function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: string }) {
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const handleChange = useCallback((val: string) => {
+    setQuery(val);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedQuery(val), 400);
+  }, []);
+
+  const { data, isLoading } = useQuery<{ results: Array<{ episodeTitle: string; mentions: number; snippets: string[]; date: string }>; query: string; total: number }>({
+    queryKey: ["/api/podcasts", slug, "search", debouncedQuery],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${slug}/search?q=${encodeURIComponent(debouncedQuery)}`);
+      if (!res.ok) return { results: [], query: debouncedQuery, total: 0 };
+      return res.json();
+    },
+    enabled: debouncedQuery.length >= 2,
+  });
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.14 }}
+      className="w-full max-w-4xl pb-20"
+      data-testid="section-transcript-search"
+    >
+      <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground text-center mb-3">
+        Search {podcastName} Episodes
+      </h2>
+      <p className="text-base text-muted-foreground text-center mb-8 max-w-xl mx-auto leading-relaxed">
+        Search through real episode transcripts to find exactly when a topic was discussed.
+      </p>
+
+      <div className="relative max-w-2xl mx-auto mb-6">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" />
+        <input
+          ref={inputRef}
+          data-testid="input-transcript-search"
+          type="text"
+          value={query}
+          onChange={(e) => { handleChange(e.target.value); setIsOpen(true); }}
+          onFocus={() => setIsOpen(true)}
+          placeholder={`Search topics in ${podcastName}... (e.g. "Airbnb", "AI", "investing")`}
+          className="w-full h-12 pl-12 pr-10 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+        />
+        {query && (
+          <button
+            data-testid="button-clear-search"
+            onClick={() => { setQuery(""); setDebouncedQuery(""); setIsOpen(false); }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {isOpen && debouncedQuery.length >= 2 && (
+        <div className="max-w-2xl mx-auto">
+          {isLoading && (
+            <div className="flex items-center justify-center py-8 text-muted-foreground gap-2" data-testid="search-loading">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Searching transcripts...</span>
+            </div>
+          )}
+
+          {!isLoading && data && data.results.length === 0 && (
+            <div className="text-center py-8" data-testid="search-no-results">
+              <p className="text-muted-foreground text-sm">No mentions of "{debouncedQuery}" found in available transcripts.</p>
+            </div>
+          )}
+
+          {!isLoading && data && data.results.length > 0 && (
+            <div data-testid="search-results">
+              <p className="text-sm text-muted-foreground mb-4 text-center">
+                Found "{data.query}" in {data.total} episode{data.total !== 1 ? "s" : ""}
+              </p>
+              <div className="space-y-3">
+                {data.results.map((result, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4"
+                    data-testid={`search-result-${idx}`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <p className="text-base font-bold text-foreground leading-snug">{result.episodeTitle}</p>
+                      <span className="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/[0.08] text-primary">
+                        {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {result.snippets.map((snippet, sIdx) => (
+                        <p key={sIdx} className="text-[13px] text-muted-foreground leading-relaxed bg-muted/30 rounded-lg px-3 py-2">
+                          {highlightMatch(snippet, data.query)}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </motion.section>
+  );
+}
 
 function generatePodcapFaqItems(name: string) {
   return [
@@ -375,6 +496,8 @@ export default function PodcastLandingGeneric() {
             )}
           </motion.section>
         )}
+
+        <TranscriptSearch slug={slug || ""} podcastName={name} />
 
         <motion.section
           initial={{ opacity: 0, y: 16 }}
