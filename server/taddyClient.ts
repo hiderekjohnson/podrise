@@ -84,6 +84,68 @@ export async function getRecentEpisodesWithTranscripts(
   return episodes;
 }
 
+export async function getEpisodesByItunesId(
+  itunesId: string,
+  limit: number = 50
+): Promise<TaddyEpisode[]> {
+  const numericId = parseInt(itunesId, 10);
+  if (isNaN(numericId)) return [];
+
+  const cacheKey = `episodes_itunes_${numericId}_${limit}`;
+  const cached = episodeCache.get(cacheKey);
+  if (cached && cached.expiry > Date.now()) {
+    return cached.result;
+  }
+
+  const query = `{
+    getPodcastSeries(itunesId: ${numericId}) {
+      uuid
+      name
+      episodes(sortOrder: LATEST, limitPerPage: ${limit}) {
+        uuid
+        name
+        datePublished
+        audioUrl
+      }
+    }
+  }`;
+
+  const data = await taddyRequest(query);
+  if (!data?.data?.getPodcastSeries?.episodes) {
+    console.log(`[Taddy] Episodes by itunesId ${numericId}:`, JSON.stringify(data?.data?.getPodcastSeries || data?.errors || "null").slice(0, 300));
+  }
+  const episodes = data?.data?.getPodcastSeries?.episodes || [];
+  episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
+  return episodes;
+}
+
+export async function searchEpisodeByName(
+  podcastItunesId: string,
+  episodeName: string
+): Promise<{ uuid: string; name: string } | null> {
+  const cleanName = episodeName.replace(/"/g, '\\"').slice(0, 100);
+  const numericId = parseInt(podcastItunesId, 10);
+  if (isNaN(numericId)) return null;
+
+  const query = `{
+    searchForTerm(term: "${cleanName}", filterForTypes: PODCASTEPISODE, filterForPodcasts: [${numericId}], limitPerPage: 5) {
+      searchId
+      podcastEpisodes {
+        uuid
+        name
+      }
+    }
+  }`;
+
+  const data = await taddyRequest(query);
+  const episodes = data?.data?.searchForTerm?.podcastEpisodes;
+  if (!episodes || !Array.isArray(episodes) || episodes.length === 0) {
+    return null;
+  }
+
+  return episodes[0];
+}
+
 export async function getEpisodeTranscriptSegments(episodeUuid: string): Promise<TaddyTranscriptSegment[] | null> {
   const query = `{
     getEpisodeTranscript(uuid: "${episodeUuid}") {

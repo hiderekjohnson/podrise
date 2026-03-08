@@ -2,7 +2,7 @@ import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
-import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments } from "./taddyClient";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
@@ -850,21 +850,12 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
           continue;
         }
 
-        let taddyPodcastUuid: string | null = null;
-        try {
-          const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
-          taddyPodcastUuid = taddyPodcast?.uuid || null;
-        } catch {
-          console.warn(`[BatchExpand] ${podcast.name}: Taddy podcast lookup failed`);
-        }
-
         let taddyEpisodesList: any[] = [];
-        if (taddyPodcastUuid) {
-          try {
-            taddyEpisodesList = await getRecentEpisodesWithTranscripts(taddyPodcastUuid, 50);
-          } catch {
-            console.warn(`[BatchExpand] ${podcast.name}: Taddy episodes fetch failed`);
-          }
+        try {
+          taddyEpisodesList = await getEpisodesByItunesId(podcast.itunesId, 50);
+          console.log(`[BatchExpand] ${podcast.name}: Taddy returned ${taddyEpisodesList.length} episodes`);
+        } catch {
+          console.warn(`[BatchExpand] ${podcast.name}: Taddy episodes fetch failed`);
         }
 
         let podcastCreated = 0;
@@ -905,16 +896,27 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
             }
           }
 
-          if (!transcriptText && taddyEpisodesList.length > 0) {
+          if (!transcriptText) {
             try {
-              const itunesNorm = normalizeTitleForMatch(epTitle);
-              const taddyMatch = taddyEpisodesList.find((te: any) => {
-                if (!te.name) return false;
-                const taddyNorm = normalizeTitleForMatch(te.name);
-                return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
-              });
-              if (taddyMatch?.uuid) {
-                rawSegments = await getEpisodeTranscriptSegments(taddyMatch.uuid);
+              let taddyEpisodeUuid: string | null = null;
+
+              if (taddyEpisodesList.length > 0) {
+                const itunesNorm = normalizeTitleForMatch(epTitle);
+                const taddyMatch = taddyEpisodesList.find((te: any) => {
+                  if (!te.name) return false;
+                  const taddyNorm = normalizeTitleForMatch(te.name);
+                  return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
+                });
+                if (taddyMatch?.uuid) taddyEpisodeUuid = taddyMatch.uuid;
+              }
+
+              if (!taddyEpisodeUuid) {
+                const searchResult = await searchEpisodeByName(podcast.itunesId, epTitle);
+                if (searchResult?.uuid) taddyEpisodeUuid = searchResult.uuid;
+              }
+
+              if (taddyEpisodeUuid) {
+                rawSegments = await getEpisodeTranscriptSegments(taddyEpisodeUuid);
                 if (rawSegments && rawSegments.length > 0) {
                   const lines: string[] = [];
                   for (const seg of rawSegments) {
