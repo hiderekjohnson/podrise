@@ -7,6 +7,7 @@ import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { PodCapHeader } from "@/components/PodCapHeader";
+import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 
 export type PodcastTab = "episodes" | "search" | "ask" | "about" | "discover";
@@ -31,6 +32,7 @@ export function PodcastPageLayout({
   const [stickyEmail, setStickyEmail] = useState("");
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description } = config;
@@ -101,13 +103,13 @@ export function PodcastPageLayout({
     <div className="min-h-screen flex flex-col">
       <PodCapHeader
         rightContent={
-          <a
-            href="/login"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="link-login"
+          <button
+            onClick={() => setShowRecapsModal(true)}
+            className="h-9 px-4 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            data-testid="button-get-recaps"
           >
-            Log in
-          </a>
+            Get Recaps
+          </button>
         }
       />
 
@@ -325,6 +327,14 @@ export function PodcastPageLayout({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <GetRecapsModal
+        open={showRecapsModal}
+        onClose={() => setShowRecapsModal(false)}
+        podcastName={name}
+        artworkUrl={artworkUrl}
+        itunesId={itunesId}
+      />
     </div>
   );
 }

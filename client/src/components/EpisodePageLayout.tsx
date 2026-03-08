@@ -5,6 +5,7 @@ import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search } fr
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodCapHeader } from "@/components/PodCapHeader";
+import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
@@ -60,6 +61,7 @@ export function EpisodePageLayout({
   const [stickyEmail, setStickyEmail] = useState("");
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
   const register = useRegister();
 
@@ -144,7 +146,17 @@ export function EpisodePageLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <PodCapHeader />
+      <PodCapHeader
+        rightContent={
+          <button
+            onClick={() => setShowRecapsModal(true)}
+            className="h-9 px-4 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            data-testid="button-get-recaps"
+          >
+            Get Recaps
+          </button>
+        }
+      />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-24">
         <motion.div
@@ -412,6 +424,14 @@ export function EpisodePageLayout({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <GetRecapsModal
+        open={showRecapsModal}
+        onClose={() => setShowRecapsModal(false)}
+        podcastName={episode.podcastName}
+        artworkUrl={episode.artworkUrl}
+        itunesId={podcastConfig.itunesId}
+      />
     </div>
   );
 }
