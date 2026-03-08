@@ -907,15 +907,25 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
                   const taddyNorm = normalizeTitleForMatch(te.name);
                   return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
                 });
-                if (taddyMatch?.uuid) taddyEpisodeUuid = taddyMatch.uuid;
+                if (taddyMatch?.uuid) {
+                  taddyEpisodeUuid = taddyMatch.uuid;
+                  console.log(`[BatchExpand] "${epTitle}": matched via Taddy list → ${taddyEpisodeUuid}`);
+                }
               }
 
               if (!taddyEpisodeUuid) {
+                await new Promise(r => setTimeout(r, 1500));
                 const searchResult = await searchEpisodeByName(podcast.name, epTitle);
-                if (searchResult?.uuid) taddyEpisodeUuid = searchResult.uuid;
+                if (searchResult?.uuid) {
+                  taddyEpisodeUuid = searchResult.uuid;
+                  console.log(`[BatchExpand] "${epTitle}": found via search → ${taddyEpisodeUuid} ("${searchResult.name}")`);
+                } else {
+                  console.log(`[BatchExpand] "${epTitle}": no Taddy search match`);
+                }
               }
 
               if (taddyEpisodeUuid) {
+                await new Promise(r => setTimeout(r, 500));
                 rawSegments = await getEpisodeTranscriptSegments(taddyEpisodeUuid);
                 if (rawSegments && rawSegments.length > 0) {
                   const lines: string[] = [];
@@ -930,6 +940,9 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
                     episodeTitle: epTitle,
                     transcript: transcriptText,
                   });
+                  console.log(`[BatchExpand] "${epTitle}": transcript fetched (${rawSegments.length} segments)`);
+                } else {
+                  console.log(`[BatchExpand] "${epTitle}": Taddy UUID found but no transcript available`);
                 }
               }
             } catch (taddyErr) {
