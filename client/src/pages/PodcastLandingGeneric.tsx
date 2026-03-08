@@ -77,21 +77,6 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
         )}
       </div>
 
-      {!isOpen && debouncedQuery.length < 2 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="search-suggestions">
-          {["AI", "investing", "strategy", "growth"].map((term) => (
-            <button
-              key={term}
-              onClick={() => { setQuery(term); setDebouncedQuery(term); setIsOpen(true); }}
-              className="px-3 py-2 rounded-lg bg-black/[0.03] hover:bg-primary/[0.06] text-sm text-muted-foreground hover:text-primary font-medium transition-colors text-center"
-              data-testid={`suggestion-${term}`}
-            >
-              {term}
-            </button>
-          ))}
-        </div>
-      )}
-
       {isOpen && debouncedQuery.length >= 2 && (
         <div>
           {isLoading && (
