@@ -41,6 +41,7 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
   const currentIdx = allRecaps.findIndex(r => r.episodeSlug === episodeSlug);
   const otherEpisodes = currentIdx >= 0 ? allRecaps.slice(currentIdx + 1, currentIdx + 6) : [];
 
+  const itunesId = recap?.itunesId || allRecaps.find(r => r.itunesId)?.itunesId || "";
   const podcastName = recap?.podcastName || podcastSlug;
   const episodeTitle = recap?.episodeTitle || episodeSlug;
   const publishDate = recap?.publishDate || "";
@@ -353,6 +354,81 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     .view-all-btn:hover { background: rgba(26,140,255,0.1); text-decoration: none; }
     .view-all-btn svg { width: 16px; height: 16px; }
 
+    .sticky-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
+    }
+    .sticky-bar.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .sticky-bar-inner {
+      max-width: 896px; margin: 0 auto;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    @media (min-width: 640px) {
+      .sticky-bar-inner { padding: 12px 24px; }
+    }
+    .sticky-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(26,140,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sticky-icon svg { width: 16px; height: 16px; color: #1a8cff; }
+    .sticky-label {
+      font-size: 14px; font-weight: 600; color: #1a1a2e;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .sticky-label span { color: #1a8cff; }
+    .sticky-form {
+      display: flex; flex: 1; gap: 8px;
+    }
+    .sticky-input {
+      flex: 1; height: 36px; padding: 0 12px;
+      background: rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 8px; font-size: 14px; color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .sticky-input:focus {
+      border-color: rgba(26,140,255,0.3);
+      box-shadow: 0 0 0 3px rgba(26,140,255,0.08);
+    }
+    .sticky-input::placeholder { color: rgba(148,163,184,0.4); }
+    .sticky-submit {
+      height: 36px; padding: 0 16px;
+      border-radius: 8px; border: none;
+      font-size: 14px; font-weight: 700;
+      background: #1a8cff; color: white;
+      cursor: pointer; white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(26,140,255,0.2);
+      transition: filter 0.15s;
+    }
+    .sticky-submit:hover { filter: brightness(1.05); }
+    .sticky-dismiss {
+      position: absolute; top: 8px; right: 8px;
+      padding: 6px; border-radius: 6px;
+      background: none; border: none;
+      color: rgba(100,116,139,0.4); cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+    .sticky-dismiss:hover { color: #64748b; background: rgba(0,0,0,0.04); }
+    .sticky-dismiss svg { width: 16px; height: 16px; }
+    @media (max-width: 640px) {
+      .sticky-bar-inner { flex-wrap: wrap; }
+      .sticky-form { width: 100%; }
+      .sticky-dismiss { top: 4px; right: 4px; }
+    }
+
     .footer {
       margin-top: 48px; padding-top: 24px;
       border-top: 1px solid rgba(0,0,0,0.06);
@@ -483,6 +559,22 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
     </footer>
   </main>
 
+  <div class="sticky-bar" id="sticky-bar" data-testid="sticky-signup-bar">
+    <div class="sticky-bar-inner">
+      <div class="sticky-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      </div>
+      <p class="sticky-label">Never miss a <span>${escapeHtml(podcastName)}</span> recap</p>
+      <form class="sticky-form" id="sticky-form" data-testid="form-sticky-signup">
+        <input class="sticky-input" type="email" placeholder="your@email.com" required data-testid="input-email-sticky" />
+        <button class="sticky-submit" type="submit" data-testid="button-sticky-signup">Subscribe free</button>
+      </form>
+      <button class="sticky-dismiss" id="sticky-dismiss" aria-label="Dismiss" data-testid="button-dismiss-sticky">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
   <script>
     (function() {
       var hash = window.location.hash;
@@ -561,15 +653,57 @@ export async function renderTranscriptPage(podcastSlug: string, episodeSlug: str
       });
 
       var scrollBtn = document.getElementById('scroll-top');
+      var stickyBar = document.getElementById('sticky-bar');
+      var stickyDismissed = false;
+
       window.addEventListener('scroll', function() {
         if (window.scrollY > 600) {
           scrollBtn.classList.add('visible');
         } else {
           scrollBtn.classList.remove('visible');
         }
+
+        if (stickyDismissed) return;
+        if (window.scrollY > 600) {
+          stickyBar.classList.add('visible');
+        } else {
+          stickyBar.classList.remove('visible');
+        }
       });
       scrollBtn.addEventListener('click', function() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      document.getElementById('sticky-dismiss').addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        stickyDismissed = true;
+        stickyBar.classList.remove('visible');
+        stickyBar.style.display = 'none';
+      });
+
+      var podcastMeta = ${JSON.stringify({ id: itunesId, name: podcastName, artworkUrl: artworkUrl })};
+      document.getElementById('sticky-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var emailInput = this.querySelector('input[type="email"]');
+        var emailVal = emailInput.value.trim();
+        if (!emailVal || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(emailVal)) return;
+        fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailVal,
+            podcasts: [JSON.stringify(podcastMeta)]
+          })
+        }).then(function(res) {
+          if (res.ok) {
+            window.location.href = '/dashboard?welcome=true';
+          } else {
+            alert('This email may already be registered. Try logging in.');
+          }
+        }).catch(function() {
+          alert('Something went wrong. Please try again.');
+        });
       });
     })();
   </script>

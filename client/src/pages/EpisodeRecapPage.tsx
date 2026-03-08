@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from "wouter";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, FileText } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Calendar, Clock, Lightbulb, Quote, ArrowRight, Headphones, FileText, Mail, X } from "lucide-react";
 import { SiApplepodcasts, SiSpotify } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -16,6 +16,10 @@ export default function EpisodeRecapPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
+  const [stickyEmail, setStickyEmail] = useState("");
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [stickyDismissed, setStickyDismissed] = useState(false);
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
   const register = useRegister();
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
@@ -95,6 +99,46 @@ export default function EpisodeRecapPage() {
       if (canonical) canonical.remove();
     };
   }, [episode, podcastSlug, episodeSlug]);
+
+  useEffect(() => {
+    if (stickyDismissed) return;
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const threshold = 600;
+      const ctaEl = ctaSectionRef.current;
+      const ctaInView = ctaEl
+        ? ctaEl.getBoundingClientRect().top < window.innerHeight - 60 && ctaEl.getBoundingClientRect().bottom > 60
+        : false;
+      setShowStickyBar(scrollY > threshold && !ctaInView);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [stickyDismissed]);
+
+  const handleStickySubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stickyEmail.trim() || !/^\S+@\S+\.\S+$/.test(stickyEmail)) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    if (!podcastConfig) return;
+    register(
+      {
+        podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
+        email: stickyEmail.trim(),
+      },
+      {
+        onSuccess: () => navigate("/dashboard?welcome=true"),
+        onError: (err: any) => {
+          toast({
+            title: "Something went wrong",
+            description: err.message?.includes("400") ? "This email is already registered. Try logging in." : "Please try again.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -333,6 +377,7 @@ export default function EpisodeRecapPage() {
         </motion.article>
 
         <motion.div
+          ref={ctaSectionRef}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
@@ -438,6 +483,55 @@ export default function EpisodeRecapPage() {
           </p>
         </footer>
       </main>
+
+      <AnimatePresence>
+        {showStickyBar && !stickyDismissed && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+            data-testid="sticky-signup-bar"
+          >
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                  <Mail className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+                  Never miss a <span className="text-primary">{episode.podcastName}</span> recap
+                </p>
+              </div>
+              <form onSubmit={handleStickySubmit} className="flex flex-1 gap-2 w-full sm:w-auto" data-testid="form-sticky-signup">
+                <input
+                  data-testid="input-email-sticky"
+                  type="email"
+                  value={stickyEmail}
+                  onChange={(e) => setStickyEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="flex-1 h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/40"
+                />
+                <button
+                  data-testid="button-sticky-signup"
+                  type="submit"
+                  className="h-9 px-4 rounded-lg font-bold text-sm bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                >
+                  Subscribe free
+                </button>
+              </form>
+              <button
+                onClick={() => setStickyDismissed(true)}
+                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-1.5 rounded-md text-muted-foreground/40 hover:text-muted-foreground hover:bg-black/[0.04] transition-colors shrink-0"
+                data-testid="button-dismiss-sticky"
+                aria-label="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
