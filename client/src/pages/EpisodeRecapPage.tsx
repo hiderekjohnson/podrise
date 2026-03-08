@@ -232,7 +232,7 @@ export default function EpisodeRecapPage() {
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
             data-testid="nav-ask"
           >
-            Ask AI
+            Ask About This Episode
           </button>
         </nav>
 
@@ -390,7 +390,7 @@ export default function EpisodeRecapPage() {
               </span>
               <span className="text-sm font-bold text-foreground">Ask About This Episode</span>
             </div>
-            <form onSubmit={handleAskSubmit} className="flex gap-2 mb-1" data-testid="form-ask-episode">
+            <form onSubmit={handleAskSubmit} className="flex gap-2" data-testid="form-ask-episode">
               <input
                 type="text"
                 value={askInput}
@@ -413,6 +413,28 @@ export default function EpisodeRecapPage() {
                 Ask
               </button>
             </form>
+
+            {topQuestions.length > 0 && !askAnswer && !askMutation.isPending && (
+              <div className="mt-4" data-testid="ask-example-prompts">
+                <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2.5">Example questions:</p>
+                <div className="flex flex-wrap gap-2">
+                  {topQuestions.slice(0, 4).map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setAskInput(item.question);
+                        setAskAnswer(null);
+                        askMutation.mutate(item.question);
+                      }}
+                      className="text-[13px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
+                      data-testid={`ask-example-${i}`}
+                    >
+                      {item.question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <AnimatePresence>
               {(askAnswer || askMutation.isPending) && (

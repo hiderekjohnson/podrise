@@ -485,7 +485,7 @@ RULES:
 - Be specific and concrete
 - Quotes MUST be from the transcript
 - Use \\n\\n to separate paragraphs in whatHappened
-- keyTopics: 4-6 short phrases about companies, strategies, industries, or concepts discussed. Avoid generic phrases like "business ideas" or "podcast discussion"
+- keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific — never generic
 - topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript`;
 
   try {
