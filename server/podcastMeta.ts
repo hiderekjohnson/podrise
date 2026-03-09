@@ -34,7 +34,36 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     twitterCard: "summary",
     replaceFavicon: false,
   },
+  "/podcasts": {
+    title: "All Podcasts — Browse 87+ Shows with Free Daily Recaps | PodCap",
+    description: "Browse the full PodCap podcast directory. Get free AI-powered daily recaps for 87+ top podcasts including Joe Rogan, Lex Fridman, All-In, Huberman Lab, and more.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/podcasts",
+    twitterCard: "summary",
+    replaceFavicon: false,
+  },
 };
+
+function buildPodcastDirectoryHtml(): string {
+  const links = PODCAST_SEO
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(p => {
+      const nameStr = escapeAttr(p.name);
+      const label = /podcast/i.test(p.name) ? `${nameStr} Recaps` : `${nameStr} Podcast Recaps`;
+      return `<li><a href="/podcasts/${escapeAttr(p.slug)}">${label}</a></li>`;
+    })
+    .join("");
+  return `<div id="ssr-podcast-directory" style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>All Podcasts — Free Daily Recaps</h1><p>Browse ${PODCAST_SEO.length}+ podcasts with free AI-powered daily recaps delivered to your inbox.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul></div>`;
+}
+
+function injectDirectoryHtml(html: string): string {
+  const directoryHtml = buildPodcastDirectoryHtml();
+  return html.replace(
+    '<div id="root"></div>',
+    `<div id="root">${directoryHtml}</div>`
+  );
+}
 
 function escapeAttr(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -107,11 +136,18 @@ function replaceMetaTags(html: string, meta: PageMeta): string {
 }
 
 export function injectPodcastMeta(html: string, url: string): string {
-  const cleanUrl = url.split("?")[0].split("#")[0];
+  let cleanUrl = url.split("?")[0].split("#")[0];
+  if (cleanUrl.length > 1 && cleanUrl.endsWith("/")) {
+    cleanUrl = cleanUrl.slice(0, -1);
+  }
 
   const staticPage = STATIC_PAGES[cleanUrl];
   if (staticPage) {
-    return replaceMetaTags(html, staticPage);
+    let result = replaceMetaTags(html, staticPage);
+    if (cleanUrl === "/podcasts") {
+      result = injectDirectoryHtml(result);
+    }
+    return result;
   }
 
   const archiveMatch = cleanUrl.match(/^\/podcasts\/([a-zA-Z0-9_-]+)\/episodes$/);
