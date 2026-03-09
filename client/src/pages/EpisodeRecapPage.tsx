@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent, BookMarked, Wrench, Globe, Mail, GraduationCap, Headphones, Video, FileText, Server, Package } from "lucide-react";
+import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent, BookMarked, Wrench, Globe, Mail, GraduationCap, ShoppingBag, Server, Package } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { Link } from "wouter";
@@ -187,14 +187,14 @@ export default function EpisodeRecapPage() {
 
   const resourceTypeConfig: Record<string, { icon: typeof BookOpen; color: string; bg: string }> = {
     book: { icon: BookMarked, color: "text-amber-600", bg: "bg-amber-50" },
+    supplement: { icon: Package, color: "text-green-600", bg: "bg-green-50" },
     tool: { icon: Wrench, color: "text-blue-600", bg: "bg-blue-50" },
     app: { icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
-    website: { icon: Globe, color: "text-emerald-600", bg: "bg-emerald-50" },
-    newsletter: { icon: Mail, color: "text-rose-600", bg: "bg-rose-50" },
+    software: { icon: Globe, color: "text-indigo-600", bg: "bg-indigo-50" },
     course: { icon: GraduationCap, color: "text-indigo-600", bg: "bg-indigo-50" },
-    podcast: { icon: Headphones, color: "text-orange-600", bg: "bg-orange-50" },
-    video: { icon: Video, color: "text-red-600", bg: "bg-red-50" },
-    article: { icon: FileText, color: "text-cyan-600", bg: "bg-cyan-50" },
+    newsletter: { icon: Mail, color: "text-rose-600", bg: "bg-rose-50" },
+    product: { icon: Package, color: "text-emerald-600", bg: "bg-emerald-50" },
+    gear: { icon: Wrench, color: "text-slate-600", bg: "bg-slate-50" },
     service: { icon: Server, color: "text-teal-600", bg: "bg-teal-50" },
     other: { icon: BookOpen, color: "text-gray-600", bg: "bg-gray-50" },
   };
@@ -375,7 +375,7 @@ export default function EpisodeRecapPage() {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-resources" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-resources"
             >
-              Resources
+              Shop the Episode
             </button>
           )}
         </nav>
@@ -628,9 +628,9 @@ export default function EpisodeRecapPage() {
                 Podcasts thrive because of the sponsors who support them. Please consider checking out the sponsors who made this episode possible — they help keep the show free for all of us.
                 {resources.length > 0 && (
                   <span className="block mt-2 text-sm">
-                    Looking for books, tools, and non-sponsored recommendations?{" "}
+                    Looking for books and products mentioned in this episode?{" "}
                     <button onClick={() => scrollTo("section-resources")} className="text-primary font-semibold hover:underline" data-testid="link-sponsors-to-resources">
-                      See Resources Mentioned
+                      Shop the Episode
                     </button>
                   </span>
                 )}
@@ -702,12 +702,12 @@ export default function EpisodeRecapPage() {
         {(resources.length > 0 || resourcesLoading) && (
           <section id="section-resources" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-resources">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
-              <BookOpen className="w-4 h-4 text-amber-600" />
-              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Resources Mentioned</span>
+              <ShoppingBag className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Shop the Episode</span>
             </div>
             <div className="px-6 py-5">
               <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
-                Books, tools, and other resources organically mentioned in this episode — these are not paid promotions.
+                Books, products, and tools organically mentioned in this episode — not paid promotions.
                 {sponsors.length > 0 && (
                   <span className="block mt-2 text-sm">
                     To see paid sponsors for this episode,{" "}
@@ -721,7 +721,7 @@ export default function EpisodeRecapPage() {
               {resourcesLoading ? (
                 <div className="flex items-center gap-3 py-4">
                   <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-                  <span className="text-sm text-muted-foreground">Extracting resources from this episode...</span>
+                  <span className="text-sm text-muted-foreground">Finding products mentioned in this episode...</span>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -782,9 +782,9 @@ export default function EpisodeRecapPage() {
                 </div>
               )}
 
-              {resources.some(r => r.type === "book") && (
+              {resources.length > 0 && (
                 <p className="text-[11px] text-muted-foreground/50 mt-4">
-                  Book links may include affiliate tags. Purchasing through these links supports PodCap at no extra cost to you.
+                  Some links may include affiliate tags. Purchasing through these links supports PodCap at no extra cost to you.
                 </p>
               )}
             </div>
