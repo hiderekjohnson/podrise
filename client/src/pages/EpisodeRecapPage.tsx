@@ -658,17 +658,24 @@ export default function EpisodeRecapPage() {
                           <h4 className="text-[15px] font-bold text-foreground" data-testid={`sponsor-name-${i}`}>
                             {sponsor.name}
                           </h4>
-                          <p className="text-[15px] leading-[1.75] text-muted-foreground mt-1">
-                            {sponsor.description}
-                          </p>
 
                           {typeof sponsor.deal === "string" && sponsor.deal.trim() && (
-                            <div className="mt-3 px-3.5 py-2.5 bg-emerald-500/[0.05] border border-emerald-500/[0.1] rounded-lg" data-testid={`sponsor-deal-${i}`}>
+                            <div className="mt-2 px-3.5 py-2.5 bg-emerald-500/[0.05] border border-emerald-500/[0.1] rounded-lg" data-testid={`sponsor-deal-${i}`}>
                               <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
                                 <Tag className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
                                 {sponsor.deal}
                               </p>
                             </div>
+                          )}
+
+                          <p className="text-[15px] leading-[1.75] text-muted-foreground mt-2.5">
+                            {sponsor.description}
+                          </p>
+
+                          {typeof sponsor.callToAction === "string" && sponsor.callToAction.trim() && (
+                            <p className="text-[15px] leading-[1.75] text-muted-foreground mt-2" data-testid={`sponsor-cta-${i}`}>
+                              {sponsor.callToAction}
+                            </p>
                           )}
 
                           <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -694,12 +701,6 @@ export default function EpisodeRecapPage() {
                               </span>
                             )}
                           </div>
-
-                          {typeof sponsor.callToAction === "string" && sponsor.callToAction.trim() && (
-                            <p className="text-sm text-muted-foreground/70 mt-2.5 italic" data-testid={`sponsor-cta-${i}`}>
-                              {sponsor.callToAction}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
