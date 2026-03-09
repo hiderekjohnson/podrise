@@ -4,9 +4,7 @@ import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { TOPICS, matchesKeywords } from "@/data/topicData";
-import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
+import { TOPICS } from "@/data/topicData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 const ICON_MAP: Record<string, any> = {
@@ -14,24 +12,6 @@ const ICON_MAP: Record<string, any> = {
   Megaphone, Handshake, Zap, GitFork, Sparkles, Cpu, LineChart, Building2,
   Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe,
 };
-
-function getTopicCounts(topic: typeof TOPICS[0]) {
-  const podcastCount = PODCAST_LANDINGS.filter(p => {
-    const text = `${p.category} ${p.keywords} ${p.description}`;
-    return matchesKeywords(text, topic.podcastKeywords);
-  }).length;
-
-  const peopleCount = PEOPLE_DIRECTORY.filter(p =>
-    topic.peopleCategories.includes(p.category)
-  ).length;
-
-  const companyCount = COMPANIES_DIRECTORY.filter(c => {
-    const text = `${c.details.industry} ${c.description}`;
-    return matchesKeywords(text, topic.companyKeywords);
-  }).length;
-
-  return { podcastCount, peopleCount, companyCount };
-}
 
 function SEOHead() {
   const title = "Podcast Topics — Explore Knowledge by Subject | PodCap";
@@ -137,7 +117,6 @@ export default function TopicsDirectory() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTopics.map((topic, i) => {
             const Icon = ICON_MAP[topic.icon] || Sparkles;
-            const counts = getTopicCounts(topic);
 
             return (
               <motion.div
@@ -159,26 +138,9 @@ export default function TopicsDirectory() {
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" />
                     </div>
-                    <p className="text-sm text-muted-foreground/70 line-clamp-2 mb-3">
+                    <p className="text-sm text-muted-foreground/70 line-clamp-2">
                       {topic.description}
                     </p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
-                      {counts.podcastCount > 0 && (
-                        <span>{counts.podcastCount} podcast{counts.podcastCount !== 1 ? "s" : ""}</span>
-                      )}
-                      {counts.peopleCount > 0 && (
-                        <>
-                          <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                          <span>{counts.peopleCount} people</span>
-                        </>
-                      )}
-                      {counts.companyCount > 0 && (
-                        <>
-                          <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                          <span>{counts.companyCount} compan{counts.companyCount !== 1 ? "ies" : "y"}</span>
-                        </>
-                      )}
-                    </div>
                   </div>
                 </Link>
               </motion.div>

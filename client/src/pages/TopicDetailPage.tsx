@@ -183,20 +183,6 @@ export default function TopicDetailPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 mt-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm text-muted-foreground">
-              <Headphones className="w-3.5 h-3.5" />
-              <span data-testid="text-podcast-count">{relatedPodcasts.length} podcasts</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm text-muted-foreground">
-              <Users className="w-3.5 h-3.5" />
-              <span data-testid="text-people-count">{relatedPeople.length} people</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm text-muted-foreground">
-              <Building2 className="w-3.5 h-3.5" />
-              <span data-testid="text-company-count">{relatedCompanies.length} companies</span>
-            </div>
-          </div>
         </motion.div>
 
         {relatedPodcasts.length > 0 && (
