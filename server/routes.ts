@@ -725,6 +725,16 @@ export async function registerRoutes(
     { slug: "patrick-smith", name: "Patrick Smith", title: "CEO of Axon Enterprise", searchTerms: ["Patrick Smith", "Rick Smith"], hostedSlugs: [] },
     { slug: "sridhar-ramaswamy", name: "Sridhar Ramaswamy", title: "CEO of Snowflake", searchTerms: ["Sridhar Ramaswamy"], hostedSlugs: [] },
     { slug: "brian-niccol", name: "Brian Niccol", title: "CEO of Starbucks", searchTerms: ["Brian Niccol"], hostedSlugs: [] },
+    { slug: "kevin-scott", name: "Kevin Scott", title: "CTO of Microsoft", searchTerms: ["Kevin Scott"], hostedSlugs: [] },
+    { slug: "andrew-bosworth", name: "Andrew Bosworth", title: "CTO of Meta", searchTerms: ["Andrew Bosworth", "Bosworth"], hostedSlugs: [] },
+    { slug: "kevin-weil", name: "Kevin Weil", title: "Chief Product Officer at OpenAI", searchTerms: ["Kevin Weil"], hostedSlugs: [] },
+    { slug: "scott-belsky", name: "Scott Belsky", title: "Chief Strategy Officer at Adobe", searchTerms: ["Scott Belsky"], hostedSlugs: [] },
+    { slug: "harley-finkelstein", name: "Harley Finkelstein", title: "President of Shopify", searchTerms: ["Harley Finkelstein"], hostedSlugs: [] },
+    { slug: "mustafa-suleyman", name: "Mustafa Suleyman", title: "CEO of Microsoft AI", searchTerms: ["Mustafa Suleyman"], hostedSlugs: [] },
+    { slug: "alexandr-wang", name: "Alexandr Wang", title: "CEO of Scale AI", searchTerms: ["Alexandr Wang"], hostedSlugs: [] },
+    { slug: "aravind-srinivas", name: "Aravind Srinivas", title: "CEO of Perplexity", searchTerms: ["Aravind Srinivas"], hostedSlugs: [] },
+    { slug: "tobi-lutke", name: "Tobi Lütke", title: "CEO of Shopify", searchTerms: ["Tobi Lütke", "Tobi Lutke", "Tobias Lütke"], hostedSlugs: [] },
+    { slug: "andrew-wilkinson", name: "Andrew Wilkinson", title: "Founder of Tiny", searchTerms: ["Andrew Wilkinson"], hostedSlugs: [] },
   ];
 
   const ENTITY_COMPANIES = [
@@ -759,6 +769,13 @@ export async function registerRoutes(
     { slug: "starbucks", name: "Starbucks", description: "Global coffeehouse chain and coffee company", searchTerms: ["Starbucks"] },
     { slug: "adobe", name: "Adobe", description: "Creative software and digital experience company", searchTerms: ["Adobe"] },
     { slug: "shopify", name: "Shopify", description: "E-commerce platform for online stores and retail", searchTerms: ["Shopify"] },
+    { slug: "microsoft-ai", name: "Microsoft AI", description: "Microsoft's AI division leading Copilot and consumer AI products", searchTerms: ["Microsoft AI", "Copilot"] },
+    { slug: "scale-ai", name: "Scale AI", description: "AI data infrastructure and training data platform", searchTerms: ["Scale AI"] },
+    { slug: "perplexity", name: "Perplexity", description: "AI-powered answer engine challenging traditional search", searchTerms: ["Perplexity"] },
+    { slug: "tiny", name: "Tiny", description: "Holding company acquiring and operating internet businesses", searchTerms: ["Tiny Capital", "Tiny Corp"] },
+    { slug: "contrarian-thinking", name: "Contrarian Thinking", description: "Business acquisition education and investment platform", searchTerms: ["Contrarian Thinking"] },
+    { slug: "acquisition-com", name: "Acquisition.com", description: "Business investment and growth portfolio company", searchTerms: ["Acquisition.com"] },
+    { slug: "vaynerx", name: "VaynerX", description: "Modern-day communications holding company", searchTerms: ["VaynerX", "VaynerMedia"] },
   ];
 
   function termMatchesInText(text: string, term: string): boolean {
