@@ -138,12 +138,14 @@ export async function runBackfillTranscripts() {
     let failed = 0;
     let totalEpisodesScanned = 0;
     let availableTranscripts = 0;
+    let metadataUpdated = 0;
+    const needsMetadataBackfill = true;
 
     try {
       for (let page = 1; page <= MAX_PAGES_PER_PODCAST; page++) {
         if (downloaded >= needed) break;
 
-        const query = `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: ${EPISODES_PER_PAGE}, page: ${page}) { uuid name taddyTranscribeStatus } } }`;
+        const query = `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: ${EPISODES_PER_PAGE}, page: ${page}) { uuid name description subtitle datePublished duration imageUrl audioUrl seasonNumber episodeNumber episodeType taddyTranscribeStatus } } }`;
         const data = await taddyRequest(query, EPISODE_LIST_TIMEOUT_MS);
         const episodes = data?.data?.getPodcastSeries?.episodes;
 
@@ -157,7 +159,33 @@ export async function runBackfillTranscripts() {
 
           availableTranscripts++;
 
-          if (existingGuids.has(ep.uuid)) continue;
+          const alreadyHaveTranscript = existingGuids.has(ep.uuid);
+
+          if (alreadyHaveTranscript && !needsMetadataBackfill) {
+            continue;
+          }
+
+          if (alreadyHaveTranscript) {
+            try {
+              await storage.saveTranscript({
+                podcastId: podcast.itunesId,
+                episodeGuid: ep.uuid,
+                episodeTitle: ep.name || "Untitled",
+                transcript: "",
+                description: ep.description || undefined,
+                subtitle: ep.subtitle || undefined,
+                datePublished: ep.datePublished || undefined,
+                duration: ep.duration || undefined,
+                audioUrl: ep.audioUrl || undefined,
+                imageUrl: ep.imageUrl || undefined,
+                seasonNumber: ep.seasonNumber || undefined,
+                episodeNumber: ep.episodeNumber || undefined,
+                episodeType: ep.episodeType || undefined,
+              });
+              metadataUpdated++;
+            } catch {}
+            continue;
+          }
 
           try {
             const text = await downloadTranscript(ep.uuid);
@@ -167,6 +195,15 @@ export async function runBackfillTranscripts() {
                 episodeGuid: ep.uuid,
                 episodeTitle: ep.name || "Untitled",
                 transcript: text,
+                description: ep.description || undefined,
+                subtitle: ep.subtitle || undefined,
+                datePublished: ep.datePublished || undefined,
+                duration: ep.duration || undefined,
+                audioUrl: ep.audioUrl || undefined,
+                imageUrl: ep.imageUrl || undefined,
+                seasonNumber: ep.seasonNumber || undefined,
+                episodeNumber: ep.episodeNumber || undefined,
+                episodeType: ep.episodeType || undefined,
               });
               existingGuids.add(ep.uuid);
               downloaded++;
@@ -188,6 +225,7 @@ export async function runBackfillTranscripts() {
       const status = finalCount >= TARGET_TRANSCRIPTS_PER_PODCAST ? "DONE" : `${finalCount}/${TARGET_TRANSCRIPTS_PER_PODCAST}`;
       const details = [];
       if (downloaded > 0) details.push(`${downloaded} new`);
+      if (metadataUpdated > 0) details.push(`${metadataUpdated} metadata updated`);
       if (existingCount > 0) details.push(`${existingCount} existing`);
       if (failed > 0) details.push(`${failed} failed`);
 

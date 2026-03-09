@@ -55,6 +55,15 @@ export const episodeTranscripts = pgTable("episode_transcripts", {
   episodeGuid: text("episode_guid").notNull().unique(),
   episodeTitle: text("episode_title").notNull(),
   transcript: text("transcript").notNull(),
+  description: text("description"),
+  subtitle: text("subtitle"),
+  datePublished: integer("date_published"),
+  duration: integer("duration"),
+  audioUrl: text("audio_url"),
+  imageUrl: text("image_url"),
+  seasonNumber: integer("season_number"),
+  episodeNumber: integer("episode_number"),
+  episodeType: text("episode_type"),
   fetchedAt: timestamp("fetched_at").defaultNow(),
 });
 

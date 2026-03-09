@@ -14,7 +14,7 @@ export interface IStorage {
   getAllUsers(): Promise<UserResponse[]>;
   getSubscription(subscriptionId: string): Promise<any>;
   getTranscriptByEpisodeGuid(episodeGuid: string): Promise<EpisodeTranscript | undefined>;
-  saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript>;
+  saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string; description?: string; subtitle?: string; datePublished?: number; duration?: number; audioUrl?: string; imageUrl?: string; seasonNumber?: number; episodeNumber?: number; episodeType?: string }): Promise<EpisodeTranscript>;
   logEmail(data: InsertEmailLog): Promise<EmailLog>;
   getEmailLogs(): Promise<EmailLog[]>;
   hasEmailLogForUserOnDate(userId: number, date: string): Promise<boolean>;
@@ -152,13 +152,28 @@ export class DatabaseStorage implements IStorage {
     return transcript ?? undefined;
   }
 
-  async saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string }): Promise<EpisodeTranscript> {
+  async saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string; description?: string; subtitle?: string; datePublished?: number; duration?: number; audioUrl?: string; imageUrl?: string; seasonNumber?: number; episodeNumber?: number; episodeType?: string }): Promise<EpisodeTranscript> {
+    const updateSet: Record<string, any> = {
+      description: data.description,
+      subtitle: data.subtitle,
+      datePublished: data.datePublished,
+      duration: data.duration,
+      audioUrl: data.audioUrl,
+      imageUrl: data.imageUrl,
+      seasonNumber: data.seasonNumber,
+      episodeNumber: data.episodeNumber,
+      episodeType: data.episodeType,
+      fetchedAt: new Date(),
+    };
+    if (data.transcript) {
+      updateSet.transcript = data.transcript;
+    }
     const [created] = await db
       .insert(episodeTranscripts)
       .values(data)
       .onConflictDoUpdate({
         target: episodeTranscripts.episodeGuid,
-        set: { transcript: data.transcript, fetchedAt: new Date() },
+        set: updateSet,
       })
       .returning();
     return created;
