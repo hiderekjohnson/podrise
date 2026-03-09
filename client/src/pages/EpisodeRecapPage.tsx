@@ -1,4 +1,4 @@
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion } from "lucide-react";
@@ -19,6 +19,7 @@ export default function EpisodeRecapPage() {
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
   const [askInput, setAskInput] = useState("");
   const [askAnswer, setAskAnswer] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState("section-tldl");
   const askSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
@@ -114,13 +115,40 @@ export default function EpisodeRecapPage() {
     };
   }, [episode, podcastSlug, episodeSlug]);
 
+  useEffect(() => {
+    const sectionIds = [
+      "section-tldl",
+      "section-key-insights",
+      "section-what-happened",
+      "section-key-topics",
+      "section-top-questions",
+      "section-ask-episode",
+    ];
+
+    const handleScroll = () => {
+      const offset = 56 + 52 + 40;
+      let current = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= offset) {
+          current = id;
+        }
+      }
+      setActiveSection(current);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [episode]);
+
   const handleTopicClick = (topic: string) => {
     const question = `What did this episode say about ${topic.toLowerCase()}?`;
     setAskInput(question);
     setAskAnswer(null);
     askMutation.mutate(question);
     setTimeout(() => {
-      askSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrollTo("section-ask-episode");
     }, 100);
   };
 
@@ -166,7 +194,13 @@ export default function EpisodeRecapPage() {
   const hasTopQuestions = topQuestions.length > 0;
 
   const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerHeight = 56;
+    const navHeight = 52;
+    const offset = headerHeight + navHeight + 16;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
   };
 
   const sectionNumber = (() => {
@@ -207,10 +241,10 @@ export default function EpisodeRecapPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="space-y-6"
       >
-        <nav className="flex items-center gap-2 flex-wrap pb-2" data-testid="nav-in-page">
+        <nav className="sticky top-[56px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
           <button
             onClick={() => scrollTo("section-tldl")}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/[0.08] text-primary hover:bg-primary/[0.14] transition-colors"
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-tldl" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-tldl"
           >
             TLDL
@@ -218,7 +252,7 @@ export default function EpisodeRecapPage() {
           {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-key-insights"
             >
               Key Insights
@@ -226,7 +260,7 @@ export default function EpisodeRecapPage() {
           )}
           <button
             onClick={() => scrollTo("section-what-happened")}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-what-happened"
           >
             Episode Breakdown
@@ -234,7 +268,7 @@ export default function EpisodeRecapPage() {
           {hasKeyTopics && (
             <button
               onClick={() => scrollTo("section-key-topics")}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-topics" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-key-topics"
             >
               Key Topics
@@ -243,7 +277,7 @@ export default function EpisodeRecapPage() {
           {hasTopQuestions && (
             <button
               onClick={() => scrollTo("section-top-questions")}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-top-questions"
             >
               Top Questions
@@ -251,7 +285,7 @@ export default function EpisodeRecapPage() {
           )}
           <button
             onClick={() => scrollTo("section-ask-episode")}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-ask-episode" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-ask"
           >
             Ask AI
