@@ -1304,6 +1304,40 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       website: "https://starbucks.com",
     },
   },
+  {
+    slug: "adobe",
+    name: "Adobe",
+    description: "Creative software and digital experience company",
+    background: "Adobe Inc. is a global leader in creative and digital experience software. Founded in 1982, Adobe is the maker of Photoshop, Illustrator, Premiere Pro, Acrobat, and the Creative Cloud suite used by millions of creatives worldwide. The company has expanded into digital marketing (Experience Cloud) and AI-powered creative tools with Adobe Firefly, its generative AI platform.",
+    logoUrl: "https://unavatar.io/adobe.com",
+    searchTerms: ["Adobe"],
+    details: {
+      headquarters: "San Jose, CA",
+      founded: "1982",
+      employees: "~30,000",
+      marketCap: "$200B+",
+      ceo: "Shantanu Narayen",
+      industry: "Creative Software & Digital Experience",
+      website: "https://adobe.com",
+    },
+  },
+  {
+    slug: "shopify",
+    name: "Shopify",
+    description: "E-commerce platform for online stores and retail",
+    background: "Shopify Inc. is a leading e-commerce platform that enables merchants of all sizes to set up online stores and sell products. Founded by Tobias Lütke, Daniel Weinand, and Scott Lake in 2006 in Ottawa, Canada, Shopify powers millions of businesses in over 175 countries. The company has expanded into payments (Shopify Payments), fulfillment, POS systems, and AI-powered commerce tools.",
+    logoUrl: "https://unavatar.io/shopify.com",
+    searchTerms: ["Shopify"],
+    details: {
+      headquarters: "Ottawa, Canada",
+      founded: "2006",
+      employees: "~11,600",
+      marketCap: "$130B+",
+      ceo: "Tobias Lütke",
+      industry: "E-commerce & Retail Technology",
+      website: "https://shopify.com",
+    },
+  },
 ];
 
 export function getPersonBySlug(slug: string): PersonEntry | undefined {
