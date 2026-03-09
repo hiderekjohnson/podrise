@@ -73,28 +73,6 @@ export default function BackfillTracker() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        <div className="bg-black/[0.03] rounded-xl p-4 text-center" data-testid="stat-total-transcripts">
-          <div className="text-2xl font-bold text-foreground">{data.totalTranscripts.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground font-medium mt-1">Total Transcripts</div>
-        </div>
-        <div className="bg-emerald-50 rounded-xl p-4 text-center" data-testid="stat-podcasts-complete">
-          <div className="text-2xl font-bold text-emerald-600">{counts.done}</div>
-          <div className="text-xs text-muted-foreground font-medium mt-1">Done</div>
-        </div>
-        <div className="bg-blue-50 rounded-xl p-4 text-center" data-testid="stat-in-process">
-          <div className="text-2xl font-bold text-blue-600">{counts.in_process}</div>
-          <div className="text-xs text-muted-foreground font-medium mt-1">In Process</div>
-        </div>
-        <div className="bg-amber-50 rounded-xl p-4 text-center" data-testid="stat-in-queue">
-          <div className="text-2xl font-bold text-amber-600">{counts.in_queue}</div>
-          <div className="text-xs text-muted-foreground font-medium mt-1">In Queue</div>
-        </div>
-        <div className="bg-red-50 rounded-xl p-4 text-center" data-testid="stat-errors">
-          <div className="text-2xl font-bold text-red-500">{counts.error}</div>
-          <div className="text-xs text-muted-foreground font-medium mt-1">Errors</div>
-        </div>
-      </div>
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2 flex-wrap">
