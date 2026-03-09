@@ -294,7 +294,7 @@ export default function PersonDetailPage() {
 
                   {personData?.relatedCompanies && personData.relatedCompanies.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-border" data-testid="section-related-companies">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Companies</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related Companies</p>
                       <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                         {personData.relatedCompanies.map((companySlug) => {
                           const c = getCompanyBySlug(companySlug);
@@ -317,7 +317,7 @@ export default function PersonDetailPage() {
 
                   {personData?.similarPeople && personData.similarPeople.length > 0 && (
                     <div className={`mt-4 ${personData?.relatedCompanies?.length ? '' : 'pt-4 border-t border-border'}`} data-testid="section-similar-people">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">People</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar People</p>
                       <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                         {personData.similarPeople.map((personSlug) => {
                           const p = PEOPLE_DIRECTORY.find(x => x.slug === personSlug);
