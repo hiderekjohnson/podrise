@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Heart, Search, TrendingUp, Headphones, ArrowRight, Mail, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Trophy } from "lucide-react";
+import { Search, TrendingUp, ArrowRight, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Library, Sparkles, BookOpen, Layers } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,8 @@ const FEATURED_PODCASTS = [
   { slug: "acquired", name: "Acquired", description: "Deep-dive stories behind the world's greatest companies", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d6/e9/f9/d6e9f92c-8f46-a302-f7a2-144cefbd74bf/mza_16135045473976550452.jpg/600x600bb.jpg" },
   { slug: "hubermanlab", name: "Huberman Lab", description: "Neuroscience-based tools for health, performance, and focus", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/aa/f1/51/aaf151f6-8661-833a-c9d3-7c4ce22f8868/mza_253061105143942369.jpg/600x600bb.jpg" },
   { slug: "howibuiltthis", name: "How I Built This", description: "The stories behind the world's best-known companies", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/64/45/06/644506b5-c44f-f661-f74e-f63a4b2511bc/mza_14892199991035639268.jpeg/600x600bb.jpg" },
+  { slug: "lexfridman", name: "Lex Fridman Podcast", description: "Deep conversations about science, technology, and the human condition", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/1e/0a/80/1e0a8048-7226-d9f8-534d-03bfb3b327e2/mza_13182599832498912880.jpg/600x600bb.jpg" },
+  { slug: "onpurpose", name: "On Purpose with Jay Shetty", description: "Insights on mindfulness, relationships, and personal growth", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/2d/89/bb/2d89bb29-40e4-b81d-0dfe-81c6f4ed1828/mza_18131490782293498498.jpg/600x600bb.jpg" },
 ];
 
 function ContactSection() {
@@ -45,22 +47,19 @@ function ContactSection() {
   };
 
   return (
-    <section className="py-16 sm:py-20 bg-muted/30 border-t border-black/[0.04]" data-testid="section-contact">
+    <section className="py-16 sm:py-20" data-testid="section-contact">
       <div className="max-w-2xl mx-auto px-6">
         <div className="text-center mb-8">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
-            <Headphones className="w-5 h-5 text-emerald-600" />
-          </div>
           <h2 className="text-xl sm:text-2xl font-display font-bold mb-3" data-testid="text-contact-title">
-            Let's work together
+            Get your podcast on PodCap
           </h2>
           <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Want to claim your podcast's page, suggest a feature, or explore how PodCap can help your show? We'd love to hear from you.
+            We're building the most comprehensive podcast knowledge platform on the internet. If you host a podcast, we'd love to include your show.
           </p>
         </div>
 
         {sent ? (
-          <div className="bg-white border border-black/[0.06] rounded-2xl p-8 text-center" data-testid="contact-success">
+          <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="contact-success">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
             <h3 className="text-lg font-display font-bold mb-2">Message sent</h3>
             <p className="text-[15px] text-muted-foreground">We'll get back to you as soon as possible.</p>
@@ -73,7 +72,7 @@ function ContactSection() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white border border-black/[0.06] rounded-2xl p-6 sm:p-8 space-y-4" data-testid="form-contact">
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-4" data-testid="form-contact">
             <div>
               <label htmlFor="podcaster-email" className="block text-sm font-display font-semibold mb-1.5">
                 Your email
@@ -85,22 +84,22 @@ function ContactSection() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@yourpodcast.com"
-                className="w-full h-10 px-3.5 rounded-xl border border-black/[0.08] bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                className="w-full h-10 px-3.5 rounded-xl border border-border bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                 data-testid="input-email"
               />
             </div>
             <div>
               <label htmlFor="podcaster-message" className="block text-sm font-display font-semibold mb-1.5">
-                Your message
+                Tell us about your podcast
               </label>
               <textarea
                 id="podcaster-message"
                 required
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Tell us about your podcast, or what you'd like us to build..."
+                placeholder="Share your podcast name, what it's about, or any questions you have..."
                 rows={4}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
                 data-testid="input-message"
               />
             </div>
@@ -115,7 +114,7 @@ function ContactSection() {
               ) : (
                 <Send className="w-3.5 h-3.5 mr-2" />
               )}
-              {submitMutation.isPending ? "Sending..." : "Send Message"}
+              {submitMutation.isPending ? "Sending..." : "Submit"}
             </Button>
           </form>
         )}
@@ -126,31 +125,30 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "We Heart Podcasters | How PodCap Helps Grow Podcast Discovery and Listeners";
-    const metaDesc = document.querySelector('meta[name="description"]');
-    const desc = "PodCap helps your superfans stay up to date with daily episode recaps. When fans know what each episode covers, they listen to the right ones, boosting engagement, completion rates, and algorithm performance.";
-    if (metaDesc) {
-      metaDesc.setAttribute("content", desc);
-    } else {
-      const meta = document.createElement("meta");
-      meta.name = "description";
-      meta.content = desc;
-      document.head.appendChild(meta);
-    }
+    document.title = "For Podcasters — How PodCap Helps Your Show Reach More People | PodCap";
+    const desc = "PodCap turns your podcast episodes into searchable, discoverable knowledge assets. Increase discoverability, deepen audience engagement, and extend the life of every conversation.";
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", "For Podcasters — How PodCap Helps Your Show Reach More People");
+    setMeta("property", "og:description", desc);
   }, []);
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full border-b border-black/[0.04] bg-white/80 backdrop-blur-md" data-testid="nav-bar">
+      <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
           <Link href="/" data-testid="link-home">
             <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/podcasts" data-testid="link-nav-podcasts">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors">
-                <Trophy className="w-3.5 h-3.5" />
-                Top Podcasts
+            <Link href="/get-started" data-testid="link-nav-get-started">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+                <Zap className="w-3.5 h-3.5" />
+                Build Your Recap
               </div>
             </Link>
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-login">
@@ -162,121 +160,115 @@ export default function ForPodcasters() {
 
       <main className="min-h-screen bg-background">
 
-        {/* ── Hero ── */}
-        <section className="relative overflow-hidden pt-20 pb-20 sm:pt-28 sm:pb-24" data-testid="section-hero">
-          <div className="absolute inset-0 bg-gradient-to-b from-red-50/30 via-background to-background" />
-          <div className="relative max-w-2xl mx-auto px-6 text-center">
-            <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-love">
-              WE <Heart className="w-5 h-5 fill-red-500 text-red-500" /> PODCASTERS
+        <section className="relative overflow-hidden pt-20 pb-16 sm:pt-28 sm:pb-20" data-testid="section-hero">
+          <div className="relative max-w-3xl mx-auto px-6 text-center">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-sm font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-podcasters">
+              <Mic className="w-4 h-4" />
+              For Podcasters
             </div>
-            <h1 className="text-[1.75rem] sm:text-[2.1rem] md:text-[2.5rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5" data-testid="text-hero-title">
-              Your best fans are falling behind.{" "}
-              <span className="text-primary">We help them keep up.</span>
+            <h1 className="text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.12] mb-6" data-testid="text-hero-title">
+              Your episodes deserve a longer life than 48 hours
             </h1>
-            <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto" data-testid="text-hero-subtitle">
-              Even your most dedicated listeners miss episodes. PodCap sends them a short daily recap so they stay connected to your show and come back for the episodes that matter most.
+            <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto" data-testid="text-hero-subtitle">
+              Most podcast episodes get a burst of downloads after release and then disappear. PodCap turns every episode into a searchable, discoverable knowledge asset that keeps working for your show long after publish day.
             </p>
           </div>
         </section>
 
-        {/* ── Why Listeners Fall Behind (stats) ── */}
-        <section className="py-16 sm:py-20 border-t border-black/[0.04]" data-testid="section-time-gap">
+        <section className="py-16 sm:py-20 border-t border-border" data-testid="section-problem">
           <div className="max-w-3xl mx-auto px-6">
-            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-time-gap-title">
-              Why listeners fall behind
-            </h2>
-            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
-              Even dedicated fans don't have enough time to listen to every episode they subscribe to.
-            </p>
+            <div className="text-center mb-12">
+              <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-problem-title">
+                The podcast discovery problem
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Podcasts contain some of the most valuable conversations happening today. But the ideas inside them are hard to find, hard to search, and hard to share.
+              </p>
+            </div>
 
             <div className="grid sm:grid-cols-3 gap-4 mb-12">
               {[
-                { value: "6–8", label: "podcasts subscribed", source: "Edison Research – The Infinite Dial" },
-                { value: "8 hrs", label: "weekly listening time", source: "Edison Research – Podcast Consumer" },
-                { value: "60–120", label: "minutes per episode", source: "Industry average across top podcasts" },
+                { value: "90%", label: "of episode value is locked in audio", detail: "Not indexed by search engines" },
+                { value: "48 hrs", label: "typical download window", detail: "Then episodes fade from feeds" },
+                { value: "60%+", label: "of listeners fall behind", detail: "Episodes pile up faster than people can listen" },
               ].map((stat) => (
-                <div key={stat.label} className="bg-white border border-black/[0.06] rounded-2xl py-6 px-5 text-center" data-testid={`stat-${stat.label.replace(/\s+/g, '-')}`}>
+                <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
-                  <p className="text-sm font-display font-semibold text-foreground/70 mb-2">{stat.label}</p>
-                  <p className="text-xs text-muted-foreground/40 leading-snug">{stat.source}</p>
+                  <p className="text-sm font-display font-semibold text-foreground/70 mb-1">{stat.label}</p>
+                  <p className="text-xs text-muted-foreground/50 leading-snug">{stat.detail}</p>
                 </div>
               ))}
             </div>
 
-            <div className="max-w-lg mx-auto text-center">
-              <h3 className="text-lg font-display font-bold mb-3">The math doesn't work</h3>
-              <p className="text-[15px] leading-[1.75] text-muted-foreground mb-4">
-                6–8 podcasts at 60–120 minutes each is 6–16 hours a week. But the average listener only has about 8 hours. Episodes pile up. Listeners fall behind. And once someone feels too far behind, they often stop listening entirely.
+            <div className="max-w-xl mx-auto text-center">
+              <p className="text-[15px] leading-[1.75] text-muted-foreground">
+                You spend hours preparing, recording, and editing each episode. But once it publishes, the ideas inside are only accessible to people who have the time to listen from start to finish. Everyone else moves on.
               </p>
-              <p className="text-[15px] leading-[1.75] font-display font-bold text-foreground">
-                PodCap keeps listeners up to date with short daily recaps so they stay connected and jump into the episodes that matter most.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Free + Bonus ── */}
-        <section className="pb-16 sm:pb-20" data-testid="section-free">
-          <div className="max-w-2xl mx-auto px-6">
-            <div className="bg-emerald-50/60 border border-emerald-200/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-600 mb-1.5" data-testid="text-free-label">Oh, and one more thing</p>
-              <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">This is completely free for podcasters</h2>
-              <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
-                No fees, no contracts, no catch. We recap your episodes, send your fans daily updates, and create searchable pages for your show. Remember, we said we love you guys.
-              </p>
-              <div className="border-t border-emerald-200/40 pt-5 max-w-md mx-auto">
-                <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-600 mb-1.5" data-testid="text-bonus-label">Bonus</p>
-                <p className="text-[15px] leading-[1.7] text-muted-foreground">
-                  We promote standout episode recaps daily on{" "}
-                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold hover:text-primary transition-colors">X</a>,
-                  driving new listeners to discover your show who may have never heard of it before.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── We Admire Podcasters ── */}
-        <section className="py-16 sm:py-20 bg-muted/30 border-y border-black/[0.04]" data-testid="section-problem">
-          <div className="max-w-2xl mx-auto px-6 text-center">
-            <div className="w-10 h-10 rounded-xl bg-primary/[0.07] flex items-center justify-center mx-auto mb-5">
-              <Mic className="w-5 h-5 text-primary" />
-            </div>
-            <h2 className="text-xl sm:text-2xl font-display font-bold mb-5" data-testid="text-problem-title">
-              The problem isn't your content. It's time.
-            </h2>
-            <div className="text-[15px] sm:text-[16px] leading-[1.8] text-muted-foreground space-y-4 text-left sm:text-center max-w-xl mx-auto">
-              <p>
-                Running a great podcast is incredibly hard. Showing up consistently, preparing, researching, interviewing, editing, publishing, and keeping an audience engaged takes real skill and discipline. We genuinely admire podcasters.
-              </p>
-              <p>
-                Even your superfans struggle to keep up. They love your show, but they follow other podcasts too. Episodes pile up and once someone falls off for a few weeks, it's hard to come back. Not because they stopped caring, but because there's too much to catch up on.
-              </p>
-              <p>
-                PodCap sends your fans a short daily recap of what each new episode covers. They stay in the loop even on busy days, and when an episode really speaks to them, they go listen.
+              <p className="text-[15px] leading-[1.75] font-display font-bold text-foreground mt-4">
+                PodCap makes your content findable, skimmable, and shareable — so your best ideas travel further.
               </p>
             </div>
           </div>
         </section>
 
-        {/* ── How This Helps (4 cards) ── */}
-        <section className="py-16 sm:py-20" data-testid="section-how-helps">
+        <section className="py-16 sm:py-20 bg-card/50 border-y border-border" data-testid="section-what-podcap-does">
           <div className="max-w-3xl mx-auto px-6">
-            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-benefits-title">How this helps your podcast</h2>
-            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
-              When your fans stay connected and listen to the right episodes, everybody wins.
-            </p>
+            <div className="text-center mb-12">
+              <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
+                What PodCap creates for your show
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Every episode on PodCap becomes a rich, structured page of knowledge — automatically.
+              </p>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: UserCheck, title: "Keep Your Superfans Close", description: "A daily recap keeps fans connected to your show, even on days they can't press play. They never lose touch.", color: "text-blue-600 bg-blue-50" },
-                { icon: TrendingUp, title: "Boost Listens and Completion", description: "Fans who know what an episode is about pick the ones that are right for them. That means higher completion rates.", color: "text-emerald-600 bg-emerald-50" },
-                { icon: BarChart3, title: "Better Algorithm Performance", description: "Consistent engagement signals quality to podcast platforms. PodCap helps get your best fans to your best episodes.", color: "text-amber-600 bg-amber-50" },
-                { icon: Clock, title: "Prevent the Backlog Drop-Off", description: "Once someone falls a few weeks behind, they rarely come back. A daily recap prevents that from ever happening.", color: "text-purple-600 bg-purple-50" },
+                { icon: BookOpen, title: "AI-powered episode recaps", description: "Each episode gets a detailed summary with key takeaways, notable quotes, topic breakdowns, and chapter-by-chapter analysis. Your content, made scannable.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: Search, title: "Full searchable transcripts", description: "Every word from every episode becomes searchable text. Listeners can find exactly the conversation they're looking for in seconds.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: Globe, title: "SEO-indexed episode pages", description: "Each recap is a new page indexed by Google. Someone searching for a topic you've covered can discover your show for the first time.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { icon: Sparkles, title: "AI Q&A about your podcast", description: "Listeners can ask questions about your show and get AI-powered answers drawn from real transcripts. Your episodes become a knowledge base.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: Layers, title: "Guest and topic pages", description: "Guests who appear on your show get their own profile pages. Topics discussed across your episodes are cross-referenced and linked.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
+                { icon: Clock, title: "Daily recap emails", description: "Your fans can subscribe to daily email recaps. They stay connected to your show even on busy days and come back for the episodes that resonate.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="bg-card border border-border rounded-2xl p-6"
+                  data-testid={`card-feature-${item.title.slice(0, 12).replace(/\s+/g, '-').toLowerCase()}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
+                    <item.icon className="w-[18px] h-[18px]" />
+                  </div>
+                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20" data-testid="section-how-helps">
+          <div className="max-w-3xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-benefits-title">
+                How this helps your podcast grow
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                PodCap creates durable value from every episode you publish.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                { icon: Globe, title: "Discoverability beyond the feed", description: "Every recap is a Google-indexed page. People searching for topics you've covered find your show organically — even years after the episode aired.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: UserCheck, title: "Deeper audience connection", description: "Fans who read recaps stay engaged with your show even when they can't listen. They never lose touch, and they come back for the episodes that matter most.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: TrendingUp, title: "Stronger engagement metrics", description: "Listeners who preview a recap before pressing play are more intentional. They're more likely to finish episodes, which sends the signals platforms reward.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: BarChart3, title: "Long-tail value from every episode", description: "Your back catalog keeps generating new listeners. Old episodes become permanent, searchable assets instead of disappearing into the archive.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
               ].map((b) => (
                 <div
                   key={b.title}
-                  className="bg-white border border-black/[0.06] rounded-2xl p-6 shadow-sm"
-                  data-testid={`card-benefit-${b.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="bg-card border border-border rounded-2xl p-6"
+                  data-testid={`card-benefit-${b.title.toLowerCase().replace(/\s+/g, '-').slice(0, 20)}`}
                 >
                   <div className={`w-10 h-10 rounded-xl ${b.color} flex items-center justify-center mb-3`}>
                     <b.icon className="w-[18px] h-[18px]" />
@@ -289,169 +281,65 @@ export default function ForPodcasters() {
           </div>
         </section>
 
-        {/* ── The Real Problem ── */}
-        <section className="py-16 sm:py-20 bg-muted/30 border-y border-black/[0.04]" data-testid="section-unintentional-listens">
-          <div className="max-w-2xl mx-auto px-6">
-            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-unintentional-title">
-              The real problem is unintentional listening
-            </h2>
-            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
-              Habit plays don't help your metrics. Intentional plays do.
-            </p>
-
-            <div className="space-y-6">
-              <p className="text-[15px] leading-[1.75] text-muted-foreground">
-                A fan sees a new episode drop. They don't really know the topic or guest. They press play out of habit. Five minutes in, they realize the episode isn't for them and they abandon it.
-              </p>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-5" data-testid="card-without-podcap">
-                  <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-3">Without PodCap</p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-red-700/80">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                      Low completion rates
-                    </li>
-                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-red-700/80">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                      Short listening sessions
-                    </li>
-                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-red-700/80">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                      Early drop-offs that hurt rankings
-                    </li>
-                  </ul>
-                </div>
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5" data-testid="card-with-podcap">
-                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3">With PodCap</p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-emerald-700/80">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                      Higher completion rates
-                    </li>
-                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-emerald-700/80">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                      Longer listening sessions
-                    </li>
-                    <li className="flex items-start gap-2 text-[14px] leading-[1.6] text-emerald-700/80">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                      Fewer early drop-offs
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <p className="text-[15px] leading-[1.75] text-muted-foreground">
-                Instead of guessing, the listener reads a 60-second recap first. They know the guest, the ideas, and the takeaways. When they decide to press play, they're doing it intentionally.
-              </p>
-
-              <div className="bg-white border border-black/[0.06] rounded-2xl p-6 shadow-sm" data-testid="card-pitch">
-                <p className="text-[15px] leading-[1.75] text-foreground font-medium">
-                  PodCap helps fans decide which episodes to listen to before they hit play. That means the people who start your episode are far more likely to finish it.
-                </p>
-                <p className="text-[14px] text-muted-foreground mt-2">
-                  Those are exactly the engagement signals platforms reward.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── How It Works (steps) ── */}
-        <section className="py-16 sm:py-20" data-testid="section-the-logic">
-          <div className="max-w-2xl mx-auto px-6">
-            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-logic-title">
-              The right fans, listening to the right episodes
-            </h2>
-            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
-              Here's how recaps change the dynamic between your show and your audience.
-            </p>
-            <div className="space-y-5">
-              {[
-                "Fans subscribe to your podcast on PodCap and get a short daily recap in their inbox.",
-                "On busy days, the recap keeps them connected. They know what you talked about, even if they can't listen.",
-                "When an episode resonates, they go listen. They already know it's for them, so they're more likely to finish it.",
-                "Higher completion rates and consistent engagement send strong signals to podcast algorithms. Your show gets rewarded.",
-                "Instead of losing fans to the backlog, you keep them in your orbit. They stay subscribed, stay engaged, and stay loyal.",
-              ].map((text, i) => (
-                <div key={i} className="flex gap-4 items-start" data-testid={`step-${i + 1}`}>
-                  <div className="w-7 h-7 rounded-full bg-primary/[0.07] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-display font-bold text-primary">{i + 1}</span>
-                  </div>
-                  <p className="text-[15px] leading-[1.7] text-muted-foreground">{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Secondary Benefits ── */}
-        <section className="py-16 sm:py-20" data-testid="section-secondary-benefits">
-          <div className="max-w-2xl mx-auto px-6">
-            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-secondary-title">
-              More ways PodCap works for you
-            </h2>
-            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
-              Beyond keeping fans engaged, PodCap handles things you probably don't have time for.
-            </p>
-            <div className="space-y-4">
-              {[
-                { icon: Search, color: "text-blue-600 bg-blue-50", title: "Your fans are already searching for recaps", desc: "A lot of your superfans are already Googling things like \"podcast name recap.\" PodCap makes sure they land on a quality recap page for your show instead of some random blog post." },
-                { icon: Mic, color: "text-emerald-600 bg-emerald-50", title: "Episode summaries, done for you", desc: "Writing up summaries for every episode takes time you don't have. PodCap creates detailed, accurate recaps automatically. Just point your audience to your PodCap page." },
-                { icon: Globe, color: "text-purple-600 bg-purple-50", title: "Free discoverability you're not getting today", desc: "Every episode recap is a new indexed page on Google. That's a new entry point for someone who's never heard of your show but is searching for a topic you've covered." },
-              ].map((item) => (
-                <div key={item.title} className="bg-white border border-black/[0.06] rounded-2xl p-6 flex gap-4 items-start" data-testid={`card-secondary-${item.title.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`}>
-                  <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0`}>
-                    <item.icon className="w-[18px] h-[18px]" />
-                  </div>
-                  <div>
-                    <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
-                    <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Why Engagement Scores Matter ── */}
-        <section className="py-16 sm:py-20 bg-muted/30 border-y border-black/[0.04]" data-testid="section-engagement">
+        <section className="py-16 sm:py-20 bg-foreground text-background" data-testid="section-vision">
           <div className="max-w-2xl mx-auto px-6 text-center">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-5">
-              <Zap className="w-5 h-5 text-amber-600" />
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-6">
+              <Library className="w-6 h-6 text-white/80" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-display font-bold mb-5" data-testid="text-engagement-title">
-              Why engagement scores matter
+            <h2 className="text-xl sm:text-2xl font-display font-bold mb-5">
+              We're building podcast infrastructure
             </h2>
-            <div className="text-[15px] sm:text-[16px] leading-[1.8] text-muted-foreground space-y-4 text-left sm:text-center max-w-xl mx-auto">
+            <div className="text-[15px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
-                Podcast platforms use engagement signals to decide which shows to recommend. Completion rate, listen frequency, and subscriber retention all factor in. When listeners abandon episodes halfway, it hurts your show's visibility.
+                Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio — unsearchable, unskimmable, and invisible to the web.
               </p>
               <p>
-                PodCap helps by making sure fans listen to episodes that are right for them. Instead of pressing play on something they're unsure about and bailing 10 minutes in, they read a quick recap first and only listen when they know it's a good fit. More completed episodes, better metrics, and a stronger signal to the algorithm.
+                PodCap is building the infrastructure to change that. We're turning every episode into structured, searchable knowledge — connecting ideas across shows, guests, and topics. When someone searches for an idea your podcast discussed, they should find it.
+              </p>
+              <p className="text-white/80 font-display font-bold">
+                We believe great podcast content deserves to be as discoverable as any article on the internet.
               </p>
             </div>
           </div>
         </section>
 
-        {/* ── Podcast Pages Grid ── */}
-        <section className="py-16 sm:py-20" data-testid="section-podcast-pages">
-          <div className="max-w-3xl mx-auto px-6">
-            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-2 text-center" data-testid="text-pages-title">
-              Custom pages for top podcasts
-            </h2>
-            <p className="text-[15px] text-muted-foreground text-center max-w-lg mx-auto mb-10">
-              We've created dedicated pages for many major podcasts. Fans can sign up for recaps and discover episode summaries in one place.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <section className="py-16 sm:py-20" data-testid="section-free">
+          <div className="max-w-2xl mx-auto px-6">
+            <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
+              <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
+              <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
+                There's no cost, no contract, and no catch. PodCap creates episode recaps, searchable transcripts, and discovery pages for your show automatically. Our goal is to make your content more valuable — not to gatekeep it.
+              </p>
+              <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
+                <p className="text-[15px] leading-[1.7] text-muted-foreground">
+                  We also promote standout episodes daily on{" "}
+                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold hover:text-primary transition-colors">@podcap_io</a>,
+                  helping new listeners discover your show.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20 bg-card/50 border-y border-border" data-testid="section-podcast-pages">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="text-center mb-10">
+              <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-pages-title">
+                250+ podcasts on the platform
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                From indie shows to the world's most popular podcasts, we're building the most comprehensive library of podcast knowledge on the internet.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {FEATURED_PODCASTS.map((podcast) => (
                 <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="group" data-testid={`card-podcast-${podcast.slug}`}>
-                  <div className="bg-white border border-black/[0.06] rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all h-full flex flex-col">
-                    <img src={podcast.artworkUrl} alt={podcast.name} className="w-full aspect-square rounded-xl object-cover mb-3" loading="lazy" />
-                    <h3 className="font-display font-bold text-sm mb-0.5 leading-tight">{podcast.name}</h3>
-                    <p className="text-sm text-muted-foreground leading-snug mb-3 flex-1 line-clamp-2">{podcast.description}</p>
-                    <span className="flex items-center text-primary text-sm font-display font-bold">
-                      View Page <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                  <div className="bg-card border border-border rounded-2xl p-3.5 hover:border-primary/30 hover:shadow-md transition-all h-full flex flex-col">
+                    <img src={podcast.artworkUrl} alt={podcast.name} className="w-full aspect-square rounded-xl object-cover mb-3 group-hover:scale-[1.02] transition-transform" loading="lazy" />
+                    <h3 className="font-display font-bold text-sm mb-0.5 leading-tight group-hover:text-primary transition-colors">{podcast.name}</h3>
+                    <p className="text-xs text-muted-foreground leading-snug flex-1 line-clamp-2">{podcast.description}</p>
+                    <span className="flex items-center text-primary text-xs font-display font-bold mt-2">
+                      View Page <ChevronRight className="w-3 h-3 ml-0.5" />
                     </span>
                   </div>
                 </Link>
@@ -467,7 +355,6 @@ export default function ForPodcasters() {
           </div>
         </section>
 
-        {/* ── Contact Form ── */}
         <ContactSection />
 
       </main>
