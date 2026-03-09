@@ -939,11 +939,11 @@ Cross-reference the transcript and show notes: the show notes often have the cor
           messages: [
             {
               role: "system",
-              content: `You are an expert at extracting resources, books, tools, websites, apps, and recommendations mentioned in podcast episodes. Analyze the transcript and show notes to identify ALL resources, products, books, tools, websites, apps, courses, newsletters, and other recommendations that are ORGANICALLY mentioned or discussed — NOT paid sponsors.
+              content: `You are an expert at extracting resources, books, tools, websites, apps, and recommendations mentioned in podcast episodes. Analyze the transcript and show notes to identify ALL resources that are ORGANICALLY mentioned or discussed — NOT paid sponsors. This includes: books, tools, websites, apps, courses, newsletters, TV shows, movies, programs, organizations, companies, frameworks, methodologies, and any other noteworthy things the hosts or guests discuss, reference, or recommend.
 
 For each resource, provide:
-- "name": The name of the resource (book title, tool name, website name, etc.)
-- "type": One of: "book", "tool", "app", "website", "newsletter", "course", "podcast", "video", "article", "service", "other"
+- "name": The name of the resource (book title, tool name, show name, website name, etc.)
+- "type": One of: "book", "tool", "app", "website", "newsletter", "course", "podcast", "video", "article", "service", "other" (use "other" for TV shows, movies, programs, organizations, etc.)
 - "description": A brief 1-2 sentence description of what this resource is and how it was mentioned/recommended in the episode
 - "url": The most relevant URL for this resource. For books, use an Amazon search URL like "https://www.amazon.com/s?k=BOOK+TITLE&tag=podcap-20". For tools/apps/websites, use their actual URL if mentioned in the transcript or show notes. If no URL is available, use null.
 - "author": For books, the author name. For tools/apps, the company name. null if unknown.
