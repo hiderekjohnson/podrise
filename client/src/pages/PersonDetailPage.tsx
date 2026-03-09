@@ -65,7 +65,7 @@ function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" |
           <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
         </div>
       </div>
-      {type === "mention" && episode.context && (
+      {episode.context && (
         <p className="mt-3 text-sm text-muted-foreground/80 leading-relaxed pl-16 italic">
           &ldquo;{episode.context}&rdquo;
         </p>

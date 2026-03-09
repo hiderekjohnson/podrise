@@ -1079,7 +1079,7 @@ export async function registerRoutes(
         }).join(" OR ");
         const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
@@ -1104,13 +1104,23 @@ export async function registerRoutes(
             context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
           }));
 
+        const guestAppearancesWithContext = guestEpisodes.map((e: any) => ({
+          slug: e.slug,
+          episode_slug: e.episode_slug,
+          podcast_name: e.podcast_name,
+          episode_title: e.episode_title,
+          publish_date: e.publish_date,
+          artwork_url: e.artwork_url,
+          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
+        }));
+
         res.json({
           name: person.name,
           title: person.title,
           slug,
-          guestAppearances: guestEpisodes,
+          guestAppearances: guestAppearancesWithContext,
           mentions: mentionsOnly,
-          guestCount: guestEpisodes.length,
+          guestCount: guestAppearancesWithContext.length,
           mentionCount: mentionsOnly.length,
         });
       } finally {
