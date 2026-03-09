@@ -2,27 +2,27 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Clock, Mail, Sparkles, Trophy, Search, BookOpen, Globe } from "lucide-react";
+import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Clock, Mail, Sparkles, Search, BookOpen, Globe } from "lucide-react";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 import derekPhoto from "@assets/Derek_Johnson_nobg.png";
 
 export default function About() {
   useEffect(() => {
-    document.title = "About PodCap - Organizing the World's Podcast Knowledge | PodCap";
+    document.title = "About PodCap — Building the World's Searchable Library of Podcast Knowledge";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "Podcasts have become one of the largest knowledge platforms in the world. PodCap is building the infrastructure to make that knowledge accessible to everyone.");
-    setMeta("property", "og:title", "About PodCap - Organizing the World's Podcast Knowledge | PodCap");
-    setMeta("property", "og:description", "Podcasts have become one of the largest knowledge platforms in the world. PodCap is building the infrastructure to make that knowledge accessible to everyone.");
+    setMeta("name", "description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, full transcripts, and structured insights so great ideas travel further.");
+    setMeta("property", "og:title", "About PodCap — Building the World's Searchable Library of Podcast Knowledge");
+    setMeta("property", "og:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, full transcripts, and structured insights so great ideas travel further.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
-    setMeta("name", "twitter:title", "About PodCap - Organizing the World's Podcast Knowledge | PodCap");
-    setMeta("name", "twitter:description", "Podcasts have become one of the largest knowledge platforms in the world. PodCap is building the infrastructure to make that knowledge accessible to everyone.");
+    setMeta("name", "twitter:title", "About PodCap — Building the World's Searchable Library of Podcast Knowledge");
+    setMeta("name", "twitter:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, full transcripts, and structured insights so great ideas travel further.");
     setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -40,10 +40,10 @@ export default function About() {
             <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
           </a>
           <div className="flex items-center gap-4">
-            <Link href="/podcasts" data-testid="link-nav-podcasts">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors">
-                <Trophy className="w-3.5 h-3.5" />
-                Top Podcasts
+            <Link href="/get-started" data-testid="link-nav-get-started">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+                <Zap className="w-3.5 h-3.5" />
+                Build Your Recap
               </div>
             </Link>
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
@@ -353,7 +353,7 @@ export default function About() {
                 className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="link-browse-podcasts"
               >
-                Top Podcasts
+                Browse Podcasts
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

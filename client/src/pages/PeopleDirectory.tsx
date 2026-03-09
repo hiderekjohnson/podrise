@@ -34,7 +34,7 @@ const CATEGORIES = [
 
 function SEOHead() {
   const title = "Notable People in Podcasts — Who's Being Discussed | PodCap";
-  const description = "Explore the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned the most, and find every episode they're featured in.";
+  const description = "Explore the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned most, and discover searchable transcripts, podcast recaps, and podcast summaries featuring them.";
 
   if (typeof document !== "undefined") {
     document.title = title;

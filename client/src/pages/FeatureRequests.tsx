@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Send, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, Sparkles, Trophy } from "lucide-react";
+import { Send, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, Sparkles, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { apiRequest } from "@/lib/queryClient";
@@ -161,7 +161,7 @@ export default function FeatureRequests() {
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = "PodCap Updates — New Podcast Summary Features & Changelog";
+    document.title = "What's New — PodCap Updates, Features & Changelog";
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -169,10 +169,10 @@ export default function FeatureRequests() {
       el.setAttribute("content", content);
     };
 
-    setMeta("name", "description", "See the latest PodCap features — AI-powered podcast summaries, episode recaps, custom delivery times, vacation mode, podcast deals, and more. Request new features for your daily podcast digest.");
-    setMeta("name", "keywords", "podcast summary updates, podcast recap features, PodCap changelog, podcast digest features, AI podcast summary, episode recap updates");
-    setMeta("property", "og:title", "PodCap Updates — New Podcast Summary Features & Changelog");
-    setMeta("property", "og:description", "See the latest PodCap features for AI-powered podcast summaries and episode recaps. Request new features for your daily podcast digest.");
+    setMeta("name", "description", "See what we've shipped — AI-powered podcast recaps, searchable transcripts, episode summaries, people and topic pages, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.");
+    setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodCap changelog, searchable transcripts, AI podcast knowledge, episode recap platform");
+    setMeta("property", "og:title", "What's New — PodCap Updates, Features & Changelog");
+    setMeta("property", "og:description", "See what we've shipped — AI-powered podcast recaps, searchable transcripts, episode summaries, and more. Follow PodCap's journey.");
     setMeta("property", "og:url", "https://podcap.io/updates");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodCap");
@@ -186,8 +186,8 @@ export default function FeatureRequests() {
     jsonLd.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": "PodCap Updates — Podcast Summary Features & Changelog",
-      "description": "See the latest features for AI-powered podcast summaries and daily episode recaps on PodCap.",
+      "name": "What's New — PodCap Updates, Features & Changelog",
+      "description": "See what we've shipped — AI-powered podcast recaps, searchable transcripts, podcast summaries, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.",
       "url": "https://podcap.io/updates",
       "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
     });
@@ -232,10 +232,10 @@ export default function FeatureRequests() {
             <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
           </a>
           <div className="flex items-center gap-4">
-            <Link href="/podcasts" data-testid="link-nav-podcasts">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors">
-                <Trophy className="w-3.5 h-3.5" />
-                Top Podcasts
+            <Link href="/get-started" data-testid="link-nav-get-started">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+                <Zap className="w-3.5 h-3.5" />
+                Build Your Recap
               </div>
             </Link>
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">

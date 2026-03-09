@@ -26,7 +26,7 @@ function hiResArtwork(url: string) {
 
 function SEOHead() {
   const title = "PodCap — The World's Searchable Library of Podcast Knowledge";
-  const description = "Search, skim, and stay current on the world's best podcasts without listening to every episode. PodCap turns hours of audio into actionable insights.";
+  const description = "PodCap turns podcast episodes into searchable, discoverable knowledge. Get daily recaps, AI-powered summaries, full transcripts, and insights from 250+ top podcasts — all in one place.";
 
   if (typeof document !== "undefined") {
     document.title = title;

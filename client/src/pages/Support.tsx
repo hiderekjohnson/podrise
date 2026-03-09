@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, Send, CheckCircle2, HelpCircle, Mail, Trophy } from "lucide-react";
+import { ChevronDown, Send, CheckCircle2, HelpCircle, Mail, Zap } from "lucide-react";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -101,15 +101,15 @@ export default function Support() {
   ];
 
   useEffect(() => {
-    document.title = "Help & Support — PodCap | Daily Podcast Summaries & Recaps";
+    document.title = "Help & Support — PodCap | Podcast Recaps, Summaries & Transcripts";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "Find answers about PodCap's AI-powered daily podcast summaries, episode recaps, delivery settings, Pro plan features, and more. Get help or contact our support team.");
-    setMeta("property", "og:title", "Help & Support — PodCap | Daily Podcast Summaries & Recaps");
-    setMeta("property", "og:description", "Get answers about your daily podcast digest, episode summaries, delivery timing, and subscription. Contact the PodCap support team.");
+    setMeta("name", "description", "Find answers about PodCap's AI-powered podcast recaps, episode summaries, searchable transcripts, delivery settings, Pro plan features, and more. Get help or contact our team.");
+    setMeta("property", "og:title", "Help & Support — PodCap | Podcast Recaps, Summaries & Transcripts");
+    setMeta("property", "og:description", "Get answers about podcast recaps, episode summaries, searchable transcripts, delivery timing, and your subscription. Contact the PodCap support team.");
   }, []);
 
   return (
@@ -120,10 +120,10 @@ export default function Support() {
             <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
           </a>
           <div className="flex items-center gap-4">
-            <Link href="/podcasts" data-testid="link-nav-podcasts">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors">
-                <Trophy className="w-3.5 h-3.5" />
-                Top Podcasts
+            <Link href="/get-started" data-testid="link-nav-get-started">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+                <Zap className="w-3.5 h-3.5" />
+                Build Your Recap
               </div>
             </Link>
             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
