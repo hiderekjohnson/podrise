@@ -4097,6 +4097,30 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     faqTopics: "leadership trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c6/02/20/c60220e0-2a1d-0c64-7bc5-42ca06b22ed8/mza_18041447849757755455.jpg/600x600bb.jpg",
     aboutPodcast: "No Bullshit Leadership is a podcast hosted by Martin G. Moore and covering leadership topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Bullshit Leadership or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
+  },
+  {
+    slug: "goal-digger",
+    name: "The Goal Digger Podcast",
+    itunesId: "1178735208",
+    category: "Business / Entrepreneurship",
+    hosts: "Jenna Kutcher",
+    description: "entrepreneurship, online marketing, and building a life you love",
+    keywords: "Goal Digger, Jenna Kutcher, entrepreneurship, online marketing, social media, business",
+    faqTopics: "online business strategies, social media marketing, entrepreneurship tips, and building a purpose-driven brand",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a2/97/8a/a2978a90-58da-1e60-0474-c4c5e0a0e9d2/mza_4436280378498498498.jpg/600x600bb.jpg",
+    aboutPodcast: "The Goal Digger Podcast is hosted by Jenna Kutcher and covers entrepreneurship, online marketing, and building a life and business you love. Each episode delivers actionable strategies for growing an online business, mastering social media, and creating a purpose-driven brand. Whether you're a longtime listener of The Goal Digger Podcast or discovering Jenna Kutcher for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
+  },
+  {
+    slug: "daily-beans",
+    name: "The Daily Beans",
+    itunesId: "1449762756",
+    category: "News / Politics",
+    hosts: "Allison Gill, Dana Goldberg",
+    description: "daily news coverage focused on US politics and legal developments",
+    keywords: "Daily Beans, Allison Gill, Dana Goldberg, politics, news, legal, daily briefing",
+    faqTopics: "US political news, legal developments, government accountability, and daily news analysis",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e0/2c/b3/e02cb3f8-a06e-4e8a-d9cc-3d4e65b5d6a9/mza_11982673421849372652.jpg/600x600bb.jpg",
+    aboutPodcast: "The Daily Beans is a podcast hosted by Allison Gill and Dana Goldberg covering daily US political news and legal developments. Each episode delivers sharp analysis of government accountability and breaking political stories. Whether you're a longtime listener of The Daily Beans or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   }
 ];
 
