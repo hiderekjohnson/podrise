@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Users, ArrowRight, Mic, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
+import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface PersonSummary {
@@ -15,25 +16,24 @@ interface PersonSummary {
 }
 
 function SEOHead() {
-  const title = "People in Podcasts — Discover Who's Being Discussed | PodCap";
+  const title = "Notable People in Podcasts — Who's Being Discussed | PodCap";
   const description = "Explore the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned the most, and find every episode they're featured in.";
 
   if (typeof document !== "undefined") {
     document.title = title;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute("content", description);
-    else {
-      const meta = document.createElement("meta");
-      meta.name = "description";
-      meta.content = description;
-      document.head.appendChild(meta);
-    }
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) { ogTitle = document.createElement("meta"); (ogTitle as HTMLMetaElement).setAttribute("property", "og:title"); document.head.appendChild(ogTitle); }
-    ogTitle.setAttribute("content", title);
-    let ogDesc = document.querySelector('meta[property="og:description"]');
-    if (!ogDesc) { ogDesc = document.createElement("meta"); (ogDesc as HTMLMetaElement).setAttribute("property", "og:description"); document.head.appendChild(ogDesc); }
-    ogDesc.setAttribute("content", description);
+    const setOrCreate = (selector: string, attr: string, value: string) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = document.createElement("meta");
+        const [k, v] = attr === "name" ? ["name", selector.match(/name="([^"]+)"/)?.[1] || ""] : ["property", selector.match(/property="([^"]+)"/)?.[1] || ""];
+        el.setAttribute(k, v);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", value);
+    };
+    setOrCreate('meta[name="description"]', "name", description);
+    setOrCreate('meta[property="og:title"]', "property", title);
+    setOrCreate('meta[property="og:description"]', "property", description);
   }
   return null;
 }
@@ -45,6 +45,8 @@ export default function PeopleDirectory() {
   const { data: people, isLoading } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
   });
+
+  const getPersonData = (slug: string) => PEOPLE_DIRECTORY.find(p => p.slug === slug);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -71,10 +73,10 @@ export default function PeopleDirectory() {
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="heading-people">
-              People in Podcasts
+              Notable People to Follow
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Discover the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned, and find every episode they're featured in.
+              Top figures discussed across the podcast world. See who appears as a guest, who gets mentioned, and explore every episode they're featured in.
             </p>
           </motion.div>
         </section>
@@ -83,56 +85,71 @@ export default function PeopleDirectory() {
           <div className="w-full max-w-3xl space-y-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="bg-card border border-border rounded-xl p-6 animate-pulse">
-                <div className="h-6 bg-muted rounded w-48 mb-3" />
-                <div className="h-4 bg-muted rounded w-64" />
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-muted" />
+                  <div className="flex-1">
+                    <div className="h-6 bg-muted rounded w-48 mb-3" />
+                    <div className="h-4 bg-muted rounded w-64" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.2 }} className="w-full max-w-3xl space-y-3">
-            {people?.map((person, index) => (
-              <motion.div
-                key={person.slug}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.04 }}
-              >
-                <div
-                  className="bg-card border border-border rounded-xl p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
-                  onClick={() => navigate(`/people/${person.slug}`)}
-                  data-testid={`card-person-${person.slug}`}
+            {people?.map((person, index) => {
+              const personData = getPersonData(person.slug);
+              return (
+                <motion.div
+                  key={person.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.04 }}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-sm font-bold text-primary/60 tabular-nums">#{index + 1}</span>
-                        <h2 className="text-xl font-display font-bold text-foreground group-hover:text-primary transition-colors" data-testid={`text-person-name-${person.slug}`}>
+                  <div
+                    className="bg-card border border-border rounded-xl p-5 sm:p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
+                    onClick={() => navigate(`/people/${person.slug}`)}
+                    data-testid={`card-person-${person.slug}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={personData?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=56&background=1a8cff&color=fff&bold=true`}
+                          alt={person.name}
+                          className="w-14 h-14 rounded-full object-cover border-2 border-border group-hover:border-primary/30 transition-colors"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=56&background=1a8cff&color=fff&bold=true`;
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg sm:text-xl font-display font-bold text-foreground group-hover:text-primary transition-colors mb-0.5" data-testid={`text-person-name-${person.slug}`}>
                           {person.name}
                         </h2>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3 pl-8">{person.title}</p>
-                      <div className="flex flex-wrap gap-4 pl-8">
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Mentioned in <span className="font-semibold text-foreground">{person.mentionCount}</span> episodes</span>
-                        </div>
-                        {person.guestCount > 0 && (
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Mic className="w-3.5 h-3.5" />
-                            <span>Guest on <span className="font-semibold text-foreground">{person.guestCount}</span> episodes</span>
+                        <p className="text-sm text-muted-foreground mb-2">{person.title}</p>
+                        <div className="flex flex-wrap gap-3">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Mentioned in <span className="font-semibold text-foreground">{person.mentionCount}</span> episodes</span>
                           </div>
-                        )}
+                          {person.guestCount > 0 && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Mic className="w-3.5 h-3.5" />
+                              <span>Guest on <span className="font-semibold text-foreground">{person.guestCount}</span> episodes</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-9 h-9 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                        <ArrowRight className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
+                      <div className="flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <ArrowRight className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
       </main>

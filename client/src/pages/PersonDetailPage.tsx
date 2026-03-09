@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink } from "lucide-react";
+import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe } from "lucide-react";
+import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
+import { getPersonBySlug } from "@/data/entityDirectoryData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface EpisodeEntry {
@@ -13,6 +15,7 @@ interface EpisodeEntry {
   episode_title: string;
   publish_date: string;
   artwork_url: string;
+  context?: string;
 }
 
 interface PersonDetail {
@@ -31,35 +34,42 @@ function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" |
 
   return (
     <div
-      className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+      className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
       onClick={() => navigate(`/podcasts/${episode.slug}/${episode.episode_slug}`)}
       data-testid={`card-episode-${episode.slug}-${episode.episode_slug}`}
     >
-      {episode.artwork_url && (
-        <img src={episode.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${episode.slug}-${episode.episode_slug}`}>
-          {episode.episode_title}
-        </p>
-        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-          <Headphones className="w-3 h-3" />
-          {episode.podcast_name}
-          {date && (
-            <>
-              <span className="mx-1">·</span>
-              <Calendar className="w-3 h-3" />
-              {date}
-            </>
-          )}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {type === "guest" && (
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Guest</span>
+      <div className="flex items-center gap-4">
+        {episode.artwork_url && (
+          <img src={episode.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
         )}
-        <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${episode.slug}-${episode.episode_slug}`}>
+            {episode.episode_title}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+            <Headphones className="w-3 h-3" />
+            {episode.podcast_name}
+            {date && (
+              <>
+                <span className="mx-1">&middot;</span>
+                <Calendar className="w-3 h-3" />
+                {date}
+              </>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {type === "guest" && (
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Guest</span>
+          )}
+          <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+        </div>
       </div>
+      {type === "mention" && episode.context && (
+        <p className="mt-3 text-xs text-muted-foreground/80 leading-relaxed pl-16 italic">
+          &ldquo;{episode.context}&rdquo;
+        </p>
+      )}
     </div>
   );
 }
@@ -69,6 +79,7 @@ export default function PersonDetailPage() {
   const [match, params] = useRoute("/people/:slug");
   const slug = params?.slug || "";
   const { data: user } = useAuth();
+  const personData = getPersonBySlug(slug);
 
   const { data: person, isLoading } = useQuery<PersonDetail>({
     queryKey: ["/api/entities/people", slug],
@@ -99,6 +110,8 @@ export default function PersonDetailPage() {
     setOrCreate('meta[property="og:description"]', "property", desc);
   }
 
+  const socialLinks = personData?.socialLinks;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
@@ -127,27 +140,75 @@ export default function PersonDetailPage() {
 
           {isLoading ? (
             <div className="space-y-4">
-              <div className="h-10 bg-muted rounded w-64 animate-pulse" />
-              <div className="h-5 bg-muted rounded w-96 animate-pulse" />
+              <div className="flex items-center gap-6">
+                <div className="w-28 h-28 rounded-full bg-muted animate-pulse" />
+                <div className="flex-1">
+                  <div className="h-10 bg-muted rounded w-64 animate-pulse mb-3" />
+                  <div className="h-5 bg-muted rounded w-96 animate-pulse" />
+                </div>
+              </div>
               <div className="h-64 bg-muted rounded animate-pulse mt-8" />
             </div>
           ) : person ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <div className="mb-8">
-                <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] mb-2" data-testid="heading-person-name">
-                  {person.name}
-                </h1>
-                <p className="text-base text-muted-foreground mb-4">{person.title}</p>
-                <div className="flex flex-wrap gap-4">
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <Mic className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-foreground">{person.guestCount}</span>
-                    <span className="text-muted-foreground">guest appearances</span>
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 bg-card border border-border rounded-2xl p-6 sm:p-8">
+                <div className="flex-shrink-0">
+                  <img
+                    src={personData?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=120&background=1a8cff&color=fff&bold=true`}
+                    alt={person.name}
+                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-border shadow-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=120&background=1a8cff&color=fff&bold=true`;
+                    }}
+                    data-testid="img-person-avatar"
+                  />
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] mb-1" data-testid="heading-person-name">
+                    {person.name}
+                  </h1>
+                  <p className="text-base text-muted-foreground mb-3">{person.title}</p>
+
+                  {personData?.bio && (
+                    <p className="text-sm text-muted-foreground/80 leading-relaxed mb-4" data-testid="text-person-bio">
+                      {personData.bio}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
+                    {socialLinks?.twitter && (
+                      <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
+                        <SiX className="w-3 h-3" /> X / Twitter
+                      </a>
+                    )}
+                    {socialLinks?.linkedin && (
+                      <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
+                        <SiLinkedin className="w-3 h-3" /> LinkedIn
+                      </a>
+                    )}
+                    {socialLinks?.instagram && (
+                      <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
+                        <SiInstagram className="w-3 h-3" /> Instagram
+                      </a>
+                    )}
+                    {socialLinks?.website && (
+                      <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
+                        <Globe className="w-3 h-3" /> Website
+                      </a>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <MessageSquare className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-foreground">{person.mentionCount}</span>
-                    <span className="text-muted-foreground">mentions</span>
+
+                  <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <Mic className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-foreground">{person.guestCount}</span>
+                      <span className="text-muted-foreground">guest appearances</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <MessageSquare className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-foreground">{person.mentionCount}</span>
+                      <span className="text-muted-foreground">mentions</span>
+                    </div>
                   </div>
                 </div>
               </div>

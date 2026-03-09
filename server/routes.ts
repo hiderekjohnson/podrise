@@ -667,41 +667,77 @@ export async function registerRoutes(
     }
   });
 
+  const ENTITY_PEOPLE = [
+    { slug: "elon-musk", name: "Elon Musk", title: "CEO of Tesla & SpaceX", searchTerms: ["Elon Musk"], hostedSlugs: [] as string[] },
+    { slug: "sam-altman", name: "Sam Altman", title: "CEO of OpenAI", searchTerms: ["Sam Altman"], hostedSlugs: [] },
+    { slug: "joe-rogan", name: "Joe Rogan", title: "Host of The Joe Rogan Experience", searchTerms: ["Joe Rogan"], hostedSlugs: ["joerogan"] },
+    { slug: "lex-fridman", name: "Lex Fridman", title: "Host of Lex Fridman Podcast", searchTerms: ["Lex Fridman"], hostedSlugs: ["lexfridman"] },
+    { slug: "naval-ravikant", name: "Naval Ravikant", title: "Co-founder of AngelList", searchTerms: ["Naval Ravikant", "Naval"], hostedSlugs: [] },
+    { slug: "peter-thiel", name: "Peter Thiel", title: "Co-founder of PayPal & Palantir", searchTerms: ["Peter Thiel", "Thiel"], hostedSlugs: [] },
+    { slug: "chamath-palihapitiya", name: "Chamath Palihapitiya", title: "CEO of Social Capital", searchTerms: ["Chamath Palihapitiya", "Chamath"], hostedSlugs: ["allin"] },
+    { slug: "jason-calacanis", name: "Jason Calacanis", title: "Angel Investor & Host of This Week in Startups", searchTerms: ["Jason Calacanis", "Calacanis"], hostedSlugs: ["allin", "thisweekinstartups"] },
+    { slug: "marc-andreessen", name: "Marc Andreessen", title: "Co-founder of Andreessen Horowitz", searchTerms: ["Marc Andreessen", "Andreessen"], hostedSlugs: ["a16z"] },
+    { slug: "jensen-huang", name: "Jensen Huang", title: "CEO of NVIDIA", searchTerms: ["Jensen Huang"], hostedSlugs: [] },
+  ];
+
+  const ENTITY_COMPANIES = [
+    { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "ChatGPT", "GPT-4"] },
+    { slug: "tesla", name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
+    { slug: "nvidia", name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
+    { slug: "google", name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
+    { slug: "microsoft", name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"] },
+    { slug: "apple", name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"] },
+    { slug: "amazon", name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon", "AWS"] },
+    { slug: "anthropic", name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
+    { slug: "meta", name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
+    { slug: "spacex", name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
+  ];
+
+  function extractMentionContext(fields: string[], searchTerms: string[]): string {
+    for (const text of fields) {
+      if (!text) continue;
+      const sentences = text.split(/(?<=[.!?])\s+/);
+      for (const term of searchTerms) {
+        const lower = term.toLowerCase();
+        for (const sentence of sentences) {
+          if (sentence.toLowerCase().includes(lower)) {
+            const trimmed = sentence.trim();
+            if (trimmed.length > 200) return trimmed.substring(0, 197) + "...";
+            return trimmed;
+          }
+        }
+      }
+    }
+    return "";
+  }
+
   app.get("/api/entities/people", async (_req, res) => {
     try {
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
       try {
-        const people = [
-          { slug: "elon-musk", name: "Elon Musk", title: "CEO of Tesla & SpaceX", searchTerms: ["Elon Musk"] },
-          { slug: "sam-altman", name: "Sam Altman", title: "CEO of OpenAI", searchTerms: ["Sam Altman"] },
-          { slug: "joe-rogan", name: "Joe Rogan", title: "Host of The Joe Rogan Experience", searchTerms: ["Joe Rogan"] },
-          { slug: "lex-fridman", name: "Lex Fridman", title: "Host of Lex Fridman Podcast", searchTerms: ["Lex Fridman"] },
-          { slug: "naval-ravikant", name: "Naval Ravikant", title: "Co-founder of AngelList", searchTerms: ["Naval Ravikant"] },
-          { slug: "peter-thiel", name: "Peter Thiel", title: "Co-founder of PayPal & Palantir", searchTerms: ["Peter Thiel"] },
-          { slug: "chamath-palihapitiya", name: "Chamath Palihapitiya", title: "CEO of Social Capital", searchTerms: ["Chamath Palihapitiya", "Chamath"] },
-          { slug: "jason-calacanis", name: "Jason Calacanis", title: "Angel Investor & Host of This Week in Startups", searchTerms: ["Jason Calacanis", "Calacanis"] },
-          { slug: "marc-andreessen", name: "Marc Andreessen", title: "Co-founder of Andreessen Horowitz", searchTerms: ["Marc Andreessen", "Andreessen"] },
-          { slug: "jensen-huang", name: "Jensen Huang", title: "CEO of NVIDIA", searchTerms: ["Jensen Huang"] },
-        ];
-
         const results = [];
-        for (const person of people) {
+        for (const person of ENTITY_PEOPLE) {
+          const excludeCondition = person.hostedSlugs.length > 0
+            ? ` AND slug NOT IN (${person.hostedSlugs.map((_, i) => `$${person.searchTerms.length + i + 1}`).join(",")})`
+            : "";
+          const extraParams = person.hostedSlugs;
+
           const guestConditions = person.searchTerms.map((_, i) => `guests ILIKE $${i + 1}`).join(" OR ");
-          const guestParams = person.searchTerms.map(t => `%${t}%`);
+          const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
           const { rows: guestRows } = await client.query(
-            `SELECT slug, episode_slug FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})`,
+            `SELECT slug, episode_slug FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition}`,
             guestParams
           );
-          const guestSlugs = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
+          const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
 
           const mentionConditions = person.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
-          const mentionParams = person.searchTerms.map(t => `%${t}%`);
+          const mentionParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
           const { rows: mentionRows } = await client.query(
-            `SELECT slug, episode_slug FROM landing_page_recaps WHERE ${mentionConditions}`,
+            `SELECT slug, episode_slug FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition}`,
             mentionParams
           );
-          const mentionCount = mentionRows.filter((r: any) => !guestSlugs.has(`${r.slug}/${r.episode_slug}`)).length;
+          const mentionCount = mentionRows.filter((r: any) => !guestKeys.has(`${r.slug}/${r.episode_slug}`)).length;
 
           results.push({
             slug: person.slug,
@@ -725,42 +761,44 @@ export async function registerRoutes(
   app.get("/api/entities/people/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
+      const person = ENTITY_PEOPLE.find(p => p.slug === slug);
+      if (!person) return res.status(404).json({ error: "Person not found" });
+
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
 
-      const peopleMap: Record<string, { name: string; title: string; searchTerms: string[] }> = {
-        "elon-musk": { name: "Elon Musk", title: "CEO of Tesla & SpaceX", searchTerms: ["Elon Musk"] },
-        "sam-altman": { name: "Sam Altman", title: "CEO of OpenAI", searchTerms: ["Sam Altman"] },
-        "joe-rogan": { name: "Joe Rogan", title: "Host of The Joe Rogan Experience", searchTerms: ["Joe Rogan"] },
-        "lex-fridman": { name: "Lex Fridman", title: "Host of Lex Fridman Podcast", searchTerms: ["Lex Fridman"] },
-        "naval-ravikant": { name: "Naval Ravikant", title: "Co-founder of AngelList", searchTerms: ["Naval Ravikant"] },
-        "peter-thiel": { name: "Peter Thiel", title: "Co-founder of PayPal & Palantir", searchTerms: ["Peter Thiel"] },
-        "chamath-palihapitiya": { name: "Chamath Palihapitiya", title: "CEO of Social Capital", searchTerms: ["Chamath Palihapitiya", "Chamath"] },
-        "jason-calacanis": { name: "Jason Calacanis", title: "Angel Investor & Host of This Week in Startups", searchTerms: ["Jason Calacanis", "Calacanis"] },
-        "marc-andreessen": { name: "Marc Andreessen", title: "Co-founder of Andreessen Horowitz", searchTerms: ["Marc Andreessen", "Andreessen"] },
-        "jensen-huang": { name: "Jensen Huang", title: "CEO of NVIDIA", searchTerms: ["Jensen Huang"] },
-      };
-
-      const person = peopleMap[slug];
-      if (!person) return res.status(404).json({ error: "Person not found" });
-
       try {
+        const excludeCondition = person.hostedSlugs.length > 0
+          ? ` AND slug NOT IN (${person.hostedSlugs.map((_, i) => `$${person.searchTerms.length + i + 1}`).join(",")})`
+          : "";
+        const extraParams = person.hostedSlugs;
+
         const guestConditions = person.searchTerms.map((_, i) => `guests ILIKE $${i + 1}`).join(" OR ");
-        const guestParams = person.searchTerms.map(t => `%${t}%`);
+        const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions}) ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
         const mentionConditions = person.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
-        const mentionParams = person.searchTerms.map(t => `%${t}%`);
+        const mentionParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
         const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE ${mentionConditions} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
           mentionParams
         );
 
-        const guestSlugs = new Set(guestEpisodes.map(e => `${e.slug}/${e.episode_slug}`));
-        const mentionsOnly = mentionEpisodes.filter(e => !guestSlugs.has(`${e.slug}/${e.episode_slug}`));
+        const guestKeys = new Set(guestEpisodes.map((e: any) => `${e.slug}/${e.episode_slug}`));
+        const mentionsOnly = mentionEpisodes
+          .filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))
+          .map((e: any) => ({
+            slug: e.slug,
+            episode_slug: e.episode_slug,
+            podcast_name: e.podcast_name,
+            episode_title: e.episode_title,
+            publish_date: e.publish_date,
+            artwork_url: e.artwork_url,
+            context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
+          }));
 
         res.json({
           name: person.name,
@@ -784,36 +822,16 @@ export async function registerRoutes(
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
       try {
-        const companies = [
-          { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "ChatGPT", "GPT-4"] },
-          { slug: "tesla", name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
-          { slug: "nvidia", name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
-          { slug: "google", name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
-          { slug: "microsoft", name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"] },
-          { slug: "apple", name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"] },
-          { slug: "amazon", name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon", "AWS"] },
-          { slug: "anthropic", name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
-          { slug: "meta", name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
-          { slug: "spacex", name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
-        ];
-
         const results = [];
-        for (const company of companies) {
+        for (const company of ENTITY_COMPANIES) {
           const conditions = company.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
           const params = company.searchTerms.map(t => `%${t}%`);
           const { rows: [{ count: mentionCount }] } = await client.query(
             `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE ${conditions}`,
             params
           );
-
-          results.push({
-            slug: company.slug,
-            name: company.name,
-            description: company.description,
-            mentionCount,
-          });
+          results.push({ slug: company.slug, name: company.name, description: company.description, mentionCount });
         }
-
         results.sort((a, b) => b.mentionCount - a.mentionCount);
         res.json(results);
       } finally {
@@ -827,39 +845,35 @@ export async function registerRoutes(
   app.get("/api/entities/companies/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-
-      const companiesMap: Record<string, { name: string; description: string; searchTerms: string[] }> = {
-        "openai": { name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "ChatGPT", "GPT-4"] },
-        "tesla": { name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
-        "nvidia": { name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
-        "google": { name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
-        "microsoft": { name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"] },
-        "apple": { name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"] },
-        "amazon": { name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon", "AWS"] },
-        "anthropic": { name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
-        "meta": { name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
-        "spacex": { name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
-      };
-
-      const company = companiesMap[slug];
+      const company = ENTITY_COMPANIES.find(c => c.slug === slug);
       if (!company) return res.status(404).json({ error: "Company not found" });
 
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
       try {
         const conditions = company.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
         const params = company.searchTerms.map(t => `%${t}%`);
         const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE ${conditions} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE ${conditions} ORDER BY publish_date DESC`,
           params
         );
+
+        const mentions = mentionEpisodes.map((e: any) => ({
+          slug: e.slug,
+          episode_slug: e.episode_slug,
+          podcast_name: e.podcast_name,
+          episode_title: e.episode_title,
+          publish_date: e.publish_date,
+          artwork_url: e.artwork_url,
+          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), company.searchTerms),
+        }));
 
         res.json({
           name: company.name,
           description: company.description,
           slug,
-          mentions: mentionEpisodes,
-          mentionCount: mentionEpisodes.length,
+          mentions,
+          mentionCount: mentions.length,
         });
       } finally {
         client.release();

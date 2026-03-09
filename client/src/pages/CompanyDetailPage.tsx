@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageSquare, Headphones, Calendar, ExternalLink, Building2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Headphones, Calendar, ExternalLink, Building2, Globe, MapPin, Users, DollarSign, Briefcase, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
+import { getCompanyBySlug } from "@/data/entityDirectoryData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface EpisodeEntry {
@@ -13,6 +14,7 @@ interface EpisodeEntry {
   episode_title: string;
   publish_date: string;
   artwork_url: string;
+  context?: string;
 }
 
 interface CompanyDetail {
@@ -28,6 +30,7 @@ export default function CompanyDetailPage() {
   const [match, params] = useRoute("/companies/:slug");
   const slug = params?.slug || "";
   const { data: user } = useAuth();
+  const companyData = getCompanyBySlug(slug);
 
   const { data: company, isLoading } = useQuery<CompanyDetail>({
     queryKey: ["/api/entities/companies", slug],
@@ -58,6 +61,8 @@ export default function CompanyDetailPage() {
     setOrCreate('meta[property="og:description"]', "property", desc);
   }
 
+  const details = companyData?.details;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
@@ -86,29 +91,108 @@ export default function CompanyDetailPage() {
 
           {isLoading ? (
             <div className="space-y-4">
-              <div className="h-10 bg-muted rounded w-64 animate-pulse" />
-              <div className="h-5 bg-muted rounded w-96 animate-pulse" />
+              <div className="flex items-center gap-6">
+                <div className="w-20 h-20 rounded-xl bg-muted animate-pulse" />
+                <div className="flex-1">
+                  <div className="h-10 bg-muted rounded w-64 animate-pulse mb-3" />
+                  <div className="h-5 bg-muted rounded w-96 animate-pulse" />
+                </div>
+              </div>
               <div className="h-64 bg-muted rounded animate-pulse mt-8" />
             </div>
           ) : company ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Building2 className="w-5 h-5 text-primary" />
+              <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-8">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={companyData?.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&size=80&background=1a8cff&color=fff&bold=true`}
+                      alt={company.name}
+                      className="w-20 h-20 rounded-xl object-contain bg-white border border-border p-2 shadow-sm"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&size=80&background=1a8cff&color=fff&bold=true`;
+                      }}
+                      data-testid="img-company-logo"
+                    />
                   </div>
-                  <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="heading-company-name">
-                    {company.name}
-                  </h1>
-                </div>
-                <p className="text-base text-muted-foreground mb-4 ml-[52px]">{company.description}</p>
-                <div className="flex flex-wrap gap-4 ml-[52px]">
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <MessageSquare className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-foreground">{company.mentionCount}</span>
-                    <span className="text-muted-foreground">mentions across podcasts</span>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] mb-1" data-testid="heading-company-name">
+                      {company.name}
+                    </h1>
+                    <p className="text-base text-muted-foreground mb-3">{company.description}</p>
+                    <div className="flex items-center gap-1.5 text-sm justify-center sm:justify-start">
+                      <MessageSquare className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-foreground">{company.mentionCount}</span>
+                      <span className="text-muted-foreground">mentions across podcasts</span>
+                    </div>
                   </div>
                 </div>
+
+                {companyData?.background && (
+                  <p className="text-sm text-muted-foreground/80 leading-relaxed mb-6" data-testid="text-company-background">
+                    {companyData.background}
+                  </p>
+                )}
+
+                {details && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" data-testid="section-company-details">
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Headquarters</p>
+                        <p className="text-sm font-medium text-foreground">{details.headquarters}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <Clock className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Founded</p>
+                        <p className="text-sm font-medium text-foreground">{details.founded}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Employees</p>
+                        <p className="text-sm font-medium text-foreground">{details.employees}</p>
+                      </div>
+                    </div>
+                    {details.marketCap && (
+                      <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Market Cap</p>
+                          <p className="text-sm font-medium text-foreground">{details.marketCap}</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">CEO</p>
+                        <p className="text-sm font-medium text-foreground">{details.ceo}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Industry</p>
+                        <p className="text-sm font-medium text-foreground">{details.industry}</p>
+                      </div>
+                    </div>
+                    {details.website && (
+                      <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2 sm:col-span-3">
+                        <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Website</p>
+                          <a href={details.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
+                            {details.website.replace("https://", "")}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {company.mentions.length > 0 ? (
@@ -121,30 +205,37 @@ export default function CompanyDetailPage() {
                     {company.mentions.map((ep) => (
                       <div
                         key={`${ep.slug}/${ep.episode_slug}`}
-                        className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+                        className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
                         onClick={() => navigate(`/podcasts/${ep.slug}/${ep.episode_slug}`)}
                         data-testid={`card-episode-${ep.slug}-${ep.episode_slug}`}
                       >
-                        {ep.artwork_url && (
-                          <img src={ep.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
-                            {ep.episode_title}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                            <Headphones className="w-3 h-3" />
-                            {ep.podcast_name}
-                            {ep.publish_date && (
-                              <>
-                                <span className="mx-1">·</span>
-                                <Calendar className="w-3 h-3" />
-                                {new Date(ep.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                              </>
-                            )}
-                          </p>
+                        <div className="flex items-center gap-4">
+                          {ep.artwork_url && (
+                            <img src={ep.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
+                              {ep.episode_title}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                              <Headphones className="w-3 h-3" />
+                              {ep.podcast_name}
+                              {ep.publish_date && (
+                                <>
+                                  <span className="mx-1">&middot;</span>
+                                  <Calendar className="w-3 h-3" />
+                                  {new Date(ep.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                </>
+                              )}
+                            </p>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0" />
                         </div>
-                        <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0" />
+                        {ep.context && (
+                          <p className="mt-3 text-xs text-muted-foreground/80 leading-relaxed pl-16 italic">
+                            &ldquo;{ep.context}&rdquo;
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
