@@ -1,0 +1,27 @@
+Update the For Podcasters page so it reflects PodCap’s larger vision as a platform, not just a recap tool. Right now the page feels focused on helping podcasters keep fans caught up with email recaps. That is still part of the story, but the page should now feel more aligned with the bigger company narrative: PodCap is turning podcast episodes into searchable knowledge and helping great ideas travel further.
+
+The overall tone should feel more ambitious, premium, and category-defining. Less “small utility for podcasters,” more “modern platform helping podcasts become more discoverable, searchable, and durable on the internet.”
+
+A few broad goals for the rewrite and redesign:
+
+The page should position PodCap as something that helps unlock the value inside podcast content, not just summarize episodes. It should feel like PodCap is building infrastructure for the future of podcast discovery.
+
+The messaging should shift from only talking about listener backlog and missed episodes to a broader story around discoverability, search visibility, knowledge extraction, audience connection, and long-tail value from podcast content.
+
+The structure should feel cleaner and more strategic. It should open with a stronger vision, then explain the problem in a broader way, then show how PodCap helps podcasters, listeners, and discoverability overall.
+
+Keep the page useful for podcasters, but make it feel like joining a bigger ecosystem. A podcaster landing there should feel like PodCap is building something important and that their show should be part of it.
+
+The visual design should move further toward modern consumer SaaS with a premium editorial feel. Strong hierarchy, less wall-of-text, more confidence. The page should feel credible to creators, but also impressive to investors, partners, and potential acquirers who might land on it.
+
+It would be good if the page made clearer that PodCap can create durable value from each episode beyond the publish date. The concept of turning episodes into searchable, reusable, discoverable assets should come through strongly.
+
+The current page has some strong ideas already, especially around fans falling behind and recap-driven engagement. Keep the best parts, but elevate them into a bigger narrative rather than making them the whole story.
+
+The page should still include examples of podcasts on the platform, but the presentation should feel more like evidence of a growing network than just a list of sample cards.
+
+The call to action at the bottom should feel more strategic as well. Less like a generic contact form, more like an invitation to participate in what PodCap is building.
+
+Also, rename anything that feels quirky or internally phrased if it weakens clarity. The page should sound like a serious company with a large ambition.
+
+One important note: don’t make the rewrite too abstract. The page still needs to clearly explain what PodCap actually does today. The balance should be big vision up top, practical value underneath.

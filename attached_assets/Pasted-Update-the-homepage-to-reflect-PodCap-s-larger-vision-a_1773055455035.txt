@@ -1,0 +1,52 @@
+Update the homepage to reflect PodCap’s larger vision as a category-defining product, not just a recap email tool. The homepage should feel like a modern consumer SaaS company with a big ambition, clean layout, strong typography, generous spacing, and clear calls to action.
+
+The core positioning is:
+
+PodCap is building the world’s searchable library of podcast knowledge.
+
+But the homepage must also make the practical value obvious to normal users right away. Under the main headline, include supporting copy that explains the product in simple terms, something along the lines of helping users search, skim, and stay current on the world’s best podcasts without having to listen to every full episode.
+
+The homepage should no longer be centered around the step-by-step signup flow. Move that flow off the homepage and onto a dedicated /get-started page.
+
+On the homepage, replace the current top badge or nav item that says “Top Podcasts” with Build Your Recap. That should link to /get-started.
+
+The homepage should be structured more like this:
+
+Hero section:
+	•	Strong headline around the big vision
+	•	Short subheadline focused on user value
+	•	Primary CTA: Build Your Recap
+	•	Secondary CTA: Browse Podcasts
+
+Then add a section that explains what PodCap does at a high level. Focus on these three ideas:
+	•	Unlock insights from top podcasts
+	•	Make podcast episodes searchable and skimmable
+	•	Help users keep up with their favorite shows without falling behind
+
+Then add a section featuring top podcasts we already have pages for. This should feel like discovery, not just a directory. Each card should feel premium and should continue to promote Get Recaps for that podcast. Clicking Get Recaps should still trigger the email capture flow for that specific podcast.
+
+Then add another section for notable podcast hosts or frequently featured guests who appear across multiple podcasts. This is important because it makes the product feel more like a knowledge network, not just a collection of show pages. Design this visually so it feels editorial and high-value.
+
+Then include a section that reinforces the product’s broader vision. The tone should be ambitious and credible. Position PodCap as organizing the ideas inside podcasts and making them accessible, searchable, and useful.
+
+At the bottom of the homepage, include a strong final CTA pushing users to Build Your Recap, which links to /get-started.
+
+For the new /get-started page:
+	•	This page should contain the existing step 1 / step 2 flow
+	•	Reframe “Create Your Podcast Recap” as Build Your Custom Podcast Recap
+	•	Keep the flow simple and frictionless
+	•	Make it feel like a dedicated signup page, not a generic form
+	•	Emphasize that users can choose podcasts and get personalized recap emails
+
+Design direction:
+	•	Modern consumer SaaS
+	•	Clean, premium, editorial feel
+	•	Strong social-proof and discovery energy
+	•	Less “tool” and more “platform”
+	•	Mobile-first and conversion-focused
+
+Important strategy note:
+The homepage should sell the category and the vision.
+The /get-started page should sell the signup.
+
+Do not make the homepage too busy, too text-heavy, or too focused on forms. It should feel like the front door to a large platform.
