@@ -1,5 +1,14 @@
 import { pool } from "./db";
 import { storage } from "./storage";
+import { writeFileSync } from "fs";
+
+const STATUS_FILE = "/tmp/backfill_status.json";
+
+function writeStatus(data: { currentIndex: number; currentName: string; totalPodcasts: number; processedNames: string[]; running: boolean }) {
+  try {
+    writeFileSync(STATUS_FILE, JSON.stringify(data));
+  } catch {}
+}
 
 const TADDY_API_URL = "https://api.taddy.org";
 const EPISODES_PER_PAGE = 25;
@@ -83,10 +92,13 @@ export async function runBackfillTranscripts() {
   let totalNewDownloads = 0;
   let totalFailed = 0;
   const startTime = Date.now();
+  const processedNames: string[] = [];
 
   console.log(`${totalPodcasts} podcasts to process (alphabetically A-Z)`);
   console.log(`${Array.from(existingByPodcast.values()).reduce((sum, s) => sum + s.size, 0)} transcripts already in database`);
   console.log("========================================\n");
+
+  writeStatus({ currentIndex: 0, currentName: "", totalPodcasts, processedNames, running: true });
 
   for (let i = 0; i < podcasts.length; i++) {
     const podcast = podcasts[i];
@@ -95,8 +107,11 @@ export async function runBackfillTranscripts() {
     const existingCount = existingGuids.size;
     const needed = TARGET_TRANSCRIPTS_PER_PODCAST - existingCount;
 
+    writeStatus({ currentIndex: podcastNum, currentName: podcast.name, totalPodcasts, processedNames, running: true });
+
     if (needed <= 0) {
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ALREADY DONE (${existingCount} transcripts)`);
+      processedNames.push(podcast.name);
       continue;
     }
 
@@ -159,13 +174,17 @@ export async function runBackfillTranscripts() {
       if (availableTranscripts === 0 && totalEpisodesScanned > 0) details.push("no transcripts on Taddy");
 
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ${status} (${details.join(", ")})`);
+      processedNames.push(podcast.name);
     } catch (err: any) {
       totalFailed++;
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ERROR: ${err.message?.slice(0, 150)}`);
+      processedNames.push(podcast.name);
     }
 
     await new Promise(r => setTimeout(r, DELAY_BETWEEN_PODCASTS_MS));
   }
+
+  writeStatus({ currentIndex: totalPodcasts, currentName: "", totalPodcasts, processedNames, running: false });
 
   const elapsed = (Date.now() - startTime) / 1000;
   console.log("\n========================================");

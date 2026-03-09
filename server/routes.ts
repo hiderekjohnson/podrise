@@ -12,6 +12,7 @@ import { markdownToEmailHtml, recapHasContent, DEFAULT_TEMPLATE, MERGE_TAGS, typ
 import { generateRecap, DEFAULT_RECAP_PROMPT } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
+import { readFileSync } from "fs";
 
 declare module "express-session" {
   interface SessionData {
@@ -4781,20 +4782,46 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
            ) tc ON pd.itunes_id = tc.podcast_id
            ORDER BY pd.name ASC`
         );
+        let backfillStatus: { currentIndex: number; currentName: string; totalPodcasts: number; processedNames: string[]; running: boolean } | null = null;
+        try {
+          const raw = readFileSync("/tmp/backfill_status.json", "utf-8");
+          backfillStatus = JSON.parse(raw);
+        } catch {}
+
+        const processedSet = new Set(backfillStatus?.processedNames || []);
+        const isBackfillRunning = backfillStatus?.running === true;
+
         res.json({
-          podcasts: podcasts.map((p, i) => ({
-            index: i + 1,
-            name: p.name,
-            itunesId: p.itunes_id,
-            hasTaddyUuid: !!p.taddy_uuid,
-            transcriptCount: p.transcript_count,
-            target: 25,
-            remaining: Math.max(0, 25 - p.transcript_count),
-            status: p.transcript_count >= 25 ? "done" : !p.taddy_uuid ? "no_taddy" : "pending",
-          })),
+          podcasts: podcasts.map((p, i) => {
+            let status: string;
+            if (p.transcript_count >= 25) {
+              status = "done";
+            } else if (!p.taddy_uuid) {
+              status = "no_taddy";
+            } else if (isBackfillRunning && backfillStatus?.currentName === p.name) {
+              status = "in_process";
+            } else if (isBackfillRunning && !processedSet.has(p.name) && backfillStatus?.currentName !== p.name) {
+              status = "in_queue";
+            } else {
+              status = "pending";
+            }
+            return {
+              index: i + 1,
+              name: p.name,
+              itunesId: p.itunes_id,
+              hasTaddyUuid: !!p.taddy_uuid,
+              transcriptCount: p.transcript_count,
+              target: 25,
+              remaining: Math.max(0, 25 - p.transcript_count),
+              status,
+            };
+          }),
           totalTranscripts: podcasts.reduce((sum, p) => sum + (p.transcript_count || 0), 0),
           totalPodcasts: podcasts.length,
           podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= 25).length,
+          backfillRunning: isBackfillRunning,
+          backfillCurrentName: backfillStatus?.currentName || null,
+          backfillCurrentIndex: backfillStatus?.currentIndex || null,
         });
       } finally {
         client.release();
