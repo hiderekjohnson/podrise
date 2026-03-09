@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search, Users } from "lucide-react";
+import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search, Users, BookOpen } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,7 @@ interface EpisodePageLayoutProps {
   podcastSlug: string;
   episodeSlug: string;
   podcastConfig: PodcastLandingConfig;
-  activeTab: "recap" | "transcript" | "guests";
+  activeTab: "recap" | "transcript" | "guests" | "resources";
   allRecaps?: any[];
   children: React.ReactNode;
   tabSearchOnKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -136,6 +136,7 @@ export function EpisodePageLayout({
   const recapUrl = `/podcasts/${podcastSlug}/${episodeSlug}`;
   const transcriptUrl = `/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
   const guestsUrl = `/podcasts/${podcastSlug}/${episodeSlug}/guests`;
+  const resourcesUrl = `/podcasts/${podcastSlug}/${episodeSlug}/resources`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -308,6 +309,26 @@ export function EpisodePageLayout({
                 >
                   <Users className="w-4 h-4" />
                   Guests
+                </span>
+              </Link>
+            )}
+
+            {activeTab === "resources" ? (
+              <span
+                className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+                data-testid="tab-resources-active"
+              >
+                <BookOpen className="w-4 h-4" />
+                Resources
+              </span>
+            ) : (
+              <Link href={resourcesUrl}>
+                <span
+                  className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
+                  data-testid="tab-resources-link"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Resources
                 </span>
               </Link>
             )}

@@ -873,6 +873,132 @@ Cross-reference the transcript and show notes: the show notes often have the cor
     }
   });
 
+  const resourcesInFlight = new Map<string, Promise<any>>();
+  app.get("/api/podcasts/:slug/:episodeSlug/resources", async (req, res) => {
+    try {
+      const { slug, episodeSlug } = req.params;
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+      if (!recap) return res.status(404).json({ error: "Recap not found" });
+
+      if (recap.resources) {
+        try {
+          return res.json({ resources: JSON.parse(recap.resources) });
+        } catch {
+          return res.json({ resources: [] });
+        }
+      }
+
+      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
+      const showNotes = recap.showNotes || "";
+
+      if ((!segments || segments.length === 0) && !showNotes) {
+        const emptyResult: any[] = [];
+        const { db } = await import("./db");
+        const { eq, and } = await import("drizzle-orm");
+        const { landingPageRecaps } = await import("@shared/schema");
+        await db.update(landingPageRecaps)
+          .set({ resources: JSON.stringify(emptyResult) })
+          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
+        return res.json({ resources: [] });
+      }
+
+      const flightKey = `${slug}/${episodeSlug}`;
+      if (resourcesInFlight.has(flightKey)) {
+        const cached = await resourcesInFlight.get(flightKey);
+        return res.json({ resources: cached });
+      }
+
+      const extractionPromise = (async () => {
+        const transcriptText = segments
+          ? segments.map(s => {
+              const speaker = s.speakerName ? `${s.speakerName}: ` : "";
+              return `${speaker}${s.text}`;
+            }).join("\n").slice(0, 20000)
+          : "";
+
+        const showNotesSection = showNotes
+          ? `\n\nSHOW NOTES (official listing with links):\n${showNotes.slice(0, 5000)}`
+          : "";
+
+        const { openai } = await import("./replit_integrations/image/client");
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert at extracting resources, books, tools, websites, apps, and recommendations mentioned in podcast episodes. Analyze the transcript and show notes to identify ALL resources, products, books, tools, websites, apps, courses, newsletters, and other recommendations mentioned or discussed.
+
+For each resource, provide:
+- "name": The name of the resource (book title, tool name, website name, etc.)
+- "type": One of: "book", "tool", "app", "website", "newsletter", "course", "podcast", "video", "article", "service", "other"
+- "description": A brief 1-2 sentence description of what this resource is and how it was mentioned/recommended in the episode
+- "url": The most relevant URL for this resource. For books, use an Amazon search URL like "https://www.amazon.com/s?k=BOOK+TITLE&tag=podcap-20". For tools/apps/websites, use their actual URL if mentioned in the transcript or show notes. If no URL is available, use null.
+- "author": For books, the author name. For tools/apps, the company name. null if unknown.
+- "context": One sentence about WHY this was mentioned (e.g. "Host recommended this as his favorite productivity tool", "Guest mentioned building their company using this")
+
+IMPORTANT RULES:
+1. For ALL books, always generate an Amazon URL with the affiliate tag "podcap-20" in this format: https://www.amazon.com/s?k=BOOK+TITLE+AUTHOR&tag=podcap-20
+2. Do NOT include sponsors/advertisers — those are tracked separately
+3. Include tools, software, frameworks, and platforms that are discussed substantively (not just passing mentions)
+4. Include people's personal projects, companies, or products if they're discussed
+5. If a URL appears in the show notes for a resource, prefer that URL (unless it's a book — always use Amazon affiliate link for books)
+
+Return a JSON object: {"resources": [...]}
+If no resources are found, return {"resources": []}.`
+            },
+            {
+              role: "user",
+              content: `Podcast: "${recap.podcastName}"\nEpisode: "${recap.episodeTitle}"\nHosts: ${recap.hosts || "unknown"}\n\n${transcriptText ? `TRANSCRIPT:\n${transcriptText}` : "(No transcript available)"}${showNotesSection}`
+            }
+          ],
+          max_tokens: 4000,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        });
+
+        const content = completion.choices[0]?.message?.content || '{"resources":[]}';
+        let parsed;
+        try {
+          parsed = JSON.parse(content);
+        } catch {
+          parsed = { resources: [] };
+        }
+
+        const rawResources = Array.isArray(parsed.resources) ? parsed.resources : [];
+        const resources = rawResources
+          .filter((r: any) => r && typeof r.name === "string" && r.name.trim())
+          .map((r: any) => ({
+            name: String(r.name).trim(),
+            type: typeof r.type === "string" ? r.type.trim() : "other",
+            description: typeof r.description === "string" ? r.description.trim() : "",
+            url: typeof r.url === "string" && r.url.trim() ? r.url.trim() : null,
+            author: typeof r.author === "string" && r.author.trim() ? r.author.trim() : null,
+            context: typeof r.context === "string" ? r.context.trim() : "",
+          }));
+
+        const { db } = await import("./db");
+        const { eq, and } = await import("drizzle-orm");
+        const { landingPageRecaps } = await import("@shared/schema");
+        await db.update(landingPageRecaps)
+          .set({ resources: JSON.stringify(resources) })
+          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
+
+        return resources;
+      })();
+
+      resourcesInFlight.set(flightKey, extractionPromise);
+      try {
+        const resources = await extractionPromise;
+        res.json({ resources });
+      } finally {
+        resourcesInFlight.delete(flightKey);
+      }
+    } catch (err) {
+      console.error("[Resources] Error:", err);
+      res.status(500).json({ error: "Failed to extract resources" });
+    }
+  });
+
   const guestsInFlight = new Map<string, Promise<any>>();
   app.get("/api/podcasts/:slug/:episodeSlug/guests", async (req, res) => {
     try {
