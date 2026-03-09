@@ -747,10 +747,13 @@ export async function registerRoutes(
             : "";
           const extraParams = person.hostedSlugs;
 
-          const guestConditions = person.searchTerms.map((_, i) => `guests ILIKE $${i + 1}`).join(" OR ");
+          const guestConditions = person.searchTerms.map((_, i) => {
+            const p = `$${i + 1}`;
+            return `(guests ILIKE ${p} OR episode_title ILIKE ${p})`;
+          }).join(" OR ");
           const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
           const { rows: guestRows } = await client.query(
-            `SELECT slug, episode_slug FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition}`,
+            `SELECT slug, episode_slug FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition}`,
             guestParams
           );
           const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
@@ -797,10 +800,13 @@ export async function registerRoutes(
           : "";
         const extraParams = person.hostedSlugs;
 
-        const guestConditions = person.searchTerms.map((_, i) => `guests ILIKE $${i + 1}`).join(" OR ");
+        const guestConditions = person.searchTerms.map((_, i) => {
+          const p = `$${i + 1}`;
+          return `(guests ILIKE ${p} OR episode_title ILIKE ${p})`;
+        }).join(" OR ");
         const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
