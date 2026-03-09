@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -71,6 +72,86 @@ function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" |
         </p>
       )}
     </div>
+  );
+}
+
+function EpisodeTabs({ person }: { person: PersonDetail }) {
+  const hasGuests = person.guestAppearances.length > 0;
+  const hasMentions = person.mentions.length > 0;
+  const [activeTab, setActiveTab] = useState<"guests" | "mentions">(hasGuests ? "guests" : "mentions");
+
+  if (!hasGuests && !hasMentions) {
+    return (
+      <div className="text-center py-16 text-muted-foreground">
+        <p className="text-lg">No episodes found for {person.name} yet.</p>
+        <p className="text-sm mt-1">Check back soon as we add more podcast recaps.</p>
+      </div>
+    );
+  }
+
+  return (
+    <section className="mb-10">
+      <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl mb-5" data-testid="tabs-episode-type">
+        <button
+          onClick={() => setActiveTab("guests")}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === "guests"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          data-testid="tab-guest-appearances"
+        >
+          <Mic className="w-4 h-4" />
+          Guest Appearances
+          <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+            activeTab === "guests" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+          }`}>
+            {person.guestCount}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab("mentions")}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === "mentions"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          data-testid="tab-mentions"
+        >
+          <MessageSquare className="w-4 h-4" />
+          Mentions
+          <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+            activeTab === "mentions" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+          }`}>
+            {person.mentionCount}
+          </span>
+        </button>
+      </div>
+
+      {activeTab === "guests" && (
+        <div className="space-y-2">
+          {person.guestAppearances.length > 0 ? (
+            person.guestAppearances.map((ep) => (
+              <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} type="guest" />
+            ))
+          ) : (
+            <p className="text-center py-8 text-muted-foreground text-sm">No guest appearances found yet.</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === "mentions" && (
+        <div className="space-y-2">
+          {person.mentions.length > 0 ? (
+            person.mentions.map((ep) => (
+              <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} type="mention" />
+            ))
+          ) : (
+            <p className="text-center py-8 text-muted-foreground text-sm">No mentions found yet.</p>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -213,40 +294,7 @@ export default function PersonDetailPage() {
                 </div>
               </div>
 
-              {person.guestAppearances.length > 0 && (
-                <section className="mb-10">
-                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-guest-appearances">
-                    <Mic className="w-5 h-5 text-primary" />
-                    Guest Appearances
-                  </h2>
-                  <div className="space-y-2">
-                    {person.guestAppearances.map((ep) => (
-                      <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} type="guest" />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {person.mentions.length > 0 && (
-                <section className="mb-10">
-                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-mentions">
-                    <MessageSquare className="w-5 h-5 text-primary" />
-                    Mentioned In
-                  </h2>
-                  <div className="space-y-2">
-                    {person.mentions.map((ep) => (
-                      <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} type="mention" />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {person.guestAppearances.length === 0 && person.mentions.length === 0 && (
-                <div className="text-center py-16 text-muted-foreground">
-                  <p className="text-lg">No episodes found for {person.name} yet.</p>
-                  <p className="text-sm mt-1">Check back soon as we add more podcast recaps.</p>
-                </div>
-              )}
+              <EpisodeTabs person={person} />
             </motion.div>
           ) : (
             <div className="text-center py-16 text-muted-foreground">
