@@ -8,6 +8,7 @@ interface BackfillPodcast {
   itunesId: string;
   hasTaddyUuid: boolean;
   transcriptCount: number;
+  completeCount: number;
   target: number;
   remaining: number;
   totalEpisodes: number;
@@ -28,7 +29,7 @@ interface BackfillData {
 export default function BackfillTracker() {
   const [filter, setFilter] = useState<"all" | "done" | "in_process" | "in_queue" | "error" | "no_taddy">("all");
   const [expandedError, setExpandedError] = useState<string | null>(null);
-  const [sortCol, setSortCol] = useState<"name" | "totalEpisodes" | "transcriptCount" | "remaining">("name");
+  const [sortCol, setSortCol] = useState<"name" | "totalEpisodes" | "transcriptCount" | "completeCount" | "remaining">("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const { data, isLoading, refetch, isFetching } = useQuery<BackfillData>({
@@ -133,6 +134,7 @@ export default function BackfillTracker() {
                 { col: "name" as const, label: "Podcast", align: "text-left" },
                 { col: "totalEpisodes" as const, label: "Total Episodes", align: "text-center" },
                 { col: "transcriptCount" as const, label: "Transcripts", align: "text-center" },
+                { col: "completeCount" as const, label: "Complete Records", align: "text-center" },
                 { col: "remaining" as const, label: "Remaining", align: "text-center" },
               ]).map(h => (
                 <th
@@ -181,6 +183,9 @@ export default function BackfillTracker() {
                     <td className="px-4 py-2.5 text-center text-sm font-bold text-foreground">
                       {p.transcriptCount}
                     </td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-emerald-600">
+                      {p.completeCount > 0 ? p.completeCount : "-"}
+                    </td>
                     <td className="px-4 py-2.5 text-center text-sm font-medium text-muted-foreground">
                       {p.remaining > 0 ? p.remaining.toLocaleString() : "-"}
                     </td>
@@ -215,7 +220,7 @@ export default function BackfillTracker() {
                   </tr>
                   {isExpanded && p.error && (
                     <tr key={`${p.itunesId}-error`} className="bg-red-50/50">
-                      <td colSpan={5} className="px-4 py-3">
+                      <td colSpan={6} className="px-4 py-3">
                         <div className="flex items-start gap-2 text-xs text-red-700 font-medium" data-testid={`error-detail-${p.itunesId}`}>
                           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                           <span>{p.error}</span>
@@ -237,6 +242,9 @@ export default function BackfillTracker() {
               </td>
               <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-transcripts">
                 {filtered.reduce((sum, p) => sum + p.transcriptCount, 0).toLocaleString()}
+              </td>
+              <td className="px-4 py-3 text-center text-sm font-bold text-emerald-600" data-testid="total-complete-records">
+                {filtered.reduce((sum, p) => sum + p.completeCount, 0).toLocaleString()}
               </td>
               <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-remaining">
                 {filtered.reduce((sum, p) => sum + p.remaining, 0).toLocaleString()}

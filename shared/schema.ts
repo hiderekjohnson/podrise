@@ -64,6 +64,7 @@ export const episodeTranscripts = pgTable("episode_transcripts", {
   seasonNumber: integer("season_number"),
   episodeNumber: integer("episode_number"),
   episodeType: text("episode_type"),
+  completeRecord: boolean("complete_record").default(false),
   fetchedAt: timestamp("fetched_at").defaultNow(),
 });
 

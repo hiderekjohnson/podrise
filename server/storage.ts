@@ -153,6 +153,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string; description?: string; subtitle?: string; datePublished?: number; duration?: number; audioUrl?: string; imageUrl?: string; seasonNumber?: number; episodeNumber?: number; episodeType?: string }): Promise<EpisodeTranscript> {
+    const isComplete = !!(data.transcript && data.description && data.datePublished && data.duration && data.audioUrl);
     const updateSet: Record<string, any> = {
       description: data.description,
       subtitle: data.subtitle,
@@ -167,10 +168,11 @@ export class DatabaseStorage implements IStorage {
     };
     if (data.transcript) {
       updateSet.transcript = data.transcript;
+      updateSet.completeRecord = isComplete;
     }
     const [created] = await db
       .insert(episodeTranscripts)
-      .values(data)
+      .values({ ...data, completeRecord: isComplete })
       .onConflictDoUpdate({
         target: episodeTranscripts.episodeGuid,
         set: updateSet,

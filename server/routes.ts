@@ -4774,10 +4774,12 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
         const { rows: podcasts } = await client.query(
           `SELECT pd.itunes_id, pd.name, pd.taddy_uuid,
                   COALESCE(pd.total_episodes, 0)::int as total_episodes,
-                  COALESCE(tc.transcript_count, 0)::int as transcript_count
+                  COALESCE(tc.transcript_count, 0)::int as transcript_count,
+                  COALESCE(tc.complete_count, 0)::int as complete_count
            FROM podcast_directory pd
            LEFT JOIN (
-             SELECT podcast_id, COUNT(*)::int as transcript_count
+             SELECT podcast_id, COUNT(*)::int as transcript_count,
+                    SUM(CASE WHEN complete_record = true THEN 1 ELSE 0 END)::int as complete_count
              FROM episode_transcripts
              GROUP BY podcast_id
            ) tc ON pd.itunes_id = tc.podcast_id
@@ -4824,6 +4826,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
               itunesId: p.itunes_id,
               hasTaddyUuid: !!p.taddy_uuid,
               transcriptCount: p.transcript_count,
+              completeCount: p.complete_count,
               totalEpisodes,
               target: 25,
               remaining: Math.max(0, totalEpisodes - p.transcript_count),

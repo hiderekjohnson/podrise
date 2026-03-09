@@ -72,9 +72,10 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string)
       // Update metadata for existing episode
       const c = await pool.connect();
       try {
+        const isComplete = !!(ep.description && ep.datePublished && ep.duration && ep.audioUrl);
         await c.query(
-          `UPDATE episode_transcripts SET description = $1, date_published = $2, duration = $3, audio_url = $4, image_url = $5, season_number = $6, episode_number = $7, episode_type = $8, subtitle = $9, fetched_at = NOW() WHERE podcast_id = $10 AND (episode_guid = $11 OR episode_title = $12)`,
-          [ep.description, ep.datePublished, ep.duration, ep.audioUrl, ep.imageUrl, ep.seasonNumber, ep.episodeNumber, ep.episodeType, ep.subtitle, itunesId, ep.uuid, ep.name]
+          `UPDATE episode_transcripts SET description = $1, date_published = $2, duration = $3, audio_url = $4, image_url = $5, season_number = $6, episode_number = $7, episode_type = $8, subtitle = $9, fetched_at = NOW(), complete_record = (transcript IS NOT NULL AND transcript != '' AND $13::boolean) WHERE podcast_id = $10 AND (episode_guid = $11 OR episode_title = $12)`,
+          [ep.description, ep.datePublished, ep.duration, ep.audioUrl, ep.imageUrl, ep.seasonNumber, ep.episodeNumber, ep.episodeType, ep.subtitle, itunesId, ep.uuid, ep.name, isComplete]
         );
         metadataUpdates++;
       } finally { c.release(); }
