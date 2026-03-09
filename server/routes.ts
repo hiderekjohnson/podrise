@@ -814,12 +814,13 @@ export async function registerRoutes(
         messages: [
           {
             role: "system",
-            content: `You are an expert at identifying sponsor mentions in podcasts. You will be given a transcript AND/OR the official show notes from the podcast listing. Extract ALL sponsor/advertiser mentions. For each sponsor, extract:
+            content: `You are an expert at identifying sponsor mentions in podcasts. You will be given a transcript AND/OR the official show notes from the podcast listing. Extract ALL sponsor/advertiser mentions with RICH detail from the actual ad read. For each sponsor, extract:
 - "name": The sponsor or brand name
-- "description": What the host said about them (their pitch, in 1-3 sentences). If the transcript has the ad read, use that. Otherwise summarize from show notes.
+- "description": A detailed summary of the sponsor's product/service as described in the ad read (2-4 sentences). Include what the product does, why the host recommends it, and any specific benefits mentioned.
+- "deal": The SPECIFIC deal or offer for listeners. Extract the EXACT offer from the ad read — e.g. "New subscribers get a free welcome kit worth $87 including AG1 and AGZ travel packs plus vitamin D3+K2", "Get 20% off your first order", "First month free", etc. Be specific with dollar amounts, percentages, free items, and trial lengths. If no specific deal is mentioned, return null.
 - "couponCode": Any promo/coupon code mentioned (or null)
-- "url": The sponsor's URL. IMPORTANT: If the show notes contain a link for the sponsor (even a tracking/affiliate link like bit.ly), use that exact URL. Otherwise use any URL mentioned in the transcript. If neither has a URL, return null.
-- "howToRedeem": How listeners can use the deal/offer (or null)
+- "url": The sponsor's URL. IMPORTANT: Extract the EXACT URL the host tells listeners to visit, including any custom slug (e.g. "drinkag1.com/tim", "athleticgreens.com/huberman"). If the show notes contain a link for the sponsor, prefer that. If the host verbally mangles the URL, try to reconstruct the correct one. If neither source has a URL, return null.
+- "callToAction": The host's exact call to action — what they tell listeners to DO. e.g. "Visit drinkag1.com/tim to claim your free welcome kit", "Go to circle.so/tim to start your free trial", "Head to example.com and use code TIM at checkout". Quote or closely paraphrase the host's actual words. If no clear CTA, return null.
 
 Return a JSON object with a "sponsors" array. If no sponsors are found, return {"sponsors": []}.
 Only include actual paid sponsors/advertisers — not casual brand mentions or the podcast's own links. Look for patterns like "brought to you by", "sponsored by", "this episode is presented by", "our partners at", promo code mentions, special URLs, sections labeled "Sponsors" in show notes, etc.
@@ -849,9 +850,10 @@ Cross-reference the transcript and show notes: the show notes often have the cor
         .map((s: any) => ({
           name: String(s.name).trim(),
           description: typeof s.description === "string" ? s.description.trim() : "",
+          deal: typeof s.deal === "string" && s.deal.trim() ? s.deal.trim() : null,
           couponCode: typeof s.couponCode === "string" && s.couponCode.trim() ? s.couponCode.trim() : null,
           url: typeof s.url === "string" && s.url.trim() ? s.url.trim() : null,
-          howToRedeem: typeof s.howToRedeem === "string" && s.howToRedeem.trim() ? s.howToRedeem.trim() : null,
+          callToAction: typeof s.callToAction === "string" && s.callToAction.trim() ? s.callToAction.trim() : null,
         }));
 
       const { db } = await import("./db");

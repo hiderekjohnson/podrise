@@ -45,9 +45,10 @@ export default function EpisodeRecapPage() {
   interface Sponsor {
     name: string;
     description: string;
+    deal?: string | null;
     couponCode?: string | null;
     url?: string | null;
-    howToRedeem?: string | null;
+    callToAction?: string | null;
   }
 
   interface Resource {
@@ -661,6 +662,15 @@ export default function EpisodeRecapPage() {
                             {sponsor.description}
                           </p>
 
+                          {typeof sponsor.deal === "string" && sponsor.deal.trim() && (
+                            <div className="mt-3 px-3.5 py-2.5 bg-emerald-500/[0.05] border border-emerald-500/[0.1] rounded-lg" data-testid={`sponsor-deal-${i}`}>
+                              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                                <Tag className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                                {sponsor.deal}
+                              </p>
+                            </div>
+                          )}
+
                           <div className="flex flex-wrap items-center gap-2 mt-3">
                             {typeof sponsor.url === "string" && sponsor.url.trim() && (
                               <a
@@ -685,9 +695,9 @@ export default function EpisodeRecapPage() {
                             )}
                           </div>
 
-                          {typeof sponsor.howToRedeem === "string" && sponsor.howToRedeem.trim() && (
-                            <p className="text-sm text-muted-foreground/70 mt-2 italic">
-                              {sponsor.howToRedeem}
+                          {typeof sponsor.callToAction === "string" && sponsor.callToAction.trim() && (
+                            <p className="text-sm text-muted-foreground/70 mt-2.5 italic" data-testid={`sponsor-cta-${i}`}>
+                              {sponsor.callToAction}
                             </p>
                           )}
                         </div>
