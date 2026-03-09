@@ -983,54 +983,76 @@ export async function registerRoutes(
     return "";
   }
 
+  let peopleCacheData: any[] | null = null;
+  let peopleCacheTime = 0;
+  const PEOPLE_CACHE_TTL = 5 * 60 * 1000;
+
+  async function computePeopleData() {
+    const { pool: dbPool } = await import("./db");
+    const client = await dbPool.connect();
+    try {
+      const { rows: allRecaps } = await client.query(
+        `SELECT slug, episode_slug, guests, episode_title, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps`
+      );
+
+      const results = [];
+      for (const person of ENTITY_PEOPLE) {
+        const hostedSet = new Set(person.hostedSlugs);
+        const filtered = allRecaps.filter((r: any) => !hostedSet.has(r.slug));
+
+        const guestRows = filtered.filter((r: any) => {
+          return person.searchTerms.some(term => {
+            const t = term.toLowerCase();
+            return (r.guests && r.guests.toLowerCase().includes(t)) ||
+                   (r.episode_title && r.episode_title.toLowerCase().includes(t));
+          });
+        });
+        const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
+
+        const mentionRows = filtered.filter((r: any) => {
+          if (guestKeys.has(`${r.slug}/${r.episode_slug}`)) return false;
+          return person.searchTerms.some(term => {
+            if (term.length <= 4) {
+              const regex = new RegExp(`\\b${term}\\b`, 'i');
+              return (r.what_happened && regex.test(r.what_happened)) ||
+                     (r.tldl && regex.test(r.tldl)) ||
+                     (r.key_insights_text && regex.test(r.key_insights_text));
+            }
+            const t = term.toLowerCase();
+            return (r.what_happened && r.what_happened.toLowerCase().includes(t)) ||
+                   (r.tldl && r.tldl.toLowerCase().includes(t)) ||
+                   (r.key_insights_text && r.key_insights_text.toLowerCase().includes(t));
+          });
+        });
+
+        results.push({
+          slug: person.slug,
+          name: person.name,
+          title: person.title,
+          gender: person.gender,
+          category: person.category,
+          mentionCount: mentionRows.length,
+          guestCount: guestRows.length,
+        });
+      }
+
+      results.sort((a, b) => (b.mentionCount + b.guestCount) - (a.mentionCount + a.guestCount));
+      return results;
+    } finally {
+      client.release();
+    }
+  }
+
   app.get("/api/entities/people", async (_req, res) => {
     try {
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-      try {
-        const results = [];
-        for (const person of ENTITY_PEOPLE) {
-          const excludeCondition = person.hostedSlugs.length > 0
-            ? ` AND slug NOT IN (${person.hostedSlugs.map((_, i) => `$${person.searchTerms.length + i + 1}`).join(",")})`
-            : "";
-          const extraParams = person.hostedSlugs;
-
-          const guestConditions = person.searchTerms.map((_, i) => {
-            const p = `$${i + 1}`;
-            return `(guests ILIKE ${p} OR episode_title ILIKE ${p})`;
-          }).join(" OR ");
-          const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
-          const { rows: guestRows } = await client.query(
-            `SELECT slug, episode_slug FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition}`,
-            guestParams
-          );
-          const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
-
-          const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
-          const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
-          const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
-          const { rows: mentionRows } = await client.query(
-            `SELECT slug, episode_slug FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition}`,
-            mentionParams
-          );
-          const mentionCount = mentionRows.filter((r: any) => !guestKeys.has(`${r.slug}/${r.episode_slug}`)).length;
-
-          results.push({
-            slug: person.slug,
-            name: person.name,
-            title: person.title,
-            gender: person.gender,
-            category: person.category,
-            mentionCount,
-            guestCount: guestRows.length,
-          });
-        }
-
-        results.sort((a, b) => (b.mentionCount + b.guestCount) - (a.mentionCount + a.guestCount));
-        res.json(results);
-      } finally {
-        client.release();
+      const now = Date.now();
+      if (peopleCacheData && (now - peopleCacheTime) < PEOPLE_CACHE_TTL) {
+        return res.json(peopleCacheData);
       }
+      const results = await computePeopleData();
+      peopleCacheData = results;
+      peopleCacheTime = Date.now();
+      res.json(results);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Failed to fetch people" });
     }
@@ -1099,27 +1121,54 @@ export async function registerRoutes(
     }
   });
 
+  let companiesCacheData: any[] | null = null;
+  let companiesCacheTime = 0;
+
+  async function computeCompaniesData() {
+    const { pool: dbPool } = await import("./db");
+    const client = await dbPool.connect();
+    try {
+      const { rows: allRecaps } = await client.query(
+        `SELECT what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps`
+      );
+
+      const results = [];
+      for (const company of ENTITY_COMPANIES) {
+        let mentionCount = 0;
+        for (const row of allRecaps) {
+          const matched = company.searchTerms.some(term => {
+            if (term.length <= 4) {
+              const regex = new RegExp(`\\b${term}\\b`, 'i');
+              return (row.what_happened && regex.test(row.what_happened)) ||
+                     (row.tldl && regex.test(row.tldl)) ||
+                     (row.key_insights_text && regex.test(row.key_insights_text));
+            }
+            const t = term.toLowerCase();
+            return (row.what_happened && row.what_happened.toLowerCase().includes(t)) ||
+                   (row.tldl && row.tldl.toLowerCase().includes(t)) ||
+                   (row.key_insights_text && row.key_insights_text.toLowerCase().includes(t));
+          });
+          if (matched) mentionCount++;
+        }
+        results.push({ slug: company.slug, name: company.name, description: company.description, mentionCount });
+      }
+      results.sort((a, b) => b.mentionCount - a.mentionCount);
+      return results;
+    } finally {
+      client.release();
+    }
+  }
+
   app.get("/api/entities/companies", async (_req, res) => {
     try {
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-      try {
-        const results = [];
-        for (const company of ENTITY_COMPANIES) {
-          const parts = company.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
-          const conditions = parts.map(p => `(${p.sql})`).join(" OR ");
-          const params = parts.map(p => p.param);
-          const { rows: [{ count: mentionCount }] } = await client.query(
-            `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE ${conditions}`,
-            params
-          );
-          results.push({ slug: company.slug, name: company.name, description: company.description, mentionCount });
-        }
-        results.sort((a, b) => b.mentionCount - a.mentionCount);
-        res.json(results);
-      } finally {
-        client.release();
+      const now = Date.now();
+      if (companiesCacheData && (now - companiesCacheTime) < PEOPLE_CACHE_TTL) {
+        return res.json(companiesCacheData);
       }
+      const results = await computeCompaniesData();
+      companiesCacheData = results;
+      companiesCacheTime = Date.now();
+      res.json(results);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Failed to fetch companies" });
     }
