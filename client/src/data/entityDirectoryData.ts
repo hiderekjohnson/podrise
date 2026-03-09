@@ -510,7 +510,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "OpenAI",
     description: "AI research and deployment company behind ChatGPT and GPT-4",
     background: "OpenAI was founded in 2015 as a non-profit AI research lab by Sam Altman, Elon Musk, and others. It transitioned to a capped-profit model and launched ChatGPT in November 2022, igniting the generative AI revolution. OpenAI develops the GPT series of large language models, DALL-E for image generation, and the Sora video model. It is one of the most discussed companies in technology today.",
-    logoUrl: "https://logo.clearbit.com/openai.com",
+    logoUrl: "https://unavatar.io/openai.com",
     searchTerms: ["OpenAI", "ChatGPT", "GPT-4", "GPT4"],
     details: {
       headquarters: "San Francisco, CA",
@@ -527,7 +527,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Tesla",
     description: "Electric vehicle and clean energy company",
     background: "Tesla, Inc. designs, manufactures, and sells electric vehicles, energy storage systems, and solar products. Founded in 2003 and led by Elon Musk since 2008, Tesla has revolutionized the auto industry and is the world's most valuable automaker. The company's vehicles, autonomous driving technology, and energy products are frequently discussed across business and technology podcasts.",
-    logoUrl: "https://logo.clearbit.com/tesla.com",
+    logoUrl: "https://unavatar.io/tesla.com",
     searchTerms: ["Tesla"],
     details: {
       headquarters: "Austin, TX",
@@ -544,7 +544,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "NVIDIA",
     description: "Semiconductor company powering AI and gaming",
     background: "NVIDIA Corporation is an American multinational technology company that designs GPUs and system-on-chip units. Originally known for graphics processing in gaming, NVIDIA has become the dominant supplier of chips used in AI training and inference. Its data center revenue has skyrocketed with the AI boom, making it one of the most valuable companies in the world.",
-    logoUrl: "https://logo.clearbit.com/nvidia.com",
+    logoUrl: "https://unavatar.io/nvidia.com",
     searchTerms: ["NVIDIA", "Nvidia"],
     details: {
       headquarters: "Santa Clara, CA",
@@ -561,7 +561,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Google",
     description: "Technology company and search engine giant",
     background: "Google LLC, a subsidiary of Alphabet Inc., is the world's leading search engine and a major player in advertising, cloud computing, and artificial intelligence. Google developed the Transformer architecture that underpins modern AI, and its AI lab DeepMind created AlphaGo and Gemini. Google's products — Search, YouTube, Android, Chrome, Gmail — are used by billions worldwide.",
-    logoUrl: "https://logo.clearbit.com/google.com",
+    logoUrl: "https://unavatar.io/google.com",
     searchTerms: ["Google", "Alphabet", "DeepMind", "Gemini AI"],
     details: {
       headquarters: "Mountain View, CA",
@@ -578,7 +578,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Microsoft",
     description: "Technology company behind Windows, Azure, and Copilot",
     background: "Microsoft Corporation is a global technology leader known for Windows, Office, Azure cloud, and LinkedIn. Microsoft has invested heavily in OpenAI and integrated AI across its product suite with Copilot. Under CEO Satya Nadella, Microsoft has transformed into a cloud-first, AI-first company and briefly became the world's most valuable company.",
-    logoUrl: "https://logo.clearbit.com/microsoft.com",
+    logoUrl: "https://unavatar.io/microsoft.com",
     searchTerms: ["Microsoft", "Azure"],
     details: {
       headquarters: "Redmond, WA",
@@ -595,7 +595,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Apple",
     description: "Consumer electronics and software company",
     background: "Apple Inc. designs and sells consumer electronics, software, and services. Known for the iPhone, Mac, iPad, Apple Watch, and its services ecosystem (App Store, Apple Music, iCloud, Apple TV+). Apple is one of the world's most valuable companies and its product launches, design philosophy, and ecosystem strategy are perennial podcast topics.",
-    logoUrl: "https://logo.clearbit.com/apple.com",
+    logoUrl: "https://unavatar.io/apple.com",
     searchTerms: ["Apple Inc", "Apple's"],
     details: {
       headquarters: "Cupertino, CA",
@@ -612,7 +612,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Amazon",
     description: "E-commerce and cloud computing giant",
     background: "Amazon.com, Inc. is the world's largest e-commerce company and a leader in cloud computing through Amazon Web Services (AWS). Founded by Jeff Bezos in 1994, Amazon has expanded into streaming (Prime Video), AI (Alexa, Bedrock), logistics, and grocery (Whole Foods). AWS powers a significant portion of the internet's infrastructure.",
-    logoUrl: "https://logo.clearbit.com/amazon.com",
+    logoUrl: "https://unavatar.io/amazon.com",
     searchTerms: ["Amazon", "AWS"],
     details: {
       headquarters: "Seattle, WA",
@@ -629,7 +629,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Anthropic",
     description: "AI safety company behind Claude",
     background: "Anthropic is an AI safety startup founded in 2021 by Dario and Daniela Amodei, former OpenAI executives. The company builds Claude, a family of large language models focused on being helpful, harmless, and honest. Anthropic has raised billions from investors including Google and Amazon, and is considered one of the leading AI companies alongside OpenAI.",
-    logoUrl: "https://logo.clearbit.com/anthropic.com",
+    logoUrl: "https://unavatar.io/anthropic.com",
     searchTerms: ["Anthropic"],
     details: {
       headquarters: "San Francisco, CA",
@@ -646,7 +646,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Meta",
     description: "Social media and metaverse company (formerly Facebook)",
     background: "Meta Platforms, Inc. (formerly Facebook) is the parent company of Facebook, Instagram, WhatsApp, and Threads. Founded by Mark Zuckerberg in 2004, Meta rebranded in 2021 to reflect its focus on building the metaverse. The company is also a major player in AI, with its LLaMA open-source models and AI research lab (FAIR) being widely discussed in tech podcasts.",
-    logoUrl: "https://logo.clearbit.com/meta.com",
+    logoUrl: "https://unavatar.io/meta.com",
     searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -663,7 +663,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "SpaceX",
     description: "Aerospace manufacturer and space transportation company",
     background: "Space Exploration Technologies Corp. (SpaceX) is an American aerospace manufacturer founded by Elon Musk in 2002. SpaceX develops the Falcon 9 and Falcon Heavy rockets, the Dragon spacecraft, and the Starship launch system. Its Starlink subsidiary provides satellite internet worldwide. SpaceX has revolutionized space travel with reusable rockets and is working toward Mars colonization.",
-    logoUrl: "https://logo.clearbit.com/spacex.com",
+    logoUrl: "https://unavatar.io/spacex.com",
     searchTerms: ["SpaceX", "Starship", "Starlink"],
     details: {
       headquarters: "Hawthorne, CA",
