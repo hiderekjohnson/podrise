@@ -896,7 +896,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "the unconscious patterns that drive human behavior, choices, and relationships",
     keywords: "Hidden Brain, Shankar Vedantam, psychology, behavior, neuroscience, decision-making, unconscious",
     faqTopics: "behavioral psychology, unconscious bias, decision-making science, social psychology, cognitive science, and fascinating research into why humans think, feel, and act the way they do",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/a5/f7/17/a5f71734-8a47-f34c-16a1-0e0e4ce76b44/mza_15560107938498920498.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/d9/97/f0/d997f0f5-284b-b90c-16f6-e2e675b831b3/mza_3280114077256997969.jpg/600x600bb.jpg",
     youtubeUrl: "https://www.youtube.com/@hiddenbrain",
     avgEpisodeLength: 45,
     frequency: "Weekly",
@@ -1778,7 +1778,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "movies, entertainment, and Hollywood industry analysis from The Ringer",
     keywords: "The Big Picture, Sean Fennessey, movies, film, Hollywood, entertainment, The Ringer, cinema",
     faqTopics: "movie reviews, Oscar predictions, film industry analysis, director spotlights, box office trends, and cinematic deep dives",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/0c/6f/c0/0c6fc0db-96d2-5e11-20b5-6fe1a11fa8f9/mza_7362187498498463498.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/05/93/3c/05933c8d-4813-a555-6cfd-390406fa11db/mza_4420555142546047216.jpg/600x600bb.jpg",
     avgEpisodeLength: 60,
     frequency: "Multiple times per week",
     totalEpisodes: 800,
@@ -1797,7 +1797,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "rewatching and debating the most rewatchable movies ever made",
     keywords: "The Rewatchables, Bill Simmons, movies, film, rewatchable, The Ringer, classic movies",
     faqTopics: "rewatchable movies, classic film analysis, movie debates, casting what-ifs, iconic scenes, and quotable movie moments",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/d1/39/09/d13909ea-0f45-5c07-ff27-509deaf498ae/mza_11765022885498498618.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/57/c4/51/57c4518a-d9ac-2054-1ffc-70aba91fcabe/mza_11814957206726161059.jpg/600x600bb.jpg",
     avgEpisodeLength: 75,
     frequency: "Weekly",
     totalEpisodes: 400,
@@ -1816,7 +1816,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "lively political analysis and debate from two insiders on opposite sides of the aisle",
     keywords: "The Rest Is Politics, Alastair Campbell, Rory Stewart, politics, UK politics, global affairs, political debate",
     faqTopics: "UK politics, global affairs, political strategy, elections, policy analysis, and behind-the-scenes political insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/0a/2e/1b/0a2e1bfa-2d2d-f174-5c5e-4e1c7d5d5e5e/mza_8854826790158973755.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/7c/a6/83/7ca6831b-adc0-1d70-0c4a-8d9f37de10bd/mza_14183575544234021474.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
     frequency: "Multiple times per week",
     totalEpisodes: 500,
@@ -1835,7 +1835,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: ".NET development, software engineering, and technology deep dives",
     keywords: ".NET Rocks, Carl Franklin, Richard Campbell, .NET, software development, C#, programming, Microsoft",
     faqTopics: ".NET development, C# programming, Azure cloud services, software architecture, DevOps practices, and Microsoft ecosystem technologies",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/a4/32/7c/a4327c55-ab07-a9f3-ef41-8a3caa0e6738/mza_12977252547089069498.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/54/24/3c/54243ce3-9852-4103-9107-7702c6aaa92a/mza_15490608823975013175.jpg/600x600bb.jpg",
     avgEpisodeLength: 60,
     frequency: "Weekly",
     totalEpisodes: 1900,
@@ -1854,7 +1854,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "daily meditations on Stoic philosophy for modern life",
     keywords: "Daily Stoic, Ryan Holiday, Stoicism, philosophy, Marcus Aurelius, Seneca, self-improvement, mindfulness",
     faqTopics: "Stoic philosophy, Marcus Aurelius, Seneca, Epictetus, daily meditations, practical wisdom, resilience, and applying ancient philosophy to modern challenges",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/83/9a/5b/839a5b26-4e48-e3c2-6d85-8de1c7b156c7/mza_4553979713484819198.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/00/4b/cd/004bcd1b-3036-86ae-2394-e3ac6798cace/mza_2488584016134530967.jpeg/600x600bb.jpg",
     avgEpisodeLength: 10,
     frequency: "Daily",
     totalEpisodes: 2500,
@@ -1873,7 +1873,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "markets, investing, and financial news with a conversational twist",
     keywords: "Animal Spirits, Michael Batnick, Ben Carlson, investing, markets, finance, personal finance, economics",
     faqTopics: "stock market analysis, investing strategies, personal finance, economic trends, financial news, and behavioral finance insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/da/66/e6/da66e645-7f96-14ed-4b68-e0ee98ab6e0a/mza_6297455817100977498.png/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/e9/28/32/e92832e6-b6a7-9ff5-07bd-76745ff715d9/mza_17095200695885559410.jpg/600x600bb.jpg",
     avgEpisodeLength: 45,
     frequency: "Weekly",
     totalEpisodes: 400,
@@ -3941,7 +3941,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "online marketing insights, expert analysis, and in-depth discussions",
     keywords: "Online Marketing Made Easy, Amy Porterfield, Business, Online Marketing",
     faqTopics: "online marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/fe/3d/e2/fe3de2e3-83b5-81eb-08f7-21e4c8e0b2f0/mza_14892873135498710407.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/06/15/3f/06153f96-84a0-05ef-c984-5da91ab63258/mza_2049480743958825504.jpg/600x600bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -3967,7 +3967,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "marketing insights, expert analysis, and in-depth discussions",
     keywords: "The Influencer Podcast, Julie Solomon, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/2c/51/5e/2c515e66-d69f-3c0a-6f32-b3f7e29f7b5d/mza_16421281735741553700.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/14/e5/b1/14e5b11a-73f9-bc39-4b4f-833cf3e38684/mza_4742681345217212186.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -4019,7 +4019,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "online marketing insights, expert analysis, and in-depth discussions",
     keywords: "Mind Your Business Podcast, James Wedmore, Business, Online Marketing",
     faqTopics: "online marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/0c/14/db/0c14db9a-7a4f-22f9-f2db-2e8d4d723e2f/mza_17413101117270616991.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a5/b5/09/a5b509ed-1376-6c02-2fea-fe758f099460/mza_3938910258002909202.png/600x600bb.jpg",
     avgEpisodeLength: 60,
 
     frequency: "Weekly",
@@ -4045,7 +4045,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "entrepreneurship insights, expert analysis, and in-depth discussions",
     keywords: "Social Proof, David Shands, Donni Wiggins, Business, Entrepreneurship",
     faqTopics: "entrepreneurship trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/83/36/13/833613dd-c1cf-0c72-6e5c-36f55aeee1fa/mza_14285119997413200918.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/88/3d/99/883d993e-57c8-8359-1e31-a295608678ff/mza_14919437545948465944.jpg/600x600bb.jpg",
     avgEpisodeLength: 55,
 
     frequency: "Weekly",
@@ -4149,7 +4149,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "news insights, expert analysis, and in-depth discussions",
     keywords: "Bloomberg Technology, Caroline Hyde, Technology, News",
     faqTopics: "news trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/60/11/ab/6011ab10-0fc3-07b3-3f85-1d9e09e06f0b/mza_9476792985622979024.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/f5/9c/9f/f59c9f1f-cbc8-0e46-629d-2df7e6a18274/mza_3594252261487211794.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Daily",
@@ -4201,7 +4201,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "news insights, expert analysis, and in-depth discussions",
     keywords: "Marketplace Tech, Lily Jamali, Technology, News",
     faqTopics: "news trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/6d/f0/35/6df0357a-ba75-1f25-d8a4-9e68a6068bb5/mza_8397891458099822254.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/a2/e8/ec/a2e8ec4a-6e15-c346-f195-0b86b8fe33f8/mza_11138292538948806448.jpg/600x600bb.jpg",
     avgEpisodeLength: 25,
 
     frequency: "Weekly",
@@ -4253,7 +4253,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "ai insights, expert analysis, and in-depth discussions",
     keywords: "AI For Humans, Gavin Purcell, Kevin Pereira, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/40/de/b5/40deb538-dcb9-472d-4493-7d52a3a98b22/mza_7426505428791866503.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/40/de/b5/40deb538-dcb9-472d-4493-7d52a3a98b22/artwork.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Bi-weekly",
@@ -4305,7 +4305,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "ai insights, expert analysis, and in-depth discussions",
     keywords: "The Next Wave, Matt Wolfe, Nathan Lands, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/be/da/f8/bedaf8a2-d155-c12d-8f7e-1e726a3ec7cd/mza_15329889507629780023.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/22/4b/41/224b4197-aedb-801b-fb5b-4d2253044525/mza_12360675941672447862.jpeg/600x600bb.jpg",
     avgEpisodeLength: 35,
 
     frequency: "Weekly",
@@ -4331,7 +4331,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "business insights, expert analysis, and in-depth discussions",
     keywords: "The Information 411, The Information, Technology, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a1/b0/90/a1b090c3-d3c9-5c4d-ffbc-b99da0d7c3c4/mza_10625854987612900925.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/76/ab/03/76ab03d6-68b8-5781-c87f-45afe2612780/mza_2887175158791363986.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Weekly",
@@ -4513,7 +4513,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "weekly insights, expert analysis, and in-depth discussions",
     keywords: "ABC World News This Week, ABC News, News, Weekly",
     faqTopics: "weekly trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/45/b5/e8/45b5e830-ba97-fc51-d06c-3d04a5cf1e53/mza_2789483587291700584.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/7a/cd/30/7acd302c-3cdc-81ce-3aac-9508eed39389/mza_11406176241027266192.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Weekly",
@@ -4669,7 +4669,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "politics insights, expert analysis, and in-depth discussions",
     keywords: "The Majority Report, Sam Seder, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e8/5a/7e/e85a7ec4-1e6a-b73c-c08b-87bdd7a0ecb4/mza_17735696853247497327.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/48/87/ce/4887ced0-d208-37b2-2271-ede2a7175965/mza_16415187834702178798.jpg/600x600bb.jpg",
     avgEpisodeLength: 60,
 
     frequency: "Daily on weekdays",
@@ -4695,7 +4695,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "business insights, expert analysis, and in-depth discussions",
     keywords: "Puck's The Powers That Be, Puck, News, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/1e/18/65/1e1865de-5aeb-09f4-8fa2-e26ac43d5cc5/mza_1804087016618901396.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d0/21/db/d021db2f-fae2-258f-8611-109869dabfc8/mza_17627203276313263089.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -4747,7 +4747,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "politics insights, expert analysis, and in-depth discussions",
     keywords: "Democracy Now, Amy Goodman, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/63/55/2b/63552b8b-cfc8-8beb-ddb3-b098a0f59fda/mza_11747648220942498867.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/f9/ce/4e/f9ce4e7b-95d6-7b36-bf7f-6435c7f49641/mza_11121093529927941489.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Daily",
@@ -4799,7 +4799,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "politics insights, expert analysis, and in-depth discussions",
     keywords: "The News Agents, Emily Maitlis, Jon Sopel, Lewis Goodall, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/95/a8/05/95a80550-2d96-d760-67ae-7d45ebbb711f/mza_8126283139990252036.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/95/a8/05/95a80550-2d96-d760-67ae-7d45ebbb711f/artwork.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -4825,7 +4825,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "politics insights, expert analysis, and in-depth discussions",
     keywords: "Redacted, Clayton Morris, Natali Morris, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c5/4a/9c/c54a9cb9-f55c-bfed-edfe-1e5d27d2e9c0/mza_15474558363048680987.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/c6/71/41/c6714141-a018-afc4-69e7-e30561d69218/mza_1218561258501438132.png/600x600bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -4877,7 +4877,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "politics insights, expert analysis, and in-depth discussions",
     keywords: "The Young Turks, Cenk Uygur, Ana Kasparian, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/ab/14/89/ab14893e-e1af-6da3-8d40-f1b3c10c51cc/mza_7485927389843427044.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/35/15/65/35156550-16e8-20d1-b0c7-2e8eef7b7a17/mza_8877958047246087673.jpg/600x600bb.jpg",
     avgEpisodeLength: 90,
 
     frequency: "Daily",
@@ -4903,7 +4903,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "self-improvement insights, expert analysis, and in-depth discussions",
     keywords: "The Daily Stoic, Ryan Holiday, Philosophy, Self-Improvement",
     faqTopics: "self-improvement trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/61/84/55/618455ea-d49e-b6f8-40fb-3c09c7f2bbf1/mza_11824689476795621891.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/00/4b/cd/004bcd1b-3036-86ae-2394-e3ac6798cace/mza_2488584016134530967.jpeg/600x600bb.jpg",
     avgEpisodeLength: 20,
 
     frequency: "Daily",
@@ -4955,7 +4955,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "behavior insights, expert analysis, and in-depth discussions",
     keywords: "Choiceology with Katy Milkman, Katy Milkman, Psychology, Behavior",
     faqTopics: "behavior trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/2f/d5/05/2fd5058d-5ec0-2f3b-ce2b-7dd4eb81b8c8/mza_8805555072667820099.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/18/34/21/183421bb-d372-3576-74cd-1ac0fd6bc64f/mza_6746456661117531303.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Biweekly",
@@ -4981,7 +4981,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "science insights, expert analysis, and in-depth discussions",
     keywords: "No Stupid Questions, Angela Duckworth, Stephen Dubner, Psychology, Science",
     faqTopics: "science trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c1/3f/60/c13f6091-ddb4-8bc2-6c93-a3c50d2b4f84/mza_15927290785640063038.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/50/a2/94/50a29418-2e25-60a1-ee30-de2c9a964d5e/mza_16758140357555725276.jpg/600x600bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -5085,7 +5085,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "politics insights, expert analysis, and in-depth discussions",
     keywords: "Checks and Balance, The Economist, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/51/26/da/5126da95-0e64-f6be-0a20-db5b15e5cd89/mza_16782697803437893379.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/5d/c7/85/5dc78556-b9a7-9c70-8bb5-51623991ce8c/mza_5828493224568577595.jpeg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Weekly",
@@ -5111,7 +5111,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "business insights, expert analysis, and in-depth discussions",
     keywords: "Slate Money, Felix Salmon, Emily Peck, Elizabeth Spiers, Finance, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/fc/cd/d2/fccdd21a-0fd1-31c4-a6c0-c56a10ae8e4c/mza_13233425775499919124.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/d3/92/a7/d392a7ec-187d-0b11-f9d9-ab85e351faca/mza_4177646081052740459.jpg/600x600bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -5137,7 +5137,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "personal finance insights, expert analysis, and in-depth discussions",
     keywords: "The White Coat Investor Podcast, Jim Dahle, Finance, Personal Finance",
     faqTopics: "personal finance trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/f2/a3/85/f2a385d7-0e23-2e4e-4a77-7da1e5b8d2e7/mza_9133457012023908113.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/72/2f/38/722f3895-8758-aa6f-d6bc-6c457f6fb7c3/mza_8646823996100919097.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -5163,7 +5163,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "investing insights, expert analysis, and in-depth discussions",
     keywords: "Motley Fool Money, The Motley Fool, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/94/69/2c/94692c7a-34b3-3a66-30ae-7de98e174d54/mza_6497003830756997700.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/a2/66/be/a266bed2-fe62-e856-e46c-013339aa0004/mza_9524155023518744287.jpeg/600x600bb.jpg",
     avgEpisodeLength: 45,
 
     frequency: "Weekly",
@@ -5189,7 +5189,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "marketing insights, expert analysis, and in-depth discussions",
     keywords: "The Marketing Book Podcast, Douglas Burdett, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/5c/14/32/5c1432af-3ded-23e7-11a3-e27f8a8b71bc/mza_18326908637855929082.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/3b/fc/ed/3bfced11-8c8a-4686-cd93-32a7efcab4bb/mza_3617900141065552463.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Weekly",
@@ -5215,7 +5215,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "marketing insights, expert analysis, and in-depth discussions",
     keywords: "Social Media Marketing Podcast, Michael Stelzner, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/18/24/a41824fc-bfe5-05d8-f67b-1e3f6b3cda36/mza_17684425497754244541.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/33/e6/12/33e61299-de62-fa96-28cf-481784a4919d/mza_5512121408288682257.jpeg/600x600bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -5267,7 +5267,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "performance insights, expert analysis, and in-depth discussions",
     keywords: "The High Performance Podcast, Jake Humphrey, Damian Hughes, Self-Improvement, Performance",
     faqTopics: "performance trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/f7/37/59/f73759a0-5027-a2db-0f55-3f2c05f2ebf7/mza_6776449963662996610.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/cf/1a/5a/cf1a5a8c-688e-690b-138d-04517a560b54/mza_11984786542722281203.jpeg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -5293,7 +5293,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "behavior insights, expert analysis, and in-depth discussions",
     keywords: "ReThinking with Adam Grant, Adam Grant, Psychology, Behavior",
     faqTopics: "behavior trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/f4/1d/11/f41d1179-3a03-53a6-eb17-fd0f1e4c4b0f/mza_6523547046363684879.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/14/f3/2a/14f32a24-2757-3934-31ba-9f7ff5ee35ce/mza_10485809741358139751.jpg/600x600bb.jpg",
     avgEpisodeLength: 45,
 
     frequency: "Bi-weekly",
@@ -5397,7 +5397,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "science insights, expert analysis, and in-depth discussions",
     keywords: "You Are Not So Smart, David McRaney, Psychology, Science",
     faqTopics: "science trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/d5/a7/e6/d5a7e66d-8b13-3e57-c0de-2e7d87b8d37a/mza_14780117498497095427.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/90/f3/e5/90f3e5da-d661-3581-4474-6e14f342c86a/mza_8266442694079680437.jpg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Monthly",
@@ -5423,7 +5423,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "debates insights, expert analysis, and in-depth discussions",
     keywords: "Intelligence Squared U.S. Debates, John Donvan, Education, Debates",
     faqTopics: "debates trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/cc/c2/1f/ccc21f54-acb1-e2e0-4bcf-a8a1e65a5cf8/mza_14513689430621416591.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/f9/83/4e/f9834ead-50e0-ea9a-17b3-b09d92b72b7d/mza_10063775191851559716.jpg/600x600bb.jpg",
     avgEpisodeLength: 60,
 
     frequency: "Monthly",
@@ -5475,7 +5475,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "language insights, expert analysis, and in-depth discussions",
     keywords: "Lexicon Valley, John McWhorter, Education, Language",
     faqTopics: "language trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/4a/d9/3d/4ad93d58-7f36-4087-f3f4-dae84e567da3/mza_12694989445001735709.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/22/7d/a7/227da71a-7662-d609-69ae-880511357f42/mza_4749907498345011781.jpeg/600x600bb.jpg",
     avgEpisodeLength: 45,
 
     frequency: "Biweekly",
@@ -5501,7 +5501,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "education insights, expert analysis, and in-depth discussions",
     keywords: "The Skeptics' Guide to the Universe, Steven Novella, Science, Education",
     faqTopics: "education trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/5d/02/68/5d026860-cfef-9a89-85a3-06b2cf68c75d/mza_12839281416247474878.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/67/41/94/674194e3-6dbf-0c26-4ceb-24768f2157b1/mza_15453640237823412516.png/600x600bb.jpg",
     avgEpisodeLength: 70,
 
     frequency: "Weekly",
@@ -5527,7 +5527,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "comedy insights, expert analysis, and in-depth discussions",
     keywords: "The Infinite Monkey Cage, Brian Cox, Robin Ince, Science, Comedy",
     faqTopics: "comedy trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/80/5d/47/805d47f4-1a65-b55a-42c9-ebc4c3f95a43/mza_9524992656665375905.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d5/f8/17/d5f817c7-5144-5c68-dafb-1c2db82a913b/mza_5990309251420587222.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Weekly",
@@ -5579,7 +5579,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "leadership insights, expert analysis, and in-depth discussions",
     keywords: "No Bullshit Leadership, Martin G. Moore, Business, Leadership",
     faqTopics: "leadership trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c6/02/20/c60220e0-2a1d-0c64-7bc5-42ca06b22ed8/mza_18041447849757755455.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/1a/5b/9f/1a5b9f1f-10ef-875c-bbc4-419803b3a0ea/mza_2530549572785949191.jpeg/600x600bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -5605,7 +5605,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "entrepreneurship, online marketing, and building a life you love",
     keywords: "Goal Digger, Jenna Kutcher, entrepreneurship, online marketing, social media, business",
     faqTopics: "online business strategies, social media marketing, entrepreneurship tips, and building a purpose-driven brand",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a2/97/8a/a2978a90-58da-1e60-0474-c4c5e0a0e9d2/mza_4436280378498498498.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/12/52/74/125274ab-6f14-e90d-2b87-73b81a622e0a/mza_18393515196811820848.jpeg/600x600bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -5631,7 +5631,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "daily news coverage focused on US politics and legal developments",
     keywords: "Daily Beans, Allison Gill, Dana Goldberg, politics, news, legal, daily briefing",
     faqTopics: "US political news, legal developments, government accountability, and daily news analysis",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e0/2c/b3/e02cb3f8-a06e-4e8a-d9cc-3d4e65b5d6a9/mza_11982673421849372652.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/69/0c/f9/690cf929-45e8-8ade-29ae-24bcd0c658dc/mza_2774671573355034175.jpg/600x600bb.jpg",
     avgEpisodeLength: 30,
     frequency: "Daily on weekdays",
     totalEpisodes: 1200,

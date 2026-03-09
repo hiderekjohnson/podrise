@@ -1,0 +1,206 @@
+Add the following people, and on the people page, create a search function, and a filter function, gender, category, and organize search results by user selecting either - most guest appearances, most mentions/
+	•	
+	•	•	Steph Smith
+	•	Nick Gray
+	•	Nick Huber
+	•	Neville Medhora
+	•	Ramon Van Meer
+	•	Greg Isenberg
+	•	Nik Sharma
+	•	Moiz Ali
+	•	Chenell Basilio
+	•	Nathan Barry
+	•	Jesse Itzler
+	•	Elena Verna
+	•	Jenny Wen
+	•	Boris Cherny
+	•	Qasar Younis
+	•	Jeetu Patel
+	•	Brian Halligan
+	•	Sherwin Wu
+	•	Lazar Jovanovic
+	•	Katelyn Bourgoin
+	•	Amanda Goetz
+	•	Chris Hutchins
+	•	Andrew Wilkinson
+	•	Sahil Bloom
+	•	Aravind Srinivas
+	•	Alexandr Wang
+	•	Mustafa Suleyman
+	•	Sieva Kozinsky
+	•	Xavier Helgesen
+	•	Bill Girdley
+	•	Bill Gurley (Benchmark)
+	•	Brad Gerstner (Altimeter Capital)
+	•	Roelof Botha (Sequoia Capital)
+	•	Doug Leone (Sequoia Capital)
+	•	Elad Gil (Solo GP / Google & Twitter veteran)
+	•	Vinod Khosla (Khosla Ventures)
+	•	Marc Andreessen (a16z)
+	•	Ben Horowitz (a16z)
+	•	Reid Hoffman (Greylock)
+	•	Keith Rabois (Khosla Ventures / Founders Fund)
+	•	Garry Tan (Y Combinator CEO)
+	•	David Sacks (Craft Ventures)
+	•	Rick Zullo (Equal Ventures)
+	•	Semil Shah (Haystack)
+	•	Jeff Jordan (a16z)
+	•	Hunter Walk (Homebrew)
+	•	Li Jin (Variant)
+	•	Harry Stebbings (20VC)
+	•	Turner Novak (Banana Capital)
+	•	Rowan Cheung
+	•	Matt Wolfe
+	•	Linus Ekenstam
+	•	Varun Mayya
+	•	Matt Shumer
+	•	Gergely Orosz
+	•	Justin Moore
+	•	Harry Stebbings
+	•	Turner Novak
+	•	Li Jin
+	•	Andreas Klinger
+	•	Packy McCormick
+	•	Zain Kahn
+	•	Ben Tossell
+	•	Aadit Sheth
+	•	Ben Thompson
+	•	Alex Kantrowitz
+	•	Kara Swisher
+	•	Casey Newton
+	•	Jason Hiner
+	•	Becca Farsace
+	•	Emma Roth
+	•	Allison Johnson
+	•	Tiago Forte
+	•	Dickie Bush
+	•	Nicolas Cole
+	•	Mark Cuban
+	•	Ashton Kutcher
+	•	Ryan Reynolds
+	•	Rick Beato
+	•	Theo Von
+	•	MrBeast
+	•	Logan Paul
+	•	Bobbi Althoff
+	•	Alex Cooper
+	•	Alix Earle
+	•	Matthew McConaughey
+	•	Arnold Schwarzenegger
+	•	Jordan Peterson
+	•	Whitney Cummings
+	•	Neil deGrasse Tyson
+	•	Coco Mocoe
+
+	•	Logan Paul
+	•	David Dobrik
+	•	SteveWillDoIt
+	•	Dave Portnoy
+	•	Kai Cenat
+	•	IShowSpeed
+	•	Druski
+	•	Josh Richards
+	•	Brianna Chickenfry
+	•	Alex Cooper
+	•	Samir Chaudry
+	•	Colin Rosenblum
+	•	Jake Paul
+	•	MrBeast
+	•	Marques Brownlee
+	•	xQc
+	•	Pokimane
+	•	Sam Parr
+	•	Shaan Puri
+	•	Jay Shetty
+	•	Andrew Huberman
+	•	Steven Bartlett
+	•	Joe Rogan
+	•	Pat Flynn
+	•	Jenna Kutcher
+	•	Lauryn Bosstick
+	•	Michael Bosstick
+	•	Gary Vaynerchuk
+
+	1	John Morgan
+	2	George Kurtz
+	3	Jeremy Allaire
+	4	Mary Kennedy Thompson
+	5	Chris Williams
+	6	Michelle Songy
+	7	Adam Goldstein
+	8	Keenan Fisher
+	9	Mike Mandell (Law By Mike)
+
+Emma Grede
+Whitney Wolfe Herd
+Melanie Perkins
+Anne Wojcicki
+Julie Sweet
+Lisa Falzone
+Alexa Hirschfeld
+Grace Beverley
+Anu Duggal
+Theresia Gouw
+Lucy Guo
+Lexi Burbey
+Anu Adebajo
+Natalie Ellis
+Hala Taha
+Tori Dunlap
+Vivian Tu
+Mimi Bouchard
+Jenna Kutcher
+Elena Verna
+Doone Roisin
+Brené Brown
+Marie Forleo
+Coco Mocoe
+Claire Wasserman
+	•	Donald Trump
+	•	Tucker Carlson
+	•	MrBeast
+	•	Vivek Ramaswamy
+	•	Ted Cruz
+	•	Gavin Newsom
+	•	Robert F. Kennedy Jr.
+	•	Sam Harris
+	•	Yuval Noah Harari
+	•	Malcolm Gladwell
+	•	Peter Attia
+	•	Ray Dalio
+	•	Candace Owens
+	•	Jordan Peterson
+	•	Tulsi Gabbard
+	•	J.D. Vance
+	•	Andrew Cuomo
+	•	Zohran Mamdani
+	•	Mikie Sherrill
+	•	Casey Neistat
+	•	Steven Bartlett
+	•	Andrew Huberman
+	•	Lex Fridman
+	•	Tim Ferriss
+	•	Jordan Harbinger
+	•	Sam Harris
+	•	Mel Robbins
+	•	Theo Von
+	•	Jay Shetty
+	•	Guy Raz
+	•	Jason Calacanis
+	•	David Sacks
+	•	Chamath Palihapitiya
+	•	Patrick Bet-David
+	•	Scott Galloway
+	•	Hala Taha
+	•	Kipp Bodnar
+	•	Kieran Flanagan
+	•	Chris Hutchins
+	•	Lenny Rachitsky
+	•	Shawn Ryan
+	•	Dan Carlin
+	•	Adam Grant
+	•	Dwarkesh Patel
+	•	Preston Pysh
+	•	Stig Brodersen
+
+
