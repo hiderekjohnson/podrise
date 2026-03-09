@@ -48,7 +48,9 @@ export async function searchPodcastByItunesId(itunesId: string): Promise<TaddySe
 
   const data = await taddyRequest(query);
   const result = data?.data?.getPodcastSeries || null;
-  podcastCache.set(cacheKey, { result, expiry: Date.now() + CACHE_TTL_MS });
+  if (result) {
+    podcastCache.set(cacheKey, { result, expiry: Date.now() + CACHE_TTL_MS });
+  }
   return result;
 }
 
@@ -78,9 +80,12 @@ export async function getRecentEpisodesWithTranscripts(
   const data = await taddyRequest(query);
   if (!data?.data?.getPodcastSeries?.episodes) {
     console.log(`[Taddy] Episodes response for ${podcastUuid}:`, JSON.stringify(data?.data?.getPodcastSeries || data?.errors || "null").slice(0, 500));
+    return [];
   }
   const episodes = data?.data?.getPodcastSeries?.episodes || [];
-  episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
+  if (episodes.length > 0) {
+    episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
+  }
   return episodes;
 }
 
@@ -113,9 +118,12 @@ export async function getEpisodesByItunesId(
   const data = await taddyRequest(query);
   if (!data?.data?.getPodcastSeries?.episodes) {
     console.log(`[Taddy] Episodes by itunesId ${numericId}:`, JSON.stringify(data?.data?.getPodcastSeries || data?.errors || "null").slice(0, 300));
+    return [];
   }
   const episodes = data?.data?.getPodcastSeries?.episodes || [];
-  episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
+  if (episodes.length > 0) {
+    episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
+  }
   return episodes;
 }
 

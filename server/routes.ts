@@ -3561,6 +3561,429 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
     }
   });
 
+  app.post("/api/admin/bulk-download-transcripts", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ITUNES_ID_TO_SLUG, SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
+      const { getEpisodeTranscript } = await import("./taddyClient");
+
+      const TARGET = 25;
+      const { slugFilter } = req.body || {};
+
+      const taddyUserId = process.env.TADDY_USER_ID;
+      const taddyApiKey = process.env.TADDY_API_KEY;
+      if (!taddyUserId || !taddyApiKey) {
+        return res.status(500).json({ message: "Taddy API credentials not configured" });
+      }
+
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      let existingRecapCounts: Record<string, number> = {};
+      let existingTranscriptGuids: Set<string> = new Set();
+      try {
+        const { rows } = await client.query(`SELECT slug, COUNT(*)::int as cnt FROM landing_page_recaps GROUP BY slug`);
+        for (const r of rows) existingRecapCounts[r.slug] = r.cnt;
+        const { rows: tRows } = await client.query(`SELECT episode_guid FROM episode_transcripts`);
+        for (const r of tRows) existingTranscriptGuids.add(r.episode_guid);
+      } finally {
+        client.release();
+      }
+
+      let allSlugs = Object.values(ITUNES_ID_TO_SLUG);
+      if (slugFilter && Array.isArray(slugFilter)) {
+        allSlugs = allSlugs.filter(s => slugFilter.includes(s));
+      }
+      const podcastsToProcess = allSlugs
+        .map(slug => ({ slug, itunesId: SLUG_TO_ITUNES_ID[slug], existing: existingRecapCounts[slug] || 0 }))
+        .filter(p => p.existing < TARGET)
+        .sort((a, b) => a.existing - b.existing);
+
+      res.writeHead(200, { "Content-Type": "application/json", "Transfer-Encoding": "chunked" });
+      res.write(JSON.stringify({ type: "plan", totalPodcasts: podcastsToProcess.length, phase: "transcript_download" }) + "\n");
+
+      const creditsRes = await fetch("https://api.taddy.org", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+        body: JSON.stringify({ query: "{ getTranscriptCreditsRemaining }" }),
+      });
+      const creditsData = await creditsRes.json();
+      const creditsRemaining = creditsData?.data?.getTranscriptCreditsRemaining ?? "unknown";
+      res.write(JSON.stringify({ type: "credits", remaining: creditsRemaining }) + "\n");
+
+      let totalDownloaded = 0;
+      let totalAlreadyCached = 0;
+      let totalNoTranscript = 0;
+      let totalErrors = 0;
+
+      for (const podcast of podcastsToProcess) {
+        try {
+          const needed = TARGET - podcast.existing;
+          const numericItunesId = parseInt(podcast.itunesId, 10);
+          if (isNaN(numericItunesId)) {
+            res.write(JSON.stringify({ slug: podcast.slug, status: "invalid_itunes_id" }) + "\n");
+            continue;
+          }
+
+          const taddyQuery = `{
+            getPodcastSeries(itunesId: ${numericItunesId}) {
+              uuid
+              name
+              taddyTranscribeStatus
+              episodes(sortOrder: LATEST, limitPerPage: ${Math.min(needed + 5, 50)}) {
+                uuid
+                name
+                datePublished
+                taddyTranscribeStatus
+              }
+            }
+          }`;
+
+          const taddyRes = await fetch("https://api.taddy.org", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+            body: JSON.stringify({ query: taddyQuery }),
+          });
+          const taddyData = await taddyRes.json();
+          const taddySeries = taddyData?.data?.getPodcastSeries;
+
+          if (!taddySeries || !taddySeries.episodes || taddySeries.episodes.length === 0) {
+            res.write(JSON.stringify({
+              slug: podcast.slug,
+              status: "no_taddy_episodes",
+              seriesFound: !!taddySeries,
+              seriesName: taddySeries?.name || null,
+              transcribeStatus: taddySeries?.taddyTranscribeStatus || null,
+            }) + "\n");
+            continue;
+          }
+
+          let downloadedForPodcast = 0;
+          let skippedCached = 0;
+          let noTranscript = 0;
+
+          for (const ep of taddySeries.episodes) {
+            if (downloadedForPodcast >= needed) break;
+
+            const epTitle = ep.name || "Untitled";
+            const episodeGuid = ep.uuid;
+
+            if (existingTranscriptGuids.has(episodeGuid)) {
+              skippedCached++;
+              totalAlreadyCached++;
+              continue;
+            }
+
+            if (ep.taddyTranscribeStatus === "COMPLETED") {
+              try {
+                const transcriptText = await getEpisodeTranscript(ep.uuid);
+                if (transcriptText && transcriptText.length > 100) {
+                  await storage.saveTranscript({
+                    podcastId: podcast.itunesId,
+                    episodeGuid,
+                    episodeTitle: epTitle,
+                    transcript: transcriptText,
+                  });
+                  existingTranscriptGuids.add(episodeGuid);
+                  downloadedForPodcast++;
+                  totalDownloaded++;
+                } else {
+                  noTranscript++;
+                  totalNoTranscript++;
+                }
+              } catch (err: any) {
+                totalErrors++;
+              }
+            } else {
+              noTranscript++;
+              totalNoTranscript++;
+            }
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+
+          res.write(JSON.stringify({
+            slug: podcast.slug,
+            status: "done",
+            downloaded: downloadedForPodcast,
+            cached: skippedCached,
+            noTranscript,
+            taddyEpisodes: taddySeries.episodes.length,
+            seriesTranscribeStatus: taddySeries.taddyTranscribeStatus,
+          }) + "\n");
+
+        } catch (err: any) {
+          totalErrors++;
+          res.write(JSON.stringify({ slug: podcast.slug, status: "error", error: err?.message?.slice(0, 150) }) + "\n");
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      const creditsRes2 = await fetch("https://api.taddy.org", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+        body: JSON.stringify({ query: "{ getTranscriptCreditsRemaining }" }),
+      });
+      const creditsData2 = await creditsRes2.json();
+      const creditsAfter = creditsData2?.data?.getTranscriptCreditsRemaining ?? "unknown";
+
+      res.write(JSON.stringify({
+        type: "done",
+        totalDownloaded,
+        totalAlreadyCached,
+        totalNoTranscript,
+        totalErrors,
+        creditsUsed: typeof creditsRemaining === "number" && typeof creditsAfter === "number" ? creditsRemaining - creditsAfter : "unknown",
+        creditsRemaining: creditsAfter,
+      }) + "\n");
+      res.end();
+    } catch (err: any) {
+      if (!res.headersSent) {
+        res.status(500).json({ message: err?.message || "Failed" });
+      } else {
+        res.write(JSON.stringify({ type: "fatal_error", error: err?.message }) + "\n");
+        res.end();
+      }
+    }
+  });
+
+  app.post("/api/admin/bulk-generate-recaps", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ITUNES_ID_TO_SLUG, SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
+      const { openai } = await import("./replit_integrations/image/client");
+      const podcastLandingDataModule = await import("../client/src/data/podcastLandingData");
+      const PODCAST_LANDINGS = podcastLandingDataModule.PODCAST_LANDINGS;
+
+      const TARGET = 25;
+      const { slugFilter, batchSize: batchSizeParam } = req.body || {};
+      const batchSize = Math.min(batchSizeParam || 5, 20);
+
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      let existingRecapCounts: Record<string, number> = {};
+      let existingRecapKeys: Set<string> = new Set();
+      try {
+        const { rows } = await client.query(`SELECT slug, COUNT(*)::int as cnt FROM landing_page_recaps GROUP BY slug`);
+        for (const r of rows) existingRecapCounts[r.slug] = r.cnt;
+        const { rows: keyRows } = await client.query(`SELECT slug, episode_title FROM landing_page_recaps`);
+        for (const r of keyRows) existingRecapKeys.add(`${r.slug}::${(r.episode_title || "").toLowerCase().trim()}`);
+      } finally {
+        client.release();
+      }
+
+      let allSlugs = Object.values(ITUNES_ID_TO_SLUG);
+      if (slugFilter && Array.isArray(slugFilter)) {
+        allSlugs = allSlugs.filter(s => slugFilter.includes(s));
+      }
+      const podcastsToProcess = allSlugs
+        .filter(slug => (existingRecapCounts[slug] || 0) < TARGET)
+        .sort((a, b) => (existingRecapCounts[a] || 0) - (existingRecapCounts[b] || 0));
+
+      res.writeHead(200, { "Content-Type": "application/json", "Transfer-Encoding": "chunked" });
+      res.write(JSON.stringify({ type: "plan", totalPodcasts: podcastsToProcess.length, phase: "recap_generation" }) + "\n");
+
+      const templateSettings = await storage.getEmailTemplateSettings();
+      const customPrompt = templateSettings.recapPrompt || "";
+
+      let totalGenerated = 0;
+      let totalSkipped = 0;
+      let totalErrors = 0;
+
+      for (const slug of podcastsToProcess) {
+        const itunesId = SLUG_TO_ITUNES_ID[slug];
+        const existing = existingRecapCounts[slug] || 0;
+        const needed = TARGET - existing;
+        if (needed <= 0) continue;
+
+        try {
+          const landingConfig = PODCAST_LANDINGS.find((p: any) => p.slug === slug);
+          const artworkUrl = landingConfig?.artworkUrl || "";
+          const hosts = landingConfig?.hosts || "";
+          const podcastName = landingConfig?.name || slug;
+
+          const fetchLimit = Math.min(needed + existing + 10, 200);
+          const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=${fetchLimit}&sort=recent`;
+          const lookupRes = await fetch(lookupUrl);
+          const lookupJson = await lookupRes.json();
+          const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+
+          if (episodes.length === 0) {
+            res.write(JSON.stringify({ slug, status: "no_episodes" }) + "\n");
+            totalSkipped++;
+            continue;
+          }
+
+          const newEpisodes = episodes.filter((ep: any) => {
+            const key = `${slug}::${(ep.trackName || "").toLowerCase().trim()}`;
+            return !existingRecapKeys.has(key);
+          }).slice(0, needed);
+
+          if (newEpisodes.length === 0) {
+            res.write(JSON.stringify({ slug, status: "all_exist" }) + "\n");
+            totalSkipped++;
+            continue;
+          }
+
+          let generatedForPodcast = 0;
+
+          for (const ep of newEpisodes) {
+            try {
+              const epTitle = ep.trackName || "Untitled Episode";
+              const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+              const durationMs = ep.trackTimeMillis || 0;
+              const durationMin = Math.round(durationMs / 60000);
+              const durationStr = durationMin >= 60
+                ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+                : `${durationMin} minutes`;
+              const releaseDate = ep.releaseDate
+                ? new Date(ep.releaseDate).toISOString().split("T")[0]
+                : new Date().toISOString().split("T")[0];
+              const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
+
+              let transcriptText: string | null = null;
+              const episodeGuid = ep.episodeGuid || `${itunesId}_${ep.trackId || epTitle}`;
+              const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
+              if (cached) {
+                transcriptText = cached.transcript;
+              } else {
+                const tClient = await dbPool.connect();
+                try {
+                  const titleMatch = await tClient.query(
+                    `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+                    [itunesId, epTitle]
+                  );
+                  if (titleMatch.rows.length > 0) {
+                    transcriptText = titleMatch.rows[0].transcript;
+                  }
+                } finally {
+                  tClient.release();
+                }
+              }
+
+              const transcriptNote = transcriptText
+                ? `A real transcript is provided. Base your recap on the transcript content.`
+                : `No transcript available. Write a recap based on the episode title and description only.`;
+
+              const episodeBlock = `PODCAST: ${podcastName}\nEPISODE: ${epTitle}\nDURATION: ${durationStr}\nDESCRIPTION: ${ep.description || ep.shortDescription || "No description available."}\n${transcriptText ? `TRANSCRIPT:\n${transcriptText.slice(0, 15000)}` : ""}`;
+
+              const prompt = `You are PodCap, an AI that writes podcast digest summaries. Generate a recap for a single episode.
+
+${transcriptNote}
+
+Source episode:
+${episodeBlock}
+
+Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text):
+
+{
+  "podcastName": "${podcastName}",
+  "episodeTitle": "${epTitle.replace(/"/g, '\\"')}",
+  "tldl": "2-3 sentence summary of the core thesis.",
+  "whatHappened": "2-4 paragraphs in narrative style. Separate paragraphs with \\n\\n.",
+  "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
+  "quote": "A memorable line from the episode",
+  "quoteAttribution": "Speaker Name on topic",
+  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
+  "topQuestions": [
+    {"question": "Question 1?", "answer": "2-3 paragraph answer."},
+    {"question": "Question 2?", "answer": "2-3 paragraph answer."},
+    {"question": "Question 3?", "answer": "2-3 paragraph answer."},
+    {"question": "Question 4?", "answer": "2-3 paragraph answer."},
+    {"question": "Question 5?", "answer": "2-3 paragraph answer."}
+  ]
+}
+
+RULES:
+- All fields required
+- Write like a sharp friend catching you up
+- Be specific and concrete
+- Quotes MUST be from the transcript if available
+- Use \\n\\n to separate paragraphs in whatHappened
+- keyTopics: 4-6 specific phrases
+- topQuestions: 5 concise questions with 2-3 paragraph answers
+${customPrompt ? `\n${customPrompt}` : ""}`;
+
+              const aiRes = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0.7,
+                max_tokens: 4000,
+                response_format: { type: "json_object" },
+              });
+
+              const content = aiRes.choices[0]?.message?.content || "";
+              let jsonContent = content.trim();
+              if (jsonContent.startsWith("```")) {
+                jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+              }
+              const parsed = JSON.parse(jsonContent);
+
+              await storage.upsertLandingPageRecap({
+                slug,
+                itunesId,
+                podcastName: parsed.podcastName || podcastName,
+                episodeTitle: parsed.episodeTitle || epTitle,
+                episodeSlug: epSlug,
+                publishDate: releaseDate,
+                duration: durationStr,
+                artworkUrl,
+                hosts,
+                tldl: parsed.tldl || "",
+                whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
+                keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
+                quote: parsed.quote || null,
+                quoteAttribution: parsed.quoteAttribution || null,
+                appleEpisodeUrl: appleUrl || null,
+                audioUrl: ep.episodeUrl || null,
+                keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : null,
+                topQuestions: parsed.topQuestions ? JSON.stringify(parsed.topQuestions) : null,
+              });
+
+              generatedForPodcast++;
+              totalGenerated++;
+              existingRecapKeys.add(`${slug}::${epTitle.toLowerCase().trim()}`);
+              res.write(JSON.stringify({
+                slug,
+                episode: epTitle.slice(0, 60),
+                status: "success",
+                hasTranscript: !!transcriptText,
+                progress: `${totalGenerated} generated`,
+              }) + "\n");
+
+            } catch (epErr: any) {
+              totalErrors++;
+              res.write(JSON.stringify({
+                slug,
+                episode: ep.trackName?.slice(0, 60),
+                status: "error",
+                error: epErr?.message?.slice(0, 200),
+              }) + "\n");
+            }
+            await new Promise(resolve => setTimeout(resolve, 800));
+          }
+
+          res.write(JSON.stringify({ slug, status: "podcast_done", generated: generatedForPodcast }) + "\n");
+        } catch (err: any) {
+          totalErrors++;
+          res.write(JSON.stringify({ slug, status: "podcast_error", error: err?.message?.slice(0, 150) }) + "\n");
+        }
+      }
+
+      res.write(JSON.stringify({ type: "done", totalGenerated, totalSkipped, totalErrors }) + "\n");
+      res.end();
+    } catch (err: any) {
+      if (!res.headersSent) {
+        res.status(500).json({ message: err?.message || "Failed" });
+      } else {
+        res.write(JSON.stringify({ type: "fatal_error", error: err?.message }) + "\n");
+        res.end();
+      }
+    }
+  });
+
   app.get("/api/admin/analytics", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
