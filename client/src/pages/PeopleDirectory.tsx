@@ -1,7 +1,8 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Users, ArrowRight, Mic, MessageSquare } from "lucide-react";
+import { Users, ArrowRight, Mic, MessageSquare, Search, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
@@ -13,7 +14,23 @@ interface PersonSummary {
   title: string;
   mentionCount: number;
   guestCount: number;
+  gender: string;
+  category: string;
 }
+
+const CATEGORIES = [
+  "All Categories",
+  "Tech & AI",
+  "Venture Capital",
+  "Business & Entrepreneurship",
+  "Creator & Influencer",
+  "Media & Journalism",
+  "Author & Thought Leader",
+  "Finance & Investing",
+  "Entertainment",
+  "Politics & Public Figures",
+  "Science & Health",
+];
 
 function SEOHead() {
   const title = "Notable People in Podcasts — Who's Being Discussed | PodCap";
@@ -42,11 +59,44 @@ export default function PeopleDirectory() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [genderFilter, setGenderFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("All Categories");
+  const [sortBy, setSortBy] = useState<"mentions" | "guests">("mentions");
+
   const { data: people, isLoading } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
   });
 
   const getPersonData = (slug: string) => PEOPLE_DIRECTORY.find(p => p.slug === slug);
+
+  const filteredPeople = useMemo(() => {
+    if (!people) return [];
+
+    let result = [...people];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(q) || p.title.toLowerCase().includes(q)
+      );
+    }
+
+    if (genderFilter !== "all") {
+      result = result.filter(p => p.gender === genderFilter);
+    }
+
+    if (categoryFilter !== "All Categories") {
+      result = result.filter(p => p.category === categoryFilter);
+    }
+
+    result.sort((a, b) => {
+      if (sortBy === "guests") return b.guestCount - a.guestCount;
+      return b.mentionCount - a.mentionCount;
+    });
+
+    return result;
+  }, [people, searchQuery, genderFilter, categoryFilter, sortBy]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -65,7 +115,7 @@ export default function PeopleDirectory() {
       </header>
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-10">
+        <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-8">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center text-center gap-5">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -87,6 +137,74 @@ export default function PeopleDirectory() {
           </motion.div>
         </section>
 
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="w-full max-w-3xl mb-6"
+        >
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground/50" />
+            <input
+              type="text"
+              placeholder="Search people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              data-testid="input-search-people"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2.5 items-center">
+            <div className="relative">
+              <select
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
+                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                data-testid="select-gender-filter"
+              >
+                <option value="all">All Genders</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                data-testid="select-category-filter"
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "mentions" | "guests")}
+                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                data-testid="select-sort"
+              >
+                <option value="mentions">Most Mentions</option>
+                <option value="guests">Most Guest Appearances</option>
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
+
+            {people && (
+              <span className="text-sm text-muted-foreground ml-auto" data-testid="text-results-count">
+                {filteredPeople.length} of {people.length} people
+              </span>
+            )}
+          </div>
+        </motion.section>
+
         {isLoading ? (
           <div className="w-full max-w-3xl space-y-4">
             {Array.from({ length: 10 }).map((_, i) => (
@@ -101,16 +219,27 @@ export default function PeopleDirectory() {
               </div>
             ))}
           </div>
+        ) : filteredPeople.length === 0 ? (
+          <div className="w-full max-w-3xl text-center py-16">
+            <p className="text-muted-foreground text-lg" data-testid="text-no-results">No people found matching your filters.</p>
+            <button
+              onClick={() => { setSearchQuery(""); setGenderFilter("all"); setCategoryFilter("All Categories"); }}
+              className="mt-3 text-primary text-sm font-medium hover:text-primary/80 transition-colors"
+              data-testid="button-clear-filters"
+            >
+              Clear all filters
+            </button>
+          </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.2 }} className="w-full max-w-3xl space-y-3">
-            {people?.map((person, index) => {
+            {filteredPeople.map((person, index) => {
               const personData = getPersonData(person.slug);
               return (
                 <motion.div
                   key={person.slug}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.04 }}
+                  transition={{ duration: 0.3, delay: Math.min(index * 0.02, 0.5) }}
                 >
                   <div
                     className="bg-card border border-border rounded-xl p-5 sm:p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
@@ -143,6 +272,11 @@ export default function PeopleDirectory() {
                               <Mic className="w-3.5 h-3.5" />
                               <span>Guest on <span className="font-semibold text-foreground">{person.guestCount}</span> episodes</span>
                             </div>
+                          )}
+                          {person.category && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/[0.06] text-xs font-medium text-primary" data-testid={`badge-category-${person.slug}`}>
+                              {person.category}
+                            </span>
                           )}
                         </div>
                       </div>
