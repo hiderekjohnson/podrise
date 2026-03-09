@@ -78,6 +78,12 @@ export default function PeopleDirectory() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               The most influential leaders, founders, and thinkers driving today's biggest ideas. See where they show up as guests, how often they're discussed, and explore every episode they're featured in.
             </p>
+            <p className="text-sm text-muted-foreground mt-3">
+              Looking for notable companies?{" "}
+              <a href="/companies" className="text-primary font-medium hover:text-primary/80 transition-colors" data-testid="link-companies-directory">
+                Explore Companies →
+              </a>
+            </p>
           </motion.div>
         </section>
 

@@ -77,6 +77,12 @@ export default function CompaniesDirectory() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               The most influential companies driving conversation across the world's top podcasts. See how often they come up, in what context, and explore every episode where they're discussed.
             </p>
+            <p className="text-sm text-muted-foreground mt-3">
+              Looking for notable people?{" "}
+              <a href="/people" className="text-primary font-medium hover:text-primary/80 transition-colors" data-testid="link-people-directory">
+                Explore People →
+              </a>
+            </p>
           </motion.div>
         </section>
 
