@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent } from "lucide-react";
+import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent, BookMarked, Wrench, Globe, Mail, GraduationCap, Headphones, Video, FileText, Server, Package } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { Link } from "wouter";
@@ -50,6 +50,15 @@ export default function EpisodeRecapPage() {
     howToRedeem?: string | null;
   }
 
+  interface Resource {
+    name: string;
+    type: string;
+    description: string;
+    url: string | null;
+    author: string | null;
+    context: string;
+  }
+
   const { data: sponsorsData, isLoading: sponsorsLoading } = useQuery<{ sponsors: Sponsor[] }>({
     queryKey: ["/api/podcasts", podcastSlug, episodeSlug, "sponsors"],
     queryFn: async () => {
@@ -61,6 +70,18 @@ export default function EpisodeRecapPage() {
   });
 
   const sponsors = sponsorsData?.sponsors || [];
+
+  const { data: resourcesData, isLoading: resourcesLoading } = useQuery<{ resources: Resource[] }>({
+    queryKey: ["/api/podcasts", podcastSlug, episodeSlug, "resources"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${podcastSlug}/${episodeSlug}/resources`);
+      if (!res.ok) return { resources: [] };
+      return res.json();
+    },
+    enabled: !!podcastSlug && !!episodeSlug,
+  });
+
+  const resources = resourcesData?.resources || [];
 
   const askMutation = useMutation({
     mutationFn: async (question: string) => {
@@ -144,6 +165,7 @@ export default function EpisodeRecapPage() {
       "section-top-questions",
       "section-ask-episode",
       "section-sponsors",
+      "section-resources",
     ];
 
     const handleScroll = () => {
@@ -162,6 +184,33 @@ export default function EpisodeRecapPage() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [episode]);
+
+  const resourceTypeConfig: Record<string, { icon: typeof BookOpen; color: string; bg: string }> = {
+    book: { icon: BookMarked, color: "text-amber-600", bg: "bg-amber-50" },
+    tool: { icon: Wrench, color: "text-blue-600", bg: "bg-blue-50" },
+    app: { icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
+    website: { icon: Globe, color: "text-emerald-600", bg: "bg-emerald-50" },
+    newsletter: { icon: Mail, color: "text-rose-600", bg: "bg-rose-50" },
+    course: { icon: GraduationCap, color: "text-indigo-600", bg: "bg-indigo-50" },
+    podcast: { icon: Headphones, color: "text-orange-600", bg: "bg-orange-50" },
+    video: { icon: Video, color: "text-red-600", bg: "bg-red-50" },
+    article: { icon: FileText, color: "text-cyan-600", bg: "bg-cyan-50" },
+    service: { icon: Server, color: "text-teal-600", bg: "bg-teal-50" },
+    other: { icon: BookOpen, color: "text-gray-600", bg: "bg-gray-50" },
+  };
+
+  function getResourceTypeConfig(type: string) {
+    return resourceTypeConfig[type] || resourceTypeConfig.other;
+  }
+
+  function safeResourceUrl(url: string | null): string | null {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+    } catch {}
+    return null;
+  }
 
   const handleTopicClick = (topic: string) => {
     const question = `What did this episode say about ${topic.toLowerCase()}?`;
@@ -306,6 +355,15 @@ export default function EpisodeRecapPage() {
               data-testid="nav-sponsors"
             >
               Sponsors
+            </button>
+          )}
+          {(resources.length > 0 || resourcesLoading) && (
+            <button
+              onClick={() => scrollTo("section-resources")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-resources" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-resources"
+            >
+              Resources
             </button>
           )}
         </nav>
@@ -617,6 +675,89 @@ export default function EpisodeRecapPage() {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          </section>
+        )}
+        {(resources.length > 0 || resourcesLoading) && (
+          <section id="section-resources" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-resources">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+              <BookOpen className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Resources Mentioned</span>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
+                Books, tools, and other resources mentioned in this episode.
+              </p>
+
+              {resourcesLoading ? (
+                <div className="flex items-center gap-3 py-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+                  <span className="text-sm text-muted-foreground">Extracting resources from this episode...</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {resources.map((resource, i) => {
+                    const config = getResourceTypeConfig(resource.type);
+                    const Icon = config.icon;
+                    const safe = safeResourceUrl(resource.url);
+                    const isAmazon = safe?.includes("amazon.com");
+                    return (
+                      <div
+                        key={i}
+                        className="bg-amber-500/[0.02] border border-amber-500/[0.08] rounded-xl px-5 py-4"
+                        data-testid={`resource-card-${i}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config.bg} shrink-0 mt-0.5`}>
+                            <Icon className={`w-4 h-4 ${config.color}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <h4 className="text-[15px] font-bold text-foreground" data-testid={`resource-name-${i}`}>
+                                {resource.name}
+                              </h4>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${config.bg} ${config.color}`}>
+                                {resource.type}
+                              </span>
+                            </div>
+                            {resource.author && (
+                              <p className="text-xs text-muted-foreground font-medium mb-1">
+                                by {resource.author}
+                              </p>
+                            )}
+                            <p className="text-[15px] leading-[1.75] text-muted-foreground mt-1">
+                              {resource.description}
+                            </p>
+                            {resource.context && (
+                              <p className="text-xs text-muted-foreground/70 mt-1.5 italic">
+                                "{resource.context}"
+                              </p>
+                            )}
+                            {safe && (
+                              <a
+                                href={safe}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 mt-3 bg-amber-500/[0.06] border border-amber-500/[0.1] rounded-lg text-sm font-semibold text-amber-700 hover:bg-amber-500/[0.12] transition-colors"
+                                data-testid={`resource-url-${i}`}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                {isAmazon ? "View on Amazon" : safe.replace(/^https?:\/\//, "").replace(/\/$/, "").slice(0, 40)}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {resources.some(r => r.type === "book") && (
+                <p className="text-[11px] text-muted-foreground/50 mt-4">
+                  Book links may include affiliate tags. Purchasing through these links supports PodCap at no extra cost to you.
+                </p>
               )}
             </div>
           </section>

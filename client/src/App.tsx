@@ -15,7 +15,6 @@ const PodcastLandingGeneric = lazy(() => import("./pages/PodcastLandingGeneric")
 const EpisodeRecapPage = lazy(() => import("./pages/EpisodeRecapPage"));
 const EpisodeTranscriptPage = lazy(() => import("./pages/EpisodeTranscriptPage"));
 const EpisodeGuestsPage = lazy(() => import("./pages/EpisodeGuestsPage"));
-const EpisodeResourcesPage = lazy(() => import("./pages/EpisodeResourcesPage"));
 const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -46,7 +45,6 @@ function Router() {
         <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/transcript" component={EpisodeTranscriptPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
-        <Route path="/podcasts/:podcastSlug/:episodeSlug/resources" component={EpisodeResourcesPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={EpisodeRecapPage} />
         <Route path="/podcasts/:slug" component={PodcastLandingGeneric} />
         <Route path="/podcasts" component={Leaderboard} />
