@@ -1,0 +1,201 @@
+import { useQuery } from "@tanstack/react-query";
+import { useRoute, useLocation } from "wouter";
+import { motion } from "framer-motion";
+import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Footer } from "@/components/Footer";
+import logoPath from "@assets/Podcap_logo_1772731738179.png";
+
+interface EpisodeEntry {
+  slug: string;
+  episode_slug: string;
+  podcast_name: string;
+  episode_title: string;
+  publish_date: string;
+  artwork_url: string;
+}
+
+interface PersonDetail {
+  name: string;
+  title: string;
+  slug: string;
+  guestAppearances: EpisodeEntry[];
+  mentions: EpisodeEntry[];
+  guestCount: number;
+  mentionCount: number;
+}
+
+function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" | "mention" }) {
+  const [, navigate] = useLocation();
+  const date = episode.publish_date ? new Date(episode.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+
+  return (
+    <div
+      className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+      onClick={() => navigate(`/podcasts/${episode.slug}/${episode.episode_slug}`)}
+      data-testid={`card-episode-${episode.slug}-${episode.episode_slug}`}
+    >
+      {episode.artwork_url && (
+        <img src={episode.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${episode.slug}-${episode.episode_slug}`}>
+          {episode.episode_title}
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+          <Headphones className="w-3 h-3" />
+          {episode.podcast_name}
+          {date && (
+            <>
+              <span className="mx-1">·</span>
+              <Calendar className="w-3 h-3" />
+              {date}
+            </>
+          )}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {type === "guest" && (
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Guest</span>
+        )}
+        <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+      </div>
+    </div>
+  );
+}
+
+export default function PersonDetailPage() {
+  const [, navigate] = useLocation();
+  const [match, params] = useRoute("/people/:slug");
+  const slug = params?.slug || "";
+  const { data: user } = useAuth();
+
+  const { data: person, isLoading } = useQuery<PersonDetail>({
+    queryKey: ["/api/entities/people", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/entities/people/${slug}`);
+      if (!res.ok) throw new Error("Not found");
+      return res.json();
+    },
+    enabled: !!slug,
+  });
+
+  if (typeof document !== "undefined" && person) {
+    const title = `${person.name} — Podcast Appearances & Mentions | PodCap`;
+    const desc = `See every podcast episode where ${person.name} appears as a guest or gets mentioned. ${person.guestCount} guest appearances and ${person.mentionCount} mentions across top podcasts.`;
+    document.title = title;
+    const setOrCreate = (selector: string, attr: string, value: string) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = document.createElement("meta");
+        const [k, v] = attr === "name" ? ["name", selector.match(/name="([^"]+)"/)?.[1] || ""] : ["property", selector.match(/property="([^"]+)"/)?.[1] || ""];
+        el.setAttribute(k, v);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", value);
+    };
+    setOrCreate('meta[name="description"]', "name", desc);
+    setOrCreate('meta[property="og:title"]', "property", title);
+    setOrCreate('meta[property="og:description"]', "property", desc);
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+        <a href="/" className="flex items-center" data-testid="link-home">
+          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+        </a>
+        <div className="flex items-center gap-4">
+          {user ? (
+            <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
+          ) : (
+            <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
+          )}
+        </div>
+      </header>
+
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="w-full max-w-3xl">
+          <button
+            onClick={() => navigate("/people")}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 mt-4"
+            data-testid="button-back-people"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            All People
+          </button>
+
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-10 bg-muted rounded w-64 animate-pulse" />
+              <div className="h-5 bg-muted rounded w-96 animate-pulse" />
+              <div className="h-64 bg-muted rounded animate-pulse mt-8" />
+            </div>
+          ) : person ? (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <div className="mb-8">
+                <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] mb-2" data-testid="heading-person-name">
+                  {person.name}
+                </h1>
+                <p className="text-base text-muted-foreground mb-4">{person.title}</p>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Mic className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-foreground">{person.guestCount}</span>
+                    <span className="text-muted-foreground">guest appearances</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-foreground">{person.mentionCount}</span>
+                    <span className="text-muted-foreground">mentions</span>
+                  </div>
+                </div>
+              </div>
+
+              {person.guestAppearances.length > 0 && (
+                <section className="mb-10">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-guest-appearances">
+                    <Mic className="w-5 h-5 text-primary" />
+                    Guest Appearances
+                  </h2>
+                  <div className="space-y-2">
+                    {person.guestAppearances.map((ep) => (
+                      <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} type="guest" />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {person.mentions.length > 0 && (
+                <section className="mb-10">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-mentions">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    Mentioned In
+                  </h2>
+                  <div className="space-y-2">
+                    {person.mentions.map((ep) => (
+                      <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} type="mention" />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {person.guestAppearances.length === 0 && person.mentions.length === 0 && (
+                <div className="text-center py-16 text-muted-foreground">
+                  <p className="text-lg">No episodes found for {person.name} yet.</p>
+                  <p className="text-sm mt-1">Check back soon as we add more podcast recaps.</p>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg">Person not found.</p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}

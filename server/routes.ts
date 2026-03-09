@@ -113,6 +113,8 @@ const STATIC_PAGES = [
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
   { path: "/support", priority: "0.5", changefreq: "monthly" },
+  { path: "/people", priority: "0.8", changefreq: "weekly" },
+  { path: "/companies", priority: "0.8", changefreq: "weekly" },
 ];
 
 const PODCAST_SLUGS = Object.values(ITUNES_ID_TO_SLUG);
@@ -166,6 +168,26 @@ async function buildSitemap(): Promise<string> {
     }
   } catch (err) {
     console.error("[Sitemap] Error fetching recaps:", err);
+  }
+
+  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang"];
+  for (const pSlug of PEOPLE_SLUGS) {
+    xml += `  <url>\n`;
+    xml += `    <loc>${DOMAIN}/people/${pSlug}</loc>\n`;
+    xml += `    <lastmod>${today}</lastmod>\n`;
+    xml += `    <changefreq>weekly</changefreq>\n`;
+    xml += `    <priority>0.7</priority>\n`;
+    xml += `  </url>\n`;
+  }
+
+  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex"];
+  for (const cSlug of COMPANY_SLUGS) {
+    xml += `  <url>\n`;
+    xml += `    <loc>${DOMAIN}/companies/${cSlug}</loc>\n`;
+    xml += `    <lastmod>${today}</lastmod>\n`;
+    xml += `    <changefreq>weekly</changefreq>\n`;
+    xml += `    <priority>0.7</priority>\n`;
+    xml += `  </url>\n`;
   }
 
   xml += `</urlset>`;
@@ -642,6 +664,208 @@ export async function registerRoutes(
       res.json({ results });
     } catch {
       res.json({ results: [] });
+    }
+  });
+
+  app.get("/api/entities/people", async (_req, res) => {
+    try {
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      try {
+        const people = [
+          { slug: "elon-musk", name: "Elon Musk", title: "CEO of Tesla & SpaceX", searchTerms: ["Elon Musk"] },
+          { slug: "sam-altman", name: "Sam Altman", title: "CEO of OpenAI", searchTerms: ["Sam Altman"] },
+          { slug: "joe-rogan", name: "Joe Rogan", title: "Host of The Joe Rogan Experience", searchTerms: ["Joe Rogan"] },
+          { slug: "lex-fridman", name: "Lex Fridman", title: "Host of Lex Fridman Podcast", searchTerms: ["Lex Fridman"] },
+          { slug: "naval-ravikant", name: "Naval Ravikant", title: "Co-founder of AngelList", searchTerms: ["Naval Ravikant"] },
+          { slug: "peter-thiel", name: "Peter Thiel", title: "Co-founder of PayPal & Palantir", searchTerms: ["Peter Thiel"] },
+          { slug: "chamath-palihapitiya", name: "Chamath Palihapitiya", title: "CEO of Social Capital", searchTerms: ["Chamath Palihapitiya", "Chamath"] },
+          { slug: "jason-calacanis", name: "Jason Calacanis", title: "Angel Investor & Host of This Week in Startups", searchTerms: ["Jason Calacanis", "Calacanis"] },
+          { slug: "marc-andreessen", name: "Marc Andreessen", title: "Co-founder of Andreessen Horowitz", searchTerms: ["Marc Andreessen", "Andreessen"] },
+          { slug: "jensen-huang", name: "Jensen Huang", title: "CEO of NVIDIA", searchTerms: ["Jensen Huang"] },
+        ];
+
+        const results = [];
+        for (const person of people) {
+          const guestConditions = person.searchTerms.map((_, i) => `guests ILIKE $${i + 1}`).join(" OR ");
+          const guestParams = person.searchTerms.map(t => `%${t}%`);
+          const { rows: guestRows } = await client.query(
+            `SELECT slug, episode_slug FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})`,
+            guestParams
+          );
+          const guestSlugs = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
+
+          const mentionConditions = person.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
+          const mentionParams = person.searchTerms.map(t => `%${t}%`);
+          const { rows: mentionRows } = await client.query(
+            `SELECT slug, episode_slug FROM landing_page_recaps WHERE ${mentionConditions}`,
+            mentionParams
+          );
+          const mentionCount = mentionRows.filter((r: any) => !guestSlugs.has(`${r.slug}/${r.episode_slug}`)).length;
+
+          results.push({
+            slug: person.slug,
+            name: person.name,
+            title: person.title,
+            mentionCount,
+            guestCount: guestRows.length,
+          });
+        }
+
+        results.sort((a, b) => (b.mentionCount + b.guestCount) - (a.mentionCount + a.guestCount));
+        res.json(results);
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch people" });
+    }
+  });
+
+  app.get("/api/entities/people/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+
+      const peopleMap: Record<string, { name: string; title: string; searchTerms: string[] }> = {
+        "elon-musk": { name: "Elon Musk", title: "CEO of Tesla & SpaceX", searchTerms: ["Elon Musk"] },
+        "sam-altman": { name: "Sam Altman", title: "CEO of OpenAI", searchTerms: ["Sam Altman"] },
+        "joe-rogan": { name: "Joe Rogan", title: "Host of The Joe Rogan Experience", searchTerms: ["Joe Rogan"] },
+        "lex-fridman": { name: "Lex Fridman", title: "Host of Lex Fridman Podcast", searchTerms: ["Lex Fridman"] },
+        "naval-ravikant": { name: "Naval Ravikant", title: "Co-founder of AngelList", searchTerms: ["Naval Ravikant"] },
+        "peter-thiel": { name: "Peter Thiel", title: "Co-founder of PayPal & Palantir", searchTerms: ["Peter Thiel"] },
+        "chamath-palihapitiya": { name: "Chamath Palihapitiya", title: "CEO of Social Capital", searchTerms: ["Chamath Palihapitiya", "Chamath"] },
+        "jason-calacanis": { name: "Jason Calacanis", title: "Angel Investor & Host of This Week in Startups", searchTerms: ["Jason Calacanis", "Calacanis"] },
+        "marc-andreessen": { name: "Marc Andreessen", title: "Co-founder of Andreessen Horowitz", searchTerms: ["Marc Andreessen", "Andreessen"] },
+        "jensen-huang": { name: "Jensen Huang", title: "CEO of NVIDIA", searchTerms: ["Jensen Huang"] },
+      };
+
+      const person = peopleMap[slug];
+      if (!person) return res.status(404).json({ error: "Person not found" });
+
+      try {
+        const guestConditions = person.searchTerms.map((_, i) => `guests ILIKE $${i + 1}`).join(" OR ");
+        const guestParams = person.searchTerms.map(t => `%${t}%`);
+        const { rows: guestEpisodes } = await client.query(
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions}) ORDER BY publish_date DESC`,
+          guestParams
+        );
+
+        const mentionConditions = person.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
+        const mentionParams = person.searchTerms.map(t => `%${t}%`);
+        const { rows: mentionEpisodes } = await client.query(
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE ${mentionConditions} ORDER BY publish_date DESC`,
+          mentionParams
+        );
+
+        const guestSlugs = new Set(guestEpisodes.map(e => `${e.slug}/${e.episode_slug}`));
+        const mentionsOnly = mentionEpisodes.filter(e => !guestSlugs.has(`${e.slug}/${e.episode_slug}`));
+
+        res.json({
+          name: person.name,
+          title: person.title,
+          slug,
+          guestAppearances: guestEpisodes,
+          mentions: mentionsOnly,
+          guestCount: guestEpisodes.length,
+          mentionCount: mentionsOnly.length,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch person" });
+    }
+  });
+
+  app.get("/api/entities/companies", async (_req, res) => {
+    try {
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      try {
+        const companies = [
+          { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "ChatGPT", "GPT-4"] },
+          { slug: "tesla", name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
+          { slug: "nvidia", name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
+          { slug: "google", name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
+          { slug: "microsoft", name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"] },
+          { slug: "apple", name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"] },
+          { slug: "amazon", name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon", "AWS"] },
+          { slug: "anthropic", name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
+          { slug: "meta", name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
+          { slug: "spacex", name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
+        ];
+
+        const results = [];
+        for (const company of companies) {
+          const conditions = company.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
+          const params = company.searchTerms.map(t => `%${t}%`);
+          const { rows: [{ count: mentionCount }] } = await client.query(
+            `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE ${conditions}`,
+            params
+          );
+
+          results.push({
+            slug: company.slug,
+            name: company.name,
+            description: company.description,
+            mentionCount,
+          });
+        }
+
+        results.sort((a, b) => b.mentionCount - a.mentionCount);
+        res.json(results);
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch companies" });
+    }
+  });
+
+  app.get("/api/entities/companies/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+
+      const companiesMap: Record<string, { name: string; description: string; searchTerms: string[] }> = {
+        "openai": { name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "ChatGPT", "GPT-4"] },
+        "tesla": { name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
+        "nvidia": { name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
+        "google": { name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
+        "microsoft": { name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"] },
+        "apple": { name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"] },
+        "amazon": { name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon", "AWS"] },
+        "anthropic": { name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
+        "meta": { name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
+        "spacex": { name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
+      };
+
+      const company = companiesMap[slug];
+      if (!company) return res.status(404).json({ error: "Company not found" });
+
+      try {
+        const conditions = company.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
+        const params = company.searchTerms.map(t => `%${t}%`);
+        const { rows: mentionEpisodes } = await client.query(
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url FROM landing_page_recaps WHERE ${conditions} ORDER BY publish_date DESC`,
+          params
+        );
+
+        res.json({
+          name: company.name,
+          description: company.description,
+          slug,
+          mentions: mentionEpisodes,
+          mentionCount: mentionEpisodes.length,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch company" });
     }
   });
 

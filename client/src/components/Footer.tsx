@@ -38,6 +38,22 @@ export function Footer() {
             </Link>
             <span className="text-muted-foreground/20">|</span>
             <Link
+              href="/people"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
+              data-testid="link-people"
+            >
+              People
+            </Link>
+            <span className="text-muted-foreground/20">|</span>
+            <Link
+              href="/companies"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
+              data-testid="link-companies"
+            >
+              Companies
+            </Link>
+            <span className="text-muted-foreground/20">|</span>
+            <Link
               href="/about"
               className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-about"
