@@ -4779,7 +4779,6 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
              FROM episode_transcripts
              GROUP BY podcast_id
            ) tc ON pd.itunes_id = tc.podcast_id
-           WHERE pd.has_landing_page = true
            ORDER BY pd.name ASC`
         );
         res.json({
