@@ -757,11 +757,6 @@ export default function EpisodeRecapPage() {
                             <p className="text-[15px] leading-[1.75] text-muted-foreground mt-1">
                               {resource.description}
                             </p>
-                            {resource.context && (
-                              <p className="text-xs text-muted-foreground/70 mt-1.5 italic">
-                                "{resource.context}"
-                              </p>
-                            )}
                             {safe && (
                               <a
                                 href={isAmazon ? safe : addUtmParams(safe, "resource")}
