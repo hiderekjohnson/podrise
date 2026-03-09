@@ -4773,6 +4773,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
       try {
         const { rows: podcasts } = await client.query(
           `SELECT pd.itunes_id, pd.name, pd.taddy_uuid,
+                  COALESCE(pd.total_episodes, 0)::int as total_episodes,
                   COALESCE(tc.transcript_count, 0)::int as transcript_count
            FROM podcast_directory pd
            LEFT JOIN (
@@ -4816,7 +4817,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             } else {
               status = "in_queue";
             }
-            const totalEpisodes = result?.totalEpisodes || 0;
+            const totalEpisodes = p.total_episodes || result?.totalEpisodes || 0;
             return {
               index: i + 1,
               name: p.name,
