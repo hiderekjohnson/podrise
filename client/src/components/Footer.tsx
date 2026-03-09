@@ -48,8 +48,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/for-podcasters" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-for-podcasters">
-                  For Podcasters
+                <Link href="/we-heart-podcasters" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-we-heart-podcasters">
+                  We Heart Podcasters
                 </Link>
               </li>
             </ul>

@@ -126,7 +126,7 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "For Podcasters | How PodCap Helps Grow Podcast Discovery and Listeners";
+    document.title = "We Heart Podcasters | How PodCap Helps Grow Podcast Discovery and Listeners";
     const metaDesc = document.querySelector('meta[name="description"]');
     const desc = "PodCap helps your superfans stay up to date with daily episode recaps. When fans know what each episode covers, they listen to the right ones, boosting engagement, completion rates, and algorithm performance.";
     if (metaDesc) {

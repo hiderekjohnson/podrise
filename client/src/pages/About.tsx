@@ -268,7 +268,7 @@ export default function About() {
                 </p>
 
                 <p>
-                  We're also committed to supporting the creators who make these shows. <a href="/for-podcasters" className="text-primary font-medium hover:underline">Find out how we support podcasters</a>.
+                  We're also committed to supporting the creators who make these shows. <a href="/we-heart-podcasters" className="text-primary font-medium hover:underline">Find out how we support podcasters</a>.
                 </p>
                 <p className="text-foreground font-semibold text-lg">
                   Long live podcasts. :)
