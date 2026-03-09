@@ -77,11 +77,11 @@ export default function BackfillTracker() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2 flex-wrap">
           {([
-            { key: "all" as const, label: `All (${data.podcasts.length})` },
-            { key: "done" as const, label: `Done (${counts.done})` },
-            { key: "in_process" as const, label: `In Process (${counts.in_process})` },
-            { key: "in_queue" as const, label: `In Queue (${counts.in_queue})` },
-            { key: "error" as const, label: `Errors (${counts.error})` },
+            { key: "all" as const, label: `All Podcasts (${data.podcasts.length})` },
+            { key: "done" as const, label: `Done Podcasts (${counts.done})` },
+            { key: "in_process" as const, label: `In Process Podcasts (${counts.in_process})` },
+            { key: "in_queue" as const, label: `In Queue Podcasts (${counts.in_queue})` },
+            { key: "error" as const, label: `Error Podcasts (${counts.error})` },
           ]).map(f => (
             <button
               key={f.key}
