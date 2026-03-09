@@ -60,7 +60,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx tsx server/fetchEpisodeCounts.ts"
+args = "npx tsx server/backfillTranscripts.ts"
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "stripe:1.0.0", "resend:1.0.0"]
