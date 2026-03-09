@@ -65,8 +65,10 @@ export function EpisodePageLayout({
   const previousEpisodes = currentIdx >= 0 ? allRecaps.slice(currentIdx + 1, currentIdx + 6) : [];
 
   const appleLink = episode.appleEpisodeUrl || `https://podcasts.apple.com/podcast/id${podcastConfig?.itunesId}`;
-  const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(episode.episodeTitle + ' ' + episode.podcastName)}`;
-  const effectiveYoutubeUrl = podcastConfig.youtubeUrl;
+  const episodeSearchQuery = encodeURIComponent(episode.episodeTitle + ' ' + episode.podcastName);
+  const spotifyLink = `https://open.spotify.com/search/${episodeSearchQuery}`;
+  const youtubeSearchLink = `https://www.youtube.com/results?search_query=${episodeSearchQuery}`;
+  const effectiveYoutubeUrl = podcastConfig.youtubeUrl ? youtubeSearchLink : undefined;
 
   useEffect(() => {
     if (stickyDismissed) return;
