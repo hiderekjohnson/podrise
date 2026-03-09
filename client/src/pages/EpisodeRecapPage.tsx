@@ -256,7 +256,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-tldl" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-tldl"
           >
-            TLDL
+            Quick Summary
           </button>
           {episode.keyInsights?.length > 0 && (
             <button
@@ -264,7 +264,7 @@ export default function EpisodeRecapPage() {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-key-insights"
             >
-              Key Insights
+              Key Takeaways
             </button>
           )}
           <button
@@ -272,7 +272,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-what-happened"
           >
-            Episode Breakdown
+            Chapters
           </button>
           {hasKeyTopics && (
             <button
@@ -289,7 +289,7 @@ export default function EpisodeRecapPage() {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-top-questions"
             >
-              Top Questions
+              Quick Q&A
             </button>
           )}
           <button
@@ -297,7 +297,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-ask-episode" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-ask"
           >
-            Ask AI
+            Podcast Chat
           </button>
           {sponsors.length > 0 && (
             <button
@@ -313,7 +313,7 @@ export default function EpisodeRecapPage() {
         <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
             <Clock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary uppercase tracking-wider">TLDL — Too Long, Didn't Listen</span>
+            <span className="text-sm font-bold text-primary uppercase tracking-wider">Quick Summary</span>
           </div>
           <div className="px-6 py-5">
             <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
@@ -339,7 +339,7 @@ export default function EpisodeRecapPage() {
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
               <Lightbulb className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Insights</span>
+              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Takeaways</span>
             </div>
             <div className="px-6 py-5 space-y-3">
               {episode.keyInsights.map((insight: string, i: number) => (
@@ -361,7 +361,7 @@ export default function EpisodeRecapPage() {
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
             <BookOpen className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary uppercase tracking-wider">Episode Breakdown</span>
+            <span className="text-sm font-bold text-primary uppercase tracking-wider">Chapters</span>
           </div>
           <div className="px-6 py-5 space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
@@ -411,7 +411,7 @@ export default function EpisodeRecapPage() {
           <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
               <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-              <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Top Questions</span>
+              <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Quick Q&A</span>
             </div>
             <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
               {topQuestions.map((item, i) => (
@@ -459,8 +459,8 @@ export default function EpisodeRecapPage() {
         <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-ask-episode">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
             <Sparkles className="w-4 h-4 text-violet-500" />
-            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask About This Episode</span>
-            <span className="ml-auto text-xs font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">Powered by AI</span>
+            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Podcast Chat</span>
+            <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider"><Sparkles className="w-3 h-3" /> AI</span>
           </div>
           <div className="px-6 py-5">
             <p className="text-sm text-muted-foreground mb-4">Ask any question and get an answer based on the episode transcript.</p>
