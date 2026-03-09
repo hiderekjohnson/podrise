@@ -28,6 +28,7 @@ const PeopleDirectory = lazy(() => import("./pages/PeopleDirectory"));
 const PersonDetailPage = lazy(() => import("./pages/PersonDetailPage"));
 const CompaniesDirectory = lazy(() => import("./pages/CompaniesDirectory"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
+const GetStarted = lazy(() => import("./pages/GetStarted"));
 
 function PageLoader() {
   return (
@@ -63,6 +64,7 @@ function Router() {
         <Route path="/people" component={PeopleDirectory} />
         <Route path="/companies/:slug" component={CompanyDetailPage} />
         <Route path="/companies" component={CompaniesDirectory} />
+        <Route path="/get-started" component={GetStarted} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

@@ -1,116 +1,86 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Mail, X, Podcast, Clock, Headphones, BookOpen, Zap, Quote, MessageCircle, Trophy } from "lucide-react";
+import { ArrowRight, Mail, X, Headphones, BookOpen, Zap, Clock, Quote, MessageCircle, Search, Sparkles, Library, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRegister, useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { PodcastSearch } from "@/components/PodcastSearch";
+import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
+import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
+
+const FEATURED_PODCAST_SLUGS = [
+  "joerogan", "lexfridman", "hubermanlab", "myfirstmillion", "allin",
+  "theprof", "acquired", "shawnryanshow", "morningbrew", "onpurpose",
+  "worklifeadamgrant", "smartless",
+];
+
+const FEATURED_PEOPLE_SLUGS = [
+  "elon-musk", "sam-altman", "andrew-huberman", "alex-hormozi",
+  "codie-sanchez", "naval-ravikant", "lex-fridman", "scott-galloway",
+  "brene-brown", "tim-ferriss", "mark-cuban", "gary-vaynerchuk",
+];
 
 function hiResArtwork(url: string) {
   return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
 }
 
-interface SelectedPodcast {
-  id: string;
-  name: string;
-  artworkUrl: string;
+function SEOHead() {
+  const title = "PodCap — The World's Searchable Library of Podcast Knowledge";
+  const description = "Search, skim, and stay current on the world's best podcasts without listening to every episode. PodCap turns hours of audio into actionable insights.";
+
+  if (typeof document !== "undefined") {
+    document.title = title;
+    const setOrCreate = (selector: string, attr: string, value: string) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = document.createElement("meta");
+        const [k, v] = attr === "name" ? ["name", selector.match(/name="([^"]+)"/)?.[1] || ""] : ["property", selector.match(/property="([^"]+)"/)?.[1] || ""];
+        el.setAttribute(k, v);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", value);
+    };
+    setOrCreate('meta[name="description"]', "name", description);
+    setOrCreate('meta[property="og:title"]', "property", title);
+    setOrCreate('meta[property="og:description"]', "property", description);
+  }
+  return null;
 }
 
 export default function Home() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
-  const { toast } = useToast();
-  const { mutate: register, isPending } = useRegister();
-
-  const [selectedPodcasts, setSelectedPodcasts] = useState<SelectedPodcast[]>([]);
-  const [email, setEmail] = useState("");
   const [showSampleEmail, setShowSampleEmail] = useState(false);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const emailSectionRef = useRef<HTMLElement>(null);
 
   if (user) {
     navigate("/dashboard");
     return null;
   }
 
-  const handleAdd = (podcast: SelectedPodcast) => {
-    const updated = [...selectedPodcasts, podcast];
-    setSelectedPodcasts(updated);
-    if (updated.length >= 3) {
-      setTimeout(() => {
-        emailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-        setTimeout(() => emailRef.current?.focus(), 400);
-      }, 300);
-    }
-  };
+  const featuredPodcasts = FEATURED_PODCAST_SLUGS
+    .map(slug => PODCAST_LANDINGS.find(p => p.slug === slug))
+    .filter(Boolean) as typeof PODCAST_LANDINGS;
 
-  const handleRemove = (id: string) => {
-    setSelectedPodcasts((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const handleSubmit = () => {
-    if (selectedPodcasts.length === 0) {
-      toast({
-        title: "Almost there!",
-        description: "Please select at least one podcast.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    register(
-      {
-        podcasts: selectedPodcasts.map((p) => JSON.stringify(p)),
-
-
-        email,
-      },
-      {
-        onSuccess: () => {
-          navigate("/dashboard?welcome=true");
-        },
-        onError: (err) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message.includes("400")
-              ? "An account with this email already exists. Try logging in."
-              : err.message,
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
+  const featuredPeople = FEATURED_PEOPLE_SLUGS
+    .map(slug => PEOPLE_DIRECTORY.find(p => p.slug === slug))
+    .filter(Boolean);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead />
+
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center">
-          <img
-            src={logoPath}
-            alt="PodCap"
-            className="h-9 object-contain"
-          />
+        <a href="/" className="flex items-center" data-testid="link-home">
+          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
         </a>
         <div className="flex items-center gap-3">
           <button
-            data-testid="link-podcasts"
-            onClick={() => navigate("/podcasts")}
-            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-600 tracking-wide uppercase hover:bg-amber-500/15 transition-colors"
+            data-testid="link-get-started-nav"
+            onClick={() => navigate("/get-started")}
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors"
           >
-            <Trophy className="w-3.5 h-3.5" />
-            Top Podcasts
+            <Zap className="w-3.5 h-3.5" />
+            Build Your Recap
           </button>
           <button
             data-testid="link-login"
@@ -122,152 +92,235 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
-        <section className="w-full max-w-3xl text-center pt-14 sm:pt-20 pb-12 sm:pb-14">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-4"
-          >
-            <h1
-              data-testid="text-headline"
-              className="text-[2.25rem] sm:text-[2.75rem] md:text-[3.5rem] font-display font-extrabold text-foreground leading-[1.08] tracking-[-0.025em]"
-            >
-              All your favorite podcasts. One daily recap email.
+      <main className="flex-1">
+
+        <section className="w-full max-w-4xl mx-auto text-center px-4 sm:px-6 pt-16 sm:pt-24 pb-16 sm:pb-20">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex flex-col items-center gap-6">
+            <h1 className="text-[2.5rem] sm:text-[3.25rem] md:text-[4rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
+              The world's searchable library of podcast knowledge
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground font-medium max-w-lg">
-              Skip the 2-hour episodes. Get the key ideas from your favorite podcasts in a 2-minute read.
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed font-medium">
+              Search, skim, and stay current on the world's best podcasts — without listening to every full episode.
             </p>
+            <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
+              <button
+                data-testid="button-hero-cta"
+                onClick={() => navigate("/get-started")}
+                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
+              >
+                Build Your Recap
+                <ArrowRight className="w-4.5 h-4.5" />
+              </button>
+              <button
+                data-testid="button-browse-podcasts"
+                onClick={() => navigate("/podcasts")}
+                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-card border border-border text-foreground hover:bg-accent transition-colors"
+              >
+                Browse Podcasts
+              </button>
+            </div>
             <button
               data-testid="link-sample-email"
               onClick={() => setShowSampleEmail(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/70 hover:text-primary transition-colors mt-1"
             >
               <Mail className="w-4 h-4" />
-              See sample email
+              See a sample recap email
             </button>
           </motion.div>
         </section>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-2xl"
-        >
-          <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
-            <h2 className="text-2xl sm:text-[1.75rem] font-display font-extrabold text-foreground text-center">
-              Create Your Podcast Recap
-            </h2>
-            <section className="flex flex-col gap-5">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">
-                  1
-                </span>
-                <div className="flex-1">
-                  <h2 className="text-lg font-display font-bold text-foreground">
-                    Choose podcasts to recap
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
-                </div>
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-20 sm:pb-24">
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" />
               </div>
-
-              <div className="pl-10 space-y-5">
-                <PodcastSearch
-                  selectedPodcasts={selectedPodcasts}
-                  onAdd={handleAdd}
-                  onRemove={handleRemove}
-                  maxSelection={3}
-                />
-                {selectedPodcasts.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
-                    <div className="grid grid-cols-3 gap-3">
-                      {selectedPodcasts.map((podcast) => (
-                        <div
-                          key={podcast.id}
-                          className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 relative group"
-                        >
-                          <button
-                            data-testid={`button-remove-selected-${podcast.id}`}
-                            onClick={() => handleRemove(podcast.id)}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                          >
-                            ×
-                          </button>
-                          {podcast.artworkUrl ? (
-                            <img
-                              src={hiResArtwork(podcast.artworkUrl)}
-                              alt={podcast.name}
-                              className="w-full aspect-square rounded-xl object-cover shadow-sm shadow-black/[0.06]"
-                            />
-                          ) : (
-                            <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-                              <Podcast className="w-10 h-10 text-primary" />
-                            </div>
-                          )}
-                          <p className="mt-2.5 text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <div className="border-t border-black/[0.06]" />
-
-            <section ref={emailSectionRef} className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">
-                  2
-                </span>
-                <div>
-                  <h2 className="text-lg font-display font-bold text-foreground">
-                    Where should we send your recap?
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">All your podcast recaps in one daily email.</p>
-                </div>
-              </div>
-              <div className="pl-10 space-y-4">
-                <input
-                  ref={emailRef}
-                  data-testid="input-email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
-                />
-              </div>
-            </section>
-
-            <div className="flex flex-col items-center gap-2 pl-10">
-              <button
-                data-testid="button-finish"
-                onClick={handleSubmit}
-                disabled={isPending || selectedPodcasts.length === 0 || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
-                className="w-auto px-8 h-11 flex items-center justify-center gap-2 rounded-lg font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating your recap...
-                  </>
-                ) : (
-                  <>
-                    Start My Daily Recap
-                    <ArrowRight className="w-4.5 h-4.5" />
-                  </>
-                )}
-              </button>
-              <p className="text-sm text-muted-foreground italic">
-                Free forever for up to 3 podcasts.
+              <h3 className="text-lg font-display font-bold text-foreground">Unlock podcast insights</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Every episode is distilled into the key ideas, notable quotes, and actionable takeaways — so you get the value without the time commitment.
               </p>
             </div>
+            <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Search className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-display font-bold text-foreground">Searchable and skimmable</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Browse recaps by podcast, topic, guest, or company. Find exactly the conversation you're looking for in seconds, not hours.
+              </p>
+            </div>
+            <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Headphones className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-display font-bold text-foreground">Never fall behind</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Get a personalized daily email with recaps of your favorite shows. Stay current on every podcast you follow — even the ones you can't listen to.
+              </p>
+            </div>
+          </motion.div>
+        </section>
+
+        <section className="w-full bg-card/50 border-y border-border py-16 sm:py-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]">
+                Explore top podcasts
+              </h2>
+              <p className="text-base text-muted-foreground mt-3 max-w-lg mx-auto">
+                We cover 250+ of the world's most popular shows. Browse episodes, read recaps, and get daily summaries delivered to your inbox.
+              </p>
+            </motion.div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {featuredPodcasts.map((podcast, i) => (
+                <motion.div
+                  key={podcast.slug}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: i * 0.04 }}
+                >
+                  <div
+                    className="group cursor-pointer"
+                    onClick={() => navigate(`/podcasts/${podcast.slug}`)}
+                    data-testid={`card-podcast-${podcast.slug}`}
+                  >
+                    <div className="relative rounded-2xl overflow-hidden shadow-sm shadow-black/[0.06] border border-border">
+                      <img
+                        src={hiResArtwork(podcast.artworkUrl)}
+                        alt={podcast.name}
+                        className="w-full aspect-square object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
+                        <span className="text-white text-xs font-bold">Get Recaps →</span>
+                      </div>
+                    </div>
+                    <p className="mt-2.5 text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                      {podcast.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{podcast.category}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <div className="text-center mt-10">
+              <button
+                data-testid="button-view-all-podcasts"
+                onClick={() => navigate("/podcasts")}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border text-sm font-bold text-foreground hover:bg-accent transition-colors"
+              >
+                View all podcasts
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </motion.div>
+        </section>
+
+        <section className="w-full py-16 sm:py-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]">
+                Notable voices across podcasts
+              </h2>
+              <p className="text-base text-muted-foreground mt-3 max-w-lg mx-auto">
+                The most influential founders, investors, and thinkers who shape the conversations across the podcast ecosystem.
+              </p>
+            </motion.div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+              {featuredPeople.map((person, i) => (
+                <motion.div
+                  key={person.slug}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: i * 0.04 }}
+                >
+                  <div
+                    className="group cursor-pointer flex flex-col items-center text-center"
+                    onClick={() => navigate(`/people/${person.slug}`)}
+                    data-testid={`card-person-home-${person.slug}`}
+                  >
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-border group-hover:border-primary/30 transition-colors shadow-sm">
+                      <img
+                        src={person.imageUrl}
+                        alt={person.name}
+                        className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-300"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=96&background=1a8cff&color=fff&bold=true`;
+                        }}
+                      />
+                    </div>
+                    <p className="mt-3 text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
+                      {person.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                      {person.title}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <div className="text-center mt-10">
+              <button
+                data-testid="button-view-all-people"
+                onClick={() => navigate("/people")}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border text-sm font-bold text-foreground hover:bg-accent transition-colors"
+              >
+                View all people
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full bg-foreground text-background py-16 sm:py-20">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="flex flex-col items-center gap-6">
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                <Library className="w-6 h-6 text-white/80" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold leading-[1.1] tracking-[-0.02em]">
+                We're organizing the world's podcast knowledge
+              </h2>
+              <p className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed">
+                Millions of hours of conversations happen across podcasts every year. The best ideas, the sharpest analysis, the most honest debates — locked inside audio files that most people will never hear. PodCap is changing that.
+              </p>
+              <p className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed">
+                We're building the infrastructure to make podcast knowledge searchable, skimmable, and accessible to everyone — episode by episode, idea by idea.
+              </p>
+              <a
+                href="/about"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/80 transition-colors mt-2"
+                data-testid="link-about-vision"
+              >
+                Read our story
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="w-full py-16 sm:py-20">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="flex flex-col items-center gap-6">
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]">
+                Start getting smarter about podcasts
+              </h2>
+              <p className="text-base text-muted-foreground max-w-md">
+                Choose your favorite shows, and we'll send you a daily recap with the key ideas from every new episode. Free forever.
+              </p>
+              <button
+                data-testid="button-bottom-cta"
+                onClick={() => navigate("/get-started")}
+                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
+              >
+                Build Your Recap
+                <ArrowRight className="w-4.5 h-4.5" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
       </main>
 
       <AnimatePresence>
@@ -307,7 +360,6 @@ export default function Home() {
               </div>
 
               <div className="px-6 sm:px-8 py-6 sm:py-8 space-y-8">
-
                 <div className="space-y-1">
                   <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Subject</p>
                   <p className="text-base font-bold text-foreground">PodCap Daily, 6 hours of podcasts summarized in 10 minutes</p>
@@ -403,25 +455,6 @@ export default function Home() {
                 />
 
                 <SampleEpisode
-                  name="MOONSHOTS"
-                  episode="AI, Geopolitics, and the Future of Work"
-                  guest="Ian Hogarth"
-                  guestTitle="AI investor and policy expert"
-                  length="1 hr 48 min"
-                  tldr="AI development is accelerating globally and may disrupt industries that rely heavily on analysis, research, and consulting."
-                  discussion="Peter Diamandis argues AI will massively increase productivity. Hogarth argues it could collapse industries built around expensive knowledge work."
-                  discussionLabel="What They Debate"
-                  insights={[
-                    "AI models are entering recursive self-improvement cycles",
-                    "Consulting firms may face major disruption",
-                    "Countries like India may position themselves as AI-neutral hubs",
-                    "Regulation may become the biggest geopolitical battleground",
-                  ]}
-                  hook={`"The first trillion-dollar AI companies may replace consulting firms."`}
-                  color="bg-purple-500"
-                />
-
-                <SampleEpisode
                   name="MY FIRST MILLION"
                   episode="Where Investors Are Betting in the AI Economy"
                   guest="Sam Parr and Shaan Puri"
@@ -438,42 +471,6 @@ export default function Home() {
                   ]}
                   hook={`"The next Salesforce won't be software. It'll be an AI employee."`}
                   color="bg-amber-500"
-                />
-
-                <SampleEpisode
-                  name="FOUNDERS"
-                  episode="#413 — Running Down a Dream"
-                  guest="David Senra"
-                  guestTitle="Host"
-                  length="58 minutes"
-                  tldr="The most successful founders pursue careers they are deeply obsessed with and invest heavily in preparation and long-term relationships."
-                  discussion="The episode explores how many successful founders publicly committed to their ambitions early in life and treated preparation as a competitive advantage."
-                  discussionLabel="What Senra Focuses On"
-                  insights={[
-                    "Saying your goals out loud can increase commitment",
-                    "Preparation often beats motivation",
-                    "Mentors dramatically accelerate learning",
-                    "Strong peer networks compound success",
-                  ]}
-                  hook={`"Most people want the result without the obsession."`}
-                  color="bg-emerald-500"
-                />
-
-                <SampleEpisode
-                  name="DRIVERLESS DIGEST"
-                  episode="Inside Waymo's Remote Assistance Program"
-                  length="43 minutes"
-                  tldr='Many autonomous vehicles still rely on remote human operators to help navigate difficult situations.'
-                  discussion="Remote assistance teams monitor fleets and help vehicles handle edge cases that current AI systems cannot fully resolve."
-                  discussionLabel="What They Explain"
-                  insights={[
-                    "Remote operators assist vehicles during complex scenarios",
-                    "Communication latency can introduce safety risks",
-                    "Regulators may require licensing for remote operators",
-                    "Fully autonomous driving remains technically difficult",
-                  ]}
-                  hook={`"The hardest part of autonomy is the 0.1% of weird situations."`}
-                  color="bg-rose-500"
                 />
 
                 <div className="border-t border-black/[0.06]" />
@@ -598,4 +595,3 @@ function SampleEpisode({
     </div>
   );
 }
-
