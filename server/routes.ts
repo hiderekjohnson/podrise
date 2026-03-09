@@ -4817,7 +4817,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             } else {
               status = "in_queue";
             }
-            const totalEpisodes = p.total_episodes || result?.totalEpisodes || 0;
+            const totalEpisodes = p.total_episodes || 0;
             return {
               index: i + 1,
               name: p.name,
