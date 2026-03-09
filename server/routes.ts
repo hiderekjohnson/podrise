@@ -3626,12 +3626,13 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             continue;
           }
 
+          const epLimit = Math.min(needed + 5, 25);
           const taddyQuery = `{
             getPodcastSeries(itunesId: ${numericItunesId}) {
               uuid
               name
               taddyTranscribeStatus
-              episodes(sortOrder: LATEST, limitPerPage: ${Math.min(needed + 5, 50)}) {
+              episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) {
                 uuid
                 name
                 datePublished
@@ -3646,7 +3647,34 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             body: JSON.stringify({ query: taddyQuery }),
           });
           const taddyData = await taddyRes.json();
-          const taddySeries = taddyData?.data?.getPodcastSeries;
+          let taddySeries = taddyData?.data?.getPodcastSeries;
+
+          if (taddySeries?.uuid && (!taddySeries.episodes || taddySeries.episodes.length === 0)) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const retryQuery = `{
+              getPodcastSeries(uuid: "${taddySeries.uuid}") {
+                uuid
+                name
+                taddyTranscribeStatus
+                episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) {
+                  uuid
+                  name
+                  datePublished
+                  taddyTranscribeStatus
+                }
+              }
+            }`;
+            const retryRes = await fetch("https://api.taddy.org", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+              body: JSON.stringify({ query: retryQuery }),
+            });
+            const retryData = await retryRes.json();
+            const retrySeries = retryData?.data?.getPodcastSeries;
+            if (retrySeries?.episodes && retrySeries.episodes.length > 0) {
+              taddySeries = retrySeries;
+            }
+          }
 
           if (!taddySeries || !taddySeries.episodes || taddySeries.episodes.length === 0) {
             res.write(JSON.stringify({

@@ -58,6 +58,7 @@ export async function getRecentEpisodesWithTranscripts(
   podcastUuid: string,
   limit: number = 10
 ): Promise<TaddyEpisode[]> {
+  limit = Math.min(limit, 25);
   const cacheKey = `episodes_${podcastUuid}_${limit}`;
   const cached = episodeCache.get(cacheKey);
   if (cached && cached.expiry > Date.now()) {
@@ -91,8 +92,9 @@ export async function getRecentEpisodesWithTranscripts(
 
 export async function getEpisodesByItunesId(
   itunesId: string,
-  limit: number = 50
+  limit: number = 25
 ): Promise<TaddyEpisode[]> {
+  limit = Math.min(limit, 25);
   const numericId = parseInt(itunesId, 10);
   if (isNaN(numericId)) return [];
 

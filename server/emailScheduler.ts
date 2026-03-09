@@ -668,6 +668,138 @@ export async function backfillTopicsAndQuestions() {
   }
 }
 
+let transcriptDownloadRunning = false;
+
+export async function bulkDownloadTranscripts() {
+  if (transcriptDownloadRunning) {
+    console.log("[TranscriptDL] Already running, skipping");
+    return;
+  }
+  transcriptDownloadRunning = true;
+
+  try {
+    const { pool: dbPool } = await import("./db");
+    const taddyUserId = process.env.TADDY_USER_ID;
+    const taddyApiKey = process.env.TADDY_API_KEY;
+    if (!taddyUserId || !taddyApiKey) {
+      console.log("[TranscriptDL] Taddy credentials not configured, skipping");
+      return;
+    }
+
+    const allDir = await storage.getPodcastDirectory();
+    const landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.itunesId && p.slug);
+
+    const client = await dbPool.connect();
+    let recapCounts: Record<string, number> = {};
+    let existingGuids: Set<string> = new Set();
+    try {
+      const { rows } = await client.query("SELECT slug, COUNT(*)::int as cnt FROM landing_page_recaps GROUP BY slug");
+      for (const r of rows) recapCounts[r.slug] = r.cnt;
+      const { rows: tRows } = await client.query("SELECT episode_guid FROM episode_transcripts");
+      for (const r of tRows) existingGuids.add(r.episode_guid);
+    } finally {
+      client.release();
+    }
+
+    const TARGET = 25;
+    const podcastsNeedingWork = landingPodcasts
+      .filter((p: any) => (recapCounts[p.slug] || 0) < TARGET)
+      .sort((a: any, b: any) => (recapCounts[a.slug] || 0) - (recapCounts[b.slug] || 0));
+
+    console.log(`[TranscriptDL] Starting transcript download for ${podcastsNeedingWork.length} podcasts (${existingGuids.size} transcripts already stored)`);
+
+    let totalDownloaded = 0;
+    let totalSkipped = 0;
+
+    for (const podcast of podcastsNeedingWork) {
+      try {
+        const numId = parseInt(podcast.itunesId, 10);
+        if (isNaN(numId)) continue;
+
+        const existing = recapCounts[podcast.slug] || 0;
+        const needed = TARGET - existing;
+        const epLimit = Math.min(needed + 5, 25);
+
+        const taddyRes = await fetch("https://api.taddy.org", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+          body: JSON.stringify({ query: `{ getPodcastSeries(itunesId: ${numId}) { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
+          signal: AbortSignal.timeout(20000),
+        });
+        const taddyData = await taddyRes.json();
+        let series = taddyData?.data?.getPodcastSeries;
+
+        if (series?.uuid && (!series.episodes || series.episodes.length === 0)) {
+          await new Promise(r => setTimeout(r, 1000));
+          const retryRes = await fetch("https://api.taddy.org", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+            body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${series.uuid}") { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
+            signal: AbortSignal.timeout(20000),
+          });
+          const retryData = await retryRes.json();
+          const retry = retryData?.data?.getPodcastSeries;
+          if (retry?.episodes?.length > 0) series = retry;
+        }
+
+        if (!series?.episodes?.length) {
+          totalSkipped++;
+          await new Promise(r => setTimeout(r, 300));
+          continue;
+        }
+
+        let downloaded = 0;
+        for (const ep of series.episodes) {
+          if (downloaded >= needed) break;
+          if (existingGuids.has(ep.uuid)) continue;
+          if (ep.taddyTranscribeStatus !== "COMPLETED") continue;
+
+          try {
+            const transcriptData = await fetch("https://api.taddy.org", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+              body: JSON.stringify({ query: `{ getEpisodeTranscript(uuid: "${ep.uuid}") { text speaker } }` }),
+              signal: AbortSignal.timeout(30000),
+            });
+            const tData = await transcriptData.json();
+            const segments = tData?.data?.getEpisodeTranscript;
+            if (segments && Array.isArray(segments) && segments.length > 0) {
+              const text = segments.map((s: any) => (s.speaker ? `[${s.speaker}] ` : "") + s.text).join("\n");
+              if (text.length > 100) {
+                await storage.saveTranscript({
+                  podcastId: podcast.itunesId,
+                  episodeGuid: ep.uuid,
+                  episodeTitle: ep.name || "Untitled",
+                  transcript: text,
+                });
+                existingGuids.add(ep.uuid);
+                downloaded++;
+                totalDownloaded++;
+              }
+            }
+          } catch {}
+          await new Promise(r => setTimeout(r, 300));
+        }
+
+        if (downloaded > 0) {
+          console.log(`[TranscriptDL] ${podcast.name}: downloaded ${downloaded} transcripts (total: ${totalDownloaded})`);
+        }
+      } catch (err: any) {
+        if (err?.name !== "AbortError" && err?.name !== "TimeoutError") {
+          console.warn(`[TranscriptDL] Error for ${podcast.name}:`, err?.message?.slice(0, 100));
+        }
+      }
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    console.log(`[TranscriptDL] Complete: ${totalDownloaded} new transcripts downloaded, ${totalSkipped} podcasts not on Taddy`);
+  } catch (err) {
+    console.error("[TranscriptDL] Fatal error:", err);
+  } finally {
+    transcriptDownloadRunning = false;
+  }
+}
+
 export async function enrichPodcastMetadata(singleItunesId?: string) {
   const { openai } = await import("./replit_integrations/image/client");
   const { pool: dbPool } = await import("./db");
@@ -1155,7 +1287,9 @@ export function startEmailScheduler() {
     } catch (err) {
       console.error("[TranscriptBackfill] Backfill error:", err);
     }
-    refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
+    refreshLandingPageRecaps()
+      .then(() => bulkDownloadTranscripts())
+      .catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
   }, 30000);
 }
 
