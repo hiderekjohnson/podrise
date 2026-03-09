@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight, Mail, X, Headphones, BookOpen, Zap, Clock, Quote, MessageCircle, Search, Sparkles, Library, Users } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Headphones, Search, Sparkles, Library, Users } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
@@ -50,8 +49,6 @@ function SEOHead() {
 export default function Home() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
-  const [showSampleEmail, setShowSampleEmail] = useState(false);
-
   if (user) {
     navigate("/dashboard");
     return null;
@@ -119,14 +116,6 @@ export default function Home() {
                 Browse Podcasts
               </button>
             </div>
-            <button
-              data-testid="link-sample-email"
-              onClick={() => setShowSampleEmail(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/70 hover:text-primary transition-colors mt-1"
-            >
-              <Mail className="w-4 h-4" />
-              See a sample recap email
-            </button>
           </motion.div>
         </section>
 
@@ -322,192 +311,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <AnimatePresence>
-        {showSampleEmail && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8 px-4"
-            onClick={() => setShowSampleEmail(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 16 }}
-              transition={{ duration: 0.25 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl"
-            >
-              <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-black/[0.06] bg-white/95 backdrop-blur rounded-t-2xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Mail className="w-4.5 h-4.5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">PodCap Daily</p>
-                    <p className="text-xs text-muted-foreground">Sample email preview</p>
-                  </div>
-                </div>
-                <button
-                  data-testid="button-close-sample"
-                  onClick={() => setShowSampleEmail(false)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="px-6 sm:px-8 py-6 sm:py-8 space-y-8">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Subject</p>
-                  <p className="text-base font-bold text-foreground">PodCap Daily, 6 hours of podcasts summarized in 10 minutes</p>
-                </div>
-
-                <div className="border-t border-black/[0.06]" />
-
-                <div className="text-center space-y-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <img src={logoPath} alt="PodCap" className="h-7 object-contain" />
-                    <span className="font-display font-extrabold text-lg text-foreground">Daily</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Your favorite podcasts, summarized in one email</p>
-                </div>
-
-                <div className="border-t border-black/[0.06]" />
-
-                <div>
-                  <p className="text-xl font-display font-bold text-foreground">Good morning Derek.</p>
-                  <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-                    <p>You follow <strong className="text-foreground">5 podcasts</strong> today</p>
-                    <p>Total listening time: <strong className="text-foreground">6 hours 3 minutes</strong></p>
-                    <p>Your recap: <strong className="text-foreground">10 minute read</strong></p>
-                  </div>
-                  <p className="text-sm text-muted-foreground/70 mt-3">American Optimist · Moonshots · My First Million · Founders · Driverless Digest</p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="bg-primary/[0.04] rounded-xl p-3 text-center">
-                    <Headphones className="w-4 h-4 text-primary mx-auto mb-1" />
-                    <p className="text-lg font-display font-extrabold text-foreground">5</p>
-                    <p className="text-xs text-muted-foreground">Podcasts</p>
-                  </div>
-                  <div className="bg-primary/[0.04] rounded-xl p-3 text-center">
-                    <Clock className="w-4 h-4 text-primary mx-auto mb-1" />
-                    <p className="text-lg font-display font-extrabold text-foreground">6h 03m</p>
-                    <p className="text-xs text-muted-foreground">Total runtime</p>
-                  </div>
-                  <div className="bg-primary/[0.04] rounded-xl p-3 text-center">
-                    <BookOpen className="w-4 h-4 text-primary mx-auto mb-1" />
-                    <p className="text-lg font-display font-extrabold text-foreground">10 min</p>
-                    <p className="text-xs text-muted-foreground">Your recap</p>
-                  </div>
-                  <div className="bg-green-500/[0.06] rounded-xl p-3 text-center">
-                    <Zap className="w-4 h-4 text-green-600 mx-auto mb-1" />
-                    <p className="text-lg font-display font-extrabold text-green-700">5h 53m</p>
-                    <p className="text-xs text-green-600/80">Time saved</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-black/[0.06]" />
-
-                <div>
-                  <p className="text-xs font-bold text-foreground uppercase tracking-[0.15em] mb-4">Big Ideas Today</p>
-                  <div className="space-y-3">
-                    {[
-                      { emoji: "\ud83d\ude80", text: "NASA may build a permanent moon base by 2028", source: "American Optimist" },
-                      { emoji: "\ud83e\udd16", text: "AI could replace large parts of the consulting industry", source: "Moonshots" },
-                      { emoji: "\ud83d\udcb0", text: "Vertical AI startups may become the biggest investment opportunity in AI", source: "My First Million" },
-                      { emoji: "\ud83e\udde0", text: "The most successful careers come from obsessive preparation", source: "Founders" },
-                      { emoji: "\ud83d\ude97", text: 'Many "self-driving" cars still rely on remote human operators', source: "Driverless Digest" },
-                    ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start">
-                        <span className="text-lg leading-none mt-0.5">{item.emoji}</span>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{item.text}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Source: {item.source}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-black/[0.06]" />
-
-                <SampleEpisode
-                  name="AMERICAN OPTIMIST"
-                  episode="Jared Isaacman's Vision for NASA"
-                  guest="Jared Isaacman"
-                  guestTitle="Astronaut and founder of Shift4"
-                  length="1 hr 12 min"
-                  tldr="NASA's next phase focuses on returning to the moon and building permanent infrastructure there that could support a real space economy."
-                  discussion="Joe Lonsdale pushes Isaacman on whether NASA's timeline is realistic. Isaacman argues the real goal isn't symbolic moon landings, it's building infrastructure that enables fuel production, mining, and manufacturing in space."
-                  discussionLabel="What They Talk About"
-                  insights={[
-                    "NASA aims to land astronauts on the moon again by 2028",
-                    "Lunar ice could be converted into rocket fuel",
-                    "Nuclear propulsion could shorten deep space missions",
-                    "The moon could become a fueling station for Mars exploration",
-                  ]}
-                  hook={`"The moon isn't the destination. It's the gas station."`}
-                  color="bg-blue-500"
-                />
-
-                <SampleEpisode
-                  name="MY FIRST MILLION"
-                  episode="Where Investors Are Betting in the AI Economy"
-                  guest="Sam Parr and Shaan Puri"
-                  guestTitle="Hosts"
-                  length="1 hr 22 min"
-                  tldr="The biggest AI opportunities may not come from building new AI models but from applying AI to specific industries."
-                  discussion="Sam asks whether AI will destroy SaaS companies. Shaan argues many SaaS tools will be replaced by AI-powered workflows."
-                  discussionLabel="What They Talk About"
-                  insights={[
-                    "Vertical AI startups may outperform general AI startups",
-                    "AI assistants with the most user context will win",
-                    "Many SaaS companies may be replaced by AI tools",
-                    "Content creation remains one of the best ways to attract opportunity",
-                  ]}
-                  hook={`"The next Salesforce won't be software. It'll be an AI employee."`}
-                  color="bg-amber-500"
-                />
-
-                <div className="border-t border-black/[0.06]" />
-
-                <div className="rounded-xl bg-gradient-to-br from-primary/[0.05] to-primary/[0.02] border border-primary/10 p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MessageCircle className="w-4 h-4 text-primary" />
-                    <p className="text-xs font-bold text-foreground uppercase tracking-[0.15em]">Conversation Ammo</p>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">If you repeat one idea today, make it this:</p>
-                  <div className="space-y-3">
-                    <div className="flex gap-3">
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full h-fit mt-0.5 shrink-0">Space</span>
-                      <p className="text-sm text-foreground">Someone argued the moon will become the "gas station for Mars missions."</p>
-                    </div>
-                    <div className="flex gap-3">
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full h-fit mt-0.5 shrink-0">AI</span>
-                      <p className="text-sm text-foreground">AI tools may soon replace large parts of the consulting industry.</p>
-                    </div>
-                    <div className="flex gap-3">
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full h-fit mt-0.5 shrink-0">Startups</span>
-                      <p className="text-sm text-foreground">Investors are increasingly betting on AI companies focused on specific industries instead of general AI platforms.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-black/[0.06]" />
-
-                <div className="text-center space-y-2 pt-2 pb-4">
-                  <p className="text-lg font-display font-extrabold text-foreground">That's your PodCap Daily.</p>
-                  <p className="text-sm text-muted-foreground">6 hours of podcasts summarized in 10 minutes.</p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <Footer />
     </div>
