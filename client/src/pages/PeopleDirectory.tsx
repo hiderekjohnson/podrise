@@ -73,10 +73,10 @@ export default function PeopleDirectory() {
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="heading-people">
-              Notable People to Follow
+              The Voices Shaping the Conversation
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Top figures discussed across the podcast world. See who appears as a guest, who gets mentioned, and explore every episode they're featured in.
+              The most influential leaders, founders, and thinkers driving today's biggest ideas. See where they show up as guests, how often they're discussed, and explore every episode they're featured in.
             </p>
           </motion.div>
         </section>
