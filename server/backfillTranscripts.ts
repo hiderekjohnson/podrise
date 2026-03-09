@@ -4,7 +4,21 @@ import { writeFileSync } from "fs";
 
 const STATUS_FILE = "/tmp/backfill_status.json";
 
-function writeStatus(data: { currentIndex: number; currentName: string; totalPodcasts: number; processedNames: string[]; running: boolean }) {
+interface PodcastResult {
+  name: string;
+  error?: string;
+}
+
+interface BackfillState {
+  currentIndex: number;
+  currentName: string;
+  totalPodcasts: number;
+  processedNames: string[];
+  podcastResults: Record<string, PodcastResult>;
+  running: boolean;
+}
+
+function writeStatus(data: BackfillState) {
   try {
     writeFileSync(STATUS_FILE, JSON.stringify(data));
   } catch {}
@@ -93,12 +107,14 @@ export async function runBackfillTranscripts() {
   let totalFailed = 0;
   const startTime = Date.now();
   const processedNames: string[] = [];
+  const podcastResults: Record<string, PodcastResult> = {};
 
   console.log(`${totalPodcasts} podcasts to process (alphabetically A-Z)`);
   console.log(`${Array.from(existingByPodcast.values()).reduce((sum, s) => sum + s.size, 0)} transcripts already in database`);
   console.log("========================================\n");
 
-  writeStatus({ currentIndex: 0, currentName: "", totalPodcasts, processedNames, running: true });
+  const state: BackfillState = { currentIndex: 0, currentName: "", totalPodcasts, processedNames, podcastResults, running: true };
+  writeStatus(state);
 
   for (let i = 0; i < podcasts.length; i++) {
     const podcast = podcasts[i];
@@ -107,11 +123,14 @@ export async function runBackfillTranscripts() {
     const existingCount = existingGuids.size;
     const needed = TARGET_TRANSCRIPTS_PER_PODCAST - existingCount;
 
-    writeStatus({ currentIndex: podcastNum, currentName: podcast.name, totalPodcasts, processedNames, running: true });
+    state.currentIndex = podcastNum;
+    state.currentName = podcast.name;
+    writeStatus(state);
 
     if (needed <= 0) {
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ALREADY DONE (${existingCount} transcripts)`);
       processedNames.push(podcast.name);
+      writeStatus(state);
       continue;
     }
 
@@ -171,20 +190,41 @@ export async function runBackfillTranscripts() {
       if (downloaded > 0) details.push(`${downloaded} new`);
       if (existingCount > 0) details.push(`${existingCount} existing`);
       if (failed > 0) details.push(`${failed} failed`);
-      if (availableTranscripts === 0 && totalEpisodesScanned > 0) details.push("no transcripts on Taddy");
+
+      let errorMsg: string | undefined;
+      if (finalCount < TARGET_TRANSCRIPTS_PER_PODCAST) {
+        if (availableTranscripts === 0 && totalEpisodesScanned > 0) {
+          errorMsg = `No transcripts available on Taddy (${totalEpisodesScanned} episodes scanned, none transcribed)`;
+          details.push("no transcripts on Taddy");
+        } else if (availableTranscripts > 0 && availableTranscripts < needed) {
+          errorMsg = `Only ${availableTranscripts + existingCount} transcripts available on Taddy (need ${TARGET_TRANSCRIPTS_PER_PODCAST})`;
+        } else if (failed > 0) {
+          errorMsg = `${failed} transcript downloads failed`;
+        } else if (totalEpisodesScanned === 0) {
+          errorMsg = "No episodes found on Taddy for this podcast";
+        }
+      }
+
+      podcastResults[podcast.name] = { name: podcast.name, error: errorMsg };
 
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ${status} (${details.join(", ")})`);
       processedNames.push(podcast.name);
     } catch (err: any) {
       totalFailed++;
-      console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ERROR: ${err.message?.slice(0, 150)}`);
+      const errorMsg = err.message?.slice(0, 200) || "Unknown error";
+      podcastResults[podcast.name] = { name: podcast.name, error: errorMsg };
+      console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ERROR: ${errorMsg}`);
       processedNames.push(podcast.name);
     }
 
+    writeStatus(state);
     await new Promise(r => setTimeout(r, DELAY_BETWEEN_PODCASTS_MS));
   }
 
-  writeStatus({ currentIndex: totalPodcasts, currentName: "", totalPodcasts, processedNames, running: false });
+  state.running = false;
+  state.currentName = "";
+  state.currentIndex = totalPodcasts;
+  writeStatus(state);
 
   const elapsed = (Date.now() - startTime) / 1000;
   console.log("\n========================================");

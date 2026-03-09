@@ -4782,7 +4782,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
            ) tc ON pd.itunes_id = tc.podcast_id
            ORDER BY pd.name ASC`
         );
-        let backfillStatus: { currentIndex: number; currentName: string; totalPodcasts: number; processedNames: string[]; running: boolean } | null = null;
+        let backfillStatus: { currentIndex: number; currentName: string; totalPodcasts: number; processedNames: string[]; podcastResults?: Record<string, { name: string; error?: string }>; running: boolean } | null = null;
         try {
           const raw = readFileSync("/tmp/backfill_status.json", "utf-8");
           backfillStatus = JSON.parse(raw);
@@ -4790,18 +4790,26 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
 
         const processedSet = new Set(backfillStatus?.processedNames || []);
         const isBackfillRunning = backfillStatus?.running === true;
+        const podcastResults = backfillStatus?.podcastResults || {};
 
         res.json({
           podcasts: podcasts.map((p, i) => {
             let status: string;
+            let error: string | undefined;
+            const result = podcastResults[p.name];
+
             if (p.transcript_count >= 25) {
               status = "done";
             } else if (!p.taddy_uuid) {
               status = "no_taddy";
+              error = "Podcast not found on Taddy";
             } else if (isBackfillRunning && backfillStatus?.currentName === p.name) {
               status = "in_process";
             } else if (isBackfillRunning && !processedSet.has(p.name) && backfillStatus?.currentName !== p.name) {
               status = "in_queue";
+            } else if (result?.error) {
+              status = "error";
+              error = result.error;
             } else {
               status = "pending";
             }
@@ -4814,6 +4822,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
               target: 25,
               remaining: Math.max(0, 25 - p.transcript_count),
               status,
+              error,
             };
           }),
           totalTranscripts: podcasts.reduce((sum, p) => sum + (p.transcript_count || 0), 0),
