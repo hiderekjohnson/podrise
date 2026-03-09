@@ -1,0 +1,151 @@
+Lenny's Podcast
+Entrepreneurs on Fire
+The $100 MBA Show
+Startups for the Rest of Us
+The Tropical MBA
+Marketing School
+Mixergy
+Young and Profiting with Hala Taha
+The Amy Porterfield Show
+The Side Hustle Show
+Coaching for Leaders
+WorkLife with Adam Grant
+Dare to Lead with Brené Brown
+At The Table with Patrick Lencioni
+No Bullshit Leadership
+The Learning Leader Show
+Jocko Podcast
+The EntreLeadership Podcast
+Money For the Rest of Us
+Rational Reminder
+Animal Spirits
+ChooseFI
+Afford Anything
+The Clark Howard Podcast
+Unhedged
+The Intrinsic Value Podcast
+TWIML AI Podcast
+Latent Space
+Practical AI
+Eye on AI
+Techmeme Ride Home
+The Pragmatic Engineer
+Cognitive Revolution
+StarTalk Radio
+Science Vs
+Science Friday
+FoundMyFitness
+The Doctor's Farmacy with Mark Hyman
+The Model Health Show
+Rich Roll Podcast
+The Art of Manliness
+The Happiness Lab
+Deep Questions with Cal Newport
+The Life Coach School Podcast
+Philosophize This!
+Making Sense with Sam Harris
+The Psychology Podcast
+Optimal Living Daily
+The One You Feed
+Ten Percent Happier
+	1	Philosophize This!
+	2	Making Sense with Sam Harris
+	3	The Daily Stoic
+	4	The Rest is History
+	5	The Rest is Politics
+	6	Choiceology with Katy Milkman
+	7	No Stupid Questions
+	8	The Happiness Lab with Dr. Laurie Santos
+	9	Deep Questions with Cal Newport
+	10	Science Vs
+	11	99% Invisible
+	12	In Our Time
+	13	The Intelligence from The Economist
+	14	Checks and Balance
+	15	Slate Money
+	16	Money For the Rest of Us
+	17	ChooseFI
+	18	BiggerPockets Money Podcast
+	19	The White Coat Investor Podcast
+	20	Afford Anything
+	21	Motley Fool Money
+	22	Bankless
+	23	Unchained
+	24	The Pomp Podcast
+	25	Exponential View with Azeem Azhar
+	26	No Priors: AI, Machine Learning, and Tech & Business
+	27	Latent Space
+	28	Machine Learning Street Talk
+	29	Software Engineering Daily
+	30	The Marketing Book Podcast
+	31	Marketing School : Digital Marketing and Business
+	32	Social Media Marketing Podcast
+	33	Entrepreneurs on Fire
+	34	The School of Greatness
+	35	Impact Theory with Tom Bilyeu
+	36	The Ed Mylett Show
+	37	The High Performance Podcast
+	38	ReThinking with Adam Grant
+	39	WorkLife with Adam Grant
+	40	The Startup Chat with Steli & Hiten
+	41	The Pitch
+	42	Land of the Giants
+	43	You Are Not So Smart
+	44	Intelligence Squared U.S. Debates
+	45	The Gray Area with Sean Illing
+	46	EconTalk
+	47	Lexicon Valley
+	48	The Skeptics' Guide to the Universe
+	49	The Infinite Monkey Cage
+	50	The McKinsey Podcast
+	1.	The Knowledge Project Podcast
+	2.	Lenny’s Podcast: Product | Growth | Career
+	3.	Foundr Podcast with Nathan Chan
+	4.	Marketing Against the Grain
+	5.	DTC Podcast
+	6.	The Logan Bartlett Show
+	7.	InvestED with Phil & Danielle Town
+	8.	The Compound and Friends
+	9.	Forward Thinking Investors
+	10.	Animal Spirits
+	11.	The Rational Reminder Podcast
+	12.	Meb Faber Show
+	13.	Real Vision Daily Briefing
+	14.	The Pomp Podcast
+	15.	Unchained (Crypto)
+	16.	Bankless
+	17.	The AI Breakdown
+	18.	Latent Space
+	19.	No Priors: Artificial Intelligence
+	20.	Practical AI
+	21.	Gradient Dissent
+	22.	Eye on AI
+	23.	Software Engineering Daily
+	24.	The Changelog
+	25.	The Data Exchange Podcast
+	26.	SuperDataScience Podcast
+	27.	The Cognitive Revolution
+	28.	Machine Learning Street Talk
+	29.	Future of Life Institute Podcast
+	30.	EconTalk
+	31.	Macro Musings
+	32.	The Meb Faber Podcast
+	33.	The Long View
+	34.	Compound Insights
+	35.	The Art of Investing
+	36.	InvestTalk
+	37.	Money for the Rest of Us
+	38.	Animal Spirits Podcast
+	39.	The James Altucher Show
+	40.	Startup School by Y Combinator
+	41.	Y Combinator Podcast
+	42.	Indie Hackers Podcast
+	43.	The Bootstrapped Founder
+	44.	SaaS Revolution Show
+	45.	Product Thinking
+	46.	The Product Podcast
+	47.	Build with Maggie Crowley
+	48.	The Lean Startup Podcast
+	49.	The Strategy Skills Podcast
+	50.	Exponential View with Azeem Azhar
+
