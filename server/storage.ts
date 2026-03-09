@@ -507,6 +507,7 @@ export class DatabaseStorage implements IStorage {
           audioUrl: data.audioUrl,
           keyTopics: data.keyTopics,
           topQuestions: data.topQuestions,
+          showNotes: data.showNotes,
         },
       })
       .returning();

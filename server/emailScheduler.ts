@@ -521,6 +521,12 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           ? ep.trackViewUrl.replace(/&uo=\d+/, "")
           : null;
 
+        let showNotes: string | null = null;
+        try {
+          const { searchEpisodeShowNotes } = await import("./taddyClient");
+          showNotes = await searchEpisodeShowNotes(podcast.name, recap.episodeTitle);
+        } catch {}
+
         await storage.upsertLandingPageRecap({
           slug: podcast.slug,
           itunesId: podcast.itunesId,
@@ -540,6 +546,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           audioUrl: ep.episodeUrl || null,
           keyTopics: recap.keyTopics || null,
           topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+          showNotes,
         });
 
         if (podcastNewRecaps === 0) {
@@ -1014,6 +1021,12 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               ? ep.trackViewUrl.replace(/&uo=\d+/, "")
               : null;
 
+            let showNotes: string | null = null;
+            try {
+              const { searchEpisodeShowNotes } = await import("./taddyClient");
+              showNotes = await searchEpisodeShowNotes(podcast.name, recap.episodeTitle);
+            } catch {}
+
             await storage.upsertLandingPageRecap({
               slug: podcast.slug,
               itunesId: podcast.itunesId,
@@ -1033,6 +1046,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               audioUrl: ep.episodeUrl || null,
               keyTopics: recap.keyTopics || null,
               topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+              showNotes,
             });
 
             podcastCreated++;
@@ -1274,6 +1288,51 @@ export async function reIngestTranscriptSegments() {
     }
 
     console.log(`[TranscriptReIngest] Complete: ${upgraded} upgraded, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function backfillShowNotes() {
+  const { pool: dbPool } = await import("./db");
+  const { searchEpisodeShowNotes } = await import("./taddyClient");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recaps } = await client.query(
+      `SELECT id, slug, podcast_name, episode_title FROM landing_page_recaps WHERE show_notes IS NULL ORDER BY slug, id`
+    );
+    console.log(`[BackfillShowNotes] Found ${recaps.length} recaps missing show notes`);
+
+    let updated = 0;
+    let notFound = 0;
+    let errors = 0;
+
+    for (let i = 0; i < recaps.length; i++) {
+      const recap = recaps[i];
+      try {
+        const showNotes = await searchEpisodeShowNotes(recap.podcast_name, recap.episode_title);
+        if (showNotes) {
+          await client.query(
+            `UPDATE landing_page_recaps SET show_notes = $1 WHERE id = $2`,
+            [showNotes, recap.id]
+          );
+          updated++;
+        } else {
+          notFound++;
+        }
+
+        if ((i + 1) % 25 === 0) {
+          console.log(`[BackfillShowNotes] Progress: ${i + 1}/${recaps.length} (${updated} updated, ${notFound} not found, ${errors} errors)`);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 400));
+      } catch (err) {
+        errors++;
+        console.warn(`[BackfillShowNotes] Error for "${recap.episode_title}" (${recap.slug}):`, err);
+      }
+    }
+
+    console.log(`[BackfillShowNotes] Complete: ${updated} updated, ${notFound} not found, ${errors} errors out of ${recaps.length} total`);
   } finally {
     client.release();
   }

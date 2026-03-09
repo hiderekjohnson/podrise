@@ -859,6 +859,28 @@ export default function Admin() {
                       </button>
                     </div>
 
+                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-show-notes">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Backfill Show Notes</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Fetch and store show notes from Taddy for all episodes that don't have them yet.</p>
+                      </div>
+                      <button
+                        data-testid="button-backfill-show-notes"
+                        onClick={async () => {
+                          if (!confirm("This will fetch show notes from Taddy for all existing recaps. This may take a while due to API rate limits. Continue?")) return;
+                          try {
+                            await apiRequest("POST", "/api/admin/backfill-show-notes");
+                            toast({ title: "Backfill Started", description: "Show notes backfill is running in the background. Check server logs for progress." });
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors whitespace-nowrap"
+                      >
+                        Start Backfill
+                      </button>
+                    </div>
+
                     <BatchExpansionPanel />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

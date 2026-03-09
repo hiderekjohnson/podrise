@@ -1911,6 +1911,19 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.post("/api/admin/backfill-show-notes", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { backfillShowNotes } = await import("./emailScheduler");
+      backfillShowNotes();
+      res.json({ message: "Show notes backfill started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

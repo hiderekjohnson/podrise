@@ -154,6 +154,50 @@ export async function searchEpisodeByName(
   return match || null;
 }
 
+export async function searchEpisodeShowNotes(
+  podcastName: string,
+  episodeName: string
+): Promise<string | null> {
+  const searchTerm = `${podcastName} ${episodeName}`.replace(/"/g, '\\"').slice(0, 150);
+
+  const query = `{
+    searchForTerm(term: "${searchTerm}", filterForTypes: PODCASTEPISODE, limitPerPage: 5) {
+      searchId
+      podcastEpisodes {
+        uuid
+        name
+        description
+        podcastSeries {
+          uuid
+          name
+        }
+      }
+    }
+  }`;
+
+  const data = await taddyRequest(query);
+  const episodes = data?.data?.searchForTerm?.podcastEpisodes;
+  if (!episodes || !Array.isArray(episodes) || episodes.length === 0) {
+    return null;
+  }
+
+  const podcastNorm = podcastName.toLowerCase().trim();
+  const episodeNorm = episodeName.toLowerCase().trim();
+  const match = episodes.find((ep: any) => {
+    const seriesName = ep.podcastSeries?.name?.toLowerCase()?.trim() || "";
+    const epName = ep.name?.toLowerCase()?.trim() || "";
+    const seriesMatch = seriesName.includes(podcastNorm) || podcastNorm.includes(seriesName);
+    const nameMatch = epName.includes(episodeNorm) || episodeNorm.includes(epName);
+    return seriesMatch && nameMatch;
+  }) || episodes.find((ep: any) => {
+    const seriesName = ep.podcastSeries?.name?.toLowerCase()?.trim() || "";
+    return seriesName.includes(podcastNorm) || podcastNorm.includes(seriesName);
+  });
+
+  if (!match?.description) return null;
+  return match.description;
+}
+
 export async function getEpisodeTranscriptSegments(episodeUuid: string): Promise<TaddyTranscriptSegment[] | null> {
   const query = `{
     getEpisodeTranscript(uuid: "${episodeUuid}") {
