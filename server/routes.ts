@@ -1306,53 +1306,194 @@ export async function registerRoutes(
   app.get("/api/topics/:slug/episodes", async (req, res) => {
     try {
       const { slug } = req.params;
-      const topicKeywordsMap: Record<string, string[]> = {
-        "ai": ["artificial intelligence", "AI", "machine learning", "deep learning", "GPT", "LLM"],
-        "entrepreneurship": ["entrepreneurship", "founder", "startup", "bootstrap"],
-        "startups": ["startup", "startups", "SaaS", "product-market fit"],
-        "venture-capital": ["venture capital", "VC", "fundraising"],
-        "investing": ["investing", "investment", "markets", "stocks", "portfolio"],
-        "personal-finance": ["personal finance", "budgeting", "financial independence", "wealth building"],
-        "leadership": ["leadership", "CEO", "executive"],
-        "management": ["management", "operations", "organizational"],
-        "marketing": ["marketing", "brand", "growth hacking", "advertising"],
-        "sales": ["sales", "selling", "revenue", "pipeline"],
-        "productivity": ["productivity", "habits", "routines", "efficiency"],
-        "decision-making": ["decision making", "mental model", "cognitive bias"],
-        "innovation": ["innovation", "disruption", "breakthrough"],
-        "technology": ["technology", "software", "engineering", "computing"],
-        "economics": ["economics", "economy", "monetary policy", "inflation"],
-        "future-of-work": ["future of work", "remote work", "gig economy"],
-        "health-longevity": ["health", "longevity", "nutrition", "fitness", "sleep"],
-        "psychology": ["psychology", "behavior", "mental health", "neuroscience"],
-        "human-performance": ["performance", "peak performance", "biohacking"],
-        "self-improvement": ["self-improvement", "personal development", "mindset", "motivation"],
-        "negotiation": ["negotiation", "persuasion", "influence"],
-        "career-growth": ["career", "professional development", "promotion"],
-        "creativity": ["creativity", "creative", "design", "storytelling"],
-        "media-content": ["media", "journalism", "creator", "streaming"],
-        "geopolitics": ["geopolitics", "foreign policy", "diplomacy", "international"],
+
+      const topicKeywordsMap: Record<string, { primary: string[]; secondary: string[]; minScore: number }> = {
+        "ai": {
+          primary: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model"],
+          secondary: ["GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI", "computer vision", "natural language processing"],
+          minScore: 4,
+        },
+        "entrepreneurship": {
+          primary: ["entrepreneurship", "entrepreneur", "founded", "co-founded"],
+          secondary: ["founder", "startup", "bootstrap", "bootstrapped", "side hustle", "building a business"],
+          minScore: 3,
+        },
+        "startups": {
+          primary: ["startup", "startups", "product-market fit", "seed round", "series A"],
+          secondary: ["SaaS", "early-stage", "pivot", "launch", "incubator", "accelerator", "Y Combinator"],
+          minScore: 3,
+        },
+        "venture-capital": {
+          primary: ["venture capital", "venture capitalist", "VC firm", "fundraising round"],
+          secondary: ["VC", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"],
+          minScore: 3,
+        },
+        "investing": {
+          primary: ["investing", "investment strategy", "stock market", "portfolio management"],
+          secondary: ["stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns", "bull market", "bear market"],
+          minScore: 3,
+        },
+        "personal-finance": {
+          primary: ["personal finance", "financial independence", "wealth building", "financial planning"],
+          secondary: ["budgeting", "saving", "retirement", "debt", "credit score", "net worth", "FIRE"],
+          minScore: 3,
+        },
+        "leadership": {
+          primary: ["leadership", "leading teams", "executive leadership"],
+          secondary: ["CEO", "executive", "leader", "vision", "organizational culture", "servant leadership"],
+          minScore: 3,
+        },
+        "management": {
+          primary: ["management", "managing teams", "organizational design"],
+          secondary: ["operations", "organizational", "hiring", "team building", "performance review"],
+          minScore: 3,
+        },
+        "marketing": {
+          primary: ["marketing strategy", "digital marketing", "brand strategy"],
+          secondary: ["marketing", "brand", "growth hacking", "advertising", "SEO", "content marketing", "social media marketing"],
+          minScore: 3,
+        },
+        "sales": {
+          primary: ["sales strategy", "sales process", "selling"],
+          secondary: ["sales", "revenue", "pipeline", "cold calling", "B2B sales", "closing deals"],
+          minScore: 3,
+        },
+        "productivity": {
+          primary: ["productivity", "time management", "deep work"],
+          secondary: ["habits", "routines", "efficiency", "focus", "workflow", "GTD"],
+          minScore: 3,
+        },
+        "decision-making": {
+          primary: ["decision making", "decision-making", "mental model"],
+          secondary: ["cognitive bias", "heuristic", "judgment", "rational thinking", "first principles"],
+          minScore: 3,
+        },
+        "innovation": {
+          primary: ["innovation", "disruptive innovation", "breakthrough technology"],
+          secondary: ["disruption", "breakthrough", "R&D", "invention", "paradigm shift"],
+          minScore: 3,
+        },
+        "technology": {
+          primary: ["technology", "software engineering", "tech industry"],
+          secondary: ["software", "engineering", "computing", "cloud", "infrastructure", "developer"],
+          minScore: 3,
+        },
+        "economics": {
+          primary: ["economics", "economic policy", "macroeconomics"],
+          secondary: ["economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve", "fiscal policy"],
+          minScore: 3,
+        },
+        "future-of-work": {
+          primary: ["future of work", "remote work", "workplace transformation"],
+          secondary: ["gig economy", "hybrid work", "automation replacing", "freelance", "work from home"],
+          minScore: 3,
+        },
+        "health-longevity": {
+          primary: ["longevity", "healthspan", "lifespan"],
+          secondary: ["nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking", "metabolic health"],
+          minScore: 3,
+        },
+        "psychology": {
+          primary: ["psychology", "psychological", "neuroscience"],
+          secondary: ["behavior", "mental health", "cognitive", "therapy", "emotional intelligence", "trauma"],
+          minScore: 3,
+        },
+        "human-performance": {
+          primary: ["peak performance", "human performance", "high performance"],
+          secondary: ["biohacking", "optimize", "performance", "elite athlete", "mental toughness"],
+          minScore: 3,
+        },
+        "self-improvement": {
+          primary: ["self-improvement", "personal development", "personal growth"],
+          secondary: ["mindset", "motivation", "discipline", "self-help", "life coaching", "transformation"],
+          minScore: 3,
+        },
+        "negotiation": {
+          primary: ["negotiation", "negotiating", "negotiator"],
+          secondary: ["persuasion", "influence", "conflict resolution", "bargaining", "deal-making"],
+          minScore: 3,
+        },
+        "career-growth": {
+          primary: ["career growth", "career development", "professional development"],
+          secondary: ["career", "promotion", "job search", "networking", "mentorship", "career change"],
+          minScore: 3,
+        },
+        "creativity": {
+          primary: ["creativity", "creative process", "creative thinking"],
+          secondary: ["creative", "design", "storytelling", "artistic", "imagination", "inspiration"],
+          minScore: 3,
+        },
+        "media-content": {
+          primary: ["media industry", "content creation", "journalism"],
+          secondary: ["media", "creator economy", "streaming", "podcast", "newsletter", "content strategy"],
+          minScore: 3,
+        },
+        "geopolitics": {
+          primary: ["geopolitics", "geopolitical", "foreign policy", "international relations"],
+          secondary: ["diplomacy", "international", "sanctions", "trade war", "national security"],
+          minScore: 3,
+        },
       };
-      const keywords = topicKeywordsMap[slug];
-      if (!keywords) return res.json([]);
+
+      const topicConfig = topicKeywordsMap[slug];
+      if (!topicConfig) return res.json([]);
+      const { primary, secondary, minScore } = topicConfig;
+      const allKeywords = [...primary, ...secondary];
 
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
       try {
-        const conditions = keywords.map((_, i) => {
+        const conditions = allKeywords.map((_, i) => {
           const p = `$${i + 1}`;
           return `(episode_title ILIKE ${p} OR what_happened ILIKE ${p} OR tldl ILIKE ${p} OR key_insights::text ILIKE ${p})`;
         }).join(" OR ");
-        const params = keywords.map(k => `%${k}%`);
+        const params = allKeywords.map(k => `%${k}%`);
         const { rows } = await client.query(
           `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights
            FROM landing_page_recaps
            WHERE ${conditions}
            ORDER BY publish_date DESC
-           LIMIT 8`,
+           LIMIT 100`,
           params
         );
-        res.json(rows);
+
+        function scoreEpisode(ep: any): number {
+          let score = 0;
+          const title = (ep.episode_title || "").toLowerCase();
+          const body = `${ep.what_happened || ""} ${ep.tldl || ""} ${ep.key_insights || ""}`.toLowerCase();
+
+          for (const kw of primary) {
+            const kwLower = kw.toLowerCase();
+            if (title.includes(kwLower)) score += 5;
+            const bodyMatches = body.split(kwLower).length - 1;
+            score += Math.min(bodyMatches, 5) * 2;
+          }
+
+          for (const kw of secondary) {
+            const kwLower = kw.toLowerCase();
+            if (kw.length <= 3) {
+              const regex = new RegExp(`\\b${kw}\\b`, "gi");
+              if (regex.test(title)) score += 3;
+              const bodyHits = (body.match(new RegExp(`\\b${kw.toLowerCase()}\\b`, "gi")) || []).length;
+              score += Math.min(bodyHits, 4);
+            } else {
+              if (title.includes(kwLower)) score += 3;
+              const bodyMatches = body.split(kwLower).length - 1;
+              score += Math.min(bodyMatches, 4);
+            }
+          }
+
+          return score;
+        }
+
+        const scored = rows
+          .map(ep => ({ ...ep, _score: scoreEpisode(ep) }))
+          .filter(ep => ep._score >= minScore)
+          .sort((a, b) => b._score - a._score || new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
+          .slice(0, 8)
+          .map(({ _score, ...ep }) => ep);
+
+        res.json(scored);
       } finally {
         client.release();
       }
