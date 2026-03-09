@@ -170,7 +170,7 @@ async function buildSitemap(): Promise<string> {
     console.error("[Sitemap] Error fetching recaps:", err);
   }
 
-  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang", "alex-hormozi", "gary-vaynerchuk", "codie-sanchez", "sahil-bloom", "andrew-huberman", "seth-godin", "chris-do", "scott-galloway", "simon-sinek", "adam-grant", "ramit-sethi", "ryan-holiday", "tim-ferriss", "mark-cuban", "patrick-bet-david", "james-clear", "jenna-kutcher", "amy-porterfield", "john-lee-dumas", "sam-parr", "shaan-puri", "justin-welsh", "hala-taha", "noah-kagan"];
+  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang", "alex-hormozi", "gary-vaynerchuk", "codie-sanchez", "sahil-bloom", "andrew-huberman", "seth-godin", "chris-do", "scott-galloway", "simon-sinek", "adam-grant", "ramit-sethi", "ryan-holiday", "tim-ferriss", "mark-cuban", "patrick-bet-david", "james-clear", "jenna-kutcher", "amy-porterfield", "john-lee-dumas", "sam-parr", "shaan-puri", "justin-welsh", "hala-taha", "noah-kagan", "aaron-levie", "matthew-prince", "luis-von-ahn", "alex-karp", "brian-chesky", "daniel-ek", "brian-armstrong", "george-kurtz", "ariane-gorin", "jeremy-allaire", "dharmesh-shah", "jason-robins", "mark-zuckerberg", "satya-nadella", "tim-cook", "jeff-bezos", "reed-hastings", "marc-benioff", "ken-griffin", "martina-cheung", "patrick-smith", "sridhar-ramaswamy", "brian-niccol"];
   for (const pSlug of PEOPLE_SLUGS) {
     xml += `  <url>\n`;
     xml += `    <loc>${DOMAIN}/people/${pSlug}</loc>\n`;
@@ -180,7 +180,7 @@ async function buildSitemap(): Promise<string> {
     xml += `  </url>\n`;
   }
 
-  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex"];
+  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex", "box", "cloudflare", "duolingo", "palantir", "airbnb", "spotify", "coinbase", "crowdstrike", "expedia", "circle", "hubspot", "draftkings", "netflix", "salesforce", "citadel-securities", "sp-global", "axon-enterprise", "snowflake", "starbucks"];
   for (const cSlug of COMPANY_SLUGS) {
     xml += `  <url>\n`;
     xml += `    <loc>${DOMAIN}/companies/${cSlug}</loc>\n`;
@@ -702,6 +702,29 @@ export async function registerRoutes(
     { slug: "justin-welsh", name: "Justin Welsh", title: "Solopreneur & LinkedIn Creator", searchTerms: ["Justin Welsh"], hostedSlugs: [] },
     { slug: "hala-taha", name: "Hala Taha", title: "Host of Young and Profiting Podcast", searchTerms: ["Hala Taha"], hostedSlugs: ["youngandprofiting"] },
     { slug: "noah-kagan", name: "Noah Kagan", title: "CEO of AppSumo", searchTerms: ["Noah Kagan"], hostedSlugs: [] },
+    { slug: "aaron-levie", name: "Aaron Levie", title: "CEO of Box", searchTerms: ["Aaron Levie", "Levie"], hostedSlugs: [] },
+    { slug: "matthew-prince", name: "Matthew Prince", title: "CEO of Cloudflare", searchTerms: ["Matthew Prince"], hostedSlugs: [] },
+    { slug: "luis-von-ahn", name: "Luis von Ahn", title: "CEO of Duolingo", searchTerms: ["Luis von Ahn"], hostedSlugs: [] },
+    { slug: "alex-karp", name: "Alex Karp", title: "CEO of Palantir", searchTerms: ["Alex Karp"], hostedSlugs: [] },
+    { slug: "brian-chesky", name: "Brian Chesky", title: "CEO of Airbnb", searchTerms: ["Brian Chesky"], hostedSlugs: [] },
+    { slug: "daniel-ek", name: "Daniel Ek", title: "CEO of Spotify", searchTerms: ["Daniel Ek"], hostedSlugs: [] },
+    { slug: "brian-armstrong", name: "Brian Armstrong", title: "CEO of Coinbase", searchTerms: ["Brian Armstrong"], hostedSlugs: [] },
+    { slug: "george-kurtz", name: "George Kurtz", title: "CEO of CrowdStrike", searchTerms: ["George Kurtz"], hostedSlugs: [] },
+    { slug: "ariane-gorin", name: "Ariane Gorin", title: "CEO of Expedia Group", searchTerms: ["Ariane Gorin"], hostedSlugs: [] },
+    { slug: "jeremy-allaire", name: "Jeremy Allaire", title: "CEO of Circle", searchTerms: ["Jeremy Allaire"], hostedSlugs: [] },
+    { slug: "dharmesh-shah", name: "Dharmesh Shah", title: "Co-founder & CTO of HubSpot", searchTerms: ["Dharmesh Shah"], hostedSlugs: [] },
+    { slug: "jason-robins", name: "Jason Robins", title: "CEO of DraftKings", searchTerms: ["Jason Robins"], hostedSlugs: [] },
+    { slug: "mark-zuckerberg", name: "Mark Zuckerberg", title: "CEO of Meta", searchTerms: ["Mark Zuckerberg", "Zuckerberg"], hostedSlugs: [] },
+    { slug: "satya-nadella", name: "Satya Nadella", title: "CEO of Microsoft", searchTerms: ["Satya Nadella", "Nadella"], hostedSlugs: [] },
+    { slug: "tim-cook", name: "Tim Cook", title: "CEO of Apple", searchTerms: ["Tim Cook"], hostedSlugs: [] },
+    { slug: "jeff-bezos", name: "Jeff Bezos", title: "Founder of Amazon & Blue Origin", searchTerms: ["Jeff Bezos", "Bezos"], hostedSlugs: [] },
+    { slug: "reed-hastings", name: "Reed Hastings", title: "Co-founder of Netflix", searchTerms: ["Reed Hastings"], hostedSlugs: [] },
+    { slug: "marc-benioff", name: "Marc Benioff", title: "CEO of Salesforce", searchTerms: ["Marc Benioff", "Benioff"], hostedSlugs: [] },
+    { slug: "ken-griffin", name: "Ken Griffin", title: "Founder of Citadel", searchTerms: ["Ken Griffin"], hostedSlugs: [] },
+    { slug: "martina-cheung", name: "Martina Cheung", title: "CEO of S&P Global", searchTerms: ["Martina Cheung"], hostedSlugs: [] },
+    { slug: "patrick-smith", name: "Patrick Smith", title: "CEO of Axon Enterprise", searchTerms: ["Patrick Smith", "Rick Smith"], hostedSlugs: [] },
+    { slug: "sridhar-ramaswamy", name: "Sridhar Ramaswamy", title: "CEO of Snowflake", searchTerms: ["Sridhar Ramaswamy"], hostedSlugs: [] },
+    { slug: "brian-niccol", name: "Brian Niccol", title: "CEO of Starbucks", searchTerms: ["Brian Niccol"], hostedSlugs: [] },
   ];
 
   const ENTITY_COMPANIES = [
@@ -715,6 +738,25 @@ export async function registerRoutes(
     { slug: "anthropic", name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
     { slug: "meta", name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
     { slug: "spacex", name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
+    { slug: "box", name: "Box", description: "Cloud content management and file sharing platform", searchTerms: ["Box Inc", "Box.com"] },
+    { slug: "cloudflare", name: "Cloudflare", description: "Web infrastructure and security company", searchTerms: ["Cloudflare"] },
+    { slug: "duolingo", name: "Duolingo", description: "Language learning platform and education technology company", searchTerms: ["Duolingo"] },
+    { slug: "palantir", name: "Palantir", description: "Data analytics and AI platform for government and enterprise", searchTerms: ["Palantir"] },
+    { slug: "airbnb", name: "Airbnb", description: "Online marketplace for lodging and travel experiences", searchTerms: ["Airbnb"] },
+    { slug: "spotify", name: "Spotify", description: "Audio streaming and media services provider", searchTerms: ["Spotify"] },
+    { slug: "coinbase", name: "Coinbase", description: "Cryptocurrency exchange and blockchain platform", searchTerms: ["Coinbase"] },
+    { slug: "crowdstrike", name: "CrowdStrike", description: "Cybersecurity technology company", searchTerms: ["CrowdStrike"] },
+    { slug: "expedia", name: "Expedia", description: "Online travel technology company", searchTerms: ["Expedia"] },
+    { slug: "circle", name: "Circle", description: "Digital currency and payments technology company", searchTerms: ["Circle Internet", "USDC"] },
+    { slug: "hubspot", name: "HubSpot", description: "CRM and inbound marketing platform", searchTerms: ["HubSpot"] },
+    { slug: "draftkings", name: "DraftKings", description: "Digital sports entertainment and gaming company", searchTerms: ["DraftKings"] },
+    { slug: "netflix", name: "Netflix", description: "Streaming entertainment service", searchTerms: ["Netflix"] },
+    { slug: "salesforce", name: "Salesforce", description: "Cloud-based CRM and enterprise software company", searchTerms: ["Salesforce"] },
+    { slug: "citadel-securities", name: "Citadel Securities", description: "Global market maker and financial services firm", searchTerms: ["Citadel Securities", "Citadel"] },
+    { slug: "sp-global", name: "S&P Global", description: "Financial data, analytics, and credit ratings company", searchTerms: ["S&P Global", "S&P 500"] },
+    { slug: "axon-enterprise", name: "Axon Enterprise", description: "Public safety technology company (TASER, body cameras)", searchTerms: ["Axon Enterprise", "TASER"] },
+    { slug: "snowflake", name: "Snowflake", description: "Cloud data platform and analytics company", searchTerms: ["Snowflake"] },
+    { slug: "starbucks", name: "Starbucks", description: "Global coffeehouse chain and coffee company", searchTerms: ["Starbucks"] },
   ];
 
   function extractMentionContext(fields: string[], searchTerms: string[]): string {
