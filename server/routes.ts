@@ -863,6 +863,126 @@ Only include actual paid sponsors/advertisers — not casual brand mentions. Loo
     }
   });
 
+  const guestsInFlight = new Map<string, Promise<any>>();
+  app.get("/api/podcasts/:slug/:episodeSlug/guests", async (req, res) => {
+    try {
+      const { slug, episodeSlug } = req.params;
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+      if (!recap) return res.status(404).json({ error: "Recap not found" });
+
+      if (recap.guests) {
+        try {
+          return res.json({ guests: JSON.parse(recap.guests) });
+        } catch {
+          return res.json({ guests: [] });
+        }
+      }
+
+      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
+      if (!segments || segments.length === 0) {
+        const emptyResult: any[] = [];
+        const { db } = await import("./db");
+        const { eq, and } = await import("drizzle-orm");
+        const { landingPageRecaps } = await import("@shared/schema");
+        await db.update(landingPageRecaps)
+          .set({ guests: JSON.stringify(emptyResult) })
+          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
+        return res.json({ guests: [] });
+      }
+
+      const flightKey = `${slug}/${episodeSlug}`;
+      if (guestsInFlight.has(flightKey)) {
+        const cached = await guestsInFlight.get(flightKey);
+        return res.json({ guests: cached });
+      }
+
+      const extractionPromise = (async () => {
+        const transcriptText = segments.map(s => {
+          const speaker = s.speakerName ? `${s.speakerName}: ` : "";
+          return `${speaker}${s.text}`;
+        }).join("\n").slice(0, 20000);
+
+        const { openai } = await import("./replit_integrations/image/client");
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert at identifying podcast guests and providing detailed biographical information. Analyze the transcript to identify any GUESTS on this podcast episode. Guests are people who are interviewed, join as special visitors, or are brought on to discuss topics — NOT the regular hosts of the show.
+
+For each guest you identify, provide:
+- "name": Full name of the guest
+- "title": Their current professional title/role (e.g. "CEO of Tesla", "Professor of Economics at MIT", "New York Times Bestselling Author")
+- "bio": A detailed 4-6 sentence biography covering their career, notable achievements, background, and why they're relevant. Use your knowledge to write a comprehensive bio — not just what's mentioned in the transcript.
+- "twitter": Their Twitter/X handle (e.g. "@elonmusk") — use your knowledge, or null if unknown
+- "linkedin": Their LinkedIn profile URL (full URL) — use your knowledge, or null if unknown
+- "instagram": Their Instagram handle (e.g. "@elonmusk") — use your knowledge, or null if unknown
+- "website": Their personal or professional website URL — use your knowledge, or null if unknown
+- "photoUrl": null (we'll handle photos separately)
+- "topicsDiscussed": An array of 3-5 specific topics this guest discussed in the episode, based on the transcript content
+
+Return a JSON object: {"guests": [...]}
+If there are no guests (just regular hosts chatting), return {"guests": []}.
+Be thorough in identifying guests — anyone who is introduced, interviewed, or joins the conversation as a visitor counts as a guest.`
+            },
+            {
+              role: "user",
+              content: `Podcast: "${recap.podcastName}"\nEpisode: "${recap.episodeTitle}"\nHosts listed: ${recap.hosts || "unknown"}\n\nTranscript:\n${transcriptText}`
+            }
+          ],
+          max_tokens: 4000,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        });
+
+        const content = completion.choices[0]?.message?.content || '{"guests":[]}';
+        let parsed;
+        try {
+          parsed = JSON.parse(content);
+        } catch {
+          parsed = { guests: [] };
+        }
+
+        const rawGuests = Array.isArray(parsed.guests) ? parsed.guests : [];
+        const guests = rawGuests
+          .filter((g: any) => g && typeof g.name === "string" && g.name.trim())
+          .map((g: any) => ({
+            name: String(g.name).trim(),
+            title: typeof g.title === "string" ? g.title.trim() : "",
+            bio: typeof g.bio === "string" ? g.bio.trim() : "",
+            twitter: typeof g.twitter === "string" && g.twitter.trim() ? g.twitter.trim() : null,
+            linkedin: typeof g.linkedin === "string" && g.linkedin.trim() ? g.linkedin.trim() : null,
+            instagram: typeof g.instagram === "string" && g.instagram.trim() ? g.instagram.trim() : null,
+            website: typeof g.website === "string" && g.website.trim() ? g.website.trim() : null,
+            photoUrl: typeof g.photoUrl === "string" && g.photoUrl.trim() ? g.photoUrl.trim() : null,
+            topicsDiscussed: Array.isArray(g.topicsDiscussed)
+              ? g.topicsDiscussed.filter((t: any) => typeof t === "string").map((t: any) => String(t).trim())
+              : [],
+          }));
+
+        const { db } = await import("./db");
+        const { eq, and } = await import("drizzle-orm");
+        const { landingPageRecaps } = await import("@shared/schema");
+        await db.update(landingPageRecaps)
+          .set({ guests: JSON.stringify(guests) })
+          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
+
+        return guests;
+      })();
+
+      guestsInFlight.set(flightKey, extractionPromise);
+      try {
+        const guests = await extractionPromise;
+        res.json({ guests });
+      } finally {
+        guestsInFlight.delete(flightKey);
+      }
+    } catch (err) {
+      console.error("[Guests] Error:", err);
+      res.status(500).json({ error: "Failed to extract guests" });
+    }
+  });
+
   const topQRateLimit = new Map<string, number[]>();
   const topQInFlight = new Map<string, Promise<any>>();
   app.get("/api/podcasts/:slug/top-questions", async (req, res) => {

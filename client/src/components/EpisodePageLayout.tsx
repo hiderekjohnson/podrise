@@ -24,7 +24,7 @@ interface EpisodePageLayoutProps {
   podcastSlug: string;
   episodeSlug: string;
   podcastConfig: PodcastLandingConfig;
-  activeTab: "recap" | "transcript";
+  activeTab: "recap" | "transcript" | "guests";
   allRecaps?: any[];
   children: React.ReactNode;
   tabSearchOnKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -135,6 +135,7 @@ export function EpisodePageLayout({
 
   const recapUrl = `/podcasts/${podcastSlug}/${episodeSlug}`;
   const transcriptUrl = `/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
+  const guestsUrl = `/podcasts/${podcastSlug}/${episodeSlug}/guests`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -287,6 +288,26 @@ export function EpisodePageLayout({
                 >
                   <FileText className="w-4 h-4" />
                   Full Transcript
+                </span>
+              </Link>
+            )}
+
+            {activeTab === "guests" ? (
+              <span
+                className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+                data-testid="tab-guests-active"
+              >
+                <Users className="w-4 h-4" />
+                Guests
+              </span>
+            ) : (
+              <Link href={guestsUrl}>
+                <span
+                  className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
+                  data-testid="tab-guests-link"
+                >
+                  <Users className="w-4 h-4" />
+                  Guests
                 </span>
               </Link>
             )}

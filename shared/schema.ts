@@ -176,6 +176,7 @@ export const landingPageRecaps = pgTable("landing_page_recaps", {
   keyTopics: text("key_topics").array(),
   topQuestions: text("top_questions"),
   sponsors: text("sponsors"),
+  guests: text("guests"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
