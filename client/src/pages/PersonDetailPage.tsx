@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe } from "lucide-react";
+import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users } from "lucide-react";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { getPersonBySlug } from "@/data/entityDirectoryData";
+import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface EpisodeEntry {
@@ -295,6 +295,76 @@ export default function PersonDetailPage() {
               </div>
 
               <EpisodeTabs person={person} />
+
+              {personData?.relatedCompanies && personData.relatedCompanies.length > 0 && (
+                <section className="mb-10">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-related-companies">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    Related Companies
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {personData.relatedCompanies.map((companySlug) => {
+                      const c = getCompanyBySlug(companySlug);
+                      if (!c) return null;
+                      return (
+                        <div
+                          key={companySlug}
+                          className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+                          onClick={() => navigate(`/companies/${companySlug}`)}
+                          data-testid={`card-related-company-${companySlug}`}
+                        >
+                          <img
+                            src={c.logoUrl}
+                            alt={c.name}
+                            className="w-10 h-10 rounded-lg object-contain bg-white border border-border p-1 flex-shrink-0"
+                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&size=40&background=1a8cff&color=fff&bold=true`; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{c.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{c.description}</p>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors flex-shrink-0" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {personData?.similarPeople && personData.similarPeople.length > 0 && (
+                <section className="mb-10">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-similar-people">
+                    <Users className="w-5 h-5 text-primary" />
+                    Similar People
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {personData.similarPeople.map((personSlug) => {
+                      const p = PEOPLE_DIRECTORY.find(x => x.slug === personSlug);
+                      if (!p) return null;
+                      return (
+                        <div
+                          key={personSlug}
+                          className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+                          onClick={() => navigate(`/people/${personSlug}`)}
+                          data-testid={`card-similar-person-${personSlug}`}
+                        >
+                          <img
+                            src={p.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=40&background=1a8cff&color=fff&bold=true`}
+                            alt={p.name}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-border flex-shrink-0"
+                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=40&background=1a8cff&color=fff&bold=true`; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{p.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{p.title}</p>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors flex-shrink-0" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
             </motion.div>
           ) : (
             <div className="text-center py-16 text-muted-foreground">

@@ -12,6 +12,8 @@ export interface PersonEntry {
     instagram?: string;
     website?: string;
   };
+  relatedCompanies?: string[];
+  similarPeople?: string[];
 }
 
 export interface CompanyEntry {
@@ -30,6 +32,8 @@ export interface CompanyEntry {
     industry: string;
     website: string;
   };
+  relatedPeople?: string[];
+  similarCompanies?: string[];
 }
 
 export const PEOPLE_DIRECTORY: PersonEntry[] = [
@@ -45,6 +49,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/elonmusk",
       website: "https://tesla.com",
     },
+    relatedCompanies: ["tesla","spacex"],
+    similarPeople: ["jensen-huang","jeff-bezos","sam-altman","mark-zuckerberg"],
   },
   {
     slug: "sam-altman",
@@ -59,6 +65,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/samaltman",
       website: "https://openai.com",
     },
+    relatedCompanies: ["openai"],
+    similarPeople: ["elon-musk","jensen-huang","satya-nadella","marc-andreessen"],
   },
   {
     slug: "joe-rogan",
@@ -73,6 +81,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/joerogan",
       website: "https://joerogan.com",
     },
+    relatedCompanies: ["spotify"],
+    similarPeople: ["lex-fridman","tim-ferriss","patrick-bet-david"],
   },
   {
     slug: "lex-fridman",
@@ -87,6 +97,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/lexfridman",
       website: "https://lexfridman.com",
     },
+    similarPeople: ["joe-rogan","andrew-huberman","tim-ferriss"],
   },
   {
     slug: "naval-ravikant",
@@ -100,6 +111,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/naval",
       website: "https://nav.al",
     },
+    similarPeople: ["sahil-bloom","chamath-palihapitiya","peter-thiel","marc-andreessen"],
   },
   {
     slug: "peter-thiel",
@@ -113,6 +125,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/peterthiel",
       website: "https://thielfoundation.org",
     },
+    relatedCompanies: ["palantir"],
+    similarPeople: ["marc-andreessen","chamath-palihapitiya","naval-ravikant"],
   },
   {
     slug: "chamath-palihapitiya",
@@ -127,6 +141,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/chamath",
       website: "https://socialcapital.com",
     },
+    similarPeople: ["jason-calacanis","peter-thiel","marc-andreessen","naval-ravikant"],
   },
   {
     slug: "jason-calacanis",
@@ -141,6 +156,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/jasoncalacanis",
       website: "https://calacanis.com",
     },
+    similarPeople: ["chamath-palihapitiya","sam-parr","shaan-puri"],
   },
   {
     slug: "marc-andreessen",
@@ -154,6 +170,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/pmarca",
       website: "https://a16z.com",
     },
+    similarPeople: ["peter-thiel","chamath-palihapitiya","sam-altman","naval-ravikant"],
   },
   {
     slug: "jensen-huang",
@@ -167,6 +184,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/nvidia",
       website: "https://nvidia.com",
     },
+    relatedCompanies: ["nvidia"],
+    similarPeople: ["elon-musk","sam-altman","satya-nadella","tim-cook"],
   },
   {
     slug: "alex-hormozi",
@@ -181,6 +200,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/hormozi",
       website: "https://acquisition.com",
     },
+    similarPeople: ["gary-vaynerchuk","codie-sanchez","patrick-bet-david","sahil-bloom"],
   },
   {
     slug: "gary-vaynerchuk",
@@ -195,6 +215,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/garyvee",
       website: "https://garyvaynerchuk.com",
     },
+    similarPeople: ["alex-hormozi","codie-sanchez","patrick-bet-david","chris-do"],
   },
   {
     slug: "codie-sanchez",
@@ -209,6 +230,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/codiesanchez",
       website: "https://contrarianthinking.co",
     },
+    similarPeople: ["alex-hormozi","gary-vaynerchuk","sahil-bloom","jenna-kutcher"],
   },
   {
     slug: "sahil-bloom",
@@ -223,6 +245,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/sahilbloom",
       website: "https://sahilbloom.com",
     },
+    similarPeople: ["naval-ravikant","codie-sanchez","james-clear","justin-welsh"],
   },
   {
     slug: "andrew-huberman",
@@ -237,6 +260,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/hubermanlab",
       website: "https://hubermanlab.com",
     },
+    similarPeople: ["lex-fridman","tim-ferriss","adam-grant"],
   },
   {
     slug: "seth-godin",
@@ -250,6 +274,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/ThisIsSethsBlog",
       website: "https://seths.blog",
     },
+    similarPeople: ["simon-sinek","adam-grant","james-clear","ryan-holiday"],
   },
   {
     slug: "chris-do",
@@ -264,6 +289,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/thechrisdo",
       website: "https://thefutur.com",
     },
+    similarPeople: ["gary-vaynerchuk","seth-godin","simon-sinek"],
   },
   {
     slug: "scott-galloway",
@@ -278,6 +304,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/profgalloway",
       website: "https://profgalloway.com",
     },
+    similarPeople: ["mark-cuban","chamath-palihapitiya","simon-sinek"],
   },
   {
     slug: "simon-sinek",
@@ -292,6 +319,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/simonsinek",
       website: "https://simonsinek.com",
     },
+    similarPeople: ["seth-godin","adam-grant","scott-galloway","james-clear"],
   },
   {
     slug: "adam-grant",
@@ -306,6 +334,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/adammgrant",
       website: "https://adamgrant.net",
     },
+    similarPeople: ["simon-sinek","seth-godin","andrew-huberman","james-clear"],
   },
   {
     slug: "ramit-sethi",
@@ -320,6 +349,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/ramit",
       website: "https://iwillteachyoutoberich.com",
     },
+    similarPeople: ["sahil-bloom","noah-kagan","tim-ferriss"],
   },
   {
     slug: "ryan-holiday",
@@ -334,6 +364,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/ryanholiday",
       website: "https://ryanholiday.net",
     },
+    similarPeople: ["seth-godin","james-clear","tim-ferriss"],
   },
   {
     slug: "tim-ferriss",
@@ -348,6 +379,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/timferriss",
       website: "https://tim.blog",
     },
+    similarPeople: ["joe-rogan","lex-fridman","andrew-huberman","ryan-holiday"],
   },
   {
     slug: "mark-cuban",
@@ -362,6 +394,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/mcuban",
       website: "https://markcuban.com",
     },
+    similarPeople: ["chamath-palihapitiya","scott-galloway","jason-calacanis"],
   },
   {
     slug: "patrick-bet-david",
@@ -376,6 +409,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/patrickbetdavid",
       website: "https://valuetainment.com",
     },
+    similarPeople: ["alex-hormozi","gary-vaynerchuk","joe-rogan"],
   },
   {
     slug: "james-clear",
@@ -390,6 +424,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/jamesclear",
       website: "https://jamesclear.com",
     },
+    similarPeople: ["seth-godin","simon-sinek","ryan-holiday","adam-grant"],
   },
   {
     slug: "jenna-kutcher",
@@ -404,6 +439,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/jennakutcher",
       website: "https://jennakutcher.com",
     },
+    similarPeople: ["amy-porterfield","codie-sanchez","hala-taha"],
   },
   {
     slug: "amy-porterfield",
@@ -418,6 +454,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/amyporterfield",
       website: "https://amyporterfield.com",
     },
+    similarPeople: ["jenna-kutcher","hala-taha","john-lee-dumas"],
   },
   {
     slug: "john-lee-dumas",
@@ -432,6 +469,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/johnleedumas",
       website: "https://eofire.com",
     },
+    similarPeople: ["amy-porterfield","hala-taha","noah-kagan"],
   },
   {
     slug: "sam-parr",
@@ -446,6 +484,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/thesamparr",
       website: "https://samparr.com",
     },
+    relatedCompanies: ["hubspot"],
+    similarPeople: ["shaan-puri","jason-calacanis","noah-kagan"],
   },
   {
     slug: "shaan-puri",
@@ -459,6 +499,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/ShaanVP",
       website: "https://shaanpuri.com",
     },
+    relatedCompanies: ["hubspot"],
+    similarPeople: ["sam-parr","jason-calacanis","noah-kagan"],
   },
   {
     slug: "justin-welsh",
@@ -473,6 +515,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/justinwelsh",
       website: "https://justinwelsh.me",
     },
+    similarPeople: ["sahil-bloom","codie-sanchez","chris-do"],
   },
   {
     slug: "hala-taha",
@@ -487,6 +530,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/yapwithhala",
       website: "https://youngandprofiting.com",
     },
+    similarPeople: ["jenna-kutcher","amy-porterfield","john-lee-dumas"],
   },
   {
     slug: "noah-kagan",
@@ -501,6 +545,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/noahkagan",
       website: "https://noahkagan.com",
     },
+    similarPeople: ["sam-parr","shaan-puri","ramit-sethi"],
   },
   {
     slug: "aaron-levie",
@@ -515,6 +560,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/aaronlevie",
       website: "https://box.com",
     },
+    relatedCompanies: ["box"],
+    similarPeople: ["dharmesh-shah","matthew-prince","satya-nadella"],
   },
   {
     slug: "matthew-prince",
@@ -529,6 +576,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/mprince",
       website: "https://cloudflare.com",
     },
+    relatedCompanies: ["cloudflare"],
+    similarPeople: ["aaron-levie","george-kurtz","sridhar-ramaswamy"],
   },
   {
     slug: "luis-von-ahn",
@@ -542,6 +591,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/LuisvonAhn",
       website: "https://duolingo.com",
     },
+    relatedCompanies: ["duolingo"],
+    similarPeople: ["dharmesh-shah","brian-chesky","daniel-ek"],
   },
   {
     slug: "alex-karp",
@@ -555,6 +606,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/PalantirTech",
       website: "https://palantir.com",
     },
+    relatedCompanies: ["palantir"],
+    similarPeople: ["peter-thiel","george-kurtz","ken-griffin"],
   },
   {
     slug: "brian-chesky",
@@ -569,6 +622,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/bchesky",
       website: "https://airbnb.com",
     },
+    relatedCompanies: ["airbnb"],
+    similarPeople: ["daniel-ek","reed-hastings","brian-armstrong"],
   },
   {
     slug: "daniel-ek",
@@ -582,6 +637,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/eldsjal",
       website: "https://spotify.com",
     },
+    relatedCompanies: ["spotify"],
+    similarPeople: ["brian-chesky","reed-hastings","brian-armstrong"],
   },
   {
     slug: "brian-armstrong",
@@ -595,6 +652,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/brian_armstrong",
       website: "https://coinbase.com",
     },
+    relatedCompanies: ["coinbase"],
+    similarPeople: ["jeremy-allaire","brian-chesky","daniel-ek"],
   },
   {
     slug: "george-kurtz",
@@ -609,6 +668,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/georgekurtz",
       website: "https://crowdstrike.com",
     },
+    relatedCompanies: ["crowdstrike"],
+    similarPeople: ["matthew-prince","alex-karp","sridhar-ramaswamy"],
   },
   {
     slug: "ariane-gorin",
@@ -622,6 +683,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/arianegorin",
       website: "https://expediagroup.com",
     },
+    relatedCompanies: ["expedia"],
+    similarPeople: ["brian-chesky","brian-niccol","martina-cheung"],
   },
   {
     slug: "jeremy-allaire",
@@ -635,6 +698,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/jerallaire",
       website: "https://circle.com",
     },
+    relatedCompanies: ["circle"],
+    similarPeople: ["brian-armstrong","jason-robins"],
   },
   {
     slug: "dharmesh-shah",
@@ -649,6 +714,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/dharmesh",
       website: "https://dharmesh.com",
     },
+    relatedCompanies: ["hubspot"],
+    similarPeople: ["aaron-levie","luis-von-ahn","marc-benioff"],
   },
   {
     slug: "jason-robins",
@@ -662,6 +729,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/DraftKings",
       website: "https://draftkings.com",
     },
+    relatedCompanies: ["draftkings"],
+    similarPeople: ["jeremy-allaire","brian-armstrong"],
   },
   {
     slug: "mark-zuckerberg",
@@ -676,6 +745,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/zuck",
       website: "https://meta.com",
     },
+    relatedCompanies: ["meta"],
+    similarPeople: ["elon-musk","tim-cook","satya-nadella","jeff-bezos"],
   },
   {
     slug: "satya-nadella",
@@ -690,6 +761,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/satyanadella",
       website: "https://microsoft.com",
     },
+    relatedCompanies: ["microsoft"],
+    similarPeople: ["tim-cook","mark-zuckerberg","jensen-huang","sam-altman"],
   },
   {
     slug: "tim-cook",
@@ -703,6 +776,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/tim_cook",
       website: "https://apple.com",
     },
+    relatedCompanies: ["apple"],
+    similarPeople: ["satya-nadella","mark-zuckerberg","jeff-bezos","jensen-huang"],
   },
   {
     slug: "jeff-bezos",
@@ -717,6 +792,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       instagram: "https://instagram.com/jeffbezos",
       website: "https://amazon.com",
     },
+    relatedCompanies: ["amazon"],
+    similarPeople: ["elon-musk","mark-zuckerberg","tim-cook","reed-hastings"],
   },
   {
     slug: "reed-hastings",
@@ -730,6 +807,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/reedhastings",
       website: "https://netflix.com",
     },
+    relatedCompanies: ["netflix"],
+    similarPeople: ["daniel-ek","brian-chesky","jeff-bezos"],
   },
   {
     slug: "marc-benioff",
@@ -743,6 +822,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/Benioff",
       website: "https://salesforce.com",
     },
+    relatedCompanies: ["salesforce"],
+    similarPeople: ["dharmesh-shah","satya-nadella","aaron-levie"],
   },
   {
     slug: "ken-griffin",
@@ -755,6 +836,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     socialLinks: {
       website: "https://citadel.com",
     },
+    relatedCompanies: ["citadel-securities"],
+    similarPeople: ["alex-karp","mark-cuban"],
   },
   {
     slug: "martina-cheung",
@@ -768,6 +851,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/martinacheung",
       website: "https://spglobal.com",
     },
+    relatedCompanies: ["sp-global"],
+    similarPeople: ["ariane-gorin","brian-niccol"],
   },
   {
     slug: "patrick-smith",
@@ -781,6 +866,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       twitter: "https://x.com/axaborinc",
       website: "https://axon.com",
     },
+    relatedCompanies: ["axon-enterprise"],
+    similarPeople: ["george-kurtz","alex-karp"],
   },
   {
     slug: "sridhar-ramaswamy",
@@ -795,6 +882,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       linkedin: "https://linkedin.com/in/sridharramaswamy",
       website: "https://snowflake.com",
     },
+    relatedCompanies: ["snowflake"],
+    similarPeople: ["matthew-prince","george-kurtz","aaron-levie"],
   },
   {
     slug: "brian-niccol",
@@ -807,6 +896,8 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     socialLinks: {
       website: "https://starbucks.com",
     },
+    relatedCompanies: ["starbucks"],
+    similarPeople: ["ariane-gorin","reed-hastings","martina-cheung"],
   },
 ];
 
@@ -827,6 +918,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Artificial Intelligence",
       website: "https://openai.com",
     },
+    relatedPeople: ["sam-altman"],
+    similarCompanies: ["anthropic","google","microsoft","nvidia"],
   },
   {
     slug: "tesla",
@@ -844,6 +937,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Electric Vehicles & Clean Energy",
       website: "https://tesla.com",
     },
+    relatedPeople: ["elon-musk"],
+    similarCompanies: ["spacex","nvidia","apple"],
   },
   {
     slug: "nvidia",
@@ -861,6 +956,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Semiconductors & AI Computing",
       website: "https://nvidia.com",
     },
+    relatedPeople: ["jensen-huang"],
+    similarCompanies: ["openai","tesla","microsoft","anthropic"],
   },
   {
     slug: "google",
@@ -878,6 +975,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Technology & Internet Services",
       website: "https://google.com",
     },
+    similarCompanies: ["microsoft","openai","meta","apple","amazon"],
   },
   {
     slug: "microsoft",
@@ -895,6 +993,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Technology & Cloud Computing",
       website: "https://microsoft.com",
     },
+    relatedPeople: ["satya-nadella"],
+    similarCompanies: ["google","openai","apple","amazon"],
   },
   {
     slug: "apple",
@@ -912,6 +1012,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Consumer Electronics & Software",
       website: "https://apple.com",
     },
+    relatedPeople: ["tim-cook"],
+    similarCompanies: ["microsoft","google","amazon","tesla"],
   },
   {
     slug: "amazon",
@@ -929,6 +1031,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "E-commerce & Cloud Computing",
       website: "https://amazon.com",
     },
+    relatedPeople: ["jeff-bezos"],
+    similarCompanies: ["microsoft","google","apple","shopify"],
   },
   {
     slug: "anthropic",
@@ -946,6 +1050,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Artificial Intelligence & AI Safety",
       website: "https://anthropic.com",
     },
+    similarCompanies: ["openai","google","nvidia","microsoft"],
   },
   {
     slug: "meta",
@@ -963,6 +1068,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Social Media & Technology",
       website: "https://meta.com",
     },
+    relatedPeople: ["mark-zuckerberg"],
+    similarCompanies: ["google","apple","microsoft","spotify"],
   },
   {
     slug: "spacex",
@@ -980,6 +1087,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Aerospace & Space Transportation",
       website: "https://spacex.com",
     },
+    relatedPeople: ["elon-musk"],
+    similarCompanies: ["tesla","palantir"],
   },
   {
     slug: "box",
@@ -997,6 +1106,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Cloud Content Management",
       website: "https://box.com",
     },
+    relatedPeople: ["aaron-levie"],
+    similarCompanies: ["hubspot","salesforce","cloudflare"],
   },
   {
     slug: "cloudflare",
@@ -1014,6 +1125,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Web Infrastructure & Cybersecurity",
       website: "https://cloudflare.com",
     },
+    relatedPeople: ["matthew-prince"],
+    similarCompanies: ["crowdstrike","snowflake","box"],
   },
   {
     slug: "duolingo",
@@ -1031,6 +1144,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Education Technology",
       website: "https://duolingo.com",
     },
+    relatedPeople: ["luis-von-ahn"],
+    similarCompanies: ["hubspot","spotify","shopify"],
   },
   {
     slug: "palantir",
@@ -1048,6 +1163,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Data Analytics & AI",
       website: "https://palantir.com",
     },
+    relatedPeople: ["alex-karp","peter-thiel"],
+    similarCompanies: ["crowdstrike","snowflake","spacex"],
   },
   {
     slug: "airbnb",
@@ -1065,6 +1182,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Travel & Hospitality",
       website: "https://airbnb.com",
     },
+    relatedPeople: ["brian-chesky"],
+    similarCompanies: ["expedia","spotify","netflix"],
   },
   {
     slug: "spotify",
@@ -1082,6 +1201,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Audio Streaming & Media",
       website: "https://spotify.com",
     },
+    relatedPeople: ["daniel-ek"],
+    similarCompanies: ["netflix","airbnb","apple","meta"],
   },
   {
     slug: "coinbase",
@@ -1099,6 +1220,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Cryptocurrency & Blockchain",
       website: "https://coinbase.com",
     },
+    relatedPeople: ["brian-armstrong"],
+    similarCompanies: ["circle","draftkings"],
   },
   {
     slug: "crowdstrike",
@@ -1116,6 +1239,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Cybersecurity",
       website: "https://crowdstrike.com",
     },
+    relatedPeople: ["george-kurtz"],
+    similarCompanies: ["cloudflare","palantir","snowflake"],
   },
   {
     slug: "expedia",
@@ -1133,6 +1258,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Online Travel & Technology",
       website: "https://expedia.com",
     },
+    relatedPeople: ["ariane-gorin"],
+    similarCompanies: ["airbnb","starbucks"],
   },
   {
     slug: "circle",
@@ -1150,6 +1277,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Digital Currency & Fintech",
       website: "https://circle.com",
     },
+    relatedPeople: ["jeremy-allaire"],
+    similarCompanies: ["coinbase","draftkings"],
   },
   {
     slug: "hubspot",
@@ -1167,6 +1296,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "CRM & Marketing Technology",
       website: "https://hubspot.com",
     },
+    relatedPeople: ["dharmesh-shah","sam-parr","shaan-puri"],
+    similarCompanies: ["salesforce","box","shopify"],
   },
   {
     slug: "draftkings",
@@ -1184,6 +1315,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Sports Betting & Gaming",
       website: "https://draftkings.com",
     },
+    relatedPeople: ["jason-robins"],
+    similarCompanies: ["coinbase","circle"],
   },
   {
     slug: "netflix",
@@ -1201,6 +1334,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Streaming & Entertainment",
       website: "https://netflix.com",
     },
+    relatedPeople: ["reed-hastings"],
+    similarCompanies: ["spotify","airbnb","amazon"],
   },
   {
     slug: "salesforce",
@@ -1218,6 +1353,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Enterprise Software & CRM",
       website: "https://salesforce.com",
     },
+    relatedPeople: ["marc-benioff"],
+    similarCompanies: ["hubspot","box","microsoft"],
   },
   {
     slug: "citadel-securities",
@@ -1235,6 +1372,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Financial Services & Market Making",
       website: "https://citadelsecurities.com",
     },
+    relatedPeople: ["ken-griffin"],
+    similarCompanies: ["palantir","sp-global"],
   },
   {
     slug: "sp-global",
@@ -1252,6 +1391,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Financial Data & Analytics",
       website: "https://spglobal.com",
     },
+    relatedPeople: ["martina-cheung"],
+    similarCompanies: ["citadel-securities","axon-enterprise"],
   },
   {
     slug: "axon-enterprise",
@@ -1269,6 +1410,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Public Safety Technology",
       website: "https://axon.com",
     },
+    relatedPeople: ["patrick-smith"],
+    similarCompanies: ["crowdstrike","palantir","sp-global"],
   },
   {
     slug: "snowflake",
@@ -1286,6 +1429,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Cloud Data & Analytics",
       website: "https://snowflake.com",
     },
+    relatedPeople: ["sridhar-ramaswamy"],
+    similarCompanies: ["cloudflare","crowdstrike","salesforce"],
   },
   {
     slug: "starbucks",
@@ -1303,6 +1448,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Food & Beverage",
       website: "https://starbucks.com",
     },
+    relatedPeople: ["brian-niccol"],
+    similarCompanies: ["airbnb","expedia","netflix"],
   },
   {
     slug: "adobe",
@@ -1320,6 +1467,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "Creative Software & Digital Experience",
       website: "https://adobe.com",
     },
+    similarCompanies: ["salesforce","shopify","hubspot"],
   },
   {
     slug: "shopify",
@@ -1337,6 +1485,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
       industry: "E-commerce & Retail Technology",
       website: "https://shopify.com",
     },
+    similarCompanies: ["amazon","hubspot","adobe"],
   },
 ];
 

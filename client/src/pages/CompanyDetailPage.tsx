@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, MessageSquare, Headphones, Calendar, ExternalLink, Building2, Globe, MapPin, Users, DollarSign, Briefcase, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { getCompanyBySlug } from "@/data/entityDirectoryData";
+import { getCompanyBySlug, getPersonBySlug as getPersonData, COMPANIES_DIRECTORY, PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface EpisodeEntry {
@@ -245,6 +245,76 @@ export default function CompanyDetailPage() {
                   <p className="text-lg">No episodes found for {company.name} yet.</p>
                   <p className="text-sm mt-1">Check back soon as we add more podcast recaps.</p>
                 </div>
+              )}
+
+              {companyData?.relatedPeople && companyData.relatedPeople.length > 0 && (
+                <section className="mb-10">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-related-people">
+                    <Users className="w-5 h-5 text-primary" />
+                    Related People
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {companyData.relatedPeople.map((personSlug) => {
+                      const p = getPersonData(personSlug);
+                      if (!p) return null;
+                      return (
+                        <div
+                          key={personSlug}
+                          className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+                          onClick={() => navigate(`/people/${personSlug}`)}
+                          data-testid={`card-related-person-${personSlug}`}
+                        >
+                          <img
+                            src={p.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=40&background=1a8cff&color=fff&bold=true`}
+                            alt={p.name}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-border flex-shrink-0"
+                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=40&background=1a8cff&color=fff&bold=true`; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{p.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{p.title}</p>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors flex-shrink-0" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {companyData?.similarCompanies && companyData.similarCompanies.length > 0 && (
+                <section className="mb-10">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-similar-companies">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    Similar Companies
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {companyData.similarCompanies.map((companySlug) => {
+                      const c = COMPANIES_DIRECTORY.find(x => x.slug === companySlug);
+                      if (!c) return null;
+                      return (
+                        <div
+                          key={companySlug}
+                          className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+                          onClick={() => navigate(`/companies/${companySlug}`)}
+                          data-testid={`card-similar-company-${companySlug}`}
+                        >
+                          <img
+                            src={c.logoUrl}
+                            alt={c.name}
+                            className="w-10 h-10 rounded-lg object-contain bg-white border border-border p-1 flex-shrink-0"
+                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&size=40&background=1a8cff&color=fff&bold=true`; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{c.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{c.description}</p>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors flex-shrink-0" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
               )}
             </motion.div>
           ) : (
