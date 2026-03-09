@@ -4801,7 +4801,8 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             let error: string | undefined;
             const result = podcastResults[p.name];
 
-            if (p.total_episodes > 0 && p.complete_count > 0 && p.complete_count >= p.transcript_count && p.transcript_count >= p.total_episodes) {
+            const closeEnough = p.total_episodes > 0 && p.transcript_count > 0 && p.transcript_count >= p.total_episodes * 0.9;
+            if (closeEnough && p.complete_count > 0 && p.complete_count >= p.transcript_count * 0.9) {
               status = "complete_record";
             } else if (p.transcript_count >= 25) {
               status = "done";
