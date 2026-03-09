@@ -176,7 +176,7 @@ export default function Leaderboard() {
                 }`}
                 data-testid="filter-all"
               >
-                All ({PODCAST_LANDINGS.length})
+                All
               </button>
               {availableGroups.map(group => (
                 <button
@@ -189,7 +189,7 @@ export default function Leaderboard() {
                   }`}
                   data-testid={`filter-${group.toLowerCase().replace(/[^a-z]/g, "-")}`}
                 >
-                  {group} ({categoryCounts[group] || 0})
+                  {group}
                 </button>
               ))}
             </div>
@@ -204,7 +204,7 @@ export default function Leaderboard() {
                 </span>
               </div>
               <span className="text-sm text-muted-foreground font-medium">
-                {filtered.length} podcast{filtered.length !== 1 ? "s" : ""}
+                {selectedCategory || searchTerm ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}` : ""}
               </span>
             </div>
 
