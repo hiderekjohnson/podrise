@@ -775,6 +775,94 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/:episodeSlug/sponsors", async (req, res) => {
+    try {
+      const { slug, episodeSlug } = req.params;
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+      if (!recap) return res.status(404).json({ error: "Recap not found" });
+
+      if (recap.sponsors) {
+        try {
+          return res.json({ sponsors: JSON.parse(recap.sponsors) });
+        } catch {
+          return res.json({ sponsors: [] });
+        }
+      }
+
+      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
+      if (!segments || segments.length === 0) {
+        return res.json({ sponsors: [] });
+      }
+
+      const transcriptText = segments.map(s => {
+        const speaker = s.speakerName ? `${s.speakerName}: ` : "";
+        return `${speaker}${s.text}`;
+      }).join("\n").slice(0, 16000);
+
+      const { openai } = await import("./replit_integrations/image/client");
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert at identifying sponsor mentions in podcast transcripts. Extract ALL sponsor/advertiser mentions from the transcript. For each sponsor, extract:
+- "name": The sponsor or brand name
+- "description": What the host said about them (their pitch, in 1-3 sentences)
+- "couponCode": Any promo/coupon code mentioned (or null)
+- "url": Any website URL mentioned for the sponsor (or null)
+- "howToRedeem": How listeners can use the deal/offer (or null)
+
+Return a JSON object with a "sponsors" array. If no sponsors are found, return {"sponsors": []}.
+Only include actual paid sponsors/advertisers — not casual brand mentions. Look for patterns like "brought to you by", "sponsored by", "this episode is presented by", "our partners at", promo code mentions, special URLs, etc.`
+          },
+          {
+            role: "user",
+            content: `Podcast: ${recap.podcastName}\nEpisode: "${recap.episodeTitle}"\n\nTranscript:\n${transcriptText}`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.3,
+        response_format: { type: "json_object" },
+      });
+
+      const content = completion.choices[0]?.message?.content || '{"sponsors":[]}';
+      let parsed;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        parsed = { sponsors: [] };
+      }
+
+      const rawSponsors = Array.isArray(parsed.sponsors) ? parsed.sponsors : [];
+      const sponsors = rawSponsors
+        .filter((s: any) => s && typeof s.name === "string" && s.name.trim())
+        .map((s: any) => ({
+          name: String(s.name).trim(),
+          description: typeof s.description === "string" ? s.description.trim() : "",
+          couponCode: typeof s.couponCode === "string" && s.couponCode.trim() ? s.couponCode.trim() : null,
+          url: typeof s.url === "string" && s.url.trim() ? s.url.trim() : null,
+          howToRedeem: typeof s.howToRedeem === "string" && s.howToRedeem.trim() ? s.howToRedeem.trim() : null,
+        }));
+
+      const { db } = await import("./db");
+      const { eq, and } = await import("drizzle-orm");
+      const { landingPageRecaps } = await import("@shared/schema");
+      await db.update(landingPageRecaps)
+        .set({ sponsors: JSON.stringify(sponsors) })
+        .where(
+          and(
+            eq(landingPageRecaps.slug, slug),
+            eq(landingPageRecaps.episodeSlug, episodeSlug)
+          )
+        );
+
+      res.json({ sponsors });
+    } catch (err) {
+      console.error("[Sponsors] Error:", err);
+      res.status(500).json({ error: "Failed to extract sponsors" });
+    }
+  });
+
   const topQRateLimit = new Map<string, number[]>();
   const topQInFlight = new Map<string, Promise<any>>();
   app.get("/api/podcasts/:slug/top-questions", async (req, res) => {

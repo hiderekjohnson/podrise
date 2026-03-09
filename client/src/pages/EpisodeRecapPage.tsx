@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion } from "lucide-react";
+import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { Link } from "wouter";
@@ -41,6 +41,26 @@ export default function EpisodeRecapPage() {
     },
     enabled: !!podcastSlug,
   });
+
+  interface Sponsor {
+    name: string;
+    description: string;
+    couponCode?: string | null;
+    url?: string | null;
+    howToRedeem?: string | null;
+  }
+
+  const { data: sponsorsData, isLoading: sponsorsLoading } = useQuery<{ sponsors: Sponsor[] }>({
+    queryKey: ["/api/podcasts", podcastSlug, episodeSlug, "sponsors"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${podcastSlug}/${episodeSlug}/sponsors`);
+      if (!res.ok) return { sponsors: [] };
+      return res.json();
+    },
+    enabled: !!podcastSlug && !!episodeSlug,
+  });
+
+  const sponsors = sponsorsData?.sponsors || [];
 
   const askMutation = useMutation({
     mutationFn: async (question: string) => {
@@ -123,6 +143,7 @@ export default function EpisodeRecapPage() {
       "section-key-topics",
       "section-top-questions",
       "section-ask-episode",
+      "section-sponsors",
     ];
 
     const handleScroll = () => {
@@ -214,6 +235,7 @@ export default function EpisodeRecapPage() {
   const topicsNum = hasKeyTopics ? sectionNumber() : 0;
   const questionsNum = hasTopQuestions ? sectionNumber() : 0;
   const askNum = sectionNumber();
+  const sponsorsNum = sponsors.length > 0 ? sectionNumber() : 0;
 
   return (
     <EpisodePageLayout
@@ -290,6 +312,15 @@ export default function EpisodeRecapPage() {
           >
             Ask AI
           </button>
+          {sponsors.length > 0 && (
+            <button
+              onClick={() => scrollTo("section-sponsors")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-sponsors" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-sponsors"
+            >
+              Sponsors
+            </button>
+          )}
         </nav>
 
         <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
@@ -535,6 +566,83 @@ export default function EpisodeRecapPage() {
             )}
           </div>
         </section>
+        {(sponsors.length > 0 || sponsorsLoading) && (
+          <section id="section-sponsors" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-sponsors">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-rose-500/[0.04] border-b border-rose-500/[0.08]">
+              {sponsorsNum > 0 && (
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-rose-500/[0.12] text-[11px] font-bold text-rose-600">{sponsorsNum}</span>
+              )}
+              <Heart className="w-4 h-4 text-rose-500" />
+              <span className="text-sm font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Episode Sponsors</span>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-[14px] leading-relaxed text-muted-foreground mb-5">
+                Podcasts thrive because of the sponsors who support them. Please consider checking out the sponsors who made this episode possible — they help keep the show free for all of us.
+              </p>
+
+              {sponsorsLoading ? (
+                <div className="flex items-center gap-3 py-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+                  <span className="text-sm text-muted-foreground">Finding sponsors mentioned in this episode...</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sponsors.map((sponsor, i) => (
+                    <div
+                      key={i}
+                      className="bg-rose-500/[0.02] border border-rose-500/[0.08] rounded-xl px-5 py-4"
+                      data-testid={`sponsor-card-${i}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-rose-500/[0.1] shrink-0 mt-0.5">
+                          <Heart className="w-4 h-4 text-rose-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[15px] font-bold text-foreground" data-testid={`sponsor-name-${i}`}>
+                            {sponsor.name}
+                          </h4>
+                          <p className="text-[14px] leading-[1.75] text-muted-foreground mt-1">
+                            {sponsor.description}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-2 mt-3">
+                            {typeof sponsor.url === "string" && sponsor.url.trim() && (
+                              <a
+                                href={sponsor.url.startsWith("http") ? sponsor.url : `https://${sponsor.url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/[0.06] border border-rose-500/[0.1] rounded-lg text-[12px] font-semibold text-rose-600 hover:bg-rose-500/[0.12] transition-colors"
+                                data-testid={`sponsor-url-${i}`}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                {sponsor.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                              </a>
+                            )}
+                            {typeof sponsor.couponCode === "string" && sponsor.couponCode.trim() && (
+                              <span
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/[0.06] border border-emerald-500/[0.1] rounded-lg text-[12px] font-bold text-emerald-700 dark:text-emerald-400 font-mono"
+                                data-testid={`sponsor-code-${i}`}
+                              >
+                                <TicketPercent className="w-3 h-3" />
+                                {sponsor.couponCode}
+                              </span>
+                            )}
+                          </div>
+
+                          {typeof sponsor.howToRedeem === "string" && sponsor.howToRedeem.trim() && (
+                            <p className="text-[13px] text-muted-foreground/70 mt-2 italic">
+                              {sponsor.howToRedeem}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </motion.article>
     </EpisodePageLayout>
   );
