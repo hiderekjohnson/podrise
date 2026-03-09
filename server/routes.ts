@@ -2098,6 +2098,80 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.post("/api/admin/backfill-sponsors", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      try {
+        const { rows: recaps } = await client.query(
+          `SELECT slug, episode_slug FROM landing_page_recaps WHERE sponsors IS NULL ORDER BY slug, id`
+        );
+        console.log(`[BackfillSponsors] Starting backfill for ${recaps.length} episodes`);
+        res.json({ message: `Sponsors backfill started for ${recaps.length} episodes.` });
+
+        let done = 0, errors = 0;
+        for (const recap of recaps) {
+          try {
+            const url = `http://localhost:${process.env.PORT || 5000}/api/podcasts/${recap.slug}/${recap.episode_slug}/sponsors`;
+            await fetch(url);
+            done++;
+          } catch (err) {
+            errors++;
+          }
+          if ((done + errors) % 25 === 0) {
+            console.log(`[BackfillSponsors] Progress: ${done + errors}/${recaps.length} (${done} done, ${errors} errors)`);
+          }
+          await new Promise(r => setTimeout(r, 500));
+        }
+        console.log(`[BackfillSponsors] Complete: ${done} done, ${errors} errors`);
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      console.error("[BackfillSponsors] Error:", err);
+    }
+  });
+
+  app.post("/api/admin/backfill-resources", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      try {
+        const { rows: recaps } = await client.query(
+          `SELECT slug, episode_slug FROM landing_page_recaps WHERE resources IS NULL ORDER BY slug, id`
+        );
+        console.log(`[BackfillResources] Starting backfill for ${recaps.length} episodes`);
+        res.json({ message: `Resources backfill started for ${recaps.length} episodes.` });
+
+        let done = 0, errors = 0;
+        for (const recap of recaps) {
+          try {
+            const url = `http://localhost:${process.env.PORT || 5000}/api/podcasts/${recap.slug}/${recap.episode_slug}/resources`;
+            await fetch(url);
+            done++;
+          } catch (err) {
+            errors++;
+          }
+          if ((done + errors) % 25 === 0) {
+            console.log(`[BackfillResources] Progress: ${done + errors}/${recaps.length} (${done} done, ${errors} errors)`);
+          }
+          await new Promise(r => setTimeout(r, 500));
+        }
+        console.log(`[BackfillResources] Complete: ${done} done, ${errors} errors`);
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      console.error("[BackfillResources] Error:", err);
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
