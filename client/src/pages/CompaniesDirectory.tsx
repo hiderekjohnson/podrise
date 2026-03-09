@@ -72,7 +72,7 @@ export default function CompaniesDirectory() {
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="heading-companies">
-              The Companies Shaping Tomorrow
+              Companies
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               The most influential companies driving conversation across the world's top podcasts. See how often they come up, in what context, and explore every episode where they're discussed.
