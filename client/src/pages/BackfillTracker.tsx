@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, CheckCircle2, AlertCircle, Clock, RefreshCw, Play, ListOrdered, AlertTriangle } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Clock, RefreshCw, Play, ListOrdered, AlertTriangle, ArrowUp, ArrowDown } from "lucide-react";
 
 interface BackfillPodcast {
   index: number;
@@ -28,6 +28,8 @@ interface BackfillData {
 export default function BackfillTracker() {
   const [filter, setFilter] = useState<"all" | "done" | "in_process" | "in_queue" | "error" | "no_taddy">("all");
   const [expandedError, setExpandedError] = useState<string | null>(null);
+  const [sortCol, setSortCol] = useState<"name" | "totalEpisodes" | "transcriptCount" | "remaining">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const { data, isLoading, refetch, isFetching } = useQuery<BackfillData>({
     queryKey: ["/api/admin/backfill-status"],
@@ -44,11 +46,26 @@ export default function BackfillTracker() {
 
   if (!data) return null;
 
-  const filtered = data.podcasts.filter(p => {
-    if (filter === "all") return true;
-    if (filter === "error") return p.status === "error" || p.status === "no_taddy";
-    return p.status === filter;
-  });
+  const toggleSort = (col: typeof sortCol) => {
+    if (sortCol === col) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortCol(col);
+      setSortDir(col === "name" ? "asc" : "desc");
+    }
+  };
+
+  const filtered = data.podcasts
+    .filter(p => {
+      if (filter === "all") return true;
+      if (filter === "error") return p.status === "error" || p.status === "no_taddy";
+      return p.status === filter;
+    })
+    .sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      if (sortCol === "name") return dir * a.name.localeCompare(b.name);
+      return dir * ((a[sortCol] || 0) - (b[sortCol] || 0));
+    });
 
   const counts = {
     done: data.podcasts.filter(p => p.status === "done").length,
@@ -112,10 +129,26 @@ export default function BackfillTracker() {
         <table className="w-full" data-testid="table-backfill">
           <thead>
             <tr className="bg-black/[0.03]">
-              <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">Podcast</th>
-              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Total Episodes</th>
-              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Transcripts</th>
-              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Remaining</th>
+              {([
+                { col: "name" as const, label: "Podcast", align: "text-left" },
+                { col: "totalEpisodes" as const, label: "Total Episodes", align: "text-center" },
+                { col: "transcriptCount" as const, label: "Transcripts", align: "text-center" },
+                { col: "remaining" as const, label: "Remaining", align: "text-center" },
+              ]).map(h => (
+                <th
+                  key={h.col}
+                  className={`${h.align} px-4 py-3 text-xs font-bold text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors`}
+                  onClick={() => toggleSort(h.col)}
+                  data-testid={`sort-${h.col}`}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {h.label}
+                    {sortCol === h.col ? (
+                      sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                    ) : null}
+                  </span>
+                </th>
+              ))}
               <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Status</th>
             </tr>
           </thead>
