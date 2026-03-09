@@ -169,7 +169,7 @@ export async function generateRecap(
         let taddyPodcast: any = null;
         let taddyEpisodes: any[] = [];
         try {
-          taddyPodcast = await searchPodcastByItunesId(podcast.id);
+          taddyPodcast = await searchPodcastByItunesId(podcast.id, podcast.name);
           if (taddyPodcast?.uuid) {
             taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
             console.log(`[Recap] Taddy found ${taddyEpisodes.length} episodes for ${podcast.name} (uuid: ${taddyPodcast.uuid})`);

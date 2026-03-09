@@ -3158,7 +3158,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
 
           let transcriptText: string | null = null;
           try {
-            const taddyPodcast = await searchPodcastByItunesId(itunesId);
+            const taddyPodcast = await searchPodcastByItunesId(itunesId, podcastName);
             if (taddyPodcast?.uuid) {
               const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 5);
               const normalizeTitle = (t: string) => t.toLowerCase().trim().replace(/\s+/g, " ");
@@ -3379,7 +3379,7 @@ ${formatInstructions}`;
           let taddyPodcast: any = null;
           let taddyEpisodes: any[] = [];
           try {
-            taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
+            taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name || podcast.slug);
             if (taddyPodcast?.uuid) {
               taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 50);
             }

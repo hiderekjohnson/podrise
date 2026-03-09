@@ -2,7 +2,7 @@ import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
-import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
+import { searchPodcastByItunesId, searchPodcastByName, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
@@ -484,7 +484,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
 
         if (!transcriptText) {
           try {
-            const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId);
+            const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name);
             if (taddyPodcast?.uuid) {
               const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
               const itunesNorm = normalizeTitleForMatch(epTitle);
@@ -728,6 +728,25 @@ export async function bulkDownloadTranscripts() {
         });
         const taddyData = await taddyRes.json();
         let series = taddyData?.data?.getPodcastSeries;
+
+        if (!series && podcast.name) {
+          console.log(`[TranscriptDL] iTunes ID ${numId} not found on Taddy, trying name search for "${podcast.name}"`);
+          const nameResult = await searchPodcastByName(podcast.name);
+          if (nameResult?.uuid) {
+            const uuidRes = await fetch("https://api.taddy.org", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+              body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${nameResult.uuid}") { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
+              signal: AbortSignal.timeout(20000),
+            });
+            const uuidData = await uuidRes.json();
+            series = uuidData?.data?.getPodcastSeries;
+            if (series) {
+              console.log(`[TranscriptDL] Found "${podcast.name}" via name search (uuid: ${nameResult.uuid})`);
+            }
+          }
+          await new Promise(r => setTimeout(r, 500));
+        }
 
         if (series?.uuid && (!series.episodes || series.episodes.length === 0)) {
           await new Promise(r => setTimeout(r, 1000));
@@ -1051,7 +1070,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
 
         let taddyEpisodesList: any[] = [];
         try {
-          taddyEpisodesList = await getEpisodesByItunesId(podcast.itunesId, 50);
+          taddyEpisodesList = await getEpisodesByItunesId(podcast.itunesId, 50, podcast.name);
           console.log(`[BatchExpand] ${podcast.name}: Taddy returned ${taddyEpisodesList.length} episodes`);
         } catch {
           console.warn(`[BatchExpand] ${podcast.name}: Taddy episodes fetch failed`);
@@ -1431,7 +1450,7 @@ export async function reIngestTranscriptSegments() {
 
         let taddyPodcastUuid = podcastCache.get(t.podcast_id);
         if (!taddyPodcastUuid) {
-          const taddyPodcast = await searchPodcastByItunesId(t.podcast_id);
+          const taddyPodcast = await searchPodcastByItunesId(t.podcast_id, t.episode_title?.split(" - ")?.[0]);
           if (taddyPodcast?.uuid) {
             taddyPodcastUuid = taddyPodcast.uuid;
             podcastCache.set(t.podcast_id, taddyPodcastUuid);
