@@ -1,5 +1,4 @@
 import { Link } from "wouter";
-import { Heart } from "lucide-react";
 import { SiX } from "react-icons/si";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
@@ -23,7 +22,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/companies" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-companies">
-                  Companies to Follow
+                  Notable Companies
                 </Link>
               </li>
             </ul>
@@ -49,7 +48,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/we-heart-podcasters" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-we-heart-podcasters">
-                  We Heart Podcasters
+                  We ❤️ Podcasters
                 </Link>
               </li>
             </ul>
@@ -98,11 +97,6 @@ export function Footer() {
             &copy; {new Date().getFullYear()} PodCap, Inc. All rights reserved.
           </p>
 
-          <div className="mt-2">
-            <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground/50">
-              WE <Heart className="w-3 h-3 fill-red-400 text-red-400" /> PODCASTERS
-            </span>
-          </div>
         </div>
       </div>
     </footer>
