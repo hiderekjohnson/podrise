@@ -251,7 +251,7 @@ export default function CompanyDetailPage() {
                 <section className="mb-10">
                   <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-related-people">
                     <Users className="w-5 h-5 text-primary" />
-                    Related People
+                    People
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {companyData.relatedPeople.map((personSlug) => {
@@ -286,7 +286,7 @@ export default function CompanyDetailPage() {
                 <section className="mb-10">
                   <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-similar-companies">
                     <Building2 className="w-5 h-5 text-primary" />
-                    Similar Companies
+                    Companies
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {companyData.similarCompanies.map((companySlug) => {
