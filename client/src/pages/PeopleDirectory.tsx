@@ -62,7 +62,7 @@ export default function PeopleDirectory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
-  const [sortBy, setSortBy] = useState<"mentions" | "guests">("mentions");
+  const [sortBy, setSortBy] = useState<"mentions" | "guests">("guests");
 
   const { data: people, isLoading } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
@@ -164,20 +164,6 @@ export default function PeopleDirectory() {
           <div className="flex flex-wrap gap-2.5 items-center">
             <div className="relative">
               <select
-                value={genderFilter}
-                onChange={(e) => setGenderFilter(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-                data-testid="select-gender-filter"
-              >
-                <option value="all">All Genders</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-            </div>
-
-            <div className="relative">
-              <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
@@ -192,15 +178,34 @@ export default function PeopleDirectory() {
 
             <div className="relative">
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as "mentions" | "guests")}
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
                 className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-                data-testid="select-sort"
+                data-testid="select-gender-filter"
               >
-                <option value="mentions">Most Mentions</option>
-                <option value="guests">Most Guest Appearances</option>
+                <option value="all">All Genders</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
               </select>
               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
+
+            <div className="flex items-center gap-1 pl-3 pr-1 py-1 bg-card border border-border rounded-lg" data-testid="sort-control">
+              <span className="text-sm text-muted-foreground mr-1">Sort by:</span>
+              <button
+                onClick={() => setSortBy("guests")}
+                className={`px-2.5 py-1 rounded-md text-sm font-medium transition-all ${sortBy === "guests" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                data-testid="sort-appearances"
+              >
+                Most Appearances
+              </button>
+              <button
+                onClick={() => setSortBy("mentions")}
+                className={`px-2.5 py-1 rounded-md text-sm font-medium transition-all ${sortBy === "mentions" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                data-testid="sort-mentions"
+              >
+                Most Mentions
+              </button>
             </div>
 
             {people && (
