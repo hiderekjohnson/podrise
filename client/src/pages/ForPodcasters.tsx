@@ -325,7 +325,7 @@ export default function ForPodcasters() {
           <div className="max-w-4xl mx-auto px-6">
             <div className="text-center mb-10">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-pages-title">
-                250+ podcasts on the platform
+                Thousands of podcasts on the platform
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 From indie shows to the world's most popular podcasts, we're building the most comprehensive library of podcast knowledge on the internet.

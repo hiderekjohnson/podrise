@@ -25,7 +25,7 @@ function hiResArtwork(url: string) {
 
 function SEOHead() {
   const title = "PodCap — The World's Searchable Library of Podcast Knowledge";
-  const description = "PodCap turns podcast episodes into searchable, discoverable knowledge. Get daily recaps, AI-powered summaries, full transcripts, and insights from 250+ top podcasts — all in one place.";
+  const description = "PodCap turns podcast episodes into searchable, discoverable knowledge. Get daily recaps, AI-powered summaries, full transcripts, and insights from thousands of the world's most popular and influential podcasts.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -158,7 +158,7 @@ export default function Home() {
                 Explore top podcasts
               </h2>
               <p className="text-base text-muted-foreground mt-3 max-w-lg mx-auto">
-                We cover 250+ of the world's most popular shows. Browse episodes, read recaps, and get daily summaries delivered to your inbox.
+                We cover thousands of the world's most popular and influential podcast shows. Browse episodes, read recaps, and get daily summaries delivered to your inbox.
               </p>
             </motion.div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">

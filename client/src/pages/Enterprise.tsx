@@ -268,7 +268,7 @@ export default function Enterprise() {
                 PodCap is building the structured data layer that makes podcast content accessible to machines and teams alike. We process episodes into searchable transcripts, extract entities and topics, link ideas across shows, and create knowledge graphs from conversations.
               </p>
               <p>
-                Today we cover 250+ of the world's most influential podcasts. The platform is expanding, and enterprise partnerships help us prioritize coverage that matters to your organization.
+                Today we cover thousands of the world's most popular and influential podcast shows. The platform is expanding, and enterprise partnerships help us prioritize coverage that matters to your organization.
               </p>
               <p className="text-white/80 font-display font-bold">
                 We believe podcast content will become one of the most important knowledge layers on the internet. We're building the tools to make that useful.
