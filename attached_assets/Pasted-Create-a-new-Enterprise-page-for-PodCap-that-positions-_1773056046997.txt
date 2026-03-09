@@ -1,0 +1,37 @@
+Create a new Enterprise page for PodCap that positions the company as more than a consumer recap product. The page should make it clear that PodCap is building a structured, searchable layer on top of podcast content, and that this can have value for organizations, not just individual listeners.
+
+The tone should feel ambitious, credible, and high-value. Think modern SaaS meets data platform. It should feel like the early version of a serious enterprise product, even if the offering is still evolving. The goal is not to over-explain a finalized product. The goal is to show that PodCap could become important infrastructure for teams that need podcast intelligence, discovery, and searchable knowledge.
+
+The page should frame the opportunity around the idea that podcasts contain an enormous amount of valuable information, but most of it is trapped inside long audio and hard to search, monitor, or extract at scale. PodCap should be presented as the layer that makes podcast knowledge accessible and useful.
+
+The messaging should be broad enough to support multiple enterprise use cases without locking us into one narrow pitch. It should feel relevant to firms that care about market intelligence, media monitoring, knowledge discovery, content research, or internal insight gathering.
+
+Possible audiences to loosely design around:
+	•	investment firms and research teams
+	•	media companies and podcast networks
+	•	corporate strategy or innovation teams
+	•	knowledge and education platforms
+
+Do not make the page feel like a generic “contact sales” template. It should feel like there is a real platform vision underneath it. The page should suggest that PodCap can help organizations search across podcast conversations, monitor topics, discover insights, and surface important discussions faster.
+
+Keep it fairly high level. We do not need to hard-code exact pricing, product tiers, or detailed workflow claims unless there is a strong reason. It is better for the page to feel strategically compelling than prematurely specific.
+
+Design-wise, make it feel clean, premium, and enterprise-capable. Strong headline, confident subhead, a few clear sections, and a serious CTA. The page should feel impressive to an investor or operator landing on it.
+
+It would be good if the page subtly communicates these ideas:
+	•	podcasts are becoming an important knowledge layer
+	•	that knowledge is currently difficult to access
+	•	PodCap is organizing it into something searchable and useful
+	•	enterprise teams can benefit from that infrastructure
+
+A few things to avoid:
+	•	don’t make it too startup-hypey or buzzword-heavy
+	•	don’t make promises that sound fake or overly finished
+	•	don’t make it read like a page for podcasters or consumers
+	•	don’t make it too long or text-dense
+
+The CTA should probably be oriented around talking to us, exploring enterprise use cases, or getting in touch, but the page should still feel product-led and substantial.
+
+Also add this page to the main navigation in a way that feels natural for the broader company positioning.
+
+One strategic note: this page should make PodCap feel like a company that could eventually power podcast intelligence, not just send recap emails.
