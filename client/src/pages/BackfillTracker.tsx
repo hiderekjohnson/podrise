@@ -194,6 +194,23 @@ export default function BackfillTracker() {
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-black/[0.08] bg-black/[0.03]">
+              <td className="px-4 py-3 text-sm font-bold text-foreground" data-testid="total-podcasts">
+                {filtered.length} Podcasts
+              </td>
+              <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-episodes">
+                {filtered.reduce((sum, p) => sum + p.totalEpisodes, 0).toLocaleString()}
+              </td>
+              <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-transcripts">
+                {filtered.reduce((sum, p) => sum + p.transcriptCount, 0).toLocaleString()}
+              </td>
+              <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-remaining">
+                {filtered.reduce((sum, p) => sum + p.remaining, 0).toLocaleString()}
+              </td>
+              <td className="px-4 py-3" />
+            </tr>
+          </tfoot>
         </table>
       </div>
 
