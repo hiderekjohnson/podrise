@@ -1293,6 +1293,64 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/topics/:slug/episodes", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const topicKeywordsMap: Record<string, string[]> = {
+        "ai": ["artificial intelligence", "AI", "machine learning", "deep learning", "GPT", "LLM"],
+        "entrepreneurship": ["entrepreneurship", "founder", "startup", "bootstrap"],
+        "startups": ["startup", "startups", "SaaS", "product-market fit"],
+        "venture-capital": ["venture capital", "VC", "fundraising"],
+        "investing": ["investing", "investment", "markets", "stocks", "portfolio"],
+        "personal-finance": ["personal finance", "budgeting", "financial independence", "wealth building"],
+        "leadership": ["leadership", "CEO", "executive"],
+        "management": ["management", "operations", "organizational"],
+        "marketing": ["marketing", "brand", "growth hacking", "advertising"],
+        "sales": ["sales", "selling", "revenue", "pipeline"],
+        "productivity": ["productivity", "habits", "routines", "efficiency"],
+        "decision-making": ["decision making", "mental model", "cognitive bias"],
+        "innovation": ["innovation", "disruption", "breakthrough"],
+        "technology": ["technology", "software", "engineering", "computing"],
+        "economics": ["economics", "economy", "monetary policy", "inflation"],
+        "future-of-work": ["future of work", "remote work", "gig economy"],
+        "health-longevity": ["health", "longevity", "nutrition", "fitness", "sleep"],
+        "psychology": ["psychology", "behavior", "mental health", "neuroscience"],
+        "human-performance": ["performance", "peak performance", "biohacking"],
+        "self-improvement": ["self-improvement", "personal development", "mindset", "motivation"],
+        "negotiation": ["negotiation", "persuasion", "influence"],
+        "career-growth": ["career", "professional development", "promotion"],
+        "creativity": ["creativity", "creative", "design", "storytelling"],
+        "media-content": ["media", "journalism", "creator", "streaming"],
+        "geopolitics": ["geopolitics", "foreign policy", "diplomacy", "international"],
+      };
+      const keywords = topicKeywordsMap[slug];
+      if (!keywords) return res.json([]);
+
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      try {
+        const conditions = keywords.map((_, i) => {
+          const p = `$${i + 1}`;
+          return `(episode_title ILIKE ${p} OR what_happened ILIKE ${p} OR tldl ILIKE ${p} OR key_insights::text ILIKE ${p})`;
+        }).join(" OR ");
+        const params = keywords.map(k => `%${k}%`);
+        const { rows } = await client.query(
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights
+           FROM landing_page_recaps
+           WHERE ${conditions}
+           ORDER BY publish_date DESC
+           LIMIT 8`,
+          params
+        );
+        res.json(rows);
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch topic episodes" });
+    }
+  });
+
   const askRateLimit = new Map<string, number[]>();
   app.post("/api/podcasts/:slug/:episodeSlug/ask", async (req, res) => {
     try {

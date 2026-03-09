@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ArrowRight, Headphones, Search, Sparkles, Library, Users } from "lucide-react";
+import { ArrowRight, Headphones, Search, Sparkles, Library, Users, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
