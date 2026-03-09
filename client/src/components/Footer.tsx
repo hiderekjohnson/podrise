@@ -26,6 +26,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/topics" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-topics">
+                  Topics
+                </Link>
+              </li>
+              <li>
                 <Link href="/get-started" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-get-started">
                   Build Your Recap
                 </Link>

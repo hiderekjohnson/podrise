@@ -30,6 +30,8 @@ const CompaniesDirectory = lazy(() => import("./pages/CompaniesDirectory"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const GetStarted = lazy(() => import("./pages/GetStarted"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
+const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
+const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
 
 function PageLoader() {
   return (
@@ -67,6 +69,8 @@ function Router() {
         <Route path="/companies" component={CompaniesDirectory} />
         <Route path="/get-started" component={GetStarted} />
         <Route path="/enterprise" component={Enterprise} />
+        <Route path="/topics/:slug" component={TopicDetailPage} />
+        <Route path="/topics" component={TopicsDirectory} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
