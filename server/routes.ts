@@ -761,16 +761,47 @@ export async function registerRoutes(
     { slug: "shopify", name: "Shopify", description: "E-commerce platform for online stores and retail", searchTerms: ["Shopify"] },
   ];
 
+  function termMatchesInText(text: string, term: string): boolean {
+    const lower = term.toLowerCase();
+    const textLower = text.toLowerCase();
+    if (lower.length <= 4) {
+      const regex = new RegExp(`\\b${lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      return regex.test(text);
+    }
+    return textLower.includes(lower);
+  }
+
+  function buildSearchCondition(fields: string[], paramIndex: number, term: string): { sql: string; param: string } {
+    if (term.length <= 4) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return {
+        sql: fields.map(f => `${f} ~* $${paramIndex}`).join(" OR "),
+        param: `\\m${escaped}\\M`,
+      };
+    }
+    return {
+      sql: fields.map(f => `${f} ILIKE $${paramIndex}`).join(" OR "),
+      param: `%${term}%`,
+    };
+  }
+
   function extractMentionContext(fields: string[], searchTerms: string[]): string {
     for (const text of fields) {
       if (!text) continue;
-      const sentences = text.split(/(?<=[.!?])\s+/);
+      let cleaned = text
+        .replace(/^\["|"\]$/g, "")
+        .replace(/^"|"$/g, "")
+        .replace(/\\"/g, '"')
+        .replace(/","/g, ". ")
+        .replace(/\["/g, "")
+        .replace(/"]/g, "");
+      const sentences = cleaned.split(/(?<=[.!?])\s+/);
       for (const term of searchTerms) {
-        const lower = term.toLowerCase();
         for (const sentence of sentences) {
-          if (sentence.toLowerCase().includes(lower)) {
-            const trimmed = sentence.trim();
-            if (trimmed.length > 200) return trimmed.substring(0, 197) + "...";
+          if (termMatchesInText(sentence, term)) {
+            let trimmed = sentence.trim().replace(/^["'\s]+/, "").replace(/["'\s]+$/, "");
+            if (trimmed.length < 20) continue;
+            if (trimmed.length > 250) trimmed = trimmed.substring(0, 247) + "...";
             return trimmed;
           }
         }
@@ -802,8 +833,9 @@ export async function registerRoutes(
           );
           const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
 
-          const mentionConditions = person.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
-          const mentionParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
+          const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+          const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
+          const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
           const { rows: mentionRows } = await client.query(
             `SELECT slug, episode_slug FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition}`,
             mentionParams
@@ -854,8 +886,9 @@ export async function registerRoutes(
           guestParams
         );
 
-        const mentionConditions = person.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
-        const mentionParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
+        const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+        const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
+        const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
         const { rows: mentionEpisodes } = await client.query(
           `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
           mentionParams
@@ -898,8 +931,9 @@ export async function registerRoutes(
       try {
         const results = [];
         for (const company of ENTITY_COMPANIES) {
-          const conditions = company.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
-          const params = company.searchTerms.map(t => `%${t}%`);
+          const parts = company.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+          const conditions = parts.map(p => `(${p.sql})`).join(" OR ");
+          const params = parts.map(p => p.param);
           const { rows: [{ count: mentionCount }] } = await client.query(
             `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE ${conditions}`,
             params
@@ -925,8 +959,9 @@ export async function registerRoutes(
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
       try {
-        const conditions = company.searchTerms.map((_, i) => `(what_happened ILIKE $${i + 1} OR tldl ILIKE $${i + 1} OR key_insights::text ILIKE $${i + 1})`).join(" OR ");
-        const params = company.searchTerms.map(t => `%${t}%`);
+        const parts = company.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+        const conditions = parts.map(p => `(${p.sql})`).join(" OR ");
+        const params = parts.map(p => p.param);
         const { rows: mentionEpisodes } = await client.query(
           `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE ${conditions} ORDER BY publish_date DESC`,
           params

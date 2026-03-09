@@ -43,11 +43,11 @@ function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" |
           <img src={episode.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${episode.slug}-${episode.episode_slug}`}>
+          <p className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${episode.slug}-${episode.episode_slug}`}>
             {episode.episode_title}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-            <Headphones className="w-3 h-3" />
+          <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+            <Headphones className="w-3.5 h-3.5" />
             {episode.podcast_name}
             {date && (
               <>
@@ -60,13 +60,13 @@ function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" |
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {type === "guest" && (
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Guest</span>
+            <span className="text-sm bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-medium">Guest</span>
           )}
           <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
         </div>
       </div>
       {type === "mention" && episode.context && (
-        <p className="mt-3 text-xs text-muted-foreground/80 leading-relaxed pl-16 italic">
+        <p className="mt-3 text-sm text-muted-foreground/80 leading-relaxed pl-16 italic">
           &ldquo;{episode.context}&rdquo;
         </p>
       )}
@@ -170,30 +170,30 @@ export default function PersonDetailPage() {
                   <p className="text-base text-muted-foreground mb-3">{person.title}</p>
 
                   {personData?.bio && (
-                    <p className="text-sm text-muted-foreground/80 leading-relaxed mb-4" data-testid="text-person-bio">
+                    <p className="text-base text-muted-foreground/80 leading-relaxed mb-4" data-testid="text-person-bio">
                       {personData.bio}
                     </p>
                   )}
 
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
                     {socialLinks?.twitter && (
-                      <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
-                        <SiX className="w-3 h-3" /> X / Twitter
+                      <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
+                        <SiX className="w-3.5 h-3.5" /> X / Twitter
                       </a>
                     )}
                     {socialLinks?.linkedin && (
-                      <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
-                        <SiLinkedin className="w-3 h-3" /> LinkedIn
+                      <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
+                        <SiLinkedin className="w-3.5 h-3.5" /> LinkedIn
                       </a>
                     )}
                     {socialLinks?.instagram && (
-                      <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
-                        <SiInstagram className="w-3 h-3" /> Instagram
+                      <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
+                        <SiInstagram className="w-3.5 h-3.5" /> Instagram
                       </a>
                     )}
                     {socialLinks?.website && (
-                      <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
-                        <Globe className="w-3 h-3" /> Website
+                      <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
+                        <Globe className="w-3.5 h-3.5" /> Website
                       </a>
                     )}
                   </div>

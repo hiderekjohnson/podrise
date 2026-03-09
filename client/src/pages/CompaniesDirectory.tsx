@@ -127,7 +127,7 @@ export default function CompaniesDirectory() {
                         </h2>
                         <p className="text-sm text-muted-foreground mb-2">{company.description}</p>
                         <div className="flex flex-wrap gap-3">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <MessageSquare className="w-3.5 h-3.5" />
                             <span>Mentioned in <span className="font-semibold text-foreground">{company.mentionCount}</span> episodes</span>
                           </div>

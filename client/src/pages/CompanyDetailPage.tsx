@@ -129,7 +129,7 @@ export default function CompanyDetailPage() {
                 </div>
 
                 {companyData?.background && (
-                  <p className="text-sm text-muted-foreground/80 leading-relaxed mb-6" data-testid="text-company-background">
+                  <p className="text-base text-muted-foreground/80 leading-relaxed mb-6" data-testid="text-company-background">
                     {companyData.background}
                   </p>
                 )}
@@ -139,53 +139,53 @@ export default function CompanyDetailPage() {
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Headquarters</p>
-                        <p className="text-sm font-medium text-foreground">{details.headquarters}</p>
+                        <p className="text-sm text-muted-foreground">Headquarters</p>
+                        <p className="text-base font-medium text-foreground">{details.headquarters}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Clock className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Founded</p>
-                        <p className="text-sm font-medium text-foreground">{details.founded}</p>
+                        <p className="text-sm text-muted-foreground">Founded</p>
+                        <p className="text-base font-medium text-foreground">{details.founded}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Employees</p>
-                        <p className="text-sm font-medium text-foreground">{details.employees}</p>
+                        <p className="text-sm text-muted-foreground">Employees</p>
+                        <p className="text-base font-medium text-foreground">{details.employees}</p>
                       </div>
                     </div>
                     {details.marketCap && (
                       <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                         <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Market Cap</p>
-                          <p className="text-sm font-medium text-foreground">{details.marketCap}</p>
+                          <p className="text-sm text-muted-foreground">Market Cap</p>
+                          <p className="text-base font-medium text-foreground">{details.marketCap}</p>
                         </div>
                       </div>
                     )}
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-muted-foreground">CEO</p>
-                        <p className="text-sm font-medium text-foreground">{details.ceo}</p>
+                        <p className="text-sm text-muted-foreground">CEO</p>
+                        <p className="text-base font-medium text-foreground">{details.ceo}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Industry</p>
-                        <p className="text-sm font-medium text-foreground">{details.industry}</p>
+                        <p className="text-sm text-muted-foreground">Industry</p>
+                        <p className="text-base font-medium text-foreground">{details.industry}</p>
                       </div>
                     </div>
                     {details.website && (
                       <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2 sm:col-span-3">
                         <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Website</p>
-                          <a href={details.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
+                          <p className="text-sm text-muted-foreground">Website</p>
+                          <a href={details.website} target="_blank" rel="noopener noreferrer" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
                             {details.website.replace("https://", "")}
                           </a>
                         </div>
@@ -214,11 +214,11 @@ export default function CompanyDetailPage() {
                             <img src={ep.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
+                            <p className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
                               {ep.episode_title}
                             </p>
-                            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                              <Headphones className="w-3 h-3" />
+                            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                              <Headphones className="w-3.5 h-3.5" />
                               {ep.podcast_name}
                               {ep.publish_date && (
                                 <>
@@ -232,7 +232,7 @@ export default function CompanyDetailPage() {
                           <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0" />
                         </div>
                         {ep.context && (
-                          <p className="mt-3 text-xs text-muted-foreground/80 leading-relaxed pl-16 italic">
+                          <p className="mt-3 text-sm text-muted-foreground/80 leading-relaxed pl-16 italic">
                             &ldquo;{ep.context}&rdquo;
                           </p>
                         )}
