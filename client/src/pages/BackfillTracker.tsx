@@ -10,7 +10,7 @@ interface BackfillPodcast {
   transcriptCount: number;
   target: number;
   remaining: number;
-  status: "done" | "no_taddy" | "pending" | "in_process" | "in_queue" | "error";
+  status: "done" | "no_taddy" | "in_process" | "in_queue" | "error";
   error?: string;
 }
 
@@ -53,7 +53,6 @@ export default function BackfillTracker() {
     done: data.podcasts.filter(p => p.status === "done").length,
     in_process: data.podcasts.filter(p => p.status === "in_process").length,
     in_queue: data.podcasts.filter(p => p.status === "in_queue").length,
-    pending: data.podcasts.filter(p => p.status === "pending").length,
     error: data.podcasts.filter(p => p.status === "error" || p.status === "no_taddy").length,
   };
 
@@ -190,12 +189,7 @@ export default function BackfillTracker() {
                           <AlertCircle className="w-3.5 h-3.5" />
                           No Taddy
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-400" data-testid={`status-pending-${p.itunesId}`}>
-                          <Clock className="w-3.5 h-3.5" />
-                          Pending
-                        </span>
-                      )}
+                      ) : null}
                     </td>
                   </tr>
                   {isExpanded && p.error && (

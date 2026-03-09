@@ -4810,8 +4810,11 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             } else if (result?.error) {
               status = "error";
               error = result.error;
+            } else if (processedSet.has(p.name)) {
+              status = "error";
+              error = `Only ${p.transcript_count} of 25 transcripts available on Taddy`;
             } else {
-              status = "pending";
+              status = "in_queue";
             }
             return {
               index: i + 1,
