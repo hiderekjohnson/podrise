@@ -17,12 +17,12 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/people" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-people">
-                  Notable People
+                  People
                 </Link>
               </li>
               <li>
                 <Link href="/companies" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-companies">
-                  Notable Companies
+                  Companies
                 </Link>
               </li>
               <li>
