@@ -170,7 +170,7 @@ async function buildSitemap(): Promise<string> {
     console.error("[Sitemap] Error fetching recaps:", err);
   }
 
-  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang"];
+  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang", "alex-hormozi", "gary-vaynerchuk", "codie-sanchez", "sahil-bloom", "andrew-huberman", "seth-godin", "chris-do", "scott-galloway", "simon-sinek", "adam-grant", "ramit-sethi", "ryan-holiday", "tim-ferriss", "mark-cuban", "patrick-bet-david", "james-clear", "jenna-kutcher", "amy-porterfield", "john-lee-dumas", "sam-parr", "shaan-puri", "justin-welsh", "hala-taha", "noah-kagan"];
   for (const pSlug of PEOPLE_SLUGS) {
     xml += `  <url>\n`;
     xml += `    <loc>${DOMAIN}/people/${pSlug}</loc>\n`;
@@ -678,6 +678,30 @@ export async function registerRoutes(
     { slug: "jason-calacanis", name: "Jason Calacanis", title: "Angel Investor & Host of This Week in Startups", searchTerms: ["Jason Calacanis", "Calacanis"], hostedSlugs: ["allin", "thisweekinstartups"] },
     { slug: "marc-andreessen", name: "Marc Andreessen", title: "Co-founder of Andreessen Horowitz", searchTerms: ["Marc Andreessen", "Andreessen"], hostedSlugs: ["a16z"] },
     { slug: "jensen-huang", name: "Jensen Huang", title: "CEO of NVIDIA", searchTerms: ["Jensen Huang"], hostedSlugs: [] },
+    { slug: "alex-hormozi", name: "Alex Hormozi", title: "Founder of Acquisition.com", searchTerms: ["Alex Hormozi", "Hormozi"], hostedSlugs: ["alexhormozi"] },
+    { slug: "gary-vaynerchuk", name: "Gary Vaynerchuk", title: "CEO of VaynerMedia", searchTerms: ["Gary Vaynerchuk", "GaryVee", "Gary Vee"], hostedSlugs: ["garyvee"] },
+    { slug: "codie-sanchez", name: "Codie Sanchez", title: "Founder of Contrarian Thinking", searchTerms: ["Codie Sanchez"], hostedSlugs: [] },
+    { slug: "sahil-bloom", name: "Sahil Bloom", title: "Writer & Investor", searchTerms: ["Sahil Bloom"], hostedSlugs: [] },
+    { slug: "andrew-huberman", name: "Dr. Andrew Huberman", title: "Neuroscientist & Host of Huberman Lab", searchTerms: ["Andrew Huberman", "Huberman"], hostedSlugs: ["hubermanlab"] },
+    { slug: "seth-godin", name: "Seth Godin", title: "Author & Marketing Legend", searchTerms: ["Seth Godin"], hostedSlugs: [] },
+    { slug: "chris-do", name: "Chris Do", title: "Founder of The Futur", searchTerms: ["Chris Do"], hostedSlugs: [] },
+    { slug: "scott-galloway", name: "Scott Galloway", title: "Professor at NYU Stern & Host of Prof G", searchTerms: ["Scott Galloway", "Galloway"], hostedSlugs: ["profgmarkets", "profgpod", "pivot"] },
+    { slug: "simon-sinek", name: "Simon Sinek", title: "Author & Motivational Speaker", searchTerms: ["Simon Sinek"], hostedSlugs: [] },
+    { slug: "adam-grant", name: "Adam Grant", title: "Organizational Psychologist at Wharton", searchTerms: ["Adam Grant"], hostedSlugs: ["worklife"] },
+    { slug: "ramit-sethi", name: "Ramit Sethi", title: "Author of 'I Will Teach You to Be Rich'", searchTerms: ["Ramit Sethi"], hostedSlugs: [] },
+    { slug: "ryan-holiday", name: "Ryan Holiday", title: "Author & Host of Daily Stoic", searchTerms: ["Ryan Holiday"], hostedSlugs: ["dailystoic"] },
+    { slug: "tim-ferriss", name: "Tim Ferriss", title: "Author & Host of The Tim Ferriss Show", searchTerms: ["Tim Ferriss", "Ferriss"], hostedSlugs: ["timferriss"] },
+    { slug: "mark-cuban", name: "Mark Cuban", title: "Entrepreneur & Investor", searchTerms: ["Mark Cuban"], hostedSlugs: [] },
+    { slug: "patrick-bet-david", name: "Patrick Bet-David", title: "Founder of Valuetainment", searchTerms: ["Patrick Bet-David", "PBD"], hostedSlugs: ["valuetainment"] },
+    { slug: "james-clear", name: "James Clear", title: "Author of 'Atomic Habits'", searchTerms: ["James Clear"], hostedSlugs: [] },
+    { slug: "jenna-kutcher", name: "Jenna Kutcher", title: "Entrepreneur & Host of The Goal Digger Podcast", searchTerms: ["Jenna Kutcher"], hostedSlugs: [] },
+    { slug: "amy-porterfield", name: "Amy Porterfield", title: "Online Marketing Expert & Podcast Host", searchTerms: ["Amy Porterfield"], hostedSlugs: ["amyporterfield"] },
+    { slug: "john-lee-dumas", name: "John Lee Dumas", title: "Host of Entrepreneurs on Fire", searchTerms: ["John Lee Dumas", "JLD"], hostedSlugs: ["entrepreneursonfire"] },
+    { slug: "sam-parr", name: "Sam Parr", title: "Co-host of My First Million", searchTerms: ["Sam Parr"], hostedSlugs: ["myfirstmillion"] },
+    { slug: "shaan-puri", name: "Shaan Puri", title: "Co-host of My First Million", searchTerms: ["Shaan Puri"], hostedSlugs: ["myfirstmillion"] },
+    { slug: "justin-welsh", name: "Justin Welsh", title: "Solopreneur & LinkedIn Creator", searchTerms: ["Justin Welsh"], hostedSlugs: [] },
+    { slug: "hala-taha", name: "Hala Taha", title: "Host of Young and Profiting Podcast", searchTerms: ["Hala Taha"], hostedSlugs: ["youngandprofiting"] },
+    { slug: "noah-kagan", name: "Noah Kagan", title: "CEO of AppSumo", searchTerms: ["Noah Kagan"], hostedSlugs: [] },
   ];
 
   const ENTITY_COMPANIES = [
