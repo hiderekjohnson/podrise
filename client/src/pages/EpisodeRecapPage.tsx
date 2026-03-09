@@ -626,6 +626,14 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-5">
               <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
                 Podcasts thrive because of the sponsors who support them. Please consider checking out the sponsors who made this episode possible — they help keep the show free for all of us.
+                {resources.length > 0 && (
+                  <span className="block mt-2 text-sm">
+                    Looking for books, tools, and non-sponsored recommendations?{" "}
+                    <button onClick={() => scrollTo("section-resources")} className="text-primary font-semibold hover:underline" data-testid="link-sponsors-to-resources">
+                      See Resources Mentioned
+                    </button>
+                  </span>
+                )}
               </p>
 
               {sponsorsLoading ? (
@@ -699,7 +707,15 @@ export default function EpisodeRecapPage() {
             </div>
             <div className="px-6 py-5">
               <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
-                Books, tools, and other resources mentioned in this episode.
+                Books, tools, and other resources organically mentioned in this episode — these are not paid promotions.
+                {sponsors.length > 0 && (
+                  <span className="block mt-2 text-sm">
+                    To see paid sponsors for this episode,{" "}
+                    <button onClick={() => scrollTo("section-sponsors")} className="text-primary font-semibold hover:underline" data-testid="link-resources-to-sponsors">
+                      view Episode Sponsors
+                    </button>
+                  </span>
+                )}
               </p>
 
               {resourcesLoading ? (

@@ -920,13 +920,26 @@ Cross-reference the transcript and show notes: the show notes often have the cor
           ? `\n\nSHOW NOTES (official listing with links):\n${showNotes.slice(0, 5000)}`
           : "";
 
+        let sponsorNames: string[] = [];
+        if (recap.sponsors) {
+          try {
+            const parsed = JSON.parse(recap.sponsors);
+            if (Array.isArray(parsed)) {
+              sponsorNames = parsed.map((s: any) => s.name).filter(Boolean);
+            }
+          } catch {}
+        }
+        const sponsorExclusionNote = sponsorNames.length > 0
+          ? `\n\nKNOWN SPONSORS FOR THIS EPISODE (EXCLUDE ALL OF THESE): ${sponsorNames.join(", ")}`
+          : "";
+
         const { openai } = await import("./replit_integrations/image/client");
         const completion = await openai.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [
             {
               role: "system",
-              content: `You are an expert at extracting resources, books, tools, websites, apps, and recommendations mentioned in podcast episodes. Analyze the transcript and show notes to identify ALL resources, products, books, tools, websites, apps, courses, newsletters, and other recommendations mentioned or discussed.
+              content: `You are an expert at extracting resources, books, tools, websites, apps, and recommendations mentioned in podcast episodes. Analyze the transcript and show notes to identify ALL resources, products, books, tools, websites, apps, courses, newsletters, and other recommendations that are ORGANICALLY mentioned or discussed — NOT paid sponsors.
 
 For each resource, provide:
 - "name": The name of the resource (book title, tool name, website name, etc.)
@@ -938,17 +951,18 @@ For each resource, provide:
 
 IMPORTANT RULES:
 1. For ALL books, always generate an Amazon URL with the affiliate tag "podcap-20" in this format: https://www.amazon.com/s?k=BOOK+TITLE+AUTHOR&tag=podcap-20
-2. Do NOT include sponsors/advertisers — those are tracked separately
-3. Include tools, software, frameworks, and platforms that are discussed substantively (not just passing mentions)
-4. Include people's personal projects, companies, or products if they're discussed
+2. STRICTLY exclude ALL sponsors, advertisers, and paid promotions. If something is introduced with language like "brought to you by", "sponsored by", "this episode is presented by", "our partners at", has a promo code, or is clearly an ad read — do NOT include it. A list of KNOWN SPONSORS will be provided — exclude every single one of them by name.
+3. Only include resources that are genuinely recommended, discussed, or used organically in the conversation — NOT as part of an ad segment
+4. Include people's personal projects, companies, or products if they're discussed organically (not as a paid ad)
 5. If a URL appears in the show notes for a resource, prefer that URL (unless it's a book — always use Amazon affiliate link for books)
+6. When in doubt whether something is a sponsor or an organic mention, err on the side of EXCLUDING it from resources
 
 Return a JSON object: {"resources": [...]}
 If no resources are found, return {"resources": []}.`
             },
             {
               role: "user",
-              content: `Podcast: "${recap.podcastName}"\nEpisode: "${recap.episodeTitle}"\nHosts: ${recap.hosts || "unknown"}\n\n${transcriptText ? `TRANSCRIPT:\n${transcriptText}` : "(No transcript available)"}${showNotesSection}`
+              content: `Podcast: "${recap.podcastName}"\nEpisode: "${recap.episodeTitle}"\nHosts: ${recap.hosts || "unknown"}${sponsorExclusionNote}\n\n${transcriptText ? `TRANSCRIPT:\n${transcriptText}` : "(No transcript available)"}${showNotesSection}`
             }
           ],
           max_tokens: 4000,
