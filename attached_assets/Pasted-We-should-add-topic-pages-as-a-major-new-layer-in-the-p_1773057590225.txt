@@ -1,0 +1,35 @@
+We should add topic pages as a major new layer in the product. The goal is not just to create another directory page. The goal is to make PodCap feel like a true knowledge platform by organizing podcast content around important subjects people care about.
+
+These topic pages should sit between the podcast-level pages and the broader people / company pages. They should help users discover podcast episodes by subject, and they should also start laying the foundation for a future enterprise monitoring product.
+
+Conceptually, each topic page should answer a few questions:
+What is this topic, why does it matter, which podcast episodes discuss it, which podcasts cover it often, who talks about it, and which companies are commonly mentioned around it.
+
+The page should feel like a hub, not a feed. Think more “knowledge center” and less “list of posts.” It should help users understand the topic quickly, then explore the most relevant episodes and entities connected to it.
+
+The key thing is that topics should connect the whole graph together:
+topics connect to episodes, podcasts, people, and companies.
+That makes the site feel much bigger and more structured.
+
+From a product and SEO perspective, topic pages matter because they give us broader surfaces people may actually search for. A user may not search for a specific episode, but they may search for podcasts about AI, podcast episodes about venture capital, best podcast discussions on leadership, and so on. Topic pages let us capture that demand while also helping users browse the site in a more natural way.
+
+From an enterprise perspective, this is also important because companies think in terms of industries and themes, not individual episodes. A future enterprise customer is much more likely to care about monitoring a topic like wealth management, cybersecurity, semiconductors, or healthcare AI than following one specific podcast. So this public topic layer should be built in a way that could eventually support monitoring, alerts, or industry dashboards later.
+
+For now, the public version should stay editorial, searchable, and useful for normal users. It should showcase relevant episodes, related podcasts, notable people, related companies, and possibly adjacent topics. It should feel curated and high signal.
+
+Design-wise, these pages should feel like an important part of the product, not an afterthought. Clean, modern, premium, and consistent with the broader PodCap direction. The page should feel helpful to a user browsing, while also subtly showing the deeper structure of the platform.
+
+A few strategic notes:
+Don’t make the page thin.
+Don’t make it just a giant episode list.
+Don’t over-fragment into overly niche topics too early.
+
+Start with broader, stronger topics that can accumulate a meaningful amount of content and internal links. We want topic pages that can grow into authority pages over time.
+
+Also, make sure topics feel integrated into the rest of the site architecture. They should connect naturally with podcasts, people, and companies so the whole experience feels like one connected knowledge system.
+
+The big picture is:
+PodCap should not just summarize podcast episodes.
+It should organize the ideas inside podcasts.
+
+Topic pages are a key step in making that real.

@@ -12,6 +12,7 @@ interface ChangelogEntry {
   description: string;
   link?: { url: string; label: string };
   emoji: string;
+  date: string;
 }
 
 const changelog: ChangelogEntry[] = [
@@ -20,113 +21,134 @@ const changelog: ChangelogEntry[] = [
     description: "Every episode now has a full, searchable transcript you can read right alongside the recap.",
     link: { url: "/podcasts/myfirstmillion", label: "Read a transcript" },
     emoji: "📜",
+    date: "Mar 7, 2026",
   },
   {
     title: "Search across transcripts",
     description: "Search any keyword across all episodes of a podcast and find exactly where it was discussed, with direct links to the relevant transcript sections.",
     emoji: "🔍",
+    date: "Mar 4, 2026",
   },
   {
     title: "Ask AI about any podcast",
     description: "Ask questions about any podcast and get AI-powered answers drawn from real transcripts and episode summaries across the entire show's history.",
     emoji: "🤖",
+    date: "Feb 28, 2026",
   },
   {
     title: "Host bios and photos",
     description: "Every podcast page now shows host bios and profile photos pulled from their social media accounts. We love our hosts!",
     emoji: "👤",
+    date: "Feb 25, 2026",
   },
   {
     title: "Redesigned episode recaps",
     description: "Episode recap pages now organize content into clean, numbered cards — TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI — so you can scan or deep-dive however you prefer.",
     emoji: "✨",
+    date: "Feb 21, 2026",
   },
   {
     title: "Key Topics and Top Questions",
     description: "Each episode recap now highlights the main topics discussed and the most interesting questions raised during the episode.",
     emoji: "💡",
+    date: "Feb 18, 2026",
   },
   {
     title: "Listen to the full episode",
     description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear.",
     emoji: "🎧",
+    date: "Feb 14, 2026",
   },
   {
     title: "Delete your account",
     description: "Free-tier users can now permanently delete their account and all associated data from the Settings tab in the dashboard. Because your data is yours.",
     emoji: "🗑️",
+    date: "Feb 10, 2026",
   },
   {
     title: "Pro plan management",
     description: "Pro subscribers can now view billing history, update their payment method, and manage their subscription directly from the Your Plan tab — no need to dig through emails.",
     emoji: "💳",
+    date: "Feb 6, 2026",
   },
   {
     title: "About Us page",
     description: "A lot of people were asking about who built PodCap and why, so we put together an About Us page with the story behind the project and the team.",
     link: { url: "/about", label: "Read our story" },
     emoji: "👋",
+    date: "Feb 3, 2026",
   },
   {
     title: "PodCap is now on X",
     description: "We created an X account where we'll be posting our top episode recaps daily. Follow us to discover great episodes and stay in the loop.",
     link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
     emoji: "𝕏",
+    date: "Jan 30, 2026",
   },
   {
     title: "For Podcasters — we're here to help, not hurt",
     description: "There was some confusion from podcasters that PodCap might lower listening. It's far from the truth. We built a dedicated page to explain how PodCap actually helps podcasters by keeping superfans engaged, boosting completion rates, and improving algorithm performance. We love podcasters, and this service is completely free for creators.",
     link: { url: "/we-heart-podcasters", label: "Read our message to podcasters" },
     emoji: "❤️",
+    date: "Jan 27, 2026",
   },
   {
     title: "AI-generated episode recaps on every podcast page",
     description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily podcast recap looks like before signing up.",
     link: { url: "/podcasts/joerogan", label: "Read Joe Rogan's latest episode summary" },
     emoji: "📝",
+    date: "Jan 23, 2026",
   },
   {
     title: "Dedicated podcast summary pages for individual shows",
     description: "Podcasters reached out and asked for their own sign-up pages — so we built them. Each page is a hub for that podcast's daily recaps, episode summaries, and show info. If you're a podcaster and want your own page, we'd love to hear from you.",
     link: { url: "/podcasts/myfirstmillion", label: "See the My First Million podcast summary page" },
     emoji: "🎙️",
+    date: "Jan 20, 2026",
   },
   {
     title: "Help & Support center",
     description: "Sorry we didn't think of this sooner — you can now reach us anytime with questions, issues, or feedback about your podcast summaries.",
     link: { url: "/support", label: "Visit the PodCap support page" },
     emoji: "💬",
+    date: "Jan 17, 2026",
   },
   {
     title: "PodCap Pro — unlimited podcast summaries",
     description: "Follow more than 3 podcasts with our Pro plan for $9.99/month. Get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
     emoji: "⭐",
+    date: "Jan 14, 2026",
   },
   {
     title: "Top podcasts directory",
     description: "Browse and discover the top podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
     link: { url: "/podcasts", label: "Explore the top podcast summaries" },
     emoji: "📊",
+    date: "Jan 11, 2026",
   },
   {
     title: "View and re-send past recaps from your dashboard",
     description: "Your daily podcast recaps aren't just emails anymore. Log in to your PodCap account to browse all your previous episode summaries — and re-send any recap to your inbox if you need it again.",
     emoji: "📂",
+    date: "Jan 8, 2026",
   },
   {
     title: "No new episodes? No email",
     description: "We turned off recap emails on days when none of your podcasts dropped a new episode. One less unnecessary email in your inbox — you're welcome.",
     emoji: "📭",
+    date: "Jan 5, 2026",
   },
   {
     title: "Vacation mode for your daily podcast recaps",
     description: "Going on a trip? Pause your daily podcast summaries until a specific date. You can update or cancel vacation mode anytime from your dashboard settings.",
     emoji: "🏖️",
+    date: "Jan 3, 2026",
   },
   {
     title: "Custom delivery time for podcast summaries",
     description: "Choose exactly when you'd like to receive your daily podcast recap. Early bird or night owl — your AI-powered episode summary arrives on your schedule.",
     emoji: "⏰",
+    date: "Jan 1, 2026",
   },
 ];
 
@@ -238,7 +260,7 @@ export default function FeatureRequests() {
             </div>
             <h1 className="sr-only">What's New at PodCap</h1>
             <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Everything we've shipped to make your daily podcast summaries better.
+              Everything we've shipped to build the world's searchable library of podcast knowledge.
             </p>
           </motion.div>
         </section>
@@ -264,6 +286,7 @@ export default function FeatureRequests() {
                       {entry.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground/50 font-medium mb-1">{entry.date}</p>
                       <h3 className="text-[15px] font-bold text-foreground leading-snug mb-1.5">{entry.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">{entry.description}</p>
                       {entry.link && (
