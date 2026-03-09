@@ -12,7 +12,7 @@ interface BackfillPodcast {
   target: number;
   remaining: number;
   totalEpisodes: number;
-  status: "done" | "no_taddy" | "in_process" | "in_queue" | "error";
+  status: "complete_record" | "done" | "no_taddy" | "in_process" | "in_queue" | "error";
   error?: string;
 }
 
@@ -27,7 +27,7 @@ interface BackfillData {
 }
 
 export default function BackfillTracker() {
-  const [filter, setFilter] = useState<"all" | "done" | "in_process" | "in_queue" | "error" | "no_taddy">("all");
+  const [filter, setFilter] = useState<"all" | "complete_record" | "done" | "in_process" | "in_queue" | "error" | "no_taddy">("all");
   const [expandedError, setExpandedError] = useState<string | null>(null);
   const [sortCol, setSortCol] = useState<"name" | "totalEpisodes" | "transcriptCount" | "completeCount" | "remaining">("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -59,6 +59,7 @@ export default function BackfillTracker() {
   const filtered = data.podcasts
     .filter(p => {
       if (filter === "all") return true;
+      if (filter === "done") return p.status === "done" || p.status === "complete_record";
       if (filter === "error") return p.status === "error" || p.status === "no_taddy";
       return p.status === filter;
     })
@@ -69,6 +70,7 @@ export default function BackfillTracker() {
     });
 
   const counts = {
+    complete_record: data.podcasts.filter(p => p.status === "complete_record").length,
     done: data.podcasts.filter(p => p.status === "done").length,
     in_process: data.podcasts.filter(p => p.status === "in_process").length,
     in_queue: data.podcasts.filter(p => p.status === "in_queue").length,
@@ -96,6 +98,7 @@ export default function BackfillTracker() {
         <div className="flex gap-2 flex-wrap">
           {([
             { key: "all" as const, label: `All Podcasts (${data.podcasts.length})` },
+            { key: "complete_record" as const, label: `Complete Record (${counts.complete_record})` },
             { key: "done" as const, label: `Done Podcasts (${counts.done})` },
             { key: "in_process" as const, label: `In Process Podcasts (${counts.in_process})` },
             { key: "in_queue" as const, label: `In Queue Podcasts (${counts.in_queue})` },
@@ -190,7 +193,12 @@ export default function BackfillTracker() {
                       {p.remaining > 0 ? p.remaining.toLocaleString() : "-"}
                     </td>
                     <td className="px-4 py-2.5 text-center">
-                      {p.status === "done" ? (
+                      {p.status === "complete_record" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700" data-testid={`status-complete-${p.itunesId}`}>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Complete Record
+                        </span>
+                      ) : p.status === "done" ? (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600" data-testid={`status-done-${p.itunesId}`}>
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Done

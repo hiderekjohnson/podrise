@@ -4801,7 +4801,9 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             let error: string | undefined;
             const result = podcastResults[p.name];
 
-            if (p.transcript_count >= 25) {
+            if (p.total_episodes > 0 && p.complete_count > 0 && p.complete_count >= p.transcript_count && p.transcript_count >= p.total_episodes) {
+              status = "complete_record";
+            } else if (p.transcript_count >= 25) {
               status = "done";
             } else if (!p.taddy_uuid) {
               status = "no_taddy";
