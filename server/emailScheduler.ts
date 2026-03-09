@@ -378,9 +378,44 @@ function normalizeTitleForMatch(title: string): string {
 
 let landingPageRefreshRanToday = "";
 
+let landingRecapRunning = false;
+let landingRecapProgress = {
+  status: "idle" as "idle" | "running" | "completed" | "error",
+  currentPodcast: "",
+  podcastsProcessed: 0,
+  podcastsTotal: 0,
+  recapsCreated: 0,
+  recapsSkipped: 0,
+  errors: 0,
+  startedAt: null as string | null,
+  completedAt: null as string | null,
+};
+
+export function getLandingRecapProgress() {
+  return { ...landingRecapProgress };
+}
+
 export async function refreshLandingPageRecaps(force: boolean = false) {
   const todayKey = new Date().toISOString().split("T")[0];
   if (!force && landingPageRefreshRanToday === todayKey) return;
+
+  if (landingRecapRunning) {
+    console.log("[LandingRecaps] Already running, skipping");
+    return;
+  }
+
+  landingRecapRunning = true;
+  landingRecapProgress = {
+    status: "running",
+    currentPodcast: "",
+    podcastsProcessed: 0,
+    podcastsTotal: 0,
+    recapsCreated: 0,
+    recapsSkipped: 0,
+    errors: 0,
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+  };
 
   console.log(`[LandingRecaps] Starting daily landing page recap refresh...`);
 
@@ -390,15 +425,19 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
     landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.itunesId && p.slug);
   } catch (err) {
     console.error("[LandingRecaps] Failed to fetch podcast directory:", err);
+    landingRecapProgress.status = "error";
+    landingRecapRunning = false;
     return;
   }
 
+  landingRecapProgress.podcastsTotal = landingPodcasts.length;
   console.log(`[LandingRecaps] Processing ${landingPodcasts.length} landing page podcasts...`);
   let newRecaps = 0;
   let skipped = 0;
   let errors = 0;
 
   for (const podcast of landingPodcasts) {
+    landingRecapProgress.currentPodcast = podcast.name;
     try {
       const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
       const lookupRes = await fetch(lookupUrl);
@@ -567,15 +606,23 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
 
         podcastNewRecaps++;
         newRecaps++;
+        landingRecapProgress.recapsCreated = newRecaps;
         console.log(`[LandingRecaps] Generated recap for ${podcast.name} - "${epTitle}"`);
       }
     } catch (err) {
       console.error(`[LandingRecaps] Error processing ${podcast.name}:`, err);
       errors++;
+      landingRecapProgress.errors = errors;
     }
+    landingRecapProgress.podcastsProcessed++;
+    landingRecapProgress.recapsSkipped = skipped;
   }
 
   landingPageRefreshRanToday = todayKey;
+  landingRecapProgress.status = "completed";
+  landingRecapProgress.completedAt = new Date().toISOString();
+  landingRecapProgress.currentPodcast = "";
+  landingRecapRunning = false;
   console.log(`[LandingRecaps] Complete: ${newRecaps} new recaps, ${skipped} skipped, ${errors} errors`);
 }
 

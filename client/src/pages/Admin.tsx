@@ -199,12 +199,306 @@ function BatchExpansionPanel() {
   );
 }
 
+interface TaskProgress {
+  status: "idle" | "running" | "completed" | "error";
+  startedAt: string | null;
+  completedAt: string | null;
+  currentPodcast?: string;
+  podcastsProcessed?: number;
+  podcastsTotal?: number;
+}
+
+interface LandingRecapProgress extends TaskProgress {
+  recapsCreated: number;
+  recapsSkipped: number;
+  errors: number;
+}
+
+interface BatchExpansionProgress extends TaskProgress {
+  episodesCreated: number;
+  episodesSkipped: number;
+  episodesFailed: number;
+  errors: string[];
+}
+
+function formatDuration(startedAt: string | null, completedAt: string | null): string {
+  if (!startedAt) return "";
+  const start = new Date(startedAt).getTime();
+  const end = completedAt ? new Date(completedAt).getTime() : Date.now();
+  const sec = Math.floor((end - start) / 1000);
+  if (sec < 60) return `${sec}s`;
+  const min = Math.floor(sec / 60);
+  const remSec = sec % 60;
+  if (min < 60) return `${min}m ${remSec}s`;
+  const hr = Math.floor(min / 60);
+  return `${hr}h ${min % 60}m`;
+}
+
+function estimateTimeRemaining(processed: number, total: number, startedAt: string | null): string {
+  if (!startedAt || processed === 0 || total === 0) return "Calculating...";
+  const elapsed = Date.now() - new Date(startedAt).getTime();
+  const perItem = elapsed / processed;
+  const remaining = perItem * (total - processed);
+  const sec = Math.floor(remaining / 1000);
+  if (sec < 60) return `~${sec}s remaining`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `~${min}m remaining`;
+  const hr = Math.floor(min / 60);
+  return `~${hr}h ${min % 60}m remaining`;
+}
+
+function TaskCard({
+  title,
+  description,
+  status,
+  startedAt,
+  completedAt,
+  currentItem,
+  processed,
+  total,
+  stats,
+  onTrigger,
+  triggerLabel,
+  triggerDisabled,
+  errorList,
+}: {
+  title: string;
+  description: string;
+  status: "idle" | "running" | "completed" | "error";
+  startedAt: string | null;
+  completedAt: string | null;
+  currentItem?: string;
+  processed?: number;
+  total?: number;
+  stats: { label: string; value: number; color: string }[];
+  onTrigger: () => void;
+  triggerLabel: string;
+  triggerDisabled: boolean;
+  errorList?: string[];
+}) {
+  const pct = (processed && total && total > 0) ? Math.round((processed / total) * 100) : 0;
+  const statusColor = status === "running" ? "bg-emerald-500" : status === "completed" ? "bg-blue-500" : status === "error" ? "bg-red-500" : "bg-gray-400";
+  const statusLabel = status === "idle" ? "Idle" : status === "running" ? "Running" : status === "completed" ? "Completed" : "Error";
+
+  return (
+    <div className="glass-panel rounded-2xl p-5" data-testid={`task-card-${title.toLowerCase().replace(/\s+/g, "-")}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-primary" />
+            {title}
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        </div>
+        <button
+          onClick={onTrigger}
+          disabled={triggerDisabled}
+          className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 transition-colors whitespace-nowrap disabled:opacity-50"
+          data-testid={`button-trigger-${title.toLowerCase().replace(/\s+/g, "-")}`}
+        >
+          {status === "running" ? "Running..." : triggerLabel}
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        <span className={`inline-block w-2 h-2 rounded-full ${statusColor} ${status === "running" ? "animate-pulse" : ""}`} />
+        <span className="text-xs font-semibold text-foreground">{statusLabel}</span>
+        {status === "running" && currentItem && (
+          <span className="text-xs text-muted-foreground truncate max-w-[200px]">— {currentItem}</span>
+        )}
+      </div>
+
+      {(status === "running" || status === "completed" || status === "error") && total && total > 0 && (
+        <>
+          <div className="w-full bg-muted rounded-full h-2.5 mb-2">
+            <div
+              className={`h-2.5 rounded-full transition-all duration-500 ${status === "error" ? "bg-red-500" : "bg-primary"}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+            <span>{processed}/{total} podcasts ({pct}%)</span>
+            {status === "running" && processed !== undefined && (
+              <span>{estimateTimeRemaining(processed, total, startedAt)}</span>
+            )}
+          </div>
+        </>
+      )}
+
+      {stats.length > 0 && (status !== "idle") && (
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {stats.map((s) => (
+            <div key={s.label} className={`${s.color} rounded-xl p-2 text-center`}>
+              <p className="text-lg font-bold">{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(status !== "idle") && (
+        <p className="text-xs text-muted-foreground">
+          {startedAt && <>Started {new Date(startedAt).toLocaleString()}</>}
+          {completedAt && <> · Finished {new Date(completedAt).toLocaleString()}</>}
+          {status === "running" && startedAt && <> · Elapsed: {formatDuration(startedAt, null)}</>}
+          {status === "completed" && startedAt && completedAt && <> · Took {formatDuration(startedAt, completedAt)}</>}
+        </p>
+      )}
+
+      {errorList && errorList.length > 0 && (
+        <details className="text-xs mt-2">
+          <summary className="text-red-500 cursor-pointer font-medium">{errorList.length} error(s)</summary>
+          <div className="mt-1 max-h-32 overflow-y-auto space-y-1">
+            {errorList.map((e, i) => (
+              <p key={i} className="text-red-400 text-xs break-all">{e}</p>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function UpdatesPanel() {
+  const { toast } = useToast();
+  const [progress, setProgress] = useState<{
+    landingRecaps: LandingRecapProgress;
+    batchExpansion: BatchExpansionProgress;
+  } | null>(null);
+
+  const fetchProgress = async () => {
+    try {
+      const res = await fetch("/api/admin/updates/progress", { credentials: "include" });
+      if (res.ok) {
+        setProgress(await res.json());
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchProgress();
+  }, []);
+
+  useEffect(() => {
+    const hasRunning = progress?.landingRecaps?.status === "running" || progress?.batchExpansion?.status === "running";
+    if (!hasRunning) {
+      const slow = setInterval(fetchProgress, 10000);
+      return () => clearInterval(slow);
+    }
+    const fast = setInterval(fetchProgress, 3000);
+    return () => clearInterval(fast);
+  }, [progress?.landingRecaps?.status, progress?.batchExpansion?.status]);
+
+  const triggerLandingRecaps = async () => {
+    if (!confirm("Start a landing page recap refresh? This fetches latest episodes for all podcasts and generates AI recaps.")) return;
+    try {
+      const res = await fetch("/api/admin/updates/trigger-landing-recaps", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.status === 409) {
+        toast({ title: "Already Running", description: "Landing recap refresh is already in progress." });
+      } else if (res.ok) {
+        toast({ title: "Started", description: "Landing recap refresh started." });
+      } else {
+        throw new Error("Failed");
+      }
+      fetchProgress();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+    }
+  };
+
+  const triggerBatchExpansion = async () => {
+    if (!confirm("Start batch episode expansion? This will expand all podcasts to 50 episodes each via Taddy transcripts + AI recaps. May take a while.")) return;
+    try {
+      const res = await fetch("/api/admin/updates/trigger-batch-expand", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ target: 50 }),
+      });
+      if (res.status === 409) {
+        toast({ title: "Already Running", description: "Batch expansion is already in progress." });
+      } else if (res.ok) {
+        toast({ title: "Started", description: "Batch expansion started." });
+      } else {
+        throw new Error("Failed");
+      }
+      fetchProgress();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+    }
+  };
+
+  const lr = progress?.landingRecaps;
+  const be = progress?.batchExpansion;
+
+  const anyRunning = lr?.status === "running" || be?.status === "running";
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="text-lg font-bold text-foreground" data-testid="text-updates-title">Background Updates</h2>
+          <p className="text-sm text-muted-foreground">Monitor and trigger data processing tasks.</p>
+        </div>
+        {anyRunning && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-emerald-600">Tasks Running</span>
+          </div>
+        )}
+      </div>
+
+      <TaskCard
+        title="Landing Page Recaps"
+        description="Fetch latest episodes for all podcasts and generate AI recaps (runs daily at startup)."
+        status={lr?.status || "idle"}
+        startedAt={lr?.startedAt || null}
+        completedAt={lr?.completedAt || null}
+        currentItem={lr?.currentPodcast}
+        processed={lr?.podcastsProcessed}
+        total={lr?.podcastsTotal}
+        stats={[
+          { label: "Created", value: lr?.recapsCreated || 0, color: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600" },
+          { label: "Skipped", value: lr?.recapsSkipped || 0, color: "bg-gray-50 dark:bg-gray-900/30 text-muted-foreground" },
+          { label: "Errors", value: lr?.errors || 0, color: "bg-red-50 dark:bg-red-950/30 text-red-500" },
+        ]}
+        onTrigger={triggerLandingRecaps}
+        triggerLabel="Run Now"
+        triggerDisabled={lr?.status === "running"}
+      />
+
+      <TaskCard
+        title="Batch Episode Expansion"
+        description="Expand all podcasts to 50 episodes each via Taddy transcripts + AI recaps."
+        status={be?.status || "idle"}
+        startedAt={be?.startedAt || null}
+        completedAt={be?.completedAt || null}
+        currentItem={be?.currentPodcast}
+        processed={be?.podcastsProcessed}
+        total={be?.podcastsTotal}
+        stats={[
+          { label: "Created", value: be?.episodesCreated || 0, color: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600" },
+          { label: "Skipped", value: be?.episodesSkipped || 0, color: "bg-gray-50 dark:bg-gray-900/30 text-muted-foreground" },
+          { label: "Failed", value: be?.episodesFailed || 0, color: "bg-red-50 dark:bg-red-950/30 text-red-500" },
+        ]}
+        onTrigger={triggerBatchExpansion}
+        triggerLabel="Start Expansion"
+        triggerDisabled={be?.status === "running"}
+        errorList={be?.errors}
+      />
+    </div>
+  );
+}
+
 export default function Admin() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts">("pending");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates">("pending");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
@@ -575,8 +869,20 @@ export default function Admin() {
                   <UserCheck className="w-4 h-4" />
                   Hosts
                 </button>
+                <button
+                  data-testid="tab-updates"
+                  onClick={() => { setActiveTab("updates"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === "updates"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Updates
+                </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && (
+              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -1157,6 +1463,9 @@ export default function Admin() {
               }>
                 <HostsManager />
               </Suspense>
+            )}
+            {activeTab === "updates" && (
+              <UpdatesPanel />
             )}
           </motion.div>
         </section>
