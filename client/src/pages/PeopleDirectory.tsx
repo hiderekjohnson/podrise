@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Users, ArrowRight, Mic, MessageSquare, Search, ChevronDown } from "lucide-react";
+import { Users, ArrowRight, Mic, MessageSquare, Search, ChevronDown, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
@@ -109,7 +109,13 @@ export default function PeopleDirectory() {
           {user ? (
             <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
           ) : (
-            <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
+            <>
+              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
+                <Zap className="w-3.5 h-3.5" />
+                Build Your Recap
+              </a>
+              <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
+            </>
           )}
         </div>
       </header>
