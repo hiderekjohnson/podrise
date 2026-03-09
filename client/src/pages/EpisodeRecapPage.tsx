@@ -224,19 +224,6 @@ export default function EpisodeRecapPage() {
     window.scrollTo({ top, behavior: "smooth" });
   };
 
-  const sectionNumber = (() => {
-    let n = 0;
-    return () => ++n;
-  })();
-
-  const tldlNum = sectionNumber();
-  const insightsNum = episode.keyInsights?.length > 0 ? sectionNumber() : 0;
-  const breakdownNum = sectionNumber();
-  const topicsNum = hasKeyTopics ? sectionNumber() : 0;
-  const questionsNum = hasTopQuestions ? sectionNumber() : 0;
-  const askNum = sectionNumber();
-  const sponsorsNum = sponsors.length > 0 ? sectionNumber() : 0;
-
   return (
     <EpisodePageLayout
       episode={episode}
@@ -325,7 +312,6 @@ export default function EpisodeRecapPage() {
 
         <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-primary/[0.12] text-[11px] font-bold text-primary">{tldlNum}</span>
             <Clock className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold text-primary uppercase tracking-wider">TLDL — Too Long, Didn't Listen</span>
           </div>
@@ -352,7 +338,6 @@ export default function EpisodeRecapPage() {
         {episode.keyInsights?.length > 0 && (
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-amber-500/[0.12] text-[11px] font-bold text-amber-600">{insightsNum}</span>
               <Lightbulb className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Insights</span>
             </div>
@@ -375,7 +360,6 @@ export default function EpisodeRecapPage() {
 
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-primary/[0.12] text-[11px] font-bold text-primary">{breakdownNum}</span>
             <BookOpen className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold text-primary uppercase tracking-wider">Episode Breakdown</span>
           </div>
@@ -401,7 +385,6 @@ export default function EpisodeRecapPage() {
         {hasKeyTopics && (
           <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-emerald-500/[0.12] text-[11px] font-bold text-emerald-600">{topicsNum}</span>
               <Tag className="w-4 h-4 text-emerald-500" />
               <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics</span>
             </div>
@@ -427,7 +410,6 @@ export default function EpisodeRecapPage() {
         {hasTopQuestions && (
           <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-violet-500/[0.12] text-[11px] font-bold text-violet-600">{questionsNum}</span>
               <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
               <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Top Questions</span>
             </div>
@@ -476,7 +458,6 @@ export default function EpisodeRecapPage() {
 
         <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-ask-episode">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-violet-500/[0.12] text-[11px] font-bold text-violet-600">{askNum}</span>
             <Sparkles className="w-4 h-4 text-violet-500" />
             <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask About This Episode</span>
             <span className="ml-auto text-xs font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">Powered by AI</span>
@@ -569,9 +550,6 @@ export default function EpisodeRecapPage() {
         {(sponsors.length > 0 || sponsorsLoading) && (
           <section id="section-sponsors" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-sponsors">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-rose-500/[0.04] border-b border-rose-500/[0.08]">
-              {sponsorsNum > 0 && (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-rose-500/[0.12] text-[11px] font-bold text-rose-600">{sponsorsNum}</span>
-              )}
               <Heart className="w-4 h-4 text-rose-500" />
               <span className="text-sm font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Episode Sponsors</span>
             </div>
