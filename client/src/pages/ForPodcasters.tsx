@@ -66,7 +66,7 @@ function ContactSection() {
             <p className="text-[15px] text-muted-foreground">We'll get back to you as soon as possible.</p>
             <button
               onClick={() => setSent(false)}
-              className="mt-4 text-[13px] text-primary font-display font-bold hover:underline"
+              className="mt-4 text-sm text-primary font-display font-bold hover:underline"
               data-testid="button-send-another"
             >
               Send another message
@@ -75,7 +75,7 @@ function ContactSection() {
         ) : (
           <form onSubmit={handleSubmit} className="bg-white border border-black/[0.06] rounded-2xl p-6 sm:p-8 space-y-4" data-testid="form-contact">
             <div>
-              <label htmlFor="podcaster-email" className="block text-[13px] font-display font-semibold mb-1.5">
+              <label htmlFor="podcaster-email" className="block text-sm font-display font-semibold mb-1.5">
                 Your email
               </label>
               <input
@@ -90,7 +90,7 @@ function ContactSection() {
               />
             </div>
             <div>
-              <label htmlFor="podcaster-message" className="block text-[13px] font-display font-semibold mb-1.5">
+              <label htmlFor="podcaster-message" className="block text-sm font-display font-semibold mb-1.5">
                 Your message
               </label>
               <textarea
@@ -197,8 +197,8 @@ export default function ForPodcasters() {
               ].map((stat) => (
                 <div key={stat.label} className="bg-white border border-black/[0.06] rounded-2xl py-6 px-5 text-center" data-testid={`stat-${stat.label.replace(/\s+/g, '-')}`}>
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
-                  <p className="text-[13px] font-display font-semibold text-foreground/70 mb-2">{stat.label}</p>
-                  <p className="text-[10px] text-muted-foreground/40 leading-snug">{stat.source}</p>
+                  <p className="text-sm font-display font-semibold text-foreground/70 mb-2">{stat.label}</p>
+                  <p className="text-xs text-muted-foreground/40 leading-snug">{stat.source}</p>
                 </div>
               ))}
             </div>
@@ -219,13 +219,13 @@ export default function ForPodcasters() {
         <section className="pb-16 sm:pb-20" data-testid="section-free">
           <div className="max-w-2xl mx-auto px-6">
             <div className="bg-emerald-50/60 border border-emerald-200/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-emerald-600 mb-1.5" data-testid="text-free-label">Oh, and one more thing</p>
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-600 mb-1.5" data-testid="text-free-label">Oh, and one more thing</p>
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">This is completely free for podcasters</h2>
               <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
                 No fees, no contracts, no catch. We recap your episodes, send your fans daily updates, and create searchable pages for your show. Remember, we said we love you guys.
               </p>
               <div className="border-t border-emerald-200/40 pt-5 max-w-md mx-auto">
-                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-emerald-600 mb-1.5" data-testid="text-bonus-label">Bonus</p>
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-600 mb-1.5" data-testid="text-bonus-label">Bonus</p>
                 <p className="text-[15px] leading-[1.7] text-muted-foreground">
                   We promote standout episode recaps daily on{" "}
                   <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold hover:text-primary transition-colors">X</a>,
@@ -448,9 +448,9 @@ export default function ForPodcasters() {
                 <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="group" data-testid={`card-podcast-${podcast.slug}`}>
                   <div className="bg-white border border-black/[0.06] rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all h-full flex flex-col">
                     <img src={podcast.artworkUrl} alt={podcast.name} className="w-full aspect-square rounded-xl object-cover mb-3" loading="lazy" />
-                    <h3 className="font-display font-bold text-[13px] sm:text-[14px] mb-0.5 leading-tight">{podcast.name}</h3>
-                    <p className="text-[12px] text-muted-foreground leading-snug mb-3 flex-1 line-clamp-2">{podcast.description}</p>
-                    <span className="flex items-center text-primary text-[12px] sm:text-[13px] font-display font-bold">
+                    <h3 className="font-display font-bold text-sm mb-0.5 leading-tight">{podcast.name}</h3>
+                    <p className="text-sm text-muted-foreground leading-snug mb-3 flex-1 line-clamp-2">{podcast.description}</p>
+                    <span className="flex items-center text-primary text-sm font-display font-bold">
                       View Page <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
                     </span>
                   </div>
@@ -459,7 +459,7 @@ export default function ForPodcasters() {
             </div>
             <div className="text-center mt-8">
               <Link href="/podcasts" data-testid="link-browse-all">
-                <Button variant="outline" size="sm" className="rounded-xl font-display font-bold text-[13px] h-9 px-5">
+                <Button variant="outline" size="sm" className="rounded-xl font-display font-bold text-sm h-9 px-5">
                   Browse All Podcasts <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               </Link>

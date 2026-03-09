@@ -175,11 +175,11 @@ export default function TranscriptLogs() {
                     {formatTime(log.createdAt)}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-foreground text-[13px]">{log.podcastName}</p>
+                    <p className="font-semibold text-foreground text-sm">{log.podcastName}</p>
                     <p className="text-xs text-muted-foreground/60 mt-0.5">ID: {log.podcastId}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-[13px] text-foreground max-w-[250px] truncate">{log.episodeTitle}</p>
+                    <p className="text-sm text-foreground max-w-[250px] truncate">{log.episodeTitle}</p>
                   </td>
                   <td className="px-4 py-3">
                     {statusBadge(log.status)}

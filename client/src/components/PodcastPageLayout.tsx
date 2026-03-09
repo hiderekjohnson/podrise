@@ -228,7 +228,7 @@ export function PodcastPageLayout({
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
                 {tab.id === "ask" && (
-                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
                 )}
               </button>
             ))}

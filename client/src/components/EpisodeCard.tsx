@@ -31,11 +31,11 @@ export function EpisodeCard({
       >
         <div className="flex items-center gap-2 mb-2">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
-          <span className="text-xs font-semibold text-muted-foreground/60">{formatted}</span>
+          <span className="text-sm font-semibold text-muted-foreground/60">{formatted}</span>
           {duration && (
             <>
               <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
-              <span className="text-xs text-muted-foreground/50">{duration}</span>
+              <span className="text-sm text-muted-foreground/50">{duration}</span>
             </>
           )}
         </div>

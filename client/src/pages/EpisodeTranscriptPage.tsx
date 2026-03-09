@@ -305,7 +305,7 @@ export default function EpisodeTranscriptPage() {
         </p>
 
         <div
-          className="flex items-center gap-4 flex-wrap text-[13px] text-muted-foreground px-4 py-3 bg-white border border-black/[0.06] rounded-xl mb-4"
+          className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground px-4 py-3 bg-white border border-black/[0.06] rounded-xl mb-4"
           data-testid="stats-bar"
         >
           <div className="flex items-center gap-1.5">
@@ -367,7 +367,7 @@ export default function EpisodeTranscriptPage() {
                       </a>
                     )}
                     {validSpeaker && (
-                      <span className="text-[13px] font-bold text-foreground" data-testid={`speaker-${seg.anchorId}`}>
+                      <span className="text-sm font-bold text-foreground" data-testid={`speaker-${seg.anchorId}`}>
                         {seg.speakerName}
                       </span>
                     )}

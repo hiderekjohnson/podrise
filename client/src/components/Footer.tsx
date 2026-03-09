@@ -31,7 +31,7 @@ export function Footer() {
           <div className="flex items-center justify-center gap-3 md:gap-5 flex-wrap">
             <Link
               href="/podcasts"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-podcasts"
             >
               Top Podcasts
@@ -39,7 +39,7 @@ export function Footer() {
             <span className="text-muted-foreground/20">|</span>
             <Link
               href="/about"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-about"
             >
               About Us
@@ -47,7 +47,7 @@ export function Footer() {
             <span className="text-muted-foreground/20">|</span>
             <Link
               href="/contact"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-contact"
             >
               Contact
@@ -55,7 +55,7 @@ export function Footer() {
             <span className="text-muted-foreground/20">|</span>
             <Link
               href="/support"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-support"
             >
               Help & Support
@@ -63,7 +63,7 @@ export function Footer() {
             <span className="text-muted-foreground/20">|</span>
             <Link
               href="/updates"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-updates"
             >
               What's New
@@ -71,7 +71,7 @@ export function Footer() {
             <span className="text-muted-foreground/20">|</span>
             <Link
               href="/privacy"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-privacy"
             >
               Privacy Policy
@@ -79,7 +79,7 @@ export function Footer() {
             <span className="text-muted-foreground/20">|</span>
             <Link
               href="/terms"
-              className="text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
               data-testid="link-terms"
             >
               Terms & Conditions
@@ -89,7 +89,7 @@ export function Footer() {
           <div className="mt-6">
             <Link
               href="/for-podcasters"
-              className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground/50 hover:text-red-500 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground/50 hover:text-red-500 transition-colors"
               data-testid="link-for-podcasters"
             >
               WE <Heart className="w-3 h-3 fill-red-400 text-red-400" /> PODCASTERS

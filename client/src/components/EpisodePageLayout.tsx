@@ -298,7 +298,7 @@ export function EpisodePageLayout({
                 data-testid="input-tab-search"
                 value={tabSearchValue}
                 onChange={tabSearchOnChange ? (e) => tabSearchOnChange(e.target.value) : undefined}
-                className="w-[200px] h-9 pl-[34px] pr-3 border border-black/[0.08] rounded-lg bg-white text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-[3px] focus:ring-primary/10 focus:w-[260px] transition-all"
+                className="w-[200px] h-9 pl-[34px] pr-3 border border-black/[0.08] rounded-lg bg-white text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-[3px] focus:ring-primary/10 focus:w-[260px] transition-all"
                 onKeyDown={tabSearchOnKeyDown}
               />
             </div>

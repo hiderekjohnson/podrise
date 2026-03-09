@@ -131,13 +131,13 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
                               </span>
                             </Link>
                             {dateStr && (
-                              <p className="text-[11px] text-muted-foreground/50 mt-0.5 flex items-center gap-1">
+                              <p className="text-xs text-muted-foreground/50 mt-0.5 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {dateStr}
                               </p>
                             )}
                           </div>
-                          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-primary/[0.08] text-primary">
+                          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-primary/[0.08] text-primary">
                             {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
                           </span>
                         </div>
@@ -153,12 +153,12 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
                             data-testid={`search-hit-${idx}-${sIdx}`}
                           >
                             {hit.timestampLabel && (
-                              <span className="shrink-0 text-[11px] font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
+                              <span className="shrink-0 text-xs font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
                                 {hit.timestampLabel}
                               </span>
                             )}
-                            <span className="flex-1 text-[13px] text-muted-foreground leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
-                            <span className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
+                            <span className="flex-1 text-sm text-muted-foreground leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
+                            <span className="shrink-0 flex items-center gap-1 text-xs font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
                               View in transcript
                               <ArrowRight className="w-3 h-3" />
                             </span>
@@ -288,7 +288,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
             <Sparkles className="w-3.5 h-3.5 text-violet-500" />
           </span>
           <span className="text-sm font-bold text-foreground">Ask your own question about this podcast</span>
-          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none">Powered by AI</span>
+          <span className="ml-1 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none">Powered by AI</span>
         </div>
         <p className="text-sm text-muted-foreground mb-5">
           Ask any question and get an answer drawn from across all episodes of {podcastName}.
@@ -330,7 +330,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
                 <button
                   key={i}
                   onClick={() => { setQuestion(eq); handleSubmit(eq); }}
-                  className="text-[13px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
+                  className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
                   data-testid={`ask-podcast-example-${i}`}
                 >
                   {eq}
@@ -371,7 +371,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
                 <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Sources</p>
                 <div className="flex flex-wrap gap-1.5">
                   {answer.episodesCited.map((ep, i) => (
-                    <span key={i} className="text-[12px] text-muted-foreground bg-black/[0.03] dark:bg-white/[0.06] px-2 py-1 rounded-md">{ep}</span>
+                    <span key={i} className="text-sm text-muted-foreground bg-black/[0.03] dark:bg-white/[0.06] px-2 py-1 rounded-md">{ep}</span>
                   ))}
                 </div>
               </div>
@@ -625,7 +625,7 @@ export default function PodcastLandingGeneric() {
               <div className={`grid gap-3 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
                 {snapshotItems.map((item, i) => (
                   <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-4 py-4" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
-                    <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1">{item.label}</p>
+                    <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1">{item.label}</p>
                     <p className="text-base font-bold text-foreground">{item.value}</p>
                   </div>
                 ))}
@@ -684,7 +684,7 @@ export default function PodcastLandingGeneric() {
                                   <ul key={pi} className="space-y-1 pl-1">
                                     {bulletLines.map((line: string, li: number) => (
                                       <li key={li} className="flex items-start gap-2">
-                                        <span className="text-primary/50 mt-[3px] text-[10px]">●</span>
+                                        <span className="text-primary/50 mt-[3px] text-xs">●</span>
                                         <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                       </li>
                                     ))}
@@ -703,7 +703,7 @@ export default function PodcastLandingGeneric() {
                                       <ul className="space-y-1 pl-1">
                                         {items.map((item: string, li: number) => (
                                           <li key={li} className="flex items-start gap-2">
-                                            <span className="text-primary/50 mt-[3px] text-[10px]">●</span>
+                                            <span className="text-primary/50 mt-[3px] text-xs">●</span>
                                             <span>{item.trim()}</span>
                                           </li>
                                         ))}
@@ -802,7 +802,7 @@ export default function PodcastLandingGeneric() {
             </div>
           </div>
 
-          <p className="text-[11px] text-muted-foreground/40 mt-8">
+          <p className="text-xs text-muted-foreground/40 mt-8">
             PodCap is not affiliated with, endorsed by, or sponsored by {name}, {hosts}, or any podcast listed on this site.
           </p>
         </section>

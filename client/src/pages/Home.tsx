@@ -169,7 +169,7 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Choose podcasts to recap
                   </h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                  <p className="text-sm text-muted-foreground mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                 </div>
               </div>
 
@@ -207,7 +207,7 @@ export default function Home() {
                               <Podcast className="w-10 h-10 text-primary" />
                             </div>
                           )}
-                          <p className="mt-2.5 text-[13px] font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
+                          <p className="mt-2.5 text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
                         </div>
                       ))}
                     </div>
@@ -227,7 +227,7 @@ export default function Home() {
                   <h2 className="text-lg font-display font-bold text-foreground">
                     Where should we send your recap?
                   </h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">All your podcast recaps in one daily email.</p>
+                  <p className="text-sm text-muted-foreground mt-1">All your podcast recaps in one daily email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
@@ -262,7 +262,7 @@ export default function Home() {
                   </>
                 )}
               </button>
-              <p className="text-[13px] text-muted-foreground italic">
+              <p className="text-sm text-muted-foreground italic">
                 Free forever for up to 3 podcasts.
               </p>
             </div>
@@ -339,22 +339,22 @@ export default function Home() {
                   <div className="bg-primary/[0.04] rounded-xl p-3 text-center">
                     <Headphones className="w-4 h-4 text-primary mx-auto mb-1" />
                     <p className="text-lg font-display font-extrabold text-foreground">5</p>
-                    <p className="text-[11px] text-muted-foreground">Podcasts</p>
+                    <p className="text-xs text-muted-foreground">Podcasts</p>
                   </div>
                   <div className="bg-primary/[0.04] rounded-xl p-3 text-center">
                     <Clock className="w-4 h-4 text-primary mx-auto mb-1" />
                     <p className="text-lg font-display font-extrabold text-foreground">6h 03m</p>
-                    <p className="text-[11px] text-muted-foreground">Total runtime</p>
+                    <p className="text-xs text-muted-foreground">Total runtime</p>
                   </div>
                   <div className="bg-primary/[0.04] rounded-xl p-3 text-center">
                     <BookOpen className="w-4 h-4 text-primary mx-auto mb-1" />
                     <p className="text-lg font-display font-extrabold text-foreground">10 min</p>
-                    <p className="text-[11px] text-muted-foreground">Your recap</p>
+                    <p className="text-xs text-muted-foreground">Your recap</p>
                   </div>
                   <div className="bg-green-500/[0.06] rounded-xl p-3 text-center">
                     <Zap className="w-4 h-4 text-green-600 mx-auto mb-1" />
                     <p className="text-lg font-display font-extrabold text-green-700">5h 53m</p>
-                    <p className="text-[11px] text-green-600/80">Time saved</p>
+                    <p className="text-xs text-green-600/80">Time saved</p>
                   </div>
                 </div>
 
@@ -550,12 +550,12 @@ function SampleEpisode({
       <div className="p-5 space-y-4 bg-white">
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <div>
-            <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">Episode</p>
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Episode</p>
             <p className="font-medium text-foreground mt-0.5">{episode}</p>
           </div>
           {guest && (
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">{guestTitle === "Hosts" || guestTitle === "Host" ? guestTitle : "Guest"}</p>
+              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">{guestTitle === "Hosts" || guestTitle === "Host" ? guestTitle : "Guest"}</p>
               <p className="font-medium text-foreground mt-0.5">{guest}</p>
               {guestTitle && guestTitle !== "Hosts" && guestTitle !== "Host" && (
                 <p className="text-xs text-muted-foreground">{guestTitle}</p>
@@ -563,23 +563,23 @@ function SampleEpisode({
             </div>
           )}
           <div>
-            <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">Length</p>
+            <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Length</p>
             <p className="font-medium text-foreground mt-0.5">{length}</p>
           </div>
         </div>
 
         <div className="bg-black/[0.02] rounded-lg p-3.5">
-          <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1">TLDR</p>
+          <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">TLDR</p>
           <p className="text-sm text-foreground">{tldr}</p>
         </div>
 
         <div>
-          <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider mb-1.5">{discussionLabel}</p>
+          <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider mb-1.5">{discussionLabel}</p>
           <p className="text-sm text-muted-foreground leading-relaxed">{discussion}</p>
         </div>
 
         <div>
-          <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider mb-2">Key Insights</p>
+          <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider mb-2">Key Insights</p>
           <ul className="space-y-1.5">
             {insights.map((insight, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">

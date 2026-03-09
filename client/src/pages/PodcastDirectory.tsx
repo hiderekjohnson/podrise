@@ -276,10 +276,10 @@ export default function PodcastDirectory() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-foreground text-sm truncate">{entry.name}</span>
                     {entry.hasLandingPage && (
-                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-md uppercase flex-shrink-0">Landing</span>
+                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase flex-shrink-0">Landing</span>
                     )}
                     {entry.slug && (
-                      <span className="text-[11px] text-muted-foreground/60 hidden sm:inline">/{entry.slug}</span>
+                      <span className="text-xs text-muted-foreground/60 hidden sm:inline">/{entry.slug}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">

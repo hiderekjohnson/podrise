@@ -412,7 +412,7 @@ export default function EpisodeRecapPage() {
                   <button
                     key={i}
                     onClick={() => handleTopicClick(topic)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/[0.04] border border-emerald-500/[0.1] rounded-lg text-[13px] font-medium text-foreground hover:border-emerald-500/30 hover:bg-emerald-500/[0.08] transition-all active:scale-[0.97]"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/[0.04] border border-emerald-500/[0.1] rounded-lg text-sm font-medium text-foreground hover:border-emerald-500/30 hover:bg-emerald-500/[0.08] transition-all active:scale-[0.97]"
                     data-testid={`topic-chip-${i}`}
                   >
                     <Tag className="w-3 h-3 text-emerald-500 shrink-0" />
@@ -443,7 +443,7 @@ export default function EpisodeRecapPage() {
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-500 shrink-0 mt-0.5">
                         <HelpCircle className="w-3 h-3" />
                       </span>
-                      <span className="text-[14px] font-semibold text-foreground leading-snug">{item.question}</span>
+                      <span className="text-[15px] font-semibold text-foreground leading-snug">{item.question}</span>
                     </div>
                     {expandedQuestion === i ? (
                       <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -462,7 +462,7 @@ export default function EpisodeRecapPage() {
                       >
                         <div className="px-6 pb-5 pl-[3.25rem]">
                           {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
-                            <p key={j} className="text-[14px] leading-[1.8] text-muted-foreground mb-2.5 last:mb-0">{p}</p>
+                            <p key={j} className="text-[15px] leading-[1.8] text-muted-foreground mb-2.5 last:mb-0">{p}</p>
                           ))}
                         </div>
                       </motion.div>
@@ -479,7 +479,7 @@ export default function EpisodeRecapPage() {
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-violet-500/[0.12] text-[11px] font-bold text-violet-600">{askNum}</span>
             <Sparkles className="w-4 h-4 text-violet-500" />
             <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask About This Episode</span>
-            <span className="ml-auto text-[10px] font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">Powered by AI</span>
+            <span className="ml-auto text-xs font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">Powered by AI</span>
           </div>
           <div className="px-6 py-5">
             <p className="text-sm text-muted-foreground mb-4">Ask any question and get an answer based on the episode transcript.</p>
@@ -489,7 +489,7 @@ export default function EpisodeRecapPage() {
                 value={askInput}
                 onChange={(e) => setAskInput(e.target.value)}
                 placeholder="What did this episode say about..."
-                className="flex-1 h-11 px-4 bg-black/[0.02] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[14px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
+                className="flex-1 h-11 px-4 bg-black/[0.02] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
                 data-testid="input-ask-episode"
               />
               <button
@@ -519,7 +519,7 @@ export default function EpisodeRecapPage() {
                         setAskAnswer(null);
                         askMutation.mutate(item.question);
                       }}
-                      className="text-[12px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
+                      className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
                       data-testid={`ask-example-${i}`}
                     >
                       {item.question}
@@ -551,7 +551,7 @@ export default function EpisodeRecapPage() {
                         <span className="text-xs font-bold text-violet-500 uppercase tracking-wider">Answer</span>
                       </div>
                       {askAnswer.split("\n\n").filter(Boolean).map((p, i) => (
-                        <p key={i} className="text-[14px] leading-[1.8] text-muted-foreground">{p}</p>
+                        <p key={i} className="text-[15px] leading-[1.8] text-muted-foreground">{p}</p>
                       ))}
                     </div>
                   ) : null}
@@ -576,7 +576,7 @@ export default function EpisodeRecapPage() {
               <span className="text-sm font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Episode Sponsors</span>
             </div>
             <div className="px-6 py-5">
-              <p className="text-[14px] leading-relaxed text-muted-foreground mb-5">
+              <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
                 Podcasts thrive because of the sponsors who support them. Please consider checking out the sponsors who made this episode possible — they help keep the show free for all of us.
               </p>
 
@@ -601,7 +601,7 @@ export default function EpisodeRecapPage() {
                           <h4 className="text-[15px] font-bold text-foreground" data-testid={`sponsor-name-${i}`}>
                             {sponsor.name}
                           </h4>
-                          <p className="text-[14px] leading-[1.75] text-muted-foreground mt-1">
+                          <p className="text-[15px] leading-[1.75] text-muted-foreground mt-1">
                             {sponsor.description}
                           </p>
 
@@ -611,7 +611,7 @@ export default function EpisodeRecapPage() {
                                 href={sponsor.url.startsWith("http") ? sponsor.url : `https://${sponsor.url}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/[0.06] border border-rose-500/[0.1] rounded-lg text-[12px] font-semibold text-rose-600 hover:bg-rose-500/[0.12] transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/[0.06] border border-rose-500/[0.1] rounded-lg text-sm font-semibold text-rose-600 hover:bg-rose-500/[0.12] transition-colors"
                                 data-testid={`sponsor-url-${i}`}
                               >
                                 <ExternalLink className="w-3 h-3" />
@@ -620,7 +620,7 @@ export default function EpisodeRecapPage() {
                             )}
                             {typeof sponsor.couponCode === "string" && sponsor.couponCode.trim() && (
                               <span
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/[0.06] border border-emerald-500/[0.1] rounded-lg text-[12px] font-bold text-emerald-700 dark:text-emerald-400 font-mono"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/[0.06] border border-emerald-500/[0.1] rounded-lg text-sm font-bold text-emerald-700 dark:text-emerald-400 font-mono"
                                 data-testid={`sponsor-code-${i}`}
                               >
                                 <TicketPercent className="w-3 h-3" />
@@ -630,7 +630,7 @@ export default function EpisodeRecapPage() {
                           </div>
 
                           {typeof sponsor.howToRedeem === "string" && sponsor.howToRedeem.trim() && (
-                            <p className="text-[13px] text-muted-foreground/70 mt-2 italic">
+                            <p className="text-sm text-muted-foreground/70 mt-2 italic">
                               {sponsor.howToRedeem}
                             </p>
                           )}

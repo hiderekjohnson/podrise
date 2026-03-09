@@ -154,19 +154,19 @@ function BatchExpansionPanel() {
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-2">
               <p className="text-lg font-bold text-emerald-600">{progress.episodesCreated}</p>
-              <p className="text-[10px] text-muted-foreground">Created</p>
+              <p className="text-xs text-muted-foreground">Created</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-2">
               <p className="text-lg font-bold text-muted-foreground">{progress.episodesSkipped}</p>
-              <p className="text-[10px] text-muted-foreground">Skipped</p>
+              <p className="text-xs text-muted-foreground">Skipped</p>
             </div>
             <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-2">
               <p className="text-lg font-bold text-red-500">{progress.episodesFailed}</p>
-              <p className="text-[10px] text-muted-foreground">Failed</p>
+              <p className="text-xs text-muted-foreground">Failed</p>
             </div>
           </div>
 
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Podcasts: {progress.podcastsProcessed}/{progress.podcastsTotal}
             {progress.startedAt && <> · Started {new Date(progress.startedAt).toLocaleTimeString()}</>}
             {progress.completedAt && <> · Finished {new Date(progress.completedAt).toLocaleTimeString()}</>}
@@ -179,7 +179,7 @@ function BatchExpansionPanel() {
               </summary>
               <div className="mt-1 max-h-32 overflow-y-auto space-y-1">
                 {progress.errors.map((e: string, i: number) => (
-                  <p key={i} className="text-red-400 text-[10px] break-all">{e}</p>
+                  <p key={i} className="text-red-400 text-xs break-all">{e}</p>
                 ))}
               </div>
             </details>

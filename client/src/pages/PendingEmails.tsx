@@ -225,7 +225,7 @@ export default function PendingEmails() {
                   data-testid={`row-pending-${email.id}`}
                 >
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-foreground text-[13px]">{email.recipientEmail}</p>
+                    <p className="font-semibold text-foreground text-sm">{email.recipientEmail}</p>
                     <p className="text-xs text-muted-foreground/60 mt-0.5">User #{email.userId} · {email.recapDate}</p>
                   </td>
                   <td className="px-4 py-3">
@@ -257,7 +257,7 @@ export default function PendingEmails() {
                             )}
                           </div>
                           {stats.details.length > 0 && (
-                            <div className="text-[11px] text-muted-foreground/70 leading-relaxed">
+                            <div className="text-xs text-muted-foreground/70 leading-relaxed">
                               {stats.details.map((d, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
                                   <span className={d.status === "included" ? "text-green-600" : d.status === "no_new_episode" ? "text-gray-400" : "text-red-500"}>
@@ -275,7 +275,7 @@ export default function PendingEmails() {
                     })()}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-[13px] font-semibold text-foreground">{formatDeliveryTime(email.scheduledFor)}</p>
+                    <p className="text-sm font-semibold text-foreground">{formatDeliveryTime(email.scheduledFor)}</p>
                     <p className="text-xs text-muted-foreground/60 mt-0.5">{email.recapDate} · {email.timezone.replace(/_/g, " ")}</p>
                   </td>
                   <td className="px-4 py-3">

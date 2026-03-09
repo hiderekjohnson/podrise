@@ -663,7 +663,7 @@ export default function Dashboard() {
                                 <X className="w-3 h-3" />
                               </button>
                             </div>
-                            <p className="text-xs font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
+                            <p className="text-sm font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
                               {podcast.name}
                             </p>
                           </motion.div>
