@@ -30,13 +30,12 @@ interface PersonDetail {
 }
 
 function EpisodeCard({ episode, type }: { episode: EpisodeEntry; type: "guest" | "mention" }) {
-  const [, navigate] = useLocation();
   const date = episode.publish_date ? new Date(episode.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
 
   return (
     <div
       className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
-      onClick={() => navigate(`/podcasts/${episode.slug}/${episode.episode_slug}`)}
+      onClick={() => window.open(`/podcasts/${episode.slug}/${episode.episode_slug}`, '_blank')}
       data-testid={`card-episode-${episode.slug}-${episode.episode_slug}`}
     >
       <div className="flex items-center gap-4">

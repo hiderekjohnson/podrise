@@ -252,7 +252,7 @@ export default function CompanyDetailPage() {
                       <div
                         key={`${ep.slug}/${ep.episode_slug}`}
                         className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
-                        onClick={() => navigate(`/podcasts/${ep.slug}/${ep.episode_slug}`)}
+                        onClick={() => window.open(`/podcasts/${ep.slug}/${ep.episode_slug}`, '_blank')}
                         data-testid={`card-episode-${ep.slug}-${ep.episode_slug}`}
                       >
                         <div className="flex items-center gap-4">
