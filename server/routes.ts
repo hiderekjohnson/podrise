@@ -11,6 +11,7 @@ import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
 import { generateRecap, DEFAULT_RECAP_PROMPT } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
+import { pool } from "./db";
 
 declare module "express-session" {
   interface SessionData {
@@ -4759,6 +4760,49 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
     } catch (err) {
       console.error("Sync subscription error:", err);
       res.json({ plan: user.plan || "free" });
+    }
+  });
+
+  app.get("/api/admin/backfill-status", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const client = await pool.connect();
+      try {
+        const { rows: podcasts } = await client.query(
+          `SELECT pd.itunes_id, pd.name, pd.taddy_uuid,
+                  COALESCE(tc.transcript_count, 0)::int as transcript_count
+           FROM podcast_directory pd
+           LEFT JOIN (
+             SELECT podcast_id, COUNT(*)::int as transcript_count
+             FROM episode_transcripts
+             GROUP BY podcast_id
+           ) tc ON pd.itunes_id = tc.podcast_id
+           WHERE pd.has_landing_page = true
+           ORDER BY pd.name ASC`
+        );
+        res.json({
+          podcasts: podcasts.map((p, i) => ({
+            index: i + 1,
+            name: p.name,
+            itunesId: p.itunes_id,
+            hasTaddyUuid: !!p.taddy_uuid,
+            transcriptCount: p.transcript_count,
+            target: 25,
+            remaining: Math.max(0, 25 - p.transcript_count),
+            status: p.transcript_count >= 25 ? "done" : !p.taddy_uuid ? "no_taddy" : "pending",
+          })),
+          totalTranscripts: podcasts.reduce((sum, p) => sum + (p.transcript_count || 0), 0),
+          totalPodcasts: podcasts.length,
+          podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= 25).length,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error("Backfill status error:", err);
+      res.status(500).json({ message: "Failed to fetch backfill status" });
     }
   });
 
