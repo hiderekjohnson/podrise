@@ -212,6 +212,18 @@ export default function EpisodeRecapPage() {
     return null;
   }
 
+  function addUtmParams(url: string, campaign: string): string {
+    try {
+      const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+      if (!u.searchParams.has("utm_source")) u.searchParams.set("utm_source", "podcap");
+      if (!u.searchParams.has("utm_medium")) u.searchParams.set("utm_medium", "referral");
+      if (!u.searchParams.has("utm_campaign")) u.searchParams.set("utm_campaign", campaign);
+      return u.toString();
+    } catch {
+      return url;
+    }
+  }
+
   const handleTopicClick = (topic: string) => {
     const question = `What did this episode say about ${topic.toLowerCase()}?`;
     setAskInput(question);
@@ -644,7 +656,7 @@ export default function EpisodeRecapPage() {
                           <div className="flex flex-wrap items-center gap-2 mt-3">
                             {typeof sponsor.url === "string" && sponsor.url.trim() && (
                               <a
-                                href={sponsor.url.startsWith("http") ? sponsor.url : `https://${sponsor.url}`}
+                                href={addUtmParams(sponsor.url, "sponsor")}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/[0.06] border border-rose-500/[0.1] rounded-lg text-sm font-semibold text-rose-600 hover:bg-rose-500/[0.12] transition-colors"
@@ -736,7 +748,7 @@ export default function EpisodeRecapPage() {
                             )}
                             {safe && (
                               <a
-                                href={safe}
+                                href={isAmazon ? safe : addUtmParams(safe, "resource")}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 mt-3 bg-amber-500/[0.06] border border-amber-500/[0.1] rounded-lg text-sm font-semibold text-amber-700 hover:bg-amber-500/[0.12] transition-colors"
