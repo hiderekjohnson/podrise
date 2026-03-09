@@ -484,8 +484,11 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
 
         if (!transcriptText) {
           try {
-            const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name);
+            const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name, podcast.taddyUuid);
             if (taddyPodcast?.uuid) {
+              if (!podcast.taddyUuid) {
+                storage.updatePodcastTaddyUuid(podcast.itunesId, taddyPodcast.uuid).catch(() => {});
+              }
               const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
               const itunesNorm = normalizeTitleForMatch(epTitle);
               const taddyMatch = taddyEpisodes.find((te: any) => {
@@ -720,32 +723,49 @@ export async function bulkDownloadTranscripts() {
         const needed = TARGET - existing;
         const epLimit = Math.min(needed + 5, 25);
 
-        const taddyRes = await fetch("https://api.taddy.org", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-          body: JSON.stringify({ query: `{ getPodcastSeries(itunesId: ${numId}) { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
-          signal: AbortSignal.timeout(20000),
-        });
-        const taddyData = await taddyRes.json();
-        let series = taddyData?.data?.getPodcastSeries;
+        let series: any = null;
 
-        if (!series && podcast.name) {
-          console.log(`[TranscriptDL] iTunes ID ${numId} not found on Taddy, trying name search for "${podcast.name}"`);
-          const nameResult = await searchPodcastByName(podcast.name);
-          if (nameResult?.uuid) {
-            const uuidRes = await fetch("https://api.taddy.org", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-              body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${nameResult.uuid}") { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
-              signal: AbortSignal.timeout(20000),
-            });
-            const uuidData = await uuidRes.json();
-            series = uuidData?.data?.getPodcastSeries;
-            if (series) {
-              console.log(`[TranscriptDL] Found "${podcast.name}" via name search (uuid: ${nameResult.uuid})`);
+        if (podcast.taddyUuid) {
+          const uuidRes = await fetch("https://api.taddy.org", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+            body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
+            signal: AbortSignal.timeout(20000),
+          });
+          const uuidData = await uuidRes.json();
+          series = uuidData?.data?.getPodcastSeries;
+        } else {
+          const taddyRes = await fetch("https://api.taddy.org", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+            body: JSON.stringify({ query: `{ getPodcastSeries(itunesId: ${numId}) { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
+            signal: AbortSignal.timeout(20000),
+          });
+          const taddyData = await taddyRes.json();
+          series = taddyData?.data?.getPodcastSeries;
+
+          if (!series && podcast.name) {
+            console.log(`[TranscriptDL] iTunes ID ${numId} not found on Taddy, trying name search for "${podcast.name}"`);
+            const nameResult = await searchPodcastByName(podcast.name);
+            if (nameResult?.uuid) {
+              const uuidRes = await fetch("https://api.taddy.org", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+                body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${nameResult.uuid}") { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
+                signal: AbortSignal.timeout(20000),
+              });
+              const uuidData = await uuidRes.json();
+              series = uuidData?.data?.getPodcastSeries;
+              if (series) {
+                console.log(`[TranscriptDL] Found "${podcast.name}" via name search (uuid: ${nameResult.uuid})`);
+              }
             }
+            await new Promise(r => setTimeout(r, 500));
           }
-          await new Promise(r => setTimeout(r, 500));
+
+          if (series?.uuid) {
+            storage.updatePodcastTaddyUuid(podcast.itunesId, series.uuid).catch(() => {});
+          }
         }
 
         if (series?.uuid && (!series.episodes || series.episodes.length === 0)) {

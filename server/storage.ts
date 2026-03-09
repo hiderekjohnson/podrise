@@ -49,6 +49,7 @@ export interface IStorage {
   getPodcastDirectoryBySlug(slug: string): Promise<PodcastDirectoryEntry | undefined>;
   upsertPodcastDirectoryEntry(data: InsertPodcastDirectoryEntry): Promise<PodcastDirectoryEntry>;
   deletePodcastDirectoryEntry(id: number): Promise<void>;
+  updatePodcastTaddyUuid(itunesId: string, taddyUuid: string): Promise<void>;
   getLandingPageRecaps(slug: string, limit?: number, offset?: number): Promise<LandingPageRecap[]>;
   getLandingPageRecapCount(slug: string): Promise<number>;
   getLandingPageRecapBySlug(podcastSlug: string, episodeSlug: string): Promise<LandingPageRecap | undefined>;
@@ -463,6 +464,12 @@ export class DatabaseStorage implements IStorage {
 
   async deletePodcastDirectoryEntry(id: number): Promise<void> {
     await db.delete(podcastDirectory).where(eq(podcastDirectory.id, id));
+  }
+
+  async updatePodcastTaddyUuid(itunesId: string, taddyUuid: string): Promise<void> {
+    await db.update(podcastDirectory)
+      .set({ taddyUuid, updatedAt: new Date() })
+      .where(eq(podcastDirectory.itunesId, itunesId));
   }
 
   async getLandingPageRecaps(slug: string, limit: number = 10, offset: number = 0): Promise<LandingPageRecap[]> {

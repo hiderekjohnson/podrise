@@ -3158,8 +3158,12 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
 
           let transcriptText: string | null = null;
           try {
-            const taddyPodcast = await searchPodcastByItunesId(itunesId, podcastName);
+            const dirEntry = await storage.getPodcastDirectoryEntry(itunesId);
+            const taddyPodcast = await searchPodcastByItunesId(itunesId, podcastName, dirEntry?.taddyUuid || undefined);
             if (taddyPodcast?.uuid) {
+              if (dirEntry && !dirEntry.taddyUuid) {
+                storage.updatePodcastTaddyUuid(itunesId, taddyPodcast.uuid).catch(() => {});
+              }
               const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 5);
               const normalizeTitle = (t: string) => t.toLowerCase().trim().replace(/\s+/g, " ");
               const matchedEp = taddyEpisodes.find((te: any) =>
@@ -3379,8 +3383,11 @@ ${formatInstructions}`;
           let taddyPodcast: any = null;
           let taddyEpisodes: any[] = [];
           try {
-            taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name || podcast.slug);
+            taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name || podcast.slug, podcast.taddyUuid || undefined);
             if (taddyPodcast?.uuid) {
+              if (!podcast.taddyUuid) {
+                storage.updatePodcastTaddyUuid(podcast.itunesId, taddyPodcast.uuid).catch(() => {});
+              }
               taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 50);
             }
           } catch (taddyErr) {

@@ -73,7 +73,7 @@ export async function searchPodcastByName(podcastName: string): Promise<TaddySea
   return result;
 }
 
-export async function searchPodcastByItunesId(itunesId: string, podcastName?: string): Promise<TaddySearchResult | null> {
+export async function searchPodcastByItunesId(itunesId: string, podcastName?: string, storedTaddyUuid?: string): Promise<TaddySearchResult | null> {
   const numericId = parseInt(itunesId, 10);
   if (isNaN(numericId)) {
     console.warn(`Invalid iTunes ID for Taddy lookup: ${itunesId}`);
@@ -89,6 +89,12 @@ export async function searchPodcastByItunesId(itunesId: string, podcastName?: st
   const nameFallbackCached = podcastCache.get(`podcast_name_fallback_${numericId}`);
   if (nameFallbackCached && nameFallbackCached.expiry > Date.now()) {
     return nameFallbackCached.result;
+  }
+
+  if (storedTaddyUuid) {
+    const result: TaddySearchResult = { uuid: storedTaddyUuid, name: podcastName || "", itunesId: numericId };
+    podcastCache.set(cacheKey, { result, expiry: Date.now() + CACHE_TTL_MS });
+    return result;
   }
 
   const query = `{

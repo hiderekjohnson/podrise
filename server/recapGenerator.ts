@@ -169,8 +169,13 @@ export async function generateRecap(
         let taddyPodcast: any = null;
         let taddyEpisodes: any[] = [];
         try {
-          taddyPodcast = await searchPodcastByItunesId(podcast.id, podcast.name);
+          const { storage } = await import("./storage");
+          const dirEntry = await storage.getPodcastDirectoryEntry(podcast.id);
+          taddyPodcast = await searchPodcastByItunesId(podcast.id, podcast.name, dirEntry?.taddyUuid || undefined);
           if (taddyPodcast?.uuid) {
+            if (dirEntry && !dirEntry.taddyUuid) {
+              storage.updatePodcastTaddyUuid(podcast.id, taddyPodcast.uuid).catch(() => {});
+            }
             taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
             console.log(`[Recap] Taddy found ${taddyEpisodes.length} episodes for ${podcast.name} (uuid: ${taddyPodcast.uuid})`);
           } else {
