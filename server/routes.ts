@@ -4816,14 +4816,16 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             } else {
               status = "in_queue";
             }
+            const totalEpisodes = result?.totalEpisodes || 0;
             return {
               index: i + 1,
               name: p.name,
               itunesId: p.itunes_id,
               hasTaddyUuid: !!p.taddy_uuid,
               transcriptCount: p.transcript_count,
+              totalEpisodes,
               target: 25,
-              remaining: Math.max(0, 25 - p.transcript_count),
+              remaining: Math.max(0, totalEpisodes - p.transcript_count),
               status,
               error,
             };

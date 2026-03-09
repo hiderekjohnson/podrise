@@ -243,14 +243,14 @@ export async function runBackfillTranscripts() {
         }
       }
 
-      podcastResults[podcast.name] = { name: podcast.name, error: errorMsg };
+      podcastResults[podcast.name] = { name: podcast.name, error: errorMsg, totalEpisodes: totalEpisodesScanned };
 
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ${status} (${details.join(", ")})`);
       processedNames.push(podcast.name);
     } catch (err: any) {
       totalFailed++;
       const errorMsg = err.message?.slice(0, 200) || "Unknown error";
-      podcastResults[podcast.name] = { name: podcast.name, error: errorMsg };
+      podcastResults[podcast.name] = { name: podcast.name, error: errorMsg, totalEpisodes: 0 };
       console.log(`[${podcastNum}/${totalPodcasts}] ${podcast.name} - ERROR: ${errorMsg}`);
       processedNames.push(podcast.name);
     }
