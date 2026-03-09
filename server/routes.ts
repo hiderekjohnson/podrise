@@ -790,14 +790,23 @@ export async function registerRoutes(
       }
 
       const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
-      if (!segments || segments.length === 0) {
+
+      const showNotes = recap.showNotes || "";
+
+      if ((!segments || segments.length === 0) && !showNotes) {
         return res.json({ sponsors: [] });
       }
 
-      const transcriptText = segments.map(s => {
-        const speaker = s.speakerName ? `${s.speakerName}: ` : "";
-        return `${speaker}${s.text}`;
-      }).join("\n").slice(0, 16000);
+      const transcriptText = segments
+        ? segments.map(s => {
+            const speaker = s.speakerName ? `${s.speakerName}: ` : "";
+            return `${speaker}${s.text}`;
+          }).join("\n").slice(0, 16000)
+        : "";
+
+      const showNotesSection = showNotes
+        ? `\n\nSHOW NOTES (from the podcast's official listing — these often contain accurate sponsor names and URLs):\n${showNotes.slice(0, 5000)}`
+        : "";
 
       const { openai } = await import("./replit_integrations/image/client");
       const completion = await openai.chat.completions.create({
@@ -805,19 +814,20 @@ export async function registerRoutes(
         messages: [
           {
             role: "system",
-            content: `You are an expert at identifying sponsor mentions in podcast transcripts. Extract ALL sponsor/advertiser mentions from the transcript. For each sponsor, extract:
+            content: `You are an expert at identifying sponsor mentions in podcasts. You will be given a transcript AND/OR the official show notes from the podcast listing. Extract ALL sponsor/advertiser mentions. For each sponsor, extract:
 - "name": The sponsor or brand name
-- "description": What the host said about them (their pitch, in 1-3 sentences)
+- "description": What the host said about them (their pitch, in 1-3 sentences). If the transcript has the ad read, use that. Otherwise summarize from show notes.
 - "couponCode": Any promo/coupon code mentioned (or null)
-- "url": Any website URL mentioned for the sponsor (or null)
+- "url": The sponsor's URL. IMPORTANT: If the show notes contain a link for the sponsor (even a tracking/affiliate link like bit.ly), use that exact URL. Otherwise use any URL mentioned in the transcript. If neither has a URL, return null.
 - "howToRedeem": How listeners can use the deal/offer (or null)
 
 Return a JSON object with a "sponsors" array. If no sponsors are found, return {"sponsors": []}.
-Only include actual paid sponsors/advertisers — not casual brand mentions. Look for patterns like "brought to you by", "sponsored by", "this episode is presented by", "our partners at", promo code mentions, special URLs, etc.`
+Only include actual paid sponsors/advertisers — not casual brand mentions or the podcast's own links. Look for patterns like "brought to you by", "sponsored by", "this episode is presented by", "our partners at", promo code mentions, special URLs, sections labeled "Sponsors" in show notes, etc.
+Cross-reference the transcript and show notes: the show notes often have the correct URLs that hosts mention verbally (and may mangle). Prefer show notes URLs over transcript URLs.`
           },
           {
             role: "user",
-            content: `Podcast: ${recap.podcastName}\nEpisode: "${recap.episodeTitle}"\n\nTranscript:\n${transcriptText}`
+            content: `Podcast: ${recap.podcastName}\nEpisode: "${recap.episodeTitle}"\n\n${transcriptText ? `TRANSCRIPT:\n${transcriptText}` : "(No transcript available)"}${showNotesSection}`
           }
         ],
         max_tokens: 2000,
@@ -1908,6 +1918,23 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       res.json({ message: "Apple episode URL backfill started." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/clear-sponsors-cache", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { db } = await import("./db");
+      const { landingPageRecaps } = await import("@shared/schema");
+      const { isNotNull } = await import("drizzle-orm");
+      const result = await db.update(landingPageRecaps)
+        .set({ sponsors: null as any })
+        .where(isNotNull(landingPageRecaps.sponsors));
+      res.json({ message: `Cleared sponsors cache. Sponsors will be re-extracted (using show notes) on next visit.` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to clear sponsors cache" });
     }
   });
 

@@ -881,6 +881,28 @@ export default function Admin() {
                       </button>
                     </div>
 
+                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-clear-sponsors-cache">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Clear Sponsors Cache</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Clear cached sponsor data so it re-extracts using show notes + transcript on next visit.</p>
+                      </div>
+                      <button
+                        data-testid="button-clear-sponsors-cache"
+                        onClick={async () => {
+                          if (!confirm("This will clear all cached sponsor data. Sponsors will be re-extracted (with show notes) the next time someone visits an episode. Continue?")) return;
+                          try {
+                            await apiRequest("POST", "/api/admin/clear-sponsors-cache");
+                            toast({ title: "Cache Cleared", description: "Sponsors will be re-extracted with show notes on next visit." });
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err?.message || "Failed to clear cache", variant: "destructive" });
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                      >
+                        Clear Cache
+                      </button>
+                    </div>
+
                     <BatchExpansionPanel />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
