@@ -1,14 +1,79 @@
-import { useLocation } from "wouter";
-import { Headphones, Globe } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useLocation, Link } from "wouter";
+import { Headphones, Globe, Search, X, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
+const CATEGORY_MAP: Record<string, string[]> = {
+  "Business": ["business", "entrepreneurship", "startup", "saas", "management", "strategy", "acquisitions", "growth", "marketing", "online marketing", "side hustles", "company analysis", "business of tech", "business news", "economic", "organizational"],
+  "Technology": ["tech", "ai", "software", "engineering", "product management", "automotive", "consumer tech", "internet culture", "vc / ai", "venture capital / software"],
+  "Finance": ["finance", "investing", "markets", "wealth", "personal finance", "financial independence", "consumer advice", "money"],
+  "Science": ["science", "space", "fact-checking", "education", "society & culture"],
+  "Health": ["health", "fitness", "medicine", "longevity", "functional medicine", "performance", "wellbeing", "mindfulness", "meditation"],
+  "Self-Improvement": ["self-improvement", "personal development", "coaching", "lifestyle", "motivation", "mindset", "empowerment", "productivity", "philosophy"],
+  "Politics & News": ["politics", "news", "law", "government"],
+  "Entertainment": ["entertainment", "comedy", "film", "tv", "arts", "culture", "interviews", "human stories", "narrative", "sports"],
+  "Psychology": ["psychology", "behavior", "mental health"],
+};
+
+function getCategoryGroup(rawCategory: string): string[] {
+  const lower = rawCategory.toLowerCase();
+  const groups: string[] = [];
+  for (const [group, keywords] of Object.entries(CATEGORY_MAP)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      groups.push(group);
+    }
+  }
+  return groups.length > 0 ? groups : ["Other"];
+}
+
+const ALL_GROUPS = [...Object.keys(CATEGORY_MAP), "Other"].sort();
+
 export default function Leaderboard() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const podcastsWithGroups = useMemo(() => {
+    return PODCAST_LANDINGS.map(p => ({
+      ...p,
+      groups: getCategoryGroup(p.category),
+    }));
+  }, []);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of podcastsWithGroups) {
+      for (const g of p.groups) {
+        counts[g] = (counts[g] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [podcastsWithGroups]);
+
+  const availableGroups = useMemo(() => {
+    return ALL_GROUPS.filter(g => (categoryCounts[g] || 0) > 0);
+  }, [categoryCounts]);
+
+  const filtered = useMemo(() => {
+    let results = podcastsWithGroups;
+    if (selectedCategory) {
+      results = results.filter(p => p.groups.includes(selectedCategory));
+    }
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      results = results.filter(p =>
+        p.name.toLowerCase().includes(term) ||
+        p.category.toLowerCase().includes(term) ||
+        (p.hosts && p.hosts.toLowerCase().includes(term))
+      );
+    }
+    return results;
+  }, [podcastsWithGroups, selectedCategory, searchTerm]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -38,21 +103,27 @@ export default function Leaderboard() {
       </header>
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-10">
+        <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center text-center gap-5"
+            className="flex flex-col items-center text-center gap-4"
           >
             <h1
               className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]"
               data-testid="heading-leaderboard"
             >
-              Browse All Podcasts
+              Browse Top Podcasts
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Get free AI-powered daily recaps for {PODCAST_LANDINGS.length}+ top podcasts delivered to your inbox.
+              Get free AI-powered recaps for any of the top podcasts delivered to your inbox.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Can't find your favorite podcast? No problem —{" "}
+              <Link href="/" className="text-primary font-medium hover:underline" data-testid="link-search-all">
+                click here to search all podcasts
+              </Link>.
             </p>
           </motion.div>
         </section>
@@ -63,42 +134,114 @@ export default function Leaderboard() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="w-full max-w-4xl"
         >
-          <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm">
-            <div className="px-6 sm:px-8 py-5 border-b border-black/[0.06] flex items-center gap-3">
-              <Globe className="w-5 h-5 text-primary" />
-              <span className="text-base font-display font-bold text-foreground">All Podcasts</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 divide-y sm:divide-y-0 divide-black/[0.04]">
-              {PODCAST_LANDINGS.map((podcast, index) => (
-                <a
-                  key={podcast.slug}
-                  href={`/podcasts/${podcast.slug}`}
-                  className="flex items-center gap-4 px-6 sm:px-7 py-5 transition-colors hover:bg-black/[0.015] group/row border-b border-black/[0.04] sm:border-r sm:last:border-r-0"
-                  data-testid={`global-leader-row-${index}`}
+          <div className="mb-5 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search podcasts by name, category, or host..."
+                className="w-full h-12 pl-11 pr-10 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50 shadow-sm"
+                data-testid="input-podcast-search"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-black/[0.05] transition-colors"
+                  data-testid="button-clear-search"
                 >
-                  {podcast.artworkUrl ? (
-                    <img
-                      src={podcast.artworkUrl}
-                      alt={podcast.name}
-                      className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-md shadow-black/[0.06]"
-                      data-testid={`global-artwork-${index}`}
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                      <Headphones className="w-6 h-6 text-primary/60" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
-                      {podcast.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {podcast.category}
-                    </p>
-                  </div>
-                </a>
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2" data-testid="category-filters">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  !selectedCategory
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
+                }`}
+                data-testid="filter-all"
+              >
+                All ({PODCAST_LANDINGS.length})
+              </button>
+              {availableGroups.map(group => (
+                <button
+                  key={group}
+                  onClick={() => setSelectedCategory(selectedCategory === group ? null : group)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    selectedCategory === group
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
+                  }`}
+                  data-testid={`filter-${group.toLowerCase().replace(/[^a-z]/g, "-")}`}
+                >
+                  {group} ({categoryCounts[group] || 0})
+                </button>
               ))}
             </div>
+          </div>
+
+          <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 sm:px-8 py-4 border-b border-black/[0.06] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Globe className="w-5 h-5 text-primary" />
+                <span className="text-base font-display font-bold text-foreground">
+                  {selectedCategory ? selectedCategory : "All Podcasts"}
+                </span>
+              </div>
+              <span className="text-sm text-muted-foreground font-medium">
+                {filtered.length} podcast{filtered.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="px-8 py-16 text-center">
+                <Headphones className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground mb-1">No podcasts found</p>
+                <p className="text-xs text-muted-foreground/70">
+                  Try a different search or{" "}
+                  <button onClick={() => { setSearchTerm(""); setSelectedCategory(null); }} className="text-primary hover:underline" data-testid="button-clear-filters">
+                    clear all filters
+                  </button>
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 divide-y sm:divide-y-0 divide-black/[0.04]">
+                {filtered.map((podcast, index) => (
+                  <a
+                    key={podcast.slug}
+                    href={`/podcasts/${podcast.slug}`}
+                    className="flex items-center gap-4 px-6 sm:px-7 py-5 transition-colors hover:bg-black/[0.015] group/row border-b border-black/[0.04] sm:border-r sm:last:border-r-0"
+                    data-testid={`global-leader-row-${index}`}
+                  >
+                    {podcast.artworkUrl ? (
+                      <img
+                        src={podcast.artworkUrl}
+                        alt={podcast.name}
+                        className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-md shadow-black/[0.06]"
+                        data-testid={`global-artwork-${index}`}
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
+                        <Headphones className="w-6 h-6 text-primary/60" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
+                        {podcast.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {podcast.category}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
       </main>
