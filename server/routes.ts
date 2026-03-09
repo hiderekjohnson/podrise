@@ -206,6 +206,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok", uptime: process.uptime() });
+  });
+
   app.get("/podcap-logo.png", (_req, res) => {
     res.sendFile("Podcap_logo_1772731738179.png", { root: "attached_assets", maxAge: "30d" });
   });

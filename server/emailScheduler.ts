@@ -801,6 +801,14 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
     completedAt: null,
   };
 
+  const keepAliveInterval = setInterval(async () => {
+    try {
+      const port = process.env.PORT || 5000;
+      await fetch(`http://127.0.0.1:${port}/api/health`);
+      console.log(`[BatchExpand] Keep-alive ping sent (${batchExpansionProgress.episodesCreated} created, ${batchExpansionProgress.podcastsProcessed}/${batchExpansionProgress.podcastsTotal} podcasts)`);
+    } catch {}
+  }, 2 * 60 * 1000);
+
   const { pool: dbPool } = await import("./db");
 
   try {
@@ -1057,6 +1065,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
     batchExpansionProgress.errors.push(`Fatal error: ${err}`);
     console.error("[BatchExpand] Fatal error:", err);
   } finally {
+    clearInterval(keepAliveInterval);
     batchExpansionRunning = false;
   }
 }
