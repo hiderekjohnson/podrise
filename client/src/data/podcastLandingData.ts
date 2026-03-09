@@ -2824,6 +2824,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Foundr Podcast with Nathan Chan, Nathan Chan, Business, Entrepreneurship",
     faqTopics: "entrepreneurship trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/9b/b2/6b/9bb26bb8-eda3-fea3-f451-bc4b59e4c0ed/mza_17656532908646722560.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2017,
+
+    knownFor: ["Interviews with successful entrepreneurs sharing their journeys and insights.","Practical advice on starting and scaling a business.","Focus on actionable strategies for aspiring entrepreneurs."],
+
+    hostBios: [{"name":"Nathan Chan","bio":"Nathan Chan is the founder of Foundr Magazine and a successful entrepreneur. He has interviewed numerous industry leaders and shares valuable insights on entrepreneurship."}],
+
+    relatedSlugs: ["founders","entrepreneursonfire","howibuiltthis"],
+
     aboutPodcast: "Foundr Podcast with Nathan Chan is a podcast hosted by Nathan Chan and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Foundr Podcast with Nathan Chan or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2836,6 +2850,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Marketing Against the Grain, Kipp Bodnar, Kieran Flanagan, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/89/93/67/899367fe-b4b3-32ba-7fc0-63f4d8e8c47b/mza_18101658278296287864.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["In-depth discussions on modern marketing strategies and trends.","Expert insights from industry leaders on effective marketing tactics.","Focus on data-driven decision making in marketing."],
+
+    hostBios: [{"name":"Kipp Bodnar","bio":"Kipp Bodnar is the CMO of HubSpot and a marketing expert with years of experience in digital marketing and strategy."},{"name":"Kieran Flanagan","bio":"Kieran Flanagan is a marketing leader at HubSpot, specializing in growth marketing and innovative marketing strategies."}],
+
+    relatedSlugs: ["marketingschool","social-media-marketing-podcast","foundr-podcast-with-nathan-chan"],
+
     aboutPodcast: "Marketing Against the Grain is a podcast hosted by Kipp Bodnar, Kieran Flanagan and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Marketing Against the Grain or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2848,6 +2876,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "DTC Podcast, Eric Dyck, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f4/44/c4/f444c4b4-af56-3061-c2a8-9d65a18b4889/mza_9576054969234032218.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2019,
+
+    knownFor: ["Exploring the direct-to-consumer business model and its impact.","Interviews with founders of successful DTC brands.","Insights into marketing and customer acquisition strategies."],
+
+    hostBios: [{"name":"Eric Dyck","bio":"Eric Dyck is a DTC expert and entrepreneur, focusing on helping brands navigate the complexities of direct-to-consumer marketing."}],
+
+    relatedSlugs: ["foundr-podcast-with-nathan-chan","marketing-against-the-grain","howibuiltthis"],
+
     aboutPodcast: "DTC Podcast is a podcast hosted by Eric Dyck and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of DTC Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2860,6 +2902,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Logan Bartlett Show, Logan Bartlett, Technology, Venture Capital",
     faqTopics: "venture capital trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d8/f7/f2/d8f7f288-2c57-984f-0f2c-b919405e282d/mza_18325443510079867042.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 50,
+
+    yearStarted: 2021,
+
+    knownFor: ["Deep dives into technology and venture capital trends.","Interviews with leading entrepreneurs and investors.","Focus on the intersection of technology and business."],
+
+    hostBios: [{"name":"Logan Bartlett","bio":"Logan Bartlett is a venture capitalist and technology enthusiast with extensive experience in investing and startup growth."}],
+
+    relatedSlugs: ["thisweekinstartups","founders","invested-with-phil-and-danielle-town"],
+
     aboutPodcast: "The Logan Bartlett Show is a podcast hosted by Logan Bartlett and covering venture capital topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Logan Bartlett Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2872,6 +2928,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "InvestED with Phil & Danielle Town, Phil Town, Danielle Town, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/e6/79/a0/e679a0b1-069e-3c1e-27b3-e708298b6c4b/mza_8117424642127960422.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2018,
+
+    knownFor: ["Educational content on value investing and personal finance.","Insights from seasoned investors Phil and Danielle Town.","Focus on long-term investment strategies and financial literacy."],
+
+    hostBios: [{"name":"Phil Town","bio":"Phil Town is a best-selling author and investor known for his expertise in value investing and financial education."},{"name":"Danielle Town","bio":"Danielle Town is an investor and author, sharing her journey of learning to invest and empowering others to take control of their finances."}],
+
+    relatedSlugs: ["compound-and-friends","pomp-podcast","moneyfortherestofus"],
+
     aboutPodcast: "InvestED with Phil & Danielle Town is a podcast hosted by Phil Town, Danielle Town and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of InvestED with Phil & Danielle Town or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2884,6 +2954,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Compound and Friends, Josh Brown, Michael Batnick, Finance, Markets",
     faqTopics: "markets trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/f4/a9/04/f4a90442-30e8-1184-d3b5-f159329eb498/mza_7588700494102132930.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2019,
+
+    knownFor: ["Engaging discussions on market trends and investment strategies.","Insights from experienced investors Josh Brown and Michael Batnick.","Focus on making investing accessible and understandable."],
+
+    hostBios: [{"name":"Josh Brown","bio":"Josh Brown is a financial advisor and CEO of Ritholtz Wealth Management, known for his insights on investing and market trends."},{"name":"Michael Batnick","bio":"Michael Batnick is the Director of Research at Ritholtz Wealth Management, specializing in market analysis and investment strategies."}],
+
+    relatedSlugs: ["invested-with-phil-and-danielle-town","real-vision-daily-briefing","pomp-podcast"],
+
     aboutPodcast: "The Compound and Friends is a podcast hosted by Josh Brown, Michael Batnick and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Compound and Friends or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2896,6 +2980,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Forward Thinking Investors, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/da/ff/b0/daffb002-869d-067c-764a-0ca76bc1272e/mza_8507975969257235360.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 60,
+
+    yearStarted: 2020,
+
+    knownFor: ["Exploring innovative investment strategies and market insights.","Featuring various expert guests from the finance industry.","Focus on future trends in investing and finance."],
+
+    hostBios: [{"name":"Various","bio":"The show features a rotating cast of investment experts, each bringing unique perspectives on market trends and investment strategies."}],
+
+    relatedSlugs: ["invested-with-phil-and-danielle-town","compound-and-friends","pomp-podcast"],
+
     aboutPodcast: "Forward Thinking Investors is a podcast covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Forward Thinking Investors or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2908,6 +3006,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Meb Faber Show, Meb Faber, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/ed/c8/20/edc820bc-ae7d-d0e4-111b-719020d68903/mza_8742262159893852578.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2017,
+
+    knownFor: ["In-depth discussions on investment strategies and asset allocation.","Interviews with leading investment professionals and authors.","Focus on evidence-based investing and financial education."],
+
+    hostBios: [{"name":"Meb Faber","bio":"Meb Faber is a co-founder and CIO of Cambria Investment Management, known for his expertise in investment strategies and asset management."}],
+
+    relatedSlugs: ["invested-with-phil-and-danielle-town","compound-and-friends","pomp-podcast"],
+
     aboutPodcast: "Meb Faber Show is a podcast hosted by Meb Faber and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Meb Faber Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2920,6 +3032,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Real Vision Daily Briefing, Raoul Pal, Finance, Markets",
     faqTopics: "markets trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/4f/d6/e8/4fd6e833-a32c-5311-1ace-874511655e79/mza_1508164181384494558.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Daily",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2020,
+
+    knownFor: ["Daily insights and analysis on market trends and economic developments.","Expert commentary from leading financial analysts and investors.","Focus on making complex financial topics accessible."],
+
+    hostBios: [{"name":"Raoul Pal","bio":"Raoul Pal is a macroeconomic expert and co-founder of Real Vision, known for his insights on global markets and economic trends."}],
+
+    relatedSlugs: ["compound-and-friends","invested-with-phil-and-danielle-town","pomp-podcast"],
+
     aboutPodcast: "Real Vision Daily Briefing is a podcast hosted by Raoul Pal and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Real Vision Daily Briefing or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2932,6 +3058,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Pomp Podcast, Anthony Pompliano, Finance, Crypto",
     faqTopics: "crypto trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fa/96/bd/fa96bd9b-a097-307a-22f6-58bb46928d90/mza_12987508790565375699.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2018,
+
+    knownFor: ["Interviews with influential figures in finance and cryptocurrency.","Insights on the future of money and investing.","Focus on educating listeners about crypto and financial markets."],
+
+    hostBios: [{"name":"Anthony Pompliano","bio":"Anthony Pompliano is a well-known entrepreneur and investor, recognized for his expertise in cryptocurrency and financial markets."}],
+
+    relatedSlugs: ["invested-with-phil-and-danielle-town","real-vision-daily-briefing","compound-and-friends"],
+
     aboutPodcast: "The Pomp Podcast is a podcast hosted by Anthony Pompliano and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Pomp Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2944,6 +3084,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Unchained, Laura Shin, Finance, Crypto",
     faqTopics: "crypto trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/c9/c2/ed/c9c2ed19-02ba-a07c-5010-c5ebfdd0ab24/mza_11665034845223496592.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2018,
+
+    knownFor: ["Exploring the latest trends and developments in the cryptocurrency space.","Interviews with industry leaders and innovators in blockchain technology.","In-depth analysis of regulatory issues affecting the crypto market."],
+
+    hostBios: [{"name":"Laura Shin","bio":"Laura Shin is a journalist and podcast host specializing in cryptocurrency and blockchain technology. She has contributed to major publications like Forbes and has been a prominent voice in the crypto community."}],
+
+    relatedSlugs: ["bankless","ai-breakdown","gradient-dissent"],
+
     aboutPodcast: "Unchained is a podcast hosted by Laura Shin and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Unchained or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2956,6 +3110,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Bankless, Ryan Sean Adams, David Hoffman, Finance, Crypto",
     faqTopics: "crypto trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/49/d4/1b/49d41b38-620c-16ae-3d35-a980fdb59fb6/mza_18214374902779600209.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "3 episodes per week",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2020,
+
+    knownFor: ["Providing insights into the decentralized finance (DeFi) ecosystem.","Interviews with leading figures in the crypto and finance industries.","Educational content aimed at helping listeners navigate the world of blockchain."],
+
+    hostBios: [{"name":"Ryan Sean Adams","bio":"Ryan Sean Adams is a crypto investor and educator, known for his expertise in decentralized finance. He co-founded Bankless and has a strong following in the crypto community."},{"name":"David Hoffman","bio":"David Hoffman is a crypto enthusiast and educator, co-hosting Bankless. He focuses on the intersection of finance and technology, helping listeners understand the implications of blockchain."}],
+
+    relatedSlugs: ["unchained","ai-breakdown","gradient-dissent"],
+
     aboutPodcast: "Bankless is a podcast hosted by Ryan Sean Adams, David Hoffman and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Bankless or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2968,6 +3136,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The AI Breakdown, Nathaniel Whittemore, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/84/3e/29/843e29a5-481c-fe93-0d12-747187641aa8/mza_5933443001168064521.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["Breaking down complex AI topics into digestible insights.","Interviews with AI researchers and industry leaders.","Exploring the ethical implications of artificial intelligence."],
+
+    hostBios: [{"name":"Nathaniel Whittemore","bio":"Nathaniel Whittemore is a tech entrepreneur and AI expert. He hosts The AI Breakdown, where he simplifies AI concepts and discusses their impact on society."}],
+
+    relatedSlugs: ["no-priors","gradient-dissent","superdatascience-podcast"],
+
     aboutPodcast: "The AI Breakdown is a podcast hosted by Nathaniel Whittemore and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The AI Breakdown or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2980,6 +3162,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "No Priors, Sarah Guo, Elad Gil, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/a6/4d/9c/a64d9c5a-2ca4-6a1b-3ceb-424efe00d022/mza_1247466525586262525.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2021,
+
+    knownFor: ["Diving into the latest advancements in AI and machine learning.","Featuring discussions with AI innovators and thought leaders.","Analyzing the future of technology and its societal impact."],
+
+    hostBios: [{"name":"Sarah Guo","bio":"Sarah Guo is a venture capitalist and AI expert, known for her insights into emerging technologies. She co-hosts No Priors, focusing on the future of AI."},{"name":"Elad Gil","bio":"Elad Gil is a technology entrepreneur and investor with a focus on AI. He brings a wealth of experience to No Priors, discussing cutting-edge developments in the field."}],
+
+    relatedSlugs: ["ai-breakdown","gradient-dissent","superdatascience-podcast"],
+
     aboutPodcast: "No Priors is a podcast hosted by Sarah Guo, Elad Gil and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Priors or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -2992,6 +3188,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Gradient Dissent, Lukas Biewald, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/d8/44/27/d8442798-ae33-5d00-5011-c5ba795b3f86/mza_16380135963041882965.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 60,
+
+    yearStarted: 2021,
+
+    knownFor: ["Exploring the nuances of machine learning and AI technologies.","Interviews with leading experts in the AI field.","Discussing the implications of AI on various industries."],
+
+    hostBios: [{"name":"Lukas Biewald","bio":"Lukas Biewald is a machine learning expert and entrepreneur. He hosts Gradient Dissent, where he shares insights on AI technologies and their applications."}],
+
+    relatedSlugs: ["ai-breakdown","no-priors","superdatascience-podcast"],
+
     aboutPodcast: "Gradient Dissent is a podcast hosted by Lukas Biewald and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Gradient Dissent or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3004,6 +3214,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Software Engineering Daily, Sean Falconer, Technology, Software Engineering",
     faqTopics: "software engineering trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/95/aa/58/95aa58ac-8618-5259-4a26-2f864665ebf4/mza_15276922367235047332.png/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Daily",
+
+    totalEpisodes: 800,
+
+    yearStarted: 2015,
+
+    knownFor: ["Covering a wide range of software engineering topics and technologies.","Interviews with industry experts and thought leaders.","Providing insights into best practices and emerging trends in software development."],
+
+    hostBios: [{"name":"Sean Falconer","bio":"Sean Falconer is a software engineer and podcast host. He leads Software Engineering Daily, where he discusses various topics in software development and engineering."}],
+
+    relatedSlugs: ["changelog","data-exchange-podcast","machine-learning-street-talk"],
+
     aboutPodcast: "Software Engineering Daily is a podcast hosted by Sean Falconer and covering software engineering topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Software Engineering Daily or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3016,6 +3240,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Changelog, Adam Stacoviak, Jerod Santo, Technology, Software Development",
     faqTopics: "software development trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/b5/b1/43/b5b14333-7cbe-123d-c444-0204e5d08102/mza_311421542997449775.png/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 500,
+
+    yearStarted: 2013,
+
+    knownFor: ["Discussing open source software and its impact on the tech industry.","Interviews with developers and creators of popular software projects.","Exploring the latest trends in software development and engineering."],
+
+    hostBios: [{"name":"Adam Stacoviak","bio":"Adam Stacoviak is a software developer and co-host of The Changelog. He focuses on open source software and its community-driven nature."},{"name":"Jerod Santo","bio":"Jerod Santo is a software engineer and co-host of The Changelog. He brings insights from his experience in the tech industry to the podcast."}],
+
+    relatedSlugs: ["software-engineering-daily","data-exchange-podcast","machine-learning-street-talk"],
+
     aboutPodcast: "The Changelog is a podcast hosted by Adam Stacoviak, Jerod Santo and covering software development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Changelog or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3028,6 +3266,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Data Exchange Podcast, Ben Lorica, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/dc/3b/13/dc3b1304-aa2c-ae0f-06c1-d4a109610167/mza_13312015929661048725.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2018,
+
+    knownFor: ["Examining the intersection of data science and technology.","Interviews with data experts and thought leaders.","Providing insights into data-driven decision-making and analytics."],
+
+    hostBios: [{"name":"Ben Lorica","bio":"Ben Lorica is a data scientist and podcast host. He leads The Data Exchange Podcast, focusing on the latest trends in data science and analytics."}],
+
+    relatedSlugs: ["software-engineering-daily","changelog","superdatascience-podcast"],
+
     aboutPodcast: "The Data Exchange Podcast is a podcast hosted by Ben Lorica and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Data Exchange Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3040,6 +3292,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "SuperDataScience Podcast, Jon Krohn, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/dc/a3/a7/dca3a7ba-d1fa-cff2-1413-96de57124f31/mza_11682181848693170925.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Providing insights and education on data science and machine learning.","Interviews with industry leaders and practitioners in data science.","Discussing practical applications of data science in various fields."],
+
+    hostBios: [{"name":"Jon Krohn","bio":"Jon Krohn is a data scientist and educator. He hosts SuperDataScience Podcast, where he shares insights and interviews with experts in the data science field."}],
+
+    relatedSlugs: ["ai-breakdown","no-priors","gradient-dissent"],
+
     aboutPodcast: "SuperDataScience Podcast is a podcast hosted by Jon Krohn and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of SuperDataScience Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3052,6 +3318,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Machine Learning Street Talk, Tim Scarfe, Connor Shorten, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/34/e4/14/34e41455-8b0d-9b6e-3290-e02f6da69696/mza_1821645445708339756.jpg/600x600bb.jpg",
+    avgEpisodeLength: 55,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["Discussing the latest trends and research in machine learning.","Interviews with leading researchers and practitioners in AI.","Exploring practical applications of machine learning in various industries."],
+
+    hostBios: [{"name":"Tim Scarfe","bio":"Tim Scarfe is a machine learning researcher and podcast host. He co-hosts Machine Learning Street Talk, where he discusses advancements in AI and machine learning."},{"name":"Connor Shorten","bio":"Connor Shorten is a data scientist and co-host of Machine Learning Street Talk. He focuses on practical applications of machine learning and AI technologies."}],
+
+    relatedSlugs: ["gradient-dissent","ai-breakdown","superdatascience-podcast"],
+
     aboutPodcast: "Machine Learning Street Talk is a podcast hosted by Tim Scarfe, Connor Shorten and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Machine Learning Street Talk or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3064,6 +3344,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Future of Life Institute Podcast, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/09/c2/24/09c224e2-b2fe-5784-2d88-51eeecbd310b/mza_6769889003506547070.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2019,
+
+    knownFor: ["Exploring the ethical implications of advanced technologies like AI and biotechnology.","Featuring leading experts discussing the future of humanity and technology.","Promoting discussions on safety and beneficial uses of technology."],
+
+    hostBios: [{"name":"Various","bio":"The podcast features a rotating cast of experts, researchers, and thought leaders in technology and ethics."}],
+
+    relatedSlugs: ["lexfridman","ai-breakdown","foundmyfitness"],
+
     aboutPodcast: "Future of Life Institute Podcast is a podcast covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Future of Life Institute Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3076,6 +3370,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "EconTalk, Russ Roberts, Economics",
     faqTopics: "economics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/a3/99/12/a39912d8-29d9-2cc8-fc96-21f85b001214/mza_1209137928091979083.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 800,
+
+    yearStarted: 2006,
+
+    knownFor: ["In-depth discussions on economic theory and real-world applications.","Featuring prominent economists and thinkers from various fields.","Encouraging critical thinking about economic issues and policies."],
+
+    hostBios: [{"name":"Russ Roberts","bio":"Russ Roberts is an economist and professor known for his engaging discussions on economics and public policy."}],
+
+    relatedSlugs: ["macro-musings","freakonomics","theindicator"],
+
     aboutPodcast: "EconTalk is a podcast hosted by Russ Roberts and covering economics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of EconTalk or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3088,6 +3396,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Macro Musings, David Beckworth, Finance, Economics",
     faqTopics: "economics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/1b/f8/2c/1bf82c63-0b17-5fad-3fb2-de9f38553ca2/mza_2003424848208648515.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2016,
+
+    knownFor: ["Analyzing macroeconomic trends and policies with expert guests.","Providing insights into the Federal Reserve and monetary policy.","Discussing the intersection of economics and current events."],
+
+    hostBios: [{"name":"David Beckworth","bio":"David Beckworth is a senior research fellow known for his expertise in monetary policy and macroeconomics."}],
+
+    relatedSlugs: ["econtalk","theindicator","investtalk"],
+
     aboutPodcast: "Macro Musings is a podcast hosted by David Beckworth and covering economics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Macro Musings or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3100,6 +3422,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Long View, Christine Benz, Jeff Ptak, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/cb/31/ec/cb31ec0d-a055-b6a0-abd6-fecf337083b8/mza_15288875191164112667.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2018,
+
+    knownFor: ["Providing insights into long-term investment strategies and market trends.","Featuring discussions with industry experts on financial planning.","Helping listeners navigate the complexities of investing."],
+
+    hostBios: [{"name":"Christine Benz","bio":"Christine Benz is a director of personal finance at Morningstar, specializing in investment strategies and retirement planning."},{"name":"Jeff Ptak","bio":"Jeff Ptak is a chief ratings officer at Morningstar, with extensive knowledge in investment research and analysis."}],
+
+    relatedSlugs: ["compound-insights","investtalk","mastersinbusiness"],
+
     aboutPodcast: "The Long View is a podcast hosted by Christine Benz, Jeff Ptak and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Long View or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3112,6 +3448,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Compound Insights, Josh Brown, Finance, Markets",
     faqTopics: "markets trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/5c/bf/5c/5cbf5c55-dde0-db0a-cec0-3aa500fcc9ac/mza_6041350248277638082.jpg/600x600bb.jpg",
+    avgEpisodeLength: 35,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2020,
+
+    knownFor: ["Exploring market trends and investment strategies with industry leaders.","Providing actionable insights for investors and financial professionals.","Discussing the impact of economic policies on markets."],
+
+    hostBios: [{"name":"Josh Brown","bio":"Josh Brown is a financial advisor and CEO known for his expertise in market trends and investment strategies."}],
+
+    relatedSlugs: ["long-view","investtalk","theindicator"],
+
     aboutPodcast: "Compound Insights is a podcast hosted by Josh Brown and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Compound Insights or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3124,6 +3474,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Art of Investing, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/00/2a/cf/002acf84-aabf-297a-ca74-2071c677c908/mza_11767318899623915138.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Monthly",
+
+    totalEpisodes: 60,
+
+    yearStarted: 2017,
+
+    knownFor: ["Discussing various investment philosophies and strategies.","Featuring interviews with successful investors and financial experts.","Providing listeners with insights into the art and science of investing."],
+
+    hostBios: [{"name":"Various","bio":"The podcast features a diverse range of hosts, each bringing unique perspectives on investment strategies."}],
+
+    relatedSlugs: ["long-view","compound-insights","investtalk"],
+
     aboutPodcast: "The Art of Investing is a podcast covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Art of Investing or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3136,6 +3500,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "InvestTalk, Justin Klein, Luke Guerrero, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/0f/e5/33/0fe53304-ccee-ea58-d406-2e23a8bd99ac/mza_9064441635429432050.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2015,
+
+    knownFor: ["Offering practical investment advice and market analysis.","Featuring expert guests discussing current financial trends.","Helping listeners make informed investment decisions."],
+
+    hostBios: [{"name":"Justin Klein","bio":"Justin Klein is a financial advisor and co-host known for his expertise in stock market analysis."},{"name":"Luke Guerrero","bio":"Luke Guerrero is a financial analyst and co-host, providing insights into investment strategies and market trends."}],
+
+    relatedSlugs: ["macro-musings","long-view","compound-insights"],
+
     aboutPodcast: "InvestTalk is a podcast hosted by Justin Klein, Luke Guerrero and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of InvestTalk or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3148,6 +3526,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The James Altucher Show, James Altucher, Business, Entrepreneurship",
     faqTopics: "entrepreneurship trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8a/da/29/8ada2998-77f3-d8cb-fe34-ab48511c90e6/mza_16441719134135839298.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2014,
+
+    knownFor: ["Featuring candid conversations with successful entrepreneurs and innovators.","Exploring unconventional ideas and strategies for success.","Encouraging listeners to embrace creativity and entrepreneurship."],
+
+    hostBios: [{"name":"James Altucher","bio":"James Altucher is an entrepreneur, author, and podcast host known for his unique insights into business and creativity."}],
+
+    relatedSlugs: ["founders","howibuiltthis","myfirstmillion"],
+
     aboutPodcast: "The James Altucher Show is a podcast hosted by James Altucher and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The James Altucher Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3160,6 +3552,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Startup School by Y Combinator, Y Combinator, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/98/43/87/9843878b-8cdd-c3a5-6ea4-b689593e9e96/mza_1445891654925813559.png/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Seasonal",
+
+    totalEpisodes: 50,
+
+    yearStarted: 2016,
+
+    knownFor: ["Providing guidance and resources for startup founders and entrepreneurs.","Featuring successful startup founders sharing their experiences.","Encouraging innovation and entrepreneurship in the tech industry."],
+
+    hostBios: [{"name":"Y Combinator","bio":"Y Combinator is a startup accelerator known for mentoring and funding early-stage startups and entrepreneurs."}],
+
+    relatedSlugs: ["y-combinator-podcast","founders","howibuiltthis"],
+
     aboutPodcast: "Startup School by Y Combinator is a podcast hosted by Y Combinator and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Startup School by Y Combinator or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3172,6 +3578,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Y Combinator Podcast, Y Combinator, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/65/d1/1e/65d11ed6-914f-e163-bc7a-d1ea5eda5b79/mza_2184580866640883071.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Monthly",
+
+    totalEpisodes: 40,
+
+    yearStarted: 2017,
+
+    knownFor: ["Discussing the startup ecosystem and innovation with industry leaders.","Providing insights and advice for aspiring entrepreneurs.","Highlighting successful startups and their journeys."],
+
+    hostBios: [{"name":"Y Combinator","bio":"Y Combinator is a leading startup accelerator that supports entrepreneurs through funding and mentorship."}],
+
+    relatedSlugs: ["startup-school-by-y-combinator","founders","howibuiltthis"],
+
     aboutPodcast: "Y Combinator Podcast is a podcast hosted by Y Combinator and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Y Combinator Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3184,6 +3604,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Indie Hackers Podcast, Courtland Allen, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/f1/f1/19/f1f119fb-af08-99d3-80d6-634369cd2663/mza_3117598165812331483.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Exploring the journeys of successful indie hackers and their projects.","Providing actionable advice for building and scaling small businesses.","Fostering a community of entrepreneurs sharing their experiences and insights."],
+
+    hostBios: [{"name":"Courtland Allen","bio":"Courtland Allen is an entrepreneur and founder of Indie Hackers, a platform for sharing startup stories and insights. He has a passion for helping others succeed in their entrepreneurial journeys."}],
+
+    relatedSlugs: ["bootstrapped-founder","lean-startup-podcast","saas-revolution-show"],
+
     aboutPodcast: "Indie Hackers Podcast is a podcast hosted by Courtland Allen and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Indie Hackers Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3196,6 +3630,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Bootstrapped Founder, Arvid Kahl, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8f/5b/c8/8f5bc840-20e5-23de-6f2e-076e1c49f6ba/mza_17334182319252877281.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2019,
+
+    knownFor: ["Sharing the stories of bootstrapped entrepreneurs and their challenges.","Offering practical tips for starting and growing a business without outside funding.","Highlighting the importance of sustainable growth and profitability."],
+
+    hostBios: [{"name":"Arvid Kahl","bio":"Arvid Kahl is a successful entrepreneur and author, known for his expertise in bootstrapping startups. He shares his insights on building sustainable businesses through his podcast and writings."}],
+
+    relatedSlugs: ["indie-hackers-podcast","lean-startup-podcast","saas-revolution-show"],
+
     aboutPodcast: "The Bootstrapped Founder is a podcast hosted by Arvid Kahl and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Bootstrapped Founder or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3208,6 +3656,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "SaaS Revolution Show, Alex Sherwood, Business, SaaS",
     faqTopics: "saas trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/38/73/9d/38739def-1fa9-bd35-91ac-3a701be1ec76/mza_11546552145829031166.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2016,
+
+    knownFor: ["Discussing trends and insights in the SaaS industry with experts.","Providing actionable advice for SaaS founders and entrepreneurs.","Highlighting successful SaaS companies and their growth strategies."],
+
+    hostBios: [{"name":"Alex Sherwood","bio":"Alex Sherwood is a SaaS entrepreneur and expert, dedicated to helping others navigate the challenges of building SaaS businesses. He shares valuable insights through interviews and discussions."}],
+
+    relatedSlugs: ["indie-hackers-podcast","bootstrapped-founder","lean-startup-podcast"],
+
     aboutPodcast: "SaaS Revolution Show is a podcast hosted by Alex Sherwood and covering saas topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of SaaS Revolution Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3220,6 +3682,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Product Thinking, Melissa Perri, Technology, Product Management",
     faqTopics: "product management trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/4c/f9/4a/4cf94a37-a07c-01a3-2328-9a4702dda314/mza_5552218113285675520.jpg/600x600bb.jpg",
+    avgEpisodeLength: 35,
+
+    frequency: "Monthly",
+
+    totalEpisodes: 60,
+
+    yearStarted: 2018,
+
+    knownFor: ["Exploring product management best practices and methodologies.","Featuring interviews with industry leaders and product experts.","Providing insights on building successful products and teams."],
+
+    hostBios: [{"name":"Melissa Perri","bio":"Melissa Perri is a product management consultant and author, known for her expertise in product strategy. She helps organizations build better products through her insights and teachings."}],
+
+    relatedSlugs: ["product-podcast","build-with-maggie-crowley","lean-startup-podcast"],
+
     aboutPodcast: "Product Thinking is a podcast hosted by Melissa Perri and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Product Thinking or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3232,6 +3708,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Product Podcast, Product School, Technology, Product Management",
     faqTopics: "product management trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/7d/c8/d6/7dc8d679-d791-475c-d7d3-b49299a41eb2/mza_8333258434130085994.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2015,
+
+    knownFor: ["Providing insights into product management and development.","Featuring interviews with product leaders and innovators.","Discussing the latest trends and challenges in product management."],
+
+    hostBios: [{"name":"Product School","bio":"Product School is an organization dedicated to training product managers. Their team shares valuable insights and experiences from the product management industry through the podcast."}],
+
+    relatedSlugs: ["product-thinking","build-with-maggie-crowley","lean-startup-podcast"],
+
     aboutPodcast: "The Product Podcast is a podcast hosted by Product School and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Product Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3244,6 +3734,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Build with Maggie Crowley, Maggie Crowley, Technology, Product Management",
     faqTopics: "product management trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/6b/17/de/6b17de13-2604-19a8-1167-150d104ec1ca/mza_8285254204803864776.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2020,
+
+    knownFor: ["Helping aspiring product managers learn through practical advice.","Sharing real-world experiences and challenges faced in product management.","Fostering a community of product enthusiasts and learners."],
+
+    hostBios: [{"name":"Maggie Crowley","bio":"Maggie Crowley is a product manager and educator, passionate about teaching others the art of product management. She shares her experiences and insights to empower future product leaders."}],
+
+    relatedSlugs: ["product-thinking","product-podcast","lean-startup-podcast"],
+
     aboutPodcast: "Build with Maggie Crowley is a podcast hosted by Maggie Crowley and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Build with Maggie Crowley or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3256,6 +3760,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Lean Startup Podcast, Eric Ries, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/9e/30/37/9e30375c-6032-7fc2-9b68-cebd1c53fc9d/mza_2016651749078941305.jpg/600x600bb.jpg",
+    avgEpisodeLength: 55,
+
+    frequency: "Monthly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2013,
+
+    knownFor: ["Exploring the principles of lean startup methodology.","Featuring interviews with entrepreneurs and industry experts.","Providing actionable insights for startups to innovate and grow."],
+
+    hostBios: [{"name":"Eric Ries","bio":"Eric Ries is an entrepreneur and author of 'The Lean Startup.' He is a thought leader in the startup community, advocating for lean principles to drive innovation."}],
+
+    relatedSlugs: ["indie-hackers-podcast","bootstrapped-founder","saas-revolution-show"],
+
     aboutPodcast: "The Lean Startup Podcast is a podcast hosted by Eric Ries and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Lean Startup Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3268,6 +3786,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Strategy Skills Podcast, Business, Strategy",
     faqTopics: "strategy trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/b1/4e/e1/b14ee1c9-a4bb-32cc-6d92-8e3a61bcdfc0/mza_13762113480676410409.png/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 90,
+
+    yearStarted: 2018,
+
+    knownFor: ["Providing insights into strategic thinking and decision-making.","Featuring interviews with strategy experts and business leaders.","Offering frameworks and tools for effective strategic planning."],
+
+    hostBios: [{"name":"Various","bio":"The podcast features various hosts and experts in strategy, sharing their knowledge and experiences to help listeners develop their strategic skills."}],
+
+    relatedSlugs: ["indie-hackers-podcast","lean-startup-podcast","saas-revolution-show"],
+
     aboutPodcast: "The Strategy Skills Podcast is a podcast covering strategy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Strategy Skills Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3280,6 +3812,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Exponential View with Azeem Azhar, Azeem Azhar, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/52/e5/c6/52e5c678-725b-7ca6-3c4d-773af0b1db80/mza_14322325657949627443.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 70,
+
+    yearStarted: 2019,
+
+    knownFor: ["Exploring the intersection of technology, society, and the economy.","Featuring discussions with thought leaders on future trends.","Providing insights into the impact of technology on our lives."],
+
+    hostBios: [{"name":"Azeem Azhar","bio":"Azeem Azhar is a technology and business expert, known for his insights on the future of technology. He explores how technological advancements shape society and the economy."}],
+
+    relatedSlugs: ["product-thinking","lean-startup-podcast","saas-revolution-show"],
+
     aboutPodcast: "Exponential View with Azeem Azhar is a podcast hosted by Azeem Azhar and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Exponential View with Azeem Azhar or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3292,6 +3838,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The School of Greatness, Lewis Howes, Self-Improvement, Personal Development",
     faqTopics: "personal development trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b2/17/b5/b217b58d-a605-8828-2cfe-3694a55a6284/mza_2870672035194873125.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2013,
+
+    knownFor: ["Inspiring listeners through interviews with successful individuals.","Providing practical advice on personal development and success.","Fostering a community focused on greatness and achievement."],
+
+    hostBios: [{"name":"Lewis Howes","bio":"Lewis Howes is a former professional athlete turned entrepreneur and author. He shares insights on personal development and success through his podcast and books."}],
+
+    relatedSlugs: ["indie-hackers-podcast","lean-startup-podcast","saas-revolution-show"],
+
     aboutPodcast: "The School of Greatness is a podcast hosted by Lewis Howes and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The School of Greatness or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3304,6 +3864,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Impact Theory, Tom Bilyeu, Self-Improvement, Personal Development",
     faqTopics: "personal development trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/8d/f1/df/8df1dfd5-a275-9c5e-3ce3-d2d0ffc2f2e9/mza_8563525504817061158.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2016,
+
+    knownFor: ["In-depth interviews with thought leaders and innovators in various fields.","Focus on personal development and mindset transformation.","Practical advice and strategies for achieving success."],
+
+    hostBios: [{"name":"Tom Bilyeu","bio":"Tom Bilyeu is a co-founder of Quest Nutrition and a prominent speaker on personal development, known for his motivational insights and interviews."}],
+
+    relatedSlugs: ["tony-robbins-podcast","mind-your-business-podcast","success-story"],
+
     aboutPodcast: "Impact Theory is a podcast hosted by Tom Bilyeu and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Impact Theory or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3316,6 +3890,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Skinny Confidential Him & Her Podcast, Lauryn Bosstick, Michael Bosstick, Business, Lifestyle",
     faqTopics: "lifestyle trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/2a/01/f0/2a01f0ec-5917-f1e3-f6d7-f3ee2024d2dc/mza_2194346014052329616.png/600x600bb.jpg",
+    avgEpisodeLength: 75,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 250,
+
+    yearStarted: 2018,
+
+    knownFor: ["A blend of lifestyle, business, and relationship advice from a married couple.","Engaging discussions with various guests from different industries.","Practical tips on health, wellness, and entrepreneurship."],
+
+    hostBios: [{"name":"Lauryn Bosstick","bio":"Lauryn Bosstick is a lifestyle entrepreneur and influencer, known for her expertise in health, wellness, and social media marketing."},{"name":"Michael Bosstick","bio":"Michael Bosstick is a successful entrepreneur and co-host, bringing insights from his experience in business and media."}],
+
+    relatedSlugs: ["influencer-podcast","success-story","mind-your-business-podcast"],
+
     aboutPodcast: "The Skinny Confidential Him & Her Podcast is a podcast hosted by Lauryn Bosstick, Michael Bosstick and covering lifestyle topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Skinny Confidential Him & Her Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3328,6 +3916,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Tony Robbins Podcast, Tony Robbins, Self-Improvement, Personal Development",
     faqTopics: "personal development trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/52/da/73/52da73c8-b571-c643-a4c5-f6d1697f454e/mza_7337086062522968307.png/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2016,
+
+    knownFor: ["Insights from Tony Robbins on personal and professional growth.","Interviews with world-class achievers and experts.","Strategies for overcoming challenges and achieving peak performance."],
+
+    hostBios: [{"name":"Tony Robbins","bio":"Tony Robbins is a renowned life coach, author, and motivational speaker, known for his transformative seminars and coaching programs."}],
+
+    relatedSlugs: ["impact-theory","success-story","mind-your-business-podcast"],
+
     aboutPodcast: "The Tony Robbins Podcast is a podcast hosted by Tony Robbins and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Tony Robbins Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3340,6 +3942,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Online Marketing Made Easy, Amy Porterfield, Business, Online Marketing",
     faqTopics: "online marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/fe/3d/e2/fe3de2e3-83b5-81eb-08f7-21e4c8e0b2f0/mza_14892873135498710407.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2014,
+
+    knownFor: ["Step-by-step guidance on online marketing strategies.","Interviews with successful entrepreneurs and marketers.","Practical tips for growing a business online."],
+
+    hostBios: [{"name":"Amy Porterfield","bio":"Amy Porterfield is a digital marketing strategist and educator, specializing in online courses and social media marketing."}],
+
+    relatedSlugs: ["influencer-podcast","success-story","skinny-confidential-him-and-her-podcast"],
+
     aboutPodcast: "Online Marketing Made Easy is a podcast hosted by Amy Porterfield and covering online marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Online Marketing Made Easy or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3352,6 +3968,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Influencer Podcast, Julie Solomon, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/2c/51/5e/2c515e66-d69f-3c0a-6f32-b3f7e29f7b5d/mza_16421281735741553700.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Interviews with top influencers and industry experts.","Insights on building a personal brand and online presence.","Strategies for monetizing influence and growing an audience."],
+
+    hostBios: [{"name":"Julie Solomon","bio":"Julie Solomon is a marketing strategist and influencer, known for her expertise in brand building and social media strategy."}],
+
+    relatedSlugs: ["skinny-confidential-him-and-her-podcast","online-marketing-made-easy","success-story"],
+
     aboutPodcast: "The Influencer Podcast is a podcast hosted by Julie Solomon and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Influencer Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3364,6 +3994,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Success Story, Scott D. Clary, Business, Entrepreneurship",
     faqTopics: "entrepreneurship trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f9/be/b7/f9beb74a-0497-9905-3d36-2a63badc1e9d/mza_15385414268399986889.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2019,
+
+    knownFor: ["Inspiring stories of entrepreneurs and their journeys to success.","Practical advice and lessons learned from real-world experiences.","Focus on overcoming obstacles and achieving goals."],
+
+    hostBios: [{"name":"Scott D. Clary","bio":"Scott D. Clary is an entrepreneur and podcast host, dedicated to sharing stories of success and insights from industry leaders."}],
+
+    relatedSlugs: ["impact-theory","tony-robbins-podcast","mind-your-business-podcast"],
+
     aboutPodcast: "Success Story is a podcast hosted by Scott D. Clary and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Success Story or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3376,6 +4020,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Mind Your Business Podcast, James Wedmore, Business, Online Marketing",
     faqTopics: "online marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/0c/14/db/0c14db9a-7a4f-22f9-f2db-2e8d4d723e2f/mza_17413101117270616991.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2018,
+
+    knownFor: ["Exploring the intersection of business and mindset.","Interviews with successful entrepreneurs and thought leaders.","Actionable strategies for growing a business and personal development."],
+
+    hostBios: [{"name":"James Wedmore","bio":"James Wedmore is a business coach and digital marketing expert, known for helping entrepreneurs scale their online businesses."}],
+
+    relatedSlugs: ["tony-robbins-podcast","success-story","online-marketing-made-easy"],
+
     aboutPodcast: "Mind Your Business Podcast is a podcast hosted by James Wedmore and covering online marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Mind Your Business Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3388,6 +4046,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Social Proof, David Shands, Donni Wiggins, Business, Entrepreneurship",
     faqTopics: "entrepreneurship trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/83/36/13/833613dd-c1cf-0c72-6e5c-36f55aeee1fa/mza_14285119997413200918.jpg/600x600bb.jpg",
+    avgEpisodeLength: 55,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2019,
+
+    knownFor: ["Insights into entrepreneurship and building a successful brand.","Interviews with industry experts and successful entrepreneurs.","Focus on social media strategies and personal branding."],
+
+    hostBios: [{"name":"David Shands","bio":"David Shands is an entrepreneur and podcast host, known for his expertise in branding and social media marketing."},{"name":"Donni Wiggins","bio":"Donni Wiggins is a business strategist and co-host, specializing in personal branding and entrepreneurship."}],
+
+    relatedSlugs: ["influencer-podcast","success-story","skinny-confidential-him-and-her-podcast"],
+
     aboutPodcast: "Social Proof is a podcast hosted by David Shands, Donni Wiggins and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Social Proof or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3400,6 +4072,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "TBPN, John Coogan, Jordi Hays, Technology, News",
     faqTopics: "news trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/33/08/0c/33080c74-2074-68ea-b806-925729c4fb3a/mza_9763043263976780883.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Daily on weekdays",
+
+    totalEpisodes: 500,
+
+    yearStarted: 2020,
+
+    knownFor: ["Daily updates on the latest technology news and trends.","Interviews with tech industry leaders and innovators.","Insights into emerging technologies and their impact on society."],
+
+    hostBios: [{"name":"John Coogan","bio":"John Coogan is a tech enthusiast and podcast host, known for his engaging discussions on technology and innovation."},{"name":"Jordi Hays","bio":"Jordi Hays is a technology expert and co-host, specializing in tech news and analysis."}],
+
+    relatedSlugs: ["thedaily","thevergecast","marketplace-tech"],
+
     aboutPodcast: "TBPN is a podcast hosted by John Coogan, Jordi Hays and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of TBPN or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3412,6 +4098,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Daily Charge, CNET, Technology, News",
     faqTopics: "news trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/83/5d/45/835d45b1-5999-460e-4124-104302a1c55e/mza_4403534956723569587.jpg/600x600bb.jpg",
+    avgEpisodeLength: 25,
+
+    frequency: "Daily on weekdays",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2021,
+
+    knownFor: ["Quick updates on the latest tech news and trends.","Insights into consumer technology and its impact.","Interviews with industry experts and thought leaders."],
+
+    hostBios: [{"name":"CNET","bio":"CNET is a leading technology media company, providing news, reviews, and insights on the latest in consumer technology."}],
+
+    relatedSlugs: ["tbpn","thevergecast","marketplace-tech"],
+
     aboutPodcast: "The Daily Charge is a podcast hosted by CNET and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Daily Charge or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3424,6 +4124,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Accidental Tech Podcast, Marco Arment, Casey Liss, John Siracusa, Technology, Apple",
     faqTopics: "apple trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/91/22/42/9122426f-df98-4302-6ba3-da67b0648e70/mza_5041274938111919910.png/600x600bb.jpg",
+    avgEpisodeLength: 90,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 400,
+
+    yearStarted: 2013,
+
+    knownFor: ["In-depth discussions on Apple products and technology trends.","A blend of humor and technical insight from passionate hosts.","Engaging listener feedback segments that enhance community interaction."],
+
+    hostBios: [{"name":"Marco Arment","bio":"Marco is a software developer and entrepreneur known for creating Instapaper and Overcast, with a deep passion for technology."},{"name":"Casey Liss","bio":"Casey is a software engineer and podcaster with a focus on Apple technology and a knack for engaging storytelling."},{"name":"John Siracusa","bio":"John is a technology journalist and podcaster, renowned for his detailed reviews and insights into Apple products."}],
+
+    relatedSlugs: ["exponent","product-hunt-radio","marketplace-tech"],
+
     aboutPodcast: "Accidental Tech Podcast is a podcast hosted by Marco Arment, Casey Liss, John Siracusa and covering apple topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Accidental Tech Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3436,6 +4150,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Bloomberg Technology, Caroline Hyde, Technology, News",
     faqTopics: "news trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/60/11/ab/6011ab10-0fc3-07b3-3f85-1d9e09e06f0b/mza_9476792985622979024.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Daily",
+
+    totalEpisodes: 500,
+
+    yearStarted: 2015,
+
+    knownFor: ["Timely coverage of the latest technology news and trends.","Expert analysis from industry leaders and Bloomberg journalists.","In-depth interviews with innovators and tech executives."],
+
+    hostBios: [{"name":"Caroline Hyde","bio":"Caroline is a seasoned journalist with extensive experience in technology reporting, known for her engaging interview style."}],
+
+    relatedSlugs: ["marketplace-tech","exponent","up-first"],
+
     aboutPodcast: "Bloomberg Technology is a podcast hosted by Caroline Hyde and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Bloomberg Technology or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3448,6 +4176,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Exponent, Ben Thompson, James Allworth, Technology, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts114/v4/ad/0b/0d/ad0b0df8-615a-7c9a-6037-95a8be37dae3/mza_11867533799889024193.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2014,
+
+    knownFor: ["Deep dives into technology business strategy and market dynamics.","Insightful discussions on the impact of technology on society.","Thought-provoking commentary from industry experts."],
+
+    hostBios: [{"name":"Ben Thompson","bio":"Ben is a technology analyst and founder of Stratechery, known for his sharp insights into tech business models."},{"name":"James Allworth","bio":"James is a business strategist and author, recognized for his expertise in technology and its implications for the future."}],
+
+    relatedSlugs: ["accidental-tech-podcast","information-411","marketplace-tech"],
+
     aboutPodcast: "Exponent is a podcast hosted by Ben Thompson, James Allworth and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Exponent or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3460,6 +4202,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Marketplace Tech, Lily Jamali, Technology, News",
     faqTopics: "news trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/6d/f0/35/6df0357a-ba75-1f25-d8a4-9e68a6068bb5/mza_8397891458099822254.jpg/600x600bb.jpg",
+    avgEpisodeLength: 25,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2016,
+
+    knownFor: ["Exploring the intersection of technology and business.","Providing insights into how tech affects everyday life.","Interviews with leaders in the tech industry."],
+
+    hostBios: [{"name":"Lily Jamali","bio":"Lily is a journalist with a focus on technology and its impact on the economy, bringing a fresh perspective to tech news."}],
+
+    relatedSlugs: ["bloomberg-technology","exponent","up-first"],
+
     aboutPodcast: "Marketplace Tech is a podcast hosted by Lily Jamali and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Marketplace Tech or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3472,6 +4228,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Last Week in AI, Jeremie Harris, Andrey Kurenkov, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/49/6b/53/496b532c-27d1-9cfa-9538-65a88c322b4b/mza_9426444235964349583.png/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["Weekly summaries of the latest developments in AI.","Expert commentary on the implications of AI advancements.","Interviews with leading AI researchers and practitioners."],
+
+    hostBios: [{"name":"Jeremie Harris","bio":"Jeremie is an AI researcher and advocate, dedicated to making AI accessible and understandable for a broader audience."},{"name":"Andrey Kurenkov","bio":"Andrey is a technology entrepreneur with a focus on AI applications, known for his insightful perspectives on AI trends."}],
+
+    relatedSlugs: ["ai-for-humans","exponent","product-hunt-radio"],
+
     aboutPodcast: "Last Week in AI is a podcast hosted by Jeremie Harris, Andrey Kurenkov and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Last Week in AI or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3484,6 +4254,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "AI For Humans, Gavin Purcell, Kevin Pereira, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/40/de/b5/40deb538-dcb9-472d-4493-7d52a3a98b22/mza_7426505428791866503.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2019,
+
+    knownFor: ["Simplifying complex AI concepts for general audiences.","Engaging discussions about the ethical implications of AI.","Interviews with AI experts and thought leaders."],
+
+    hostBios: [{"name":"Gavin Purcell","bio":"Gavin is a digital media expert with a passion for AI, known for his ability to break down complex topics for listeners."},{"name":"Kevin Pereira","bio":"Kevin is a tech entrepreneur and host, recognized for his engaging style and insightful commentary on technology and AI."}],
+
+    relatedSlugs: ["last-week-in-ai","exponent","marketplace-tech"],
+
     aboutPodcast: "AI For Humans is a podcast hosted by Gavin Purcell, Kevin Pereira and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of AI For Humans or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3496,6 +4280,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Product Hunt Radio, Product Hunt, Technology, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/02/7e/4e/027e4ea9-9b3f-a12f-a75a-9c992c5a1902/mza_16174873071551882948.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2014,
+
+    knownFor: ["Highlighting new and innovative products in technology.","Interviews with entrepreneurs and creators behind new tech.","Engaging discussions about trends in the startup ecosystem."],
+
+    hostBios: [{"name":"Product Hunt","bio":"Product Hunt is a community-driven platform that showcases new products, featuring insights from various tech industry leaders."}],
+
+    relatedSlugs: ["exponent","accidental-tech-podcast","marketplace-tech"],
+
     aboutPodcast: "Product Hunt Radio is a podcast hosted by Product Hunt and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Product Hunt Radio or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3508,6 +4306,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Next Wave, Matt Wolfe, Nathan Lands, Technology, AI",
     faqTopics: "ai trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/be/da/f8/bedaf8a2-d155-c12d-8f7e-1e726a3ec7cd/mza_15329889507629780023.jpg/600x600bb.jpg",
+    avgEpisodeLength: 35,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 60,
+
+    yearStarted: 2021,
+
+    knownFor: ["Exploring emerging technologies and their potential impact.","Interviews with innovators shaping the future of tech.","Insightful analysis of trends in the tech landscape."],
+
+    hostBios: [{"name":"Matt Wolfe","bio":"Matt is a tech enthusiast and entrepreneur, passionate about exploring the future of technology and its implications."},{"name":"Nathan Lands","bio":"Nathan is a startup founder and tech expert, known for his insights into emerging trends and innovations in technology."}],
+
+    relatedSlugs: ["last-week-in-ai","ai-for-humans","exponent"],
+
     aboutPodcast: "The Next Wave is a podcast hosted by Matt Wolfe, Nathan Lands and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Next Wave or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3520,6 +4332,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Information 411, The Information, Technology, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a1/b0/90/a1b090c3-d3c9-5c4d-ffbc-b99da0d7c3c4/mza_10625854987612900925.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2018,
+
+    knownFor: ["Providing insights into the business of technology.","In-depth discussions on tech industry trends and news.","Interviews with key figures in the tech business world."],
+
+    hostBios: [{"name":"The Information","bio":"The Information is a leading tech news organization, known for its in-depth reporting and analysis of the technology industry."}],
+
+    relatedSlugs: ["exponent","marketplace-tech","bloomberg-technology"],
+
     aboutPodcast: "The Information 411 is a podcast hosted by The Information and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Information 411 or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3532,6 +4358,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Up First, NPR, News, Daily",
     faqTopics: "daily trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/0e/35/25/0e352569-e694-81d9-ea55-5f935981c15a/mza_1788275989855583986.png/600x600bb.jpg",
+    avgEpisodeLength: 15,
+
+    frequency: "Daily",
+
+    totalEpisodes: 1000,
+
+    yearStarted: 2017,
+
+    knownFor: ["Delivering the day's top news stories in a concise format.","Expert analysis from NPR journalists and contributors.","A reliable source for quick updates on current events."],
+
+    hostBios: [{"name":"NPR","bio":"NPR is a renowned news organization, providing trusted journalism and insightful reporting on a wide range of topics."}],
+
+    relatedSlugs: ["bloomberg-technology","marketplace-tech","exponent"],
+
     aboutPodcast: "Up First is a podcast hosted by NPR and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Up First or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3544,6 +4384,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Today, Explained, Sean Rameswaram, Noel King, News, Daily",
     faqTopics: "daily trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/9f/de/11/9fde1195-f6c3-4b63-60f5-4fb6184c4742/mza_9476725151127554447.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 20,
+
+    frequency: "Daily on weekdays",
+
+    totalEpisodes: 800,
+
+    yearStarted: 2018,
+
+    knownFor: ["Provides concise summaries of current events and news stories.","Features expert insights and diverse perspectives on various topics.","Engages listeners with a dynamic storytelling approach."],
+
+    hostBios: [{"name":"Sean Rameswaram","bio":"Sean Rameswaram is a journalist and podcast host known for his engaging storytelling and ability to simplify complex news topics."},{"name":"Noel King","bio":"Noel King is an accomplished journalist and co-host, recognized for her insightful interviews and deep understanding of global issues."}],
+
+    relatedSlugs: ["thedaily","cbs-mornings-on-the-go","global-news-podcast"],
+
     aboutPodcast: "Today, Explained is a podcast hosted by Sean Rameswaram, Noel King and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Today, Explained or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3556,6 +4410,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "NBC Nightly News, Lester Holt, News, Daily",
     faqTopics: "daily trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/27/6f/30/276f303f-ba66-915a-7704-9f3e053614bc/mza_8179972483604136486.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Daily",
+
+    totalEpisodes: 1500,
+
+    yearStarted: 1947,
+
+    knownFor: ["Delivers comprehensive coverage of the day's top stories and breaking news.","Features in-depth reports and interviews with key figures.","Trusted source for national and international news."],
+
+    hostBios: [{"name":"Lester Holt","bio":"Lester Holt is a veteran journalist and anchor, known for his credibility and experience in delivering news to millions."}],
+
+    relatedSlugs: ["abc-world-news-this-week","global-news-podcast","thedaily"],
+
     aboutPodcast: "NBC Nightly News is a podcast hosted by Lester Holt and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of NBC Nightly News or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3568,6 +4436,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Global News Podcast, BBC World Service, News, International",
     faqTopics: "international trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/84/57/09/8457093f-677a-d6de-5666-6514cc588a7e/mza_17083078915388787537.jpg/600x600bb.jpg",
+    avgEpisodeLength: 25,
+
+    frequency: "Daily",
+
+    totalEpisodes: 1200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Provides a global perspective on current events and international news.","Features reports from correspondents around the world.","Offers in-depth analysis of significant global issues."],
+
+    hostBios: [{"name":"BBC World Service","bio":"The BBC World Service is renowned for its impartial reporting and extensive coverage of international news and affairs."}],
+
+    relatedSlugs: ["today-explained","thedaily","cbs-mornings-on-the-go"],
+
     aboutPodcast: "Global News Podcast is a podcast hosted by BBC World Service and covering international topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Global News Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3580,6 +4462,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "CBS Mornings on the Go, CBS News, News, Daily",
     faqTopics: "daily trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/97/8e/03/978e034c-2813-ebc6-c602-4b4f7a6126e3/mza_7583350333124167119.jpg/600x600bb.jpg",
+    avgEpisodeLength: 25,
+
+    frequency: "Daily",
+
+    totalEpisodes: 600,
+
+    yearStarted: 2021,
+
+    knownFor: ["Offers a quick overview of the day's news and events.","Features interviews with newsmakers and experts.","Provides a blend of hard news and lighter stories."],
+
+    hostBios: [{"name":"CBS News","bio":"CBS News is a leading news organization known for its reliable reporting and comprehensive coverage of current events."}],
+
+    relatedSlugs: ["nbc-nightly-news","thedaily","global-news-podcast"],
+
     aboutPodcast: "CBS Mornings on the Go is a podcast hosted by CBS News and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of CBS Mornings on the Go or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3592,6 +4488,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Post Reports, Washington Post, News, Daily",
     faqTopics: "daily trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f7/fb/46/f7fb462d-c5e2-1b1c-a485-abf6e1515b41/mza_3200760060001266681.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Daily",
+
+    totalEpisodes: 500,
+
+    yearStarted: 2017,
+
+    knownFor: ["Delivers in-depth reporting on significant news stories.","Features investigative journalism and expert commentary.","Engages listeners with compelling narratives and analysis."],
+
+    hostBios: [{"name":"Washington Post","bio":"The Washington Post is a prestigious news organization known for its investigative journalism and thorough reporting on national issues."}],
+
+    relatedSlugs: ["thedaily","nbc-nightly-news","abc-world-news-this-week"],
+
     aboutPodcast: "Post Reports is a podcast hosted by Washington Post and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Post Reports or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3604,6 +4514,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "ABC World News This Week, ABC News, News, Weekly",
     faqTopics: "weekly trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/45/b5/e8/45b5e830-ba97-fc51-d06c-3d04a5cf1e53/mza_2789483587291700584.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 1981,
+
+    knownFor: ["Provides a summary of the week's most important news stories.","Features expert analysis and commentary on current events.","Trusted source for political and international news."],
+
+    hostBios: [{"name":"ABC News","bio":"ABC News is a leading news organization recognized for its reliable reporting and comprehensive coverage of national and international events."}],
+
+    relatedSlugs: ["nbc-nightly-news","global-news-podcast","breaking-points"],
+
     aboutPodcast: "ABC World News This Week is a podcast hosted by ABC News and covering weekly topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of ABC World News This Week or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3616,6 +4540,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Economist Podcasts, The Economist, News, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/92/68/ba/9268bae8-1bd5-2a15-7f1b-7e265d4773bd/mza_10204374987848109193.png/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2015,
+
+    knownFor: ["Offers insightful analysis on global economic and political issues.","Features expert commentary from leading economists and journalists.","Engages listeners with thought-provoking discussions on current affairs."],
+
+    hostBios: [{"name":"The Economist","bio":"The Economist is a prestigious publication known for its in-depth analysis of economic and political developments worldwide."}],
+
+    relatedSlugs: ["breaking-points","theindicator","thejournal"],
+
     aboutPodcast: "The Economist Podcasts is a podcast hosted by The Economist and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Economist Podcasts or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3628,6 +4566,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Breaking Points, Krystal Ball, Saagar Enjeti, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/5d/05/ab/5d05ab1f-e6a0-cbf2-794c-88610a29aaae/mza_7195979173793692483.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2020,
+
+    knownFor: ["Provides a fresh perspective on political news and analysis.","Features candid discussions on current events and controversies.","Engages listeners with diverse viewpoints and expert guests."],
+
+    hostBios: [{"name":"Krystal Ball","bio":"Krystal Ball is a political commentator known for her insightful analysis and engaging discussions on contemporary issues."},{"name":"Saagar Enjeti","bio":"Saagar Enjeti is a journalist and commentator recognized for his sharp insights and critical perspectives on political matters."}],
+
+    relatedSlugs: ["megyn-kelly-show","ben-shapiro-show","theindicator"],
+
     aboutPodcast: "Breaking Points is a podcast hosted by Krystal Ball, Saagar Enjeti and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Breaking Points or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3640,6 +4592,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Megyn Kelly Show, Megyn Kelly, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/3e/9f/c1/3e9fc13c-8030-b57e-f29e-0f14dc8db10d/mza_602213930944272333.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["Features in-depth interviews with newsmakers and experts.","Offers a unique perspective on political and cultural issues.","Engages listeners with thought-provoking discussions and debates."],
+
+    hostBios: [{"name":"Megyn Kelly","bio":"Megyn Kelly is a prominent journalist and commentator known for her incisive interviews and strong opinions on current events."}],
+
+    relatedSlugs: ["breaking-points","ben-shapiro-show","theindicator"],
+
     aboutPodcast: "The Megyn Kelly Show is a podcast hosted by Megyn Kelly and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Megyn Kelly Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3652,6 +4618,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Ben Shapiro Show, Ben Shapiro, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b6/2c/2c/b62c2c46-3fd6-5733-2c82-b95b781a4b40/mza_17718419788103424619.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Daily",
+
+    totalEpisodes: 600,
+
+    yearStarted: 2015,
+
+    knownFor: ["Delivers conservative commentary on current political events.","Features debates and discussions on controversial topics.","Engages listeners with sharp analysis and quick wit."],
+
+    hostBios: [{"name":"Ben Shapiro","bio":"Ben Shapiro is a conservative political commentator and author known for his articulate arguments and engaging discussions on contemporary issues."}],
+
+    relatedSlugs: ["megyn-kelly-show","breaking-points","theindicator"],
+
     aboutPodcast: "The Ben Shapiro Show is a podcast hosted by Ben Shapiro and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Ben Shapiro Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3664,6 +4644,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Stay Tuned with Preet, Preet Bharara, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/dd/d3/31/ddd331f3-ac20-909e-18a8-bb5c8833ebf9/mza_2286905572226061927.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2017,
+
+    knownFor: ["Insightful discussions on current legal and political issues with a former U.S. Attorney.","In-depth interviews with experts and thought leaders in law and politics.","Analysis of high-profile cases and their implications on society."],
+
+    hostBios: [{"name":"Preet Bharara","bio":"Preet Bharara is a former U.S. Attorney for the Southern District of New York, known for his expertise in legal matters and public policy."}],
+
+    relatedSlugs: ["democracy-now","young-turks","majority-report"],
+
     aboutPodcast: "Stay Tuned with Preet is a podcast hosted by Preet Bharara and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Stay Tuned with Preet or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3676,6 +4670,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Majority Report, Sam Seder, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e8/5a/7e/e85a7ec4-1e6a-b73c-c08b-87bdd7a0ecb4/mza_17735696853247497327.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Daily on weekdays",
+
+    totalEpisodes: 1200,
+
+    yearStarted: 2009,
+
+    knownFor: ["Progressive commentary on current events and political issues.","Engaging interviews with activists, politicians, and experts.","A platform for leftist perspectives on mainstream news."],
+
+    hostBios: [{"name":"Sam Seder","bio":"Sam Seder is a political commentator and comedian known for his sharp wit and insightful analysis of contemporary political issues."}],
+
+    relatedSlugs: ["stay-tuned-with-preet","democracy-now","young-turks"],
+
     aboutPodcast: "The Majority Report is a podcast hosted by Sam Seder and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Majority Report or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3688,6 +4696,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Puck's The Powers That Be, Puck, News, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/1e/18/65/1e1865de-5aeb-09f4-8fa2-e26ac43d5cc5/mza_1804087016618901396.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2021,
+
+    knownFor: ["Analysis of the intersection between politics and business.","Interviews with influential figures in media and politics.","Insightful commentary on current events and their implications."],
+
+    hostBios: [{"name":"Puck","bio":"Puck is a media company that provides in-depth analysis and reporting on the intersection of politics and business, led by industry experts."}],
+
+    relatedSlugs: ["majority-report","democracy-now","young-turks"],
+
     aboutPodcast: "Puck's The Powers That Be is a podcast hosted by Puck and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Puck's The Powers That Be or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3700,6 +4722,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Gist, Mike Pesca, News, Culture",
     faqTopics: "culture trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/c5/2a/0d/c52a0d0f-3542-af2d-e8ef-13f90c303b1f/mza_3541277573525309713.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 600,
+
+    yearStarted: 2015,
+
+    knownFor: ["Cultural commentary on current events and trends.","Engaging storytelling and interviews with notable guests.","A unique perspective on news and its impact on society."],
+
+    hostBios: [{"name":"Mike Pesca","bio":"Mike Pesca is a veteran journalist and podcaster known for his insightful commentary and engaging storytelling in the realm of news and culture."}],
+
+    relatedSlugs: ["democracy-now","young-turks","majority-report"],
+
     aboutPodcast: "The Gist is a podcast hosted by Mike Pesca and covering culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Gist or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3712,6 +4748,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Democracy Now, Amy Goodman, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/63/55/2b/63552b8b-cfc8-8beb-ddb3-b098a0f59fda/mza_11747648220942498867.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Daily",
+
+    totalEpisodes: 8000,
+
+    yearStarted: 1996,
+
+    knownFor: ["Independent news coverage with a focus on social justice and human rights.","In-depth interviews with activists and experts.","A platform for voices often marginalized in mainstream media."],
+
+    hostBios: [{"name":"Amy Goodman","bio":"Amy Goodman is an award-winning journalist and the co-founder of Democracy Now!, known for her fearless reporting and commitment to social justice."}],
+
+    relatedSlugs: ["stay-tuned-with-preet","majority-report","young-turks"],
+
     aboutPodcast: "Democracy Now is a podcast hosted by Amy Goodman and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Democracy Now or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3724,6 +4774,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Rising, The Hill, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/19/91/04/199104f6-6372-e89c-0572-ce83e419e344/mza_12645071737724650959.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Daily on weekdays",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2020,
+
+    knownFor: ["A fresh take on political news and analysis from multiple perspectives.","Engaging discussions on current events with a focus on populism.","Interviews with political figures and thought leaders."],
+
+    hostBios: [{"name":"The Hill","bio":"The Hill is a leading news source for politics, policy, business, and international relations, providing insights from various political perspectives."}],
+
+    relatedSlugs: ["majority-report","stay-tuned-with-preet","young-turks"],
+
     aboutPodcast: "Rising is a podcast hosted by The Hill and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Rising or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3736,6 +4800,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The News Agents, Emily Maitlis, Jon Sopel, Lewis Goodall, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/95/a8/05/95a80550-2d96-d760-67ae-7d45ebbb711f/mza_8126283139990252036.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2022,
+
+    knownFor: ["Insightful analysis of major news stories and their implications.","Engaging discussions with seasoned journalists and experts.","A focus on the impact of media on public perception."],
+
+    hostBios: [{"name":"Emily Maitlis","bio":"Emily Maitlis is a renowned journalist and broadcaster, known for her incisive interviews and deep understanding of political issues."},{"name":"Jon Sopel","bio":"Jon Sopel is a veteran BBC journalist, recognized for his expertise in political reporting and analysis."},{"name":"Lewis Goodall","bio":"Lewis Goodall is a political journalist and commentator, known for his insightful analysis and engaging storytelling."}],
+
+    relatedSlugs: ["stay-tuned-with-preet","majority-report","democracy-now"],
+
     aboutPodcast: "The News Agents is a podcast hosted by Emily Maitlis, Jon Sopel, Lewis Goodall and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The News Agents or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3748,6 +4826,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Redacted, Clayton Morris, Natali Morris, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c5/4a/9c/c54a9cb9-f55c-bfed-edfe-1e5d27d2e9c0/mza_15474558363048680987.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2021,
+
+    knownFor: ["Critical analysis of mainstream media narratives.","Engaging discussions on current events and political issues.","A focus on transparency and accountability in journalism."],
+
+    hostBios: [{"name":"Clayton Morris","bio":"Clayton Morris is a former news anchor and journalist, known for his critical perspective on media and politics."},{"name":"Natali Morris","bio":"Natali Morris is a journalist and commentator, recognized for her insights into media and current events."}],
+
+    relatedSlugs: ["majority-report","stay-tuned-with-preet","democracy-now"],
+
     aboutPodcast: "Redacted is a podcast hosted by Clayton Morris, Natali Morris and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Redacted or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3760,6 +4852,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Citations Needed, Nima Shirazi, Adam Johnson, News, Media",
     faqTopics: "media trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/f5/fe/97/f5fe9719-79ee-a535-aaca-7971838da991/mza_1363425183235475554.png/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Critical examination of media narratives and misinformation.","Engaging discussions on the impact of media on society.","A focus on transparency and accountability in journalism."],
+
+    hostBios: [{"name":"Nima Shirazi","bio":"Nima Shirazi is a political analyst and commentator, known for his critical insights into media narratives and public discourse."},{"name":"Adam Johnson","bio":"Adam Johnson is a journalist and media critic, recognized for his work on media accountability and misinformation."}],
+
+    relatedSlugs: ["stay-tuned-with-preet","majority-report","democracy-now"],
+
     aboutPodcast: "Citations Needed is a podcast hosted by Nima Shirazi, Adam Johnson and covering media topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Citations Needed or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3772,6 +4878,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Young Turks, Cenk Uygur, Ana Kasparian, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/ab/14/89/ab14893e-e1af-6da3-8d40-f1b3c10c51cc/mza_7485927389843427044.jpg/600x600bb.jpg",
+    avgEpisodeLength: 90,
+
+    frequency: "Daily",
+
+    totalEpisodes: 5000,
+
+    yearStarted: 2002,
+
+    knownFor: ["Progressive commentary and analysis of current events.","Engaging discussions with a focus on social justice issues.","A platform for diverse voices in political discourse."],
+
+    hostBios: [{"name":"Cenk Uygur","bio":"Cenk Uygur is a political commentator and co-founder of The Young Turks, known for his passionate advocacy for progressive causes."},{"name":"Ana Kasparian","bio":"Ana Kasparian is a journalist and co-host of The Young Turks, recognized for her insightful analysis and commitment to social justice."}],
+
+    relatedSlugs: ["stay-tuned-with-preet","majority-report","democracy-now"],
+
     aboutPodcast: "The Young Turks is a podcast hosted by Cenk Uygur, Ana Kasparian and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Young Turks or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3784,6 +4904,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Daily Stoic, Ryan Holiday, Philosophy, Self-Improvement",
     faqTopics: "self-improvement trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/61/84/55/618455ea-d49e-b6f8-40fb-3c09c7f2bbf1/mza_11824689476795621891.jpg/600x600bb.jpg",
+    avgEpisodeLength: 20,
+
+    frequency: "Daily",
+
+    totalEpisodes: 1000,
+
+    yearStarted: 2016,
+
+    knownFor: ["Exploring ancient Stoic philosophy and its practical applications in modern life.","Offering daily insights and reflections to inspire personal growth and resilience.","Featuring interviews with thought leaders and experts on philosophy and self-improvement."],
+
+    hostBios: [{"name":"Ryan Holiday","bio":"Ryan Holiday is a bestselling author and media strategist known for his work on Stoicism and personal development."}],
+
+    relatedSlugs: ["timferriss","howibuiltthis","hbrideacast"],
+
     aboutPodcast: "The Daily Stoic is a podcast hosted by Ryan Holiday and covering self-improvement topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Daily Stoic or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3796,6 +4930,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Rest is History, Tom Holland, Dominic Sandbrook, History, Education",
     faqTopics: "education trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/b3/8c/50/b38c507b-d4a2-b552-dd2e-894f48493653/mza_8804981712034613158.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2020,
+
+    knownFor: ["Delving into fascinating historical events and figures with engaging storytelling.","Providing insights into how history shapes our present and future.","Featuring expert guests and lively discussions on various historical topics."],
+
+    hostBios: [{"name":"Tom Holland","bio":"Tom Holland is a renowned historian and author, known for his engaging narratives on ancient history."},{"name":"Dominic Sandbrook","bio":"Dominic Sandbrook is a historian and author specializing in modern British history and popular culture."}],
+
+    relatedSlugs: ["in-our-time","thisamericanlife","freakonomics"],
+
     aboutPodcast: "The Rest is History is a podcast hosted by Tom Holland, Dominic Sandbrook and covering education topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Rest is History or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3808,6 +4956,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Choiceology with Katy Milkman, Katy Milkman, Psychology, Behavior",
     faqTopics: "behavior trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/2f/d5/05/2fd5058d-5ec0-2f3b-ce2b-7dd4eb81b8c8/mza_8805555072667820099.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Biweekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2018,
+
+    knownFor: ["Exploring the psychology behind decision-making and behavioral economics.","Providing practical insights to help listeners make better choices.","Featuring interviews with experts in psychology and behavioral science."],
+
+    hostBios: [{"name":"Katy Milkman","bio":"Katy Milkman is a behavioral scientist and professor known for her research on decision-making and habit formation."}],
+
+    relatedSlugs: ["no-stupid-questions","hiddenbrain","theindicator"],
+
     aboutPodcast: "Choiceology with Katy Milkman is a podcast hosted by Katy Milkman and covering behavior topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Choiceology with Katy Milkman or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3820,6 +4982,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "No Stupid Questions, Angela Duckworth, Stephen Dubner, Psychology, Science",
     faqTopics: "science trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c1/3f/60/c13f6091-ddb4-8bc2-6c93-a3c50d2b4f84/mza_15927290785640063038.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2019,
+
+    knownFor: ["Answering intriguing questions about human behavior and psychology.","Encouraging curiosity and critical thinking through engaging discussions.","Featuring insights from experts in various fields to illuminate complex topics."],
+
+    hostBios: [{"name":"Angela Duckworth","bio":"Angela Duckworth is a psychologist and author known for her research on grit and perseverance."},{"name":"Stephen Dubner","bio":"Stephen Dubner is a journalist and co-author of the bestselling Freakonomics series, exploring economics and human behavior."}],
+
+    relatedSlugs: ["choiceology-with-katy-milkman","hiddenbrain","freakonomics"],
+
     aboutPodcast: "No Stupid Questions is a podcast hosted by Angela Duckworth, Stephen Dubner and covering science topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Stupid Questions or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3832,6 +5008,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "99% Invisible, Roman Mars, Design, Culture",
     faqTopics: "culture trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/79/d0/35/79d035ea-9043-b43e-7380-33cd47bd968b/mza_2606971010425550919.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2014,
+
+    knownFor: ["Exploring the unnoticed design and architecture that shapes our world.","Telling captivating stories about the history and impact of design.","Highlighting the intersection of culture, art, and everyday life."],
+
+    hostBios: [{"name":"Roman Mars","bio":"Roman Mars is a designer and radio producer known for his work on design and architecture through storytelling."}],
+
+    relatedSlugs: ["stuffyoushouldknow","thevergecast","modernwisdom"],
+
     aboutPodcast: "99% Invisible is a podcast hosted by Roman Mars and covering culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of 99% Invisible or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3844,6 +5034,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "In Our Time, Melvyn Bragg, Education, History",
     faqTopics: "history trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/27/9f/7e/279f7e5d-255c-d8f4-338c-9c2fbc8dca44/mza_10639829050540253526.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 800,
+
+    yearStarted: 1998,
+
+    knownFor: ["Offering deep dives into historical events, literature, and science.","Featuring expert guests and lively discussions on a wide range of topics.","Encouraging intellectual curiosity and critical thinking among listeners."],
+
+    hostBios: [{"name":"Melvyn Bragg","bio":"Melvyn Bragg is a British broadcaster and author known for his contributions to literature and history."}],
+
+    relatedSlugs: ["rest-is-history","freakonomics","thisamericanlife"],
+
     aboutPodcast: "In Our Time is a podcast hosted by Melvyn Bragg and covering history topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of In Our Time or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3856,6 +5060,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Intelligence from The Economist, The Economist, News, International",
     faqTopics: "international trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/13/a6/58/13a65875-b7c7-a663-9b40-0bb42f62bf74/mza_18066604315473996895.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 25,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2020,
+
+    knownFor: ["Providing insights into global news and economic trends from a leading publication.","Exploring the implications of current events on international relations and business.","Featuring expert analysis and commentary from Economist journalists."],
+
+    hostBios: [{"name":"The Economist","bio":"The Economist is a renowned international weekly newspaper focusing on current affairs, international business, politics, and technology."}],
+
+    relatedSlugs: ["checks-and-balance","slate-money","thejournal"],
+
     aboutPodcast: "The Intelligence from The Economist is a podcast hosted by The Economist and covering international topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Intelligence from The Economist or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3868,6 +5086,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Checks and Balance, The Economist, News, Politics",
     faqTopics: "politics trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/51/26/da/5126da95-0e64-f6be-0a20-db5b15e5cd89/mza_16782697803437893379.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["Examining the intersection of politics and economics in contemporary society.","Providing insights into policy decisions and their implications for citizens.","Featuring discussions with experts on pressing political issues."],
+
+    hostBios: [{"name":"The Economist","bio":"The Economist is a leading source of analysis on global political and economic developments."}],
+
+    relatedSlugs: ["intelligence-from-the-economist","slate-money","thejournal"],
+
     aboutPodcast: "Checks and Balance is a podcast hosted by The Economist and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Checks and Balance or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3880,6 +5112,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Slate Money, Felix Salmon, Emily Peck, Elizabeth Spiers, Finance, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/fc/cd/d2/fccdd21a-0fd1-31c4-a6c0-c56a10ae8e4c/mza_13233425775499919124.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Discussing the latest trends in finance and economics with expert guests.","Providing insights into personal finance and investment strategies.","Exploring the intersection of politics and business in today's economy."],
+
+    hostBios: [{"name":"Felix Salmon","bio":"Felix Salmon is a financial journalist and commentator known for his insights into economics and finance."},{"name":"Emily Peck","bio":"Emily Peck is a journalist specializing in business and economics, providing analysis on financial trends."},{"name":"Elizabeth Spiers","bio":"Elizabeth Spiers is a media executive and writer known for her expertise in digital media and finance."}],
+
+    relatedSlugs: ["intelligence-from-the-economist","white-coat-investor-podcast","thejournal"],
+
     aboutPodcast: "Slate Money is a podcast hosted by Felix Salmon, Emily Peck, Elizabeth Spiers and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Slate Money or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3892,6 +5138,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The White Coat Investor Podcast, Jim Dahle, Finance, Personal Finance",
     faqTopics: "personal finance trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/f2/a3/85/f2a385d7-0e23-2e4e-4a77-7da1e5b8d2e7/mza_9133457012023908113.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2016,
+
+    knownFor: ["Providing financial advice tailored for medical professionals and high-income earners.","Discussing investment strategies, debt management, and financial literacy.","Featuring expert guests to help listeners navigate personal finance challenges."],
+
+    hostBios: [{"name":"Jim Dahle","bio":"Jim Dahle is a physician and personal finance expert known for his work helping doctors achieve financial independence."}],
+
+    relatedSlugs: ["slate-money","theindicator","moneyfortherestofus"],
+
     aboutPodcast: "The White Coat Investor Podcast is a podcast hosted by Jim Dahle and covering personal finance topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The White Coat Investor Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3904,6 +5164,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Motley Fool Money, The Motley Fool, Finance, Investing",
     faqTopics: "investing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/94/69/2c/94692c7a-34b3-3a66-30ae-7de98e174d54/mza_6497003830756997700.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 500,
+
+    yearStarted: 2012,
+
+    knownFor: ["In-depth analysis of stock market trends and investment strategies.","Expert interviews with financial professionals and industry leaders.","Accessible advice for both novice and experienced investors."],
+
+    hostBios: [{"name":"The Motley Fool","bio":"The Motley Fool is a multimedia financial services company dedicated to helping investors make better decisions. They provide insights and recommendations on stock investments."}],
+
+    relatedSlugs: ["investtalk","moneyfortherestofus","financialaudit"],
+
     aboutPodcast: "Motley Fool Money is a podcast hosted by The Motley Fool and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Motley Fool Money or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3916,6 +5190,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Marketing Book Podcast, Douglas Burdett, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/5c/14/32/5c1432af-3ded-23e7-11a3-e27f8a8b71bc/mza_18326908637855929082.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2015,
+
+    knownFor: ["Interviews with authors of the latest marketing books.","Practical marketing advice and strategies from industry experts.","Insights into emerging marketing trends and technologies."],
+
+    hostBios: [{"name":"Douglas Burdett","bio":"Douglas Burdett is a marketing agency owner and host of the Marketing Book Podcast. He brings a wealth of experience in marketing and business development."}],
+
+    relatedSlugs: ["social-media-marketing-podcast","marketing-against-the-grain","entrepreneursonfire"],
+
     aboutPodcast: "The Marketing Book Podcast is a podcast hosted by Douglas Burdett and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Marketing Book Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3928,6 +5216,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Social Media Marketing Podcast, Michael Stelzner, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/18/24/a41824fc-bfe5-05d8-f67b-1e3f6b3cda36/mza_17684425497754244541.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 400,
+
+    yearStarted: 2013,
+
+    knownFor: ["Expert insights on social media marketing strategies and tools.","Interviews with leading social media marketers and influencers.","Actionable tips for businesses to enhance their online presence."],
+
+    hostBios: [{"name":"Michael Stelzner","bio":"Michael Stelzner is the founder of Social Media Examiner and a recognized expert in social media marketing. He helps businesses navigate the evolving digital landscape."}],
+
+    relatedSlugs: ["marketing-book-podcast","influencer-podcast","online-marketing-made-easy"],
+
     aboutPodcast: "Social Media Marketing Podcast is a podcast hosted by Michael Stelzner and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Social Media Marketing Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3940,6 +5242,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Ed Mylett Show, Ed Mylett, Self-Improvement, Personal Development",
     faqTopics: "personal development trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/55/48/a1/5548a1b4-a2fc-94d5-8650-f92da725a6d7/mza_2360915264023181588.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 250,
+
+    yearStarted: 2018,
+
+    knownFor: ["Inspiring interviews with high achievers across various fields.","Focus on personal development and maximizing potential.","Practical advice on entrepreneurship, leadership, and success."],
+
+    hostBios: [{"name":"Ed Mylett","bio":"Ed Mylett is a renowned entrepreneur, author, and speaker. He specializes in personal development and has built a successful career in business coaching."}],
+
+    relatedSlugs: ["high-performance-podcast","impact-theory","school-of-greatness"],
+
     aboutPodcast: "The Ed Mylett Show is a podcast hosted by Ed Mylett and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Ed Mylett Show or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3952,6 +5268,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The High Performance Podcast, Jake Humphrey, Damian Hughes, Self-Improvement, Performance",
     faqTopics: "performance trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/f7/37/59/f73759a0-5027-a2db-0f55-3f2c05f2ebf7/mza_6776449963662996610.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Interviews with world-class performers in various fields.","Insights into habits and mindsets of successful individuals.","Strategies for achieving high performance in personal and professional life."],
+
+    hostBios: [{"name":"Jake Humphrey","bio":"Jake Humphrey is a television presenter and sports broadcaster. He brings a unique perspective on performance and motivation from his experiences in media."},{"name":"Damian Hughes","bio":"Damian Hughes is a consultant and author specializing in organizational culture and high performance. He helps teams and individuals reach their full potential."}],
+
+    relatedSlugs: ["ed-mylett-show","school-of-greatness","tony-robbins-podcast"],
+
     aboutPodcast: "The High Performance Podcast is a podcast hosted by Jake Humphrey, Damian Hughes and covering performance topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The High Performance Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3964,6 +5294,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "ReThinking with Adam Grant, Adam Grant, Psychology, Behavior",
     faqTopics: "behavior trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/f4/1d/11/f41d1179-3a03-53a6-eb17-fd0f1e4c4b0f/mza_6523547046363684879.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Bi-weekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2020,
+
+    knownFor: ["Exploring the science of work and human behavior.","Interviews with thought leaders and experts in various fields.","Challenging conventional wisdom and encouraging innovative thinking."],
+
+    hostBios: [{"name":"Adam Grant","bio":"Adam Grant is an organizational psychologist and bestselling author. He is known for his research on work and motivation, and he teaches at Wharton."}],
+
+    relatedSlugs: ["psychologypodcast","theindicator","hbrideacast"],
+
     aboutPodcast: "ReThinking with Adam Grant is a podcast hosted by Adam Grant and covering behavior topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of ReThinking with Adam Grant or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3976,6 +5320,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Startup Chat with Steli and Hiten, Steli Efti, Hiten Shah, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/eb/9d/ed/eb9ded3f-1db3-356f-07fc-cfbc29489f7a/mza_1499028990805648934.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 35,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 250,
+
+    yearStarted: 2016,
+
+    knownFor: ["Practical advice for startups and entrepreneurs.","Insights into the challenges of building a business.","Real-world experiences shared by successful founders."],
+
+    hostBios: [{"name":"Steli Efti","bio":"Steli Efti is a startup sales expert and co-founder of Close.io. He specializes in helping startups improve their sales processes and grow effectively."},{"name":"Hiten Shah","bio":"Hiten Shah is a serial entrepreneur and co-founder of multiple successful startups. He shares his expertise on product development and marketing strategies."}],
+
+    relatedSlugs: ["pitch","founders","thisweekinstartups"],
+
     aboutPodcast: "The Startup Chat with Steli and Hiten is a podcast hosted by Steli Efti, Hiten Shah and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Startup Chat with Steli and Hiten or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -3988,6 +5346,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Pitch, Josh Muccio, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/17/dd/1b/17dd1bd1-20c7-b063-d758-c878f3f18c31/mza_1192366204653096984.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2017,
+
+    knownFor: ["Real pitches from entrepreneurs to investors.","Insights into the fundraising process and startup ecosystem.","Expert feedback from venture capitalists and industry leaders."],
+
+    hostBios: [{"name":"Josh Muccio","bio":"Josh Muccio is a podcast host and entrepreneur. He brings a unique perspective to the startup world through his interviews with founders and investors."}],
+
+    relatedSlugs: ["startup-chat-with-steli-and-hiten","founders","thisweekinstartups"],
+
     aboutPodcast: "The Pitch is a podcast hosted by Josh Muccio and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Pitch or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4000,6 +5372,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Land of the Giants, Technology, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/90/ae/21/90ae219f-74cf-11a0-6010-9c13976e9dec/mza_13118920603330095253.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Seasonal",
+
+    totalEpisodes: 50,
+
+    yearStarted: 2019,
+
+    knownFor: ["In-depth exploration of the biggest tech companies and their impact.","Narrative storytelling that combines history and current events.","Insights into the business strategies of tech giants."],
+
+    hostBios: [{"name":"Various","bio":"Land of the Giants features a rotating cast of hosts, each bringing their expertise in technology and business to explore the giants of the industry."}],
+
+    relatedSlugs: ["thisweekinstartups","bigtechnology","marketplace-tech"],
+
     aboutPodcast: "Land of the Giants is a podcast covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Land of the Giants or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4012,6 +5398,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "You Are Not So Smart, David McRaney, Psychology, Science",
     faqTopics: "science trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/d5/a7/e6/d5a7e66d-8b13-3e57-c0de-2e7d87b8d37a/mza_14780117498497095427.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Monthly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2010,
+
+    knownFor: ["Exploring cognitive biases and the psychology of decision-making.","Engaging storytelling that makes complex ideas accessible.","Challenging listeners to think critically about their beliefs."],
+
+    hostBios: [{"name":"David McRaney","bio":"David McRaney is a journalist and author specializing in psychology and cognitive science. He explores how our minds work and why we believe what we do."}],
+
+    relatedSlugs: ["psychologypodcast","hiddenbrain","freakonomics"],
+
     aboutPodcast: "You Are Not So Smart is a podcast hosted by David McRaney and covering science topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of You Are Not So Smart or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4024,6 +5424,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Intelligence Squared U.S. Debates, John Donvan, Education, Debates",
     faqTopics: "debates trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/cc/c2/1f/ccc21f54-acb1-e2e0-4bcf-a8a1e65a5cf8/mza_14513689430621416591.jpg/600x600bb.jpg",
+    avgEpisodeLength: 60,
+
+    frequency: "Monthly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2010,
+
+    knownFor: ["Engaging debates on pressing social and political issues with expert panelists.","Encouraging critical thinking and civil discourse among listeners.","Providing a platform for diverse viewpoints and informed arguments."],
+
+    hostBios: [{"name":"John Donvan","bio":"John Donvan is an award-winning journalist and author, known for his work in debate and public discourse. He has hosted Intelligence Squared U.S. Debates since its inception."}],
+
+    relatedSlugs: ["thejournal","hbrideacast","podsaveamerica"],
+
     aboutPodcast: "Intelligence Squared U.S. Debates is a podcast hosted by John Donvan and covering debates topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Intelligence Squared U.S. Debates or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4036,6 +5450,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Gray Area with Sean Illing, Sean Illing, Society & Culture",
     faqTopics: "society & culture trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/40/2e/94/402e94c0-a3a8-0b9d-36e9-70267ee27670/mza_12513858075647652131.jpeg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 150,
+
+    yearStarted: 2019,
+
+    knownFor: ["Exploring complex societal issues through thoughtful conversations.","Featuring interviews with experts and thought leaders in various fields.","Encouraging listeners to think critically about culture and politics."],
+
+    hostBios: [{"name":"Sean Illing","bio":"Sean Illing is a journalist and podcast host with a focus on culture and politics. He is known for his insightful interviews and engaging discussions."}],
+
+    relatedSlugs: ["theindicator","thisamericanlife","hiddenbrain"],
+
     aboutPodcast: "The Gray Area with Sean Illing is a podcast hosted by Sean Illing and covering society & culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Gray Area with Sean Illing or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4048,6 +5476,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Lexicon Valley, John McWhorter, Education, Language",
     faqTopics: "language trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/4a/d9/3d/4ad93d58-7f36-4087-f3f4-dae84e567da3/mza_12694989445001735709.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Biweekly",
+
+    totalEpisodes: 120,
+
+    yearStarted: 2013,
+
+    knownFor: ["Discussing language and linguistics in an accessible and entertaining way.","Featuring expert guests to explore the evolution of language.","Delving into the cultural significance of words and phrases."],
+
+    hostBios: [{"name":"John McWhorter","bio":"John McWhorter is a linguist, author, and professor known for his expertise in language and culture. He brings a unique perspective to discussions on linguistics."}],
+
+    relatedSlugs: ["howibuiltthis","stuffyoushouldknow","tedtalksdaily"],
+
     aboutPodcast: "Lexicon Valley is a podcast hosted by John McWhorter and covering language topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Lexicon Valley or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4060,6 +5502,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Skeptics' Guide to the Universe, Steven Novella, Science, Education",
     faqTopics: "education trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/5d/02/68/5d026860-cfef-9a89-85a3-06b2cf68c75d/mza_12839281416247474878.jpg/600x600bb.jpg",
+    avgEpisodeLength: 70,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 800,
+
+    yearStarted: 2005,
+
+    knownFor: ["Promoting scientific skepticism and critical thinking.","Debunking pseudoscience and misinformation in an engaging manner.","Featuring expert guests to discuss scientific topics and discoveries."],
+
+    hostBios: [{"name":"Steven Novella","bio":"Steven Novella is a neurologist and science communicator known for his work in skepticism and critical thinking. He is the founder of the Skeptics' Guide to the Universe."}],
+
+    relatedSlugs: ["foundmyfitness","sciencefriday","freakonomics"],
+
     aboutPodcast: "The Skeptics' Guide to the Universe is a podcast hosted by Steven Novella and covering education topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Skeptics' Guide to the Universe or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4072,6 +5528,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The Infinite Monkey Cage, Brian Cox, Robin Ince, Science, Comedy",
     faqTopics: "comedy trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/80/5d/47/805d47f4-1a65-b55a-42c9-ebc4c3f95a43/mza_9524992656665375905.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 200,
+
+    yearStarted: 2014,
+
+    knownFor: ["Combining science and comedy to make complex topics entertaining.","Featuring discussions with leading scientists and comedians.","Encouraging curiosity and a love for science among listeners."],
+
+    hostBios: [{"name":"Brian Cox","bio":"Brian Cox is a physicist and science communicator known for his engaging presentations on science. He is a professor and a popular television presenter."},{"name":"Robin Ince","bio":"Robin Ince is a comedian and writer known for his work in science communication. He brings humor and wit to discussions about science and culture."}],
+
+    relatedSlugs: ["foundmyfitness","sciencevs","skeptics-guide-to-the-universe"],
+
     aboutPodcast: "The Infinite Monkey Cage is a podcast hosted by Brian Cox, Robin Ince and covering comedy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Infinite Monkey Cage or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4084,6 +5554,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "The McKinsey Podcast, McKinsey & Company, Business, Strategy",
     faqTopics: "strategy trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/43/d6/66/43d66611-8914-367e-4ee4-029dd76a27fe/mza_12033376682740379663.jpg/600x600bb.jpg",
+    avgEpisodeLength: 45,
+
+    frequency: "Biweekly",
+
+    totalEpisodes: 100,
+
+    yearStarted: 2017,
+
+    knownFor: ["Providing insights on business strategy and management from industry leaders.","Discussing trends and challenges in various sectors.","Offering practical advice for business professionals and leaders."],
+
+    hostBios: [{"name":"McKinsey & Company","bio":"McKinsey & Company is a global management consulting firm known for its expertise in business strategy and operations. The podcast features insights from their consultants and industry experts."}],
+
+    relatedSlugs: ["howibuiltthis","businessbreakdowns","mastersinbusiness"],
+
     aboutPodcast: "The McKinsey Podcast is a podcast hosted by McKinsey & Company and covering strategy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The McKinsey Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4096,6 +5580,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "No Bullshit Leadership, Martin G. Moore, Business, Leadership",
     faqTopics: "leadership trends, expert interviews, industry analysis, and actionable insights",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/c6/02/20/c60220e0-2a1d-0c64-7bc5-42ca06b22ed8/mza_18041447849757755455.jpg/600x600bb.jpg",
+    avgEpisodeLength: 40,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 80,
+
+    yearStarted: 2019,
+
+    knownFor: ["Offering straightforward advice on leadership and management.","Challenging conventional wisdom in the business world.","Providing actionable insights for aspiring and current leaders."],
+
+    hostBios: [{"name":"Martin G. Moore","bio":"Martin G. Moore is a leadership consultant and author known for his no-nonsense approach to management. He shares practical strategies for effective leadership."}],
+
+    relatedSlugs: ["entreleadership","hbrideacast","jockopodcast"],
+
     aboutPodcast: "No Bullshit Leadership is a podcast hosted by Martin G. Moore and covering leadership topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Bullshit Leadership or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4108,6 +5606,20 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Goal Digger, Jenna Kutcher, entrepreneurship, online marketing, social media, business",
     faqTopics: "online business strategies, social media marketing, entrepreneurship tips, and building a purpose-driven brand",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a2/97/8a/a2978a90-58da-1e60-0474-c4c5e0a0e9d2/mza_4436280378498498498.jpg/600x600bb.jpg",
+    avgEpisodeLength: 50,
+
+    frequency: "Weekly",
+
+    totalEpisodes: 300,
+
+    yearStarted: 2017,
+
+    knownFor: ["Empowering entrepreneurs and creatives to achieve their goals.","Featuring interviews with successful women in business.","Providing actionable tips for personal and professional growth."],
+
+    hostBios: [{"name":"Jenna Kutcher","bio":"Jenna Kutcher is a photographer, entrepreneur, and educator known for her expertise in online marketing and business strategy. She inspires listeners to pursue their passions."}],
+
+    relatedSlugs: ["online-marketing-made-easy","amyporterfield","sidehustleshow"],
+
     aboutPodcast: "The Goal Digger Podcast is hosted by Jenna Kutcher and covers entrepreneurship, online marketing, and building a life and business you love. Each episode delivers actionable strategies for growing an online business, mastering social media, and creating a purpose-driven brand. Whether you're a longtime listener of The Goal Digger Podcast or discovering Jenna Kutcher for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   },
   {
@@ -4120,6 +5632,13 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     keywords: "Daily Beans, Allison Gill, Dana Goldberg, politics, news, legal, daily briefing",
     faqTopics: "US political news, legal developments, government accountability, and daily news analysis",
     artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/e0/2c/b3/e02cb3f8-a06e-4e8a-d9cc-3d4e65b5d6a9/mza_11982673421849372652.jpg/600x600bb.jpg",
+    avgEpisodeLength: 30,
+    frequency: "Daily on weekdays",
+    totalEpisodes: 1200,
+    yearStarted: 2019,
+    knownFor: ["Woman-led daily political news coverage with sharp legal analysis","Accessible breakdown of complex political and legal developments","Community-driven progressive news with humor and accountability reporting","Quick daily updates on government oversight and breaking political stories"],
+    hostBios: [{"name":"Allison Gill","bio":"Allison Gill is a veteran, musician, and political commentator who previously hosted the Mueller, She Wrote podcast. She brings a unique perspective combining military service with sharp political analysis."},{"name":"Dana Goldberg","bio":"Dana Goldberg is a stand-up comedian and political commentator known for her sharp wit. She co-hosts The Daily Beans, bringing humor and accessibility to daily political news coverage."}],
+    relatedSlugs: ["podsaveamerica","breaking-points","democracy-now"],
     aboutPodcast: "The Daily Beans is a podcast hosted by Allison Gill and Dana Goldberg covering daily US political news and legal developments. Each episode delivers sharp analysis of government accountability and breaking political stories. Whether you're a longtime listener of The Daily Beans or discovering it for the first time, PodCap delivers a concise summary of every new episode — so you never miss the key takeaways, even on your busiest days.",
   }
 ];

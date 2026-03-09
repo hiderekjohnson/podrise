@@ -1,0 +1,51 @@
+About PodCap
+
+Podcasts have quietly become one of the largest knowledge platforms in the world.
+
+Every week, thousands of conversations happen between founders, investors, scientists, economists, authors, and operators. Some of the best ideas on the internet are now being shared in long-form podcast conversations instead of written articles.
+
+There’s just one problem.
+
+Almost all of that knowledge is locked inside audio.
+
+If you want to learn what was said in an episode, you usually have to listen to the entire conversation. Two hours here. Three hours there. Multiply that by dozens of shows and hundreds of episodes.
+
+Even the most dedicated listeners can’t keep up.
+
+PodCap was built to solve this.
+
+We recap podcast episodes and extract the key ideas so you can quickly understand what was discussed, what mattered, and what’s worth listening to.
+
+Instead of spending hours catching up on podcasts, you can skim the most important insights in minutes.
+
+But the bigger vision goes far beyond recaps.
+
+Our long-term goal is to build the most complete library of podcast knowledge ever created.
+
+Every podcast episode summarized.
+Every conversation searchable.
+Every insight easier to discover.
+
+Today, podcasts are one of the most valuable sources of ideas on the internet, but they remain largely invisible to search engines and difficult to navigate for listeners.
+
+We believe that will change.
+
+Just as Wikipedia organized the world’s written knowledge, PodCap is building the infrastructure to organize the world’s podcast conversations.
+
+Over time, PodCap will become the place where you can:
+
+• understand any podcast episode in minutes
+• search across millions of podcast conversations
+• discover the most important ideas shared across the entire podcast ecosystem
+
+In other words, the fastest way to learn from the world’s podcasts.
+
+The podcast industry continues to grow rapidly, with millions of shows and billions of hours of audio produced every year. But the tools for navigating that content have barely evolved.
+
+We think the next generation of podcast platforms won’t just distribute audio.
+
+They’ll make the knowledge inside podcasts accessible.
+
+That’s what PodCap is building.
+
+We listen so you don’t have to.
