@@ -5,11 +5,11 @@ import logoPath from "@assets/Podcap_logo_1772731738179.png";
 export function Footer() {
   return (
     <footer className="w-full border-t border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/40 backdrop-blur-sm mt-auto" data-testid="footer">
-      <div className="max-w-6xl mx-auto px-6 pt-12 pb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 mb-10">
+      <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 mb-12">
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-4 tracking-wide uppercase">Discover</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
+            <ul className="space-y-3">
               <li>
                 <Link href="/podcasts" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-podcasts">
                   Top Podcasts
@@ -25,20 +25,20 @@ export function Footer() {
                   Notable Companies
                 </Link>
               </li>
+              <li>
+                <Link href="/get-started" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-get-started">
+                  Build Your Recap
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-4 tracking-wide uppercase">Company</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Company</h3>
+            <ul className="space-y-3">
               <li>
                 <Link href="/about" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-about">
                   About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-contact">
-                  Contact
                 </Link>
               </li>
               <li>
@@ -60,13 +60,24 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-4 tracking-wide uppercase">Support</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Support</h3>
+            <ul className="space-y-3">
               <li>
                 <Link href="/support" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-support">
                   Help & Support
                 </Link>
               </li>
+              <li>
+                <Link href="/contact" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-contact">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Legal</h3>
+            <ul className="space-y-3">
               <li>
                 <Link href="/privacy" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-privacy">
                   Privacy Policy
@@ -98,10 +109,9 @@ export function Footer() {
           </div>
 
           <img src={logoPath} alt="PodCap" className="h-7 object-contain mb-2" />
-          <p className="text-xs text-muted-foreground/50 mb-2">
+          <p className="text-xs text-muted-foreground/50">
             &copy; {new Date().getFullYear()} PodCap, Inc. All rights reserved.
           </p>
-
         </div>
       </div>
     </footer>
