@@ -542,31 +542,33 @@ export default function EpisodeRecapPage() {
                   <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">Key people discussed in this episode of {episode.podcastName}{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notablePeople.map((person, i) => (
-                      <div key={person.slug} className="rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all p-3" data-testid={`notable-person-${i}`}>
+                      <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
                         <Link href={`/people/${person.slug}`}>
-                          <div className="group flex items-center gap-3 cursor-pointer">
+                          <div className="flex items-center gap-3 px-3.5 pt-3.5 pb-2 cursor-pointer">
                             <img
                               src={person.imageUrl}
                               alt={person.name}
-                              className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
+                              className="w-11 h-11 rounded-full object-cover flex-shrink-0 bg-muted ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
                               loading="lazy"
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{person.name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{person.title}</p>
+                              <p className="text-sm font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
+                              <p className="text-xs text-muted-foreground/80 truncate">{person.title}</p>
                             </div>
                           </div>
                         </Link>
-                        {entityContexts[person.slug] && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{entityContexts[person.slug]}</p>
-                        )}
-                        <button
-                          onClick={() => askAiAbout(person.name, "person")}
-                          className="mt-2 text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
-                          data-testid={`ask-ai-person-${i}`}
-                        >
-                          <Sparkles className="w-3 h-3" /> Ask AI for context
-                        </button>
+                        <div className="px-3.5 pb-3">
+                          {entityContexts[person.slug] && (
+                            <p className="text-[13px] leading-relaxed text-muted-foreground mb-2">{entityContexts[person.slug]}</p>
+                          )}
+                          <button
+                            onClick={() => askAiAbout(person.name, "person")}
+                            className="text-xs font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
+                            data-testid={`ask-ai-person-${i}`}
+                          >
+                            <Sparkles className="w-3 h-3" /> Expand with AI
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -579,31 +581,33 @@ export default function EpisodeRecapPage() {
                   <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">Key companies and organizations discussed in this episode of {episode.podcastName}.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notableCompanies.map((company, i) => (
-                      <div key={company.slug} className="rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all p-3" data-testid={`notable-company-${i}`}>
+                      <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
                         <Link href={`/companies/${company.slug}`}>
-                          <div className="group flex items-center gap-3 cursor-pointer">
+                          <div className="flex items-center gap-3 px-3.5 pt-3.5 pb-2 cursor-pointer">
                             <img
                               src={company.logoUrl}
                               alt={company.name}
-                              className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-1"
+                              className="w-11 h-11 rounded-lg object-contain flex-shrink-0 bg-muted p-1.5 ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
                               loading="lazy"
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{company.name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{company.details.industry}</p>
+                              <p className="text-sm font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{company.name}</p>
+                              <p className="text-xs text-muted-foreground/80 truncate">{company.details.industry}</p>
                             </div>
                           </div>
                         </Link>
-                        {entityContexts[company.slug] && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{entityContexts[company.slug]}</p>
-                        )}
-                        <button
-                          onClick={() => askAiAbout(company.name, "company")}
-                          className="mt-2 text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
-                          data-testid={`ask-ai-company-${i}`}
-                        >
-                          <Sparkles className="w-3 h-3" /> Ask AI for context
-                        </button>
+                        <div className="px-3.5 pb-3">
+                          {entityContexts[company.slug] && (
+                            <p className="text-[13px] leading-relaxed text-muted-foreground mb-2">{entityContexts[company.slug]}</p>
+                          )}
+                          <button
+                            onClick={() => askAiAbout(company.name, "company")}
+                            className="text-xs font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
+                            data-testid={`ask-ai-company-${i}`}
+                          >
+                            <Sparkles className="w-3 h-3" /> Expand with AI
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
