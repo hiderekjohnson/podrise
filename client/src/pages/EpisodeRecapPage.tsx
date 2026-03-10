@@ -272,14 +272,27 @@ export default function EpisodeRecapPage() {
   const whatHappenedParagraphs = episode.whatHappened.split("\n\n").filter(Boolean);
   const matchedTopics = (() => {
     const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""} ${(episode.keyTopics || []).join(" ")}`.toLowerCase();
-    return TOPICS.filter(t => {
+    const titleText = (episode.episodeTitle || "").toLowerCase();
+    const keyTopicText = ((episode.keyTopics || []).join(" ")).toLowerCase();
+    const scored = TOPICS.map(t => {
+      let score = 0;
       const allKeywords = [...t.podcastKeywords];
-      return allKeywords.some(kw => {
+      for (const kw of allKeywords) {
         const kwLower = kw.toLowerCase();
-        const regex = new RegExp(`\\b${kwLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
-        return regex.test(searchText);
-      });
-    });
+        const regex = new RegExp(`\\b${kwLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+        const bodyMatches = (searchText.match(regex) || []).length;
+        if (bodyMatches === 0) continue;
+        score += bodyMatches;
+        if (regex.test(titleText)) score += 10;
+        if (regex.test(keyTopicText)) score += 5;
+      }
+      return { topic: t, score };
+    })
+      .filter(s => s.score >= 3)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map(s => s.topic);
+    return scored;
   })();
   let topQuestions: TopQuestion[] = [];
   try {
