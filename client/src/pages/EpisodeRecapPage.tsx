@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -113,14 +113,15 @@ export default function EpisodeRecapPage() {
     enabled: !!podcastSlug,
   });
 
-  const notablePeople = (() => {
+  const notablePeople = useMemo(() => {
     if (!episode) return [];
     const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     const guestNames = guests.map(g => g.name?.toLowerCase().trim()).filter(Boolean);
-    const hostNames = new Set((podcastHosts || []).map((h: any) => h.name?.toLowerCase().trim()).filter(Boolean));
+    const hostNameSet = new Set((podcastHosts || []).map((h: any) => h.name?.toLowerCase().trim()).filter(Boolean));
     return PEOPLE_DIRECTORY.filter(p => {
       const nameLower = p.name.toLowerCase();
-      if (hostNames.has(nameLower)) return false;
+      if (hostNameSet.has(nameLower)) return false;
+      if (p.searchTerms.some(term => hostNameSet.has(term.toLowerCase()))) return false;
       return guestNames.some(gn => gn === nameLower) ||
         p.searchTerms.some(term => {
           const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -128,7 +129,7 @@ export default function EpisodeRecapPage() {
           return regex.test(searchText);
         });
     }).slice(0, 6);
-  })();
+  }, [episode, guests, podcastHosts]);
 
   const AMBIGUOUS_TERMS = new Set([
     "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
