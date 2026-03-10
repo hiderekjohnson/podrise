@@ -2459,6 +2459,26 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     res.json({ transcript: transcript.transcript, episodeTitle: transcript.episodeTitle, podcastId: transcript.podcastId });
   });
 
+  app.post("/api/admin/resolve-people-images", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { runImagePipeline } = await import("./fetchPeopleImages");
+      const { PEOPLE_DIRECTORY: PEOPLE_DIR_ENTRIES } = await import("../client/src/data/entityDirectoryData");
+      const peopleWithLinks = ENTITY_PEOPLE.map(p => ({
+        slug: p.slug,
+        name: p.name,
+        socialLinks: PEOPLE_DIR_ENTRIES.find((x: any) => x.slug === p.slug)?.socialLinks,
+      }));
+      const onlyMissing = req.body?.onlyMissing !== false;
+      const result = await runImagePipeline(peopleWithLinks, onlyMissing);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to run image pipeline" });
+    }
+  });
+
   app.get("/api/admin/pending-emails", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
