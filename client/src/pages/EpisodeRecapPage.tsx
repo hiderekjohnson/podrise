@@ -566,7 +566,7 @@ export default function EpisodeRecapPage() {
                             className="text-xs font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
                             data-testid={`ask-ai-person-${i}`}
                           >
-                            <Sparkles className="w-3 h-3" /> Ask AI
+                            <Sparkles className="w-3 h-3" /> Ask AI for context
                           </button>
                         </div>
                       </div>
@@ -605,7 +605,7 @@ export default function EpisodeRecapPage() {
                             className="text-xs font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
                             data-testid={`ask-ai-company-${i}`}
                           >
-                            <Sparkles className="w-3 h-3" /> Ask AI
+                            <Sparkles className="w-3 h-3" /> Ask AI for context
                           </button>
                         </div>
                       </div>
