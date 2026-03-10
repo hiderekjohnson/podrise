@@ -51,7 +51,7 @@ export default function EpisodeRecapPage() {
     linkedin?: string;
     instagram?: string;
     website?: string;
-    topicsDiscussed?: string[];
+    photoUrl?: string;
   }
 
   interface Sponsor {
@@ -458,6 +458,18 @@ export default function EpisodeRecapPage() {
                 {guests.map((guest, i) => (
                   <div key={i} className="border border-black/[0.04] dark:border-white/[0.06] rounded-xl p-5" data-testid={`guest-card-${i}`}>
                     <div className="flex items-start gap-4">
+                      {guest.photoUrl ? (
+                        <img
+                          src={guest.photoUrl}
+                          alt={guest.name}
+                          className="w-14 h-14 rounded-full object-cover flex-shrink-0 border border-black/[0.06] dark:border-white/[0.08]"
+                          data-testid={`guest-photo-${i}`}
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0" data-testid={`guest-photo-${i}`}>
+                          <span className="text-lg font-bold text-primary">{guest.name.charAt(0)}</span>
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <h4 className="text-[15px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
                           {guest.name}
@@ -490,15 +502,6 @@ export default function EpisodeRecapPage() {
                                 <Globe className="w-4 h-4" />
                               </a>
                             )}
-                          </div>
-                        )}
-                        {guest.topicsDiscussed && guest.topicsDiscussed.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-1.5">
-                            {guest.topicsDiscussed.map((topic, j) => (
-                              <span key={j} className="px-2.5 py-1 bg-primary/[0.06] text-primary text-xs font-medium rounded-md" data-testid={`guest-topic-${i}-${j}`}>
-                                {topic}
-                              </span>
-                            ))}
                           </div>
                         )}
                       </div>
