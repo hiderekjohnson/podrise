@@ -162,6 +162,7 @@ export default function EpisodeRecapPage() {
     }).slice(0, 12);
   }, [episode]);
 
+  const entityContexts: Record<string, string> = (episode as any)?.entityContexts || {};
   const hasNotableMentions = notablePeople.length > 0 || notableCompanies.length > 0;
   const hasHosts = (podcastHosts && podcastHosts.length > 0) || false;
 
@@ -255,6 +256,16 @@ export default function EpisodeRecapPage() {
     if (!askInput.trim() || askMutation.isPending) return;
     setAskAnswer(null);
     askMutation.mutate(askInput.trim());
+  };
+
+  const askAiAbout = (entityName: string, entityType: "person" | "company") => {
+    const question = entityType === "person"
+      ? `In what context was ${entityName} mentioned in this episode?`
+      : `In what context was ${entityName} discussed in this episode?`;
+    setAskInput(question);
+    setAskAnswer(null);
+    askMutation.mutate(question);
+    askSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   if (episodeLoading) {
@@ -531,20 +542,32 @@ export default function EpisodeRecapPage() {
                   <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">Key people discussed in this episode of {episode.podcastName}{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notablePeople.map((person, i) => (
-                      <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
-                        <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
-                          <img
-                            src={person.imageUrl}
-                            alt={person.name}
-                            className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
-                            loading="lazy"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{person.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{person.title}</p>
+                      <div key={person.slug} className="rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all p-3" data-testid={`notable-person-${i}`}>
+                        <Link href={`/people/${person.slug}`}>
+                          <div className="group flex items-center gap-3 cursor-pointer">
+                            <img
+                              src={person.imageUrl}
+                              alt={person.name}
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
+                              loading="lazy"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{person.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{person.title}</p>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
+                        </Link>
+                        {entityContexts[person.slug] && (
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 italic">"{entityContexts[person.slug]}"</p>
+                        )}
+                        <button
+                          onClick={() => askAiAbout(person.name, "person")}
+                          className="mt-2 text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
+                          data-testid={`ask-ai-person-${i}`}
+                        >
+                          <Sparkles className="w-3 h-3" /> Ask AI for context
+                        </button>
+                      </div>
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-people-footnote">Only the most notable mentions are included.</p>
@@ -556,20 +579,32 @@ export default function EpisodeRecapPage() {
                   <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">Key companies and organizations discussed in this episode of {episode.podcastName}.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notableCompanies.map((company, i) => (
-                      <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>
-                        <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
-                          <img
-                            src={company.logoUrl}
-                            alt={company.name}
-                            className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-1"
-                            loading="lazy"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{company.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{company.details.industry}</p>
+                      <div key={company.slug} className="rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all p-3" data-testid={`notable-company-${i}`}>
+                        <Link href={`/companies/${company.slug}`}>
+                          <div className="group flex items-center gap-3 cursor-pointer">
+                            <img
+                              src={company.logoUrl}
+                              alt={company.name}
+                              className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-1"
+                              loading="lazy"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{company.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{company.details.industry}</p>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
+                        </Link>
+                        {entityContexts[company.slug] && (
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 italic">"{entityContexts[company.slug]}"</p>
+                        )}
+                        <button
+                          onClick={() => askAiAbout(company.name, "company")}
+                          className="mt-2 text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
+                          data-testid={`ask-ai-company-${i}`}
+                        >
+                          <Sparkles className="w-3 h-3" /> Ask AI for context
+                        </button>
+                      </div>
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-companies-footnote">Only the most notable mentions are included.</p>

@@ -1721,6 +1721,21 @@ export async function registerRoutes(
         return total;
       }
 
+      function extractMentionContext(text: string, terms: string[]): string {
+        for (const term of terms) {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const idx = text.search(new RegExp(`\\b${escaped}\\b`, 'i'));
+          if (idx === -1) continue;
+          const sentenceStart = Math.max(0, text.lastIndexOf('.', idx) + 1);
+          const nextPeriod = text.indexOf('.', idx + term.length);
+          const sentenceEnd = nextPeriod !== -1 ? nextPeriod + 1 : Math.min(text.length, idx + 200);
+          let snippet = text.slice(sentenceStart, sentenceEnd).trim();
+          if (snippet.length > 180) snippet = snippet.slice(0, 177) + "...";
+          return snippet;
+        }
+        return "";
+      }
+
       const matchedPeopleSlugs = ENTITY_PEOPLE.filter(p => {
         const nameLower = p.name.toLowerCase();
         if (hostNameSet.has(nameLower)) return false;
@@ -1728,6 +1743,14 @@ export async function registerRoutes(
         if (p.hostedSlugs.includes(req.params.slug)) return false;
         return countMentions(mainContent, p.searchTerms) >= 2;
       }).map(p => p.slug);
+
+      const entityContexts: Record<string, string> = {};
+      for (const slug of matchedPeopleSlugs) {
+        const person = ENTITY_PEOPLE.find(p => p.slug === slug);
+        if (person) {
+          entityContexts[slug] = extractMentionContext(mainContent, person.searchTerms);
+        }
+      }
 
       const RECAP_AMBIGUOUS_TERMS = new Set([
         "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
@@ -1742,7 +1765,15 @@ export async function registerRoutes(
         return countMentions(mainContent, allTerms, RECAP_AMBIGUOUS_TERMS) >= 2;
       }).map(c => c.slug);
 
-      res.json({ ...recap, matchedPeopleSlugs, matchedCompanySlugs });
+      for (const slug of matchedCompanySlugs) {
+        const company = ENTITY_COMPANIES.find(c => c.slug === slug);
+        if (company) {
+          const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
+          entityContexts[slug] = extractMentionContext(mainContent, allTerms);
+        }
+      }
+
+      res.json({ ...recap, matchedPeopleSlugs, matchedCompanySlugs, entityContexts });
     } catch {
       res.status(500).json({ error: "Failed to fetch recap" });
     }
