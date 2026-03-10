@@ -183,7 +183,7 @@ async function buildSitemap(): Promise<string> {
     xml += `  </url>\n`;
   }
 
-  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex", "box", "cloudflare", "duolingo", "palantir", "airbnb", "spotify", "coinbase", "crowdstrike", "expedia", "circle", "hubspot", "draftkings", "netflix", "salesforce", "citadel-securities", "sp-global", "axon-enterprise", "snowflake", "starbucks", "adobe", "shopify", "chatgpt", "claude", "gemini", "bitcoin", "ethereum", "disney", "cursor", "substack", "slack", "waymo", "zoom", "walmart", "softbank", "elevenlabs", "amd", "broadcom", "product-hunt", "zapier", "cisco", "discord", "nike", "costco", "boeing", "toast-inc", "wework", "qualcomm", "groq", "webflow", "runway-ml"];
+  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex", "box", "cloudflare", "duolingo", "palantir", "airbnb", "spotify", "coinbase", "crowdstrike", "expedia", "circle", "hubspot", "draftkings", "netflix", "salesforce", "citadel-securities", "sp-global", "axon-enterprise", "snowflake", "starbucks", "adobe", "shopify", "bitcoin", "ethereum", "disney", "cursor", "substack", "slack", "waymo", "zoom", "walmart", "softbank", "elevenlabs", "amd", "broadcom", "product-hunt", "zapier", "cisco", "discord", "nike", "costco", "boeing", "toast-inc", "wework", "qualcomm", "groq", "webflow", "runway-ml"];
   for (const cSlug of COMPANY_SLUGS) {
     xml += `  <url>\n`;
     xml += `    <loc>${DOMAIN}/companies/${cSlug}</loc>\n`;
@@ -1009,15 +1009,15 @@ export async function registerRoutes(
   ];
 
   const ENTITY_COMPANIES = [
-    { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "GPT-4"] },
+    { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "GPT-4"], associatedTerms: ["ChatGPT", "GPT-4o", "DALL-E", "Sora"] },
     { slug: "tesla", name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
     { slug: "nvidia", name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
-    { slug: "google", name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
-    { slug: "microsoft", name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"] },
-    { slug: "apple", name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"] },
-    { slug: "amazon", name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon", "AWS"] },
-    { slug: "anthropic", name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"] },
-    { slug: "meta", name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"] },
+    { slug: "google", name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"], associatedTerms: ["Gemini", "Google Search", "Android", "Chrome"] },
+    { slug: "microsoft", name: "Microsoft", description: "Technology company behind Windows, Azure, and Copilot", searchTerms: ["Microsoft"], associatedTerms: ["Copilot", "Azure", "Windows", "Office 365", "LinkedIn"] },
+    { slug: "apple", name: "Apple", description: "Consumer electronics and software company", searchTerms: ["Apple Inc", "Apple's"], associatedTerms: ["iPhone", "iPad", "Apple Vision Pro", "Apple TV+"] },
+    { slug: "amazon", name: "Amazon", description: "E-commerce and cloud computing giant", searchTerms: ["Amazon"], associatedTerms: ["AWS", "Alexa", "Prime Video", "Kindle"] },
+    { slug: "anthropic", name: "Anthropic", description: "AI safety company behind Claude", searchTerms: ["Anthropic"], associatedTerms: ["Claude"] },
+    { slug: "meta", name: "Meta", description: "Social media and metaverse company", searchTerms: ["Meta Platforms", "Facebook"], associatedTerms: ["Instagram", "WhatsApp", "Threads", "LLaMA"] },
     { slug: "spacex", name: "SpaceX", description: "Aerospace manufacturer and space transportation company", searchTerms: ["SpaceX", "Starship", "Starlink"] },
     { slug: "box", name: "Box", description: "Cloud content management and file sharing platform", searchTerms: ["Box Inc", "Box.com"] },
     { slug: "cloudflare", name: "Cloudflare", description: "Web infrastructure and security company", searchTerms: ["Cloudflare"] },
@@ -1122,9 +1122,6 @@ export async function registerRoutes(
     { slug: "bain", name: "Bain & Company", description: "Global management consulting firm", searchTerms: ["Bain & Company", "Bain"] },
     { slug: "opensea", name: "OpenSea", description: "Largest NFT marketplace", searchTerms: ["OpenSea"] },
     { slug: "chainalysis", name: "Chainalysis", description: "Blockchain analytics and compliance platform", searchTerms: ["Chainalysis"] },
-    { slug: "chatgpt", name: "ChatGPT", description: "OpenAI's conversational AI assistant", searchTerms: ["ChatGPT"] },
-    { slug: "claude", name: "Claude", description: "Anthropic's AI assistant", searchTerms: ["Claude"] },
-    { slug: "gemini", name: "Gemini", description: "Google's multimodal AI model and assistant", searchTerms: ["Gemini"] },
     { slug: "bitcoin", name: "Bitcoin", description: "First and largest decentralized cryptocurrency", searchTerms: ["Bitcoin", "BTC"] },
     { slug: "ethereum", name: "Ethereum", description: "Decentralized blockchain platform for smart contracts", searchTerms: ["Ethereum", "ETH"] },
     { slug: "disney", name: "Disney", description: "Global entertainment and media conglomerate", searchTerms: ["Disney"] },
@@ -1498,7 +1495,8 @@ export async function registerRoutes(
         let mentionCount = 0;
         for (const row of allRecaps) {
           const texts = [row.what_happened, row.tldl, row.key_insights_text].filter(Boolean);
-          const matched = company.searchTerms.some(term =>
+          const allTerms = [...company.searchTerms, ...((company as any).associatedTerms || [])];
+          const matched = allTerms.some(term =>
             texts.some(t => termMatchesInText(t, term))
           );
           if (matched) mentionCount++;
@@ -1536,7 +1534,8 @@ export async function registerRoutes(
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
       try {
-        const parts = company.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+        const allTerms = [...company.searchTerms, ...((company as any).associatedTerms || [])];
+        const parts = allTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
         const conditions = parts.map(p => `(${p.sql})`).join(" OR ");
         const params = parts.map(p => p.param);
         const { rows: mentionEpisodes } = await client.query(
@@ -1551,7 +1550,7 @@ export async function registerRoutes(
           episode_title: e.episode_title,
           publish_date: e.publish_date,
           artwork_url: e.artwork_url,
-          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), company.searchTerms),
+          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), allTerms),
         }));
 
         res.json({

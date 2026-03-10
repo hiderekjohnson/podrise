@@ -141,7 +141,8 @@ export default function EpisodeRecapPage() {
     if (!episode) return [];
     const originalText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     return COMPANIES_DIRECTORY.filter(c => {
-      return c.searchTerms.some(term => {
+      const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
+      return allTerms.some(term => {
         const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         if (AMBIGUOUS_TERMS.has(term)) {
           const regex = new RegExp(`\\b${escaped}\\b`);

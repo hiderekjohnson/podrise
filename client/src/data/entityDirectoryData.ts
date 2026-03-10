@@ -25,6 +25,7 @@ export interface CompanyEntry {
   background: string;
   logoUrl: string;
   searchTerms: string[];
+  associatedTerms?: string[];
   details: {
     headquarters: string;
     founded: string;
@@ -4881,6 +4882,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     background: "OpenAI was founded in 2015 as a non-profit AI research lab by Sam Altman, Elon Musk, and others. It transitioned to a capped-profit model and launched ChatGPT in November 2022, igniting the generative AI revolution. OpenAI develops the GPT series of large language models, DALL-E for image generation, and the Sora video model. It is one of the most discussed companies in technology today.",
     logoUrl: "/logos/openai.png",
     searchTerms: ["OpenAI", "GPT-4", "GPT4"],
+    associatedTerms: ["ChatGPT", "GPT-4o", "DALL-E", "Sora"],
     details: {
       headquarters: "San Francisco, CA",
       founded: "2015",
@@ -4937,7 +4939,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     description: "Technology company and search engine giant",
     background: "Google LLC, a subsidiary of Alphabet Inc., is the world's leading search engine and a major player in advertising, cloud computing, and artificial intelligence. Google developed the Transformer architecture that underpins modern AI, and its AI lab DeepMind created AlphaGo and Gemini. Google's products — Search, YouTube, Android, Chrome, Gmail — are used by billions worldwide.",
     logoUrl: "/logos/google.png",
-    searchTerms: ["Google", "Alphabet", "DeepMind", "Gemini AI"],
+    searchTerms: ["Google", "Alphabet", "DeepMind"],
+    associatedTerms: ["Gemini", "Google Search", "Android", "Chrome"],
     details: {
       headquarters: "Mountain View, CA",
       founded: "1998",
@@ -4955,7 +4958,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     description: "Technology company behind Windows, Azure, and Copilot",
     background: "Microsoft Corporation is a global technology leader known for Windows, Office, Azure cloud, and LinkedIn. Microsoft has invested heavily in OpenAI and integrated AI across its product suite with Copilot. Under CEO Satya Nadella, Microsoft has transformed into a cloud-first, AI-first company and briefly became the world's most valuable company.",
     logoUrl: "/logos/microsoft.png",
-    searchTerms: ["Microsoft", "Azure"],
+    searchTerms: ["Microsoft"],
+    associatedTerms: ["Copilot", "Azure", "Windows", "Office 365", "LinkedIn"],
     details: {
       headquarters: "Redmond, WA",
       founded: "1975",
@@ -4975,6 +4979,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     background: "Apple Inc. designs and sells consumer electronics, software, and services. Known for the iPhone, Mac, iPad, Apple Watch, and its services ecosystem (App Store, Apple Music, iCloud, Apple TV+). Apple is one of the world's most valuable companies and its product launches, design philosophy, and ecosystem strategy are perennial podcast topics.",
     logoUrl: "/logos/apple.png",
     searchTerms: ["Apple Inc", "Apple's"],
+    associatedTerms: ["iPhone", "iPad", "Apple Vision Pro", "Apple TV+"],
     details: {
       headquarters: "Cupertino, CA",
       founded: "1976",
@@ -4993,7 +4998,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     description: "E-commerce and cloud computing giant",
     background: "Amazon.com, Inc. is the world's largest e-commerce company and a leader in cloud computing through Amazon Web Services (AWS). Founded by Jeff Bezos in 1994, Amazon has expanded into streaming (Prime Video), AI (Alexa, Bedrock), logistics, and grocery (Whole Foods). AWS powers a significant portion of the internet's infrastructure.",
     logoUrl: "/logos/amazon.png",
-    searchTerms: ["Amazon", "AWS"],
+    searchTerms: ["Amazon"],
+    associatedTerms: ["AWS", "Alexa", "Prime Video", "Kindle"],
     details: {
       headquarters: "Seattle, WA",
       founded: "1994",
@@ -5013,6 +5019,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     background: "Anthropic is an AI safety startup founded in 2021 by Dario and Daniela Amodei, former OpenAI executives. The company builds Claude, a family of large language models focused on being helpful, harmless, and honest. Anthropic has raised billions from investors including Google and Amazon, and is considered one of the leading AI companies alongside OpenAI.",
     logoUrl: "/logos/anthropic.png",
     searchTerms: ["Anthropic"],
+    associatedTerms: ["Claude"],
     details: {
       headquarters: "San Francisco, CA",
       founded: "2021",
@@ -5030,7 +5037,8 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     description: "Social media and metaverse company (formerly Facebook)",
     background: "Meta Platforms, Inc. (formerly Facebook) is the parent company of Facebook, Instagram, WhatsApp, and Threads. Founded by Mark Zuckerberg in 2004, Meta rebranded in 2021 to reflect its focus on building the metaverse. The company is also a major player in AI, with its LLaMA open-source models and AI research lab (FAIR) being widely discussed in tech podcasts.",
     logoUrl: "/logos/meta.png",
-    searchTerms: ["Meta Platforms", "Facebook", "Zuckerberg"],
+    searchTerms: ["Meta Platforms", "Facebook"],
+    associatedTerms: ["Instagram", "WhatsApp", "Threads", "LLaMA"],
     details: {
       headquarters: "Menlo Park, CA",
       founded: "2004",
@@ -6977,63 +6985,6 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     },
     relatedPeople: [],
     similarCompanies: ["coinbase", "circle"],
-  },
-  {
-    slug: "chatgpt",
-    name: "ChatGPT",
-    description: "OpenAI's conversational AI assistant used by hundreds of millions worldwide.",
-    background: "ChatGPT launched in November 2022 and became the fastest-growing consumer application in history, reaching 100 million users in two months. Built on OpenAI's GPT large language models, ChatGPT can answer questions, write code, create content, analyze data, and more. It introduced the concept of AI assistants to mainstream users and sparked a global AI arms race among tech giants.",
-    logoUrl: "/logos/openai.png",
-    searchTerms: ["ChatGPT"],
-    details: {
-      headquarters: "San Francisco, CA",
-      founded: "2022",
-      employees: "Part of OpenAI",
-      marketCap: "Part of OpenAI ($300B+ valuation)",
-      ceo: "Sam Altman (OpenAI)",
-      industry: "Artificial Intelligence",
-      website: "https://chat.openai.com",
-    },
-    relatedPeople: ["sam-altman"],
-    similarCompanies: ["openai", "anthropic", "google", "claude"],
-  },
-  {
-    slug: "claude",
-    name: "Claude",
-    description: "Anthropic's AI assistant designed for safety, helpfulness, and honesty.",
-    background: "Claude is Anthropic's flagship AI assistant, first released in 2023. Named after Claude Shannon, the father of information theory, Claude is built using Anthropic's Constitutional AI approach, which aims to create AI systems that are helpful, harmless, and honest. Claude competes directly with ChatGPT and Gemini and is widely used by developers, enterprises, and individuals for coding, analysis, writing, and reasoning tasks.",
-    logoUrl: "/logos/anthropic.png",
-    searchTerms: ["Claude"],
-    details: {
-      headquarters: "San Francisco, CA",
-      founded: "2023",
-      employees: "Part of Anthropic",
-      marketCap: "Part of Anthropic ($60B+ valuation)",
-      ceo: "Dario Amodei (Anthropic)",
-      industry: "Artificial Intelligence",
-      website: "https://claude.ai",
-    },
-    relatedPeople: ["dario-amodei"],
-    similarCompanies: ["anthropic", "openai", "chatgpt", "gemini"],
-  },
-  {
-    slug: "gemini",
-    name: "Gemini",
-    description: "Google's multimodal AI model and conversational assistant.",
-    background: "Gemini is Google's family of multimodal AI models, launched in December 2023 as the successor to Bard. Gemini can process and generate text, images, audio, and code. Available in Ultra, Pro, and Nano sizes, Gemini powers Google's AI assistant and is integrated across Google products including Search, Workspace, and Android. It represents Google's answer to OpenAI's GPT-4 and Anthropic's Claude.",
-    logoUrl: "/logos/google.png",
-    searchTerms: ["Gemini"],
-    details: {
-      headquarters: "Mountain View, CA",
-      founded: "2023",
-      employees: "Part of Google",
-      marketCap: "Part of Alphabet ($2T+)",
-      ceo: "Sundar Pichai (Google)",
-      industry: "Artificial Intelligence",
-      website: "https://gemini.google.com",
-    },
-    relatedPeople: ["sundar-pichai"],
-    similarCompanies: ["google", "openai", "anthropic", "chatgpt"],
   },
   {
     slug: "bitcoin",

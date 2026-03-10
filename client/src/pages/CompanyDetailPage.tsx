@@ -200,6 +200,19 @@ export default function CompanyDetailPage() {
                   </div>
                 )}
 
+                {companyData?.associatedTerms && companyData.associatedTerms.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-border" data-testid="section-associated-terms">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
+                    <div className="flex flex-wrap gap-2">
+                      {companyData.associatedTerms.map((term) => (
+                        <span key={term} className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full" data-testid={`badge-term-${term.toLowerCase().replace(/\s+/g, '-')}`}>
+                          {term}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {companyData?.relatedPeople && companyData.relatedPeople.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-border" data-testid="section-related-people">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related People</p>
