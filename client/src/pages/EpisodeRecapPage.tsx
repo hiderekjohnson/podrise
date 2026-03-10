@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -712,7 +712,7 @@ export default function EpisodeRecapPage() {
               </div>
               <div className="px-6 py-5">
                 <p className="text-sm text-muted-foreground mb-5" data-testid="questions-intro">These are some of the most important questions explored in this episode of the {episode.podcastName} podcast{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
-                <div className="space-y-6">
+                <div className="space-y-0 divide-y divide-border">
                 {topQuestions.slice(0, 6).map((item, i) => {
                   const anchorSlug = item.question
                     .toLowerCase()
@@ -722,12 +722,17 @@ export default function EpisodeRecapPage() {
                     .replace(/^-|-$/g, '')
                     .slice(0, 60);
                   return (
-                    <div key={i} id={anchorSlug} className="scroll-mt-24" data-testid={`question-item-${i}`}>
-                      <h3 className="text-[16px] font-bold text-foreground leading-snug mb-2" data-testid={`question-heading-${i}`}>{item.question}</h3>
-                      {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
-                        <p key={j} className="text-[15px] leading-[1.85] text-muted-foreground mb-2 last:mb-0">{p}</p>
-                      ))}
-                    </div>
+                    <details key={i} id={anchorSlug} className="group scroll-mt-24" data-testid={`question-item-${i}`}>
+                      <summary className="flex items-center justify-between gap-3 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden" data-testid={`question-heading-${i}`}>
+                        <h3 className="text-[16px] font-bold text-foreground leading-snug">{item.question}</h3>
+                        <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform group-open:rotate-180" />
+                      </summary>
+                      <div className="pb-4 pt-1">
+                        {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
+                          <p key={j} className="text-[15px] leading-[1.85] text-muted-foreground mb-2 last:mb-0">{p}</p>
+                        ))}
+                      </div>
+                    </details>
                   );
                 })}
                 </div>
