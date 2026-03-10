@@ -2032,13 +2032,29 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Please provide a valid question (3-500 characters)" });
       }
 
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+
+      let transcriptText = "";
       const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
-      if (!segments || segments.length === 0) {
+      if (segments && segments.length > 0) {
+        transcriptText = segments.map(s => s.text).join(" ");
+      }
+      if (!transcriptText && recap) {
+        const client = await pool.connect();
+        try {
+          const { rows } = await client.query(
+            `SELECT et.transcript FROM episode_transcripts et
+             JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+             WHERE pd.slug = $1 AND et.episode_title = $2
+             LIMIT 1`,
+            [slug, recap.episodeTitle]
+          );
+          if (rows.length > 0) transcriptText = rows[0].transcript || "";
+        } finally { client.release(); }
+      }
+      if (!transcriptText) {
         return res.status(404).json({ error: "Transcript not available for this episode" });
       }
-
-      const transcriptText = segments.map(s => s.text).join(" ").slice(0, 12000);
-      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
 
       const { openai } = await import("./replit_integrations/image/client");
       const completion = await openai.chat.completions.create({
@@ -2050,7 +2066,7 @@ export async function registerRoutes(
           },
           {
             role: "user",
-            content: `Podcast: ${recap?.podcastName || slug}\nEpisode: "${recap?.episodeTitle || episodeSlug}"\n\nTranscript excerpt:\n${transcriptText}\n\nQuestion: ${question.trim()}`
+            content: `Podcast: ${recap?.podcastName || slug}\nEpisode: "${recap?.episodeTitle || episodeSlug}"\n\nFull Transcript:\n${transcriptText}\n\nQuestion: ${question.trim()}`
           }
         ],
         max_tokens: 1500,
