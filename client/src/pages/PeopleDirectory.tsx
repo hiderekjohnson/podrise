@@ -32,6 +32,9 @@ const CATEGORIES = [
   "Science & Health",
 ];
 
+const PAGE_SIZE = 24;
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
 function SEOHead() {
   const title = "Notable People in Podcasts — Who's Being Discussed | PodCap";
   const description = "Explore the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned most, and discover searchable transcripts, podcast recaps, and podcast summaries featuring them.";
@@ -63,6 +66,8 @@ export default function PeopleDirectory() {
   const [genderFilter, setGenderFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [sortBy, setSortBy] = useState<"mentions" | "guests">("guests");
+  const [letterFilter, setLetterFilter] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const { data: people, isLoading } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
@@ -72,6 +77,7 @@ export default function PeopleDirectory() {
 
   const filteredPeople = useMemo(() => {
     if (!people) return [];
+    setVisibleCount(PAGE_SIZE);
 
     let result = [...people];
 
@@ -80,6 +86,10 @@ export default function PeopleDirectory() {
       result = result.filter(p =>
         p.name.toLowerCase().includes(q) || p.title.toLowerCase().includes(q)
       );
+    }
+
+    if (letterFilter) {
+      result = result.filter(p => p.name.charAt(0).toUpperCase() === letterFilter);
     }
 
     if (genderFilter !== "all") {
@@ -96,7 +106,10 @@ export default function PeopleDirectory() {
     });
 
     return result;
-  }, [people, searchQuery, genderFilter, categoryFilter, sortBy]);
+  }, [people, searchQuery, genderFilter, categoryFilter, sortBy, letterFilter]);
+
+  const visiblePeople = filteredPeople.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredPeople.length;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -155,10 +168,30 @@ export default function PeopleDirectory() {
               type="text"
               placeholder="Search people..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setLetterFilter(null); }}
               className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
               data-testid="input-search-people"
             />
+          </div>
+
+          <div className="flex flex-wrap gap-1 mb-4" data-testid="alphabet-filter">
+            <button
+              onClick={() => setLetterFilter(null)}
+              className={`px-2 py-1 rounded text-xs font-semibold transition-all ${!letterFilter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+              data-testid="letter-all"
+            >
+              All
+            </button>
+            {ALPHABET.map(letter => (
+              <button
+                key={letter}
+                onClick={() => { setLetterFilter(letter === letterFilter ? null : letter); setSearchQuery(""); }}
+                className={`px-2 py-1 rounded text-xs font-semibold transition-all ${letterFilter === letter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                data-testid={`letter-${letter}`}
+              >
+                {letter}
+              </button>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2.5 items-center">
@@ -234,7 +267,7 @@ export default function PeopleDirectory() {
           <div className="w-full max-w-3xl text-center py-16">
             <p className="text-muted-foreground text-lg" data-testid="text-no-results">No people found matching your filters.</p>
             <button
-              onClick={() => { setSearchQuery(""); setGenderFilter("all"); setCategoryFilter("All Categories"); }}
+              onClick={() => { setSearchQuery(""); setGenderFilter("all"); setCategoryFilter("All Categories"); setLetterFilter(null); }}
               className="mt-3 text-primary text-sm font-medium hover:text-primary/80 transition-colors"
               data-testid="button-clear-filters"
             >
@@ -242,15 +275,15 @@ export default function PeopleDirectory() {
             </button>
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.2 }} className="w-full max-w-3xl space-y-3">
-            {filteredPeople.map((person, index) => {
+          <div className="w-full max-w-3xl space-y-3">
+            {visiblePeople.map((person, index) => {
               const personData = getPersonData(person.slug);
               return (
                 <motion.div
                   key={person.slug}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: Math.min(index * 0.02, 0.5) }}
+                  transition={{ duration: 0.2, delay: Math.min(index * 0.015, 0.3) }}
                 >
                   <div
                     className="bg-card border border-border rounded-xl p-5 sm:p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
@@ -263,6 +296,7 @@ export default function PeopleDirectory() {
                           src={personData?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=56&background=1a8cff&color=fff&bold=true`}
                           alt={person.name}
                           className="w-14 h-14 rounded-full object-cover border-2 border-border group-hover:border-primary/30 transition-colors"
+                          loading="lazy"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=56&background=1a8cff&color=fff&bold=true`;
                           }}
@@ -301,7 +335,22 @@ export default function PeopleDirectory() {
                 </motion.div>
               );
             })}
-          </motion.div>
+
+            {hasMore && (
+              <div className="flex flex-col items-center gap-2 pt-4 pb-2">
+                <p className="text-sm text-muted-foreground">
+                  Showing {visibleCount} of {filteredPeople.length} people
+                </p>
+                <button
+                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                  className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
+                  data-testid="button-show-more"
+                >
+                  Show More
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </main>
 
