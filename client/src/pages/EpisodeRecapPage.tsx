@@ -13,6 +13,28 @@ interface TopQuestion {
   answer: string;
 }
 
+function GuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: string; testId: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (photoUrl && !failed) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        className="w-14 h-14 rounded-full object-cover flex-shrink-0 border border-black/[0.06] dark:border-white/[0.08]"
+        data-testid={testId}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="w-14 h-14 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0" data-testid={testId}>
+      <span className="text-lg font-bold text-primary">{name.charAt(0)}</span>
+    </div>
+  );
+}
+
 export default function EpisodeRecapPage() {
   const params = useParams<{ podcastSlug: string; episodeSlug: string }>();
   const podcastSlug = params.podcastSlug || "";
@@ -357,18 +379,7 @@ export default function EpisodeRecapPage() {
                 {guests.map((guest, i) => (
                   <div key={i} className="border border-black/[0.04] dark:border-white/[0.06] rounded-xl p-5" data-testid={`guest-card-${i}`}>
                     <div className="flex items-start gap-4">
-                      {guest.photoUrl ? (
-                        <img
-                          src={guest.photoUrl}
-                          alt={guest.name}
-                          className="w-14 h-14 rounded-full object-cover flex-shrink-0 border border-black/[0.06] dark:border-white/[0.08]"
-                          data-testid={`guest-photo-${i}`}
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0" data-testid={`guest-photo-${i}`}>
-                          <span className="text-lg font-bold text-primary">{guest.name.charAt(0)}</span>
-                        </div>
-                      )}
+                      <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
                       <div className="flex-1 min-w-0">
                         <h4 className="text-[15px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
                           {guest.name}
