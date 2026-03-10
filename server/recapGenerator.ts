@@ -457,15 +457,14 @@ export async function generateRecapFromTranscript(
   podcastName: string,
   episodeTitle: string,
 ): Promise<ParsedEpisode | null> {
-  const truncated = transcript.slice(0, 25000);
   const prompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
 
 All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content.
 
 Podcast: ${podcastName}
 Episode: "${episodeTitle}"
-Transcript (excerpt):
-${truncated}
+Transcript:
+${transcript}
 
 Respond ONLY with a valid JSON object (no markdown, no code fences):
 
