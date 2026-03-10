@@ -681,9 +681,11 @@ export default function EpisodeRecapPage() {
             <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
               <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
                 <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-                <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Questions answered in this episode</span>
+                <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Key Questions Discussed in This {episode.podcastName} Podcast Episode</span>
               </div>
-              <div className="px-6 py-5 space-y-0 divide-y divide-border">
+              <div className="px-6 py-5">
+                <p className="text-sm text-muted-foreground mb-4" data-testid="questions-intro">These are some of the most important questions explored in this episode of the {episode.podcastName} podcast{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
+                <div className="space-y-0 divide-y divide-border">
                 {topQuestions.map((item, i) => (
                   <details key={i} className="group" data-testid={`question-item-${i}`}>
                     <summary className="flex items-center justify-between gap-3 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden" data-testid={`question-heading-${i}`}>
@@ -697,6 +699,7 @@ export default function EpisodeRecapPage() {
                     </div>
                   </details>
                 ))}
+                </div>
               </div>
             </section>
             <script
