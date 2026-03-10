@@ -539,7 +539,7 @@ export default function EpisodeRecapPage() {
               {notablePeople.length > 0 && (
                 <div data-testid="section-notable-people">
                   <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">People Mentioned in This {episode.podcastName} Podcast Episode</h3>
-                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">The following people were discussed or referenced during this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}. PodCap highlights the most notable and relevant individuals mentioned in the conversation, focusing on people who were meaningfully discussed rather than brief or passing references.</p>
+                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">The following people were discussed during this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}. PodCap highlights the most notable individuals mentioned in the conversation.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notablePeople.map((person, i) => (
                       <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
@@ -564,7 +564,7 @@ export default function EpisodeRecapPage() {
               {notableCompanies.length > 0 && (
                 <div data-testid="section-notable-companies">
                   <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">Companies Mentioned in This {episode.podcastName} Podcast Episode</h3>
-                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">The following companies and organizations were discussed or referenced during this episode of the {episode.podcastName} podcast. PodCap highlights the most notable and relevant companies mentioned in the conversation, focusing on businesses that were meaningfully discussed rather than brief or passing references.</p>
+                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">The following companies and organizations were discussed during this episode of the {episode.podcastName} podcast. PodCap highlights the most notable companies referenced in the conversation.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notableCompanies.map((company, i) => (
                       <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>
