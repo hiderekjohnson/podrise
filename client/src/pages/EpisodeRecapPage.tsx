@@ -115,6 +115,11 @@ export default function EpisodeRecapPage() {
 
   const notablePeople = useMemo(() => {
     if (!episode) return [];
+    const serverSlugs: string[] = (episode as any).matchedPeopleSlugs || [];
+    if (serverSlugs.length > 0) {
+      const slugSet = new Set(serverSlugs);
+      return PEOPLE_DIRECTORY.filter(p => slugSet.has(p.slug)).slice(0, 12);
+    }
     const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     const guestNames = guests.map(g => g.name?.toLowerCase().trim()).filter(Boolean);
     const hostNameSet = new Set((podcastHosts || []).map((h: any) => h.name?.toLowerCase().trim()).filter(Boolean));
@@ -128,32 +133,34 @@ export default function EpisodeRecapPage() {
           const regex = new RegExp(`\\b${escaped}\\b`, 'i');
           return regex.test(searchText);
         });
-    }).slice(0, 6);
+    }).slice(0, 12);
   }, [episode, guests, podcastHosts]);
 
-  const AMBIGUOUS_TERMS = new Set([
-    "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
-    "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
-    "The Information", "The Economist",
-    "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
-  ]);
-
-  const notableCompanies = (() => {
+  const notableCompanies = useMemo(() => {
     if (!episode) return [];
+    const serverSlugs: string[] = (episode as any).matchedCompanySlugs || [];
+    if (serverSlugs.length > 0) {
+      const slugSet = new Set(serverSlugs);
+      return COMPANIES_DIRECTORY.filter(c => slugSet.has(c.slug)).slice(0, 12);
+    }
+    const AMBIGUOUS_TERMS = new Set([
+      "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
+      "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
+      "The Information", "The Economist",
+      "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
+    ]);
     const originalText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     return COMPANIES_DIRECTORY.filter(c => {
       const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
       return allTerms.some(term => {
         const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         if (AMBIGUOUS_TERMS.has(term)) {
-          const regex = new RegExp(`\\b${escaped}\\b`);
-          return regex.test(originalText);
+          return new RegExp(`\\b${escaped}\\b`).test(originalText);
         }
-        const regex = new RegExp(`\\b${escaped}\\b`, 'i');
-        return regex.test(originalText);
+        return new RegExp(`\\b${escaped}\\b`, 'i').test(originalText);
       });
-    }).slice(0, 6);
-  })();
+    }).slice(0, 12);
+  }, [episode]);
 
   const hasNotableMentions = notablePeople.length > 0 || notableCompanies.length > 0;
   const hasHosts = (podcastHosts && podcastHosts.length > 0) || false;

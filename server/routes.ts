@@ -173,7 +173,7 @@ async function buildSitemap(): Promise<string> {
     console.error("[Sitemap] Error fetching recaps:", err);
   }
 
-  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang", "alex-hormozi", "gary-vaynerchuk", "codie-sanchez", "sahil-bloom", "andrew-huberman", "seth-godin", "chris-do", "scott-galloway", "simon-sinek", "adam-grant", "ramit-sethi", "ryan-holiday", "tim-ferriss", "mark-cuban", "patrick-bet-david", "james-clear", "jenna-kutcher", "amy-porterfield", "john-lee-dumas", "sam-parr", "shaan-puri", "justin-welsh", "hala-taha", "noah-kagan", "aaron-levie", "matthew-prince", "luis-von-ahn", "alex-karp", "brian-chesky", "daniel-ek", "brian-armstrong", "george-kurtz", "ariane-gorin", "jeremy-allaire", "dharmesh-shah", "jason-robins", "mark-zuckerberg", "satya-nadella", "tim-cook", "jeff-bezos", "reed-hastings", "marc-benioff", "ken-griffin", "martina-cheung", "patrick-smith", "sridhar-ramaswamy", "brian-niccol"];
+  const PEOPLE_SLUGS = ["elon-musk", "sam-altman", "joe-rogan", "lex-fridman", "naval-ravikant", "peter-thiel", "chamath-palihapitiya", "jason-calacanis", "marc-andreessen", "jensen-huang", "alex-hormozi", "gary-vaynerchuk", "codie-sanchez", "sahil-bloom", "andrew-huberman", "seth-godin", "chris-do", "scott-galloway", "simon-sinek", "adam-grant", "ramit-sethi", "ryan-holiday", "tim-ferriss", "mark-cuban", "patrick-bet-david", "james-clear", "jenna-kutcher", "amy-porterfield", "john-lee-dumas", "sam-parr", "shaan-puri", "justin-welsh", "hala-taha", "noah-kagan", "aaron-levie", "matthew-prince", "luis-von-ahn", "alex-karp", "brian-chesky", "daniel-ek", "brian-armstrong", "george-kurtz", "ariane-gorin", "jeremy-allaire", "dharmesh-shah", "jason-robins", "mark-zuckerberg", "satya-nadella", "tim-cook", "jeff-bezos", "reed-hastings", "marc-benioff", "ken-griffin", "martina-cheung", "patrick-smith", "sridhar-ramaswamy", "brian-niccol", "travis-kalanick", "dara-khosrowshahi", "rich-barton", "danny-meyer", "bill-campbell", "angela-duckworth", "david-epstein", "jonathan-haidt", "robert-greene", "jim-cramer", "henry-blodget"];
   for (const pSlug of PEOPLE_SLUGS) {
     xml += `  <url>\n`;
     xml += `    <loc>${DOMAIN}/people/${pSlug}</loc>\n`;
@@ -1004,7 +1004,18 @@ export async function registerRoutes(
     { slug: "nikki-haley", name: "Nikki Haley", title: "Former U.S. Ambassador to the United Nations", gender: "female", category: "Politics & Public Figures", searchTerms: ["Nikki Haley", "Haley"], hostedSlugs: [] },
     { slug: "nir-eyal", name: "Nir Eyal", title: "Author of \'Hooked\' & Behavioral Design Expert", gender: "male", category: "Author & Thought Leader", searchTerms: ["Nir Eyal"], hostedSlugs: [] },
     { slug: "kristi-noem", name: "Kristi Noem", title: "Secretary of Homeland Security", gender: "female", category: "Politics & Public Figures", searchTerms: ["Kristi Noem", "Noem"], hostedSlugs: [] },
-    { slug: "ken-burns", name: "Ken Burns", title: "Documentary Filmmaker", gender: "male", category: "Entertainment", searchTerms: ["Ken Burns"], hostedSlugs: [] }
+    { slug: "ken-burns", name: "Ken Burns", title: "Documentary Filmmaker", gender: "male", category: "Entertainment", searchTerms: ["Ken Burns"], hostedSlugs: [] },
+    { slug: "travis-kalanick", name: "Travis Kalanick", title: "Co-founder of Uber", gender: "male", category: "Tech & AI", searchTerms: ["Travis Kalanick", "Kalanick"], hostedSlugs: [] },
+    { slug: "dara-khosrowshahi", name: "Dara Khosrowshahi", title: "CEO of Uber", gender: "male", category: "Tech & AI", searchTerms: ["Dara Khosrowshahi", "Khosrowshahi"], hostedSlugs: [] },
+    { slug: "rich-barton", name: "Rich Barton", title: "Co-founder of Expedia & Zillow", gender: "male", category: "Tech & AI", searchTerms: ["Rich Barton"], hostedSlugs: [] },
+    { slug: "danny-meyer", name: "Danny Meyer", title: "Restaurateur & Founder of Shake Shack", gender: "male", category: "Business & Finance", searchTerms: ["Danny Meyer"], hostedSlugs: [] },
+    { slug: "bill-campbell", name: "Bill Campbell", title: "Executive Coach to Silicon Valley Leaders", gender: "male", category: "Tech & AI", searchTerms: ["Bill Campbell"], hostedSlugs: [] },
+    { slug: "angela-duckworth", name: "Angela Duckworth", title: "Author of 'Grit' & Psychologist", gender: "female", category: "Author & Thought Leader", searchTerms: ["Angela Duckworth", "Duckworth"], hostedSlugs: [] },
+    { slug: "david-epstein", name: "David Epstein", title: "Author of 'Range'", gender: "male", category: "Author & Thought Leader", searchTerms: ["David Epstein"], hostedSlugs: [] },
+    { slug: "jonathan-haidt", name: "Jonathan Haidt", title: "Social Psychologist & Author", gender: "male", category: "Author & Thought Leader", searchTerms: ["Jonathan Haidt", "Haidt"], hostedSlugs: [] },
+    { slug: "robert-greene", name: "Robert Greene", title: "Author of 'The 48 Laws of Power'", gender: "male", category: "Author & Thought Leader", searchTerms: ["Robert Greene"], hostedSlugs: [] },
+    { slug: "jim-cramer", name: "Jim Cramer", title: "CNBC Host & Financial Analyst", gender: "male", category: "Business & Finance", searchTerms: ["Jim Cramer", "Cramer"], hostedSlugs: [] },
+    { slug: "henry-blodget", name: "Henry Blodget", title: "Co-founder of Business Insider", gender: "male", category: "Business & Finance", searchTerms: ["Henry Blodget", "Blodget", "Henry Blodgett", "Blodgett"], hostedSlugs: [] }
   ];
 
   const ENTITY_COMPANIES = [
@@ -1672,7 +1683,56 @@ export async function registerRoutes(
     try {
       const recap = await storage.getLandingPageRecapBySlug(req.params.slug, req.params.episodeSlug);
       if (!recap) return res.status(404).json({ error: "Recap not found" });
-      res.json(recap);
+
+      const client = await pool.connect();
+      let transcriptText = "";
+      try {
+        const { rows } = await client.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND et.episode_title = $2
+           LIMIT 1`,
+          [req.params.slug, recap.episodeTitle]
+        );
+        if (rows.length > 0) transcriptText = rows[0].transcript || "";
+      } finally { client.release(); }
+
+      const searchText = `${recap.whatHappened || ""} ${recap.tldl || ""} ${recap.episodeTitle || ""} ${transcriptText}`;
+
+      const podcastHosts = await storage.getHostsByPodcastSlug(req.params.slug);
+      const hostNameSet = new Set(podcastHosts.map(h => h.name.toLowerCase().trim()));
+
+      const matchedPeopleSlugs = ENTITY_PEOPLE.filter(p => {
+        const nameLower = p.name.toLowerCase();
+        if (hostNameSet.has(nameLower)) return false;
+        if (p.searchTerms.some(term => hostNameSet.has(term.toLowerCase()))) return false;
+        if (p.hostedSlugs.includes(req.params.slug)) return false;
+        return p.searchTerms.some(term => {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+          return regex.test(searchText);
+        });
+      }).map(p => p.slug);
+
+      const RECAP_AMBIGUOUS_TERMS = new Set([
+        "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
+        "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
+        "The Information", "The Economist",
+        "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
+      ]);
+
+      const matchedCompanySlugs = ENTITY_COMPANIES.filter(c => {
+        const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
+        return allTerms.some(term => {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          if (RECAP_AMBIGUOUS_TERMS.has(term)) {
+            return new RegExp(`\\b${escaped}\\b`).test(searchText);
+          }
+          return new RegExp(`\\b${escaped}\\b`, 'i').test(searchText);
+        });
+      }).map(c => c.slug);
+
+      res.json({ ...recap, matchedPeopleSlugs, matchedCompanySlugs });
     } catch {
       res.status(500).json({ error: "Failed to fetch recap" });
     }
