@@ -46,7 +46,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Elon Musk is a business magnate and investor known for leading Tesla, SpaceX, and xAI. He acquired Twitter (now X) in 2022. Previously co-founded PayPal and Neuralink. He is one of the wealthiest people in the world and a frequent topic in business, technology, and political podcasts.",
-    imageUrl: "https://unavatar.io/x/elonmusk",
+    imageUrl: "/people/elon-musk.png",
     searchTerms: ["Elon Musk"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -63,7 +63,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Sam Altman is the CEO of OpenAI, the company behind ChatGPT and GPT-4. He previously served as president of Y Combinator. Altman is a central figure in the AI revolution and is frequently discussed across technology and business podcasts for his role in shaping the future of artificial intelligence.",
-    imageUrl: "https://unavatar.io/x/sama",
+    imageUrl: "/people/sam-altman.png",
     searchTerms: ["Sam Altman"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -81,7 +81,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Entertainment",
     bio: "Joe Rogan is a comedian, UFC commentator, and host of The Joe Rogan Experience, one of the most popular podcasts in the world with an exclusive Spotify deal. His wide-ranging interviews span science, politics, comedy, and culture, making him a frequent reference point across the podcast ecosystem.",
-    imageUrl: "https://unavatar.io/x/joerogan",
+    imageUrl: "/people/joe-rogan.png",
     searchTerms: ["Joe Rogan"],
     hostedPodcastSlugs: ["joerogan"],
     socialLinks: {
@@ -99,7 +99,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Lex Fridman is an AI researcher at MIT and host of the Lex Fridman Podcast, known for long-form, deep conversations with scientists, entrepreneurs, and world leaders. His interviews cover AI, physics, philosophy, and the human condition, earning him a massive global following.",
-    imageUrl: "https://unavatar.io/x/lexfridman",
+    imageUrl: "/people/lex-fridman.png",
     searchTerms: ["Lex Fridman"],
     hostedPodcastSlugs: ["lexfridman"],
     socialLinks: {
@@ -116,7 +116,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Venture Capital",
     bio: "Naval Ravikant is an entrepreneur, angel investor, and philosopher best known for co-founding AngelList. He is widely admired for his tweets and essays on wealth creation, happiness, and personal freedom. His ideas are frequently cited across business and self-improvement podcasts.",
-    imageUrl: "https://unavatar.io/x/naval",
+    imageUrl: "/people/naval-ravikant.png",
     searchTerms: ["Naval Ravikant", "Naval"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -132,7 +132,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Venture Capital",
     bio: "Peter Thiel is a billionaire entrepreneur and venture capitalist who co-founded PayPal and Palantir Technologies. He was the first outside investor in Facebook. Known for his contrarian thinking, his book 'Zero to One' is widely referenced in startup and business discussions.",
-    imageUrl: "https://unavatar.io/x/peterthiel",
+    imageUrl: "/people/peter-thiel.png",
     searchTerms: ["Peter Thiel", "Thiel"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -149,7 +149,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Venture Capital",
     bio: "Chamath Palihapitiya is a venture capitalist, engineer, and co-host of the All-In Podcast. He is the founder and CEO of Social Capital and was an early senior executive at Facebook. He is known for his outspoken views on markets, tech, and politics.",
-    imageUrl: "https://unavatar.io/x/chamath",
+    imageUrl: "/people/chamath-palihapitiya.png",
     searchTerms: ["Chamath Palihapitiya", "Chamath"],
     hostedPodcastSlugs: ["allin"],
     socialLinks: {
@@ -166,7 +166,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Venture Capital",
     bio: "Jason Calacanis is a serial entrepreneur, angel investor, and host of This Week in Startups and co-host of the All-In Podcast. He was an early investor in Uber, Robinhood, and Calm. Known for his energetic takes on startups, venture capital, and technology trends.",
-    imageUrl: "https://unavatar.io/x/jason",
+    imageUrl: "/people/jason-calacanis.png",
     searchTerms: ["Jason Calacanis", "Calacanis"],
     hostedPodcastSlugs: ["allin", "thisweekinstartups"],
     socialLinks: {
@@ -183,7 +183,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Venture Capital",
     bio: "Marc Andreessen is a software engineer, entrepreneur, and venture capitalist. He co-created Mosaic, the first widely used web browser, and co-founded Netscape. He now leads Andreessen Horowitz (a16z), one of Silicon Valley's most influential VC firms. His 'software is eating the world' thesis is a defining narrative of the tech industry.",
-    imageUrl: "https://unavatar.io/x/pmarca",
+    imageUrl: "/people/marc-andreessen.png",
     searchTerms: ["Marc Andreessen", "Andreessen"],
     hostedPodcastSlugs: ["a16z"],
     socialLinks: {
@@ -199,7 +199,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Jensen Huang is the co-founder and CEO of NVIDIA, which has become one of the most valuable companies in the world due to the AI boom. Under his leadership, NVIDIA's GPUs became the backbone of AI training and inference. He is widely discussed in technology, finance, and AI podcasts.",
-    imageUrl: "https://unavatar.io/x/jensenhuang",
+    imageUrl: "/people/jensen-huang.png",
     searchTerms: ["Jensen Huang"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -216,7 +216,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Alex Hormozi is an entrepreneur, investor, and author of '$100M Offers' and '$100M Leads.' He built and scaled multiple businesses before founding Acquisition.com, a portfolio of companies doing over $200M in annual revenue. Known for his no-nonsense approach to sales, strategy, and business growth.",
-    imageUrl: "https://unavatar.io/x/AlexHormozi",
+    imageUrl: "/people/alex-hormozi.png",
     searchTerms: ["Alex Hormozi", "Hormozi"],
     hostedPodcastSlugs: ["alexhormozi"],
     socialLinks: {
@@ -234,7 +234,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Gary Vaynerchuk (GaryVee) is a serial entrepreneur, CEO of VaynerMedia, and one of the most influential voices in social media marketing. He built his family wine business from $3M to $60M through e-commerce, then founded VaynerMedia. He's a prolific content creator, investor, and motivational speaker.",
-    imageUrl: "https://unavatar.io/x/garyvee",
+    imageUrl: "/people/gary-vaynerchuk.png",
     searchTerms: ["Gary Vaynerchuk", "GaryVee", "Gary Vee"],
     hostedPodcastSlugs: ["garyvee"],
     socialLinks: {
@@ -252,7 +252,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "female",
     category: "Business & Entrepreneurship",
     bio: "Codie Sanchez is an entrepreneur, investor, and founder of Contrarian Thinking, a media company focused on buying 'boring businesses.' She previously worked at First Trust, Goldman Sachs, and Vanguard. She advocates for acquiring small businesses as a path to wealth and financial freedom.",
-    imageUrl: "https://unavatar.io/x/Codiesanchez",
+    imageUrl: "/people/codie-sanchez.png",
     searchTerms: ["Codie Sanchez"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -270,7 +270,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Sahil Bloom is a writer, investor, and entrepreneur known for his popular newsletter and social media presence breaking down complex topics in business, finance, and self-improvement. He is a partner at SRB Ventures and previously worked in private equity at a multi-billion dollar fund.",
-    imageUrl: "https://unavatar.io/x/SahilBloom",
+    imageUrl: "/people/sahil-bloom.png",
     searchTerms: ["Sahil Bloom"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -287,7 +287,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Science & Health",
     bio: "Dr. Andrew Huberman is a neuroscientist and tenured professor at Stanford University School of Medicine. He hosts the Huberman Lab podcast, one of the most popular science podcasts globally, where he discusses neuroscience-based tools for everyday life, health optimization, and peak performance.",
-    imageUrl: "https://unavatar.io/x/hubermanlab",
+    imageUrl: "/people/andrew-huberman.png",
     searchTerms: ["Andrew Huberman", "Huberman"],
     hostedPodcastSlugs: ["hubermanlab"],
     socialLinks: {
@@ -304,7 +304,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Author & Thought Leader",
     bio: "Seth Godin is an author, entrepreneur, and marketing visionary who has written 21 bestselling books including 'Purple Cow,' 'Linchpin,' and 'This Is Marketing.' He was inducted into the Marketing Hall of Fame and is known for his influential blog and ideas about permission marketing, tribes, and the connection economy.",
-    imageUrl: "https://unavatar.io/x/ThisIsSethsBlog",
+    imageUrl: "/people/seth-godin.png",
     searchTerms: ["Seth Godin"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -320,7 +320,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Chris Do is an Emmy award-winning designer, director, CEO of Blind (a brand strategy firm), and founder of The Futur, an education platform teaching creative professionals how to build successful businesses. He is known for his YouTube content on design, business, and pricing strategy.",
-    imageUrl: "https://unavatar.io/x/theChrisDo",
+    imageUrl: "/people/chris-do.png",
     searchTerms: ["Chris Do"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -337,7 +337,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Media & Journalism",
     bio: "Scott Galloway is a professor of marketing at NYU Stern School of Business, bestselling author of 'The Four' and 'Post Corona,' and co-host of the Pivot podcast with Kara Swisher. He is the host of the Prof G Pod and Prof G Markets, known for his sharp analysis of big tech, markets, and higher education.",
-    imageUrl: "https://unavatar.io/x/profgalloway",
+    imageUrl: "/people/scott-galloway.png",
     searchTerms: ["Scott Galloway", "Galloway"],
     hostedPodcastSlugs: ["profgmarkets", "profgpod", "pivot"],
     socialLinks: {
@@ -354,7 +354,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Author & Thought Leader",
     bio: "Simon Sinek is an author and motivational speaker best known for his concept of 'Start With Why' and his TED Talk, one of the most-watched of all time. His books include 'Start with Why,' 'Leaders Eat Last,' and 'The Infinite Game.' He advises organizations on inspiring leadership and building trust.",
-    imageUrl: "https://unavatar.io/x/simonsinek",
+    imageUrl: "/people/simon-sinek.png",
     searchTerms: ["Simon Sinek"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -371,7 +371,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Author & Thought Leader",
     bio: "Adam Grant is an organizational psychologist, professor at the Wharton School, and bestselling author of 'Think Again,' 'Give and Take,' and 'Originals.' He hosts the WorkLife podcast and is recognized as one of the world's most influential management thinkers, known for challenging conventional wisdom about work and motivation.",
-    imageUrl: "https://unavatar.io/x/AdamMGrant",
+    imageUrl: "/people/adam-grant.png",
     searchTerms: ["Adam Grant"],
     hostedPodcastSlugs: ["worklife"],
     socialLinks: {
@@ -388,7 +388,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Finance & Investing",
     bio: "Ramit Sethi is an author, entrepreneur, and personal finance advisor. His book 'I Will Teach You to Be Rich' became a bestseller and Netflix show. He founded GrowthLab and IWT, teaching people about money, business, and psychology. He is known for his practical, no-guilt approach to personal finance.",
-    imageUrl: "https://unavatar.io/x/ramit",
+    imageUrl: "/people/ramit-sethi.png",
     searchTerms: ["Ramit Sethi"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -405,7 +405,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Author & Thought Leader",
     bio: "Ryan Holiday is a bestselling author, media strategist, and modern Stoic philosopher. He has written numerous books including 'The Obstacle Is the Way,' 'Ego Is the Enemy,' and 'Stillness Is the Key.' He hosts the Daily Stoic podcast and runs a popular bookstore in Bastrop, Texas.",
-    imageUrl: "https://unavatar.io/x/RyanHoliday",
+    imageUrl: "/people/ryan-holiday.png",
     searchTerms: ["Ryan Holiday"],
     hostedPodcastSlugs: ["dailystoic"],
     socialLinks: {
@@ -422,7 +422,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Author & Thought Leader",
     bio: "Tim Ferriss is an author, entrepreneur, and angel investor best known for 'The 4-Hour Workweek.' His podcast, The Tim Ferriss Show, has been downloaded over 900 million times and regularly features world-class performers across business, sports, science, and the arts. He was an early investor in Uber, Facebook, and Shopify.",
-    imageUrl: "https://unavatar.io/x/tferriss",
+    imageUrl: "/people/tim-ferriss.png",
     searchTerms: ["Tim Ferriss", "Ferriss"],
     hostedPodcastSlugs: ["timferriss"],
     socialLinks: {
@@ -439,7 +439,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Mark Cuban is a billionaire entrepreneur, investor, and former star of ABC's Shark Tank. He is the owner of the Dallas Mavericks (NBA) and co-founded Cost Plus Drugs, a pharmacy company offering affordable medications. He made his fortune selling Broadcast.com to Yahoo for $5.7 billion.",
-    imageUrl: "https://unavatar.io/x/mcuban",
+    imageUrl: "/people/mark-cuban.png",
     searchTerms: ["Mark Cuban"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -456,7 +456,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Patrick Bet-David (PBD) is an entrepreneur, author, and founder of Valuetainment, a media company with millions of followers. He is the author of 'Your Next Five Moves' and the founder of PHP Agency (now Symmetry Financial Group). His interviews with world leaders, business moguls, and controversial figures are widely viewed.",
-    imageUrl: "https://unavatar.io/x/patrickbetdavid",
+    imageUrl: "/people/patrick-bet-david.png",
     searchTerms: ["Patrick Bet-David", "PBD"],
     hostedPodcastSlugs: ["valuetainment"],
     socialLinks: {
@@ -473,7 +473,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Author & Thought Leader",
     bio: "James Clear is an author and speaker known for his book 'Atomic Habits,' which has sold over 15 million copies worldwide. He writes about habits, decision-making, and continuous improvement. His work is widely referenced across business, productivity, and self-improvement podcasts.",
-    imageUrl: "https://unavatar.io/x/JamesClear",
+    imageUrl: "/people/james-clear.png",
     searchTerms: ["James Clear"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -490,7 +490,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "female",
     category: "Business & Entrepreneurship",
     bio: "Jenna Kutcher is an entrepreneur, educator, and host of The Goal Digger Podcast. She is known for her expertise in digital marketing, online courses, and social media strategy. She has built a multi-million dollar brand teaching others how to grow their businesses online.",
-    imageUrl: "https://unavatar.io/x/jennakutcher",
+    imageUrl: "/people/jenna-kutcher.png",
     searchTerms: ["Jenna Kutcher"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -507,7 +507,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "female",
     category: "Business & Entrepreneurship",
     bio: "Amy Porterfield is a digital marketing expert, entrepreneur, and host of the Online Marketing Made Easy podcast. She is known for her expertise in list building, digital courses, and webinars. She previously worked with Tony Robbins before building her own multi-million dollar education business.",
-    imageUrl: "https://unavatar.io/x/amyporterfield",
+    imageUrl: "/people/amy-porterfield.png",
     searchTerms: ["Amy Porterfield"],
     hostedPodcastSlugs: ["amyporterfield"],
     socialLinks: {
@@ -524,7 +524,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "John Lee Dumas (JLD) is the host of Entrepreneurs on Fire, a daily podcast interviewing the world's most successful entrepreneurs. He has conducted over 3,500 interviews and his show generates over $200K/month. He is known for his transparency in sharing monthly income reports.",
-    imageUrl: "https://unavatar.io/x/johnleedumas",
+    imageUrl: "/people/john-lee-dumas.png",
     searchTerms: ["John Lee Dumas", "JLD"],
     hostedPodcastSlugs: ["entrepreneursonfire"],
     socialLinks: {
@@ -541,7 +541,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Sam Parr is an entrepreneur and co-host of the My First Million podcast. He founded The Hustle, a business news newsletter with over 1.5 million subscribers, which he sold to HubSpot. He is known for his entertaining storytelling style and sharp business instincts.",
-    imageUrl: "https://unavatar.io/x/thesamparr",
+    imageUrl: "/people/sam-parr.png",
     searchTerms: ["Sam Parr"],
     hostedPodcastSlugs: ["myfirstmillion"],
     socialLinks: {
@@ -559,7 +559,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Shaan Puri is an entrepreneur, angel investor, and co-host of the My First Million podcast. He previously ran Bebo (acquired by Twitch/Amazon) and was head of product at Twitch. He is known for his creative business ideas and ability to spot emerging trends.",
-    imageUrl: "https://unavatar.io/x/ShaanVP",
+    imageUrl: "/people/shaan-puri.png",
     searchTerms: ["Shaan Puri"],
     hostedPodcastSlugs: ["myfirstmillion"],
     socialLinks: {
@@ -576,7 +576,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Creator & Influencer",
     bio: "Justin Welsh is a solopreneur who has built a $5M+ one-person business through digital products, courses, and social media content. He previously helped build two $50M+ ARR companies in the healthcare SaaS space. He is widely followed for his insights on solopreneurship, LinkedIn growth, and building systems for wealth.",
-    imageUrl: "https://unavatar.io/x/thejustinwelsh",
+    imageUrl: "/people/justin-welsh.png",
     searchTerms: ["Justin Welsh"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -593,7 +593,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "female",
     category: "Business & Entrepreneurship",
     bio: "Hala Taha is the host and producer of Young and Profiting (YAP), one of the top business podcasts. She is also the CEO and founder of YAP Media, a full-service social media and podcast marketing agency. Named the 'Podcast Princess' by headlines, she is known for actionable business and self-improvement content.",
-    imageUrl: "https://unavatar.io/x/yapwithhala",
+    imageUrl: "/people/hala-taha.png",
     searchTerms: ["Hala Taha"],
     hostedPodcastSlugs: ["youngandprofiting"],
     socialLinks: {
@@ -610,7 +610,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Noah Kagan is the CEO and founder of AppSumo, a deals platform for digital products and tools. He was employee #30 at Facebook and #4 at Mint.com. He is the author of 'Million Dollar Weekend' and runs a popular YouTube channel and podcast focused on entrepreneurship and marketing experiments.",
-    imageUrl: "https://unavatar.io/x/noahkagan",
+    imageUrl: "/people/noah-kagan.png",
     searchTerms: ["Noah Kagan"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -627,7 +627,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Aaron Levie is the co-founder and CEO of Box, a cloud content management company. He started Box in 2005 while a student at USC and has grown it into a publicly traded enterprise platform. Known for his wit on social media and his insights on enterprise technology, AI, and the future of work.",
-    imageUrl: "https://unavatar.io/x/levie",
+    imageUrl: "/people/aaron-levie.png",
     searchTerms: ["Aaron Levie", "Levie"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -645,7 +645,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Matthew Prince is the co-founder and CEO of Cloudflare, one of the world's largest web infrastructure and security companies. He co-founded Cloudflare in 2009 and has grown it into a platform that handles a significant percentage of global internet traffic. He is known for his strong stances on internet freedom and security.",
-    imageUrl: "https://unavatar.io/x/eastdakota",
+    imageUrl: "/people/matthew-prince.png",
     searchTerms: ["Matthew Prince"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -663,7 +663,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Luis von Ahn is a Guatemalan-American entrepreneur and computer scientist. He is the co-founder and CEO of Duolingo, the world's most popular language learning app. He also co-invented CAPTCHA and reCAPTCHA (sold to Google). He is a MacArthur Fellow and professor at Carnegie Mellon University.",
-    imageUrl: "https://unavatar.io/x/LuisvonAhn",
+    imageUrl: "/people/luis-von-ahn.png",
     searchTerms: ["Luis von Ahn"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -680,7 +680,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Alex Karp is the co-founder and CEO of Palantir Technologies, a data analytics company that works with government agencies and large enterprises. Karp holds a PhD in social theory from Goethe University Frankfurt and is known for his unconventional leadership style and strong views on technology's role in national security and defense.",
-    imageUrl: "https://unavatar.io/x/alexkarp",
+    imageUrl: "/people/alex-karp.png",
     searchTerms: ["Alex Karp"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -697,7 +697,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Brian Chesky is the co-founder and CEO of Airbnb. Trained as an industrial designer at RISD, he launched Airbnb in 2008 and grew it into a $80B+ travel platform. He is widely admired for his hands-on approach to product design, company culture, and his leadership during Airbnb's near-collapse and recovery during the pandemic.",
-    imageUrl: "https://unavatar.io/x/bchesky",
+    imageUrl: "/people/brian-chesky.png",
     searchTerms: ["Brian Chesky"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -715,7 +715,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Daniel Ek is the co-founder and CEO of Spotify, the world's largest audio streaming platform. Born in Sweden, he launched Spotify in 2008 and has grown it to over 600 million users globally. He is known for his vision of transforming the audio industry and his investments in AI, podcasting, and creator tools.",
-    imageUrl: "https://unavatar.io/x/eldsjal",
+    imageUrl: "/people/daniel-ek.png",
     searchTerms: ["Daniel Ek"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -732,7 +732,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Finance & Investing",
     bio: "Brian Armstrong is the co-founder and CEO of Coinbase, the largest cryptocurrency exchange in the United States. He founded Coinbase in 2012 to make cryptocurrency accessible to everyone and took the company public in 2021. He is an outspoken advocate for crypto regulation clarity and web3 innovation.",
-    imageUrl: "https://unavatar.io/x/brian_armstrong",
+    imageUrl: "/people/brian-armstrong.png",
     searchTerms: ["Brian Armstrong"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -749,7 +749,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "George Kurtz is the co-founder and CEO of CrowdStrike, a leading cybersecurity company. Before CrowdStrike, he was CTO of McAfee and co-authored 'Hacking Exposed,' one of the most recognized books in cybersecurity. Under his leadership, CrowdStrike has become a dominant force in endpoint security and threat intelligence.",
-    imageUrl: "https://unavatar.io/x/George_Kurtz",
+    imageUrl: "/people/george-kurtz.png",
     searchTerms: ["George Kurtz"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -767,7 +767,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "female",
     category: "Business & Entrepreneurship",
     bio: "Ariane Gorin is the CEO of Expedia Group, one of the world's largest online travel companies. She previously served as President of Expedia for Business and held senior roles at Visa and Microsoft. She brings deep expertise in technology, payments, and global travel to lead Expedia's portfolio of brands.",
-    imageUrl: "https://unavatar.io/x/arianegorin",
+    imageUrl: "/people/ariane-gorin.png",
     searchTerms: ["Ariane Gorin"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -784,7 +784,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Finance & Investing",
     bio: "Jeremy Allaire is the co-founder and CEO of Circle, the company behind USDC, one of the world's most widely used stablecoins. A serial entrepreneur, he previously founded Brightcove and Allaire Corporation. He is a leading voice in stablecoin regulation and the future of digital finance.",
-    imageUrl: "https://unavatar.io/x/jerallaire",
+    imageUrl: "/people/jeremy-allaire.png",
     searchTerms: ["Jeremy Allaire"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -801,7 +801,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Dharmesh Shah is the co-founder and CTO of HubSpot, the leading CRM and inbound marketing platform. He is also the author of the 'Culture Code' deck that has been viewed over 5 million times on SlideShare. A prolific angel investor and thought leader, he is known for his insights on startup culture, AI, and building customer-centric companies.",
-    imageUrl: "https://unavatar.io/x/dharmesh",
+    imageUrl: "/people/dharmesh-shah.png",
     searchTerms: ["Dharmesh Shah"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -819,7 +819,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Jason Robins is the co-founder and CEO of DraftKings, one of the largest digital sports entertainment and gaming companies in the United States. He co-founded DraftKings in 2012 and has led the company through the legalization of sports betting, a SPAC merger, and rapid national expansion.",
-    imageUrl: "https://unavatar.io/x/jasonrobins",
+    imageUrl: "/people/jason-robins.png",
     searchTerms: ["Jason Robins"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -836,7 +836,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Mark Zuckerberg is the co-founder and CEO of Meta Platforms (formerly Facebook). He founded Facebook in 2004 from his Harvard dorm room and grew it into the world's largest social network. Meta now operates Facebook, Instagram, WhatsApp, and Threads, and is investing heavily in the metaverse and open-source AI with its LLaMA models.",
-    imageUrl: "https://unavatar.io/x/finkd",
+    imageUrl: "/people/mark-zuckerberg.png",
     searchTerms: ["Mark Zuckerberg", "Zuckerberg"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -854,7 +854,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Satya Nadella is the Chairman and CEO of Microsoft. Since becoming CEO in 2014, he has transformed Microsoft from a Windows-centric company to a cloud-first, AI-first enterprise powerhouse. Under his leadership, Microsoft invested billions in OpenAI, launched Copilot AI, and Azure became one of the largest cloud platforms in the world.",
-    imageUrl: "https://unavatar.io/x/satyanadella",
+    imageUrl: "/people/satya-nadella.png",
     searchTerms: ["Satya Nadella", "Nadella"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -872,7 +872,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Tim Cook is the CEO of Apple Inc., a position he has held since 2011 when he succeeded Steve Jobs. Under his leadership, Apple has become the world's most valuable company, reaching a market cap exceeding $3 trillion. He has overseen the expansion of Apple's services business, Apple Silicon, and the company's commitment to privacy and sustainability.",
-    imageUrl: "https://unavatar.io/x/tim_cook",
+    imageUrl: "/people/tim-cook.png",
     searchTerms: ["Tim Cook"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -889,7 +889,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Jeff Bezos is the founder and executive chairman of Amazon, the world's largest e-commerce and cloud computing company. He served as CEO from 1994 to 2021, growing Amazon from an online bookstore to a global technology conglomerate. He also founded Blue Origin (space company) and owns The Washington Post. He is one of the wealthiest people in the world.",
-    imageUrl: "https://unavatar.io/x/JeffBezos",
+    imageUrl: "/people/jeff-bezos.png",
     searchTerms: ["Jeff Bezos", "Bezos"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -907,7 +907,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Reed Hastings is the co-founder and former CEO of Netflix. He led Netflix's transformation from a DVD-by-mail service to the world's dominant streaming platform. He stepped down as CEO in 2023 but continues as executive chairman. He is the author of 'No Rules Rules' about Netflix's distinctive corporate culture and is also known for his philanthropy in education.",
-    imageUrl: "https://unavatar.io/x/reedhastings",
+    imageUrl: "/people/reed-hastings.png",
     searchTerms: ["Reed Hastings"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -924,7 +924,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Marc Benioff is the co-founder, Chairman, and CEO of Salesforce, the world's leading CRM platform. He pioneered the Software-as-a-Service (SaaS) model and built Salesforce into a $30B+ annual revenue enterprise. He is known for his advocacy of stakeholder capitalism, philanthropy, and the 1-1-1 model of corporate giving.",
-    imageUrl: "https://unavatar.io/x/Benioff",
+    imageUrl: "/people/marc-benioff.png",
     searchTerms: ["Marc Benioff", "Benioff"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -941,7 +941,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Finance & Investing",
     bio: "Ken Griffin is the founder and CEO of Citadel, one of the world's largest hedge funds, and Citadel Securities, one of the biggest market makers. He started trading from his Harvard dorm room in 1987 and built Citadel into a financial powerhouse managing over $60 billion. He is one of the wealthiest people in the world and a major philanthropist.",
-    imageUrl: "https://unavatar.io/x/Citadel",
+    imageUrl: "/people/ken-griffin.png",
     searchTerms: ["Ken Griffin"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -957,7 +957,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "female",
     category: "Business & Entrepreneurship",
     bio: "Martina Cheung is the CEO of S&P Global, a leading provider of financial data, analytics, and credit ratings. She previously served as President of S&P Global Market Intelligence and has been with the company for over two decades. She leads one of the most critical data infrastructure companies in global finance.",
-    imageUrl: "https://unavatar.io/x/SPGlobalInc",
+    imageUrl: "/people/martina-cheung.png",
     searchTerms: ["Martina Cheung"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -974,7 +974,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Patrick (Rick) Smith is the co-founder and CEO of Axon Enterprise (formerly TASER International). He co-founded the company in 1993 and has transformed it from a single-product TASER company into a comprehensive public safety technology platform including body cameras, digital evidence management, and AI-powered tools for law enforcement.",
-    imageUrl: "https://unavatar.io/x/axon_us",
+    imageUrl: "/people/patrick-smith.png",
     searchTerms: ["Patrick Smith", "Rick Smith"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -991,7 +991,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Sridhar Ramaswamy is the CEO of Snowflake, one of the largest cloud data platforms. Before Snowflake, he was a Senior Vice President at Google overseeing advertising and commerce, and later co-founded Neeva, an AI-powered search engine acquired by Snowflake. He brings deep expertise in AI, search, and data infrastructure.",
-    imageUrl: "https://unavatar.io/x/SnowflakeDB",
+    imageUrl: "/people/sridhar-ramaswamy.png",
     searchTerms: ["Sridhar Ramaswamy"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1009,7 +1009,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Brian Niccol is the CEO of Starbucks, appointed in 2024 after a highly successful tenure as CEO of Chipotle Mexican Grill. At Chipotle, he oversaw a dramatic turnaround that tripled the stock price and modernized the brand with digital ordering and new menu innovations. He is now leading Starbucks through a strategic transformation.",
-    imageUrl: "https://unavatar.io/x/brianniccol",
+    imageUrl: "/people/brian-niccol.png",
     searchTerms: ["Brian Niccol"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1025,7 +1025,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Kevin Scott is the Chief Technology Officer and Executive Vice President of Technology & Research at Microsoft. He oversees Microsoft's AI strategy and partnerships, including the company's deep investment in OpenAI. Before Microsoft, he served as SVP of Engineering at LinkedIn. He is the author of 'Reprogramming the American Dream' about AI's potential.",
-    imageUrl: "https://unavatar.io/x/kevin_scott",
+    imageUrl: "/people/kevin-scott.png",
     searchTerms: ["Kevin Scott"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1042,7 +1042,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Andrew 'Boz' Bosworth is the Chief Technology Officer of Meta. He has been at the company since 2006 and previously led the teams that built News Feed, Messenger, and Meta's Reality Labs division. He now oversees Meta's hardware, augmented reality, and AI initiatives.",
-    imageUrl: "https://unavatar.io/x/boztank",
+    imageUrl: "/people/andrew-bosworth.png",
     searchTerms: ["Andrew Bosworth", "Bosworth"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1059,7 +1059,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Kevin Weil is the Chief Product Officer at OpenAI, where he leads product development for ChatGPT and the broader OpenAI platform. Previously, he held senior product roles at Instagram (VP of Product), Twitter, and Facebook. He brings deep experience in scaling consumer products to billions of users.",
-    imageUrl: "https://unavatar.io/x/kevinweil",
+    imageUrl: "/people/kevin-weil.png",
     searchTerms: ["Kevin Weil"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1076,7 +1076,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Scott Belsky is Adobe's Chief Strategy Officer and Executive Vice President of Design & Emerging Products. He is the founder of Behance, the leading platform for creative professionals, which was acquired by Adobe in 2012. He is also a venture investor and author of 'The Messy Middle' about navigating the hardest parts of building something new.",
-    imageUrl: "https://unavatar.io/x/scottbelsky",
+    imageUrl: "/people/scott-belsky.png",
     searchTerms: ["Scott Belsky"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1094,7 +1094,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Harley Finkelstein is the President of Shopify, where he has played a central role in growing the platform from a small startup into one of the world's largest e-commerce companies. He is a frequent speaker on entrepreneurship, direct-to-consumer commerce, and the future of retail, and hosts the podcast 'Big Shot'.",
-    imageUrl: "https://unavatar.io/x/harleyf",
+    imageUrl: "/people/harley-finkelstein.png",
     searchTerms: ["Harley Finkelstein"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1112,7 +1112,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Mustafa Suleyman is the CEO of Microsoft AI, leading the company's consumer AI products including Copilot. He is the co-founder of DeepMind, the pioneering AI lab acquired by Google in 2014, and later founded Inflection AI. He is the author of 'The Coming Wave' about the future of AI and its implications for society.",
-    imageUrl: "https://unavatar.io/x/mustafasul",
+    imageUrl: "/people/mustafa-suleyman.png",
     searchTerms: ["Mustafa Suleyman"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1129,7 +1129,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Alexandr Wang is the CEO and co-founder of Scale AI, a data infrastructure company that provides high-quality training data for AI applications. He founded Scale AI at age 19 and has grown it into one of the most valuable AI companies, serving clients including OpenAI, Meta, and the U.S. Department of Defense. He became the youngest self-made billionaire in 2022.",
-    imageUrl: "https://unavatar.io/x/alexandr_wang",
+    imageUrl: "/people/alexandr-wang.png",
     searchTerms: ["Alexandr Wang"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1146,7 +1146,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Aravind Srinivas is the co-founder and CEO of Perplexity, an AI-powered answer engine that is challenging Google's dominance in search. Before founding Perplexity, he worked as a research scientist at OpenAI and held internships at DeepMind and Google. His work focuses on making information access faster and more accurate through AI.",
-    imageUrl: "https://unavatar.io/x/AravSrinivas",
+    imageUrl: "/people/aravind-srinivas.png",
     searchTerms: ["Aravind Srinivas"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1163,7 +1163,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Tech & AI",
     bio: "Tobi Lütke is the co-founder and CEO of Shopify, the leading e-commerce platform powering millions of businesses worldwide. Originally a programmer from Germany, he built Shopify out of his own frustration with existing e-commerce tools while trying to sell snowboards online. Under his leadership, Shopify has grown into a $100B+ company and a cornerstone of modern commerce.",
-    imageUrl: "https://unavatar.io/x/tobi",
+    imageUrl: "/people/tobi-lutke.png",
     searchTerms: ["Tobi Lütke", "Tobi Lutke", "Tobias Lütke"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1180,7 +1180,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
     gender: "male",
     category: "Business & Entrepreneurship",
     bio: "Andrew Wilkinson is the co-founder and managing partner of Tiny, a holding company that acquires and operates wonderful internet businesses. Tiny owns a portfolio of companies including Dribbble, MetaLab, and several SaaS businesses. He is known for his Warren Buffett-inspired approach to acquiring and holding small internet companies for the long term.",
-    imageUrl: "https://unavatar.io/x/awilkinson",
+    imageUrl: "/people/andrew-wilkinson.png",
     searchTerms: ["Andrew Wilkinson"],
     hostedPodcastSlugs: [],
     socialLinks: {
@@ -1197,7 +1197,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Tech & AI",
       bio: "Steph Smith is Head of Paid at Andreessen Horowitz (a16z) and a prolific writer and creator. She previously led Trends at The Hustle and has built multiple internet businesses. Known for her deep thinking on technology, remote work, and internet trends.",
-      imageUrl: "https://unavatar.io/x/stephsmithio",
+      imageUrl: "/people/steph-smith.png",
       searchTerms: ["Steph Smith"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1211,7 +1211,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Nick Gray is an entrepreneur and author of The 2-Hour Cocktail Party. He founded Museum Hack, a company that reimagined museum tours, and is a frequent podcast guest on topics of networking, events, and entrepreneurship.",
-      imageUrl: "https://unavatar.io/x/nickgraynews",
+      imageUrl: "/people/nick-gray.png",
       searchTerms: ["Nick Gray"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1225,7 +1225,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Nick Huber is an entrepreneur and founder of Storage Squad and The Sweaty Startup brand. He advocates for buying boring businesses and building wealth through service-based companies.",
-      imageUrl: "https://unavatar.io/x/swaborhood",
+      imageUrl: "/people/nick-huber.png",
       searchTerms: ["Nick Huber"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1239,7 +1239,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Neville Medhora is a copywriter and founder of Kopywriting Kourse. Known for his humorous and direct style, he teaches copywriting and marketing to entrepreneurs.",
-      imageUrl: "https://unavatar.io/x/nevmed",
+      imageUrl: "/people/neville-medhora.png",
       searchTerms: ["Neville Medhora"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1253,7 +1253,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Ramon Van Meer, also known as 'The Money Maker,' is a serial entrepreneur and investor who has built and sold multiple businesses.",
-      imageUrl: "https://unavatar.io/x/ramonvanmeer",
+      imageUrl: "/people/ramon-van-meer.png",
       searchTerms: ["Ramon Van Meer"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1267,7 +1267,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Greg Isenberg is the CEO of Late Checkout, a holding company that builds internet communities and products. He previously sold his company Islands to WeWork and is known for his community-building expertise.",
-      imageUrl: "https://unavatar.io/x/gregisenberg",
+      imageUrl: "/people/greg-isenberg.png",
       searchTerms: ["Greg Isenberg"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1281,7 +1281,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Nik Sharma is the CEO of Sharma Brands, a DTC growth agency. Known as 'The DTC Guy,' he has helped scale major consumer brands.",
-      imageUrl: "https://unavatar.io/x/maboroshi",
+      imageUrl: "/people/nik-sharma.png",
       searchTerms: ["Nik Sharma"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1295,7 +1295,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Moiz Ali is the founder of Native, a natural deodorant brand he sold to Procter & Gamble for $100 million. He is now an active angel investor.",
-      imageUrl: "https://unavatar.io/x/moikitoali",
+      imageUrl: "/people/moiz-ali.png",
       searchTerms: ["Moiz Ali"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1309,7 +1309,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Chenell Basilio is the writer behind Growth in Reverse, a newsletter that reverse-engineers how top creators grew their audiences.",
-      imageUrl: "https://unavatar.io/x/chenellbasilio",
+      imageUrl: "/people/chenell-basilio.png",
       searchTerms: ["Chenell Basilio"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1323,7 +1323,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Nathan Barry is the founder and CEO of Kit (formerly ConvertKit), an email marketing platform for creators. He bootstrapped the company to over $30 million in annual revenue.",
-      imageUrl: "https://unavatar.io/x/nathanbarry",
+      imageUrl: "/people/nathan-barry.png",
       searchTerms: ["Nathan Barry"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1337,7 +1337,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Jesse Itzler is an entrepreneur, author, and co-founder of Marquis Jet. He is also a partner in the Atlanta Hawks and the husband of Spanx founder Sara Blakely.",
-      imageUrl: "https://unavatar.io/x/jesseitzler",
+      imageUrl: "/people/jesse-itzler.png",
       searchTerms: ["Jesse Itzler"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1351,7 +1351,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Elena Verna is a growth advisor and board member who has led growth at Miro, Amplitude, and SurveyMonkey. She is one of the most respected voices in product-led growth.",
-      imageUrl: "https://unavatar.io/x/elenaverna",
+      imageUrl: "/people/elena-verna.png",
       searchTerms: ["Elena Verna"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1365,7 +1365,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Tech & AI",
       bio: "Jenny Wen is a tech executive and investor working at the intersection of technology and business strategy.",
-      imageUrl: "https://unavatar.io/x/jennywen",
+      imageUrl: "/people/jenny-wen.png",
       searchTerms: ["Jenny Wen"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1379,7 +1379,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Boris Cherny is a software engineer and author of Programming TypeScript. He has worked at Meta and other major tech companies.",
-      imageUrl: "https://unavatar.io/x/bcherny",
+      imageUrl: "/people/boris-cherny.png",
       searchTerms: ["Boris Cherny"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1393,7 +1393,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Qasar Younis is the CEO and co-founder of Applied Intuition, a simulation platform for autonomous vehicles. He previously served as COO of Y Combinator.",
-      imageUrl: "https://unavatar.io/x/qasar",
+      imageUrl: "/people/qasar-younis.png",
       searchTerms: ["Qasar Younis"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1407,7 +1407,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Jeetu Patel is Executive Vice President and General Manager of Security & Collaboration at Cisco. Previously, he was the CPO at Box.",
-      imageUrl: "https://unavatar.io/x/jeetupatel",
+      imageUrl: "/people/jeetu-patel.png",
       searchTerms: ["Jeetu Patel"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1421,7 +1421,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Brian Halligan is the co-founder and executive chairman of HubSpot. He coined the term 'inbound marketing' and has been instrumental in building one of the most successful SaaS companies.",
-      imageUrl: "https://unavatar.io/x/bhalligan",
+      imageUrl: "/people/brian-halligan.png",
       searchTerms: ["Brian Halligan"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1435,7 +1435,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Sherwin Wu is an investor and technologist focused on AI and deep tech.",
-      imageUrl: "https://unavatar.io/x/sheraboraw",
+      imageUrl: "/people/sherwin-wu.png",
       searchTerms: ["Sherwin Wu"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1449,7 +1449,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Lazar Jovanovic is an entrepreneur and growth expert who has built and scaled multiple businesses.",
-      imageUrl: "https://unavatar.io/x/lazarjovanovic",
+      imageUrl: "/people/lazar-jovanovic.png",
       searchTerms: ["Lazar Jovanovic"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1463,7 +1463,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Katelyn Bourgoin is the founder of Customer Camp and creator of the 'Why We Buy' newsletter. She specializes in buyer psychology.",
-      imageUrl: "https://unavatar.io/x/KateBour",
+      imageUrl: "/people/katelyn-bourgoin.png",
       searchTerms: ["Katelyn Bourgoin"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1477,7 +1477,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Amanda Goetz is the founder of House of Wise and a personal branding expert. She previously served as VP of Marketing at The Knot Worldwide.",
-      imageUrl: "https://unavatar.io/x/AmandaMGoetz",
+      imageUrl: "/people/amanda-goetz.png",
       searchTerms: ["Amanda Goetz"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1491,7 +1491,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Finance & Investing",
       bio: "Chris Hutchins is the host of All the Hacks, a popular podcast about optimizing life, money, and travel. He previously worked at Wealthfront and Google.",
-      imageUrl: "https://unavatar.io/x/hutchins",
+      imageUrl: "/people/chris-hutchins.png",
       searchTerms: ["Chris Hutchins"],
       hostedPodcastSlugs: ["allthehacks"],
       socialLinks: {
@@ -1505,7 +1505,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Sieva Kozinsky is a co-founder of EndLayer and a serial entrepreneur.",
-      imageUrl: "https://unavatar.io/x/sievakozinsky",
+      imageUrl: "/people/sieva-kozinsky.png",
       searchTerms: ["Sieva Kozinsky"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1519,7 +1519,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Xavier Helgesen is the co-founder of Better World Books and a social entrepreneur.",
-      imageUrl: "https://unavatar.io/x/xavierhelgesen",
+      imageUrl: "/people/xavier-helgesen.png",
       searchTerms: ["Xavier Helgesen"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1533,7 +1533,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Bill Girdley is a tech executive and entrepreneur who has built and led technology companies.",
-      imageUrl: "https://unavatar.io/x/billgirdley",
+      imageUrl: "/people/bill-girdley.png",
       searchTerms: ["Bill Girdley"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1547,7 +1547,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Bill Gurley is a general partner at Benchmark, one of Silicon Valley's most storied venture capital firms. He led investments in Uber, Zillow, and OpenTable.",
-      imageUrl: "https://unavatar.io/x/bgurley",
+      imageUrl: "/people/bill-gurley.png",
       searchTerms: ["Bill Gurley"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1561,7 +1561,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Brad Gerstner is the founder and CEO of Altimeter Capital, a technology-focused investment firm.",
-      imageUrl: "https://unavatar.io/x/altcap",
+      imageUrl: "/people/brad-gerstner.png",
       searchTerms: ["Brad Gerstner"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1575,7 +1575,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Roelof Botha is the managing partner at Sequoia Capital. Originally from South Africa, he was CFO of PayPal before joining Sequoia. He has backed companies like YouTube, Instagram, and Unity.",
-      imageUrl: "https://unavatar.io/x/roelofbotha",
+      imageUrl: "/people/roelof-botha.png",
       searchTerms: ["Roelof Botha"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1589,7 +1589,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Doug Leone is the former managing partner of Sequoia Capital, where he spent over 30 years. Under his leadership, Sequoia became one of the most successful venture firms in history.",
-      imageUrl: "https://ui-avatars.com/api/?name=Doug%20Leone&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/doug-leone.png",
       searchTerms: ["Doug Leone"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1602,7 +1602,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Elad Gil is a serial entrepreneur, investor, and author of the High Growth Handbook. He was an early employee at Google and co-founded Color Genomics.",
-      imageUrl: "https://unavatar.io/x/eladgil",
+      imageUrl: "/people/elad-gil.png",
       searchTerms: ["Elad Gil"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1616,7 +1616,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Vinod Khosla is the founder of Khosla Ventures and co-founder of Sun Microsystems. One of the most influential venture capitalists in Silicon Valley.",
-      imageUrl: "https://unavatar.io/x/vaborkhosla",
+      imageUrl: "/people/vinod-khosla.png",
       searchTerms: ["Vinod Khosla"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1630,7 +1630,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Ben Horowitz is the co-founder of Andreessen Horowitz (a16z) and author of The Hard Thing About Hard Things. He previously co-founded and led Opsware.",
-      imageUrl: "https://unavatar.io/x/bhorowitz",
+      imageUrl: "/people/ben-horowitz.png",
       searchTerms: ["Ben Horowitz"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1644,7 +1644,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Reid Hoffman is the co-founder of LinkedIn and a partner at Greylock Partners. He is also a board member at Microsoft and author of The Start-Up of You and Blitzscaling.",
-      imageUrl: "https://unavatar.io/x/reidhoffman",
+      imageUrl: "/people/reid-hoffman.png",
       searchTerms: ["Reid Hoffman"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1658,7 +1658,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Keith Rabois is a general partner at Khosla Ventures and was previously at Founders Fund. He was an early executive at PayPal, LinkedIn, and Square.",
-      imageUrl: "https://unavatar.io/x/rabois",
+      imageUrl: "/people/keith-rabois.png",
       searchTerms: ["Keith Rabois"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1672,7 +1672,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Garry Tan is the President and CEO of Y Combinator, the world's most prominent startup accelerator. He previously co-founded Initialized Capital and Posterous.",
-      imageUrl: "https://unavatar.io/x/garrytan",
+      imageUrl: "/people/garry-tan.png",
       searchTerms: ["Garry Tan"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1686,7 +1686,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "David Sacks is a general partner at Craft Ventures and co-host of the All-In Podcast. He was the founding COO of PayPal and CEO of Yammer.",
-      imageUrl: "https://unavatar.io/x/DavidSacks",
+      imageUrl: "/people/david-sacks.png",
       searchTerms: ["David Sacks"],
       hostedPodcastSlugs: ["allin"],
       socialLinks: {
@@ -1700,7 +1700,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Rick Zullo is the co-founder and general partner of Equal Ventures, an early-stage venture fund.",
-      imageUrl: "https://unavatar.io/x/rickzullo",
+      imageUrl: "/people/rick-zullo.png",
       searchTerms: ["Rick Zullo"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1714,7 +1714,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Semil Shah is the founder of Haystack, a seed-stage venture fund. He is known for his writing on venture capital and startups.",
-      imageUrl: "https://unavatar.io/x/semil",
+      imageUrl: "/people/semil-shah.png",
       searchTerms: ["Semil Shah"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1728,7 +1728,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Jeff Jordan is a general partner at Andreessen Horowitz. He previously served as CEO of OpenTable and President of PayPal.",
-      imageUrl: "https://unavatar.io/x/jeff_jordan",
+      imageUrl: "/people/jeff-jordan.png",
       searchTerms: ["Jeff Jordan"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1742,7 +1742,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Hunter Walk is the co-founder of Homebrew, a seed-stage venture fund. He previously led product at YouTube and Google.",
-      imageUrl: "https://unavatar.io/x/hunterwalk",
+      imageUrl: "/people/hunter-walk.png",
       searchTerms: ["Hunter Walk"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1756,7 +1756,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Venture Capital",
       bio: "Li Jin is the co-founder of Variant, a crypto venture fund. She previously was a partner at a16z where she focused on the creator economy.",
-      imageUrl: "https://unavatar.io/x/ljin18",
+      imageUrl: "/people/li-jin.png",
       searchTerms: ["Li Jin"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1770,7 +1770,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Harry Stebbings is the founder of 20VC (The Twenty Minute VC), one of the most popular venture capital podcasts. He also founded Stride.VC.",
-      imageUrl: "https://unavatar.io/x/HarryStebbings",
+      imageUrl: "/people/harry-stebbings.png",
       searchTerms: ["Harry Stebbings"],
       hostedPodcastSlugs: ["twentyminutevc"],
       socialLinks: {
@@ -1784,7 +1784,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Venture Capital",
       bio: "Turner Novak is the founder and general partner of Banana Capital, a venture fund focused on early-stage technology companies.",
-      imageUrl: "https://unavatar.io/x/TurnerNovak",
+      imageUrl: "/people/turner-novak.png",
       searchTerms: ["Turner Novak"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1798,7 +1798,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Rowan Cheung is the founder of The Rundown AI, one of the fastest-growing AI newsletters.",
-      imageUrl: "https://unavatar.io/x/rowancheung",
+      imageUrl: "/people/rowan-cheung.png",
       searchTerms: ["Rowan Cheung"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1812,7 +1812,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Matt Wolfe is a creator and AI tools reviewer who runs Future Tools, a curated directory of AI tools.",
-      imageUrl: "https://unavatar.io/x/maborwolfe",
+      imageUrl: "/people/matt-wolfe.png",
       searchTerms: ["Matt Wolfe"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1826,7 +1826,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Linus Ekenstam is an AI creator and designer known for his creative use of AI tools in design and art.",
-      imageUrl: "https://unavatar.io/x/LinusEkenstam",
+      imageUrl: "/people/linus-ekenstam.png",
       searchTerms: ["Linus Ekenstam"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1840,7 +1840,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Varun Mayya is the founder of Avalon Labs and a prominent tech creator from India.",
-      imageUrl: "https://unavatar.io/x/VarunMayya",
+      imageUrl: "/people/varun-mayya.png",
       searchTerms: ["Varun Mayya"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1854,7 +1854,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Matt Shumer is the CEO of HyperWrite AI, building AI writing and productivity tools.",
-      imageUrl: "https://unavatar.io/x/mattshumer_",
+      imageUrl: "/people/matt-shumer.png",
       searchTerms: ["Matt Shumer"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1868,7 +1868,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Gergely Orosz is the author of The Pragmatic Engineer, one of the most popular technology newsletters. He previously worked at Uber and Microsoft.",
-      imageUrl: "https://unavatar.io/x/GergelyOrosz",
+      imageUrl: "/people/gergely-orosz.png",
       searchTerms: ["Gergely Orosz"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1882,7 +1882,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Justin Moore is the founder of Creator Wizard, helping creators land brand deals and sponsorships.",
-      imageUrl: "https://unavatar.io/x/justinmoore",
+      imageUrl: "/people/justin-moore.png",
       searchTerms: ["Justin Moore"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1896,7 +1896,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Andreas Klinger is the former CTO of On Deck and an active angel investor. He previously led engineering at Product Hunt.",
-      imageUrl: "https://unavatar.io/x/andreasklinger",
+      imageUrl: "/people/andreas-klinger.png",
       searchTerms: ["Andreas Klinger"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1910,7 +1910,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Packy McCormick is the founder of Not Boring, a popular business strategy newsletter.",
-      imageUrl: "https://unavatar.io/x/packym",
+      imageUrl: "/people/packy-mccormick.png",
       searchTerms: ["Packy McCormick"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1924,7 +1924,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Zain Kahn is the founder of the Superhuman AI newsletter, one of the fastest-growing AI publications.",
-      imageUrl: "https://unavatar.io/x/heyzain",
+      imageUrl: "/people/zain-kahn.png",
       searchTerms: ["Zain Kahn"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1938,7 +1938,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Ben Tossell is the founder of Ben's Bites, a popular daily AI newsletter. He previously founded Makerpad (acquired by Zapier).",
-      imageUrl: "https://unavatar.io/x/bentossell",
+      imageUrl: "/people/ben-tossell.png",
       searchTerms: ["Ben Tossell"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1952,7 +1952,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Media & Journalism",
       bio: "Ben Thompson is the founder of Stratechery, one of the most influential technology analysis publications.",
-      imageUrl: "https://unavatar.io/x/benthompson",
+      imageUrl: "/people/ben-thompson.png",
       searchTerms: ["Ben Thompson"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -1966,7 +1966,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Media & Journalism",
       bio: "Alex Kantrowitz is the founder and editor of Big Technology, a newsletter and podcast covering the tech industry.",
-      imageUrl: "https://unavatar.io/x/Kantrowitz",
+      imageUrl: "/people/alex-kantrowitz.png",
       searchTerms: ["Alex Kantrowitz"],
       hostedPodcastSlugs: ["bigtechnology"],
       socialLinks: {
@@ -1980,7 +1980,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Media & Journalism",
       bio: "Kara Swisher is one of the most prominent technology journalists in the world. She co-hosts the Pivot podcast with Scott Galloway.",
-      imageUrl: "https://unavatar.io/x/karaswisher",
+      imageUrl: "/people/kara-swisher.png",
       searchTerms: ["Kara Swisher"],
       hostedPodcastSlugs: ["pivot"],
       socialLinks: {
@@ -1994,7 +1994,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Media & Journalism",
       bio: "Casey Newton is the founder of Platformer, a newsletter covering the intersection of technology and democracy. He previously covered Silicon Valley for The Verge.",
-      imageUrl: "https://unavatar.io/x/CaseyNewton",
+      imageUrl: "/people/casey-newton.png",
       searchTerms: ["Casey Newton"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2008,7 +2008,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Media & Journalism",
       bio: "Jason Hiner is the Editor-in-Chief of ZDNET and a veteran technology journalist.",
-      imageUrl: "https://unavatar.io/x/jasonhiner",
+      imageUrl: "/people/jason-hiner.png",
       searchTerms: ["Jason Hiner"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2022,7 +2022,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Media & Journalism",
       bio: "Becca Farsace is a senior video producer at The Verge, known for her tech reviews and reporting.",
-      imageUrl: "https://unavatar.io/x/beccafarsace",
+      imageUrl: "/people/becca-farsace.png",
       searchTerms: ["Becca Farsace"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2036,7 +2036,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Media & Journalism",
       bio: "Emma Roth is a news writer at The Verge covering technology, social media, and internet culture.",
-      imageUrl: "https://unavatar.io/x/emmacroth",
+      imageUrl: "/people/emma-roth.png",
       searchTerms: ["Emma Roth"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2050,7 +2050,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Media & Journalism",
       bio: "Allison Johnson is a senior editor at The Verge specializing in mobile technology and consumer electronics.",
-      imageUrl: "https://ui-avatars.com/api/?name=Allison%20Johnson&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/allison-johnson.png",
       searchTerms: ["Allison Johnson"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2063,7 +2063,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Tiago Forte is the author of Building a Second Brain and founder of Forte Labs. He is a leading expert on personal knowledge management and productivity.",
-      imageUrl: "https://unavatar.io/x/fortelabs",
+      imageUrl: "/people/tiago-forte.png",
       searchTerms: ["Tiago Forte"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2077,7 +2077,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Dickie Bush is the co-founder of Ship 30 for 30, a writing course that has helped thousands of people start writing online.",
-      imageUrl: "https://unavatar.io/x/dickiebush",
+      imageUrl: "/people/dickie-bush.png",
       searchTerms: ["Dickie Bush"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2091,7 +2091,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Nicolas Cole is a co-founder of Ship 30 for 30 and one of the most-read writers on the internet.",
-      imageUrl: "https://unavatar.io/x/Nicolascole77",
+      imageUrl: "/people/nicolas-cole.png",
       searchTerms: ["Nicolas Cole"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2105,7 +2105,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Ashton Kutcher is an actor, producer, and tech investor. Through his firm Sound Ventures, he has invested in companies like Airbnb, Uber, and Spotify.",
-      imageUrl: "https://unavatar.io/x/aplusk",
+      imageUrl: "/people/ashton-kutcher.png",
       searchTerms: ["Ashton Kutcher"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2119,7 +2119,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Ryan Reynolds is an actor, entrepreneur, and marketing genius. He co-owns Aviation Gin, Mint Mobile, and Wrexham AFC.",
-      imageUrl: "https://unavatar.io/x/VancityReynolds",
+      imageUrl: "/people/ryan-reynolds.png",
       searchTerms: ["Ryan Reynolds"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2133,7 +2133,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Rick Beato is a music producer, songwriter, and YouTube creator with millions of subscribers.",
-      imageUrl: "https://unavatar.io/x/rickbeato",
+      imageUrl: "/people/rick-beato.png",
       searchTerms: ["Rick Beato"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2147,7 +2147,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Theo Von is a stand-up comedian and host of the This Past Weekend podcast. Known for his unique Southern storytelling and wit.",
-      imageUrl: "https://unavatar.io/x/TheoVon",
+      imageUrl: "/people/theo-von.png",
       searchTerms: ["Theo Von"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2161,7 +2161,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "MrBeast (Jimmy Donaldson) is the world's most-subscribed individual YouTube creator. He has built an empire including Feastables, MrBeast Burger, and Beast Philanthropy.",
-      imageUrl: "https://unavatar.io/x/MrBeast",
+      imageUrl: "/people/mrbeast.png",
       searchTerms: ["MrBeast"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2175,7 +2175,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Logan Paul is a content creator, WWE wrestler, and entrepreneur. He co-founded PRIME energy drinks with KSI and hosts the Impaulsive podcast.",
-      imageUrl: "https://unavatar.io/x/LoganPaul",
+      imageUrl: "/people/logan-paul.png",
       searchTerms: ["Logan Paul"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2189,7 +2189,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Bobbi Althoff is a content creator and host of The Really Good Podcast, known for her deadpan interview style.",
-      imageUrl: "https://unavatar.io/x/bobbialthoff",
+      imageUrl: "/people/bobbi-althoff.png",
       searchTerms: ["Bobbi Althoff"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2203,7 +2203,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Alex Cooper is the host of Call Her Daddy, one of the most popular podcasts in the world. She signed an exclusive deal with SiriusXM.",
-      imageUrl: "https://unavatar.io/x/alexandracooper",
+      imageUrl: "/people/alex-cooper.png",
       searchTerms: ["Alex Cooper"],
       hostedPodcastSlugs: ["callherdaddy"],
       socialLinks: {
@@ -2217,7 +2217,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Alix Earle is one of the most popular social media influencers on TikTok and Instagram.",
-      imageUrl: "https://unavatar.io/x/alixearle",
+      imageUrl: "/people/alix-earle.png",
       searchTerms: ["Alix Earle"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2231,7 +2231,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Matthew McConaughey is an Academy Award-winning actor and author of Greenlights.",
-      imageUrl: "https://unavatar.io/x/McConaughey",
+      imageUrl: "/people/matthew-mcconaughey.png",
       searchTerms: ["Matthew McConaughey"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2245,7 +2245,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Arnold Schwarzenegger is a legendary bodybuilder, actor, former Governor of California, and entrepreneur.",
-      imageUrl: "https://unavatar.io/x/Schwarzenegger",
+      imageUrl: "/people/arnold-schwarzenegger.png",
       searchTerms: ["Arnold Schwarzenegger"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2259,7 +2259,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Jordan Peterson is a clinical psychologist, professor, and bestselling author of 12 Rules for Life and Beyond Order.",
-      imageUrl: "https://unavatar.io/x/jordanbpeterson",
+      imageUrl: "/people/jordan-peterson.png",
       searchTerms: ["Jordan Peterson"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2273,7 +2273,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Entertainment",
       bio: "Whitney Cummings is a stand-up comedian, actress, writer, and podcast host. She created the CBS sitcom 2 Broke Girls.",
-      imageUrl: "https://unavatar.io/x/WhitneyCummings",
+      imageUrl: "/people/whitney-cummings.png",
       searchTerms: ["Whitney Cummings"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2287,7 +2287,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Science & Health",
       bio: "Neil deGrasse Tyson is an astrophysicist and one of the world's most famous science communicators. He hosts StarTalk Radio.",
-      imageUrl: "https://unavatar.io/x/neiltyson",
+      imageUrl: "/people/neil-degrasse-tyson.png",
       searchTerms: ["Neil deGrasse Tyson"],
       hostedPodcastSlugs: ["startalkradio"],
       socialLinks: {
@@ -2301,7 +2301,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Coco Mocoe is a content creator and entrepreneur known for her business and lifestyle content.",
-      imageUrl: "https://unavatar.io/x/cocomocoe",
+      imageUrl: "/people/coco-mocoe.png",
       searchTerms: ["Coco Mocoe"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2315,7 +2315,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "David Dobrik is a YouTube creator and entrepreneur known for his Vlog Squad content. He co-founded Dispo.",
-      imageUrl: "https://unavatar.io/x/DavidDobrik",
+      imageUrl: "/people/david-dobrik.png",
       searchTerms: ["David Dobrik"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2329,7 +2329,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "SteveWillDoIt (Stephen Deleonardis) is a YouTube creator and entertainer known for his extreme challenge videos.",
-      imageUrl: "https://unavatar.io/x/stevewilldoit",
+      imageUrl: "/people/stevewilldoit.png",
       searchTerms: ["SteveWillDoIt"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2343,7 +2343,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Media & Journalism",
       bio: "Dave Portnoy is the founder of Barstool Sports, one of the most influential sports and pop culture media companies.",
-      imageUrl: "https://unavatar.io/x/staborpresidente",
+      imageUrl: "/people/dave-portnoy.png",
       searchTerms: ["Dave Portnoy"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2357,7 +2357,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Kai Cenat is one of the biggest streamers on Twitch and a YouTube creator. He broke Twitch's all-time subscriber record.",
-      imageUrl: "https://unavatar.io/x/KaiCenat",
+      imageUrl: "/people/kai-cenat.png",
       searchTerms: ["Kai Cenat"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2371,7 +2371,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "IShowSpeed (Darren Watkins Jr.) is a YouTube streamer and creator known for his energetic streaming style.",
-      imageUrl: "https://unavatar.io/x/IShowSpeed",
+      imageUrl: "/people/ishowspeed.png",
       searchTerms: ["IShowSpeed"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2385,7 +2385,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Entertainment",
       bio: "Druski (Drew Desbordes) is a comedian and content creator known for his comedic skits and characters on social media.",
-      imageUrl: "https://unavatar.io/x/druski2funny",
+      imageUrl: "/people/druski.png",
       searchTerms: ["Druski"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2399,7 +2399,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Josh Richards is a content creator, entrepreneur, and co-founder of TalentX Entertainment and Ani Energy.",
-      imageUrl: "https://unavatar.io/x/joshrichards",
+      imageUrl: "/people/josh-richards.png",
       searchTerms: ["Josh Richards"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2413,7 +2413,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Brianna Chickenfry (Brianna LaPaglia) is a content creator and podcast host at Barstool Sports.",
-      imageUrl: "https://unavatar.io/x/brianachickenfry",
+      imageUrl: "/people/brianna-chickenfry.png",
       searchTerms: ["Brianna Chickenfry"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2427,7 +2427,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Samir Chaudry is one half of Colin and Samir, a popular YouTube channel and media company focused on the creator economy.",
-      imageUrl: "https://unavatar.io/x/SamirChaudry",
+      imageUrl: "/people/samir-chaudry.png",
       searchTerms: ["Samir Chaudry"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2441,7 +2441,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Colin Rosenblum is one half of Colin and Samir, a popular YouTube channel and media company focused on the creator economy.",
-      imageUrl: "https://unavatar.io/x/ColinRosenblum",
+      imageUrl: "/people/colin-rosenblum.png",
       searchTerms: ["Colin Rosenblum"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2455,7 +2455,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Jake Paul is a professional boxer, content creator, and entrepreneur.",
-      imageUrl: "https://unavatar.io/x/jakepaul",
+      imageUrl: "/people/jake-paul.png",
       searchTerms: ["Jake Paul"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2469,7 +2469,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Marques Brownlee (MKBHD) is the world's most popular tech reviewer on YouTube. He hosts the Waveform podcast.",
-      imageUrl: "https://unavatar.io/x/MKBHD",
+      imageUrl: "/people/marques-brownlee.png",
       searchTerms: ["Marques Brownlee"],
       hostedPodcastSlugs: ["waveform"],
       socialLinks: {
@@ -2483,7 +2483,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "xQc (Félix Lengyel) is one of the most-watched streamers on Twitch and Kick.",
-      imageUrl: "https://unavatar.io/x/xQc",
+      imageUrl: "/people/xqc.png",
       searchTerms: ["xQc"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2497,7 +2497,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Pokimane (Imane Anys) is one of the most popular streamers on Twitch and co-founder of RTS, a talent management company.",
-      imageUrl: "https://unavatar.io/x/pokimane",
+      imageUrl: "/people/pokimane.png",
       searchTerms: ["Pokimane"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2511,7 +2511,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Jay Shetty is a former monk turned author, podcast host, and purpose coach. His podcast On Purpose is one of the most popular wellness shows.",
-      imageUrl: "https://unavatar.io/x/JayShettyIW",
+      imageUrl: "/people/jay-shetty.png",
       searchTerms: ["Jay Shetty"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2525,7 +2525,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Steven Bartlett is the host of The Diary of a CEO, one of the most popular business podcasts in the world.",
-      imageUrl: "https://unavatar.io/x/SteveBartlettSC",
+      imageUrl: "/people/steven-bartlett.png",
       searchTerms: ["Steven Bartlett"],
       hostedPodcastSlugs: ["diaryofaceo"],
       socialLinks: {
@@ -2539,7 +2539,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Pat Flynn is the host of Smart Passive Income, one of the longest-running and most popular business podcasts.",
-      imageUrl: "https://unavatar.io/x/PatFlynn",
+      imageUrl: "/people/pat-flynn.png",
       searchTerms: ["Pat Flynn"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2553,7 +2553,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Lauryn Bosstick is the co-host of The Skinny Confidential Him & Her podcast and founder of The Skinny Confidential brand.",
-      imageUrl: "https://unavatar.io/x/LaurynBosstick",
+      imageUrl: "/people/lauryn-bosstick.png",
       searchTerms: ["Lauryn Bosstick"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2567,7 +2567,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Michael Bosstick is the co-host of The Skinny Confidential Him & Her podcast and CEO of Dear Media, a podcast network.",
-      imageUrl: "https://unavatar.io/x/michaelbosstick",
+      imageUrl: "/people/michael-bosstick.png",
       searchTerms: ["Michael Bosstick"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2581,7 +2581,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "John Morgan is an entrepreneur and business leader known for building and scaling companies.",
-      imageUrl: "https://ui-avatars.com/api/?name=John%20Morgan&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/john-morgan.png",
       searchTerms: ["John Morgan"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2594,7 +2594,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Mary Kennedy Thompson is the CEO of Neighborly, the world's largest home services franchisor. She is a West Point graduate and former Marine.",
-      imageUrl: "https://ui-avatars.com/api/?name=Mary%20Kennedy%20Thompson&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/mary-kennedy-thompson.png",
       searchTerms: ["Mary Kennedy Thompson"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2607,7 +2607,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Chris Williams is a former VP of Human Resources at Microsoft with over 40 years of leadership experience.",
-      imageUrl: "https://ui-avatars.com/api/?name=Chris%20Williams&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/chris-williams.png",
       searchTerms: ["Chris Williams"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2620,7 +2620,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Michelle Songy is the founder and CEO of Press Hook, a PR platform connecting brands with journalists.",
-      imageUrl: "https://unavatar.io/x/michellesongy",
+      imageUrl: "/people/michelle-songy.png",
       searchTerms: ["Michelle Songy"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2634,7 +2634,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Adam Goldstein is the co-founder of Hipmunk, a travel search company backed by Y Combinator.",
-      imageUrl: "https://ui-avatars.com/api/?name=Adam%20Goldstein&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/adam-goldstein.png",
       searchTerms: ["Adam Goldstein"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2647,7 +2647,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Keenan Fisher is an entrepreneur and business leader who has built and scaled businesses.",
-      imageUrl: "https://ui-avatars.com/api/?name=Keenan%20Fisher&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/keenan-fisher.png",
       searchTerms: ["Keenan Fisher"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2660,7 +2660,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Mike Mandell, known as Law By Mike, is a lawyer and content creator who makes legal education accessible through social media.",
-      imageUrl: "https://unavatar.io/x/lawbymike",
+      imageUrl: "/people/mike-mandell.png",
       searchTerms: ["Mike Mandell"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2674,7 +2674,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Emma Grede is the CEO of Good American and co-founder of SKIMS alongside Kim Kardashian.",
-      imageUrl: "https://unavatar.io/x/EmmaGrede",
+      imageUrl: "/people/emma-grede.png",
       searchTerms: ["Emma Grede"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2688,7 +2688,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Whitney Wolfe Herd is the founder and former CEO of Bumble, the dating app that empowers women to make the first move.",
-      imageUrl: "https://unavatar.io/x/WhitWolfeHerd",
+      imageUrl: "/people/whitney-wolfe-herd.png",
       searchTerms: ["Whitney Wolfe Herd"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2702,7 +2702,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Tech & AI",
       bio: "Melanie Perkins is the CEO and co-founder of Canva, the design platform valued at over $40 billion.",
-      imageUrl: "https://unavatar.io/x/MelanieCanva",
+      imageUrl: "/people/melanie-perkins.png",
       searchTerms: ["Melanie Perkins"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2716,7 +2716,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Science & Health",
       bio: "Anne Wojcicki is the co-founder and CEO of 23andMe, the personal genetics company.",
-      imageUrl: "https://unavatar.io/x/annewoj23",
+      imageUrl: "/people/anne-wojcicki.png",
       searchTerms: ["Anne Wojcicki"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2730,7 +2730,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Julie Sweet is the Chair and CEO of Accenture, one of the world's largest professional services companies.",
-      imageUrl: "https://ui-avatars.com/api/?name=Julie%20Sweet&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/julie-sweet.png",
       searchTerms: ["Julie Sweet"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2743,7 +2743,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Lisa Falzone is the co-founder of Revel Systems, a point-of-sale technology company.",
-      imageUrl: "https://unavatar.io/x/LisaFalzone",
+      imageUrl: "/people/lisa-falzone.png",
       searchTerms: ["Lisa Falzone"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2757,7 +2757,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Alexa Hirschfeld is the co-founder and co-CEO of Paperless Post, the digital stationery platform.",
-      imageUrl: "https://ui-avatars.com/api/?name=Alexa%20Hirschfeld&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/alexa-hirschfeld.png",
       searchTerms: ["Alexa Hirschfeld"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2770,7 +2770,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Grace Beverley is a British entrepreneur and fitness influencer who founded TALA and Shreddy. Named Forbes 30 Under 30.",
-      imageUrl: "https://unavatar.io/x/gracebeverley",
+      imageUrl: "/people/grace-beverley.png",
       searchTerms: ["Grace Beverley"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2784,7 +2784,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Venture Capital",
       bio: "Anu Duggal is the founding partner of Female Founders Fund, a venture firm investing in female-founded companies.",
-      imageUrl: "https://unavatar.io/x/AnuDuggal",
+      imageUrl: "/people/anu-duggal.png",
       searchTerms: ["Anu Duggal"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2798,7 +2798,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Venture Capital",
       bio: "Theresia Gouw is the co-founder of Acrew Capital and former partner at Aspect Ventures.",
-      imageUrl: "https://unavatar.io/x/tgouw",
+      imageUrl: "/people/theresia-gouw.png",
       searchTerms: ["Theresia Gouw"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2812,7 +2812,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Tech & AI",
       bio: "Lucy Guo is a co-founder of Scale AI and founder of Passes. She is one of the youngest successful female founders in AI.",
-      imageUrl: "https://unavatar.io/x/lucy_guo",
+      imageUrl: "/people/lucy-guo.png",
       searchTerms: ["Lucy Guo"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2826,7 +2826,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Lexi Burbey is a content creator and entrepreneur building brands in the digital space.",
-      imageUrl: "https://ui-avatars.com/api/?name=Lexi%20Burbey&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/lexi-burbey.png",
       searchTerms: ["Lexi Burbey"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2839,7 +2839,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Anu Adebajo is an entrepreneur and advocate working in business and social impact.",
-      imageUrl: "https://ui-avatars.com/api/?name=Anu%20Adebajo&size=128&background=1a8cff&color=fff&bold=true",
+      imageUrl: "/people/anu-adebajo.png",
       searchTerms: ["Anu Adebajo"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2852,7 +2852,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Natalie Ellis is the co-founder and CEO of BossBabe, a media company and community for female entrepreneurs.",
-      imageUrl: "https://unavatar.io/x/iamnatalie",
+      imageUrl: "/people/natalie-ellis.png",
       searchTerms: ["Natalie Ellis"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2866,7 +2866,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Finance & Investing",
       bio: "Tori Dunlap is the founder of Her First $100K and author of Financial Feminist. She saved $100,000 by age 25.",
-      imageUrl: "https://unavatar.io/x/herfirst100K",
+      imageUrl: "/people/tori-dunlap.png",
       searchTerms: ["Tori Dunlap"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2880,7 +2880,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Finance & Investing",
       bio: "Vivian Tu, known as Your Rich BFF, is a former Wall Street trader turned personal finance educator.",
-      imageUrl: "https://unavatar.io/x/yourrichbff",
+      imageUrl: "/people/vivian-tu.png",
       searchTerms: ["Vivian Tu"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2894,7 +2894,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Creator & Influencer",
       bio: "Mimi Bouchard is an entrepreneur and wellness creator who founded the Superhuman app.",
-      imageUrl: "https://unavatar.io/x/mimimouchard",
+      imageUrl: "/people/mimi-bouchard.png",
       searchTerms: ["Mimi Bouchard"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2908,7 +2908,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Doone Roisin is the founder of Female Startup Club, a media company and podcast highlighting female founders.",
-      imageUrl: "https://unavatar.io/x/dooneroisin",
+      imageUrl: "/people/doone-roisin.png",
       searchTerms: ["Doone Roisin"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2922,7 +2922,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Author & Thought Leader",
       bio: "Brené Brown is a research professor at the University of Houston and bestselling author of Dare to Lead. Her TED talk on vulnerability is one of the most-watched ever.",
-      imageUrl: "https://unavatar.io/x/BreneBrown",
+      imageUrl: "/people/brene-brown.png",
       searchTerms: ["Brené Brown"],
       hostedPodcastSlugs: ["daretolead"],
       socialLinks: {
@@ -2936,7 +2936,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Author & Thought Leader",
       bio: "Marie Forleo is an author, entrepreneur, and host of MarieTV and The Marie Forleo Podcast. She wrote Everything is Figureoutable.",
-      imageUrl: "https://unavatar.io/x/marieforleo",
+      imageUrl: "/people/marie-forleo.png",
       searchTerms: ["Marie Forleo"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2950,7 +2950,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Business & Entrepreneurship",
       bio: "Claire Wasserman is the founder of Ladies Get Paid, a community and platform focused on closing the gender pay gap.",
-      imageUrl: "https://unavatar.io/x/clairewasserman",
+      imageUrl: "/people/claire-wasserman.png",
       searchTerms: ["Claire Wasserman"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2964,7 +2964,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Donald Trump is the 47th President of the United States, real estate developer, and media personality.",
-      imageUrl: "https://unavatar.io/x/realDonaldTrump",
+      imageUrl: "/people/donald-trump.png",
       searchTerms: ["Donald Trump"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2978,7 +2978,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Tucker Carlson is a political commentator and media personality. He previously hosted Tucker Carlson Tonight on Fox News.",
-      imageUrl: "https://unavatar.io/x/TuckerCarlson",
+      imageUrl: "/people/tucker-carlson.png",
       searchTerms: ["Tucker Carlson"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -2992,7 +2992,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Vivek Ramaswamy is an entrepreneur, author, and political figure. He founded Roivant Sciences and co-leads DOGE.",
-      imageUrl: "https://unavatar.io/x/VivekGRamaswamy",
+      imageUrl: "/people/vivek-ramaswamy.png",
       searchTerms: ["Vivek Ramaswamy"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3006,7 +3006,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Ted Cruz is a U.S. Senator from Texas and host of the Verdict with Ted Cruz podcast.",
-      imageUrl: "https://unavatar.io/x/tedcruz",
+      imageUrl: "/people/ted-cruz.png",
       searchTerms: ["Ted Cruz"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3020,7 +3020,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Gavin Newsom is the Governor of California and a prominent Democratic political figure.",
-      imageUrl: "https://unavatar.io/x/GavinNewsom",
+      imageUrl: "/people/gavin-newsom.png",
       searchTerms: ["Gavin Newsom"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3034,7 +3034,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Robert F. Kennedy Jr. is an environmental attorney and political figure who was nominated as Secretary of Health and Human Services.",
-      imageUrl: "https://unavatar.io/x/RobertKennedyJr",
+      imageUrl: "/people/robert-f-kennedy-jr.png",
       searchTerms: ["Robert F. Kennedy Jr."],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3048,7 +3048,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Sam Harris is a neuroscientist, philosopher, and host of the Making Sense podcast. He is the author of The End of Faith and Waking Up.",
-      imageUrl: "https://unavatar.io/x/SamHarrisOrg",
+      imageUrl: "/people/sam-harris.png",
       searchTerms: ["Sam Harris"],
       hostedPodcastSlugs: ["makingsense"],
       socialLinks: {
@@ -3062,7 +3062,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Yuval Noah Harari is a historian and bestselling author of Sapiens, Homo Deus, and 21 Lessons for the 21st Century.",
-      imageUrl: "https://unavatar.io/x/harari_yuval",
+      imageUrl: "/people/yuval-noah-harari.png",
       searchTerms: ["Yuval Noah Harari"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3076,7 +3076,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Malcolm Gladwell is a bestselling author and host of the Revisionist History podcast. He wrote The Tipping Point, Blink, and Outliers.",
-      imageUrl: "https://unavatar.io/x/Gladwell",
+      imageUrl: "/people/malcolm-gladwell.png",
       searchTerms: ["Malcolm Gladwell"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3090,7 +3090,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Science & Health",
       bio: "Dr. Peter Attia is a physician and host of The Drive, a popular health and longevity podcast. He is the author of Outlive.",
-      imageUrl: "https://unavatar.io/x/PeterAttiaMD",
+      imageUrl: "/people/peter-attia.png",
       searchTerms: ["Peter Attia"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3104,7 +3104,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Finance & Investing",
       bio: "Ray Dalio is the founder of Bridgewater Associates, the world's largest hedge fund. He is the author of Principles.",
-      imageUrl: "https://unavatar.io/x/RayDalio",
+      imageUrl: "/people/ray-dalio.png",
       searchTerms: ["Ray Dalio"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3118,7 +3118,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Politics & Public Figures",
       bio: "Candace Owens is a political commentator, author, and host of the Candace Owens Show.",
-      imageUrl: "https://unavatar.io/x/RealCandaceO",
+      imageUrl: "/people/candace-owens.png",
       searchTerms: ["Candace Owens"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3132,7 +3132,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Politics & Public Figures",
       bio: "Tulsi Gabbard is a former U.S. Representative from Hawaii and was nominated as Director of National Intelligence.",
-      imageUrl: "https://unavatar.io/x/TulsiGabbard",
+      imageUrl: "/people/tulsi-gabbard.png",
       searchTerms: ["Tulsi Gabbard"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3146,7 +3146,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "J.D. Vance is the Vice President of the United States and author of Hillbilly Elegy.",
-      imageUrl: "https://unavatar.io/x/JDVance",
+      imageUrl: "/people/jd-vance.png",
       searchTerms: ["J.D. Vance"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3160,7 +3160,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Andrew Cuomo is the former Governor of New York who served during the COVID-19 pandemic.",
-      imageUrl: "https://unavatar.io/x/andrewcuomo",
+      imageUrl: "/people/andrew-cuomo.png",
       searchTerms: ["Andrew Cuomo"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3174,7 +3174,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Politics & Public Figures",
       bio: "Zohran Mamdani is a member of the New York State Assembly representing Astoria, Queens.",
-      imageUrl: "https://unavatar.io/x/ZohranKMamdani",
+      imageUrl: "/people/zohran-mamdani.png",
       searchTerms: ["Zohran Mamdani"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3188,7 +3188,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Politics & Public Figures",
       bio: "Mikie Sherrill is a U.S. Representative from New Jersey, former Navy helicopter pilot, and federal prosecutor.",
-      imageUrl: "https://unavatar.io/x/MikieSherrill",
+      imageUrl: "/people/mikie-sherrill.png",
       searchTerms: ["Mikie Sherrill"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3202,7 +3202,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Creator & Influencer",
       bio: "Casey Neistat is a YouTube creator, filmmaker, and entrepreneur. He co-founded Beme (acquired by CNN).",
-      imageUrl: "https://unavatar.io/x/CaseyNeistat",
+      imageUrl: "/people/casey-neistat.png",
       searchTerms: ["Casey Neistat"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3216,7 +3216,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Jordan Harbinger is the host of The Jordan Harbinger Show, one of the most popular interview podcasts.",
-      imageUrl: "https://unavatar.io/x/JordanHarbinger",
+      imageUrl: "/people/jordan-harbinger.png",
       searchTerms: ["Jordan Harbinger"],
       hostedPodcastSlugs: ["jordanharbinger"],
       socialLinks: {
@@ -3230,7 +3230,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "female",
       category: "Author & Thought Leader",
       bio: "Mel Robbins is a motivational speaker, author, and podcast host. She created the 5 Second Rule and hosts The Mel Robbins Podcast.",
-      imageUrl: "https://unavatar.io/x/melrobbins",
+      imageUrl: "/people/mel-robbins.png",
       searchTerms: ["Mel Robbins"],
       hostedPodcastSlugs: ["melrobbins"],
       socialLinks: {
@@ -3244,7 +3244,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Guy Raz is the host of How I Built This and TED Radio Hour. He interviews the founders behind the world's most iconic companies.",
-      imageUrl: "https://unavatar.io/x/guyraz",
+      imageUrl: "/people/guy-raz.png",
       searchTerms: ["Guy Raz"],
       hostedPodcastSlugs: ["howibuiltthis"],
       socialLinks: {
@@ -3258,7 +3258,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Kipp Bodnar is the Chief Marketing Officer of HubSpot. He co-hosts the Marketing Against the Grain podcast.",
-      imageUrl: "https://unavatar.io/x/kaborippbodnar",
+      imageUrl: "/people/kipp-bodnar.png",
       searchTerms: ["Kipp Bodnar"],
       hostedPodcastSlugs: ["marketing-against-the-grain"],
       socialLinks: {
@@ -3272,7 +3272,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Business & Entrepreneurship",
       bio: "Kieran Flanagan is a marketing leader and former SVP of Marketing at HubSpot. He co-hosts the Marketing Against the Grain podcast.",
-      imageUrl: "https://unavatar.io/x/searchbrat",
+      imageUrl: "/people/kieran-flanagan.png",
       searchTerms: ["Kieran Flanagan"],
       hostedPodcastSlugs: ["marketing-against-the-grain"],
       socialLinks: {
@@ -3286,7 +3286,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Lenny Rachitsky is the host of Lenny's Podcast and author of Lenny's Newsletter. He previously worked at Airbnb.",
-      imageUrl: "https://unavatar.io/x/lennysan",
+      imageUrl: "/people/lenny-rachitsky.png",
       searchTerms: ["Lenny Rachitsky"],
       hostedPodcastSlugs: ["lennys"],
       socialLinks: {
@@ -3300,7 +3300,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Shawn Ryan is a former Navy SEAL and CIA contractor who hosts the Shawn Ryan Show.",
-      imageUrl: "https://unavatar.io/x/ShawnRyan762",
+      imageUrl: "/people/shawn-ryan.png",
       searchTerms: ["Shawn Ryan"],
       hostedPodcastSlugs: ["shawnryanshow"],
       socialLinks: {
@@ -3314,7 +3314,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Author & Thought Leader",
       bio: "Dan Carlin is the host of Hardcore History and Common Sense, two of the most acclaimed podcasts ever made.",
-      imageUrl: "https://unavatar.io/x/HardcoreHistory",
+      imageUrl: "/people/dan-carlin.png",
       searchTerms: ["Dan Carlin"],
       hostedPodcastSlugs: [],
       socialLinks: {
@@ -3328,7 +3328,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Tech & AI",
       bio: "Dwarkesh Patel is the host of the Dwarkesh Podcast, known for deeply intellectual interviews with leading figures in AI.",
-      imageUrl: "https://unavatar.io/x/dwarkeshsp",
+      imageUrl: "/people/dwarkesh-patel.png",
       searchTerms: ["Dwarkesh Patel"],
       hostedPodcastSlugs: ["dwarkesh"],
       socialLinks: {
@@ -3342,7 +3342,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Finance & Investing",
       bio: "Preston Pysh is the co-founder of The Investor's Podcast Network and co-host of We Study Billionaires.",
-      imageUrl: "https://unavatar.io/x/PrestonPysh",
+      imageUrl: "/people/preston-pysh.png",
       searchTerms: ["Preston Pysh"],
       hostedPodcastSlugs: ["westudybillionaires"],
       socialLinks: {
@@ -3356,7 +3356,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
       gender: "male",
       category: "Finance & Investing",
       bio: "Stig Brodersen is the co-founder of The Investor's Podcast Network and co-host of We Study Billionaires.",
-      imageUrl: "https://unavatar.io/x/StigBrodersen",
+      imageUrl: "/people/stig-brodersen.png",
       searchTerms: ["Stig Brodersen"],
       hostedPodcastSlugs: ["westudybillionaires"],
       socialLinks: {
