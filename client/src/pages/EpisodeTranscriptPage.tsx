@@ -332,11 +332,6 @@ export default function EpisodeTranscriptPage() {
       podcastConfig={podcastConfig}
       activeTab="transcript"
       allRecaps={allRecaps}
-      tabSearchValue={searchQuery}
-      tabSearchOnChange={handleSearchChange}
-      tabSearchOnKeyDown={(e) => {
-        if (e.key === "Enter") e.preventDefault();
-      }}
     >
       <div>
         <p className="text-sm text-muted-foreground mb-6" data-testid="text-recap-link">

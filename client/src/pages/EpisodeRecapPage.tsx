@@ -332,17 +332,6 @@ export default function EpisodeRecapPage() {
       podcastConfig={podcastConfig}
       activeTab="recap"
       allRecaps={allRecaps}
-      tabSearchOnKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          const q = (e.target as HTMLInputElement).value.trim();
-          if (q) {
-            window.location.href = `/podcasts/${podcastSlug}/${episodeSlug}/transcript?q=${encodeURIComponent(q)}`;
-          } else {
-            window.location.href = `/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
-          }
-        }
-      }}
     >
       <motion.article
         initial={{ opacity: 0, y: 16 }}

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Search, Users } from "lucide-react";
+import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Users } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -28,9 +28,6 @@ interface EpisodePageLayoutProps {
   activeTab: "recap" | "transcript" | "guests";
   allRecaps?: any[];
   children: React.ReactNode;
-  tabSearchOnKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  tabSearchValue?: string;
-  tabSearchOnChange?: (val: string) => void;
 }
 
 export function EpisodePageLayout({
@@ -41,9 +38,6 @@ export function EpisodePageLayout({
   activeTab,
   allRecaps = [],
   children,
-  tabSearchOnKeyDown,
-  tabSearchValue,
-  tabSearchOnChange,
 }: EpisodePageLayoutProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -292,19 +286,6 @@ export function EpisodePageLayout({
               </Link>
             )}
 
-            <div className="ml-auto relative -mb-px hidden sm:block">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search episode..."
-                autoComplete="off"
-                data-testid="input-tab-search"
-                value={tabSearchValue}
-                onChange={tabSearchOnChange ? (e) => tabSearchOnChange(e.target.value) : undefined}
-                className="w-[200px] h-9 pl-[34px] pr-3 border border-black/[0.08] rounded-lg bg-white text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-[3px] focus:ring-primary/10 focus:w-[260px] transition-all"
-                onKeyDown={tabSearchOnKeyDown}
-              />
-            </div>
           </div>
 
           {children}
