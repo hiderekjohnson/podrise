@@ -4724,21 +4724,7 @@ export const PEOPLE_DIRECTORY: PersonEntry[] = [
         twitter: "https://x.com/davidasinclair",
       },
     },
-    {
-      slug: "daniel-pink",
-      name: "Daniel Pink",
-      title: "Author of 'Drive' & 'When'",
-      gender: "male",
-      category: "Author & Thought Leader",
-      bio: "Daniel Pink is a bestselling author whose books explore the science of motivation, timing, and persuasion. His works include 'Drive,' 'When,' and 'To Sell Is Human.'",
-      imageUrl: "/people/default-avatar.png",
-      searchTerms: ["Daniel Pink"],
-      hostedPodcastSlugs: [],
-      socialLinks: {
-        twitter: "https://x.com/DanielPink",
-      },
-    },
-    {
+      {
       slug: "conor-mcgregor",
       name: "Conor McGregor",
       title: "MMA Fighter & Entrepreneur",

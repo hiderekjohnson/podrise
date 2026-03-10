@@ -994,7 +994,6 @@ export async function registerRoutes(
     { slug: "daniel-kahneman", name: "Daniel Kahneman", title: "Nobel Prize Economist & Author (1934-2024)", gender: "male", category: "Author & Thought Leader", searchTerms: ["Daniel Kahneman", "Kahneman"], hostedSlugs: [] },
     { slug: "matthew-walker", name: "Matthew Walker", title: "Neuroscientist & Author of \'Why We Sleep\'", gender: "male", category: "Science & Health", searchTerms: ["Matthew Walker"], hostedSlugs: [] },
     { slug: "david-sinclair", name: "David Sinclair", title: "Professor of Genetics at Harvard", gender: "male", category: "Science & Health", searchTerms: ["David Sinclair", "Sinclair"], hostedSlugs: [] },
-    { slug: "daniel-pink", name: "Daniel Pink", title: "Author of \'Drive\' & \'When\'", gender: "male", category: "Author & Thought Leader", searchTerms: ["Daniel Pink"], hostedSlugs: [] },
     { slug: "conor-mcgregor", name: "Conor McGregor", title: "MMA Fighter & Entrepreneur", gender: "male", category: "Entertainment", searchTerms: ["Conor McGregor", "McGregor"], hostedSlugs: [] },
     { slug: "lebron-james", name: "LeBron James", title: "NBA Champion & Entrepreneur", gender: "male", category: "Entertainment", searchTerms: ["LeBron James", "LeBron"], hostedSlugs: [] },
     { slug: "cristiano-ronaldo", name: "Cristiano Ronaldo", title: "Football Legend & Entrepreneur", gender: "male", category: "Entertainment", searchTerms: ["Cristiano Ronaldo", "Ronaldo"], hostedSlugs: [] },
