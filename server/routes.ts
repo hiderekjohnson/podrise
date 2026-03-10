@@ -4979,7 +4979,7 @@ RULES:
     const client = await pool.connect();
     try {
       const { rows: [podcastInfo] } = await client.query(
-        `SELECT name, slug, hosts FROM podcast_directory WHERE itunes_id = $1`, [itunesId]
+        `SELECT name, slug, hosts, artwork_url FROM podcast_directory WHERE itunes_id = $1`, [itunesId]
       );
       if (!podcastInfo) {
         console.log(`[EpGen] Podcast not found for itunesId ${itunesId}`);
@@ -4989,6 +4989,7 @@ RULES:
       const podcastName = podcastInfo.name;
       const podcastSlug = slug || podcastInfo.slug || podcastName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
       const hosts = podcastInfo.hosts || "";
+      const podcastArtwork = podcastInfo.artwork_url || "";
 
       epGenState.currentPodcastName = podcastName;
       epGenState.currentItunesId = itunesId;
@@ -5074,7 +5075,7 @@ RULES:
                resources = EXCLUDED.resources`,
             [
               podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
-              durationStr, t.image_url || "", hosts,
+              durationStr, t.image_url || podcastArtwork, hosts,
               recap.tldl, recap.whatHappened,
               recap.keyInsights, recap.quote, recap.quoteAttribution,
               recap.keyTopics,
