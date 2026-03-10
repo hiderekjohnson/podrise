@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent, BookMarked, Wrench, Globe, Mail, GraduationCap, ShoppingBag, Server, Package, Users } from "lucide-react";
+import { Clock, Lightbulb, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -53,48 +53,6 @@ export default function EpisodeRecapPage() {
     website?: string;
     photoUrl?: string;
   }
-
-  interface Sponsor {
-    name: string;
-    description: string;
-    deal?: string | null;
-    couponCode?: string | null;
-    url?: string | null;
-    callToAction?: string | null;
-  }
-
-  interface Resource {
-    name: string;
-    type: string;
-    description: string;
-    url: string | null;
-    author: string | null;
-    context: string;
-  }
-
-  const { data: sponsorsData, isLoading: sponsorsLoading } = useQuery<{ sponsors: Sponsor[] }>({
-    queryKey: ["/api/podcasts", podcastSlug, episodeSlug, "sponsors"],
-    queryFn: async () => {
-      const res = await fetch(`/api/podcasts/${podcastSlug}/${episodeSlug}/sponsors`);
-      if (!res.ok) return { sponsors: [] };
-      return res.json();
-    },
-    enabled: !!podcastSlug && !!episodeSlug,
-  });
-
-  const sponsors = sponsorsData?.sponsors || [];
-
-  const { data: resourcesData, isLoading: resourcesLoading } = useQuery<{ resources: Resource[] }>({
-    queryKey: ["/api/podcasts", podcastSlug, episodeSlug, "resources"],
-    queryFn: async () => {
-      const res = await fetch(`/api/podcasts/${podcastSlug}/${episodeSlug}/resources`);
-      if (!res.ok) return { resources: [] };
-      return res.json();
-    },
-    enabled: !!podcastSlug && !!episodeSlug,
-  });
-
-  const resources = resourcesData?.resources || [];
 
   const askMutation = useMutation({
     mutationFn: async (question: string) => {
@@ -186,8 +144,6 @@ export default function EpisodeRecapPage() {
       "section-key-topics",
       "section-top-questions",
       "section-ask-episode",
-      "section-sponsors",
-      "section-resources",
     ];
 
     const handleScroll = () => {
@@ -206,45 +162,6 @@ export default function EpisodeRecapPage() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [episode]);
-
-  const resourceTypeConfig: Record<string, { icon: typeof BookOpen; color: string; bg: string }> = {
-    book: { icon: BookMarked, color: "text-amber-600", bg: "bg-amber-50" },
-    supplement: { icon: Package, color: "text-green-600", bg: "bg-green-50" },
-    tool: { icon: Wrench, color: "text-blue-600", bg: "bg-blue-50" },
-    app: { icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
-    software: { icon: Globe, color: "text-indigo-600", bg: "bg-indigo-50" },
-    course: { icon: GraduationCap, color: "text-indigo-600", bg: "bg-indigo-50" },
-    newsletter: { icon: Mail, color: "text-rose-600", bg: "bg-rose-50" },
-    product: { icon: Package, color: "text-emerald-600", bg: "bg-emerald-50" },
-    gear: { icon: Wrench, color: "text-slate-600", bg: "bg-slate-50" },
-    service: { icon: Server, color: "text-teal-600", bg: "bg-teal-50" },
-    other: { icon: BookOpen, color: "text-gray-600", bg: "bg-gray-50" },
-  };
-
-  function getResourceTypeConfig(type: string) {
-    return resourceTypeConfig[type] || resourceTypeConfig.other;
-  }
-
-  function safeResourceUrl(url: string | null): string | null {
-    if (!url) return null;
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
-    } catch {}
-    return null;
-  }
-
-  function addUtmParams(url: string, campaign: string): string {
-    try {
-      const u = new URL(url.startsWith("http") ? url : `https://${url}`);
-      if (!u.searchParams.has("utm_source")) u.searchParams.set("utm_source", "podcap");
-      if (!u.searchParams.has("utm_medium")) u.searchParams.set("utm_medium", "referral");
-      if (!u.searchParams.has("utm_campaign")) u.searchParams.set("utm_campaign", campaign);
-      return u.toString();
-    } catch {
-      return url;
-    }
-  }
 
   const handleTopicClick = (topic: string) => {
     const question = `What did this episode say about ${topic.toLowerCase()}?`;
@@ -382,24 +299,6 @@ export default function EpisodeRecapPage() {
           >
             Podcast Chat
           </button>
-          {sponsors.length > 0 && (
-            <button
-              onClick={() => scrollTo("section-sponsors")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-sponsors" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-sponsors"
-            >
-              Sponsors
-            </button>
-          )}
-          {(resources.length > 0 || resourcesLoading) && (
-            <button
-              onClick={() => scrollTo("section-resources")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-resources" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-resources"
-            >
-              Shop the Episode
-            </button>
-          )}
         </nav>
 
         <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
@@ -687,184 +586,6 @@ export default function EpisodeRecapPage() {
             )}
           </div>
         </section>
-        {(sponsors.length > 0 || sponsorsLoading) && (
-          <section id="section-sponsors" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-sponsors">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-rose-500/[0.04] border-b border-rose-500/[0.08]">
-              <Heart className="w-4 h-4 text-rose-500" />
-              <span className="text-sm font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Episode Sponsors</span>
-            </div>
-            <div className="px-6 py-5">
-              <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
-                Podcasts thrive because of the sponsors who support them. Please consider checking out the sponsors who made this episode possible — they help keep the show free for all of us.
-                {resources.length > 0 && (
-                  <span className="block mt-2 text-sm">
-                    Looking for books and products mentioned in this episode?{" "}
-                    <button onClick={() => scrollTo("section-resources")} className="text-primary font-semibold hover:underline" data-testid="link-sponsors-to-resources">
-                      Shop the Episode
-                    </button>
-                  </span>
-                )}
-              </p>
-
-              {sponsorsLoading ? (
-                <div className="flex items-center gap-3 py-4">
-                  <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
-                  <span className="text-sm text-muted-foreground">Finding sponsors mentioned in this episode...</span>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {sponsors.map((sponsor, i) => (
-                    <div
-                      key={i}
-                      className="bg-rose-500/[0.02] border border-rose-500/[0.08] rounded-xl px-5 py-4"
-                      data-testid={`sponsor-card-${i}`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-rose-500/[0.1] shrink-0 mt-0.5">
-                          <Heart className="w-4 h-4 text-rose-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-[15px] font-bold text-foreground" data-testid={`sponsor-name-${i}`}>
-                            {sponsor.name}
-                          </h4>
-
-                          {typeof sponsor.deal === "string" && sponsor.deal.trim() && (
-                            <div className="mt-2 px-3.5 py-2.5 bg-emerald-500/[0.05] border border-emerald-500/[0.1] rounded-lg" data-testid={`sponsor-deal-${i}`}>
-                              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                                <Tag className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                                {sponsor.deal}
-                              </p>
-                            </div>
-                          )}
-
-                          <p className="text-[15px] leading-[1.75] text-muted-foreground mt-2.5">
-                            {sponsor.description}
-                          </p>
-
-                          {typeof sponsor.callToAction === "string" && sponsor.callToAction.trim() && (
-                            <p className="text-[15px] leading-[1.75] text-muted-foreground mt-2" data-testid={`sponsor-cta-${i}`}>
-                              {sponsor.callToAction}
-                            </p>
-                          )}
-
-                          <div className="flex flex-wrap items-center gap-2 mt-3">
-                            {typeof sponsor.url === "string" && sponsor.url.trim() && (
-                              <a
-                                href={addUtmParams(sponsor.url, "sponsor")}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/[0.06] border border-rose-500/[0.1] rounded-lg text-sm font-semibold text-rose-600 hover:bg-rose-500/[0.12] transition-colors"
-                                data-testid={`sponsor-url-${i}`}
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                {sponsor.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                              </a>
-                            )}
-                            {typeof sponsor.couponCode === "string" && sponsor.couponCode.trim() && (
-                              <span
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/[0.06] border border-emerald-500/[0.1] rounded-lg text-sm font-bold text-emerald-700 dark:text-emerald-400 font-mono"
-                                data-testid={`sponsor-code-${i}`}
-                              >
-                                <TicketPercent className="w-3 h-3" />
-                                {sponsor.couponCode}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-        {(resources.length > 0 || resourcesLoading) && (
-          <section id="section-resources" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-resources">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
-              <ShoppingBag className="w-4 h-4 text-amber-600" />
-              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Shop the Episode</span>
-            </div>
-            <div className="px-6 py-5">
-              <p className="text-[15px] leading-relaxed text-muted-foreground mb-5">
-                Books, products, and tools organically mentioned in this episode — not paid promotions.
-                {sponsors.length > 0 && (
-                  <span className="block mt-2 text-sm">
-                    To see paid sponsors for this episode,{" "}
-                    <button onClick={() => scrollTo("section-sponsors")} className="text-primary font-semibold hover:underline" data-testid="link-resources-to-sponsors">
-                      view Episode Sponsors
-                    </button>
-                  </span>
-                )}
-              </p>
-
-              {resourcesLoading ? (
-                <div className="flex items-center gap-3 py-4">
-                  <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-                  <span className="text-sm text-muted-foreground">Finding products mentioned in this episode...</span>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {resources.map((resource, i) => {
-                    const config = getResourceTypeConfig(resource.type);
-                    const Icon = config.icon;
-                    const safe = safeResourceUrl(resource.url);
-                    const isAmazon = safe?.includes("amazon.com");
-                    return (
-                      <div
-                        key={i}
-                        className="bg-amber-500/[0.02] border border-amber-500/[0.08] rounded-xl px-5 py-4"
-                        data-testid={`resource-card-${i}`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config.bg} shrink-0 mt-0.5`}>
-                            <Icon className={`w-4 h-4 ${config.color}`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <h4 className="text-[15px] font-bold text-foreground" data-testid={`resource-name-${i}`}>
-                                {resource.name}
-                              </h4>
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${config.bg} ${config.color}`}>
-                                {resource.type}
-                              </span>
-                            </div>
-                            {resource.author && (
-                              <p className="text-xs text-muted-foreground font-medium mb-1">
-                                by {resource.author}
-                              </p>
-                            )}
-                            <p className="text-[15px] leading-[1.75] text-muted-foreground mt-1">
-                              {resource.description}
-                            </p>
-                            {safe && (
-                              <a
-                                href={isAmazon ? safe : addUtmParams(safe, "resource")}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 mt-3 bg-amber-500/[0.06] border border-amber-500/[0.1] rounded-lg text-sm font-semibold text-amber-700 hover:bg-amber-500/[0.12] transition-colors"
-                                data-testid={`resource-url-${i}`}
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                {isAmazon ? "View on Amazon" : safe.replace(/^https?:\/\//, "").replace(/\/$/, "").slice(0, 40)}
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {resources.length > 0 && (
-                <p className="text-[11px] text-muted-foreground/50 mt-4">
-                  Some links may include affiliate tags. Purchasing through these links supports PodCap at no extra cost to you.
-                </p>
-              )}
-            </div>
-          </section>
-        )}
       </motion.article>
     </EpisodePageLayout>
   );
