@@ -26,7 +26,7 @@ export function EpisodeCard({
   return (
     <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`}>
       <div
-        className="bg-white border border-black/[0.06] rounded-xl px-6 py-6 shadow-sm shadow-black/[0.02] hover:shadow-md hover:shadow-black/[0.04] hover:border-primary/[0.15] transition-all cursor-pointer group"
+        className="bg-white border border-black/[0.1] rounded-xl px-6 py-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:shadow-md hover:shadow-black/[0.06] hover:border-primary/[0.2] transition-all cursor-pointer group"
         data-testid={`${testIdPrefix}-${episodeSlug}`}
       >
         <div className="flex items-center gap-2 mb-2">

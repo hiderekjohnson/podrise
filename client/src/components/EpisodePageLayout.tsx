@@ -340,7 +340,7 @@ export function EpisodePageLayout({
             <h2 className="text-xl font-display font-bold text-foreground mb-6">
               More from {episode.podcastName}
             </h2>
-            <div className="space-y-6">
+            <div className="space-y-5">
               {previousEpisodes.map((ep: any) => (
                 <EpisodeCard
                   key={ep.episodeSlug}
