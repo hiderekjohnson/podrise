@@ -1441,64 +1441,79 @@ export async function registerRoutes(
       };
 
       const topicConfig = topicKeywordsMap[slug];
-      if (!topicConfig) return res.json([]);
-      const { primary, secondary, minScore } = topicConfig;
-      const allKeywords = [...primary, ...secondary];
 
       const { pool: dbPool } = await import("./db");
       const client = await dbPool.connect();
       try {
-        const conditions = allKeywords.map((_, i) => {
-          const p = `$${i + 1}`;
-          return `(episode_title ILIKE ${p} OR what_happened ILIKE ${p} OR tldl ILIKE ${p} OR key_insights::text ILIKE ${p})`;
-        }).join(" OR ");
-        const params = allKeywords.map(k => `%${k}%`);
-        const { rows } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights
-           FROM landing_page_recaps
-           WHERE ${conditions}
-           ORDER BY publish_date DESC
-           LIMIT 100`,
-          params
-        );
+        if (topicConfig) {
+          const { primary, secondary, minScore } = topicConfig;
+          const allKeywords = [...primary, ...secondary];
 
-        function scoreEpisode(ep: any): number {
-          let score = 0;
-          const title = (ep.episode_title || "").toLowerCase();
-          const body = `${ep.what_happened || ""} ${ep.tldl || ""} ${ep.key_insights || ""}`.toLowerCase();
+          const conditions = allKeywords.map((_, i) => {
+            const p = `$${i + 1}`;
+            return `(episode_title ILIKE ${p} OR what_happened ILIKE ${p} OR tldl ILIKE ${p} OR key_insights::text ILIKE ${p})`;
+          }).join(" OR ");
+          const params = allKeywords.map(k => `%${k}%`);
+          const { rows } = await client.query(
+            `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights, key_topics, guests
+             FROM landing_page_recaps
+             WHERE ${conditions}
+             ORDER BY publish_date DESC
+             LIMIT 100`,
+            params
+          );
 
-          for (const kw of primary) {
-            const kwLower = kw.toLowerCase();
-            if (title.includes(kwLower)) score += 5;
-            const bodyMatches = body.split(kwLower).length - 1;
-            score += Math.min(bodyMatches, 5) * 2;
-          }
+          function scoreEpisode(ep: any): number {
+            let score = 0;
+            const title = (ep.episode_title || "").toLowerCase();
+            const body = `${ep.what_happened || ""} ${ep.tldl || ""} ${ep.key_insights || ""}`.toLowerCase();
 
-          for (const kw of secondary) {
-            const kwLower = kw.toLowerCase();
-            if (kw.length <= 3) {
-              const regex = new RegExp(`\\b${kw}\\b`, "gi");
-              if (regex.test(title)) score += 3;
-              const bodyHits = (body.match(new RegExp(`\\b${kw.toLowerCase()}\\b`, "gi")) || []).length;
-              score += Math.min(bodyHits, 4);
-            } else {
-              if (title.includes(kwLower)) score += 3;
+            for (const kw of primary) {
+              const kwLower = kw.toLowerCase();
+              if (title.includes(kwLower)) score += 5;
               const bodyMatches = body.split(kwLower).length - 1;
-              score += Math.min(bodyMatches, 4);
+              score += Math.min(bodyMatches, 5) * 2;
             }
+
+            for (const kw of secondary) {
+              const kwLower = kw.toLowerCase();
+              if (kw.length <= 3) {
+                const regex = new RegExp(`\\b${kw}\\b`, "gi");
+                if (regex.test(title)) score += 3;
+                const bodyHits = (body.match(new RegExp(`\\b${kw.toLowerCase()}\\b`, "gi")) || []).length;
+                score += Math.min(bodyHits, 4);
+              } else {
+                if (title.includes(kwLower)) score += 3;
+                const bodyMatches = body.split(kwLower).length - 1;
+                score += Math.min(bodyMatches, 4);
+              }
+            }
+
+            return score;
           }
 
-          return score;
+          const scored = rows
+            .map(ep => ({ ...ep, _score: scoreEpisode(ep) }))
+            .filter(ep => ep._score >= minScore)
+            .sort((a, b) => b._score - a._score || new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
+            .slice(0, 8)
+            .map(({ _score, ...ep }) => ep);
+
+          res.json(scored);
+        } else {
+          const { rows } = await client.query(
+            `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights, key_topics, guests
+             FROM landing_page_recaps
+             WHERE EXISTS (
+               SELECT 1 FROM unnest(key_topics) AS t(topic)
+               WHERE TRIM(BOTH '-' FROM REGEXP_REPLACE(LOWER(REGEXP_REPLACE(t.topic, '[^a-zA-Z0-9]+', '-', 'g')), '-+', '-', 'g')) = $1
+             )
+             ORDER BY publish_date DESC
+             LIMIT 20`,
+            [slug]
+          );
+          res.json(rows);
         }
-
-        const scored = rows
-          .map(ep => ({ ...ep, _score: scoreEpisode(ep) }))
-          .filter(ep => ep._score >= minScore)
-          .sort((a, b) => b._score - a._score || new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
-          .slice(0, 8)
-          .map(({ _score, ...ep }) => ep);
-
-        res.json(scored);
       } finally {
         client.release();
       }

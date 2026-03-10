@@ -184,16 +184,6 @@ export default function EpisodeRecapPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [episode]);
 
-  const handleTopicClick = (topic: string) => {
-    const question = `What did this episode say about ${topic.toLowerCase()}?`;
-    setAskInput(question);
-    setAskAnswer(null);
-    askMutation.mutate(question);
-    setTimeout(() => {
-      scrollTo("section-ask-episode");
-    }, 100);
-  };
-
   const handleAskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!askInput.trim() || askMutation.isPending) return;
@@ -439,18 +429,17 @@ export default function EpisodeRecapPage() {
               <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics</span>
             </div>
             <div className="px-6 py-5">
-              <p className="text-xs text-muted-foreground mb-3">Click a topic to ask the AI about it</p>
               <div className="flex flex-wrap gap-2">
                 {keyTopics.map((topic: string, i: number) => (
-                  <button
+                  <Link
                     key={i}
-                    onClick={() => handleTopicClick(topic)}
+                    href={`/topics/${topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/[0.04] border border-emerald-500/[0.1] rounded-lg text-sm font-medium text-foreground hover:border-emerald-500/30 hover:bg-emerald-500/[0.08] transition-all active:scale-[0.97]"
                     data-testid={`topic-chip-${i}`}
                   >
                     <Tag className="w-3 h-3 text-emerald-500 shrink-0" />
                     {topic}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>

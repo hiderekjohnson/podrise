@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useLocation, Link, useParams } from "wouter";
-import { ArrowLeft, ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -36,6 +36,8 @@ interface TopicEpisode {
   tldl: string;
   what_happened: string;
   key_insights: string[] | string;
+  key_topics?: string[];
+  guests?: any;
 }
 
 function SEOHead({ name, description }: { name: string; description: string }) {
@@ -104,9 +106,14 @@ export default function TopicDetailPage() {
   const { data: user } = useAuth();
 
   const topic = TOPICS.find(t => t.slug === params.slug);
+  const isDynamic = !topic;
+  const dynamicTopicName = isDynamic
+    ? (params.slug || "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+    : "";
 
   const { data: peopleData } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
+    enabled: !isDynamic,
   });
 
   const { data: topicEpisodes, isLoading: episodesLoading } = useQuery<TopicEpisode[]>({
@@ -168,16 +175,45 @@ export default function TopicDetailPage() {
   const quotes = useMemo(() => topicEpisodes ? extractQuotes(topicEpisodes) : [], [topicEpisodes]);
   const keyInsights = useMemo(() => topicEpisodes ? extractInsights(topicEpisodes) : [], [topicEpisodes]);
 
-  if (!topic) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <p className="text-lg text-muted-foreground">Topic not found</p>
-        <Link href="/topics" className="text-primary hover:underline">Browse all topics</Link>
-      </div>
-    );
-  }
+  const dynamicGuests = useMemo(() => {
+    if (!isDynamic || !topicEpisodes) return [];
+    const guestMap = new Map<string, { name: string; title: string; podcasts: Set<string> }>();
+    for (const ep of topicEpisodes) {
+      const guests = ep.guests;
+      if (!guests) continue;
+      let guestList: any[] = [];
+      if (typeof guests === "string") {
+        try { guestList = JSON.parse(guests); } catch { continue; }
+      } else if (Array.isArray(guests)) {
+        guestList = guests;
+      }
+      for (const g of guestList) {
+        if (!g.name) continue;
+        const key = g.name.toLowerCase().trim();
+        if (!guestMap.has(key)) {
+          guestMap.set(key, { name: g.name, title: g.title || "", podcasts: new Set() });
+        }
+        guestMap.get(key)!.podcasts.add(ep.podcast_name);
+      }
+    }
+    return Array.from(guestMap.values())
+      .sort((a, b) => b.podcasts.size - a.podcasts.size)
+      .slice(0, 8);
+  }, [isDynamic, topicEpisodes]);
 
-  const Icon = ICON_MAP[topic.icon] || Sparkles;
+  const dynamicSummary = useMemo(() => {
+    if (!isDynamic || !topicEpisodes || topicEpisodes.length === 0) return "";
+    const tldls = topicEpisodes
+      .filter(ep => ep.tldl)
+      .slice(0, 3)
+      .map(ep => ep.tldl);
+    if (tldls.length === 0) return "";
+    return tldls[0];
+  }, [isDynamic, topicEpisodes]);
+
+  const Icon = topic ? (ICON_MAP[topic.icon] || Sparkles) : Tag;
+  const topicDisplayName = topic ? topic.name : dynamicTopicName;
+  const topicDescription = topic ? topic.description : dynamicSummary;
 
   const getPersonImage = (slug: string) => {
     const person = PEOPLE_DIRECTORY.find(p => p.slug === slug);
@@ -186,7 +222,7 @@ export default function TopicDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead name={topic.name} description={topic.description} />
+      <SEOHead name={topicDisplayName} description={topicDescription} />
 
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04] dark:border-white/[0.04]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -227,15 +263,15 @@ export default function TopicDetailPage() {
           className="mb-10"
         >
           <div className="flex items-start gap-4 mb-4">
-            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${topic.color} flex items-center justify-center flex-shrink-0`}>
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${topic ? topic.color : "from-emerald-500 to-teal-600"} flex items-center justify-center flex-shrink-0`}>
               <Icon className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground" data-testid="text-topic-title">
-                {topic.name}
+                {topicDisplayName}
               </h1>
               <p className="text-base text-muted-foreground mt-2 max-w-2xl" data-testid="text-topic-description">
-                {topic.description}
+                {topicDescription}
               </p>
             </div>
           </div>
@@ -306,7 +342,7 @@ export default function TopicDetailPage() {
               <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-8 text-center">
                 <Activity className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm font-medium text-foreground mb-1">Episode data coming soon</p>
-                <p className="text-xs text-muted-foreground/60">We're building out {topic.name.toLowerCase()} coverage across our podcast library.</p>
+                <p className="text-xs text-muted-foreground/60">We're building out {topicDisplayName.toLowerCase()} coverage across our podcast library.</p>
               </div>
             )}
           </div>
@@ -360,43 +396,72 @@ export default function TopicDetailPage() {
               </motion.section>
             )}
 
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.25 }}
-              className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden"
-            >
-              <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
-                <TrendingUp className="w-4 h-4 text-emerald-500" />
-                <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-topic-pulse">
-                  Topic Pulse
-                </h2>
-              </div>
-              <div className="px-5 py-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Podcast coverage</span>
-                  <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" /> Active
-                  </span>
+            {!isDynamic && (
+              <motion.section
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden"
+              >
+                <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" />
+                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-topic-pulse">
+                    Topic Pulse
+                  </h2>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Related podcasts</span>
-                  <span className="text-sm font-semibold text-foreground">{relatedPodcasts.length}+</span>
+                <div className="px-5 py-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Podcast coverage</span>
+                    <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5" /> Active
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Related podcasts</span>
+                    <span className="text-sm font-semibold text-foreground">{relatedPodcasts.length}+</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Key voices</span>
+                    <span className="text-sm font-semibold text-foreground">{relatedPeople.length}+</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Companies involved</span>
+                    <span className="text-sm font-semibold text-foreground">{relatedCompanies.length}+</span>
+                  </div>
+                  <div className="h-px bg-black/[0.04] dark:bg-white/[0.04] my-1" />
+                  <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                    {topicDisplayName} is actively discussed across multiple top podcasts. Coverage spans interviews, deep dives, and expert analysis.
+                  </p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Key voices</span>
-                  <span className="text-sm font-semibold text-foreground">{relatedPeople.length}+</span>
+              </motion.section>
+            )}
+
+            {isDynamic && dynamicGuests.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden"
+              >
+                <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
+                  <Users className="w-4 h-4 text-sky-500" />
+                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-related-people">
+                    Related People
+                  </h2>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Companies involved</span>
-                  <span className="text-sm font-semibold text-foreground">{relatedCompanies.length}+</span>
+                <div className="px-5 py-4 space-y-3">
+                  {dynamicGuests.map((g, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0 mt-1.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{g.name}</p>
+                        {g.title && <p className="text-xs text-muted-foreground/60">{g.title}</p>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="h-px bg-black/[0.04] dark:bg-white/[0.04] my-1" />
-                <p className="text-xs text-muted-foreground/60 leading-relaxed">
-                  {topic.name} is actively discussed across multiple top podcasts. Coverage spans interviews, deep dives, and expert analysis.
-                </p>
-              </div>
-            </motion.section>
+              </motion.section>
+            )}
           </div>
         </div>
 
@@ -412,7 +477,7 @@ export default function TopicDetailPage() {
                 Relevant Podcasts
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                These shows put {topic.name.toLowerCase()} front and center. A must-follow if you're into this topic.
+                These shows put {topicDisplayName.toLowerCase()} front and center. A must-follow if you're into this topic.
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-5">
@@ -459,7 +524,7 @@ export default function TopicDetailPage() {
                 Key Voices
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                The people shaping the {topic.name.toLowerCase()} conversation across podcasts. Follow their appearances and mentions.
+                The people shaping the {topicDisplayName.toLowerCase()} conversation across podcasts. Follow their appearances and mentions.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5">
@@ -520,7 +585,7 @@ export default function TopicDetailPage() {
                 Notable Companies
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Companies at the center of the {topic.name.toLowerCase()} landscape, frequently referenced across top podcasts.
+                Companies at the center of the {topicDisplayName.toLowerCase()} landscape, frequently referenced across top podcasts.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
@@ -569,7 +634,7 @@ export default function TopicDetailPage() {
                   <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary">Enterprise</span>
                 </div>
                 <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-3" data-testid="heading-enterprise-cta">
-                  Does your team need to stay on top of {topic.name.toLowerCase()}?
+                  Does your team need to stay on top of {topicDisplayName.toLowerCase()}?
                 </h3>
                 <p className="text-sm text-white/60 leading-relaxed mb-6">
                   We work with enterprise clients to build customized podcast intelligence dashboards. Get structured data, automated monitoring, and real-time insights on the topics that matter to your organization — so your team is always informed.
