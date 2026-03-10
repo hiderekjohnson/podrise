@@ -333,6 +333,23 @@ export default function EpisodeRecapPage() {
           </button>
         </nav>
 
+        <div className="space-y-1.5" data-testid="section-about-episode">
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">About this episode</h2>
+          <p className="text-[15px] leading-[1.85] text-muted-foreground">
+            {episode.tldl}
+            {guests.length > 0 && (
+              <>{" "}Featuring {guests.map((g, i) => {
+                const parts = [];
+                parts.push(g.name);
+                if (g.title) parts[0] += `, ${g.title}`;
+                return parts[0];
+              }).join(", ")}.
+              </>
+            )}
+            {episode.hosts && <>{" "}Hosted by {episode.hosts.replace(/&amp;/g, "&")}.</>}
+          </p>
+        </div>
+
         <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
             <Clock className="w-4 h-4 text-primary" />
