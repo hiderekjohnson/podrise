@@ -522,13 +522,13 @@ export default function EpisodeRecapPage() {
           <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-mentions">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <Sparkles className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions in This {episode.podcastName} Podcast Episode</span>
+              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions</span>
             </div>
             <div className="px-6 py-5 space-y-6">
               {notablePeople.length > 0 && (
                 <div data-testid="section-notable-people">
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">People Mentioned in This {episode.podcastName} Podcast Episode</h3>
-                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">The following people were discussed during this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}. PodCap highlights the most notable individuals mentioned in the conversation.</p>
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">People Mentioned</h3>
+                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">Key people discussed in this episode of {episode.podcastName}{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notablePeople.map((person, i) => (
                       <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
@@ -547,13 +547,13 @@ export default function EpisodeRecapPage() {
                       </Link>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-people-footnote">Only the most notable and relevant mentions are included.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-people-footnote">Only the most notable mentions are included.</p>
                 </div>
               )}
               {notableCompanies.length > 0 && (
                 <div data-testid="section-notable-companies">
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">Companies Mentioned in This {episode.podcastName} Podcast Episode</h3>
-                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">The following companies and organizations were discussed during this episode of the {episode.podcastName} podcast. PodCap highlights the most notable companies referenced in the conversation.</p>
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">Companies Mentioned</h3>
+                  <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">Key companies and organizations discussed in this episode of {episode.podcastName}.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notableCompanies.map((company, i) => (
                       <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>
@@ -572,7 +572,7 @@ export default function EpisodeRecapPage() {
                       </Link>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-companies-footnote">Only the most notable and relevant mentions are included.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-companies-footnote">Only the most notable mentions are included.</p>
                 </div>
               )}
             </div>
