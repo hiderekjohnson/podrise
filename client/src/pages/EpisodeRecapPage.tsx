@@ -421,15 +421,6 @@ export default function EpisodeRecapPage() {
               </div>
             </div>
           )}
-          <div className="px-6 pb-5">
-            <Link
-              href={`/podcasts/${podcastSlug}/${episodeSlug}/transcript`}
-              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
-              data-testid="link-full-transcript"
-            >
-              Read the full transcript →
-            </Link>
-          </div>
         </section>
 
         {hasKeyTopics && (
