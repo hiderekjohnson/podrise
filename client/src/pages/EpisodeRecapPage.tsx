@@ -557,16 +557,18 @@ export default function EpisodeRecapPage() {
                             </div>
                           </div>
                         </Link>
-                        {entityContexts[person.slug] && (
+                        <div className="px-3.5 pb-3">
+                          {entityContexts[person.slug] && (
+                            <p className="text-[13px] leading-relaxed text-muted-foreground mb-2">{entityContexts[person.slug]}</p>
+                          )}
                           <button
                             onClick={() => askAiAbout(person.name, "person")}
-                            title={`Ask the AI: In what context was ${person.name} mentioned?`}
-                            className="block w-full text-left px-3.5 pb-3 cursor-pointer"
+                            className="text-xs font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
                             data-testid={`ask-ai-person-${i}`}
                           >
-                            <p className="text-[13px] leading-relaxed text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{entityContexts[person.slug]}</p>
+                            <Sparkles className="w-3 h-3" /> Ask AI for more context
                           </button>
-                        )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -594,16 +596,18 @@ export default function EpisodeRecapPage() {
                             </div>
                           </div>
                         </Link>
-                        {entityContexts[company.slug] && (
+                        <div className="px-3.5 pb-3">
+                          {entityContexts[company.slug] && (
+                            <p className="text-[13px] leading-relaxed text-muted-foreground mb-2">{entityContexts[company.slug]}</p>
+                          )}
                           <button
                             onClick={() => askAiAbout(company.name, "company")}
-                            title={`Ask the AI: In what context was ${company.name} discussed?`}
-                            className="block w-full text-left px-3.5 pb-3 cursor-pointer"
+                            className="text-xs font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 transition-colors"
                             data-testid={`ask-ai-company-${i}`}
                           >
-                            <p className="text-[13px] leading-relaxed text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{entityContexts[company.slug]}</p>
+                            <Sparkles className="w-3 h-3" /> Ask AI for more context
                           </button>
-                        )}
+                        </div>
                       </div>
                     ))}
                   </div>
