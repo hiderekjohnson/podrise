@@ -594,10 +594,10 @@ export default function EpisodeRecapPage() {
           <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
               <Tag className="w-4 h-4 text-emerald-500" />
-              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Topics Discussed in This {episode.podcastName} Podcast Episode</span>
+              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics in This {episode.podcastName} Episode</span>
             </div>
             <div className="px-6 py-5">
-              <p className="text-sm text-muted-foreground mb-4" data-testid="key-topics-intro">Explore the main topics and themes covered in this episode of the {episode.podcastName} podcast{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}{matchedTopics.length > 0 ? `, including ${matchedTopics.map(t => t.name.toLowerCase()).join(", ")}` : ""}.</p>
+              <p className="text-sm text-muted-foreground mb-4" data-testid="key-topics-intro">Main themes discussed in this episode of the {episode.podcastName} podcast{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
               <div className="flex flex-wrap gap-2">
                 {matchedTopics.map((topic, i) => (
                   <Link
