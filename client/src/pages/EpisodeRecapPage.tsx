@@ -529,59 +529,64 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {hasNotableMentions && (
-          <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-mentions">
+        {notablePeople.length > 0 && (
+          <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-people">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <Sparkles className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions</span>
+              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">People Mentioned in This Episode</span>
             </div>
             <div className="px-6 py-5">
-              {notablePeople.length > 0 && (
-                <div className="mb-5 last:mb-0">
-                  <p className="text-sm text-muted-foreground mb-3" data-testid="notable-people-intro">The following people were mentioned or discussed on this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}:</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {notablePeople.map((person, i) => (
-                      <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
-                        <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
-                          <img
-                            src={person.imageUrl}
-                            alt={person.name}
-                            className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
-                            loading="lazy"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{person.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{person.title}</p>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {notableCompanies.length > 0 && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-3" data-testid="notable-companies-intro">The following companies and organizations were referenced in this {episode.podcastName} episode:</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {notableCompanies.map((company, i) => (
-                      <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>
-                        <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
-                          <img
-                            src={company.logoUrl}
-                            alt={company.name}
-                            className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-1"
-                            loading="lazy"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{company.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{company.details.industry}</p>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">The following people were discussed or referenced during this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}. PodCap highlights the most notable and relevant individuals mentioned in the conversation, focusing on people who were meaningfully discussed rather than brief or passing references.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {notablePeople.map((person, i) => (
+                  <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
+                    <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
+                      <img
+                        src={person.imageUrl}
+                        alt={person.name}
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{person.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{person.title}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-people-footnote">Only the most notable and relevant mentions are included.</p>
+            </div>
+          </section>
+        )}
+
+        {notableCompanies.length > 0 && (
+          <section id={notablePeople.length === 0 ? "section-notable-mentions" : undefined} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-companies">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
+              <Sparkles className="w-4 h-4 text-orange-500" />
+              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Companies Mentioned in This Episode</span>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">The following companies and organizations were discussed or referenced during this episode of the {episode.podcastName} podcast. PodCap highlights the most notable and relevant companies mentioned in the conversation, focusing on businesses that were meaningfully discussed rather than brief or passing references.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {notableCompanies.map((company, i) => (
+                  <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>
+                    <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
+                      <img
+                        src={company.logoUrl}
+                        alt={company.name}
+                        className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-1"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{company.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{company.details.industry}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground/70 mt-4 italic" data-testid="notable-companies-footnote">Only the most notable and relevant mentions are included.</p>
             </div>
           </section>
         )}
