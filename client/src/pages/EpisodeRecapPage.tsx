@@ -558,7 +558,7 @@ export default function EpisodeRecapPage() {
                           </div>
                         </Link>
                         {entityContexts[person.slug] && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 italic">"{entityContexts[person.slug]}"</p>
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{entityContexts[person.slug]}</p>
                         )}
                         <button
                           onClick={() => askAiAbout(person.name, "person")}
@@ -595,7 +595,7 @@ export default function EpisodeRecapPage() {
                           </div>
                         </Link>
                         {entityContexts[company.slug] && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 italic">"{entityContexts[company.slug]}"</p>
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{entityContexts[company.slug]}</p>
                         )}
                         <button
                           onClick={() => askAiAbout(company.name, "company")}

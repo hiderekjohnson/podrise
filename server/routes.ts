@@ -1721,19 +1721,20 @@ export async function registerRoutes(
         return total;
       }
 
-      function extractMentionContext(text: string, terms: string[]): string {
+      function extractRawSnippets(text: string, terms: string[], count: number = 3): string[] {
+        const snippets: string[] = [];
         for (const term of terms) {
           const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const idx = text.search(new RegExp(`\\b${escaped}\\b`, 'i'));
-          if (idx === -1) continue;
-          const sentenceStart = Math.max(0, text.lastIndexOf('.', idx) + 1);
-          const nextPeriod = text.indexOf('.', idx + term.length);
-          const sentenceEnd = nextPeriod !== -1 ? nextPeriod + 1 : Math.min(text.length, idx + 200);
-          let snippet = text.slice(sentenceStart, sentenceEnd).trim();
-          if (snippet.length > 180) snippet = snippet.slice(0, 177) + "...";
-          return snippet;
+          const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+          let match;
+          while ((match = regex.exec(text)) !== null && snippets.length < count) {
+            const start = Math.max(0, match.index - 120);
+            const end = Math.min(text.length, match.index + term.length + 120);
+            snippets.push(text.slice(start, end).replace(/\n/g, ' ').trim());
+          }
+          if (snippets.length >= count) break;
         }
-        return "";
+        return snippets;
       }
 
       const matchedPeopleSlugs = ENTITY_PEOPLE.filter(p => {
@@ -1743,14 +1744,6 @@ export async function registerRoutes(
         if (p.hostedSlugs.includes(req.params.slug)) return false;
         return countMentions(mainContent, p.searchTerms) >= 2;
       }).map(p => p.slug);
-
-      const entityContexts: Record<string, string> = {};
-      for (const slug of matchedPeopleSlugs) {
-        const person = ENTITY_PEOPLE.find(p => p.slug === slug);
-        if (person) {
-          entityContexts[slug] = extractMentionContext(mainContent, person.searchTerms);
-        }
-      }
 
       const RECAP_AMBIGUOUS_TERMS = new Set([
         "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
@@ -1765,15 +1758,90 @@ export async function registerRoutes(
         return countMentions(mainContent, allTerms, RECAP_AMBIGUOUS_TERMS) >= 2;
       }).map(c => c.slug);
 
-      for (const slug of matchedCompanySlugs) {
-        const company = ENTITY_COMPANIES.find(c => c.slug === slug);
-        if (company) {
-          const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
-          entityContexts[slug] = extractMentionContext(mainContent, allTerms);
+      const allMatchedSlugs = [...matchedPeopleSlugs, ...matchedCompanySlugs];
+      let entityContexts: Record<string, string> = {};
+
+      if (allMatchedSlugs.length > 0) {
+        let cached: Record<string, string> | null = null;
+        try {
+          if (recap.entity_contexts_cache) {
+            const parsed = JSON.parse(recap.entity_contexts_cache);
+            const cachedSlugs = Object.keys(parsed).sort().join(',');
+            const currentSlugs = allMatchedSlugs.sort().join(',');
+            if (cachedSlugs === currentSlugs) {
+              cached = parsed;
+            }
+          }
+        } catch {}
+
+        if (cached) {
+          entityContexts = cached;
+        } else {
+          const entityList: { slug: string; name: string; type: string; snippets: string[] }[] = [];
+          for (const slug of matchedPeopleSlugs) {
+            const person = ENTITY_PEOPLE.find(p => p.slug === slug);
+            if (person) {
+              entityList.push({ slug, name: person.name, type: "person", snippets: extractRawSnippets(mainContent, person.searchTerms) });
+            }
+          }
+          for (const slug of matchedCompanySlugs) {
+            const company = ENTITY_COMPANIES.find(c => c.slug === slug);
+            if (company) {
+              const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
+              entityList.push({ slug, name: company.name, type: "company", snippets: extractRawSnippets(mainContent, allTerms) });
+            }
+          }
+
+          if (entityList.length > 0) {
+            try {
+              const { openai } = await import("./replit_integrations/image/client");
+              const entityDescriptions = entityList.map(e =>
+                `- ${e.name} (${e.type}): "${e.snippets.join('" | "')}"`
+              ).join('\n');
+
+              const aiResp = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [{
+                  role: "user",
+                  content: `For each person/company below, write ONE concise sentence (max 20 words) summarizing WHY they were mentioned in this podcast episode. Focus on the discussion context, not a bio. Write in past tense, starting with a verb like "Discussed as...", "Referenced for...", "Mentioned as...", "Cited as...".
+
+Podcast: ${recap.podcastName}
+Episode: "${recap.episodeTitle}"
+
+Entities with transcript excerpts:
+${entityDescriptions}
+
+Respond with JSON: { "slug": "summary sentence", ... }
+Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
+                }],
+                max_tokens: 1000,
+                temperature: 0.3,
+                response_format: { type: "json_object" },
+              });
+
+              const content = aiResp.choices[0]?.message?.content;
+              if (content) {
+                entityContexts = JSON.parse(content);
+              }
+            } catch (err) {
+              console.warn('[EntityContexts] AI generation failed, using fallback:', err);
+            }
+          }
+
+          if (Object.keys(entityContexts).length > 0) {
+            const cacheClient = await pool.connect();
+            try {
+              await cacheClient.query(
+                `UPDATE landing_page_recaps SET entity_contexts_cache = $1 WHERE id = $2`,
+                [JSON.stringify(entityContexts), recap.id]
+              );
+            } finally { cacheClient.release(); }
+          }
         }
       }
 
-      res.json({ ...recap, matchedPeopleSlugs, matchedCompanySlugs, entityContexts });
+      const { entity_contexts_cache: _ecc, ...recapWithoutCache } = recap;
+      res.json({ ...recapWithoutCache, matchedPeopleSlugs, matchedCompanySlugs, entityContexts });
     } catch {
       res.status(500).json({ error: "Failed to fetch recap" });
     }
