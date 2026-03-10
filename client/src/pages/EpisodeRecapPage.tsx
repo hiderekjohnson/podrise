@@ -133,7 +133,8 @@ export default function EpisodeRecapPage() {
   const AMBIGUOUS_TERMS = new Set([
     "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
     "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
-    "The Information", "The Economist"
+    "The Information", "The Economist",
+    "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
   ]);
 
   const notableCompanies = (() => {

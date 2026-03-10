@@ -183,7 +183,7 @@ async function buildSitemap(): Promise<string> {
     xml += `  </url>\n`;
   }
 
-  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex", "box", "cloudflare", "duolingo", "palantir", "airbnb", "spotify", "coinbase", "crowdstrike", "expedia", "circle", "hubspot", "draftkings", "netflix", "salesforce", "citadel-securities", "sp-global", "axon-enterprise", "snowflake", "starbucks", "adobe", "shopify"];
+  const COMPANY_SLUGS = ["openai", "tesla", "nvidia", "google", "microsoft", "apple", "amazon", "anthropic", "meta", "spacex", "box", "cloudflare", "duolingo", "palantir", "airbnb", "spotify", "coinbase", "crowdstrike", "expedia", "circle", "hubspot", "draftkings", "netflix", "salesforce", "citadel-securities", "sp-global", "axon-enterprise", "snowflake", "starbucks", "adobe", "shopify", "chatgpt", "claude", "gemini", "bitcoin", "ethereum", "disney", "cursor", "substack", "slack", "waymo", "zoom", "walmart", "softbank", "elevenlabs", "amd", "broadcom", "product-hunt", "zapier", "cisco", "discord", "nike", "costco", "boeing", "toast-inc", "wework", "qualcomm", "groq", "webflow", "runway-ml"];
   for (const cSlug of COMPANY_SLUGS) {
     xml += `  <url>\n`;
     xml += `    <loc>${DOMAIN}/companies/${cSlug}</loc>\n`;
@@ -1009,7 +1009,7 @@ export async function registerRoutes(
   ];
 
   const ENTITY_COMPANIES = [
-    { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "ChatGPT", "GPT-4"] },
+    { slug: "openai", name: "OpenAI", description: "AI research and deployment company behind ChatGPT and GPT-4", searchTerms: ["OpenAI", "GPT-4"] },
     { slug: "tesla", name: "Tesla", description: "Electric vehicle and clean energy company", searchTerms: ["Tesla"] },
     { slug: "nvidia", name: "NVIDIA", description: "Semiconductor company powering AI and gaming", searchTerms: ["NVIDIA", "Nvidia"] },
     { slug: "google", name: "Google", description: "Technology company and search engine giant", searchTerms: ["Google", "Alphabet", "DeepMind"] },
@@ -1122,12 +1122,42 @@ export async function registerRoutes(
     { slug: "bain", name: "Bain & Company", description: "Global management consulting firm", searchTerms: ["Bain & Company", "Bain"] },
     { slug: "opensea", name: "OpenSea", description: "Largest NFT marketplace", searchTerms: ["OpenSea"] },
     { slug: "chainalysis", name: "Chainalysis", description: "Blockchain analytics and compliance platform", searchTerms: ["Chainalysis"] },
+    { slug: "chatgpt", name: "ChatGPT", description: "OpenAI's conversational AI assistant", searchTerms: ["ChatGPT"] },
+    { slug: "claude", name: "Claude", description: "Anthropic's AI assistant", searchTerms: ["Claude"] },
+    { slug: "gemini", name: "Gemini", description: "Google's multimodal AI model and assistant", searchTerms: ["Gemini"] },
+    { slug: "bitcoin", name: "Bitcoin", description: "First and largest decentralized cryptocurrency", searchTerms: ["Bitcoin", "BTC"] },
+    { slug: "ethereum", name: "Ethereum", description: "Decentralized blockchain platform for smart contracts", searchTerms: ["Ethereum", "ETH"] },
+    { slug: "disney", name: "Disney", description: "Global entertainment and media conglomerate", searchTerms: ["Disney"] },
+    { slug: "cursor", name: "Cursor", description: "AI-powered code editor built on VS Code", searchTerms: ["Cursor"] },
+    { slug: "substack", name: "Substack", description: "Newsletter and publishing platform for independent writers", searchTerms: ["Substack"] },
+    { slug: "slack", name: "Slack", description: "Business communication and collaboration platform", searchTerms: ["Slack"] },
+    { slug: "waymo", name: "Waymo", description: "Alphabet's autonomous driving technology company", searchTerms: ["Waymo"] },
+    { slug: "zoom", name: "Zoom", description: "Video communications platform", searchTerms: ["Zoom"] },
+    { slug: "walmart", name: "Walmart", description: "World's largest retailer by revenue", searchTerms: ["Walmart"] },
+    { slug: "softbank", name: "SoftBank", description: "Japanese conglomerate and technology investment firm", searchTerms: ["SoftBank", "SoftBank Vision Fund"] },
+    { slug: "elevenlabs", name: "ElevenLabs", description: "AI voice synthesis and cloning platform", searchTerms: ["ElevenLabs", "Eleven Labs"] },
+    { slug: "amd", name: "AMD", description: "Semiconductor company designing CPUs and GPUs", searchTerms: ["AMD"] },
+    { slug: "broadcom", name: "Broadcom", description: "Global semiconductor and infrastructure software company", searchTerms: ["Broadcom"] },
+    { slug: "product-hunt", name: "Product Hunt", description: "Platform for discovering and launching new tech products", searchTerms: ["Product Hunt"] },
+    { slug: "zapier", name: "Zapier", description: "No-code automation platform connecting apps and workflows", searchTerms: ["Zapier"] },
+    { slug: "cisco", name: "Cisco", description: "Networking hardware and enterprise technology company", searchTerms: ["Cisco"] },
+    { slug: "discord", name: "Discord", description: "Voice, video, and text communication platform for communities", searchTerms: ["Discord"] },
+    { slug: "nike", name: "Nike", description: "World's largest athletic footwear and apparel company", searchTerms: ["Nike"] },
+    { slug: "costco", name: "Costco", description: "Membership-based warehouse retail chain", searchTerms: ["Costco"] },
+    { slug: "boeing", name: "Boeing", description: "Aerospace and defense manufacturer", searchTerms: ["Boeing"] },
+    { slug: "toast-inc", name: "Toast", description: "Restaurant technology and point-of-sale platform", searchTerms: ["Toast"] },
+    { slug: "wework", name: "WeWork", description: "Flexible workspace and coworking company", searchTerms: ["WeWork"] },
+    { slug: "qualcomm", name: "Qualcomm", description: "Semiconductor company specializing in mobile chipsets", searchTerms: ["Qualcomm"] },
+    { slug: "groq", name: "Groq", description: "AI inference chip company for ultra-fast LLM processing", searchTerms: ["Groq"] },
+    { slug: "webflow", name: "Webflow", description: "No-code website builder and CMS platform", searchTerms: ["Webflow"] },
+    { slug: "runway-ml", name: "Runway", description: "AI-powered creative tools for video generation and editing", searchTerms: ["Runway"] },
   ];
 
   const AMBIGUOUS_TERMS = new Set([
     "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
     "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
-    "The Information", "The Economist"
+    "The Information", "The Economist",
+    "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
   ]);
 
   function termMatchesInText(text: string, term: string): boolean {
