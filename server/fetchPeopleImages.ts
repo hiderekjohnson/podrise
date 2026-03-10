@@ -173,7 +173,14 @@ async function resolvePersonImage(person: { slug: string; name: string; title?: 
     }
   }
 
-  console.log(`  No image found, keeping fallback`);
+  const defaultAvatarPath = path.join(PEOPLE_DIR, "default-avatar.png");
+  const personPath = path.join(PEOPLE_DIR, `${person.slug}.png`);
+  if (fs.existsSync(defaultAvatarPath)) {
+    fs.copyFileSync(defaultAvatarPath, personPath);
+    console.log(`  No image found, set to default avatar`);
+  } else {
+    console.log(`  No image found, keeping fallback`);
+  }
   return { source: "fallback", resolved: false };
 }
 
