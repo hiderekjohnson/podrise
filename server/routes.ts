@@ -1159,7 +1159,7 @@ export async function registerRoutes(
           return `\\m${escaped}\\M`;
         }), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
@@ -1167,24 +1167,25 @@ export async function registerRoutes(
         const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
         const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
         const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
           mentionParams
         );
 
         const guestKeys = new Set(guestEpisodes.map((e: any) => `${e.slug}/${e.episode_slug}`));
-        const mentionsOnly = mentionEpisodes
-          .filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))
-          .map((e: any) => ({
-            slug: e.slug,
-            episode_slug: e.episode_slug,
-            podcast_name: e.podcast_name,
-            episode_title: e.episode_title,
-            publish_date: e.publish_date,
-            artwork_url: e.artwork_url,
-            context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
-          }));
+        const allRelevantEpisodes = [...guestEpisodes, ...mentionEpisodes.filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))];
 
-        const guestAppearancesWithContext = guestEpisodes.map((e: any) => ({
+        const allEpSlugs = allRelevantEpisodes.map((e: any) => e.episode_slug);
+        const transcriptSet = new Set<string>();
+        if (allEpSlugs.length > 0) {
+          const placeholders = allEpSlugs.map((_: any, i: number) => `$${i + 1}`).join(",");
+          const { rows: transcriptRows } = await client.query(
+            `SELECT DISTINCT episode_slug FROM transcript_segments WHERE episode_slug IN (${placeholders})`,
+            allEpSlugs
+          );
+          for (const r of transcriptRows) transcriptSet.add(r.episode_slug);
+        }
+
+        const mapEpisode = (e: any, type: "guest" | "mention") => ({
           slug: e.slug,
           episode_slug: e.episode_slug,
           podcast_name: e.podcast_name,
@@ -1192,7 +1193,97 @@ export async function registerRoutes(
           publish_date: e.publish_date,
           artwork_url: e.artwork_url,
           context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
-        }));
+          tldl: e.tldl || "",
+          type,
+          hasTranscript: transcriptSet.has(e.episode_slug),
+        });
+
+        const guestAppearancesWithContext = guestEpisodes.map((e: any) => mapEpisode(e, "guest"));
+        const mentionsOnly = mentionEpisodes
+          .filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))
+          .map((e: any) => mapEpisode(e, "mention"));
+
+        const topicCounts: Record<string, number> = {};
+        for (const ep of allRelevantEpisodes) {
+          const topics = Array.isArray(ep.key_topics) ? ep.key_topics : [];
+          for (const t of topics) {
+            if (typeof t === "string" && t.trim()) {
+              const key = t.trim();
+              topicCounts[key] = (topicCounts[key] || 0) + 1;
+            }
+          }
+        }
+        const topTopics = Object.entries(topicCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([topic, count]) => ({ topic, count, slug: topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }));
+
+        const podcastCounts: Record<string, { name: string; count: number; artwork_url: string; latestDate: string; latestTitle: string; latestEpisodeSlug: string; podcastSlug: string }> = {};
+        for (const ep of allRelevantEpisodes) {
+          const key = ep.slug;
+          if (!podcastCounts[key]) {
+            podcastCounts[key] = {
+              name: ep.podcast_name,
+              count: 0,
+              artwork_url: ep.artwork_url,
+              latestDate: ep.publish_date || "",
+              latestTitle: ep.episode_title,
+              latestEpisodeSlug: ep.episode_slug,
+              podcastSlug: ep.slug,
+            };
+          }
+          podcastCounts[key].count++;
+          if (ep.publish_date && ep.publish_date > podcastCounts[key].latestDate) {
+            podcastCounts[key].latestDate = ep.publish_date;
+            podcastCounts[key].latestTitle = ep.episode_title;
+            podcastCounts[key].latestEpisodeSlug = ep.episode_slug;
+          }
+        }
+        const podcastsFeaturingPerson = Object.values(podcastCounts)
+          .sort((a, b) => b.count - a.count);
+
+        const quotes: { text: string; podcastName: string; episodeTitle: string; date: string; slug: string; episodeSlug: string }[] = [];
+        const seenQuotes = new Set<string>();
+        const addQuote = (text: string, ep: any) => {
+          if (quotes.length >= 5) return;
+          const clean = text.trim();
+          if (clean.length < 40 || clean.length > 400 || seenQuotes.has(clean)) return;
+          seenQuotes.add(clean);
+          quotes.push({
+            text: clean,
+            podcastName: ep.podcast_name,
+            episodeTitle: ep.episode_title,
+            date: ep.publish_date || "",
+            slug: ep.slug,
+            episodeSlug: ep.episode_slug,
+          });
+        };
+        for (const ep of allRelevantEpisodes) {
+          if (quotes.length >= 5) break;
+          const insights = ep.key_insights_text;
+          if (insights) {
+            try {
+              const parsed = JSON.parse(insights);
+              if (Array.isArray(parsed)) {
+                for (const insight of parsed) {
+                  const text = typeof insight === "string" ? insight : "";
+                  if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
+                    addQuote(text, ep);
+                  }
+                }
+              }
+            } catch {}
+          }
+        }
+        if (quotes.length < 5) {
+          for (const ep of allRelevantEpisodes) {
+            if (quotes.length >= 5) break;
+            const context = extractMentionContext([ep.what_happened, ep.tldl].filter(Boolean), person.searchTerms);
+            if (context && context.length > 40) {
+              addQuote(context, ep);
+            }
+          }
+        }
 
         res.json({
           name: person.name,
@@ -1202,6 +1293,9 @@ export async function registerRoutes(
           mentions: mentionsOnly,
           guestCount: guestAppearancesWithContext.length,
           mentionCount: mentionsOnly.length,
+          topTopics,
+          podcastsFeaturingPerson,
+          quotes,
         });
       } finally {
         client.release();

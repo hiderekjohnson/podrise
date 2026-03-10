@@ -1,0 +1,274 @@
+Yes. Send Replit this version instead:
+
+Update our existing /people/[slug] pages so they become much stronger SEO and product pages, but do not create any new page types or new URL systems as part of this work.
+
+We are vibe-coding this site. We do not have software engineers. Keep implementation practical, lightweight, and based on data and pages we already have.
+
+Important constraints
+
+Do not create any new pages for this project right now.
+
+That means:
+	•	do not create new topic pages
+	•	do not create new people pages
+	•	do not create new company pages
+	•	do not create new search result pages
+	•	do not create new transcript index systems
+	•	do not create any complicated AI search architecture
+
+You can only link to pages that already exist in the system:
+	•	existing people pages
+	•	existing company pages
+	•	existing topic pages
+	•	existing podcast pages
+	•	existing episode recap pages
+	•	existing transcript pages, if they already exist
+
+If a related topic, person, or company page does not already exist, do not invent it and do not link it.
+
+Overall goal
+
+Turn each person page from a thin profile page into a much richer SEO page and discovery hub, without building a bunch of new infrastructure.
+
+The page should feel like:
+“the best place to discover what this person has said on podcasts”
+
+But it needs to be done in a simple, practical way using our current data and current page system.
+
+1. Update the H1, title tag, and intro
+
+Change the on-page H1 and SEO title from just the person’s name to something like:
+
+Elon Musk Podcast Appearances, Interviews, and Mentions
+
+Keep the name visually prominent, but include the search-intent keywords in the H1 and metadata.
+
+Update the intro copy so it is focused on podcast discovery, not just a generic biography.
+
+Example pattern:
+
+“Looking for podcast interviews with Elon Musk? PodCap tracks podcast appearances, interviews, and mentions across business, technology, and AI podcasts. Explore recaps, transcripts, and key themes from podcast conversations featuring Elon Musk.”
+
+Do this dynamically for all people pages.
+
+2. Keep the current hero card, but improve it
+
+Keep:
+	•	photo
+	•	name
+	•	short role line
+	•	short bio
+	•	external links
+	•	guest appearances count
+	•	mentions count
+	•	related companies
+	•	similar people
+
+Improve it by:
+	•	making guest appearances and mentions counts jump to the relevant section below
+	•	linking related companies only if those company pages already exist
+	•	linking similar people only if those people pages already exist
+	•	making the hero copy cleaner and more search-friendly
+
+3. Add a lightweight “Key Ideas” section
+
+Add a section like:
+
+Key Ideas Elon Musk Discusses on Podcasts
+
+This should be generated from content we already have, preferably from existing recaps first, and transcripts second if needed.
+
+Keep this simple. Do not build a complex AI pipeline.
+
+For each person, try to surface 3 to 5 recurring themes based on associated episodes. Each theme should include:
+	•	a short subheading
+	•	a short paragraph
+	•	links to a few relevant existing episode recap pages
+	•	optional link to an existing topic page, but only if that topic page already exists
+
+If there is not enough good data, show fewer themes or hide the section.
+
+4. Add a lightweight “Notable Quotes” section
+
+Add a section like:
+
+Notable Elon Musk Quotes From Podcasts
+
+Keep this simple and scannable.
+
+Use short quotes or short quoted excerpts pulled from existing content. For each quote show:
+	•	quote
+	•	podcast name
+	•	episode title
+	•	date
+	•	link to existing recap page
+	•	link to existing transcript page only if it already exists
+
+Do not build quote extraction tooling that is too advanced. A basic best-effort version is enough.
+
+5. Add an FAQ section, but keep it template-driven
+
+Add a FAQ section for each person page with concise answers based on existing content.
+
+Examples:
+	•	What podcasts has Elon Musk appeared on?
+	•	What does Elon Musk talk about on podcasts?
+	•	Has Elon Musk been on Joe Rogan?
+	•	What companies is Elon Musk associated with?
+
+Use questions we can answer from existing data. If the answer is weak, skip that question.
+
+Add FAQ schema markup.
+
+6. Improve the existing appearances and mentions sections
+
+Keep the existing tabs, but make the cards better.
+
+Each card should include:
+	•	podcast image
+	•	episode title
+	•	podcast name
+	•	date
+	•	label for guest or mention
+	•	better snippet text
+	•	link to existing recap page
+	•	link to existing transcript page if it already exists
+
+Add simple sorting if easy:
+	•	newest
+	•	oldest
+
+Do not build anything complicated if it slows the project down.
+
+7. Add a “Podcasts Featuring This Person” section
+
+Create a section showing which existing podcasts this person appears on or is mentioned on most often.
+
+Each item should show:
+	•	podcast name
+	•	count of related episodes
+	•	latest related episode
+	•	link to the existing podcast page
+
+This is valuable and should be straightforward from current data.
+
+8. Add a simple timeline section
+
+Add a year-based timeline of appearances and mentions.
+
+Example:
+2026
+	•	episode title
+	•	podcast
+	•	guest or mention
+	•	link
+
+Keep it simple. No complicated visual component needed.
+
+9. Add related topics and people, but only from existing entities
+
+Add sections like:
+	•	Topics Associated With Elon Musk
+	•	People Often Mentioned With Elon Musk
+
+But only show entities that already exist as real pages in our system.
+
+Do not generate fake entities.
+Do not create missing pages to support this.
+Do not create placeholders.
+
+If we do not already have the page, do not link it.
+
+10. Add internal links throughout the page
+
+Use internal links wherever natural, but only to pages that already exist:
+	•	people pages
+	•	company pages
+	•	topic pages
+	•	podcast pages
+	•	recap pages
+	•	transcript pages
+
+This page should become a stronger node in the existing internal linking graph, without expanding the site structure.
+
+11. Do not build complex AI search
+
+Do not build “search across all transcripts for this person” or anything ambitious like semantic search, embeddings, vector databases, or cross-site AI retrieval for this feature.
+
+That is too complex for where we are right now.
+
+If we want a lightweight search-like feature, keep it extremely simple, for example:
+	•	basic keyword filter across this page’s already loaded appearance/mention items
+	•	or a simple text filter over existing associated recaps/snippets only
+
+But do not build any new backend search architecture.
+
+We are optimizing for speed, simplicity, and shipping.
+
+12. Add schema and metadata
+
+Please add:
+	•	Person schema
+	•	FAQPage schema
+	•	breadcrumb schema
+	•	strong title tags
+	•	strong meta descriptions
+	•	open graph tags
+
+Example title:
+Elon Musk Podcast Appearances, Interviews, and Mentions | PodCap
+
+Example meta description:
+Explore Elon Musk podcast appearances, interviews, mentions, quotes, and episode recaps across top business, technology, and AI podcasts.
+
+13. Increase indexable text, but keep it clean
+
+The page should have substantially more useful, indexable text than it does now, but still feel premium and product-led.
+
+Do not make it feel like an ugly SEO spam page.
+
+We want richer content from:
+	•	better intro copy
+	•	key ideas
+	•	FAQ
+	•	quote section
+	•	richer episode snippets
+	•	podcast grouping
+	•	timeline
+	•	internal linking
+
+That should give us a much stronger page without building a bunch of new systems.
+
+14. Make this template scalable
+
+Everything should work as the default template for all existing /people/[slug] pages.
+
+Do not hardcode Elon Musk.
+Do not special-case one person.
+Do not require manual editing per page.
+
+15. Hide weak or empty sections
+
+If a person does not have enough associated content for a section:
+	•	hide the section, or
+	•	show a reduced version
+
+Do not show empty shells.
+
+16. Priority order
+
+Build in this order:
+	1.	H1, title tag, meta description, intro rewrite
+	2.	better hero card links and jump links
+	3.	Key Ideas section
+	4.	FAQ section with schema
+	5.	richer appearances and mentions cards
+	6.	Podcasts Featuring This Person
+	7.	related existing topics, people, companies
+	8.	Notable Quotes
+	9.	simple timeline
+	10.	metadata and schema polish
+
+Final principle
+
+Please keep this implementation grounded in what already exists. No new page systems, no ambitious AI search, no heavy backend work. Just make the existing people pages much better, much deeper, and much more internally connected using current data and current URLs.
