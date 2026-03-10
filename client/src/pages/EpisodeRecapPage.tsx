@@ -329,7 +329,7 @@ export default function EpisodeRecapPage() {
             <span className="text-sm font-bold text-primary uppercase tracking-wider">Quick Recap</span>
           </div>
           <div className="px-6 py-5">
-            <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
+            <p className="text-[17px] leading-[1.85] text-foreground">{episode.tldl}</p>
           </div>
         </section>
 
