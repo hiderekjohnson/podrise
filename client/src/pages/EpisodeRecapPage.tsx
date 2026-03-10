@@ -417,7 +417,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-ask-episode" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-ask"
           >
-            Ask the Episode (AI)
+            Ask the AI
           </button>
         </nav>
 
@@ -725,11 +725,11 @@ export default function EpisodeRecapPage() {
         <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-ask-episode">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
             <Sparkles className="w-4 h-4 text-violet-500" />
-            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask the Episode</span>
+            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask the AI About This Episode</span>
             <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider"><Sparkles className="w-3 h-3" /> AI</span>
           </div>
           <div className="px-6 py-5">
-            <p className="text-sm text-muted-foreground mb-4">Search the full episode transcript using AI.</p>
+            <p className="text-sm text-muted-foreground mb-4">Search the full transcript of this {episode.podcastName} episode and ask questions about anything discussed in the conversation.</p>
             <form onSubmit={handleAskSubmit} className="flex gap-2" data-testid="form-ask-episode">
               <input
                 type="text"
