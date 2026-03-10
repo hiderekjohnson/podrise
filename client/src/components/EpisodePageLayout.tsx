@@ -296,7 +296,7 @@ export function EpisodePageLayout({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-4xl pb-16"
+          className="w-full max-w-4xl pb-16 mt-10"
         >
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
@@ -304,7 +304,7 @@ export function EpisodePageLayout({
                 <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
                   Get {episode.podcastName} recaps in your inbox
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[15px] text-muted-foreground">
                   We'll send a recap whenever a new episode drops.
                 </p>
               </div>
@@ -334,13 +334,13 @@ export function EpisodePageLayout({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full max-w-4xl pb-16"
+            className="w-full max-w-4xl pb-16 mt-2"
             data-testid="section-more-episodes"
           >
-            <h2 className="text-lg font-display font-bold text-foreground mb-5">
+            <h2 className="text-xl font-display font-bold text-foreground mb-6">
               More from {episode.podcastName}
             </h2>
-            <div className="space-y-5">
+            <div className="space-y-6">
               {previousEpisodes.map((ep: any) => (
                 <EpisodeCard
                   key={ep.episodeSlug}
