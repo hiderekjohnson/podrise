@@ -1,6 +1,6 @@
 import { useState, Fragment } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, CheckCircle2, RefreshCw, ArrowUp, ArrowDown, AlertCircle, Square, Zap, CircleDot } from "lucide-react";
+import { Loader2, CheckCircle2, RefreshCw, ArrowUp, ArrowDown, AlertCircle, Square, Zap, CircleDot, RotateCcw } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,6 +12,8 @@ interface RecapQuality {
   topics: number;
   questions: number;
   guests: number;
+  sponsors: number;
+  resources: number;
 }
 
 interface EpisodePagePodcast {
@@ -76,6 +78,18 @@ export default function EpisodePagesTracker() {
     },
     onError: (err: any) => {
       toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+    },
+  });
+
+  const reprocess = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/admin/episode-pages-reprocess");
+    },
+    onSuccess: () => {
+      toast({ title: "Reprocessing Started", description: "Filling in missing data for existing episode pages." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err?.message || "Failed to start reprocessing", variant: "destructive" });
     },
   });
 
@@ -244,19 +258,34 @@ export default function EpisodePagesTracker() {
         </div>
         <div className="flex items-center gap-2">
           {!isRunning ? (
-            <button
-              data-testid="button-auto-queue"
-              onClick={() => {
-                if (confirm("Start auto-generating episode pages for all incomplete podcasts, one at a time?")) {
-                  startAuto.mutate();
-                }
-              }}
-              disabled={startAuto.isPending}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              Start Processing
-            </button>
+            <>
+              <button
+                data-testid="button-reprocess"
+                onClick={() => {
+                  if (confirm("Reprocess all existing episode pages to fill in missing data (guests, sponsors, resources)?")) {
+                    reprocess.mutate();
+                  }
+                }}
+                disabled={reprocess.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-all"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reprocess Incomplete
+              </button>
+              <button
+                data-testid="button-auto-queue"
+                onClick={() => {
+                  if (confirm("Start auto-generating episode pages for all incomplete podcasts, one at a time?")) {
+                    startAuto.mutate();
+                  }
+                }}
+                disabled={startAuto.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Start Processing
+              </button>
+            </>
           ) : (
             <button
               data-testid="button-stop-auto"
@@ -372,15 +401,17 @@ export default function EpisodePagesTracker() {
                       <td colSpan={6} className="px-4 py-3">
                         <div className="text-xs font-bold text-muted-foreground mb-2">Recap Quality Breakdown ({p.recapCount} pages)</div>
                         {p.recapCount > 0 ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
                             {([
                               { label: "TLDL", value: p.quality.tldl, key: "tldl" },
-                              { label: "What Happened", value: p.quality.whatHappened, key: "whatHappened" },
+                              { label: "Chapters", value: p.quality.whatHappened, key: "whatHappened" },
                               { label: "Key Insights", value: p.quality.insights, key: "insights" },
                               { label: "Quote", value: p.quality.quote, key: "quote" },
                               { label: "Key Topics", value: p.quality.topics, key: "topics" },
-                              { label: "Top Questions", value: p.quality.questions, key: "questions" },
+                              { label: "Q&A", value: p.quality.questions, key: "questions" },
                               { label: "Guests", value: p.quality.guests, key: "guests" },
+                              { label: "Sponsors", value: p.quality.sponsors, key: "sponsors" },
+                              { label: "Resources", value: p.quality.resources, key: "resources" },
                             ]).map(q => {
                               const qPct = p.recapCount > 0 ? Math.round((q.value / p.recapCount) * 100) : 0;
                               return (

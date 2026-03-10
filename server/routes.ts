@@ -4873,7 +4873,9 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
              COALESCE(lpr.has_quote, 0)::int as has_quote,
              COALESCE(lpr.has_topics, 0)::int as has_topics,
              COALESCE(lpr.has_questions, 0)::int as has_questions,
-             COALESCE(lpr.has_guests, 0)::int as has_guests
+             COALESCE(lpr.has_guests, 0)::int as has_guests,
+             COALESCE(lpr.has_sponsors, 0)::int as has_sponsors,
+             COALESCE(lpr.has_resources, 0)::int as has_resources
            FROM podcast_directory pd
            LEFT JOIN (
              SELECT podcast_id, 
@@ -4891,7 +4893,9 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
                     SUM(CASE WHEN quote IS NOT NULL AND quote != '' THEN 1 ELSE 0 END)::int as has_quote,
                     SUM(CASE WHEN key_topics IS NOT NULL AND array_length(key_topics, 1) > 0 THEN 1 ELSE 0 END)::int as has_topics,
                     SUM(CASE WHEN top_questions IS NOT NULL AND top_questions != '' THEN 1 ELSE 0 END)::int as has_questions,
-                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' AND guests != '[]' THEN 1 ELSE 0 END)::int as has_guests
+                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' AND guests != '[]' THEN 1 ELSE 0 END)::int as has_guests,
+                    SUM(CASE WHEN sponsors IS NOT NULL AND sponsors != '' AND sponsors != '[]' THEN 1 ELSE 0 END)::int as has_sponsors,
+                    SUM(CASE WHEN resources IS NOT NULL AND resources != '' AND resources != '[]' THEN 1 ELSE 0 END)::int as has_resources
              FROM landing_page_recaps
              GROUP BY itunes_id
            ) lpr ON pd.itunes_id = lpr.itunes_id
@@ -4934,6 +4938,8 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
                 topics: p.has_topics,
                 questions: p.has_questions,
                 guests: p.has_guests,
+                sponsors: p.has_sponsors,
+                resources: p.has_resources,
               },
             };
           }),
@@ -5067,8 +5073,8 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
 
           await client.query(
             `INSERT INTO landing_page_recaps 
-             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, top_questions, audio_url)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, top_questions, audio_url, sponsors, guests, resources)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
              ON CONFLICT DO NOTHING`,
             [
               podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
@@ -5078,6 +5084,9 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
               recap.keyTopics,
               recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
               t.audio_url || "",
+              recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+              recap.guests ? JSON.stringify(recap.guests) : "[]",
+              recap.resources ? JSON.stringify(recap.resources) : "[]",
             ]
           );
 
@@ -5175,6 +5184,142 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
 
     runAutoQueue().catch(err => {
       console.error(`[EpGen] Auto-queue fatal error:`, err);
+      epGenState.running = false;
+      epGenState.autoQueue = false;
+    });
+  });
+
+  async function reprocessIncompletePages() {
+    const { generateRecapFromTranscript } = await import("./recapGenerator");
+    
+    while (epGenState.autoQueue && epGenState.running) {
+      const client = await pool.connect();
+      try {
+        const { rows: incomplete } = await client.query(
+          `SELECT lpr.id, lpr.itunes_id, lpr.podcast_name, lpr.episode_title, lpr.episode_slug
+           FROM landing_page_recaps lpr
+           WHERE (
+             lpr.guests IS NULL OR lpr.guests = '' OR lpr.guests = '[]'
+             OR lpr.sponsors IS NULL OR lpr.sponsors = '' OR lpr.sponsors = '[]'
+             OR lpr.resources IS NULL OR lpr.resources = '' OR lpr.resources = '[]'
+             OR lpr.top_questions IS NULL OR lpr.top_questions = ''
+             OR lpr.tldl IS NULL OR lpr.tldl = ''
+             OR lpr.what_happened IS NULL OR lpr.what_happened = ''
+             OR lpr.key_insights IS NULL OR array_length(lpr.key_insights, 1) IS NULL
+             OR lpr.quote IS NULL OR lpr.quote = ''
+             OR lpr.key_topics IS NULL OR array_length(lpr.key_topics, 1) IS NULL
+           )
+           ORDER BY lpr.itunes_id, lpr.episode_title
+           LIMIT 50`
+        );
+
+        if (incomplete.length === 0) {
+          console.log(`[EpGen] Reprocess complete - all pages fully populated`);
+          break;
+        }
+
+        const currentPodcast = incomplete[0].podcast_name;
+        const currentItunesId = incomplete[0].itunes_id;
+        const batch = incomplete.filter(r => r.itunes_id === currentItunesId);
+
+        epGenState.currentPodcastName = `Reprocess: ${currentPodcast}`;
+        epGenState.currentItunesId = currentItunesId;
+        epGenState.totalEpisodes = batch.length;
+        epGenState.currentEpisode = 0;
+        epGenState.generated = 0;
+        epGenState.failed = 0;
+        epGenState.skipped = 0;
+
+        console.log(`[EpGen] Reprocessing ${batch.length} incomplete pages for ${currentPodcast}`);
+
+        for (const row of batch) {
+          if (!epGenState.running) break;
+          epGenState.currentEpisode++;
+
+          try {
+            const { rows: transcriptRows } = await client.query(
+              `SELECT transcript FROM episode_transcripts
+               WHERE podcast_id = $1
+                 AND transcript IS NOT NULL AND transcript != ''
+                 AND (
+                   lower(trim(episode_title)) = lower(trim($2))
+                   OR lower(regexp_replace(trim(episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $3
+                 )
+               LIMIT 1`,
+              [row.itunes_id, row.episode_title, row.episode_slug]
+            );
+
+            if (transcriptRows.length === 0) {
+              epGenState.skipped++;
+              continue;
+            }
+
+            const recap = await generateRecapFromTranscript(transcriptRows[0].transcript, row.podcast_name, row.episode_title);
+            if (!recap) {
+              epGenState.failed++;
+              continue;
+            }
+
+            await client.query(
+              `UPDATE landing_page_recaps SET
+                tldl = COALESCE(NULLIF($1, ''), tldl),
+                what_happened = COALESCE(NULLIF($2, ''), what_happened),
+                key_insights = CASE WHEN $3::text[] IS NOT NULL AND array_length($3::text[], 1) > 0 THEN $3::text[] ELSE key_insights END,
+                quote = COALESCE(NULLIF($4, ''), quote),
+                quote_attribution = COALESCE(NULLIF($5, ''), quote_attribution),
+                key_topics = CASE WHEN $6::text[] IS NOT NULL AND array_length($6::text[], 1) > 0 THEN $6::text[] ELSE key_topics END,
+                top_questions = COALESCE(NULLIF($7, ''), top_questions),
+                sponsors = COALESCE(NULLIF($8, ''), NULLIF($8, '[]'), sponsors),
+                guests = COALESCE(NULLIF($9, ''), NULLIF($9, '[]'), guests),
+                resources = COALESCE(NULLIF($10, ''), NULLIF($10, '[]'), resources)
+              WHERE id = $11`,
+              [
+                recap.tldl || "",
+                recap.whatHappened || "",
+                recap.keyInsights && recap.keyInsights.length > 0 ? recap.keyInsights : null,
+                recap.quote || "",
+                recap.quoteAttribution || "",
+                recap.keyTopics && recap.keyTopics.length > 0 ? recap.keyTopics : null,
+                recap.topQuestions ? JSON.stringify(recap.topQuestions) : "",
+                recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+                recap.guests ? JSON.stringify(recap.guests) : "[]",
+                recap.resources ? JSON.stringify(recap.resources) : "[]",
+                row.id,
+              ]
+            );
+
+            epGenState.generated++;
+            if (epGenState.currentEpisode % 5 === 0) {
+              console.log(`[EpGen] Reprocess ${currentPodcast}: ${epGenState.currentEpisode}/${epGenState.totalEpisodes} (${epGenState.generated} updated)`);
+            }
+          } catch (err) {
+            epGenState.failed++;
+            console.error(`[EpGen] Reprocess error for "${row.episode_title}":`, err);
+          }
+        }
+
+        epGenState.completedPodcasts.push(currentItunesId);
+        console.log(`[EpGen] Reprocess finished ${currentPodcast}: ${epGenState.generated} updated, ${epGenState.failed} failed, ${epGenState.skipped} skipped`);
+      } finally {
+        client.release();
+      }
+    }
+
+    epGenState.running = false;
+    epGenState.autoQueue = false;
+  }
+
+  app.post("/api/admin/episode-pages-reprocess", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    if (epGenState.running) return res.status(409).json({ message: "Generation already in progress" });
+
+    epGenState.running = true;
+    epGenState.autoQueue = true;
+    epGenState.completedPodcasts = [];
+    res.json({ started: true, mode: "reprocess" });
+
+    reprocessIncompletePages().catch(err => {
+      console.error(`[EpGen] Reprocess fatal error:`, err);
       epGenState.running = false;
       epGenState.autoQueue = false;
     });

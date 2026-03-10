@@ -26,6 +26,9 @@ export interface ParsedEpisode {
   quoteAttribution?: string;
   keyTopics?: string[];
   topQuestions?: { question: string; answer: string }[];
+  sponsors?: { name: string; description: string; couponCode?: string; url?: string; howToRedeem?: string }[];
+  guests?: { name: string; title: string; bio: string; twitter?: string; linkedin?: string; instagram?: string; website?: string; photoUrl?: string; topicsDiscussed: string[] }[];
+  resources?: { name: string; type: string; description: string; url?: string; author?: string; context?: string }[];
 }
 
 interface RecapResult {
@@ -454,8 +457,8 @@ export async function generateRecapFromTranscript(
   podcastName: string,
   episodeTitle: string,
 ): Promise<ParsedEpisode | null> {
-  const truncated = transcript.slice(0, 8000);
-  const prompt = `You are PodCap, an AI that writes podcast episode recaps. Generate a recap for this episode.
+  const truncated = transcript.slice(0, 12000);
+  const prompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
 
 All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content.
 
@@ -481,23 +484,35 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
     {"question": "Question 3?", "answer": "2-3 paragraph answer from transcript."},
     {"question": "Question 4?", "answer": "2-3 paragraph answer from transcript."},
     {"question": "Question 5?", "answer": "2-3 paragraph answer from transcript."}
+  ],
+  "sponsors": [
+    {"name": "Sponsor Name", "description": "What the sponsor does.", "couponCode": "CODE or null", "url": "https://sponsor.com or null", "howToRedeem": "How to use the offer or null"}
+  ],
+  "guests": [
+    {"name": "Guest Name", "title": "Professional Title", "bio": "2-3 sentence bio based on how they are introduced or described in the transcript.", "topicsDiscussed": ["Topic 1", "Topic 2"]}
+  ],
+  "resources": [
+    {"name": "Resource Name", "type": "book|tool|newsletter|service|product|company|website", "description": "Brief description of the resource.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "How it was mentioned in the episode."}
   ]
 }
 
 RULES:
-- All fields required: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5)
+- All core fields required: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5)
 - Write like a sharp friend catching you up
 - Be specific and concrete
 - Quotes MUST be from the transcript
 - Use \\n\\n to separate paragraphs in whatHappened
 - keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific — never generic
-- topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript`;
+- topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript
+- sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
+- guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Include their professional title and a bio based on how they are introduced. List the specific topics they discussed. Return empty array [] if no guests (solo host episodes or host-only conversations)
+- resources: Extract books, tools, products, newsletters, companies, websites, or services specifically recommended or discussed in depth. Do NOT include the podcast itself or the sponsors. Return empty array [] if none mentioned`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 8000,
+      max_tokens: 12000,
       temperature: 0.7,
       response_format: { type: "json_object" },
     });
@@ -521,6 +536,9 @@ RULES:
       quoteAttribution: parsed.quoteAttribution,
       keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
       topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
+      sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
+      guests: Array.isArray(parsed.guests) ? parsed.guests : [],
+      resources: Array.isArray(parsed.resources) ? parsed.resources : [],
     };
   } catch (err) {
     console.error(`[RecapGenerator] Failed to generate recap for "${episodeTitle}":`, err);
