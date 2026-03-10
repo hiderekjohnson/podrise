@@ -472,7 +472,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "podcastName": "${podcastName}",
   "episodeTitle": "${episodeTitle}",
   "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "2-4 paragraphs in narrative style. Separate paragraphs with \\n\\n.",
+  "whatHappened": "A flowing 2-minute read narrative summary (6-10 short paragraphs). Write it like a well-crafted article recap — not bullet points or chapter headings. Each paragraph should be 2-4 sentences. Cover the full arc of the episode from opening to conclusion. Separate paragraphs with \\n\\n.",
   "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
   "quote": "A memorable line from the transcript",
   "quoteAttribution": "Speaker Name on topic",
@@ -491,21 +491,21 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
     {"name": "Guest Name", "title": "Professional Title", "bio": "2-3 sentence bio based on how they are introduced or described in the transcript.", "topicsDiscussed": ["Topic 1", "Topic 2"]}
   ],
   "resources": [
-    {"name": "Resource Name", "type": "book|tool|newsletter|service|product|company|website", "description": "Brief description of the resource.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "How it was mentioned in the episode."}
+    {"name": "Resource Name", "type": "book|tool|product", "description": "Brief description of the item.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "How it was mentioned in the episode."}
   ]
 }
 
 RULES:
-- All core fields required: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5)
+- All core fields required: tldl, whatHappened (6-10 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5)
 - Write like a sharp friend catching you up
 - Be specific and concrete
 - Quotes MUST be from the transcript
-- Use \\n\\n to separate paragraphs in whatHappened
+- whatHappened must be a flowing 2-minute read narrative (6-10 short paragraphs, 2-4 sentences each). Write like a well-crafted article recap — NOT chapter headings or bullet summaries. Cover the full arc: what opened the episode, the key discussions, turning points, and how it concluded. Use \\n\\n between paragraphs
 - keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific — never generic
 - topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript
 - sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
 - guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Include their professional title and a bio based on how they are introduced. List the specific topics they discussed. Return empty array [] if no guests (solo host episodes or host-only conversations)
-- resources: Extract books, tools, products, newsletters, companies, websites, or services specifically recommended or discussed in depth. Do NOT include the podcast itself or the sponsors. Return empty array [] if none mentioned`;
+- resources: ONLY include physical products, books, or tools that someone could actually BUY on Amazon. Do NOT include abstract concepts, philosophies, anecdotes, stories, work habits, websites, newsletters, services, SaaS products, or the podcast itself. Good examples: a specific book title, a gadget, a physical product. Bad examples: "Aristotle's Eudaimonia", "Aaron Sorkin's creative process", someone's personal story. If no purchasable items are mentioned, return empty array []. Do NOT include sponsors here either`;
 
   const maxAttempts = 2;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {

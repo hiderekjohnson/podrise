@@ -2340,8 +2340,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       const todayStr = today.toISOString().split("T")[0];
       const todayLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-      const settings = await storage.getEmailTemplateSettings();
-      const result = await generateRecap(user, today, today, todayLabel, todayStr, "latest", settings.recapPrompt || undefined);
+      const result = await generateRecap(user, today, today, todayLabel, todayStr, "latest");
       if (!result) {
         return res.status(400).json({ message: "Could not find any recent episodes for your podcasts. Try again later!" });
       }
@@ -3127,9 +3126,6 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       const entries = Object.entries(ITUNES_ID_TO_SLUG);
       const results: { slug: string; status: string; episodeTitle?: string }[] = [];
 
-      const templateSettings = await storage.getEmailTemplateSettings();
-      const customPrompt = templateSettings.recapPrompt || "";
-
       res.writeHead(200, { "Content-Type": "application/json", "Transfer-Encoding": "chunked" });
 
       for (const [itunesId, slug] of entries) {
@@ -3186,7 +3182,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
 
           const episodeBlock = `PODCAST: ${podcastName}\nEPISODE: ${epTitle}\nDURATION: ${durationStr}\nDESCRIPTION: ${ep.description || ep.shortDescription || "No description available."}\n${transcriptText ? `TRANSCRIPT:\n${transcriptText.slice(0, 15000)}` : ""}`;
 
-          const formatInstructions = customPrompt || `Respond with a JSON object containing episode recaps. Each episode must include tldl, whatHappened (2-4 narrative paragraphs), keyInsights (4 bullet points), quote, and quoteAttribution. Write like a sharp friend catching someone up. Be specific and concrete. Never fabricate quotes or facts — use only what's in the transcript.`;
+          const formatInstructions = `Respond with a JSON object containing episode recaps. Each episode must include tldl, whatHappened (6-10 short narrative paragraphs for a 2-minute read), keyInsights (4 bullet points), quote, and quoteAttribution. Write like a sharp friend catching someone up. Be specific and concrete. Never fabricate quotes or facts — use only what's in the transcript.`;
 
           const prompt = `You are PodCap, an AI that writes podcast digest summaries. Generate a recap for a single episode.
 
@@ -3326,9 +3322,6 @@ ${formatInstructions}`;
         res.end();
         return;
       }
-
-      const templateSettings = await storage.getEmailTemplateSettings();
-      const customPrompt = templateSettings.recapPrompt || "";
 
       let totalGenerated = 0;
       let totalErrors = 0;
@@ -3472,8 +3465,7 @@ RULES:
 - Quotes MUST be from the transcript if available
 - Use \\n\\n to separate paragraphs in whatHappened
 - keyTopics: 4-6 specific phrases
-- topQuestions: 5 concise questions with 2-3 paragraph answers
-${customPrompt ? `\n${customPrompt}` : ""}`;
+- topQuestions: 5 concise questions with 2-3 paragraph answers`;
 
                 const aiRes = await openai.chat.completions.create({
                   model: "gpt-4o-mini",
@@ -3823,9 +3815,6 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
       res.writeHead(200, { "Content-Type": "application/json", "Transfer-Encoding": "chunked" });
       res.write(JSON.stringify({ type: "plan", totalPodcasts: podcastsToProcess.length, phase: "recap_generation" }) + "\n");
 
-      const templateSettings = await storage.getEmailTemplateSettings();
-      const customPrompt = templateSettings.recapPrompt || "";
-
       let totalGenerated = 0;
       let totalSkipped = 0;
       let totalErrors = 0;
@@ -3941,8 +3930,7 @@ RULES:
 - Quotes MUST be from the transcript if available
 - Use \\n\\n to separate paragraphs in whatHappened
 - keyTopics: 4-6 specific phrases
-- topQuestions: 5 concise questions with 2-3 paragraph answers
-${customPrompt ? `\n${customPrompt}` : ""}`;
+- topQuestions: 5 concise questions with 2-3 paragraph answers`;
 
               const aiRes = await openai.chat.completions.create({
                 model: "gpt-4o-mini",
@@ -4262,32 +4250,6 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
     const config: Partial<EmailTemplateConfig> = template || {};
     const html = markdownToEmailHtml(sampleMarkdown, "preview@example.com", config);
     res.json({ html });
-  });
-
-  app.get("/api/admin/recap-prompt", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    const settings = await storage.getEmailTemplateSettings();
-    res.json({
-      prompt: settings.recapPrompt || "",
-      defaultPrompt: DEFAULT_RECAP_PROMPT,
-    });
-  });
-
-  app.put("/api/admin/recap-prompt", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    const { prompt } = req.body;
-    if (typeof prompt !== "string") {
-      return res.status(400).json({ message: "Invalid prompt data" });
-    }
-    if (prompt.length > 10000) {
-      return res.status(400).json({ message: "Prompt is too long (max 10,000 characters)" });
-    }
-    await storage.setEmailTemplateSettings({ recapPrompt: prompt });
-    res.json({ message: "Recap prompt saved" });
   });
 
   app.get("/api/podcast-directory/by-itunes/:itunesId", async (req, res) => {

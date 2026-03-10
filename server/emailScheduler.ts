@@ -241,12 +241,6 @@ async function processSchedulerTick() {
     return;
   }
 
-  let recapPrompt: string | undefined;
-  try {
-    const settings = await storage.getEmailTemplateSettings();
-    recapPrompt = settings.recapPrompt || undefined;
-  } catch {}
-
   for (const user of users) {
     if (!user.podcasts || user.podcasts.length === 0 || !user.email) continue;
     if (isUserOnVacation(user)) continue;
@@ -266,7 +260,7 @@ async function processSchedulerTick() {
     }
     recentlyGenerated.add(cacheKey);
 
-    await generateForUser(user, false, recapPrompt);
+    await generateForUser(user, false);
   }
 
   if (recentlyGenerated.size > 10000) {
@@ -285,15 +279,9 @@ export async function triggerPregeneration() {
     return;
   }
 
-  let recapPrompt: string | undefined;
-  try {
-    const settings = await storage.getEmailTemplateSettings();
-    recapPrompt = settings.recapPrompt || undefined;
-  } catch {}
-
   let generated = 0, skipped = 0, failed = 0;
   for (const user of users) {
-    const result = await generateForUser(user, true, recapPrompt);
+    const result = await generateForUser(user, true);
     if (result === "generated") generated++;
     else if (result === "skipped") skipped++;
     else failed++;

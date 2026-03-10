@@ -1,9 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye, Rss, Key, Database, Settings } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, FileText, Inbox, Send, Eye, Rss, Key, Database, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
-const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
 const TranscriptLogs = lazy(() => import("./TranscriptLogs"));
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
@@ -500,7 +499,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill">("backfill");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -825,18 +824,6 @@ export default function Admin() {
                   Template
                 </button>
                 <button
-                  data-testid="tab-prompt"
-                  onClick={() => { setActiveTab("prompt"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    activeTab === "prompt"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <BrainCircuit className="w-4 h-4" />
-                  AI Prompt
-                </button>
-                <button
                   data-testid="tab-transcripts"
                   onClick={() => { setActiveTab("transcripts"); setSearchTerm(""); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -897,7 +884,7 @@ export default function Admin() {
                   Updates
                 </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && (
+              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -1287,16 +1274,6 @@ export default function Admin() {
                 </div>
               }>
                 <EmailTemplateEditor />
-              </Suspense>
-            )}
-
-            {activeTab === "prompt" && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              }>
-                <RecapPromptEditor />
               </Suspense>
             )}
 
