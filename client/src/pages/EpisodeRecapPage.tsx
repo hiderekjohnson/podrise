@@ -357,7 +357,7 @@ export default function EpisodeRecapPage() {
               className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-key-insights"
             >
-              Key Takeaways
+              Takeaways
             </button>
           )}
           <button
@@ -365,15 +365,15 @@ export default function EpisodeRecapPage() {
             className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-what-happened"
           >
-            Full Recap
+            Recap
           </button>
-          {guests.length > 0 && (
+          {(guests.length > 0 || hasHosts) && (
             <button
-              onClick={() => scrollTo("section-guests")}
-              className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-guests"
+              onClick={() => scrollTo(guests.length > 0 ? "section-guests" : "section-hosts")}
+              className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" || activeSection === "section-hosts" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-people"
             >
-              Guests
+              People
             </button>
           )}
           {hasNotableMentions && (
@@ -382,7 +382,7 @@ export default function EpisodeRecapPage() {
               className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-notable-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-notable-mentions"
             >
-              Notable Mentions
+              Mentions
             </button>
           )}
           {hasKeyTopics && (
@@ -391,16 +391,7 @@ export default function EpisodeRecapPage() {
               className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-topics" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-key-topics"
             >
-              Key Topics
-            </button>
-          )}
-          {hasHosts && (
-            <button
-              onClick={() => scrollTo("section-hosts")}
-              className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-hosts" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-hosts"
-            >
-              Hosts
+              Topics
             </button>
           )}
           {hasTopQuestions && (
@@ -409,7 +400,7 @@ export default function EpisodeRecapPage() {
               className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-top-questions"
             >
-              Key Questions
+              Q&A
             </button>
           )}
           <button
@@ -417,7 +408,7 @@ export default function EpisodeRecapPage() {
             className={`px-3.5 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-ask-episode" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-ask"
           >
-            Ask the AI
+            Ask AI
           </button>
         </nav>
 
