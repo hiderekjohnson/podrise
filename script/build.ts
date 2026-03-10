@@ -6,23 +6,13 @@ import { rm, readFile } from "fs/promises";
 // which helps cold start times
 const allowlist = [
   "connect-pg-simple",
-  "cors",
   "date-fns",
   "drizzle-orm",
   "drizzle-zod",
   "express",
-  "express-rate-limit",
   "express-session",
-  "jsonwebtoken",
-  "memorystore",
-  "multer",
   "nanoid",
-  "passport",
-  "passport-local",
-  "uuid",
-  "ws",
   "zod",
-  "zod-validation-error",
 ];
 
 async function buildAll() {

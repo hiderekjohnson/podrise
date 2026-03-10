@@ -7,7 +7,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **User Data Safety**: NEVER bulk-delete user accounts. All user accounts are real users. Only delete individual accounts via the admin panel delete button (with confirmation). The 8 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com, ru1@mac.com
 
 ## System Architecture
-**Frontend**: Built with React, Vite, Tailwind CSS, and Shadcn UI, using `wouter` for routing. The design features clean white cards with subtle borders, Plus Jakarta Sans for display fonts, and `framer-motion` for animations.
+**Frontend**: Built with React, Vite, Tailwind CSS, and Shadcn UI (trimmed to ~14 active components), using `wouter` for routing. The design features clean white cards with subtle borders, Plus Jakarta Sans for display fonts, and `framer-motion` for animations.
 **Backend**: An Express.js server handles API requests and user sessions.
 **Database**: PostgreSQL with Drizzle ORM is used for data storage.
 **Authentication**: Session-based with secure email-based magic link login.
