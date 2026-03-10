@@ -112,11 +112,11 @@ export default function CompanyDetailPage() {
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
                   <div className="flex-shrink-0">
                     <img
-                      src={companyData?.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&size=80&background=1a8cff&color=fff&bold=true`}
+                      src={companyData?.logoUrl || `/people/default-avatar.png`}
                       alt={company.name}
                       className="w-20 h-20 rounded-xl object-contain bg-white border border-border p-2 shadow-sm"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&size=80&background=1a8cff&color=fff&bold=true`;
+                        (e.target as HTMLImageElement).src = `/people/default-avatar.png`;
                       }}
                       data-testid="img-company-logo"
                     />
@@ -214,7 +214,7 @@ export default function CompanyDetailPage() {
                             className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group"
                             data-testid={`chip-person-${personSlug}`}
                           >
-                            <img src={p.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=20&background=1a8cff&color=fff&bold=true`} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=20&background=1a8cff&color=fff&bold=true`; }} />
+                            <img src={p.imageUrl || `/people/default-avatar.png`} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
                             <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                           </a>
                         );
@@ -237,7 +237,7 @@ export default function CompanyDetailPage() {
                             className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group"
                             data-testid={`chip-company-${companySlug}`}
                           >
-                            <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&size=20&background=1a8cff&color=fff&bold=true`; }} />
+                            <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
                             <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
                           </a>
                         );

@@ -432,11 +432,11 @@ export default function PersonDetailPage() {
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                   <div className="flex-shrink-0">
                     <img
-                      src={personData?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=120&background=1a8cff&color=fff&bold=true`}
+                      src={personData?.imageUrl || '/people/default-avatar.png'}
                       alt={person.name}
                       className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-border shadow-lg"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=120&background=1a8cff&color=fff&bold=true`;
+                        (e.target as HTMLImageElement).src = '/people/default-avatar.png';
                       }}
                       data-testid="img-person-avatar"
                     />
@@ -503,7 +503,7 @@ export default function PersonDetailPage() {
                             if (!c) return null;
                             return (
                               <Link key={companySlug} href={`/companies/${companySlug}`} className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-company-${companySlug}`}>
-                                <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&size=20&background=1a8cff&color=fff&bold=true`; }} />
+                                <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
                                 <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
                               </Link>
                             );
@@ -522,7 +522,7 @@ export default function PersonDetailPage() {
                             if (!p) return null;
                             return (
                               <Link key={personSlug} href={`/people/${personSlug}`} className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-person-${personSlug}`}>
-                                <img src={p.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=20&background=1a8cff&color=fff&bold=true`} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=20&background=1a8cff&color=fff&bold=true`; }} />
+                                <img src={p.imageUrl || '/people/default-avatar.png'} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
                                 <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                               </Link>
                             );
@@ -740,7 +740,7 @@ export default function PersonDetailPage() {
                       if (!p) return null;
                       return (
                         <Link key={personSlug} href={`/people/${personSlug}`} className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 hover:border-primary/30 transition-all group" data-testid={`related-person-${personSlug}`}>
-                          <img src={p.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=40&background=1a8cff&color=fff&bold=true`} alt={p.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&size=40&background=1a8cff&color=fff&bold=true`; }} />
+                          <img src={p.imageUrl || '/people/default-avatar.png'} alt={p.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{p.name}</p>
                             <p className="text-xs text-muted-foreground truncate">{p.title}</p>

@@ -236,7 +236,7 @@ export default function Home() {
                         alt={person.name}
                         className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-300"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&size=96&background=1a8cff&color=fff&bold=true`;
+                          (e.target as HTMLImageElement).src = `/people/default-avatar.png`;
                         }}
                       />
                     </div>

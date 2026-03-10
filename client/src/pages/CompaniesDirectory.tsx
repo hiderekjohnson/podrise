@@ -207,12 +207,12 @@ export default function CompaniesDirectory() {
                     <div className="flex items-center gap-4">
                       <div className="flex-shrink-0">
                         <img
-                          src={companyData?.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&size=48&background=1a8cff&color=fff&bold=true`}
+                          src={companyData?.logoUrl || `/people/default-avatar.png`}
                           alt={company.name}
                           className="w-12 h-12 rounded-lg object-contain bg-white border border-border p-1.5"
                           loading="lazy"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&size=48&background=1a8cff&color=fff&bold=true`;
+                            (e.target as HTMLImageElement).src = `/people/default-avatar.png`;
                           }}
                         />
                       </div>
