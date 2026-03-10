@@ -117,8 +117,10 @@ export default function EpisodeRecapPage() {
     if (!episode) return [];
     const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     const guestNames = guests.map(g => g.name?.toLowerCase().trim()).filter(Boolean);
+    const hostNames = new Set((podcastHosts || []).map((h: any) => h.name?.toLowerCase().trim()).filter(Boolean));
     return PEOPLE_DIRECTORY.filter(p => {
       const nameLower = p.name.toLowerCase();
+      if (hostNames.has(nameLower)) return false;
       return guestNames.some(gn => gn === nameLower) ||
         p.searchTerms.some(term => {
           const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
