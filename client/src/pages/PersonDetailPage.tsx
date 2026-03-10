@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
@@ -21,6 +21,7 @@ interface EpisodeEntry {
   tldl?: string;
   type?: "guest" | "mention";
   hasTranscript?: boolean;
+  relevanceScore?: number;
 }
 
 interface TopicEntry {
@@ -46,6 +47,7 @@ interface QuoteEntry {
   date: string;
   slug: string;
   episodeSlug: string;
+  isFromGuestEpisode?: boolean;
 }
 
 interface PersonDetail {
@@ -62,6 +64,7 @@ interface PersonDetail {
 }
 
 const EXISTING_TOPIC_SLUGS = new Set(TOPICS.map(t => t.slug));
+const EXISTING_TOPIC_NAMES = new Map(TOPICS.map(t => [t.slug, t.name]));
 const EXISTING_COMPANY_SLUGS = new Set(COMPANIES_DIRECTORY.map(c => c.slug));
 const EXISTING_PEOPLE_SLUGS = new Set(PEOPLE_DIRECTORY.map(p => p.slug));
 
@@ -133,7 +136,7 @@ export default function PersonDetailPage() {
   const { data: user } = useAuth();
   const personData = getPersonBySlug(slug);
 
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [sortOrder, setSortOrder] = useState<"relevance" | "newest" | "oldest">("relevance");
   const [filterText, setFilterText] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "guests" | "mentions">("all");
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({});
@@ -152,11 +155,24 @@ export default function PersonDetailPage() {
     window.scrollTo(0, 0);
   }, [slug]);
 
+  const hasGuestAppearances = (person?.guestCount || 0) > 0;
+  const totalEpisodes = (person?.guestCount || 0) + (person?.mentionCount || 0);
+
+  const pageTitle = person
+    ? hasGuestAppearances
+      ? `${person.name} Podcast Appearances, Interviews, and Mentions`
+      : `${person.name} Podcast Mentions, Discussions, and Episode Recaps`
+    : "";
+
+  const pageDescription = person
+    ? hasGuestAppearances
+      ? `Explore ${person.name} podcast appearances, interviews, mentions, and episode recaps across top business, technology, and AI podcasts.`
+      : `Explore podcast episodes discussing ${person.name}, including mentions, recaps, and key themes across top business, technology, and AI podcasts.`
+    : "";
+
   useEffect(() => {
     if (!person) return;
-    const title = `${person.name} Podcast Appearances, Interviews, and Mentions | PodCap`;
-    const desc = `Explore ${person.name} podcast appearances, interviews, mentions, quotes, and episode recaps across top business, technology, and AI podcasts.`;
-    document.title = title;
+    document.title = `${pageTitle} | PodCap`;
     const setOrCreate = (selector: string, attr: string, value: string) => {
       let el = document.querySelector(selector);
       if (!el) {
@@ -167,9 +183,9 @@ export default function PersonDetailPage() {
       }
       el.setAttribute("content", value);
     };
-    setOrCreate('meta[name="description"]', "name", desc);
-    setOrCreate('meta[property="og:title"]', "property", title);
-    setOrCreate('meta[property="og:description"]', "property", desc);
+    setOrCreate('meta[name="description"]', "name", pageDescription);
+    setOrCreate('meta[property="og:title"]', "property", `${pageTitle} | PodCap`);
+    setOrCreate('meta[property="og:description"]', "property", pageDescription);
     setOrCreate('meta[property="og:type"]', "property", "profile");
 
     let schemaScript = document.getElementById("person-schema") as HTMLScriptElement | null;
@@ -187,7 +203,7 @@ export default function PersonDetailPage() {
       name: person.name,
       jobTitle: person.title,
       url: `https://podcap.io/people/${slug}`,
-      description: desc,
+      description: pageDescription,
     };
     if (personData?.imageUrl) personSchema.image = `https://podcap.io${personData.imageUrl}`;
     if (sameAs.length > 0) personSchema.sameAs = sameAs;
@@ -214,32 +230,71 @@ export default function PersonDetailPage() {
       document.getElementById("person-schema")?.remove();
       document.getElementById("breadcrumb-schema")?.remove();
     };
-  }, [person, personData, slug]);
+  }, [person, personData, slug, pageTitle, pageDescription]);
 
   const socialLinks = personData?.socialLinks;
-  const totalEpisodes = (person?.guestCount || 0) + (person?.mentionCount || 0);
 
-  const allEpisodes = person ? [
-    ...person.guestAppearances,
-    ...person.mentions,
-  ] : [];
+  const allEpisodes = useMemo(() => {
+    if (!person) return [];
+    return [...person.guestAppearances, ...person.mentions];
+  }, [person]);
 
-  const filteredEpisodes = allEpisodes
-    .filter(ep => {
-      if (activeTab === "guests" && ep.type !== "guest") return false;
-      if (activeTab === "mentions" && ep.type !== "mention") return false;
-      if (filterText) {
-        const q = filterText.toLowerCase();
-        return ep.episode_title.toLowerCase().includes(q) || ep.podcast_name.toLowerCase().includes(q);
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (!a.publish_date || !b.publish_date) return 0;
-      return sortOrder === "newest" ? b.publish_date.localeCompare(a.publish_date) : a.publish_date.localeCompare(b.publish_date);
-    });
+  const filteredEpisodes = useMemo(() => {
+    return allEpisodes
+      .filter(ep => {
+        if (activeTab === "guests" && ep.type !== "guest") return false;
+        if (activeTab === "mentions" && ep.type !== "mention") return false;
+        if (filterText) {
+          const q = filterText.toLowerCase();
+          return ep.episode_title.toLowerCase().includes(q) || ep.podcast_name.toLowerCase().includes(q);
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortOrder === "relevance") {
+          const scoreA = a.relevanceScore || 10;
+          const scoreB = b.relevanceScore || 10;
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          return (b.publish_date || "").localeCompare(a.publish_date || "");
+        }
+        if (!a.publish_date || !b.publish_date) return 0;
+        return sortOrder === "newest" ? b.publish_date.localeCompare(a.publish_date) : a.publish_date.localeCompare(b.publish_date);
+      });
+  }, [allEpisodes, activeTab, filterText, sortOrder]);
 
-  const timelineByYear = (() => {
+  const broadTopics = useMemo(() => {
+    if (!person?.topTopics) return [];
+    return person.topTopics.filter(t => EXISTING_TOPIC_SLUGS.has(t.slug));
+  }, [person]);
+
+  const keyIdeas = useMemo(() => {
+    if (!person || broadTopics.length === 0) return [];
+    return broadTopics.slice(0, 6).map(topic => {
+      const relatedEps = allEpisodes.filter(ep => {
+        const combined = `${ep.episode_title} ${ep.context || ""} ${ep.tldl || ""}`.toLowerCase();
+        return combined.includes(topic.topic.toLowerCase());
+      }).slice(0, 3);
+      return { ...topic, relatedEps, topicPageSlug: topic.slug };
+    }).filter(t => t.relatedEps.length > 0);
+  }, [person, broadTopics, allEpisodes]);
+
+  const guestQuotes = useMemo(() => {
+    if (!person?.quotes) return [];
+    return person.quotes.filter(q => q.isFromGuestEpisode);
+  }, [person]);
+
+  const mentionQuotes = useMemo(() => {
+    if (!person?.quotes) return [];
+    return person.quotes.filter(q => !q.isFromGuestEpisode);
+  }, [person]);
+
+  const displayQuotes = guestQuotes.length >= 2 ? guestQuotes : mentionQuotes.length >= 2 ? mentionQuotes : [];
+  const showQuotesSection = displayQuotes.length >= 2;
+  const quoteSectionTitle = displayQuotes.length > 0 && displayQuotes[0]?.isFromGuestEpisode
+    ? `Notable Quotes From ${person?.name || ""} Podcast Appearances`
+    : `Notable Podcast Mentions of ${person?.name || ""}`;
+
+  const timelineByYear = useMemo(() => {
     if (!person) return {};
     const all = [...person.guestAppearances, ...person.mentions]
       .filter(e => e.publish_date)
@@ -251,32 +306,38 @@ export default function PersonDetailPage() {
       if (grouped[year].length < 5) grouped[year].push(ep);
     }
     return grouped;
-  })();
+  }, [person]);
 
-  const faqItems = (() => {
+  const faqItems = useMemo(() => {
     if (!person) return [];
     const items: { q: string; a: string }[] = [];
     const podcastNames = (person.podcastsFeaturingPerson || []).map(p => p.name);
 
-    items.push({
-      q: `What podcasts has ${person.name} appeared on?`,
-      a: podcastNames.length > 0
-        ? `${person.name} has been featured across ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? 's' : ''} on PodCap, including appearances on ${podcastNames.slice(0, 5).join(', ')}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ''}.`
-        : `We're tracking mentions and appearances of ${person.name} across podcasts. Check back as we add more recaps.`
-    });
-
-    if ((person.topTopics || []).length > 0) {
-      const topicNames = person.topTopics.slice(0, 5).map(t => t.topic);
+    if (hasGuestAppearances) {
       items.push({
-        q: `What does ${person.name} talk about on podcasts?`,
-        a: `Key topics associated with ${person.name} across podcast appearances include ${topicNames.join(', ')}. Explore full episode recaps for detailed coverage.`
+        q: `What podcasts has ${person.name} appeared on?`,
+        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} related to ${person.name}, including ${person.guestCount} direct guest appearance${person.guestCount !== 1 ? "s" : ""} and ${person.mentionCount} mention${person.mentionCount !== 1 ? "s" : ""}. Featured podcasts include ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. On this page, you can browse the latest related episodes, recaps, and transcripts where available.`
+      });
+    } else {
+      items.push({
+        q: `What podcasts discuss ${person.name}?`,
+        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} that discuss or mention ${person.name} across ${podcastNames.length} podcast${podcastNames.length !== 1 ? "s" : ""}, including ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. Browse episode recaps, key themes, and transcripts where available on this page.`
+      });
+    }
+
+    if (broadTopics.length > 0) {
+      const topicNames = broadTopics.slice(0, 5).map(t => t.topic);
+      items.push({
+        q: `What topics are associated with ${person.name} on podcasts?`,
+        a: `Across podcast episodes, ${person.name} is frequently associated with topics like ${topicNames.join(", ")}. These themes emerge from episode recaps and transcripts tracked by PodCap. Explore individual episode recaps for detailed coverage of each topic.`
       });
     }
 
     if (podcastNames.length > 0) {
+      const topPodcast = person.podcastsFeaturingPerson[0];
       items.push({
         q: `Which podcast features ${person.name} the most?`,
-        a: `${person.podcastsFeaturingPerson[0].name} has the most episodes related to ${person.name}, with ${person.podcastsFeaturingPerson[0].count} episode${person.podcastsFeaturingPerson[0].count !== 1 ? 's' : ''}.`
+        a: `${topPodcast.name} has the most episodes related to ${person.name}, with ${topPodcast.count} episode${topPodcast.count !== 1 ? "s" : ""}. The most recent episode is "${topPodcast.latestTitle}." Browse all related episodes and recaps on this page.`
       });
     }
 
@@ -284,12 +345,17 @@ export default function PersonDetailPage() {
     if (relatedCompanies.length > 0) {
       items.push({
         q: `What companies is ${person.name} associated with?`,
-        a: `${person.name} is associated with ${relatedCompanies.join(', ')}. These connections are tracked across podcast conversations on PodCap.`
+        a: `${person.name} is associated with ${relatedCompanies.join(", ")}. These connections are tracked across podcast conversations on PodCap. Explore company pages and related episodes for deeper coverage of each organization.`
       });
     }
 
+    items.push({
+      q: `Can I read transcripts of ${person.name} podcast episodes?`,
+      a: `Yes, PodCap provides full transcripts for many episodes. Look for the "View Transcript" link on individual episode cards. Transcripts are available for most recent episodes and are being added continuously.`
+    });
+
     return items;
-  })();
+  }, [person, personData, broadTopics, hasGuestAppearances, totalEpisodes]);
 
   useEffect(() => {
     if (faqItems.length === 0) return;
@@ -312,17 +378,9 @@ export default function PersonDetailPage() {
     return () => { document.getElementById("faq-schema")?.remove(); };
   }, [faqItems]);
 
-  const keyIdeas = (() => {
-    if (!person || !person.topTopics || person.topTopics.length === 0) return [];
-    return person.topTopics.slice(0, 5).map(topic => {
-      const relatedEps = allEpisodes.filter(ep => {
-        const combined = `${ep.episode_title} ${ep.context || ""} ${ep.tldl || ""}`.toLowerCase();
-        return combined.includes(topic.topic.toLowerCase());
-      }).slice(0, 3);
-      const matchingTopicPage = EXISTING_TOPIC_SLUGS.has(topic.slug) ? topic.slug : null;
-      return { ...topic, relatedEps, topicPageSlug: matchingTopicPage };
-    }).filter(t => t.relatedEps.length > 0);
-  })();
+  const showTopicsSection = broadTopics.length >= 3;
+  const showTimelineSection = Object.keys(timelineByYear).length >= 2;
+  const showPodcastsSection = (person?.podcastsFeaturingPerson || []).length >= 2;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -369,7 +427,7 @@ export default function PersonDetailPage() {
           ) : person ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 
-              {/* Hero Card */}
+              {/* 1. Hero Section */}
               <section className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-8" data-testid="section-hero">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                   <div className="flex-shrink-0">
@@ -385,18 +443,16 @@ export default function PersonDetailPage() {
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em] mb-1" data-testid="heading-person-name">
-                      {person.name} Podcast Appearances, Interviews, and Mentions
+                      {pageTitle}
                     </h1>
                     <p className="text-base text-muted-foreground mb-3">{person.title}</p>
 
                     <p className="text-[15px] text-muted-foreground/80 leading-relaxed mb-4" data-testid="text-person-intro">
                       {personData?.bio
                         ? personData.bio
-                        : `Discover podcast interviews, guest appearances, and mentions featuring ${person.name} across top business, technology, and AI podcasts.`}
-                    </p>
-
-                    <p className="text-sm text-muted-foreground/70 leading-relaxed mb-4">
-                      Looking for podcast interviews with {person.name}? PodCap tracks podcast appearances, interviews, and mentions across {(person.podcastsFeaturingPerson || []).length} podcast{(person.podcastsFeaturingPerson || []).length !== 1 ? 's' : ''}. Explore recaps, transcripts, and key themes from podcast conversations featuring {person.name}.
+                        : hasGuestAppearances
+                          ? `Discover podcast interviews, guest appearances, and mentions featuring ${person.name} across top business, technology, and AI podcasts.`
+                          : `Explore podcast episodes discussing ${person.name}, including key themes, recaps, and transcripts across top business, technology, and AI podcasts.`}
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
@@ -423,15 +479,17 @@ export default function PersonDetailPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-                      <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors cursor-pointer" data-testid="jump-guests">
-                        <Mic className="w-4 h-4 text-primary" />
-                        <span className="font-semibold text-foreground">{person.guestCount}</span>
-                        <span className="text-muted-foreground">guest appearances</span>
-                      </button>
+                      {hasGuestAppearances && (
+                        <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors cursor-pointer" data-testid="jump-guests">
+                          <Mic className="w-4 h-4 text-primary" />
+                          <span className="font-semibold text-foreground">{person.guestCount}</span>
+                          <span className="text-muted-foreground">guest appearance{person.guestCount !== 1 ? "s" : ""}</span>
+                        </button>
+                      )}
                       <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors cursor-pointer" data-testid="jump-mentions">
                         <MessageSquare className="w-4 h-4 text-primary" />
                         <span className="font-semibold text-foreground">{person.mentionCount}</span>
-                        <span className="text-muted-foreground">mentions</span>
+                        <span className="text-muted-foreground">mention{person.mentionCount !== 1 ? "s" : ""}</span>
                       </button>
                     </div>
 
@@ -455,7 +513,7 @@ export default function PersonDetailPage() {
                     )}
 
                     {personData?.similarPeople && personData.similarPeople.length > 0 && (
-                      <div className={`mt-4 ${personData?.relatedCompanies?.length ? '' : 'pt-4 border-t border-border'}`} data-testid="section-similar-people">
+                      <div className={`mt-4 ${personData?.relatedCompanies?.length ? "" : "pt-4 border-t border-border"}`} data-testid="section-similar-people">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar People</p>
                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                           {personData.similarPeople.map((personSlug) => {
@@ -476,27 +534,27 @@ export default function PersonDetailPage() {
                 </div>
               </section>
 
-              {/* Key Ideas Section */}
-              {keyIdeas.length > 0 && (
+              {/* 2. Key Ideas Section */}
+              {keyIdeas.length >= 2 && (
                 <section className="mb-8" data-testid="section-key-ideas">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Tag className="w-5 h-5 text-primary" />
-                    Key Ideas {person.name} Discusses on Podcasts
+                    Key Ideas {person.name} {hasGuestAppearances ? "Discusses" : "Is Discussed About"} on Podcasts
                   </h2>
                   <div className="space-y-4">
                     {keyIdeas.map((idea, i) => (
                       <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`key-idea-${i}`}>
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? 's' : ''}</span>
-                          {idea.topicPageSlug && (
-                            <Link href={`/topics/${idea.topicPageSlug}`} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
-                              Explore Topic &rarr;
-                            </Link>
-                          )}
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
+                          <Link href={`/topics/${idea.topicPageSlug}`} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
+                            Explore Topic &rarr;
+                          </Link>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                          {person.name} discusses {idea.topic.toLowerCase()} across {idea.count} podcast episode{idea.count !== 1 ? 's' : ''}. Explore the full recaps for in-depth coverage of this theme.
+                          {hasGuestAppearances
+                            ? `${person.name} discusses ${idea.topic.toLowerCase()} across ${idea.count} podcast episode${idea.count !== 1 ? "s" : ""}. Explore the full recaps for in-depth coverage of this theme.`
+                            : `${person.name} is discussed in the context of ${idea.topic.toLowerCase()} across ${idea.count} episode${idea.count !== 1 ? "s" : ""}. Explore recaps for detailed coverage.`}
                         </p>
                         {idea.relatedEps.length > 0 && (
                           <div className="flex flex-col gap-1.5">
@@ -515,15 +573,15 @@ export default function PersonDetailPage() {
                 </section>
               )}
 
-              {/* Notable Quotes Section */}
-              {(person.quotes || []).length > 0 && (
+              {/* 3. Notable Quotes / Mentions Section */}
+              {showQuotesSection && (
                 <section className="mb-8" data-testid="section-quotes">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Quote className="w-5 h-5 text-primary" />
-                    Notable {person.name} Quotes From Podcasts
+                    {quoteSectionTitle}
                   </h2>
                   <div className="space-y-3">
-                    {person.quotes.map((quote, i) => {
+                    {displayQuotes.map((quote, i) => {
                       const date = quote.date ? new Date(quote.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
                       return (
                         <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`quote-${i}`}>
@@ -550,27 +608,58 @@ export default function PersonDetailPage() {
                 </section>
               )}
 
-              {/* Appearances & Mentions Section */}
+              {/* 4. FAQ Section */}
+              {faqItems.length > 0 && (
+                <section className="mb-8" data-testid="section-faq">
+                  <h2 className="text-xl font-bold text-foreground mb-4">
+                    Frequently Asked Questions About {person.name} on Podcasts
+                  </h2>
+                  <div className="space-y-2">
+                    {faqItems.map((item, i) => (
+                      <div key={i} className="bg-card border border-border rounded-xl overflow-hidden" data-testid={`faq-${i}`}>
+                        <button
+                          onClick={() => setFaqOpen(prev => ({ ...prev, [i]: !prev[i] }))}
+                          className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                          data-testid={`faq-toggle-${i}`}
+                        >
+                          <span className="text-[15px] font-semibold text-foreground pr-4">{item.q}</span>
+                          {faqOpen[i] ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+                        </button>
+                        {faqOpen[i] && (
+                          <div className="px-4 pb-4" data-testid={`faq-answer-${i}`}>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* 5. All Appearances & Mentions */}
               <section id="section-appearances" className="mb-8" data-testid="section-appearances">
                 <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                   <Mic className="w-5 h-5 text-primary" />
-                  All Appearances & Mentions
+                  All {hasGuestAppearances ? "Appearances & " : ""}Mentions
                 </h2>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
                   <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl flex-shrink-0" data-testid="tabs-episode-type">
-                    {(["all", "guests", "mentions"] as const).map(tab => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                        data-testid={`tab-${tab}`}
-                      >
-                        {tab === "all" ? "All" : tab === "guests" ? "Guest" : "Mentions"}
-                        <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                          {tab === "all" ? totalEpisodes : tab === "guests" ? person.guestCount : person.mentionCount}
-                        </span>
-                      </button>
-                    ))}
+                    {(["all", "guests", "mentions"] as const).map(tab => {
+                      if (tab === "guests" && !hasGuestAppearances) return null;
+                      return (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                          data-testid={`tab-${tab}`}
+                        >
+                          {tab === "all" ? "All" : tab === "guests" ? "Guest" : "Mentions"}
+                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                            {tab === "all" ? totalEpisodes : tab === "guests" ? person.guestCount : person.mentionCount}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                   <div className="flex items-center gap-2 flex-1">
                     <div className="relative flex-1">
@@ -585,12 +674,12 @@ export default function PersonDetailPage() {
                       />
                     </div>
                     <button
-                      onClick={() => setSortOrder(o => o === "newest" ? "oldest" : "newest")}
+                      onClick={() => setSortOrder(o => o === "relevance" ? "newest" : o === "newest" ? "oldest" : "relevance")}
                       className="flex items-center gap-1 px-3 py-2 text-sm text-muted-foreground hover:text-foreground bg-muted/50 border border-border rounded-lg transition-colors flex-shrink-0"
                       data-testid="button-sort"
                     >
                       <ArrowUpDown className="w-3.5 h-3.5" />
-                      {sortOrder === "newest" ? "Newest" : "Oldest"}
+                      {sortOrder === "relevance" ? "Top" : sortOrder === "newest" ? "Newest" : "Oldest"}
                     </button>
                   </div>
                 </div>
@@ -605,8 +694,8 @@ export default function PersonDetailPage() {
                 </div>
               </section>
 
-              {/* Podcasts Featuring This Person */}
-              {(person.podcastsFeaturingPerson || []).length > 0 && (
+              {/* 6. Podcasts Featuring This Person */}
+              {showPodcastsSection && (
                 <section className="mb-8" data-testid="section-podcasts-featuring">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Radio className="w-5 h-5 text-primary" />
@@ -616,60 +705,29 @@ export default function PersonDetailPage() {
                     {person.podcastsFeaturingPerson.map((podcast, i) => {
                       const latestDate = podcast.latestDate ? new Date(podcast.latestDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
                       return (
-                        <div key={i} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4" data-testid={`podcast-featuring-${i}`}>
+                        <Link key={i} href={`/podcasts/${podcast.podcastSlug}`} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/30 hover:shadow-sm transition-all group" data-testid={`podcast-featuring-${i}`}>
                           {podcast.artwork_url && (
-                            <Link href={`/podcasts/${podcast.podcastSlug}`}>
-                              <img src={podcast.artwork_url} alt={podcast.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-                            </Link>
+                            <img src={podcast.artwork_url} alt={podcast.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
                           )}
                           <div className="flex-1 min-w-0">
-                            <Link href={`/podcasts/${podcast.podcastSlug}`} className="text-[15px] font-semibold text-foreground hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>
+                            <p className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>
                               {podcast.name}
-                            </Link>
-                            <p className="text-sm text-muted-foreground mt-0.5">
-                              {podcast.count} episode{podcast.count !== 1 ? 's' : ''} {latestDate && <>&middot; Latest: {latestDate}</>}
                             </p>
-                            <Link href={`/podcasts/${podcast.podcastSlug}/${podcast.latestEpisodeSlug}`} className="text-xs text-primary/80 hover:text-primary transition-colors mt-1 block truncate" data-testid={`link-latest-ep-${i}`}>
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              {podcast.count} episode{podcast.count !== 1 ? "s" : ""} {latestDate && <>&middot; Latest: {latestDate}</>}
+                            </p>
+                            <p className="text-xs text-muted-foreground/70 mt-1 truncate">
                               {podcast.latestTitle}
-                            </Link>
+                            </p>
                           </div>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>
                 </section>
               )}
 
-              {/* Topics Associated With Person */}
-              {(person.topTopics || []).length > 0 && (
-                <section className="mb-8" data-testid="section-associated-topics">
-                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Tag className="w-5 h-5 text-primary" />
-                    Topics Associated With {person.name}
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {person.topTopics.map((topic, i) => {
-                      const hasPage = EXISTING_TOPIC_SLUGS.has(topic.slug);
-                      if (hasPage) {
-                        return (
-                          <Link key={i} href={`/topics/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
-                            <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
-                            <span className="text-xs text-muted-foreground">{topic.count}</span>
-                          </Link>
-                        );
-                      }
-                      return (
-                        <span key={i} className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-full" data-testid={`chip-topic-${topic.slug}`}>
-                          <span className="text-sm font-medium text-foreground">{topic.topic}</span>
-                          <span className="text-xs text-muted-foreground">{topic.count}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </section>
-              )}
-
-              {/* People Often Mentioned With */}
+              {/* 7. Related People */}
               {personData?.similarPeople && personData.similarPeople.filter(s => EXISTING_PEOPLE_SLUGS.has(s)).length > 0 && (
                 <section className="mb-8" data-testid="section-related-people">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -694,8 +752,8 @@ export default function PersonDetailPage() {
                 </section>
               )}
 
-              {/* Timeline */}
-              {Object.keys(timelineByYear).length > 0 && (
+              {/* 8. Timeline */}
+              {showTimelineSection && (
                 <section className="mb-8" data-testid="section-timeline">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Clock className="w-5 h-5 text-primary" />
@@ -705,8 +763,7 @@ export default function PersonDetailPage() {
                     {Object.entries(timelineByYear).map(([year, episodes]) => (
                       <div key={year} data-testid={`timeline-year-${year}`}>
                         <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{year.slice(2)}</span>
-                          {year}
+                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{year}</span>
                         </h3>
                         <div className="border-l-2 border-border pl-5 ml-4 space-y-3">
                           {episodes.map((ep, i) => {
@@ -737,29 +794,19 @@ export default function PersonDetailPage() {
                 </section>
               )}
 
-              {/* FAQ Section */}
-              {faqItems.length > 0 && (
-                <section className="mb-8" data-testid="section-faq">
-                  <h2 className="text-xl font-bold text-foreground mb-4">
-                    Frequently Asked Questions About {person.name} on Podcasts
+              {/* 9. Topics - only if quality is high (broad, existing topic pages) */}
+              {showTopicsSection && (
+                <section className="mb-8" data-testid="section-associated-topics">
+                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-primary" />
+                    Topics Associated With {person.name}
                   </h2>
-                  <div className="space-y-2">
-                    {faqItems.map((item, i) => (
-                      <div key={i} className="bg-card border border-border rounded-xl overflow-hidden" data-testid={`faq-${i}`}>
-                        <button
-                          onClick={() => setFaqOpen(prev => ({ ...prev, [i]: !prev[i] }))}
-                          className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
-                          data-testid={`faq-toggle-${i}`}
-                        >
-                          <span className="text-[15px] font-semibold text-foreground pr-4">{item.q}</span>
-                          {faqOpen[i] ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
-                        </button>
-                        {faqOpen[i] && (
-                          <div className="px-4 pb-4">
-                            <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-                          </div>
-                        )}
-                      </div>
+                  <div className="flex flex-wrap gap-2">
+                    {broadTopics.map((topic, i) => (
+                      <Link key={i} href={`/topics/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
+                        <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
+                        <span className="text-xs text-muted-foreground">{topic.count}</span>
+                      </Link>
                     ))}
                   </div>
                 </section>

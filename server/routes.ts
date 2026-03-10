@@ -1185,6 +1185,20 @@ export async function registerRoutes(
           for (const r of transcriptRows) transcriptSet.add(r.episode_slug);
         }
 
+        const computeRelevanceScore = (e: any, type: "guest" | "mention") => {
+          if (type === "guest") return 100;
+          const titleLower = (e.episode_title || "").toLowerCase();
+          const titleMatch = person.searchTerms.some(term => titleLower.includes(term.toLowerCase()));
+          if (titleMatch) return 50;
+          const bodyText = [e.what_happened || "", e.tldl || ""].join(" ").toLowerCase();
+          const mentionCount = person.searchTerms.reduce((acc: number, term: string) => {
+            const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+            return acc + (bodyText.match(regex) || []).length;
+          }, 0);
+          if (mentionCount >= 3) return 25;
+          return 10;
+        };
+
         const mapEpisode = (e: any, type: "guest" | "mention") => ({
           slug: e.slug,
           episode_slug: e.episode_slug,
@@ -1196,6 +1210,7 @@ export async function registerRoutes(
           tldl: e.tldl || "",
           type,
           hasTranscript: transcriptSet.has(e.episode_slug),
+          relevanceScore: computeRelevanceScore(e, type),
         });
 
         const guestAppearancesWithContext = guestEpisodes.map((e: any) => mapEpisode(e, "guest"));
@@ -1242,10 +1257,10 @@ export async function registerRoutes(
         const podcastsFeaturingPerson = Object.values(podcastCounts)
           .sort((a, b) => b.count - a.count);
 
-        const quotes: { text: string; podcastName: string; episodeTitle: string; date: string; slug: string; episodeSlug: string }[] = [];
+        const quotes: { text: string; podcastName: string; episodeTitle: string; date: string; slug: string; episodeSlug: string; isFromGuestEpisode: boolean }[] = [];
         const seenQuotes = new Set<string>();
-        const addQuote = (text: string, ep: any) => {
-          if (quotes.length >= 5) return;
+        const addQuote = (text: string, ep: any, isGuest: boolean) => {
+          if (quotes.length >= 6) return;
           const clean = text.trim();
           if (clean.length < 40 || clean.length > 400 || seenQuotes.has(clean)) return;
           seenQuotes.add(clean);
@@ -1256,10 +1271,11 @@ export async function registerRoutes(
             date: ep.publish_date || "",
             slug: ep.slug,
             episodeSlug: ep.episode_slug,
+            isFromGuestEpisode: isGuest,
           });
         };
-        for (const ep of allRelevantEpisodes) {
-          if (quotes.length >= 5) break;
+        for (const ep of guestEpisodes) {
+          if (quotes.length >= 6) break;
           const insights = ep.key_insights_text;
           if (insights) {
             try {
@@ -1268,19 +1284,38 @@ export async function registerRoutes(
                 for (const insight of parsed) {
                   const text = typeof insight === "string" ? insight : "";
                   if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
-                    addQuote(text, ep);
+                    addQuote(text, ep, true);
                   }
                 }
               }
             } catch {}
           }
         }
-        if (quotes.length < 5) {
+        for (const ep of allRelevantEpisodes) {
+          if (quotes.length >= 6) break;
+          const isGuest = guestKeys.has(`${ep.slug}/${ep.episode_slug}`);
+          const insights = ep.key_insights_text;
+          if (insights) {
+            try {
+              const parsed = JSON.parse(insights);
+              if (Array.isArray(parsed)) {
+                for (const insight of parsed) {
+                  const text = typeof insight === "string" ? insight : "";
+                  if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
+                    addQuote(text, ep, isGuest);
+                  }
+                }
+              }
+            } catch {}
+          }
+        }
+        if (quotes.length < 6) {
           for (const ep of allRelevantEpisodes) {
-            if (quotes.length >= 5) break;
+            if (quotes.length >= 6) break;
+            const isGuest = guestKeys.has(`${ep.slug}/${ep.episode_slug}`);
             const context = extractMentionContext([ep.what_happened, ep.tldl].filter(Boolean), person.searchTerms);
             if (context && context.length > 40) {
-              addQuote(context, ep);
+              addQuote(context, ep, isGuest);
             }
           }
         }
