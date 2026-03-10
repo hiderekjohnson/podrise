@@ -8,7 +8,9 @@ import type { PodcastDirectoryEntry } from "@shared/schema";
 const emptyForm = {
   itunesId: "", name: "", slug: "", hosts: "", category: "", description: "",
   keywords: "", faqTopics: "", artworkUrl: "", appleUrl: "", spotifyUrl: "",
-  youtubeUrl: "", twitterHandle: "", hostHandle: "", followers: "",
+  youtubeUrl: "", twitterHandle: "", instagramUrl: "", tiktokUrl: "",
+  facebookUrl: "", discordUrl: "", websiteUrl: "", storeUrl: "",
+  hostHandle: "", followers: "",
   avgEpisodeLength: "", frequency: "", totalEpisodes: "", yearStarted: "",
   aboutPodcast: "", hasLandingPage: false,
 };
@@ -69,6 +71,12 @@ export default function PodcastDirectory() {
       spotifyUrl: entry.spotifyUrl || "",
       youtubeUrl: entry.youtubeUrl || "",
       twitterHandle: entry.twitterHandle || "",
+      instagramUrl: (entry as any).instagramUrl || "",
+      tiktokUrl: (entry as any).tiktokUrl || "",
+      facebookUrl: (entry as any).facebookUrl || "",
+      discordUrl: (entry as any).discordUrl || "",
+      websiteUrl: (entry as any).websiteUrl || "",
+      storeUrl: (entry as any).storeUrl || "",
       hostHandle: entry.hostHandle || "",
       followers: entry.followers?.toString() || "",
       avgEpisodeLength: entry.avgEpisodeLength?.toString() || "",
@@ -203,6 +211,30 @@ export default function PodcastDirectory() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">X Handle</label>
                 <input data-testid="input-twitter-handle" type="text" value={form.twitterHandle} onChange={set("twitterHandle")} placeholder="@myfirstmilpod" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Instagram URL</label>
+                <input data-testid="input-instagram-url" type="text" value={form.instagramUrl} onChange={set("instagramUrl")} placeholder="https://instagram.com/myfirstmilpod" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">TikTok URL</label>
+                <input data-testid="input-tiktok-url" type="text" value={form.tiktokUrl} onChange={set("tiktokUrl")} placeholder="https://tiktok.com/@myfirstmilpod" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Facebook URL</label>
+                <input data-testid="input-facebook-url" type="text" value={form.facebookUrl} onChange={set("facebookUrl")} placeholder="https://facebook.com/groups/..." className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Discord URL</label>
+                <input data-testid="input-discord-url" type="text" value={form.discordUrl} onChange={set("discordUrl")} placeholder="https://discord.gg/..." className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Website URL</label>
+                <input data-testid="input-website-url" type="text" value={form.websiteUrl} onChange={set("websiteUrl")} placeholder="https://www.mfmpod.com" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Store URL</label>
+                <input data-testid="input-store-url" type="text" value={form.storeUrl} onChange={set("storeUrl")} placeholder="https://store.mfmpod.com" className={inputCls} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Host X Handle</label>
@@ -350,6 +382,36 @@ export default function PodcastDirectory() {
                     {entry.twitterHandle && (
                       <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
                         <Twitter className="w-3 h-3" /> {entry.twitterHandle}
+                      </a>
+                    )}
+                    {(entry as any).instagramUrl && (
+                      <a href={(entry as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> Instagram
+                      </a>
+                    )}
+                    {(entry as any).tiktokUrl && (
+                      <a href={(entry as any).tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> TikTok
+                      </a>
+                    )}
+                    {(entry as any).facebookUrl && (
+                      <a href={(entry as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> Facebook
+                      </a>
+                    )}
+                    {(entry as any).discordUrl && (
+                      <a href={(entry as any).discordUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> Discord
+                      </a>
+                    )}
+                    {(entry as any).websiteUrl && (
+                      <a href={(entry as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <Globe className="w-3 h-3" /> Website
+                      </a>
+                    )}
+                    {(entry as any).storeUrl && (
+                      <a href={(entry as any).storeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> Store
                       </a>
                     )}
                     {entry.slug && entry.hasLandingPage && (

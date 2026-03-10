@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare } from "lucide-react";
-import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram } from "react-icons/si";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag } from "lucide-react";
+import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -438,7 +438,13 @@ export default function PodcastLandingGeneric() {
     relatedSlugs: dbEntry.relatedSlugs,
     aboutPodcast: dbEntry.aboutPodcast,
     twitterHandle: dbEntry.twitterHandle,
-  } as PodcastLandingConfig & { twitterHandle?: string | null } : staticConfig ? { ...staticConfig, twitterHandle: null as string | null } : null;
+    instagramUrl: (dbEntry as any).instagramUrl,
+    tiktokUrl: (dbEntry as any).tiktokUrl,
+    facebookUrl: (dbEntry as any).facebookUrl,
+    discordUrl: (dbEntry as any).discordUrl,
+    websiteUrl: (dbEntry as any).websiteUrl,
+    storeUrl: (dbEntry as any).storeUrl,
+  } as PodcastLandingConfig & { twitterHandle?: string | null; instagramUrl?: string | null; tiktokUrl?: string | null; facebookUrl?: string | null; discordUrl?: string | null; websiteUrl?: string | null; storeUrl?: string | null } : staticConfig ? { ...staticConfig, twitterHandle: null as string | null, instagramUrl: null as string | null, tiktokUrl: null as string | null, facebookUrl: null as string | null, discordUrl: null as string | null, websiteUrl: null as string | null, storeUrl: null as string | null } : null;
 
   useEffect(() => {
     if (!config) return;
@@ -525,6 +531,12 @@ export default function PodcastLandingGeneric() {
 
   const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast, description } = config;
   const twitterHandle = (config as any).twitterHandle as string | null | undefined;
+  const instagramUrl = (config as any).instagramUrl as string | null | undefined;
+  const tiktokUrl = (config as any).tiktokUrl as string | null | undefined;
+  const facebookUrl = (config as any).facebookUrl as string | null | undefined;
+  const discordUrl = (config as any).discordUrl as string | null | undefined;
+  const websiteUrl = (config as any).websiteUrl as string | null | undefined;
+  const storeUrl = (config as any).storeUrl as string | null | undefined;
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
@@ -797,6 +809,78 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiX className="w-3.5 h-3.5" />
                   {twitterHandle}
+                </a>
+              )}
+              {instagramUrl && (
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  data-testid="link-instagram"
+                >
+                  <SiInstagram className="w-4 h-4 text-[#E4405F]" />
+                  Instagram
+                </a>
+              )}
+              {tiktokUrl && (
+                <a
+                  href={tiktokUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  data-testid="link-tiktok"
+                >
+                  <SiTiktok className="w-4 h-4" />
+                  TikTok
+                </a>
+              )}
+              {facebookUrl && (
+                <a
+                  href={facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  data-testid="link-facebook"
+                >
+                  <SiFacebook className="w-4 h-4 text-[#1877F2]" />
+                  Facebook
+                </a>
+              )}
+              {discordUrl && (
+                <a
+                  href={discordUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  data-testid="link-discord"
+                >
+                  <SiDiscord className="w-4 h-4 text-[#5865F2]" />
+                  Discord
+                </a>
+              )}
+              {websiteUrl && (
+                <a
+                  href={websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  data-testid="link-website"
+                >
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  Website
+                </a>
+              )}
+              {storeUrl && (
+                <a
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  data-testid="link-store"
+                >
+                  <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+                  Store
                 </a>
               )}
             </div>
