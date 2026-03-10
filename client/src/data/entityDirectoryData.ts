@@ -4086,7 +4086,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Google DeepMind",
     description: "Google's AI research laboratory focused on artificial general intelligence.",
     background: "Google DeepMind is an AI research lab formed in 2023 by merging Google Brain and DeepMind. Originally founded in 2010 by Demis Hassabis, Shane Legg, and Mustafa Suleyman, DeepMind gained fame for creating AlphaGo, the first program to defeat a professional Go player. The lab has produced groundbreaking work in protein folding (AlphaFold), reinforcement learning, and large language models including Gemini.",
-    logoUrl: "https://logo.clearbit.com/deepmind.google",
+    logoUrl: "https://unavatar.io/deepmind.com",
     searchTerms: ["Google DeepMind", "DeepMind"],
     details: {
       headquarters: "London, United Kingdom",
@@ -4104,7 +4104,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "xAI",
     description: "Elon Musk's artificial intelligence company building the Grok AI assistant.",
     background: "xAI is an AI company founded by Elon Musk in 2023 with the mission to understand the true nature of the universe. The company developed Grok, a conversational AI assistant integrated into the X platform. xAI has attracted top AI researchers from Google DeepMind, OpenAI, and other leading labs. The company raised significant funding and built one of the world's largest GPU clusters for AI training.",
-    logoUrl: "https://logo.clearbit.com/x.ai",
+    logoUrl: "https://unavatar.io/x.ai",
     searchTerms: ["xAI", "Grok", "Grok AI"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4122,7 +4122,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Stripe",
     description: "Global financial infrastructure platform for internet businesses.",
     background: "Stripe is a financial technology company founded in 2010 by Irish brothers Patrick and John Collison. The company provides payment processing APIs and tools that power online commerce for millions of businesses worldwide, from startups to Fortune 500 companies. Stripe has expanded into billing, fraud prevention, banking-as-a-service, and corporate card products, becoming one of the most valuable private companies in the world.",
-    logoUrl: "https://logo.clearbit.com/stripe.com",
+    logoUrl: "https://unavatar.io/stripe.com",
     searchTerms: ["Stripe", "Stripe Payments"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4141,7 +4141,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Uber Technologies",
     description: "Global ride-hailing and delivery platform.",
     background: "Uber Technologies is a transportation and delivery company founded in 2009 by Travis Kalanick and Garrett Camp. Starting as a ride-hailing service, Uber expanded into food delivery (Uber Eats), freight logistics, and autonomous vehicle development. The company operates in over 70 countries and went public in 2019. Uber has fundamentally transformed urban transportation and the gig economy worldwide.",
-    logoUrl: "https://logo.clearbit.com/uber.com",
+    logoUrl: "https://unavatar.io/uber.com",
     searchTerms: ["Uber", "Uber Technologies", "Uber Eats"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4160,7 +4160,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Lyft",
     description: "Ride-hailing and transportation network company.",
     background: "Lyft is a ride-sharing company founded in 2012 by Logan Green and John Zimmer, growing out of their earlier carpooling service Zimride. Lyft operates across the United States and Canada, offering ride-hailing, bike-sharing, and scooter rentals. The company has positioned itself as Uber's primary competitor in the North American market and went public in 2019.",
-    logoUrl: "https://logo.clearbit.com/lyft.com",
+    logoUrl: "https://unavatar.io/lyft.com",
     searchTerms: ["Lyft"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4179,7 +4179,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "DoorDash",
     description: "Leading food delivery and local commerce platform in the US.",
     background: "DoorDash is a food delivery and logistics company founded in 2013 by Stanford students Tony Xu, Stanley Tang, Andy Fang, and Evan Moore. It has grown to become the largest food delivery platform in the United States by market share. DoorDash expanded beyond restaurant delivery into grocery, convenience, and retail delivery through DashPass subscriptions and its DashMart concept.",
-    logoUrl: "https://logo.clearbit.com/doordash.com",
+    logoUrl: "https://unavatar.io/doordash.com",
     searchTerms: ["DoorDash", "DashPass"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4198,7 +4198,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Instacart",
     description: "Online grocery delivery and pickup marketplace.",
     background: "Instacart is a grocery delivery and pickup platform founded in 2012 by Apoorva Mehta, a former Amazon engineer. The company partners with hundreds of national, regional, and local retailers to offer delivery from their stores. Instacart experienced massive growth during the COVID-19 pandemic and went public in 2023. The company has also expanded into advertising and enterprise technology for retailers.",
-    logoUrl: "https://logo.clearbit.com/instacart.com",
+    logoUrl: "https://unavatar.io/instacart.com",
     searchTerms: ["Instacart"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4217,7 +4217,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Databricks",
     description: "Unified data analytics and AI platform built on Apache Spark.",
     background: "Databricks is a data and AI company founded in 2013 by the creators of Apache Spark at UC Berkeley, including Ali Ghodsi. The company provides a unified analytics platform combining data engineering, data science, and machine learning. Databricks pioneered the lakehouse architecture, merging data lakes and data warehouses. It has become one of the most valuable enterprise software companies globally.",
-    logoUrl: "https://logo.clearbit.com/databricks.com",
+    logoUrl: "https://unavatar.io/databricks.com",
     searchTerms: ["Databricks", "Apache Spark"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4236,7 +4236,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Figma",
     description: "Collaborative interface design and prototyping tool.",
     background: "Figma is a cloud-based design platform founded in 2012 by Dylan Field and Evan Wallace. The tool revolutionized UI/UX design by enabling real-time collaboration in the browser, challenging desktop incumbents like Sketch and Adobe XD. Adobe attempted to acquire Figma for $20 billion in 2022, but the deal was abandoned in 2023 due to regulatory concerns. Figma has become the industry standard for product design.",
-    logoUrl: "https://logo.clearbit.com/figma.com",
+    logoUrl: "https://unavatar.io/figma.com",
     searchTerms: ["Figma"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4255,7 +4255,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Notion",
     description: "All-in-one workspace for notes, project management, and collaboration.",
     background: "Notion is a productivity and collaboration platform founded in 2013 by Ivan Zhao and Simon Last. The app combines notes, databases, kanban boards, wikis, calendars, and reminders into a single workspace. Notion gained a cult following for its flexibility and template ecosystem, becoming one of the most popular productivity tools for teams and individuals worldwide.",
-    logoUrl: "https://logo.clearbit.com/notion.so",
+    logoUrl: "https://unavatar.io/notion.so",
     searchTerms: ["Notion", "Notion Labs"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4274,7 +4274,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Canva",
     description: "Online graphic design platform for creating visual content.",
     background: "Canva is an online design platform founded in 2013 by Melanie Perkins, Cliff Obrecht, and Cameron Adams in Sydney, Australia. The tool democratized graphic design by making it accessible to non-designers through drag-and-drop templates and an intuitive interface. Canva serves over 170 million monthly users and has expanded into presentations, websites, video editing, and enterprise design tools.",
-    logoUrl: "https://logo.clearbit.com/canva.com",
+    logoUrl: "https://unavatar.io/canva.com",
     searchTerms: ["Canva"],
     details: {
       headquarters: "Sydney, Australia",
@@ -4293,7 +4293,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Atlassian",
     description: "Enterprise software company known for Jira, Confluence, and Trello.",
     background: "Atlassian is an Australian enterprise software company founded in 2002 by Mike Cannon-Brookes and Scott Farquhar. The company is best known for its suite of collaboration and project management tools including Jira, Confluence, Trello, and Bitbucket. Atlassian pioneered the no-sales-team model in enterprise software and serves hundreds of thousands of organizations worldwide.",
-    logoUrl: "https://logo.clearbit.com/atlassian.com",
+    logoUrl: "https://unavatar.io/atlassian.com",
     searchTerms: ["Atlassian", "Jira", "Confluence", "Trello", "Bitbucket"],
     details: {
       headquarters: "Sydney, Australia",
@@ -4312,7 +4312,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "GitHub",
     description: "World's largest platform for software development and version control.",
     background: "GitHub is a developer platform founded in 2008 by Tom Preston-Werner, Chris Wanstrath, PJ Hyett, and Scott Chacon. Built around the Git version control system, GitHub hosts over 100 million developers and 330 million repositories, making it the world's largest source code host. Microsoft acquired GitHub in 2018 for $7.5 billion. GitHub has expanded into CI/CD (GitHub Actions), security (Dependabot), and AI-powered coding (GitHub Copilot).",
-    logoUrl: "https://logo.clearbit.com/github.com",
+    logoUrl: "https://unavatar.io/github.com",
     searchTerms: ["GitHub", "GitHub Copilot", "GitHub Actions"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4330,7 +4330,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Amazon Web Services",
     description: "World's largest cloud computing platform.",
     background: "Amazon Web Services (AWS) is a subsidiary of Amazon providing on-demand cloud computing platforms and APIs. Launched in 2006, AWS pioneered the infrastructure-as-a-service model and remains the dominant cloud provider globally. AWS offers over 200 services including computing, storage, databases, machine learning, and analytics. It generates the majority of Amazon's operating profit and serves millions of customers from startups to governments.",
-    logoUrl: "https://logo.clearbit.com/aws.amazon.com",
+    logoUrl: "https://unavatar.io/aws.amazon.com",
     searchTerms: ["Amazon Web Services", "AWS"],
     details: {
       headquarters: "Seattle, WA",
@@ -4348,7 +4348,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Google Cloud",
     description: "Google's suite of cloud computing services and enterprise solutions.",
     background: "Google Cloud is a suite of cloud computing services offered by Google, competing with AWS and Microsoft Azure. It provides infrastructure, platform services, and AI/ML tools built on the same infrastructure that powers Google's own products. Google Cloud is known for its strengths in data analytics (BigQuery), Kubernetes (GKE), and AI services. The division has been growing rapidly under the leadership of Thomas Kurian.",
-    logoUrl: "https://logo.clearbit.com/cloud.google.com",
+    logoUrl: "https://unavatar.io/google.com",
     searchTerms: ["Google Cloud", "Google Cloud Platform", "GCP"],
     details: {
       headquarters: "Sunnyvale, CA",
@@ -4366,7 +4366,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Microsoft Azure",
     description: "Microsoft's cloud computing platform and services.",
     background: "Microsoft Azure is a cloud computing platform launched in 2010, offering over 200 products and services for building, deploying, and managing applications. Azure is the second-largest cloud provider globally and has seen accelerated growth through its partnership with OpenAI, integrating advanced AI capabilities across its services. Azure serves enterprise customers with hybrid cloud solutions, DevOps tools, and AI infrastructure.",
-    logoUrl: "https://logo.clearbit.com/azure.microsoft.com",
+    logoUrl: "https://unavatar.io/microsoft.com",
     searchTerms: ["Microsoft Azure", "Azure"],
     details: {
       headquarters: "Redmond, WA",
@@ -4384,7 +4384,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Vercel",
     description: "Frontend cloud platform and creators of the Next.js framework.",
     background: "Vercel is a cloud platform for frontend developers founded in 2015 by Guillermo Rauch, creator of Socket.io. The company created and maintains Next.js, the most popular React framework. Vercel provides a deployment and hosting platform optimized for frontend frameworks, offering edge computing, serverless functions, and a global CDN. The company has become central to the modern web development ecosystem.",
-    logoUrl: "https://logo.clearbit.com/vercel.com",
+    logoUrl: "https://unavatar.io/vercel.com",
     searchTerms: ["Vercel", "Next.js", "Nextjs"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4403,7 +4403,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Supabase",
     description: "Open-source Firebase alternative with PostgreSQL backend.",
     background: "Supabase is an open-source backend-as-a-service platform founded in 2020 by Paul Copplestone and Ant Wilson. Built on PostgreSQL, it provides authentication, real-time subscriptions, storage, edge functions, and auto-generated APIs. Supabase positions itself as the open-source alternative to Firebase, gaining rapid adoption among developers for its developer experience and scalability.",
-    logoUrl: "https://logo.clearbit.com/supabase.com",
+    logoUrl: "https://unavatar.io/supabase.com",
     searchTerms: ["Supabase"],
     details: {
       headquarters: "Singapore",
@@ -4422,7 +4422,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "MongoDB",
     description: "Leading NoSQL document database platform.",
     background: "MongoDB is a database company founded in 2007 by Dwight Merriman, Eliot Horowitz, and Kevin Ryan. The company's flagship product is the MongoDB document database, which stores data in flexible JSON-like documents instead of traditional rows and columns. MongoDB Atlas, the company's cloud database service, has become its primary growth driver. MongoDB is widely used in modern application development.",
-    logoUrl: "https://logo.clearbit.com/mongodb.com",
+    logoUrl: "https://unavatar.io/mongodb.com",
     searchTerms: ["MongoDB", "MongoDB Atlas"],
     details: {
       headquarters: "New York, NY",
@@ -4441,7 +4441,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Redis",
     description: "In-memory data store used as database, cache, and message broker.",
     background: "Redis is a data infrastructure company built around the popular open-source Redis in-memory data store, originally created by Salvatore Sanfilippo in 2009. The company (formerly Redis Labs) provides Redis Enterprise, a commercial version with enhanced features for enterprise use. Redis is one of the most widely used databases in the world, known for its speed and versatility as a cache, session store, and real-time data platform.",
-    logoUrl: "https://logo.clearbit.com/redis.io",
+    logoUrl: "https://unavatar.io/redis.io",
     searchTerms: ["Redis", "Redis Labs", "Redis Enterprise"],
     details: {
       headquarters: "Mountain View, CA",
@@ -4460,7 +4460,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Docker",
     description: "Platform for building, sharing, and running containerized applications.",
     background: "Docker is a platform company founded in 2013 by Solomon Hykes that popularized containerization technology. Docker containers package applications and their dependencies into standardized units, revolutionizing how software is built, shipped, and deployed. While Kubernetes emerged as the dominant orchestration tool, Docker remains the standard for container creation and local development. Docker Hub hosts millions of container images.",
-    logoUrl: "https://logo.clearbit.com/docker.com",
+    logoUrl: "https://unavatar.io/docker.com",
     searchTerms: ["Docker", "Docker Hub", "Docker Desktop"],
     details: {
       headquarters: "New York, NY",
@@ -4478,7 +4478,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "YouTube",
     description: "World's largest video sharing and streaming platform.",
     background: "YouTube is a video-sharing platform founded in 2005 by Steve Chen, Chad Hurley, and Jawed Karim, all former PayPal employees. Google acquired YouTube in 2006 for $1.65 billion. YouTube has grown into the world's second-most visited website and the dominant video platform, with over 2 billion monthly logged-in users. It generates significant advertising revenue and has expanded into YouTube TV, YouTube Music, YouTube Shorts, and YouTube Premium.",
-    logoUrl: "https://logo.clearbit.com/youtube.com",
+    logoUrl: "https://unavatar.io/youtube.com",
     searchTerms: ["YouTube", "YouTube Shorts", "YouTube Premium", "YouTube TV"],
     details: {
       headquarters: "San Bruno, CA",
@@ -4496,7 +4496,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "TikTok",
     description: "Short-form video platform owned by ByteDance.",
     background: "TikTok is a short-form video platform launched internationally in 2017 by Chinese company ByteDance. The app allows users to create and share videos from 15 seconds to 10 minutes and has become a cultural phenomenon, particularly among younger demographics. TikTok's algorithm-driven For You Page revolutionized content discovery. The app has faced regulatory scrutiny in multiple countries over data privacy and national security concerns.",
-    logoUrl: "https://logo.clearbit.com/tiktok.com",
+    logoUrl: "https://unavatar.io/tiktok.com",
     searchTerms: ["TikTok", "ByteDance"],
     details: {
       headquarters: "Los Angeles, CA / Singapore",
@@ -4514,7 +4514,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "X (Twitter)",
     description: "Social media platform for real-time public conversation.",
     background: "X, formerly known as Twitter, is a social media platform originally founded in 2006 by Jack Dorsey, Noah Glass, Biz Stone, and Evan Williams. Elon Musk acquired Twitter in October 2022 for $44 billion and rebranded it to X in 2023. The platform is known for real-time news, public discourse, and short-form text posts. Under Musk's ownership, X has introduced premium subscriptions, expanded video content, and integrated the Grok AI assistant.",
-    logoUrl: "https://logo.clearbit.com/x.com",
+    logoUrl: "https://unavatar.io/x.com",
     searchTerms: ["X", "Twitter", "X Corp"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4532,7 +4532,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Instagram",
     description: "Photo and video sharing social networking platform owned by Meta.",
     background: "Instagram is a photo and video sharing platform founded in 2010 by Kevin Systrom and Mike Krieger. Facebook (now Meta) acquired Instagram in 2012 for $1 billion. The platform has evolved from a simple photo-sharing app to a comprehensive social media platform with Stories, Reels, IGTV, and shopping features. Instagram has over 2 billion monthly active users and is a major platform for creators, brands, and influencer marketing.",
-    logoUrl: "https://logo.clearbit.com/instagram.com",
+    logoUrl: "https://unavatar.io/instagram.com",
     searchTerms: ["Instagram", "IG", "Instagram Reels"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4550,7 +4550,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Facebook",
     description: "World's largest social networking platform, owned by Meta.",
     background: "Facebook is a social networking platform founded in 2004 by Mark Zuckerberg and his Harvard roommates. It grew from a college social network into the world's largest social media platform with nearly 3 billion monthly active users. In 2021, Facebook's parent company rebranded to Meta Platforms to reflect its focus on building the metaverse. Facebook remains the company's flagship product alongside Instagram, WhatsApp, and Messenger.",
-    logoUrl: "https://logo.clearbit.com/facebook.com",
+    logoUrl: "https://unavatar.io/facebook.com",
     searchTerms: ["Facebook", "FB"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4568,7 +4568,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "LinkedIn",
     description: "Professional networking and career development platform owned by Microsoft.",
     background: "LinkedIn is a professional networking platform founded in 2002 by Reid Hoffman and launched in 2003. Microsoft acquired LinkedIn in 2016 for $26.2 billion. The platform has over 1 billion members worldwide and serves as the leading platform for professional networking, job searching, recruiting, and B2B marketing. LinkedIn has expanded into learning (LinkedIn Learning), newsletters, and creator tools.",
-    logoUrl: "https://logo.clearbit.com/linkedin.com",
+    logoUrl: "https://unavatar.io/linkedin.com",
     searchTerms: ["LinkedIn"],
     details: {
       headquarters: "Sunnyvale, CA",
@@ -4586,7 +4586,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Reddit",
     description: "Community-driven social news and discussion platform.",
     background: "Reddit is a social media platform founded in 2005 by Steve Huffman and Alexis Ohanian. Known as 'the front page of the internet,' Reddit consists of thousands of user-created communities (subreddits) covering virtually every topic. The platform went public in 2024 and has over 1 billion monthly active users. Reddit is known for its upvote/downvote system, AMAs, and as a valuable source for authentic discussions and reviews.",
-    logoUrl: "https://logo.clearbit.com/reddit.com",
+    logoUrl: "https://unavatar.io/reddit.com",
     searchTerms: ["Reddit"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4605,7 +4605,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Snap Inc.",
     description: "Camera and social media company behind Snapchat.",
     background: "Snap Inc. is a camera and social media company founded in 2011 by Evan Spiegel, Bobby Murphy, and Reggie Brown. Its flagship product, Snapchat, pioneered ephemeral messaging and Stories (later adopted by Instagram and Facebook). Snap has expanded into augmented reality lenses, Snap Map, Spotlight (short-form video), and Spectacles (AR glasses). The company went public in 2017 and continues to innovate in AR technology.",
-    logoUrl: "https://logo.clearbit.com/snap.com",
+    logoUrl: "https://unavatar.io/snap.com",
     searchTerms: ["Snap", "Snapchat", "Snap Inc"],
     details: {
       headquarters: "Santa Monica, CA",
@@ -4624,7 +4624,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Samsung Electronics",
     description: "South Korean multinational electronics and semiconductor company.",
     background: "Samsung Electronics is a South Korean multinational founded in 1969 as a division of the Samsung Group. It is the world's largest manufacturer of smartphones, memory chips, and display panels. Samsung competes across consumer electronics, semiconductors, and telecommunications equipment. The company produces the Galaxy smartphone line, QLED and OLED TVs, and is a major supplier of NAND flash and DRAM memory to the global tech industry.",
-    logoUrl: "https://logo.clearbit.com/samsung.com",
+    logoUrl: "https://unavatar.io/samsung.com",
     searchTerms: ["Samsung", "Samsung Electronics", "Galaxy"],
     details: {
       headquarters: "Suwon, South Korea",
@@ -4643,7 +4643,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Sony Group",
     description: "Japanese multinational conglomerate in electronics, gaming, and entertainment.",
     background: "Sony Group Corporation is a Japanese multinational founded in 1946 by Masaru Ibuka and Akio Morita. Sony operates across electronics, gaming (PlayStation), music (Sony Music), film (Sony Pictures), and financial services. PlayStation is one of the most successful gaming console brands in history. Sony is also a leader in image sensors, powering cameras in most of the world's smartphones.",
-    logoUrl: "https://logo.clearbit.com/sony.com",
+    logoUrl: "https://unavatar.io/sony.com",
     searchTerms: ["Sony", "Sony Group", "PlayStation", "Sony Pictures", "Sony Music"],
     details: {
       headquarters: "Tokyo, Japan",
@@ -4662,7 +4662,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Nintendo",
     description: "Japanese gaming company known for Mario, Zelda, and Switch consoles.",
     background: "Nintendo is a Japanese gaming company founded in 1889, originally as a playing card company. It transformed into one of the most influential video game companies in history, creating iconic franchises including Mario, The Legend of Zelda, Pokemon, and Donkey Kong. The Nintendo Switch became one of the best-selling consoles ever. Nintendo is known for its innovative hardware design and family-friendly game development philosophy.",
-    logoUrl: "https://logo.clearbit.com/nintendo.com",
+    logoUrl: "https://unavatar.io/nintendo.com",
     searchTerms: ["Nintendo", "Nintendo Switch", "Mario", "Zelda"],
     details: {
       headquarters: "Kyoto, Japan",
@@ -4681,7 +4681,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Block, Inc.",
     description: "Financial technology company behind Square, Cash App, and Afterpay.",
     background: "Block, Inc. (formerly Square) is a financial technology company founded in 2009 by Jack Dorsey and Jim McKelvey. The company started with its iconic card reader for small businesses and has expanded into Cash App (P2P payments), Afterpay (buy now, pay later), TIDAL (music streaming), and Bitcoin initiatives. Block rebranded from Square in 2021 to reflect its broader focus on economic empowerment and blockchain technology.",
-    logoUrl: "https://logo.clearbit.com/block.xyz",
+    logoUrl: "https://unavatar.io/block.xyz",
     searchTerms: ["Block", "Square", "Cash App", "Afterpay", "Block Inc"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4700,7 +4700,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "PayPal",
     description: "Global digital payments and financial services platform.",
     background: "PayPal is a digital payments company founded in 1998, emerging from the merger of Confinity and X.com (Elon Musk's online bank). The original PayPal team became known as the 'PayPal Mafia,' with members going on to found Tesla, LinkedIn, YouTube, Palantir, and more. PayPal provides online payment processing, Venmo (P2P payments), and merchant services. It operates in over 200 markets and processes billions in payments annually.",
-    logoUrl: "https://logo.clearbit.com/paypal.com",
+    logoUrl: "https://unavatar.io/paypal.com",
     searchTerms: ["PayPal", "Venmo"],
     details: {
       headquarters: "San Jose, CA",
@@ -4719,7 +4719,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Binance",
     description: "World's largest cryptocurrency exchange by trading volume.",
     background: "Binance is a cryptocurrency exchange founded in 2017 by Changpeng Zhao (CZ). It rapidly became the world's largest crypto exchange by trading volume, offering spot trading, futures, staking, and a wide range of crypto services. Binance also created BNB Chain (formerly Binance Smart Chain), a major blockchain ecosystem. The company has faced regulatory challenges in multiple countries and reached a settlement with US authorities in 2023.",
-    logoUrl: "https://logo.clearbit.com/binance.com",
+    logoUrl: "https://unavatar.io/binance.com",
     searchTerms: ["Binance", "BNB", "Binance Smart Chain"],
     details: {
       headquarters: "Global (no official HQ)",
@@ -4737,7 +4737,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Robinhood",
     description: "Commission-free trading platform for stocks, crypto, and options.",
     background: "Robinhood is a financial services company founded in 2013 by Vlad Tenev and Baiju Bhatt. The company pioneered commission-free stock trading and brought investing to a new generation of retail investors through its mobile-first platform. Robinhood gained massive attention during the 2021 GameStop short squeeze. The platform offers stock, options, ETF, and cryptocurrency trading, along with cash management features.",
-    logoUrl: "https://logo.clearbit.com/robinhood.com",
+    logoUrl: "https://unavatar.io/robinhood.com",
     searchTerms: ["Robinhood", "Robinhood Markets"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4756,7 +4756,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Visa Inc.",
     description: "Global payments technology company operating the world's largest electronic payments network.",
     background: "Visa is a global payments technology company founded in 1958 by Dee Hock as BankAmericard. It operates the world's largest retail electronic payments network, facilitating transactions between consumers, merchants, financial institutions, and governments. Visa processes over 200 billion transactions annually across more than 200 countries. The company went public in 2008 in one of the largest IPOs in US history.",
-    logoUrl: "https://logo.clearbit.com/visa.com",
+    logoUrl: "https://unavatar.io/visa.com",
     searchTerms: ["Visa", "Visa Inc"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4775,7 +4775,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Mastercard",
     description: "Global payment technology and financial services corporation.",
     background: "Mastercard is a global payment technology company founded in 1966 as the Interbank Card Association. It operates the second-largest payment processing network in the world, connecting consumers, financial institutions, merchants, and governments across more than 210 countries. Mastercard has expanded beyond card payments into digital solutions, cybersecurity, data analytics, and real-time payment infrastructure.",
-    logoUrl: "https://logo.clearbit.com/mastercard.com",
+    logoUrl: "https://unavatar.io/mastercard.com",
     searchTerms: ["Mastercard"],
     details: {
       headquarters: "Purchase, NY",
@@ -4794,7 +4794,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Kraken",
     description: "US-based cryptocurrency exchange known for security and compliance.",
     background: "Kraken is a cryptocurrency exchange founded in 2011 by Jesse Powell and launched in 2013. It is one of the oldest and most trusted cryptocurrency exchanges, known for its strong security record and regulatory compliance. Kraken offers trading in hundreds of cryptocurrencies, futures, staking, and institutional services. The exchange has served as a trusted partner for law enforcement and has never been hacked.",
-    logoUrl: "https://logo.clearbit.com/kraken.com",
+    logoUrl: "https://unavatar.io/kraken.com",
     searchTerms: ["Kraken", "Kraken Exchange"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4812,7 +4812,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Y Combinator",
     description: "World's most prestigious startup accelerator and seed fund.",
     background: "Y Combinator (YC) is a startup accelerator founded in 2005 by Paul Graham, Jessica Livingston, Robert Tappan Morris, and Trevor Blackwell. YC has funded over 4,000 startups with a combined valuation exceeding $600 billion, including Airbnb, Stripe, Dropbox, DoorDash, Coinbase, Reddit, and Instacart. The program provides seed funding, mentorship, and a powerful alumni network in exchange for equity in participating startups.",
-    logoUrl: "https://logo.clearbit.com/ycombinator.com",
+    logoUrl: "https://unavatar.io/ycombinator.com",
     searchTerms: ["Y Combinator", "YC", "YCombinator"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4830,7 +4830,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Andreessen Horowitz",
     description: "Leading Silicon Valley venture capital firm known as a16z.",
     background: "Andreessen Horowitz (a16z) is a venture capital firm founded in 2009 by Marc Andreessen and Ben Horowitz. The firm manages over $35 billion in assets and invests across stages from seed to growth. A16z is known for its operator-led model, extensive portfolio services, and investments in companies like Facebook, Airbnb, GitHub, Coinbase, and Stripe. The firm has expanded into crypto, bio, games, and infrastructure funds.",
-    logoUrl: "https://logo.clearbit.com/a16z.com",
+    logoUrl: "https://unavatar.io/a16z.com",
     searchTerms: ["Andreessen Horowitz", "a16z"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4848,7 +4848,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Sequoia Capital",
     description: "Legendary venture capital firm behind Apple, Google, and many tech giants.",
     background: "Sequoia Capital is a venture capital firm founded in 1972 by Don Valentine. It is one of the most successful investment firms in history, having backed companies including Apple, Google, Oracle, PayPal, YouTube, Instagram, WhatsApp, Airbnb, and Stripe. In 2022, Sequoia restructured into separate entities for the US/Europe, China, and India/Southeast Asia. The firm is known for its long-term approach and deep partnership with founders.",
-    logoUrl: "https://logo.clearbit.com/sequoiacap.com",
+    logoUrl: "https://unavatar.io/sequoiacap.com",
     searchTerms: ["Sequoia Capital", "Sequoia"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4866,7 +4866,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Benchmark",
     description: "Elite venture capital firm known for early-stage investments.",
     background: "Benchmark is a venture capital firm founded in 1995 with a distinctive equal-partnership model where all partners share equally in profits. The firm is known for its disciplined focus on early-stage investing and has backed companies including eBay, Twitter, Uber, Snapchat, Instagram, and Discord. Benchmark is deliberately small, typically maintaining just five or six general partners, and is considered one of the most elite VC firms in Silicon Valley.",
-    logoUrl: "https://logo.clearbit.com/benchmark.com",
+    logoUrl: "https://unavatar.io/benchmark.com",
     searchTerms: ["Benchmark", "Benchmark Capital"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4884,7 +4884,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Founders Fund",
     description: "San Francisco venture capital firm founded by Peter Thiel.",
     background: "Founders Fund is a venture capital firm founded in 2005 by Peter Thiel, Ken Howery, and Luke Nosek, all members of the PayPal Mafia. The firm is known for its contrarian investment philosophy and backing transformative companies including SpaceX, Palantir, Airbnb, Stripe, and Anduril. Founders Fund manages over $12 billion and is known for backing bold, technically ambitious startups often overlooked by traditional VCs.",
-    logoUrl: "https://logo.clearbit.com/foundersfund.com",
+    logoUrl: "https://unavatar.io/foundersfund.com",
     searchTerms: ["Founders Fund"],
     details: {
       headquarters: "San Francisco, CA",
@@ -4902,7 +4902,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Greylock Partners",
     description: "Leading venture capital firm focused on early-stage enterprise and consumer tech.",
     background: "Greylock Partners is a venture capital firm founded in 1965, making it one of the oldest VC firms in Silicon Valley. The firm has backed iconic companies including LinkedIn, Facebook, Airbnb, Discord, Figma, Workday, and Palo Alto Networks. Greylock is known for its deep expertise in enterprise software, consumer internet, and infrastructure investing. The firm typically leads Series A and B rounds.",
-    logoUrl: "https://logo.clearbit.com/greylock.com",
+    logoUrl: "https://unavatar.io/greylock.com",
     searchTerms: ["Greylock", "Greylock Partners"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4920,7 +4920,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Accel",
     description: "Global venture capital firm with major investments in enterprise and consumer tech.",
     background: "Accel is a global venture capital firm founded in 1983 by Arthur Patterson and Jim Swartz. The firm has offices in Palo Alto, London, and Bangalore and has invested in companies including Facebook, Slack, Dropbox, Spotify, Atlassian, CrowdStrike, and UiPath. Accel manages over $50 billion in committed capital across multiple funds and is known for its global reach and multi-stage investment approach.",
-    logoUrl: "https://logo.clearbit.com/accel.com",
+    logoUrl: "https://unavatar.io/accel.com",
     searchTerms: ["Accel", "Accel Partners"],
     details: {
       headquarters: "Palo Alto, CA",
@@ -4938,7 +4938,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Lightspeed Venture Partners",
     description: "Global venture capital firm investing across enterprise and consumer sectors.",
     background: "Lightspeed Venture Partners is a venture capital firm founded in 2000 with offices in Silicon Valley, India, China, Israel, and Southeast Asia. The firm manages over $25 billion and has invested in companies including Snap, Affirm, Mulesoft, Nutanix, AppDynamics, and Epic Games. Lightspeed is known for its global investment approach, with significant presence in the Indian and Southeast Asian startup ecosystems.",
-    logoUrl: "https://logo.clearbit.com/lsvp.com",
+    logoUrl: "https://unavatar.io/lsvp.com",
     searchTerms: ["Lightspeed Venture Partners", "Lightspeed", "LSVP"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4956,7 +4956,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Kleiner Perkins",
     description: "Storied Silicon Valley venture capital firm backing transformative companies.",
     background: "Kleiner Perkins is a venture capital firm founded in 1972 by Eugene Kleiner and Tom Perkins. The firm has been instrumental in funding some of the most important technology companies in history, including Amazon, Google, Genentech, Netscape, and Twitter. While the firm experienced a challenging period in the 2010s, it has reinvented itself under new leadership, returning to form with investments in companies like Figma, Nuro, and Impossible Foods.",
-    logoUrl: "https://logo.clearbit.com/kleinerperkins.com",
+    logoUrl: "https://unavatar.io/kleinerperkins.com",
     searchTerms: ["Kleiner Perkins", "KPCB", "Kleiner Perkins Caufield & Byers"],
     details: {
       headquarters: "Menlo Park, CA",
@@ -4974,7 +4974,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Union Square Ventures",
     description: "New York-based venture capital firm focused on networks and platforms.",
     background: "Union Square Ventures (USV) is a venture capital firm founded in 2003 by Fred Wilson and Brad Burnham. Based in New York City, USV has a thesis-driven approach focused on large networks of engaged users, and has invested in companies including Twitter, Tumblr, Etsy, Coinbase, MongoDB, and Cloudflare. USV was also an early and active investor in blockchain and cryptocurrency projects.",
-    logoUrl: "https://logo.clearbit.com/usv.com",
+    logoUrl: "https://unavatar.io/usv.com",
     searchTerms: ["Union Square Ventures", "USV"],
     details: {
       headquarters: "New York, NY",
@@ -4992,7 +4992,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "BlackRock",
     description: "World's largest asset management firm.",
     background: "BlackRock is the world's largest asset management company, founded in 1988 by Larry Fink and seven partners. The firm manages over $10 trillion in assets, making it the single largest money manager in the world. BlackRock is known for its Aladdin risk management platform and its iShares ETF business. The firm wields enormous influence over global financial markets and corporate governance through its massive shareholdings.",
-    logoUrl: "https://logo.clearbit.com/blackrock.com",
+    logoUrl: "https://unavatar.io/blackrock.com",
     searchTerms: ["BlackRock", "iShares", "Aladdin"],
     details: {
       headquarters: "New York, NY",
@@ -5011,7 +5011,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Blackstone",
     description: "World's largest alternative asset management firm.",
     background: "Blackstone is the world's largest alternative asset manager, founded in 1985 by Stephen Schwarzman and Peter Peterson. The firm manages over $1 trillion in assets across private equity, real estate, credit, and hedge fund strategies. Blackstone is known for its major real estate holdings, infrastructure investments, and corporate buyouts. The firm went public in 2007 and has grown into one of the most powerful financial institutions in the world.",
-    logoUrl: "https://logo.clearbit.com/blackstone.com",
+    logoUrl: "https://unavatar.io/blackstone.com",
     searchTerms: ["Blackstone", "Blackstone Group"],
     details: {
       headquarters: "New York, NY",
@@ -5030,7 +5030,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Goldman Sachs",
     description: "Leading global investment banking and financial services firm.",
     background: "Goldman Sachs is a multinational investment bank and financial services company founded in 1869 by Marcus Goldman. The firm is one of the most prestigious financial institutions in the world, providing investment banking, securities, asset management, and consumer banking services. Goldman Sachs has been central to major financial transactions, IPOs, and M&A deals globally. The firm went public in 1999.",
-    logoUrl: "https://logo.clearbit.com/goldmansachs.com",
+    logoUrl: "https://unavatar.io/goldmansachs.com",
     searchTerms: ["Goldman Sachs", "Goldman"],
     details: {
       headquarters: "New York, NY",
@@ -5049,7 +5049,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "JPMorgan Chase",
     description: "Largest bank in the United States and global financial powerhouse.",
     background: "JPMorgan Chase is the largest bank in the United States and one of the world's most valuable financial institutions, with a history dating back to 1799. The current company was formed through the 2000 merger of J.P. Morgan & Co. and Chase Manhattan Corporation. JPMorgan Chase operates across investment banking, commercial banking, asset management, and consumer banking, serving millions of customers, corporations, and governments worldwide.",
-    logoUrl: "https://logo.clearbit.com/jpmorganchase.com",
+    logoUrl: "https://unavatar.io/jpmorganchase.com",
     searchTerms: ["JPMorgan", "JPMorgan Chase", "JP Morgan", "Chase"],
     details: {
       headquarters: "New York, NY",
@@ -5068,7 +5068,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Morgan Stanley",
     description: "Global investment bank and wealth management firm.",
     background: "Morgan Stanley is a global financial services firm founded in 1935 by Henry Sturgis Morgan, Harold Stanley, and others. The firm provides investment banking, securities, wealth management, and investment management services. Morgan Stanley has grown significantly through acquisitions including Smith Barney and E*TRADE. The firm serves corporations, governments, institutions, and individuals across more than 40 countries.",
-    logoUrl: "https://logo.clearbit.com/morganstanley.com",
+    logoUrl: "https://unavatar.io/morganstanley.com",
     searchTerms: ["Morgan Stanley", "E*TRADE"],
     details: {
       headquarters: "New York, NY",
@@ -5087,7 +5087,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Berkshire Hathaway",
     description: "Warren Buffett's multinational conglomerate and investment holding company.",
     background: "Berkshire Hathaway is a multinational conglomerate holding company led by legendary investor Warren Buffett since 1965. Originally a textile manufacturing company, it transformed into an investment vehicle that owns subsidiaries including GEICO, BNSF Railway, Dairy Queen, and Duracell, while holding major stakes in Apple, Bank of America, Coca-Cola, and American Express. Berkshire Hathaway has one of the highest stock prices in history and is known for Buffett's annual shareholder letter.",
-    logoUrl: "https://logo.clearbit.com/berkshirehathaway.com",
+    logoUrl: "https://unavatar.io/berkshirehathaway.com",
     searchTerms: ["Berkshire Hathaway", "Warren Buffett"],
     details: {
       headquarters: "Omaha, NE",
@@ -5106,7 +5106,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "ARK Invest",
     description: "Innovation-focused investment management firm led by Cathie Wood.",
     background: "ARK Investment Management is an investment firm founded in 2014 by Cathie Wood. ARK focuses on disruptive innovation across five key platforms: artificial intelligence, robotics, energy storage, DNA sequencing, and blockchain technology. The firm gained massive popularity during 2020-2021 with its flagship ARK Innovation ETF (ARKK). ARK is known for its transparent, research-driven approach and its bullish stance on transformative technologies like Tesla, Bitcoin, and genomics.",
-    logoUrl: "https://logo.clearbit.com/ark-invest.com",
+    logoUrl: "https://unavatar.io/ark-invest.com",
     searchTerms: ["ARK Invest", "ARK Investment Management", "ARKK", "Cathie Wood"],
     details: {
       headquarters: "St. Petersburg, FL",
@@ -5124,7 +5124,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Bloomberg LP",
     description: "Global financial data, media, and technology company.",
     background: "Bloomberg LP is a privately held financial, software, data, and media company founded in 1981 by Michael Bloomberg. The Bloomberg Terminal is the dominant platform used by financial professionals worldwide for real-time market data, analytics, and trading. Bloomberg also operates Bloomberg News, Bloomberg Television, Bloomberg Radio, and Bloomberg Businessweek, making it one of the most influential financial media companies globally.",
-    logoUrl: "https://logo.clearbit.com/bloomberg.com",
+    logoUrl: "https://unavatar.io/bloomberg.com",
     searchTerms: ["Bloomberg", "Bloomberg LP", "Bloomberg Terminal", "Bloomberg News"],
     details: {
       headquarters: "New York, NY",
@@ -5142,7 +5142,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "The Wall Street Journal",
     description: "Flagship business and financial news publication by Dow Jones.",
     background: "The Wall Street Journal is an American business-focused daily newspaper and digital publication founded in 1889 by Charles Dow, Edward Jones, and Charles Bergstresser. It is published by Dow Jones & Company, a division of News Corp. The WSJ is one of the most respected and widely-read business publications in the world, known for its investigative journalism, market coverage, and editorial influence. It has won numerous Pulitzer Prizes.",
-    logoUrl: "https://logo.clearbit.com/wsj.com",
+    logoUrl: "https://unavatar.io/wsj.com",
     searchTerms: ["Wall Street Journal", "WSJ", "The Wall Street Journal"],
     details: {
       headquarters: "New York, NY",
@@ -5160,7 +5160,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "The Economist",
     description: "International weekly newspaper focusing on current affairs, business, and economics.",
     background: "The Economist is a British weekly publication founded in 1843 by James Wilson. Despite calling itself a newspaper, it is printed in magazine format and is known for its authoritative analysis of international affairs, politics, business, finance, science, and technology. The Economist is recognized for its distinctive editorial voice, unsigned articles representing institutional views, and global perspective. It reaches a worldwide audience of influential decision-makers.",
-    logoUrl: "https://logo.clearbit.com/economist.com",
+    logoUrl: "https://unavatar.io/economist.com",
     searchTerms: ["The Economist", "Economist"],
     details: {
       headquarters: "London, United Kingdom",
@@ -5178,7 +5178,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Financial Times",
     description: "International daily newspaper focusing on business and economic current affairs.",
     background: "The Financial Times (FT) is a British daily newspaper founded in 1888, known for its distinctive salmon-pink paper. Owned by Nikkei Inc. since 2015, the FT is one of the world's most respected business publications, covering global finance, economics, and politics. The FT has successfully transitioned to digital, with over 1 million paying digital subscribers. It is particularly influential among business leaders, policymakers, and investors globally.",
-    logoUrl: "https://logo.clearbit.com/ft.com",
+    logoUrl: "https://unavatar.io/ft.com",
     searchTerms: ["Financial Times", "FT"],
     details: {
       headquarters: "London, United Kingdom",
@@ -5196,7 +5196,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "TechCrunch",
     description: "Leading technology media property covering startups and the tech industry.",
     background: "TechCrunch is an American online technology media company founded in 2005 by Michael Arrington. It is one of the most influential technology news outlets, known for its coverage of startups, venture capital, and the Silicon Valley ecosystem. TechCrunch also hosts the annual TechCrunch Disrupt conference featuring the Startup Battlefield competition. AOL acquired TechCrunch in 2010, and it is now owned by Yahoo (part of Apollo Global Management).",
-    logoUrl: "https://logo.clearbit.com/techcrunch.com",
+    logoUrl: "https://unavatar.io/techcrunch.com",
     searchTerms: ["TechCrunch", "TC", "TechCrunch Disrupt"],
     details: {
       headquarters: "San Francisco, CA",
@@ -5214,7 +5214,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "The Information",
     description: "Premium subscription-based technology news publication.",
     background: "The Information is a subscription-based technology news publication founded in 2013 by Jessica Lessin, a former Wall Street Journal reporter. The publication is known for its deeply reported, exclusive stories about the technology industry, venture capital, and Silicon Valley. The Information operates on a premium subscription model and is read by tech executives, investors, and industry insiders. It has broken numerous major tech industry stories.",
-    logoUrl: "https://logo.clearbit.com/theinformation.com",
+    logoUrl: "https://unavatar.io/theinformation.com",
     searchTerms: ["The Information"],
     details: {
       headquarters: "San Francisco, CA",
@@ -5232,7 +5232,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Techstars",
     description: "Global startup accelerator network and seed fund.",
     background: "Techstars is a global startup accelerator founded in 2006 by David Cohen, Brad Feld, David Brown, and Jared Polis in Boulder, Colorado. Techstars operates accelerator programs in cities worldwide, providing mentorship-driven funding to early-stage companies. The Techstars network has accelerated thousands of companies including SendGrid, DigitalOcean, ClassPass, and Sphero. Techstars also runs corporate accelerator partnerships and the Startup Weekend program.",
-    logoUrl: "https://logo.clearbit.com/techstars.com",
+    logoUrl: "https://unavatar.io/techstars.com",
     searchTerms: ["Techstars", "Startup Weekend"],
     details: {
       headquarters: "Boulder, CO",
@@ -5250,7 +5250,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "ServiceNow",
     description: "Enterprise cloud platform for digital workflow automation.",
     background: "ServiceNow is an enterprise software company founded in 2004 by Fred Luddy. The company's cloud platform enables organizations to automate and manage digital workflows across IT, employee, customer, and creator experiences. ServiceNow started as an IT service management (ITSM) tool and has expanded into a comprehensive enterprise platform used by most Fortune 500 companies. The company has experienced consistent rapid growth.",
-    logoUrl: "https://logo.clearbit.com/servicenow.com",
+    logoUrl: "https://unavatar.io/servicenow.com",
     searchTerms: ["ServiceNow"],
     details: {
       headquarters: "Santa Clara, CA",
@@ -5269,7 +5269,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Workday",
     description: "Enterprise cloud platform for HR and financial management.",
     background: "Workday is an enterprise cloud application company founded in 2005 by Dave Duffield and Aneel Bhusri after PeopleSoft was acquired by Oracle. Workday provides cloud-based software for human capital management (HCM), financial management, and planning. The company is known for its modern, user-friendly approach to enterprise software and serves many of the world's largest organizations. Workday has grown into one of the leading enterprise SaaS platforms.",
-    logoUrl: "https://logo.clearbit.com/workday.com",
+    logoUrl: "https://unavatar.io/workday.com",
     searchTerms: ["Workday"],
     details: {
       headquarters: "Pleasanton, CA",
@@ -5288,7 +5288,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Oracle",
     description: "Enterprise software giant known for databases, cloud infrastructure, and business applications.",
     background: "Oracle Corporation is a multinational technology company founded in 1977 by Larry Ellison, Bob Miner, and Ed Oates. Oracle is best known for its relational database management system and has grown into one of the world's largest software companies. The company provides cloud infrastructure, enterprise software (ERP, HCM, CRM), and database technology. Oracle has made major acquisitions including PeopleSoft, Sun Microsystems, and Cerner, and has been aggressively expanding its cloud infrastructure business.",
-    logoUrl: "https://logo.clearbit.com/oracle.com",
+    logoUrl: "https://unavatar.io/oracle.com",
     searchTerms: ["Oracle", "Oracle Cloud", "Oracle Database"],
     details: {
       headquarters: "Austin, TX",
@@ -5307,7 +5307,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Unity Technologies",
     description: "Leading real-time 3D development platform for games and interactive content.",
     background: "Unity Technologies is a software company founded in 2004 in Copenhagen by David Helgason, Joachim Ante, and Nicholas Francis. Unity's game engine is one of the two dominant platforms for video game development (alongside Unreal Engine), powering over half of all mobile games and significant portions of PC, console, and VR content. Unity has expanded beyond gaming into automotive, architecture, film, and industrial applications.",
-    logoUrl: "https://logo.clearbit.com/unity.com",
+    logoUrl: "https://unavatar.io/unity.com",
     searchTerms: ["Unity", "Unity Technologies", "Unity Engine"],
     details: {
       headquarters: "San Francisco, CA",
@@ -5326,7 +5326,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Autodesk",
     description: "Leading software company for 3D design, engineering, and entertainment.",
     background: "Autodesk is a software company founded in 1982 by John Walker. The company is best known for AutoCAD, the industry-standard computer-aided design software. Autodesk's products are used across architecture, engineering, construction, manufacturing, media, and entertainment. Key products include Revit, Maya, 3ds Max, Fusion 360, and Civil 3D. The company successfully transitioned from perpetual licenses to a subscription-based model.",
-    logoUrl: "https://logo.clearbit.com/autodesk.com",
+    logoUrl: "https://unavatar.io/autodesk.com",
     searchTerms: ["Autodesk", "AutoCAD", "Revit", "Maya"],
     details: {
       headquarters: "San Francisco, CA",
@@ -5345,7 +5345,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Pinterest",
     description: "Visual discovery and bookmarking platform for ideas and inspiration.",
     background: "Pinterest is a visual discovery platform founded in 2010 by Ben Silbermann, Paul Sciarra, and Evan Sharp. The platform allows users to discover and save ideas through visual 'pins' organized on boards covering topics like home decor, fashion, food, travel, and DIY projects. Pinterest has over 450 million monthly active users and has become a significant advertising platform, particularly for e-commerce and shopping inspiration.",
-    logoUrl: "https://logo.clearbit.com/pinterest.com",
+    logoUrl: "https://unavatar.io/pinterest.com",
     searchTerms: ["Pinterest"],
     details: {
       headquarters: "San Francisco, CA",
@@ -5364,7 +5364,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "American Express",
     description: "Global financial services and payment card company.",
     background: "American Express (Amex) is a global financial services corporation founded in 1850 as a freight express company. It evolved into one of the world's most recognized payment card brands, known for its premium charge and credit cards, merchant services, and travel-related services. Unlike Visa and Mastercard, Amex operates as both the card network and card issuer. The company is known for its high-spending cardmember base and rewards programs.",
-    logoUrl: "https://logo.clearbit.com/americanexpress.com",
+    logoUrl: "https://unavatar.io/americanexpress.com",
     searchTerms: ["American Express", "Amex"],
     details: {
       headquarters: "New York, NY",
@@ -5383,7 +5383,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "McKinsey & Company",
     description: "World's most prestigious management consulting firm.",
     background: "McKinsey & Company is a global management consulting firm founded in 1926 by James O. McKinsey. It is widely considered the most prestigious consulting firm in the world, advising leading businesses, governments, and institutions on strategy, operations, technology, and organization. McKinsey employs over 30,000 consultants across 130+ offices worldwide. The firm's alumni network is known for producing CEOs and leaders across industries.",
-    logoUrl: "https://logo.clearbit.com/mckinsey.com",
+    logoUrl: "https://unavatar.io/mckinsey.com",
     searchTerms: ["McKinsey", "McKinsey & Company"],
     details: {
       headquarters: "New York, NY",
@@ -5401,7 +5401,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Boston Consulting Group",
     description: "Global management consulting firm and member of the 'Big Three.'",
     background: "Boston Consulting Group (BCG) is a global management consulting firm founded in 1963 by Bruce Henderson. BCG is one of the 'Big Three' consulting firms alongside McKinsey and Bain. The firm is known for pioneering influential business frameworks including the growth-share matrix (BCG Matrix). BCG advises leading organizations on strategy, transformation, technology, and operations across all industries and geographies.",
-    logoUrl: "https://logo.clearbit.com/bcg.com",
+    logoUrl: "https://unavatar.io/bcg.com",
     searchTerms: ["Boston Consulting Group", "BCG"],
     details: {
       headquarters: "Boston, MA",
@@ -5419,7 +5419,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Bain & Company",
     description: "Global management consulting firm focused on results and client impact.",
     background: "Bain & Company is a global management consulting firm founded in 1973 by Bill Bain and several former BCG partners. Bain is one of the 'Big Three' consulting firms and is known for its results-oriented approach, working closely with clients to achieve measurable impact. The firm also founded Bain Capital, a leading private investment firm. Bain consistently ranks as one of the best places to work and serves clients across all major industries.",
-    logoUrl: "https://logo.clearbit.com/bain.com",
+    logoUrl: "https://unavatar.io/bain.com",
     searchTerms: ["Bain & Company", "Bain", "Bain Capital"],
     details: {
       headquarters: "Boston, MA",
@@ -5437,7 +5437,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "OpenSea",
     description: "Largest NFT marketplace for buying, selling, and discovering digital assets.",
     background: "OpenSea is a decentralized marketplace for non-fungible tokens (NFTs) founded in 2017 by Devin Finzer and Alex Atallah. The platform became the dominant NFT marketplace during the 2021-2022 NFT boom, facilitating billions of dollars in trading volume for digital art, collectibles, gaming items, and virtual real estate. While NFT trading volumes have declined from their peak, OpenSea remains the most recognized name in the NFT marketplace space.",
-    logoUrl: "https://logo.clearbit.com/opensea.io",
+    logoUrl: "https://unavatar.io/opensea.io",
     searchTerms: ["OpenSea", "NFT marketplace"],
     details: {
       headquarters: "New York, NY",
@@ -5456,7 +5456,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Chainalysis",
     description: "Blockchain analytics and compliance platform for cryptocurrency investigations.",
     background: "Chainalysis is a blockchain analytics company founded in 2014 by Michael Gronager and Jonathan Levin. The company provides investigation, compliance, and risk management tools for cryptocurrency transactions. Chainalysis works with government agencies, financial institutions, and cryptocurrency businesses to detect and prevent illegal activity on blockchains. The company's data and tools are used by law enforcement agencies in over 70 countries.",
-    logoUrl: "https://logo.clearbit.com/chainalysis.com",
+    logoUrl: "https://unavatar.io/chainalysis.com",
     searchTerms: ["Chainalysis"],
     details: {
       headquarters: "New York, NY",
