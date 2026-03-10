@@ -1571,7 +1571,7 @@ export async function backfillAppleEpisodeUrls() {
 
     for (const [itunesId, podcastRecaps] of byItunesId) {
       try {
-        const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=50&sort=recent`;
+        const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=200&sort=recent`;
         const lookupRes = await fetch(lookupUrl);
         const lookupJson = await lookupRes.json();
         const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
