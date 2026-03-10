@@ -412,9 +412,12 @@ export default function EpisodeRecapPage() {
         </nav>
 
         <section className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-about-episode">
-          <div className="flex items-center gap-2.5 px-6 py-3.5 bg-slate-500/[0.04] border-b border-slate-500/[0.08]">
-            <BookOpen className="w-4 h-4 text-slate-500" />
-            <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">About This Episode</span>
+          <div className="px-6 py-4 bg-slate-500/[0.04] border-b border-slate-500/[0.08]">
+            <div className="flex items-center gap-2.5">
+              <BookOpen className="w-4 h-4 text-slate-500" />
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">About This Episode</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1.5">A quick summary of what this {episode.podcastName} episode covers.</p>
           </div>
           <div className="px-6 py-5">
             <p className="text-base leading-[1.85] text-muted-foreground">
@@ -435,9 +438,12 @@ export default function EpisodeRecapPage() {
 
         {episode.keyInsights?.length > 0 && (
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
-              <Lightbulb className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Takeaways</span>
+            <div className="px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Lightbulb className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Takeaways</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1.5">The biggest insights from this episode of {episode.podcastName}.</p>
             </div>
             <div className="px-6 py-5 space-y-3">
               {episode.keyInsights.map((insight: string, i: number) => (
@@ -457,9 +463,12 @@ export default function EpisodeRecapPage() {
         )}
 
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
-          <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
-            <BookOpen className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary uppercase tracking-wider">Full Recap</span>
+          <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
+            <div className="flex items-center gap-2.5">
+              <BookOpen className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold text-primary uppercase tracking-wider">Full Recap</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1.5">A detailed breakdown of everything discussed in this episode.</p>
           </div>
           <div className="px-6 py-5 space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
@@ -473,12 +482,14 @@ export default function EpisodeRecapPage() {
 
         {(guests.length > 0 || (hasHosts && podcastHosts)) && (
           <section id="section-guests" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-guests">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-sky-500/[0.04] border-b border-sky-500/[0.08]">
-              <Users className="w-4 h-4 text-sky-500" />
-              <span className="text-sm font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">Participants in This Episode</span>
+            <div className="px-6 py-4 bg-sky-500/[0.04] border-b border-sky-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Users className="w-4 h-4 text-sky-500" />
+                <span className="text-sm font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">Participants in This Episode</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1.5" data-testid="participants-intro">The {guests.length > 0 ? "guest" + (guests.length > 1 ? "s" : "") + " and " : ""}hosts featured in this episode of the {episode.podcastName} podcast.</p>
             </div>
             <div className="px-6 py-5">
-              <p className="text-[15px] text-muted-foreground mb-6" data-testid="participants-intro">The {guests.length > 0 ? "guest" + (guests.length > 1 ? "s" : "") + " and " : ""}hosts featured in this episode of the {episode.podcastName} podcast.</p>
 
               {guests.length > 0 && (
                 <div className="mb-6">
@@ -584,15 +595,17 @@ export default function EpisodeRecapPage() {
 
         {hasNotableMentions && (
           <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-mentions">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
-              <Sparkles className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions</span>
+            <div className="px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1.5">Key people and companies discussed in this episode of {episode.podcastName}{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
             </div>
             <div className="px-6 py-5 space-y-6">
               {notablePeople.length > 0 && (
                 <div data-testid="section-notable-people">
-                  <h3 className="text-base font-bold text-foreground uppercase tracking-wider mb-2">People Mentioned</h3>
-                  <p className="text-[15px] text-muted-foreground mb-5" data-testid="notable-people-intro">Key people discussed in this episode of {episode.podcastName}{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
+                  <h3 className="text-base font-bold text-foreground uppercase tracking-wider mb-4">People Mentioned</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {notablePeople.map((person, i) => (
                       <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
@@ -630,8 +643,7 @@ export default function EpisodeRecapPage() {
               )}
               {notableCompanies.length > 0 && (
                 <div data-testid="section-notable-companies">
-                  <h3 className="text-base font-bold text-foreground uppercase tracking-wider mb-2">Companies Mentioned</h3>
-                  <p className="text-[15px] text-muted-foreground mb-5" data-testid="notable-companies-intro">Key companies and organizations discussed in this episode of {episode.podcastName}.</p>
+                  <h3 className="text-base font-bold text-foreground uppercase tracking-wider mb-4">Companies Mentioned</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {notableCompanies.map((company, i) => (
                       <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
@@ -673,9 +685,12 @@ export default function EpisodeRecapPage() {
 
         {hasKeyTopics && (
           <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
-              <Tag className="w-4 h-4 text-emerald-500" />
-              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics in This {episode.podcastName} Episode</span>
+            <div className="px-6 py-4 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Tag className="w-4 h-4 text-emerald-500" />
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics in This {episode.podcastName} Episode</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1.5">Main themes discussed in this episode{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
             </div>
             <div className="px-6 py-5">
               <div className="space-y-4">
@@ -700,12 +715,14 @@ export default function EpisodeRecapPage() {
         {hasTopQuestions && (
           <>
             <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
-              <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
-                <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-                <h2 className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">Key Questions Discussed in This {episode.podcastName} Podcast Episode</h2>
+              <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
+                <div className="flex items-center gap-2.5">
+                  <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
+                  <h2 className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">Key Questions Discussed in This {episode.podcastName} Podcast Episode</h2>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1.5" data-testid="questions-intro">The most important questions explored in this episode{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
               </div>
               <div className="px-6 py-5">
-                <p className="text-[15px] text-muted-foreground mb-5" data-testid="questions-intro">These are some of the most important questions explored in this episode of the {episode.podcastName} podcast{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
                 <div className="space-y-0 divide-y divide-border">
                 {topQuestions.slice(0, 6).map((item, i) => {
                   const anchorSlug = item.question
