@@ -22,6 +22,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Guests Tab**: Provides AI-identified guest information, including bios, social links, and topics discussed.
 - **Show Notes**: Integrates raw HTML show notes from Taddy for rich episode information.
 - **Podcast-Level AI**: "Ask About This Podcast" tab offers AI-generated top questions and a free-text AI search across transcripts.
+**Entity Directories**: PEOPLE_DIRECTORY (~200 people) and COMPANIES_DIRECTORY (~113 companies) in `client/src/data/entityDirectoryData.ts` power /people, /companies, and Notable Mentions matching on episode recap pages.
 **RSS Feeds**: Public and custom RSS feeds are available for all recaps or specific content, designed for bot consumption.
 **Design System**: Employs a consistent design language with specific styling for content width, cards, buttons, and inputs. All pages are SEO-optimized with dynamic meta tags, OG tags, canonical URLs, and JSON-LD schema. Typography uses Inter for body text and Plus Jakarta Sans for headings.
 
