@@ -265,7 +265,7 @@ export default function EpisodeRecapPage() {
     setAskInput(question);
     setAskAnswer(null);
     askMutation.mutate(question);
-    askSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    askSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (episodeLoading) {
