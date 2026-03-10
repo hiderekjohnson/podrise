@@ -126,15 +126,37 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string)
 }
 
 async function main() {
-  const podcasts = [
-    { name: "My First Million", itunesId: "1469759170", taddyUuid: "96f5502f-d49a-4541-b11f-ac937ea8a0a4" },
-  ];
+  const TARGET_MIN = 100;
 
-  console.log(`Starting full transcript download for ${podcasts.length} podcasts (least remaining first)\n`);
+  const client = await pool.connect();
+  const { rows } = await client.query(`
+    SELECT pd.name, pd.itunes_id::text as itunes_id, pd.taddy_uuid, pd.slug,
+           COUNT(et.id)::int as transcript_count
+    FROM podcast_directory pd
+    LEFT JOIN episode_transcripts et ON et.podcast_id = pd.itunes_id::text
+    WHERE pd.has_landing_page = true AND pd.taddy_uuid IS NOT NULL
+    GROUP BY pd.name, pd.itunes_id, pd.taddy_uuid, pd.slug
+    HAVING COUNT(et.id) < ${TARGET_MIN}
+    ORDER BY COUNT(et.id) ASC
+  `);
+  client.release();
+
+  const podcasts = rows.map((r: any) => ({
+    name: r.name,
+    itunesId: r.itunes_id,
+    taddyUuid: r.taddy_uuid,
+    slug: r.slug,
+    currentCount: r.transcript_count,
+  }));
+
+  console.log(`Found ${podcasts.length} podcasts with fewer than ${TARGET_MIN} transcripts\n`);
+  for (const p of podcasts) {
+    console.log(`  ${String(p.currentCount).padStart(4)} transcripts | ${p.slug}`);
+  }
 
   for (let i = 0; i < podcasts.length; i++) {
     const p = podcasts[i];
-    console.log(`\n[${i + 1}/${podcasts.length}]`);
+    console.log(`\n[${i + 1}/${podcasts.length}] ${p.slug} (currently ${p.currentCount} transcripts)`);
     await processPodcast(p.name, p.itunesId, p.taddyUuid);
   }
 
