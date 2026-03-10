@@ -1629,7 +1629,7 @@ export async function registerRoutes(
 
       const { openai } = await import("./replit_integrations/image/client");
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -1722,7 +1722,7 @@ export async function registerRoutes(
 
         const { openai } = await import("./replit_integrations/image/client");
         const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -1916,7 +1916,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
 
       const { openai } = await import("./replit_integrations/image/client");
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
