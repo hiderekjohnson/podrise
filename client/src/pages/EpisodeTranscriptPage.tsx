@@ -355,10 +355,8 @@ export default function EpisodeTranscriptPage() {
         >
           <div className="flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5" />
-            {meta.totalSegments.toLocaleString()} segments
+            {meta.totalWords.toLocaleString()} words
           </div>
-          <div className="w-px h-4 bg-black/[0.08]" />
-          <div>{meta.totalWords.toLocaleString()} words</div>
           <div className="w-px h-4 bg-black/[0.08]" />
           <div>~{meta.readingMinutes} min read</div>
         </div>
