@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Users } from "lucide-react";
+import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Users, ListChecks } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -337,10 +337,15 @@ export function EpisodePageLayout({
             className="w-full max-w-4xl pb-16 mt-2"
             data-testid="section-more-episodes"
           >
-            <h2 className="text-xl font-display font-bold text-foreground mb-6">
-              More from {episode.podcastName}
-            </h2>
-            <div className="bg-white dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] rounded-2xl overflow-hidden divide-y divide-black/[0.06] dark:divide-white/[0.06]">
+            <div className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]">
+              <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
+                <div className="flex items-center gap-2.5">
+                  <ListChecks className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1.5">Catch up on other recent episodes from {episode.podcastName}.</p>
+              </div>
+              <div className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
               {previousEpisodes.map((ep: any) => {
                 const date = new Date(ep.publishDate + "T00:00:00");
                 const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -370,14 +375,15 @@ export function EpisodePageLayout({
                   </Link>
                 );
               })}
-            </div>
-            <div className="flex justify-center mt-6">
-              <Link href={`/podcasts/${podcastSlug}`}>
-                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-sm bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
-                  View all {episode.podcastName} episodes
-                  <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
+              </div>
+              <div className="flex justify-center px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.06]">
+                <Link href={`/podcasts/${podcastSlug}`}>
+                  <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-sm bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                    View all {episode.podcastName} episodes
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Link>
+              </div>
             </div>
           </motion.section>
         )}
