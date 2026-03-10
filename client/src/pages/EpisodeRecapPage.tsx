@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users } from "lucide-react";
+import { Lightbulb, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -160,7 +160,6 @@ export default function EpisodeRecapPage() {
 
   useEffect(() => {
     const sectionIds = [
-      "section-tldl",
       "section-key-insights",
       "section-what-happened",
       "section-guests",
@@ -274,13 +273,6 @@ export default function EpisodeRecapPage() {
         className="space-y-6"
       >
         <nav className="sticky top-[56px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
-          <button
-            onClick={() => scrollTo("section-tldl")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-tldl" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-            data-testid="nav-tldl"
-          >
-            Quick Recap
-          </button>
           {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}
@@ -349,16 +341,6 @@ export default function EpisodeRecapPage() {
             {episode.hosts && <>{" "}Hosted by {episode.hosts.replace(/&amp;/g, "&")}.</>}
           </p>
         </div>
-
-        <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
-          <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
-            <Clock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary uppercase tracking-wider">Quick Recap</span>
-          </div>
-          <div className="px-6 py-5">
-            <p className="text-[17px] leading-[1.85] text-foreground">{episode.tldl}</p>
-          </div>
-        </section>
 
         {episode.keyInsights?.length > 0 && (
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
