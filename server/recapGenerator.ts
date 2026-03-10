@@ -514,7 +514,7 @@ RULES:
     try {
       const usePrompt = attempt === 1 ? prompt : prompt + "\n\nIMPORTANT: Keep your response CONCISE. Limit whatHappened to 2 short paragraphs. Limit each topQuestions answer to 1-2 paragraphs. Keep guest bios to 1 sentence. The total JSON response must be under 8000 characters.";
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: usePrompt }],
         max_tokens: 16384,
         temperature: 0.7,
