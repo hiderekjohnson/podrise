@@ -836,7 +836,7 @@ export default function PersonDetailPage() {
                     Topics Associated With {person.name}
                   </h2>
                   <div className="flex flex-wrap gap-2">
-                    {broadTopics.map((topic, i) => (
+                    {broadTopics.slice(0, 5).map((topic, i) => (
                       <Link key={i} href={`/topics/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
                         <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
                         <span className="text-xs text-muted-foreground">{topic.count}</span>

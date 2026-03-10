@@ -1357,20 +1357,52 @@ export async function registerRoutes(
           .filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))
           .map((e: any) => mapEpisode(e, "mention"));
 
-        const topicCounts: Record<string, number> = {};
+        const canonicalTopics: Record<string, { name: string; keywords: string[] }> = {
+          "ai": { name: "Artificial Intelligence", keywords: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model", "GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI"] },
+          "entrepreneurship": { name: "Entrepreneurship", keywords: ["entrepreneurship", "entrepreneur", "founded", "co-founded", "founder", "startup", "bootstrap", "side hustle", "building a business"] },
+          "startups": { name: "Startups", keywords: ["startup", "startups", "product-market fit", "seed round", "series A", "early-stage", "pivot", "incubator", "accelerator", "Y Combinator"] },
+          "venture-capital": { name: "Venture Capital", keywords: ["venture capital", "venture capitalist", "VC firm", "fundraising round", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"] },
+          "investing": { name: "Investing", keywords: ["investing", "investment strategy", "stock market", "portfolio management", "stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns"] },
+          "personal-finance": { name: "Personal Finance", keywords: ["personal finance", "financial independence", "wealth building", "financial planning", "budgeting", "saving", "retirement", "debt", "net worth", "FIRE"] },
+          "leadership": { name: "Leadership", keywords: ["leadership", "leading teams", "executive leadership", "CEO", "executive", "organizational culture", "management"] },
+          "marketing": { name: "Marketing", keywords: ["marketing strategy", "digital marketing", "brand strategy", "marketing", "growth hacking", "advertising", "SEO", "content marketing"] },
+          "sales": { name: "Sales", keywords: ["sales strategy", "sales process", "selling", "sales", "revenue", "pipeline", "B2B sales", "closing deals"] },
+          "productivity": { name: "Productivity", keywords: ["productivity", "time management", "deep work", "habits", "routines", "efficiency", "focus", "workflow"] },
+          "technology": { name: "Technology", keywords: ["technology", "software engineering", "tech industry", "software", "engineering", "computing", "cloud", "infrastructure", "developer"] },
+          "economics": { name: "Economics", keywords: ["economics", "economic policy", "macroeconomics", "economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve"] },
+          "future-of-work": { name: "Future of Work", keywords: ["future of work", "remote work", "workplace transformation", "gig economy", "hybrid work", "automation replacing"] },
+          "health-longevity": { name: "Health & Longevity", keywords: ["longevity", "healthspan", "lifespan", "nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking"] },
+          "psychology": { name: "Psychology", keywords: ["psychology", "psychological", "neuroscience", "behavior", "mental health", "cognitive", "therapy", "emotional intelligence"] },
+          "self-improvement": { name: "Self-Improvement", keywords: ["self-improvement", "personal development", "personal growth", "mindset", "motivation", "discipline"] },
+          "media-content": { name: "Media & Content", keywords: ["media industry", "content creation", "journalism", "media", "streaming", "podcast", "newsletter", "content strategy"] },
+          "geopolitics": { name: "Geopolitics", keywords: ["geopolitics", "geopolitical", "foreign policy", "international relations", "diplomacy", "sanctions", "trade war", "national security"] },
+          "creator-economy": { name: "Creator Economy", keywords: ["creator economy", "content creator", "creator", "influencer", "newsletter", "monetize", "audience building", "personal brand"] },
+          "saas": { name: "SaaS", keywords: ["saas", "software as a service", "recurring revenue", "churn", "ARR", "MRR", "subscription", "B2B software"] },
+          "crypto-web3": { name: "Crypto & Web3", keywords: ["cryptocurrency", "bitcoin", "blockchain", "web3", "crypto", "ethereum", "DeFi", "NFT", "token", "decentralized"] },
+          "climate-energy": { name: "Climate & Energy", keywords: ["climate change", "clean energy", "renewable energy", "climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle"] },
+          "defense-tech": { name: "Defense Tech", keywords: ["defense tech", "defense technology", "military technology", "defense", "military", "cybersecurity", "national security", "pentagon"] },
+          "product-management": { name: "Product Management", keywords: ["product management", "product manager", "product strategy", "roadmap", "user research", "product-led"] },
+          "open-source": { name: "Open Source", keywords: ["open source", "open-source", "free software", "GitHub", "Linux", "open model", "open weights"] },
+          "automation": { name: "Automation", keywords: ["automation", "workflow automation", "process automation", "automate", "automated", "RPA", "no-code", "low-code"] },
+          "robotics": { name: "Robotics", keywords: ["robotics", "robot", "autonomous vehicle", "humanoid", "drone", "self-driving", "autonomous"] },
+          "bootstrapping": { name: "Bootstrapping", keywords: ["bootstrapping", "bootstrapped", "self-funded", "profitable", "no funding", "indie hacker", "revenue-funded"] },
+          "side-hustles": { name: "Side Hustles", keywords: ["side hustle", "side project", "passive income", "freelance", "extra income", "side business"] },
+        };
+
+        const canonicalTopicCounts: Record<string, number> = {};
         for (const ep of allRelevantEpisodes) {
-          const topics = Array.isArray(ep.key_topics) ? ep.key_topics : [];
-          for (const t of topics) {
-            if (typeof t === "string" && t.trim()) {
-              const key = t.trim();
-              topicCounts[key] = (topicCounts[key] || 0) + 1;
+          const combinedText = [ep.what_happened, ep.tldl, ep.key_insights_text, ep.episode_title].filter(Boolean).join(" ").toLowerCase();
+          for (const [slug, config] of Object.entries(canonicalTopics)) {
+            const matchCount = config.keywords.filter(kw => combinedText.includes(kw.toLowerCase())).length;
+            if (matchCount >= 2) {
+              canonicalTopicCounts[slug] = (canonicalTopicCounts[slug] || 0) + 1;
             }
           }
         }
-        const topTopics = Object.entries(topicCounts)
+        const topTopics = Object.entries(canonicalTopicCounts)
           .sort((a, b) => b[1] - a[1])
-          .slice(0, 10)
-          .map(([topic, count]) => ({ topic, count, slug: topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }));
+          .slice(0, 5)
+          .map(([slug, count]) => ({ topic: canonicalTopics[slug].name, count, slug }));
 
         const podcastCounts: Record<string, { name: string; count: number; artwork_url: string; latestDate: string; latestTitle: string; latestEpisodeSlug: string; podcastSlug: string }> = {};
         for (const ep of allRelevantEpisodes) {
