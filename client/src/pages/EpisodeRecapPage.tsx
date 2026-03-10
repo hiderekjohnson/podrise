@@ -1,10 +1,11 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
+import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
 
@@ -101,6 +102,38 @@ export default function EpisodeRecapPage() {
 
   const podcastConfig = getPodcastBySlug(podcastSlug);
 
+  const { data: podcastHosts } = useQuery<any[]>({
+    queryKey: ["/api/podcasts", podcastSlug, "hosts"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${podcastSlug}/hosts`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!podcastSlug,
+  });
+
+  const notablePeople = (() => {
+    if (!episode) return [];
+    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`.toLowerCase();
+    const guestNames = guests.map(g => g.name?.toLowerCase().trim()).filter(Boolean);
+    return PEOPLE_DIRECTORY.filter(p => {
+      const nameLower = p.name.toLowerCase();
+      return guestNames.some(gn => gn === nameLower) ||
+        p.searchTerms.some(term => searchText.includes(term.toLowerCase()));
+    }).slice(0, 6);
+  })();
+
+  const notableCompanies = (() => {
+    if (!episode) return [];
+    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`.toLowerCase();
+    return COMPANIES_DIRECTORY.filter(c => {
+      return c.searchTerms.some(term => searchText.includes(term.toLowerCase()));
+    }).slice(0, 6);
+  })();
+
+  const hasNotableMentions = notablePeople.length > 0 || notableCompanies.length > 0;
+  const hasHosts = (podcastHosts && podcastHosts.length > 0) || false;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [podcastSlug, episodeSlug]);
@@ -162,7 +195,9 @@ export default function EpisodeRecapPage() {
       "section-key-insights",
       "section-what-happened",
       "section-guests",
+      "section-notable-mentions",
       "section-key-topics",
+      "section-hosts",
       "section-top-questions",
       "section-ask-episode",
     ];
@@ -287,6 +322,15 @@ export default function EpisodeRecapPage() {
               Guests
             </button>
           )}
+          {hasNotableMentions && (
+            <button
+              onClick={() => scrollTo("section-notable-mentions")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-notable-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-notable-mentions"
+            >
+              Notable Mentions
+            </button>
+          )}
           {hasKeyTopics && (
             <button
               onClick={() => scrollTo("section-key-topics")}
@@ -294,6 +338,15 @@ export default function EpisodeRecapPage() {
               data-testid="nav-key-topics"
             >
               Key Topics
+            </button>
+          )}
+          {hasHosts && (
+            <button
+              onClick={() => scrollTo("section-hosts")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-hosts" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-hosts"
+            >
+              Hosts
             </button>
           )}
           {hasTopQuestions && (
@@ -422,6 +475,63 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
+        {hasNotableMentions && (
+          <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-mentions">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
+              <Sparkles className="w-4 h-4 text-orange-500" />
+              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions</span>
+            </div>
+            <div className="px-6 py-5">
+              {notablePeople.length > 0 && (
+                <div className="mb-4 last:mb-0">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">People</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {notablePeople.map((person, i) => (
+                      <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
+                        <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
+                          <img
+                            src={person.imageUrl}
+                            alt={person.name}
+                            className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
+                            loading="lazy"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{person.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{person.title}</p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {notableCompanies.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{notablePeople.length > 0 ? "Companies" : "Companies"}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {notableCompanies.map((company, i) => (
+                      <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>
+                        <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/[0.02] transition-all cursor-pointer">
+                          <img
+                            src={company.logoUrl}
+                            alt={company.name}
+                            className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-1"
+                            loading="lazy"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">{company.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{company.details.industry}</p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {hasKeyTopics && (
           <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
@@ -442,6 +552,63 @@ export default function EpisodeRecapPage() {
                   </Link>
                 ))}
               </div>
+            </div>
+          </section>
+        )}
+
+        {hasHosts && podcastHosts && (
+          <section id="section-hosts" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-hosts">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-indigo-500/[0.04] border-b border-indigo-500/[0.08]">
+              <Mic className="w-4 h-4 text-indigo-500" />
+              <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Hosts</span>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {podcastHosts.map((host: any, i: number) => (
+                <div key={i} className="flex items-start gap-4" data-testid={`host-card-${i}`}>
+                  {host.photoUrl ? (
+                    <img
+                      src={host.photoUrl}
+                      alt={host.name}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0 bg-muted"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+                      <Mic className="w-5 h-5 text-indigo-500" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-[15px] font-bold text-foreground" data-testid={`host-name-${i}`}>{host.name}</h4>
+                    {host.bio && (
+                      <p className="text-[14px] leading-[1.75] text-muted-foreground mt-1 line-clamp-3">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
+                    )}
+                    {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
+                      <div className="flex items-center gap-3 mt-2">
+                        {host.twitterHandle && (
+                          <a href={host.twitterHandle.startsWith("http") ? host.twitterHandle : `https://x.com/${host.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-twitter-${i}`}>
+                            <SiX className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                        {host.linkedinUrl && (
+                          <a href={host.linkedinUrl.startsWith("http") ? host.linkedinUrl : `https://linkedin.com/in/${host.linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-linkedin-${i}`}>
+                            <SiLinkedin className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                        {host.instagramHandle && (
+                          <a href={host.instagramHandle.startsWith("http") ? host.instagramHandle : `https://instagram.com/${host.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-instagram-${i}`}>
+                            <SiInstagram className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                        {host.websiteUrl && (
+                          <a href={host.websiteUrl.startsWith("http") ? host.websiteUrl : `https://${host.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-website-${i}`}>
+                            <Globe className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
