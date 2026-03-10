@@ -1652,7 +1652,6 @@ export async function registerRoutes(
     }
   });
 
-  const guestsInFlight = new Map<string, Promise<any>>();
   app.get("/api/podcasts/:slug/:episodeSlug/guests", async (req, res) => {
     try {
       const { slug, episodeSlug } = req.params;
@@ -1667,105 +1666,7 @@ export async function registerRoutes(
         }
       }
 
-      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
-      if (!segments || segments.length === 0) {
-        const emptyResult: any[] = [];
-        const { db } = await import("./db");
-        const { eq, and } = await import("drizzle-orm");
-        const { landingPageRecaps } = await import("@shared/schema");
-        await db.update(landingPageRecaps)
-          .set({ guests: JSON.stringify(emptyResult) })
-          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
-        return res.json({ guests: [] });
-      }
-
-      const flightKey = `${slug}/${episodeSlug}`;
-      if (guestsInFlight.has(flightKey)) {
-        const cached = await guestsInFlight.get(flightKey);
-        return res.json({ guests: cached });
-      }
-
-      const extractionPromise = (async () => {
-        const transcriptText = segments.map(s => {
-          const speaker = s.speakerName ? `${s.speakerName}: ` : "";
-          return `${speaker}${s.text}`;
-        }).join("\n").slice(0, 20000);
-
-        const { openai } = await import("./replit_integrations/image/client");
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are an expert at identifying podcast guests and providing detailed biographical information. Analyze the transcript to identify any GUESTS on this podcast episode. Guests are people who are interviewed, join as special visitors, or are brought on to discuss topics — NOT the regular hosts of the show.
-
-For each guest you identify, provide:
-- "name": Full name of the guest
-- "title": Their current professional title/role (e.g. "CEO of Tesla", "Professor of Economics at MIT", "New York Times Bestselling Author")
-- "bio": A detailed 4-6 sentence biography covering their career, notable achievements, background, and why they're relevant. Use your knowledge to write a comprehensive bio — not just what's mentioned in the transcript.
-- "twitter": Their Twitter/X handle (e.g. "@elonmusk") — use your knowledge, or null if unknown
-- "linkedin": Their LinkedIn profile URL (full URL) — use your knowledge, or null if unknown
-- "instagram": Their Instagram handle (e.g. "@elonmusk") — use your knowledge, or null if unknown
-- "website": Their personal or professional website URL — use your knowledge, or null if unknown
-- "photoUrl": null (we'll handle photos separately)
-- "topicsDiscussed": An array of 3-5 specific topics this guest discussed in the episode, based on the transcript content
-
-Return a JSON object: {"guests": [...]}
-If there are no guests (just regular hosts chatting), return {"guests": []}.
-Be thorough in identifying guests — anyone who is introduced, interviewed, or joins the conversation as a visitor counts as a guest.`
-            },
-            {
-              role: "user",
-              content: `Podcast: "${recap.podcastName}"\nEpisode: "${recap.episodeTitle}"\nHosts listed: ${recap.hosts || "unknown"}\n\nTranscript:\n${transcriptText}`
-            }
-          ],
-          max_tokens: 4000,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        });
-
-        const content = completion.choices[0]?.message?.content || '{"guests":[]}';
-        let parsed;
-        try {
-          parsed = JSON.parse(content);
-        } catch {
-          parsed = { guests: [] };
-        }
-
-        const rawGuests = Array.isArray(parsed.guests) ? parsed.guests : [];
-        const guests = rawGuests
-          .filter((g: any) => g && typeof g.name === "string" && g.name.trim())
-          .map((g: any) => ({
-            name: String(g.name).trim(),
-            title: typeof g.title === "string" ? g.title.trim() : "",
-            bio: typeof g.bio === "string" ? g.bio.trim() : "",
-            twitter: typeof g.twitter === "string" && g.twitter.trim() ? g.twitter.trim() : null,
-            linkedin: typeof g.linkedin === "string" && g.linkedin.trim() ? g.linkedin.trim() : null,
-            instagram: typeof g.instagram === "string" && g.instagram.trim() ? g.instagram.trim() : null,
-            website: typeof g.website === "string" && g.website.trim() ? g.website.trim() : null,
-            photoUrl: typeof g.photoUrl === "string" && g.photoUrl.trim() ? g.photoUrl.trim() : null,
-            topicsDiscussed: Array.isArray(g.topicsDiscussed)
-              ? g.topicsDiscussed.filter((t: any) => typeof t === "string").map((t: any) => String(t).trim())
-              : [],
-          }));
-
-        const { db } = await import("./db");
-        const { eq, and } = await import("drizzle-orm");
-        const { landingPageRecaps } = await import("@shared/schema");
-        await db.update(landingPageRecaps)
-          .set({ guests: JSON.stringify(guests) })
-          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
-
-        return guests;
-      })();
-
-      guestsInFlight.set(flightKey, extractionPromise);
-      try {
-        const guests = await extractionPromise;
-        res.json({ guests });
-      } finally {
-        guestsInFlight.delete(flightKey);
-      }
+      return res.json({ guests: [] });
     } catch (err) {
       console.error("[Guests] Error:", err);
       res.status(500).json({ error: "Failed to extract guests" });
@@ -2892,7 +2793,6 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     try {
       const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
       const { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } = await import("./taddyClient");
-      const { openai } = await import("./replit_integrations/image/client");
 
       const entries = Object.entries(ITUNES_ID_TO_SLUG);
       const results: { slug: string; status: string; episodeTitle?: string }[] = [];
@@ -2947,73 +2847,38 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
             console.warn(`[LandingRecaps] Taddy error for ${slug}:`, taddyErr);
           }
 
-          const transcriptNote = transcriptText
-            ? `A real transcript is provided. Base your recap on the transcript content.`
-            : `No transcript available. Write a recap based on the episode title and description only. Be upfront that details are limited.`;
-
-          const episodeBlock = `PODCAST: ${podcastName}\nEPISODE: ${epTitle}\nDURATION: ${durationStr}\nDESCRIPTION: ${ep.description || ep.shortDescription || "No description available."}\n${transcriptText ? `TRANSCRIPT:\n${transcriptText.slice(0, 15000)}` : ""}`;
-
-          const formatInstructions = `Respond with a JSON object containing episode recaps. Each episode must include tldl, whatHappened (6-10 short narrative paragraphs for a 2-minute read), keyInsights (4 bullet points), quote, and quoteAttribution. Write like a sharp friend catching someone up. Be specific and concrete. Never fabricate quotes or facts — use only what's in the transcript.`;
-
-          const prompt = `You are PodCap, an AI that writes podcast digest summaries. Generate a recap for a single episode.
-
-${transcriptNote}
-
-Source episode:
-${episodeBlock}
-
-Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text). The JSON must have this exact structure:
-
-{
-  "episodes": [
-    {
-      "podcastName": "PODCAST NAME IN CAPS",
-      "episodeTitle": "The Episode Title",
-      "tldl": "2-3 sentence summary of the core thesis.",
-      "whatHappened": "2-4 paragraphs telling the story of the episode. Separate paragraphs with \\n\\n.",
-      "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
-      "quoteAttribution": "Speaker Name on topic",
-      "quote": "A memorable quotable line from the episode"
-    }
-  ]
-}
-
-${formatInstructions}`;
-
-          const aiRes = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.7,
-            max_tokens: 2000,
-          });
-
-          const content = aiRes.choices[0]?.message?.content || "";
-          let jsonContent = content.trim();
-          if (jsonContent.startsWith("```")) {
-            jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+          if (!transcriptText) {
+            results.push({ slug, status: "no_transcript" });
+            res.write(JSON.stringify({ slug, status: "no_transcript" }) + "\n");
+            continue;
           }
 
-          const parsed = JSON.parse(jsonContent);
-          const epData = parsed.episodes?.[0];
+          const { generateRecapFromTranscript } = await import("./recapGenerator");
+          const recap = await generateRecapFromTranscript(
+            transcriptText,
+            podcastName,
+            epTitle,
+            ep.description || ep.shortDescription || undefined
+          );
 
-          if (!epData) {
-            results.push({ slug, status: "ai_no_episode" });
-            res.write(JSON.stringify({ slug, status: "ai_no_episode" }) + "\n");
+          if (!recap) {
+            results.push({ slug, status: "ai_failed" });
+            res.write(JSON.stringify({ slug, status: "ai_failed" }) + "\n");
             continue;
           }
 
           await storage.upsertExampleRecap({
             slug,
-            podcastName: epData.podcastName || podcastName,
+            podcastName: recap.podcastName || podcastName,
             itunesId,
-            episodeTitle: epData.episodeTitle || epTitle,
+            episodeTitle: recap.episodeTitle || epTitle,
             episodeDate: releaseDate,
             episodeDuration: durationStr,
-            tldl: epData.tldl || "",
-            whatHappened: (epData.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
-            keyInsights: Array.isArray(epData.keyInsights) ? epData.keyInsights : [],
-            quote: epData.quote || null,
-            quoteAttribution: epData.quoteAttribution || null,
+            tldl: recap.tldl || "",
+            whatHappened: recap.whatHappened,
+            keyInsights: recap.keyInsights,
+            quote: recap.quote || null,
+            quoteAttribution: recap.quoteAttribution || null,
           });
 
           results.push({ slug, status: "success", episodeTitle: epTitle });
@@ -3045,7 +2910,6 @@ ${formatInstructions}`;
     try {
       const { ITUNES_ID_TO_SLUG, SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
       const { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } = await import("./taddyClient");
-      const { openai } = await import("./replit_integrations/image/client");
       const podcastLandingDataModule = await import("../client/src/data/podcastLandingData");
       const PODCAST_LANDINGS = podcastLandingDataModule.PODCAST_LANDINGS;
 
@@ -3196,82 +3060,48 @@ ${formatInstructions}`;
                   } catch {}
                 }
 
-                const transcriptNote = transcriptText
-                  ? `A real transcript is provided. Base your recap on the transcript content.`
-                  : `No transcript available. Write a recap based on the episode title and description only.`;
-
-                const episodeBlock = `PODCAST: ${podcastName}\nEPISODE: ${epTitle}\nDURATION: ${durationStr}\nDESCRIPTION: ${ep.description || ep.shortDescription || "No description available."}\n${transcriptText ? `TRANSCRIPT:\n${transcriptText.slice(0, 15000)}` : ""}`;
-
-                const prompt = `You are PodCap, an AI that writes podcast digest summaries. Generate a recap for a single episode.
-
-${transcriptNote}
-
-Source episode:
-${episodeBlock}
-
-Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text):
-
-{
-  "podcastName": "${podcastName}",
-  "episodeTitle": "${epTitle.replace(/"/g, '\\"')}",
-  "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "2-4 paragraphs in narrative style. Separate paragraphs with \\n\\n.",
-  "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
-  "quote": "A memorable line from the episode",
-  "quoteAttribution": "Speaker Name on topic",
-  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
-  "topQuestions": [
-    {"question": "Question 1?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 2?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 3?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 4?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 5?", "answer": "2-3 paragraph answer."}
-  ]
-}
-
-RULES:
-- All fields required
-- Write like a sharp friend catching you up
-- Be specific and concrete
-- Quotes MUST be from the transcript if available
-- Use \\n\\n to separate paragraphs in whatHappened
-- keyTopics: 4-6 specific phrases
-- topQuestions: 5 concise questions with 2-3 paragraph answers`;
-
-                const aiRes = await openai.chat.completions.create({
-                  model: "gpt-4o-mini",
-                  messages: [{ role: "user", content: prompt }],
-                  temperature: 0.7,
-                  max_tokens: 4000,
-                  response_format: { type: "json_object" },
-                });
-
-                const content = aiRes.choices[0]?.message?.content || "";
-                let jsonContent = content.trim();
-                if (jsonContent.startsWith("```")) {
-                  jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+                if (!transcriptText) {
+                  totalSkipped++;
+                  res.write(JSON.stringify({ slug: podcast.slug, episode: epTitle.slice(0, 60), status: "no_transcript" }) + "\n");
+                  continue;
                 }
-                const parsed = JSON.parse(jsonContent);
+
+                const { generateRecapFromTranscript } = await import("./recapGenerator");
+                const recap = await generateRecapFromTranscript(
+                  transcriptText,
+                  podcastName,
+                  epTitle,
+                  ep.description || ep.shortDescription || undefined
+                );
+
+                if (!recap) {
+                  totalErrors++;
+                  res.write(JSON.stringify({ slug: podcast.slug, episode: epTitle.slice(0, 60), status: "ai_failed" }) + "\n");
+                  continue;
+                }
 
                 await storage.upsertLandingPageRecap({
                   slug: podcast.slug,
                   itunesId: podcast.itunesId,
-                  podcastName: parsed.podcastName || podcastName,
-                  episodeTitle: parsed.episodeTitle || epTitle,
+                  podcastName: recap.podcastName || podcastName,
+                  episodeTitle: recap.episodeTitle || epTitle,
                   episodeSlug: epSlug,
                   publishDate: releaseDate,
                   duration: durationStr,
                   artworkUrl,
                   hosts,
-                  tldl: parsed.tldl || "",
-                  whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
-                  keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
-                  quote: parsed.quote || null,
-                  quoteAttribution: parsed.quoteAttribution || null,
+                  tldl: recap.tldl || "",
+                  whatHappened: recap.whatHappened,
+                  keyInsights: recap.keyInsights,
+                  quote: recap.quote || null,
+                  quoteAttribution: recap.quoteAttribution || null,
                   appleEpisodeUrl: appleUrl || null,
                   audioUrl: ep.episodeUrl || null,
-                  keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : null,
-                  topQuestions: parsed.topQuestions ? JSON.stringify(parsed.topQuestions) : null,
+                  keyTopics: recap.keyTopics || null,
+                  topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+                  guests: recap.guests ? JSON.stringify(recap.guests) : null,
+                  sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
+                  resources: recap.resources ? JSON.stringify(recap.resources) : null,
                 });
 
                 generatedForPodcast++;
@@ -3554,7 +3384,6 @@ RULES:
     }
     try {
       const { ITUNES_ID_TO_SLUG, SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
-      const { openai } = await import("./replit_integrations/image/client");
       const podcastLandingDataModule = await import("../client/src/data/podcastLandingData");
       const PODCAST_LANDINGS = podcastLandingDataModule.PODCAST_LANDINGS;
 
@@ -3661,82 +3490,48 @@ RULES:
                 }
               }
 
-              const transcriptNote = transcriptText
-                ? `A real transcript is provided. Base your recap on the transcript content.`
-                : `No transcript available. Write a recap based on the episode title and description only.`;
-
-              const episodeBlock = `PODCAST: ${podcastName}\nEPISODE: ${epTitle}\nDURATION: ${durationStr}\nDESCRIPTION: ${ep.description || ep.shortDescription || "No description available."}\n${transcriptText ? `TRANSCRIPT:\n${transcriptText.slice(0, 15000)}` : ""}`;
-
-              const prompt = `You are PodCap, an AI that writes podcast digest summaries. Generate a recap for a single episode.
-
-${transcriptNote}
-
-Source episode:
-${episodeBlock}
-
-Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text):
-
-{
-  "podcastName": "${podcastName}",
-  "episodeTitle": "${epTitle.replace(/"/g, '\\"')}",
-  "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "2-4 paragraphs in narrative style. Separate paragraphs with \\n\\n.",
-  "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
-  "quote": "A memorable line from the episode",
-  "quoteAttribution": "Speaker Name on topic",
-  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
-  "topQuestions": [
-    {"question": "Question 1?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 2?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 3?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 4?", "answer": "2-3 paragraph answer."},
-    {"question": "Question 5?", "answer": "2-3 paragraph answer."}
-  ]
-}
-
-RULES:
-- All fields required
-- Write like a sharp friend catching you up
-- Be specific and concrete
-- Quotes MUST be from the transcript if available
-- Use \\n\\n to separate paragraphs in whatHappened
-- keyTopics: 4-6 specific phrases
-- topQuestions: 5 concise questions with 2-3 paragraph answers`;
-
-              const aiRes = await openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: [{ role: "user", content: prompt }],
-                temperature: 0.7,
-                max_tokens: 4000,
-                response_format: { type: "json_object" },
-              });
-
-              const content = aiRes.choices[0]?.message?.content || "";
-              let jsonContent = content.trim();
-              if (jsonContent.startsWith("```")) {
-                jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+              if (!transcriptText) {
+                totalSkipped++;
+                res.write(JSON.stringify({ slug, episode: epTitle.slice(0, 60), status: "no_transcript" }) + "\n");
+                continue;
               }
-              const parsed = JSON.parse(jsonContent);
+
+              const { generateRecapFromTranscript } = await import("./recapGenerator");
+              const recap = await generateRecapFromTranscript(
+                transcriptText,
+                podcastName,
+                epTitle,
+                ep.description || ep.shortDescription || undefined
+              );
+
+              if (!recap) {
+                totalErrors++;
+                res.write(JSON.stringify({ slug, episode: epTitle.slice(0, 60), status: "ai_failed" }) + "\n");
+                continue;
+              }
 
               await storage.upsertLandingPageRecap({
                 slug,
                 itunesId,
-                podcastName: parsed.podcastName || podcastName,
-                episodeTitle: parsed.episodeTitle || epTitle,
+                podcastName: recap.podcastName || podcastName,
+                episodeTitle: recap.episodeTitle || epTitle,
                 episodeSlug: epSlug,
                 publishDate: releaseDate,
                 duration: durationStr,
                 artworkUrl,
                 hosts,
-                tldl: parsed.tldl || "",
-                whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
-                keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
-                quote: parsed.quote || null,
-                quoteAttribution: parsed.quoteAttribution || null,
+                tldl: recap.tldl || "",
+                whatHappened: recap.whatHappened,
+                keyInsights: recap.keyInsights,
+                quote: recap.quote || null,
+                quoteAttribution: recap.quoteAttribution || null,
                 appleEpisodeUrl: appleUrl || null,
                 audioUrl: ep.episodeUrl || null,
-                keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : null,
-                topQuestions: parsed.topQuestions ? JSON.stringify(parsed.topQuestions) : null,
+                keyTopics: recap.keyTopics || null,
+                topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+                guests: recap.guests ? JSON.stringify(recap.guests) : null,
+                sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
+                resources: recap.resources ? JSON.stringify(recap.resources) : null,
               });
 
               generatedForPodcast++;

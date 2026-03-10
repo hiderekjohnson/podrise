@@ -581,6 +581,9 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           audioUrl: ep.episodeUrl || null,
           keyTopics: recap.keyTopics || null,
           topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+          guests: recap.guests ? JSON.stringify(recap.guests) : null,
+          sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
+          resources: recap.resources ? JSON.stringify(recap.resources) : null,
           showNotes,
         });
 
@@ -1257,6 +1260,9 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               audioUrl: ep.episodeUrl || null,
               keyTopics: recap.keyTopics || null,
               topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+              guests: recap.guests ? JSON.stringify(recap.guests) : null,
+              sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
+              resources: recap.resources ? JSON.stringify(recap.resources) : null,
               showNotes,
             });
 

@@ -532,6 +532,9 @@ export class DatabaseStorage implements IStorage {
           keyTopics: data.keyTopics,
           topQuestions: data.topQuestions,
           showNotes: data.showNotes,
+          guests: data.guests,
+          sponsors: data.sponsors,
+          resources: data.resources,
         },
       })
       .returning();
