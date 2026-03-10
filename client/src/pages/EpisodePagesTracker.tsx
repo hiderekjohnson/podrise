@@ -1,6 +1,8 @@
 import { useState, Fragment } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, CheckCircle2, Clock, RefreshCw, ArrowUp, ArrowDown, FileText, AlertCircle, BarChart3 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Loader2, CheckCircle2, Clock, RefreshCw, ArrowUp, ArrowDown, FileText, AlertCircle, BarChart3, Play, Square, Zap } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface RecapQuality {
   tldl: number;
@@ -35,15 +37,68 @@ interface EpisodePagesData {
   podcastsPending: number;
 }
 
+interface GenStatus {
+  running: boolean;
+  autoQueue: boolean;
+  currentItunesId: string | null;
+  currentPodcastName: string | null;
+  currentEpisode: number;
+  totalEpisodes: number;
+  generated: number;
+  failed: number;
+  skipped: number;
+  completedPodcasts: string[];
+}
+
 export default function EpisodePagesTracker() {
   const [filter, setFilter] = useState<"all" | "complete" | "partial" | "pending">("all");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [sortCol, setSortCol] = useState<"name" | "transcriptCount" | "recapCount" | "remaining" | "pct">("remaining");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const { toast } = useToast();
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery<EpisodePagesData>({
     queryKey: ["/api/admin/episode-pages-status"],
     refetchInterval: 30000,
+  });
+
+  const { data: genStatus } = useQuery<GenStatus>({
+    queryKey: ["/api/admin/episode-pages-generate/status"],
+    refetchInterval: 2000,
+  });
+
+  const startSingle = useMutation({
+    mutationFn: async (itunesId: string) => {
+      await apiRequest("POST", `/api/admin/episode-pages-generate/${itunesId}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Generation Started", description: "Processing episodes for this podcast." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+    },
+  });
+
+  const startAuto = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/admin/episode-pages-generate-auto");
+    },
+    onSuccess: () => {
+      toast({ title: "Auto-Queue Started", description: "Processing all podcasts one by one." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+    },
+  });
+
+  const stopGen = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/admin/episode-pages-generate/stop");
+    },
+    onSuccess: () => {
+      toast({ title: "Stopped", description: "Generation stopped." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/episode-pages-status"] });
+    },
   });
 
   if (isLoading) {
@@ -91,6 +146,8 @@ export default function EpisodePagesTracker() {
     });
 
   const overallPct = data.totalTranscripts > 0 ? Math.min(100, Math.round((data.totalRecaps / data.totalTranscripts) * 100)) : 0;
+  const isRunning = genStatus?.running ?? false;
+  const isAutoQueue = genStatus?.autoQueue ?? false;
 
   return (
     <div data-testid="episode-pages-tracker">
@@ -127,6 +184,55 @@ export default function EpisodePagesTracker() {
         </div>
       </div>
 
+      {isRunning && genStatus && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6" data-testid="gen-status-panel">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+              <span className="text-sm font-bold text-blue-800">
+                {isAutoQueue ? "Auto-Queue: " : ""}Generating pages for {genStatus.currentPodcastName || "..."}
+              </span>
+            </div>
+            <button
+              data-testid="button-stop-gen"
+              onClick={() => stopGen.mutate()}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-all"
+            >
+              <Square className="w-3 h-3" />
+              Stop
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <div className="text-center">
+              <div className="text-lg font-black text-blue-700">{genStatus.currentEpisode}/{genStatus.totalEpisodes}</div>
+              <div className="text-[10px] font-bold text-blue-500">Progress</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-black text-emerald-700">{genStatus.generated}</div>
+              <div className="text-[10px] font-bold text-emerald-500">Generated</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-black text-red-600">{genStatus.failed}</div>
+              <div className="text-[10px] font-bold text-red-400">Failed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-black text-gray-600">{genStatus.skipped}</div>
+              <div className="text-[10px] font-bold text-gray-400">Skipped</div>
+            </div>
+          </div>
+          {genStatus.totalEpisodes > 0 && (
+            <div className="mt-3">
+              <div className="w-full h-2 bg-blue-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.round((genStatus.currentEpisode / genStatus.totalEpisodes) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2 flex-wrap">
           {([
@@ -149,15 +255,41 @@ export default function EpisodePagesTracker() {
             </button>
           ))}
         </div>
-        <button
-          data-testid="button-refresh-pages"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-all"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {!isRunning ? (
+            <button
+              data-testid="button-auto-queue"
+              onClick={() => {
+                if (confirm("Start auto-generating episode pages for all podcasts, one at a time? This prioritizes podcasts with the most existing recaps first (to complete them).")) {
+                  startAuto.mutate();
+                }
+              }}
+              disabled={startAuto.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              Auto-Generate All
+            </button>
+          ) : (
+            <button
+              data-testid="button-stop-auto"
+              onClick={() => stopGen.mutate()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-all"
+            >
+              <Square className="w-3.5 h-3.5" />
+              Stop
+            </button>
+          )}
+          <button
+            data-testid="button-refresh-pages"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-all"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="border border-black/[0.06] rounded-xl overflow-hidden">
@@ -185,23 +317,27 @@ export default function EpisodePagesTracker() {
                   </span>
                 </th>
               ))}
-              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Status</th>
+              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Action</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((p) => {
               const isExpanded = expandedRow === p.itunesId;
+              const isProcessing = isRunning && genStatus?.currentItunesId === p.itunesId;
               return (
                 <Fragment key={p.itunesId}>
                   <tr
                     data-testid={`row-pages-${p.itunesId}`}
                     className={`border-t border-black/[0.04] transition-colors cursor-pointer ${
-                      p.status === "complete" ? "hover:bg-emerald-50/30" : "hover:bg-black/[0.02]"
+                      isProcessing ? "bg-blue-50/50" : p.status === "complete" ? "hover:bg-emerald-50/30" : "hover:bg-black/[0.02]"
                     } ${isExpanded ? "bg-blue-50/30" : ""}`}
                     onClick={() => setExpandedRow(isExpanded ? null : p.itunesId)}
                   >
                     <td className="px-4 py-2.5 text-sm font-medium text-foreground">
-                      {p.name}
+                      <div className="flex items-center gap-2">
+                        {isProcessing && <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 shrink-0" />}
+                        {p.name}
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-center text-sm font-medium text-muted-foreground">
                       {p.transcriptCount.toLocaleString()}
@@ -231,16 +367,30 @@ export default function EpisodePagesTracker() {
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Complete
                         </span>
-                      ) : p.status === "partial" ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600" data-testid={`status-pages-partial-${p.itunesId}`}>
-                          <BarChart3 className="w-3.5 h-3.5" />
-                          In Progress
+                      ) : isProcessing ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600" data-testid={`status-pages-processing-${p.itunesId}`}>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          {genStatus.currentEpisode}/{genStatus.totalEpisodes}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600" data-testid={`status-pages-pending-${p.itunesId}`}>
-                          <Clock className="w-3.5 h-3.5" />
-                          Not Started
-                        </span>
+                        <button
+                          data-testid={`button-generate-${p.itunesId}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isRunning && p.remaining > 0) {
+                              startSingle.mutate(p.itunesId);
+                            }
+                          }}
+                          disabled={isRunning || p.remaining === 0}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                            isRunning || p.remaining === 0
+                              ? "text-muted-foreground bg-black/[0.03] cursor-not-allowed"
+                              : "text-primary bg-primary/10 hover:bg-primary/20"
+                          }`}
+                        >
+                          <Play className="w-3 h-3" />
+                          Generate
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -319,9 +469,8 @@ export default function EpisodePagesTracker() {
       </div>
 
       <p className="text-xs text-muted-foreground mt-3 text-center">
-        Click any row to see recap quality breakdown — auto-refreshes every 30 seconds
+        Click any row to see recap quality breakdown — auto-refreshes every 30 seconds — generation status polls every 2 seconds
       </p>
     </div>
   );
 }
-

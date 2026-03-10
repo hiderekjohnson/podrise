@@ -4954,5 +4954,219 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
     }
   });
 
+  // Episode pages generation - one podcast at a time
+  let epGenState = {
+    running: false,
+    autoQueue: false,
+    currentItunesId: null as string | null,
+    currentPodcastName: null as string | null,
+    currentEpisode: 0,
+    totalEpisodes: 0,
+    generated: 0,
+    failed: 0,
+    skipped: 0,
+    completedPodcasts: [] as string[],
+  };
+
+  app.get("/api/admin/episode-pages-generate/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    res.json(epGenState);
+  });
+
+  app.post("/api/admin/episode-pages-generate/stop", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    epGenState.autoQueue = false;
+    epGenState.running = false;
+    res.json({ stopped: true });
+  });
+
+  async function generatePagesForPodcast(itunesId: string) {
+    const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
+    const { generateRecapFromTranscript } = await import("./recapGenerator");
+
+    const slug = ITUNES_ID_TO_SLUG[itunesId];
+    const client = await pool.connect();
+    try {
+      const { rows: [podcastInfo] } = await client.query(
+        `SELECT name, slug, hosts FROM podcast_directory WHERE itunes_id = $1`, [itunesId]
+      );
+      if (!podcastInfo) {
+        console.log(`[EpGen] Podcast not found for itunesId ${itunesId}`);
+        return;
+      }
+
+      const podcastName = podcastInfo.name;
+      const podcastSlug = slug || podcastInfo.slug || podcastName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
+      const hosts = podcastInfo.hosts || "";
+
+      epGenState.currentPodcastName = podcastName;
+      epGenState.currentItunesId = itunesId;
+
+      const { rows: transcripts } = await client.query(
+        `SELECT et.* FROM episode_transcripts et
+         WHERE et.podcast_id = $1
+           AND et.transcript IS NOT NULL
+           AND et.transcript != ''
+           AND NOT EXISTS (
+             SELECT 1 FROM landing_page_recaps lpr
+             WHERE lpr.itunes_id = $1
+               AND (
+                 lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+                 OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g'))
+               )
+           )
+         ORDER BY et.date_published DESC NULLS LAST`,
+        [itunesId]
+      );
+
+      epGenState.totalEpisodes = transcripts.length;
+      epGenState.currentEpisode = 0;
+      epGenState.generated = 0;
+      epGenState.failed = 0;
+      epGenState.skipped = 0;
+
+      console.log(`[EpGen] Starting ${podcastName}: ${transcripts.length} episodes to process`);
+
+      for (const t of transcripts) {
+        if (!epGenState.running) {
+          console.log(`[EpGen] Stopped by user`);
+          break;
+        }
+
+        epGenState.currentEpisode++;
+
+        try {
+          const epTitle = t.episode_title || "Untitled";
+          const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+
+          const { rows: existing } = await client.query(
+            `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND episode_slug = $2 LIMIT 1`,
+            [itunesId, epSlug]
+          );
+          if (existing.length > 0) {
+            epGenState.skipped++;
+            continue;
+          }
+
+          const recap = await generateRecapFromTranscript(t.transcript, podcastName, epTitle);
+          if (!recap) {
+            epGenState.failed++;
+            console.log(`[EpGen] Failed to generate recap for "${epTitle}"`);
+            continue;
+          }
+
+          const publishDate = t.date_published
+            ? new Date(t.date_published * 1000).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0];
+
+          const durationSec = t.duration || 0;
+          const durationMin = Math.round(durationSec / 60);
+          const durationStr = durationMin >= 60
+            ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+            : `${durationMin} minutes`;
+
+          await client.query(
+            `INSERT INTO landing_page_recaps 
+             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, top_questions, audio_url)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+             ON CONFLICT DO NOTHING`,
+            [
+              podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
+              durationStr, t.image_url || "", hosts,
+              recap.tldl, recap.whatHappened,
+              recap.keyInsights, recap.quote, recap.quoteAttribution,
+              recap.keyTopics,
+              recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+              t.audio_url || "",
+            ]
+          );
+
+          epGenState.generated++;
+          if (epGenState.currentEpisode % 5 === 0) {
+            console.log(`[EpGen] ${podcastName}: ${epGenState.currentEpisode}/${epGenState.totalEpisodes} (${epGenState.generated} generated, ${epGenState.failed} failed)`);
+          }
+        } catch (err) {
+          epGenState.failed++;
+          console.error(`[EpGen] Error processing episode:`, err);
+        }
+      }
+
+      epGenState.completedPodcasts.push(itunesId);
+      console.log(`[EpGen] Finished ${podcastName}: ${epGenState.generated} generated, ${epGenState.failed} failed, ${epGenState.skipped} skipped`);
+    } finally {
+      client.release();
+    }
+  }
+
+  async function runAutoQueue() {
+    while (epGenState.autoQueue && epGenState.running) {
+      const client = await pool.connect();
+      let nextItunesId: string | null = null;
+      try {
+        const { rows } = await client.query(
+          `SELECT pd.itunes_id, pd.name,
+                  COALESCE(et.cnt, 0)::int as transcript_count,
+                  COALESCE(lpr.cnt, 0)::int as recap_count
+           FROM podcast_directory pd
+           LEFT JOIN (SELECT podcast_id, COUNT(*)::int as cnt FROM episode_transcripts WHERE transcript IS NOT NULL AND transcript != '' GROUP BY podcast_id) et ON pd.itunes_id = et.podcast_id
+           LEFT JOIN (SELECT itunes_id, COUNT(*)::int as cnt FROM landing_page_recaps GROUP BY itunes_id) lpr ON pd.itunes_id = lpr.itunes_id
+           WHERE COALESCE(et.cnt, 0) > COALESCE(lpr.cnt, 0)
+           ORDER BY COALESCE(lpr.cnt, 0) DESC, pd.name ASC
+           LIMIT 1`
+        );
+        if (rows.length > 0) {
+          nextItunesId = rows[0].itunes_id;
+        }
+      } finally {
+        client.release();
+      }
+
+      if (!nextItunesId) {
+        console.log(`[EpGen] Auto-queue complete - all podcasts processed`);
+        epGenState.autoQueue = false;
+        epGenState.running = false;
+        break;
+      }
+
+      await generatePagesForPodcast(nextItunesId);
+    }
+
+    epGenState.running = false;
+  }
+
+  app.post("/api/admin/episode-pages-generate/:itunesId", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    if (epGenState.running) return res.status(409).json({ message: "Generation already in progress" });
+
+    const { itunesId } = req.params;
+    epGenState.running = true;
+    epGenState.autoQueue = false;
+    epGenState.completedPodcasts = [];
+    res.json({ started: true, itunesId });
+
+    generatePagesForPodcast(itunesId).then(() => {
+      epGenState.running = false;
+    }).catch(err => {
+      console.error(`[EpGen] Fatal error:`, err);
+      epGenState.running = false;
+    });
+  });
+
+  app.post("/api/admin/episode-pages-generate-auto", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    if (epGenState.running) return res.status(409).json({ message: "Generation already in progress" });
+
+    epGenState.running = true;
+    epGenState.autoQueue = true;
+    epGenState.completedPodcasts = [];
+    res.json({ started: true, autoQueue: true });
+
+    runAutoQueue().catch(err => {
+      console.error(`[EpGen] Auto-queue fatal error:`, err);
+      epGenState.running = false;
+      epGenState.autoQueue = false;
+    });
+  });
+
   return httpServer;
 }
