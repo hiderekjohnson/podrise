@@ -620,9 +620,11 @@ export default function EpisodeRecapPage() {
           <section id="section-hosts" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-hosts">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-indigo-500/[0.04] border-b border-indigo-500/[0.08]">
               <Mic className="w-4 h-4 text-indigo-500" />
-              <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Hosts</span>
+              <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Hosts of the {episode.podcastName} Podcast</span>
             </div>
-            <div className="px-6 py-5 space-y-4">
+            <div className="px-6 py-5">
+              <p className="text-sm text-muted-foreground mb-4" data-testid="hosts-intro">Meet the hosts of the {episode.podcastName} podcast.{episode.hosts ? ` ${episode.hosts.replace(/&amp;/g, "&")} interview founders, investors, and operators while discussing business ideas, startup strategies, and emerging trends.` : ""}</p>
+              <div className="space-y-4">
               {podcastHosts.map((host: any, i: number) => (
                 <div key={i} className="flex items-start gap-4" data-testid={`host-card-${i}`}>
                   {host.photoUrl ? (
@@ -669,6 +671,7 @@ export default function EpisodeRecapPage() {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </section>
         )}
