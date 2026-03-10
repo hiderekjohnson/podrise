@@ -5086,6 +5086,20 @@ RULES:
             ]
           );
 
+          try {
+            const episodeGuid = `${itunesId}_${epSlug}`;
+            const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
+            if (!hasSegs) {
+              const { parseTranscriptToSegments } = await import("./transcriptParser");
+              const segments = parseTranscriptToSegments(t.transcript, podcastSlug, epSlug, episodeGuid);
+              if (segments.length > 0) {
+                await storage.saveTranscriptSegments(segments);
+              }
+            }
+          } catch (segErr) {
+            console.warn(`[EpGen] Segment save failed for "${epTitle}":`, segErr);
+          }
+
           epGenState.generated++;
           if (epGenState.currentEpisode % 5 === 0) {
             console.log(`[EpGen] ${podcastName}: ${epGenState.currentEpisode}/${epGenState.totalEpisodes} (${epGenState.generated} generated, ${epGenState.failed} failed)`);

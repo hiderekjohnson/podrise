@@ -186,7 +186,7 @@ export function parseTranscriptToSegments(
     const speakerChanged = lineSpeaker && lineSpeaker !== currentSpeaker;
     const tooLong = currentText.length > 600;
 
-    if (speakerChanged || (tooLong && (lineTimestamp != null || lineSpeaker))) {
+    if (speakerChanged || (tooLong && (lineTimestamp != null || lineSpeaker)) || (tooLong && !lineSpeaker && !lineTimestamp)) {
       if (currentText) flush();
       currentSpeaker = lineSpeaker || currentSpeaker;
       currentText = remaining;
