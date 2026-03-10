@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { TOPICS } from "@/data/topicData";
+import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import logoPath from "@assets/Podcap_logo_1772731738179.png";
 
 interface EpisodeEntry {
@@ -533,6 +534,39 @@ export default function PersonDetailPage() {
                   </div>
                 </div>
               </section>
+
+              {/* 1b. Hosted Podcasts Section */}
+              {personData?.hostedPodcastSlugs && personData.hostedPodcastSlugs.length > 0 && (() => {
+                const hostedPodcasts = personData.hostedPodcastSlugs
+                  .map(slug => PODCAST_LANDINGS.find(p => p.slug === slug))
+                  .filter(Boolean);
+                if (hostedPodcasts.length === 0) return null;
+                return (
+                  <section className="mb-8" data-testid="section-hosted-podcasts">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Mic className="w-5 h-5 text-primary" />
+                      {hostedPodcasts.length === 1 ? "Podcast Host" : "Podcast Host"}
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {hostedPodcasts.map((podcast: any) => (
+                        <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="flex items-center gap-4 bg-card border border-border rounded-xl p-4 hover:border-primary/30 hover:shadow-md transition-all group" data-testid={`hosted-podcast-${podcast.slug}`}>
+                          <img
+                            src={podcast.imageUrl}
+                            alt={podcast.title}
+                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-sm"
+                            loading="lazy"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{podcast.title}</p>
+                            <p className="text-sm text-muted-foreground truncate">{podcast.hosts}</p>
+                            <p className="text-xs text-primary font-medium mt-1">View Podcast &rarr;</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()}
 
               {/* 2. Key Ideas Section */}
               {keyIdeas.length >= 2 && (
