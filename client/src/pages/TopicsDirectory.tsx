@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation, Link } from "wouter";
-import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork } from "lucide-react";
+import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
@@ -11,11 +11,12 @@ const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users,
   Megaphone, Handshake, Zap, GitFork, Sparkles, Cpu, LineChart, Building2,
   Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe,
+  UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase,
 };
 
 function SEOHead() {
   const title = "Podcast Topics — Explore Knowledge by Subject | PodCap";
-  const description = "Browse 25 topics across top podcasts. From AI and entrepreneurship to psychology and geopolitics — find podcast recaps, summaries, and transcripts organized by the subjects that matter most.";
+  const description = "Browse 37 topics across top podcasts. From AI and entrepreneurship to crypto, climate, and the creator economy — find podcast recaps, summaries, and transcripts organized by the subjects that matter most.";
 
   if (typeof document !== "undefined") {
     document.title = title;

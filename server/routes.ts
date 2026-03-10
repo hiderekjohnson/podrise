@@ -1523,7 +1523,7 @@ export async function registerRoutes(
         },
         "startups": {
           primary: ["startup", "startups", "product-market fit", "seed round", "series A"],
-          secondary: ["SaaS", "early-stage", "pivot", "launch", "incubator", "accelerator", "Y Combinator"],
+          secondary: ["early-stage", "pivot", "launch", "incubator", "accelerator", "Y Combinator"],
           minScore: 3,
         },
         "venture-capital": {
@@ -1543,12 +1543,7 @@ export async function registerRoutes(
         },
         "leadership": {
           primary: ["leadership", "leading teams", "executive leadership"],
-          secondary: ["CEO", "executive", "leader", "vision", "organizational culture", "servant leadership"],
-          minScore: 3,
-        },
-        "management": {
-          primary: ["management", "managing teams", "organizational design"],
-          secondary: ["operations", "organizational", "hiring", "team building", "performance review"],
+          secondary: ["CEO", "executive", "leader", "vision", "organizational culture", "servant leadership", "management"],
           minScore: 3,
         },
         "marketing": {
@@ -1569,11 +1564,6 @@ export async function registerRoutes(
         "decision-making": {
           primary: ["decision making", "decision-making", "mental model"],
           secondary: ["cognitive bias", "heuristic", "judgment", "rational thinking", "first principles"],
-          minScore: 3,
-        },
-        "innovation": {
-          primary: ["innovation", "disruptive innovation", "breakthrough technology"],
-          secondary: ["disruption", "breakthrough", "R&D", "invention", "paradigm shift"],
           minScore: 3,
         },
         "technology": {
@@ -1601,8 +1591,8 @@ export async function registerRoutes(
           secondary: ["behavior", "mental health", "cognitive", "therapy", "emotional intelligence", "trauma"],
           minScore: 3,
         },
-        "human-performance": {
-          primary: ["peak performance", "human performance", "high performance"],
+        "peak-performance": {
+          primary: ["peak performance", "high performance"],
           secondary: ["biohacking", "optimize", "performance", "elite athlete", "mental toughness"],
           minScore: 3,
         },
@@ -1628,12 +1618,82 @@ export async function registerRoutes(
         },
         "media-content": {
           primary: ["media industry", "content creation", "journalism"],
-          secondary: ["media", "creator economy", "streaming", "podcast", "newsletter", "content strategy"],
+          secondary: ["media", "streaming", "podcast", "newsletter", "content strategy"],
           minScore: 3,
         },
         "geopolitics": {
           primary: ["geopolitics", "geopolitical", "foreign policy", "international relations"],
           secondary: ["diplomacy", "international", "sanctions", "trade war", "national security"],
+          minScore: 3,
+        },
+        "creator-economy": {
+          primary: ["creator economy", "content creator", "creator"],
+          secondary: ["influencer", "newsletter", "monetize", "audience building", "personal brand", "YouTube", "TikTok"],
+          minScore: 3,
+        },
+        "saas": {
+          primary: ["saas", "software as a service", "recurring revenue"],
+          secondary: ["churn", "ARR", "MRR", "subscription", "B2B software", "cloud software"],
+          minScore: 3,
+        },
+        "open-source": {
+          primary: ["open source", "open-source", "free software"],
+          secondary: ["GitHub", "Linux", "open model", "open weights", "community-driven"],
+          minScore: 3,
+        },
+        "product-management": {
+          primary: ["product management", "product manager", "product strategy"],
+          secondary: ["roadmap", "user research", "product-led", "feature prioritization", "product team"],
+          minScore: 3,
+        },
+        "product-market-fit": {
+          primary: ["product-market fit", "product market fit", "PMF"],
+          secondary: ["market validation", "customer discovery", "pivoting", "finding fit", "demand validation"],
+          minScore: 3,
+        },
+        "automation": {
+          primary: ["automation", "workflow automation", "process automation"],
+          secondary: ["automate", "automated", "RPA", "no-code", "low-code", "Zapier"],
+          minScore: 3,
+        },
+        "robotics": {
+          primary: ["robotics", "robot", "autonomous vehicle"],
+          secondary: ["humanoid", "drone", "manufacturing automation", "self-driving", "autonomous"],
+          minScore: 3,
+        },
+        "crypto-web3": {
+          primary: ["cryptocurrency", "bitcoin", "blockchain", "web3"],
+          secondary: ["crypto", "ethereum", "DeFi", "NFT", "token", "decentralized", "smart contract"],
+          minScore: 3,
+        },
+        "climate-energy": {
+          primary: ["climate change", "clean energy", "renewable energy"],
+          secondary: ["climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle", "EV", "energy transition"],
+          minScore: 3,
+        },
+        "defense-tech": {
+          primary: ["defense tech", "defense technology", "military technology"],
+          secondary: ["defense", "military", "cybersecurity", "national security", "pentagon", "aerospace", "Anduril", "Palantir"],
+          minScore: 3,
+        },
+        "women-in-business": {
+          primary: ["women in business", "female founder", "women entrepreneurs"],
+          secondary: ["women in tech", "female CEO", "women investors", "gender gap", "women leadership"],
+          minScore: 3,
+        },
+        "young-entrepreneurs": {
+          primary: ["young entrepreneur", "teenage founder", "young founder"],
+          secondary: ["Gen Z", "college dropout", "young CEO", "millennial founder", "student entrepreneur"],
+          minScore: 3,
+        },
+        "bootstrapping": {
+          primary: ["bootstrapping", "bootstrapped", "self-funded"],
+          secondary: ["bootstrap", "profitable", "no funding", "indie hacker", "revenue-funded"],
+          minScore: 3,
+        },
+        "side-hustles": {
+          primary: ["side hustle", "side project", "passive income"],
+          secondary: ["freelance", "extra income", "hustle", "side business", "moonlighting"],
           minScore: 3,
         },
       };

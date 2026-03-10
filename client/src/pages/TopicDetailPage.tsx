@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useLocation, Link, useParams } from "wouter";
-import { ArrowLeft, ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag } from "lucide-react";
+import { ArrowLeft, ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -14,6 +14,7 @@ const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users: Users,
   Megaphone, Handshake, Zap, GitFork, Sparkles, Cpu, LineChart, Building2,
   Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe,
+  UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase,
 };
 
 interface PersonSummary {
