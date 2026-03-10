@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
+import { TOPICS } from "../data/topicData";
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
 
@@ -251,13 +252,23 @@ export default function EpisodeRecapPage() {
   }
 
   const whatHappenedParagraphs = episode.whatHappened.split("\n\n").filter(Boolean);
-  const keyTopics: string[] = episode.keyTopics || [];
+  const matchedTopics = (() => {
+    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""} ${(episode.keyTopics || []).join(" ")}`.toLowerCase();
+    return TOPICS.filter(t => {
+      const allKeywords = [...t.podcastKeywords];
+      return allKeywords.some(kw => {
+        const kwLower = kw.toLowerCase();
+        const regex = new RegExp(`\\b${kwLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+        return regex.test(searchText);
+      });
+    });
+  })();
   let topQuestions: TopQuestion[] = [];
   try {
     topQuestions = episode.topQuestions ? (typeof episode.topQuestions === "string" ? JSON.parse(episode.topQuestions) : episode.topQuestions) : [];
   } catch { topQuestions = []; }
 
-  const hasKeyTopics = keyTopics.length > 0;
+  const hasKeyTopics = matchedTopics.length > 0;
   const hasTopQuestions = topQuestions.length > 0;
 
   const scrollTo = (id: string) => {
@@ -540,15 +551,15 @@ export default function EpisodeRecapPage() {
             </div>
             <div className="px-6 py-5">
               <div className="flex flex-wrap gap-2">
-                {keyTopics.map((topic: string, i: number) => (
+                {matchedTopics.map((topic, i) => (
                   <Link
-                    key={i}
-                    href={`/topics/${topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`}
+                    key={topic.slug}
+                    href={`/topics/${topic.slug}`}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/[0.04] border border-emerald-500/[0.1] rounded-lg text-sm font-medium text-foreground hover:border-emerald-500/30 hover:bg-emerald-500/[0.08] transition-all active:scale-[0.97]"
                     data-testid={`topic-chip-${i}`}
                   >
                     <Tag className="w-3 h-3 text-emerald-500 shrink-0" />
-                    {topic}
+                    {topic.name}
                   </Link>
                 ))}
               </div>
