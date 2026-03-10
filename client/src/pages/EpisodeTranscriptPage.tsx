@@ -94,6 +94,51 @@ function CopyLinkButton({ anchorId }: { anchorId: string }) {
   );
 }
 
+function CopyFullTranscriptButton({ segments }: { segments: TranscriptSegment[] }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const fullText = segments
+      .map((seg) => {
+        const parts: string[] = [];
+        if (seg.timestampLabel) parts.push(`[${seg.timestampLabel}]`);
+        if (isValidSpeaker(seg.speakerName)) parts.push(`${seg.speakerName}:`);
+        parts.push(seg.text);
+        return parts.join(" ");
+      })
+      .join("\n\n");
+
+    navigator.clipboard.writeText(fullText).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [segments]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+        copied
+          ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+          : "bg-primary/[0.06] text-primary hover:bg-primary/[0.12]"
+      }`}
+      data-testid="button-copy-transcript"
+    >
+      {copied ? (
+        <>
+          <Check className="w-3.5 h-3.5" />
+          Copied!
+        </>
+      ) : (
+        <>
+          <Copy className="w-3.5 h-3.5" />
+          Copy Transcript
+        </>
+      )}
+    </button>
+  );
+}
+
 export default function EpisodeTranscriptPage() {
   const params = useParams<{ podcastSlug: string; episodeSlug: string }>();
   const podcastSlug = params.podcastSlug || "";
@@ -337,52 +382,61 @@ export default function EpisodeTranscriptPage() {
           )}
         </div>
 
-        <article className="space-y-1.5" data-testid="segments-container">
-          {filteredSegments.map((seg) => {
-            const validSpeaker = isValidSpeaker(seg.speakerName);
-            const hasMeta = seg.timestampLabel || validSpeaker;
-            const paragraphs = formatSegmentText(seg.text);
+        <div className="bg-white border border-black/[0.06] dark:bg-card dark:border-white/[0.06] rounded-2xl overflow-hidden" data-testid="transcript-wrapper">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06]">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold text-foreground">Full Transcript</span>
+            </div>
+            <CopyFullTranscriptButton segments={filteredSegments} />
+          </div>
+          <article className="space-y-1.5 p-4 sm:p-5" data-testid="segments-container">
+            {filteredSegments.map((seg) => {
+              const validSpeaker = isValidSpeaker(seg.speakerName);
+              const hasMeta = seg.timestampLabel || validSpeaker;
+              const paragraphs = formatSegmentText(seg.text);
 
-            return (
-              <div
-                key={seg.id}
-                id={seg.anchorId}
-                className={`group rounded-[10px] scroll-mt-20 transition-colors duration-300 ${
-                  hasMeta
-                    ? "bg-white border border-black/[0.04] p-3.5 sm:px-4"
-                    : "bg-transparent border border-transparent px-4 py-1"
-                } ${debouncedQuery && seg.text.toLowerCase().includes(lowerQuery) ? "border-primary/20" : ""}`}
-                data-testid={`segment-${seg.anchorId}`}
-              >
-                {hasMeta && (
-                  <div className="flex items-center gap-2.5 mb-1.5 min-h-[22px]">
-                    {seg.timestampLabel && (
-                      <a
-                        href={`#${seg.anchorId}`}
-                        onClick={(e) => handleTimestampClick(e, seg.anchorId)}
-                        className="text-xs font-bold text-primary bg-primary/[0.08] px-2 py-0.5 rounded-md font-mono hover:bg-primary/[0.14] transition-colors no-underline tabular-nums"
-                        data-testid={`ts-${seg.anchorId}`}
-                      >
-                        {seg.timestampLabel}
-                      </a>
-                    )}
-                    {validSpeaker && (
-                      <span className="text-sm font-bold text-foreground" data-testid={`speaker-${seg.anchorId}`}>
-                        {seg.speakerName}
-                      </span>
-                    )}
-                    <CopyLinkButton anchorId={seg.anchorId} />
-                  </div>
-                )}
-                {paragraphs.map((p, i) => (
-                  <p key={i} className={`text-[15px] leading-[1.75] text-slate-700 ${i > 0 ? "mt-2" : ""}`}>
-                    {debouncedQuery ? highlightText(p, debouncedQuery) : p}
-                  </p>
-                ))}
-              </div>
-            );
-          })}
-        </article>
+              return (
+                <div
+                  key={seg.id}
+                  id={seg.anchorId}
+                  className={`group rounded-[10px] scroll-mt-20 transition-colors duration-300 ${
+                    hasMeta
+                      ? "bg-slate-50/70 dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.04] p-3.5 sm:px-4"
+                      : "bg-transparent border border-transparent px-4 py-1"
+                  } ${debouncedQuery && seg.text.toLowerCase().includes(lowerQuery) ? "border-primary/20" : ""}`}
+                  data-testid={`segment-${seg.anchorId}`}
+                >
+                  {hasMeta && (
+                    <div className="flex items-center gap-2.5 mb-1.5 min-h-[22px]">
+                      {seg.timestampLabel && (
+                        <a
+                          href={`#${seg.anchorId}`}
+                          onClick={(e) => handleTimestampClick(e, seg.anchorId)}
+                          className="text-xs font-bold text-primary bg-primary/[0.08] px-2 py-0.5 rounded-md font-mono hover:bg-primary/[0.14] transition-colors no-underline tabular-nums"
+                          data-testid={`ts-${seg.anchorId}`}
+                        >
+                          {seg.timestampLabel}
+                        </a>
+                      )}
+                      {validSpeaker && (
+                        <span className="text-sm font-bold text-foreground" data-testid={`speaker-${seg.anchorId}`}>
+                          {seg.speakerName}
+                        </span>
+                      )}
+                      <CopyLinkButton anchorId={seg.anchorId} />
+                    </div>
+                  )}
+                  {paragraphs.map((p, i) => (
+                    <p key={i} className={`text-[15px] leading-[1.75] text-slate-700 dark:text-slate-300 ${i > 0 ? "mt-2" : ""}`}>
+                      {debouncedQuery ? highlightText(p, debouncedQuery) : p}
+                    </p>
+                  ))}
+                </div>
+              );
+            })}
+          </article>
+        </div>
 
         {showScrollTop && (
           <button
