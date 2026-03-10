@@ -163,6 +163,7 @@ export default function EpisodeRecapPage() {
       "section-tldl",
       "section-key-insights",
       "section-what-happened",
+      "section-guests",
       "section-key-topics",
       "section-top-questions",
       "section-ask-episode",
@@ -296,6 +297,15 @@ export default function EpisodeRecapPage() {
           >
             Full Recap
           </button>
+          {guests.length > 0 && (
+            <button
+              onClick={() => scrollTo("section-guests")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-guests"
+            >
+              Guests
+            </button>
+          )}
           {hasKeyTopics && (
             <button
               onClick={() => scrollTo("section-key-topics")}
@@ -369,59 +379,60 @@ export default function EpisodeRecapPage() {
               </p>
             ))}
           </div>
-          {guests.length > 0 && (
-            <div className="mx-6 mb-5 border-t border-black/[0.06] dark:border-white/[0.08] pt-5" data-testid="section-guests">
-              <div className="flex items-center gap-2 mb-4">
-                <Users className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-primary uppercase tracking-wider">Guests</span>
-              </div>
-              <div className="space-y-4">
-                {guests.map((guest, i) => (
-                  <div key={i} className="border border-black/[0.04] dark:border-white/[0.06] rounded-xl p-5" data-testid={`guest-card-${i}`}>
-                    <div className="flex items-start gap-4">
-                      <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-[15px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
-                          {guest.name}
-                        </h4>
-                        {guest.title && (
-                          <p className="text-sm text-muted-foreground mt-0.5" data-testid={`guest-title-${i}`}>{guest.title}</p>
-                        )}
-                        {guest.bio && (
-                          <p className="text-[15px] leading-[1.75] text-muted-foreground mt-2">{guest.bio}</p>
-                        )}
-                        {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
-                          <div className="flex items-center gap-3 mt-3">
-                            {guest.twitter && (
-                              <a href={guest.twitter.startsWith("http") ? guest.twitter : `https://x.com/${guest.twitter.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-twitter-${i}`} title="X / Twitter">
-                                <SiX className="w-4 h-4" />
-                              </a>
-                            )}
-                            {guest.linkedin && (
-                              <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-linkedin-${i}`} title="LinkedIn">
-                                <SiLinkedin className="w-4 h-4" />
-                              </a>
-                            )}
-                            {guest.instagram && (
-                              <a href={guest.instagram.startsWith("http") ? guest.instagram : `https://instagram.com/${guest.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-instagram-${i}`} title="Instagram">
-                                <SiInstagram className="w-4 h-4" />
-                              </a>
-                            )}
-                            {guest.website && (
-                              <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-website-${i}`} title="Website">
-                                <Globe className="w-4 h-4" />
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
+        </section>
+
+        {guests.length > 0 && (
+          <section id="section-guests" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-guests">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-sky-500/[0.04] border-b border-sky-500/[0.08]">
+              <Users className="w-4 h-4 text-sky-500" />
+              <span className="text-sm font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">Guests</span>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {guests.map((guest, i) => (
+                <div key={i} className="border border-black/[0.04] dark:border-white/[0.06] rounded-xl p-5" data-testid={`guest-card-${i}`}>
+                  <div className="flex items-start gap-4">
+                    <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[15px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
+                        {guest.name}
+                      </h4>
+                      {guest.title && (
+                        <p className="text-sm text-muted-foreground mt-0.5" data-testid={`guest-title-${i}`}>{guest.title}</p>
+                      )}
+                      {guest.bio && (
+                        <p className="text-[15px] leading-[1.75] text-muted-foreground mt-2">{guest.bio}</p>
+                      )}
+                      {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
+                        <div className="flex items-center gap-3 mt-3">
+                          {guest.twitter && (
+                            <a href={guest.twitter.startsWith("http") ? guest.twitter : `https://x.com/${guest.twitter.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-twitter-${i}`} title="X / Twitter">
+                              <SiX className="w-4 h-4" />
+                            </a>
+                          )}
+                          {guest.linkedin && (
+                            <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-linkedin-${i}`} title="LinkedIn">
+                              <SiLinkedin className="w-4 h-4" />
+                            </a>
+                          )}
+                          {guest.instagram && (
+                            <a href={guest.instagram.startsWith("http") ? guest.instagram : `https://instagram.com/${guest.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-instagram-${i}`} title="Instagram">
+                              <SiInstagram className="w-4 h-4" />
+                            </a>
+                          )}
+                          {guest.website && (
+                            <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-website-${i}`} title="Website">
+                              <Globe className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {hasKeyTopics && (
           <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
