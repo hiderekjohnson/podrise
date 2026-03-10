@@ -10,6 +10,7 @@ const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
 const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
 const HostsManager = lazy(() => import("./HostsManager"));
 const BackfillTracker = lazy(() => import("./BackfillTracker"));
+const EpisodePagesTracker = lazy(() => import("./EpisodePagesTracker"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -499,7 +500,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill">("pending");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "episode-pages">("pending");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
@@ -894,8 +895,20 @@ export default function Admin() {
                   <Database className="w-4 h-4" />
                   Transcript Backfill Project
                 </button>
+                <button
+                  data-testid="tab-episode-pages"
+                  onClick={() => { setActiveTab("episode-pages"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === "episode-pages"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Episode Pages Tracker
+                </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && (
+              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && activeTab !== "episode-pages" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -1487,6 +1500,15 @@ export default function Admin() {
                 </div>
               }>
                 <BackfillTracker />
+              </Suspense>
+            )}
+            {activeTab === "episode-pages" && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              }>
+                <EpisodePagesTracker />
               </Suspense>
             )}
           </motion.div>

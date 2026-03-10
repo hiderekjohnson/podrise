@@ -4853,5 +4853,106 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
     }
   });
 
+  app.get("/api/admin/episode-pages-status", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const client = await pool.connect();
+      try {
+        const { rows: podcasts } = await client.query(
+          `SELECT 
+             pd.itunes_id,
+             pd.name,
+             COALESCE(et.transcript_count, 0)::int as transcript_count,
+             COALESCE(et.complete_count, 0)::int as complete_transcript_count,
+             COALESCE(lpr.recap_count, 0)::int as recap_count,
+             COALESCE(lpr.has_tldl, 0)::int as has_tldl,
+             COALESCE(lpr.has_what_happened, 0)::int as has_what_happened,
+             COALESCE(lpr.has_insights, 0)::int as has_insights,
+             COALESCE(lpr.has_quote, 0)::int as has_quote,
+             COALESCE(lpr.has_topics, 0)::int as has_topics,
+             COALESCE(lpr.has_questions, 0)::int as has_questions,
+             COALESCE(lpr.has_guests, 0)::int as has_guests
+           FROM podcast_directory pd
+           LEFT JOIN (
+             SELECT podcast_id, 
+                    COUNT(*)::int as transcript_count,
+                    SUM(CASE WHEN complete_record = true THEN 1 ELSE 0 END)::int as complete_count
+             FROM episode_transcripts
+             GROUP BY podcast_id
+           ) et ON pd.itunes_id = et.podcast_id
+           LEFT JOIN (
+             SELECT itunes_id,
+                    COUNT(*)::int as recap_count,
+                    SUM(CASE WHEN tldl IS NOT NULL AND tldl != '' THEN 1 ELSE 0 END)::int as has_tldl,
+                    SUM(CASE WHEN what_happened IS NOT NULL AND what_happened != '' THEN 1 ELSE 0 END)::int as has_what_happened,
+                    SUM(CASE WHEN key_insights IS NOT NULL AND array_length(key_insights, 1) > 0 THEN 1 ELSE 0 END)::int as has_insights,
+                    SUM(CASE WHEN quote IS NOT NULL AND quote != '' THEN 1 ELSE 0 END)::int as has_quote,
+                    SUM(CASE WHEN key_topics IS NOT NULL AND array_length(key_topics, 1) > 0 THEN 1 ELSE 0 END)::int as has_topics,
+                    SUM(CASE WHEN top_questions IS NOT NULL AND top_questions != '' THEN 1 ELSE 0 END)::int as has_questions,
+                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' AND guests != '[]' THEN 1 ELSE 0 END)::int as has_guests
+             FROM landing_page_recaps
+             GROUP BY itunes_id
+           ) lpr ON pd.itunes_id = lpr.itunes_id
+           WHERE COALESCE(et.transcript_count, 0) > 0
+           ORDER BY pd.name ASC`
+        );
+
+        const totalTranscripts = podcasts.reduce((s, p) => s + p.transcript_count, 0);
+        const totalRecaps = podcasts.reduce((s, p) => s + p.recap_count, 0);
+        const totalRemaining = Math.max(0, totalTranscripts - totalRecaps);
+
+        res.json({
+          podcasts: podcasts.map((p) => {
+            const remaining = Math.max(0, p.transcript_count - p.recap_count);
+            const pct = p.transcript_count > 0 ? Math.round((p.recap_count / p.transcript_count) * 100) : 0;
+            let status: string;
+            if (p.transcript_count === 0) {
+              status = "no_transcripts";
+            } else if (p.recap_count >= p.transcript_count) {
+              status = "complete";
+            } else if (p.recap_count > 0) {
+              status = "partial";
+            } else {
+              status = "pending";
+            }
+            return {
+              name: p.name,
+              itunesId: p.itunes_id,
+              transcriptCount: p.transcript_count,
+              completeTranscriptCount: p.complete_transcript_count,
+              recapCount: p.recap_count,
+              remaining,
+              pct,
+              status,
+              quality: {
+                tldl: p.has_tldl,
+                whatHappened: p.has_what_happened,
+                insights: p.has_insights,
+                quote: p.has_quote,
+                topics: p.has_topics,
+                questions: p.has_questions,
+                guests: p.has_guests,
+              },
+            };
+          }),
+          totalTranscripts,
+          totalRecaps,
+          totalRemaining,
+          totalPodcasts: podcasts.length,
+          podcastsComplete: podcasts.filter(p => p.recap_count >= p.transcript_count && p.transcript_count > 0).length,
+          podcastsPartial: podcasts.filter(p => p.recap_count > 0 && p.recap_count < p.transcript_count).length,
+          podcastsPending: podcasts.filter(p => p.recap_count === 0 && p.transcript_count > 0).length,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error("Episode pages status error:", err);
+      res.status(500).json({ message: "Failed to fetch episode pages status" });
+    }
+  });
+
   return httpServer;
 }
