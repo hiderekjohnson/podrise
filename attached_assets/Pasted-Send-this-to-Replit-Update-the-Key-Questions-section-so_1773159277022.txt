@@ -1,0 +1,79 @@
+Send this to Replit.
+
+⸻
+
+Update the Key Questions section so both the questions and answers are SEO-optimized.
+
+We want these pages to rank for long-tail searches like
+“what is the regret minimization framework Jeff Bezos”,
+“how AI helps careers”,
+“career dissatisfaction statistics”.
+
+Make the following changes.
+
+1. Questions should be SEO-focused
+
+Each question should contain the main searchable phrase someone would type into Google.
+
+Good examples:
+	•	What percentage of people are dissatisfied with their careers?
+	•	How can AI help people in their careers?
+	•	What is the regret minimization framework?
+	•	Why are peer groups important for career growth?
+	•	How can people continue learning throughout their careers?
+
+Avoid vague questions like:
+	•	What did they talk about?
+	•	What was interesting in the episode?
+
+2. Answers should repeat the key entity naturally
+
+Each answer should:
+	•	Mention the main topic or entity again
+	•	Be 2–4 sentences
+	•	Read naturally, not like keyword stuffing
+
+Example format:
+
+Question
+What is the regret minimization framework?
+
+Answer
+The regret minimization framework, popularized by Amazon founder Jeff Bezos, is a decision-making method that asks what your 80-year-old self would advise you to do. Jeff Bezos used this framework when deciding whether to leave Wall Street and start Amazon.
+
+3. Use FAQ schema markup
+
+Add FAQ structured data so Google can display these questions in search results.
+
+Each question/answer pair should be included in FAQPage schema.
+
+4. Each question should have its own anchor
+
+Generate anchor links like:
+
+/podcasts/my-first-million/episode-slug#regret-minimization-framework
+/podcasts/my-first-million/episode-slug#ai-career-growth
+
+This allows Google to deep-link to the answer.
+
+5. Question titles should be H3 elements
+
+Structure:
+
+H2
+Key Questions Discussed in This Episode
+
+H3
+What is the regret minimization framework?
+
+Paragraph
+Answer text.
+
+6. Limit to 4–6 questions
+
+Do not generate too many questions. Keep only the most important ones from the episode.
+
+⸻
+
+Goal:
+Turn every episode page into a mini FAQ knowledge page for that podcast conversation, which improves SEO and long-tail search discovery.

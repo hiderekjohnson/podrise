@@ -314,11 +314,11 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "quoteAttribution": "Speaker Name on topic",
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
   "topQuestions": [
-    {"question": "Question 1?", "answer": "2-3 paragraph answer from transcript."},
-    {"question": "Question 2?", "answer": "2-3 paragraph answer from transcript."},
-    {"question": "Question 3?", "answer": "2-3 paragraph answer from transcript."},
-    {"question": "Question 4?", "answer": "2-3 paragraph answer from transcript."},
-    {"question": "Question 5?", "answer": "2-3 paragraph answer from transcript."}
+    {"question": "SEO-optimized question containing the key entity or concept?", "answer": "2-4 sentence answer that naturally repeats the key entity/concept name. Drawn from transcript."},
+    {"question": "Question 2?", "answer": "Answer 2."},
+    {"question": "Question 3?", "answer": "Answer 3."},
+    {"question": "Question 4?", "answer": "Answer 4."},
+    {"question": "Question 5?", "answer": "Answer 5."}
   ],
   "sponsors": [
     {"name": "Sponsor Name", "description": "What the sponsor does.", "couponCode": "CODE or null", "url": "https://sponsor.com or null", "howToRedeem": "How to use the offer or null"}
@@ -338,7 +338,7 @@ RULES:
 - Quotes MUST be from the transcript
 - whatHappened must be a flowing 2-minute read narrative (6-10 short paragraphs, 2-4 sentences each). Write like a well-crafted article recap — NOT chapter headings or bullet summaries. Cover the full arc: what opened the episode, the key discussions, turning points, and how it concluded. Use \\n\\n between paragraphs
 - keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific — never generic
-- topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript
+- topQuestions: 5 SEO-optimized questions phrased like real Google searches someone would type. Each question MUST contain the specific entity, person, concept, or framework name (e.g. "What is the regret minimization framework?" not "What framework was discussed?"). Each answer should be 2-4 sentences that naturally repeat the key entity/concept name at least once. Answers must read naturally — not keyword-stuffed. Draw all content from the transcript
 - sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
 - guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Use their FULL NAME (first and last). Include their professional title/position at their company. Write a 2-3 sentence bio based on how they are introduced. Include social media handles if mentioned in the transcript or commonly known (twitter, linkedin, instagram, website). Do NOT include photoUrl — set it to null. Return empty array [] if no guests (solo host episodes or host-only conversations)
 - resources: ONLY include physical products, books, or tools that someone could actually BUY on Amazon. Do NOT include abstract concepts, philosophies, anecdotes, stories, work habits, websites, newsletters, services, SaaS products, or the podcast itself. Good examples: a specific book title, a gadget, a physical product. Bad examples: "Aristotle's Eudaimonia", "Aaron Sorkin's creative process", someone's personal story. If no purchasable items are mentioned, return empty array []. Do NOT include sponsors here either`;
