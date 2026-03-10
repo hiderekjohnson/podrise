@@ -1435,6 +1435,10 @@ export async function reIngestTranscriptSegments() {
   const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
   let upgraded = 0;
   let errors = 0;
+  let skipped = 0;
+  let noTimestamps = 0;
+  const BATCH_SIZE = 100;
+  const DELAY_MS = 300;
 
   const client = await dbPool.connect();
   try {
@@ -1444,7 +1448,12 @@ export async function reIngestTranscriptSegments() {
        INNER JOIN transcript_segments ts ON ts.episode_guid = et.episode_guid
        WHERE ts.timestamp_seconds IS NULL
        AND et.podcast_id IN (SELECT itunes_id FROM podcast_directory WHERE has_landing_page = true)
-       LIMIT 200`
+       AND NOT EXISTS (
+         SELECT 1 FROM transcript_segments ts2 
+         WHERE ts2.episode_guid = et.episode_guid 
+         AND ts2.timestamp_seconds IS NOT NULL
+       )
+       ORDER BY et.podcast_id, et.id`
     );
 
     if (transcripts.length === 0) {
@@ -1454,53 +1463,43 @@ export async function reIngestTranscriptSegments() {
 
     console.log(`[TranscriptReIngest] Re-ingesting ${transcripts.length} transcripts from Taddy for timestamps...`);
 
-    const podcastCache = new Map<string, string>();
-
-    for (const t of transcripts) {
+    for (let i = 0; i < transcripts.length; i++) {
+      const t = transcripts[i];
       try {
         const podcastSlug = ITUNES_ID_TO_SLUG[t.podcast_id] || t.podcast_id;
         const episodeSlug = slugifyEpisodeTitle(t.episode_title);
 
-        let taddyPodcastUuid = podcastCache.get(t.podcast_id);
-        if (!taddyPodcastUuid) {
-          const taddyPodcast = await searchPodcastByItunesId(t.podcast_id, t.episode_title?.split(" - ")?.[0]);
-          if (taddyPodcast?.uuid) {
-            taddyPodcastUuid = taddyPodcast.uuid;
-            podcastCache.set(t.podcast_id, taddyPodcastUuid);
-          }
+        const rawSegments = await getEpisodeTranscriptSegments(t.episode_guid);
+        if (!rawSegments || rawSegments.length === 0) {
+          skipped++;
+          await new Promise(r => setTimeout(r, DELAY_MS));
+          continue;
         }
 
-        if (!taddyPodcastUuid) continue;
-
-        const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcastUuid, 25);
-        const itunesNorm = normalizeTitleForMatch(t.episode_title);
-        const taddyMatch = taddyEpisodes.find((te: any) => {
-          if (!te.name) return false;
-          const taddyNorm = normalizeTitleForMatch(te.name);
-          return taddyNorm === itunesNorm || taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm);
-        });
-
-        if (!taddyMatch?.uuid) continue;
-
-        const rawSegments = await getEpisodeTranscriptSegments(taddyMatch.uuid);
-        if (!rawSegments || rawSegments.length === 0) continue;
-
         const hasTimestamps = rawSegments.some(s => s.startTimecode != null);
-        if (!hasTimestamps) continue;
+        if (!hasTimestamps) {
+          noTimestamps++;
+          continue;
+        }
 
         const parsedSegments = parseRawTaddySegments(rawSegments, podcastSlug, episodeSlug, t.episode_guid, t.id);
         if (parsedSegments.length > 0) {
           await storage.saveTranscriptSegments(parsedSegments);
           upgraded++;
-          console.log(`[TranscriptReIngest] Upgraded "${t.episode_title}" (${parsedSegments.length} segments with timestamps)`);
         }
       } catch (err) {
         errors++;
-        console.warn(`[TranscriptReIngest] Error for "${t.episode_title}":`, err);
       }
+
+      const processed = i + 1;
+      if (processed % BATCH_SIZE === 0 || processed === transcripts.length) {
+        console.log(`[TranscriptReIngest] Progress: ${processed}/${transcripts.length} (${upgraded} upgraded, ${noTimestamps} no timestamps on Taddy, ${skipped} skipped, ${errors} errors)`);
+      }
+
+      await new Promise(r => setTimeout(r, DELAY_MS));
     }
 
-    console.log(`[TranscriptReIngest] Complete: ${upgraded} upgraded, ${errors} errors`);
+    console.log(`[TranscriptReIngest] Complete: ${upgraded} upgraded, ${noTimestamps} no timestamps on Taddy, ${skipped} skipped, ${errors} errors out of ${transcripts.length} total`);
   } finally {
     client.release();
   }
