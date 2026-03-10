@@ -749,7 +749,7 @@ export default function EpisodeRecapPage() {
           </>
         )}
 
-        <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-ask-episode">
+        <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02] scroll-mt-24" data-testid="section-ask-episode">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
             <Sparkles className="w-4 h-4 text-violet-500" />
             <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask the AI About This Episode</span>
