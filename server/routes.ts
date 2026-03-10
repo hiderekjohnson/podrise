@@ -1024,33 +1024,21 @@ export async function registerRoutes(
       const regex = new RegExp(`\\b${escaped}\\b`);
       return regex.test(text);
     }
-    const lower = term.toLowerCase();
-    const textLower = text.toLowerCase();
-    if (lower.length <= 4) {
-      const regex = new RegExp(`\\b${lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      return regex.test(text);
-    }
-    return textLower.includes(lower);
+    const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+    return regex.test(text);
   }
 
   function buildSearchCondition(fields: string[], paramIndex: number, term: string): { sql: string; param: string } {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (AMBIGUOUS_TERMS.has(term)) {
-      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return {
         sql: fields.map(f => `${f} ~ $${paramIndex}`).join(" OR "),
         param: `\\m${escaped}\\M`,
       };
     }
-    if (term.length <= 4) {
-      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      return {
-        sql: fields.map(f => `${f} ~* $${paramIndex}`).join(" OR "),
-        param: `\\m${escaped}\\M`,
-      };
-    }
     return {
-      sql: fields.map(f => `${f} ILIKE $${paramIndex}`).join(" OR "),
-      param: `%${term}%`,
+      sql: fields.map(f => `${f} ~* $${paramIndex}`).join(" OR "),
+      param: `\\m${escaped}\\M`,
     };
   }
 
@@ -1098,16 +1086,20 @@ export async function registerRoutes(
 
         const guestRows = filtered.filter((r: any) => {
           return person.searchTerms.some(term => {
-            const t = term.toLowerCase();
-            return (r.guests && r.guests.toLowerCase().includes(t)) ||
-                   (r.episode_title && r.episode_title.toLowerCase().includes(t));
+            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const nameRegex = new RegExp(`\\b${escaped}\\b`, 'i');
+            if (r.guests && nameRegex.test(r.guests)) return true;
+            const bodyTexts = [r.what_happened, r.tldl].filter(Boolean).join(' ');
+            if (!nameRegex.test(bodyTexts)) return false;
+            const guestContextRegex = new RegExp(`(guest|interview|joins|joined|sits down with|welcome|featuring|welcomes)\\b.{0,80}\\b${escaped}\\b|\\b${escaped}\\b.{0,80}\\b(guest|joins|joined|sits down|interview|appears on|stopped by)`, 'i');
+            return guestContextRegex.test(bodyTexts);
           });
         });
         const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
 
         const mentionRows = filtered.filter((r: any) => {
           if (guestKeys.has(`${r.slug}/${r.episode_slug}`)) return false;
-          const texts = [r.what_happened, r.tldl, r.key_insights_text].filter(Boolean);
+          const texts = [r.what_happened, r.tldl, r.key_insights_text, r.episode_title].filter(Boolean);
           return person.searchTerms.some(term =>
             texts.some(t => termMatchesInText(t, term))
           );
@@ -1163,9 +1155,12 @@ export async function registerRoutes(
 
         const guestConditions = person.searchTerms.map((_, i) => {
           const p = `$${i + 1}`;
-          return `(guests ILIKE ${p} OR episode_title ILIKE ${p})`;
+          return `guests ~* ${p}`;
         }).join(" OR ");
-        const guestParams = [...person.searchTerms.map(t => `%${t}%`), ...extraParams];
+        const guestParams = [...person.searchTerms.map(t => {
+          const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return `\\m${escaped}\\M`;
+        }), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
           `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams

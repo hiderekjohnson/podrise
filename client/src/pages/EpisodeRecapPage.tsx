@@ -115,12 +115,16 @@ export default function EpisodeRecapPage() {
 
   const notablePeople = (() => {
     if (!episode) return [];
-    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`.toLowerCase();
+    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     const guestNames = guests.map(g => g.name?.toLowerCase().trim()).filter(Boolean);
     return PEOPLE_DIRECTORY.filter(p => {
       const nameLower = p.name.toLowerCase();
       return guestNames.some(gn => gn === nameLower) ||
-        p.searchTerms.some(term => searchText.includes(term.toLowerCase()));
+        p.searchTerms.some(term => {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+          return regex.test(searchText);
+        });
     }).slice(0, 6);
   })();
 
@@ -133,14 +137,15 @@ export default function EpisodeRecapPage() {
   const notableCompanies = (() => {
     if (!episode) return [];
     const originalText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
-    const searchTextLower = originalText.toLowerCase();
     return COMPANIES_DIRECTORY.filter(c => {
       return c.searchTerms.some(term => {
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         if (AMBIGUOUS_TERMS.has(term)) {
-          const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+          const regex = new RegExp(`\\b${escaped}\\b`);
           return regex.test(originalText);
         }
-        return searchTextLower.includes(term.toLowerCase());
+        const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+        return regex.test(originalText);
       });
     }).slice(0, 6);
   })();
