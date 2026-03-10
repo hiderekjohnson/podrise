@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye, Rss, Key, Database } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, Palette, BrainCircuit, FileText, Inbox, Send, Eye, Rss, Key, Database, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 const EmailTemplateEditor = lazy(() => import("./EmailTemplateEditor"));
 const RecapPromptEditor = lazy(() => import("./RecapPromptEditor"));
@@ -501,7 +501,7 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill">("backfill");
-  const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages">("transcripts");
+  const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
@@ -1096,136 +1096,6 @@ export default function Admin() {
                       </div>
                     </div>
 
-                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-landing-recaps">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Landing Page Example Recaps</h3>
-                        <p className="text-xs text-muted-foreground mt-1">Generate AI recaps for all ~50 podcast landing pages using their latest episodes.</p>
-                      </div>
-                      <button
-                        data-testid="button-generate-landing-recaps"
-                        onClick={async () => {
-                          if (!confirm("This will generate example recaps for all 50 landing pages. It may take several minutes. Continue?")) return;
-                          try {
-                            const res = await apiRequest("POST", "/api/admin/generate-landing-recaps");
-                            const reader = res.body?.getReader();
-                            if (reader) {
-                              const decoder = new TextDecoder();
-                              let successCount = 0;
-                              while (true) {
-                                const { done, value } = await reader.read();
-                                if (done) break;
-                                const lines = decoder.decode(value).split("\n").filter(Boolean);
-                                for (const line of lines) {
-                                  try {
-                                    const data = JSON.parse(line);
-                                    if (data.status === "success") successCount++;
-                                    if (data.done) {
-                                      toast({ title: "Landing Recaps Generated", description: `${data.success}/${data.total} recaps created successfully.` });
-                                    }
-                                  } catch {}
-                                }
-                              }
-                            }
-                          } catch (err: any) {
-                            toast({ title: "Error", description: err?.message || "Failed to generate landing recaps", variant: "destructive" });
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
-                      >
-                        Generate All
-                      </button>
-                    </div>
-
-                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-enrich-metadata">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Enrich Podcast Metadata</h3>
-                        <p className="text-xs text-muted-foreground mt-1">Auto-generate About, Known For, Host Bios, and other metadata for podcasts missing it.</p>
-                      </div>
-                      <button
-                        data-testid="button-enrich-metadata"
-                        onClick={async () => {
-                          if (!confirm("This will use AI to generate about info, host bios, and known-for for all podcasts missing this metadata. Continue?")) return;
-                          try {
-                            await apiRequest("POST", "/api/admin/enrich-podcast-metadata");
-                            toast({ title: "Enrichment Started", description: "Podcast metadata enrichment is running in the background." });
-                          } catch (err: any) {
-                            toast({ title: "Error", description: err?.message || "Failed to start enrichment", variant: "destructive" });
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
-                      >
-                        Enrich All
-                      </button>
-                    </div>
-
-                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-topics">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Backfill Key Topics & Questions</h3>
-                        <p className="text-xs text-muted-foreground mt-1">Generate key topics and top questions for all recaps that don't have them yet.</p>
-                      </div>
-                      <button
-                        data-testid="button-backfill-topics"
-                        onClick={async () => {
-                          if (!confirm("This will backfill key topics and top questions for all existing recaps. This may take a while. Continue?")) return;
-                          try {
-                            await apiRequest("POST", "/api/admin/backfill-topics-questions");
-                            toast({ title: "Backfill Started", description: "Key topics and questions backfill is running in the background." });
-                          } catch (err: any) {
-                            toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors whitespace-nowrap"
-                      >
-                        Start Backfill
-                      </button>
-                    </div>
-
-                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-show-notes">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Backfill Show Notes</h3>
-                        <p className="text-xs text-muted-foreground mt-1">Fetch and store show notes from Taddy for all episodes that don't have them yet.</p>
-                      </div>
-                      <button
-                        data-testid="button-backfill-show-notes"
-                        onClick={async () => {
-                          if (!confirm("This will fetch show notes from Taddy for all existing recaps. This may take a while due to API rate limits. Continue?")) return;
-                          try {
-                            await apiRequest("POST", "/api/admin/backfill-show-notes");
-                            toast({ title: "Backfill Started", description: "Show notes backfill is running in the background. Check server logs for progress." });
-                          } catch (err: any) {
-                            toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors whitespace-nowrap"
-                      >
-                        Start Backfill
-                      </button>
-                    </div>
-
-                    <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-clear-sponsors-cache">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Clear Sponsors Cache</h3>
-                        <p className="text-xs text-muted-foreground mt-1">Clear cached sponsor data so it re-extracts using show notes + transcript on next visit.</p>
-                      </div>
-                      <button
-                        data-testid="button-clear-sponsors-cache"
-                        onClick={async () => {
-                          if (!confirm("This will clear all cached sponsor data. Sponsors will be re-extracted (with show notes) the next time someone visits an episode. Continue?")) return;
-                          try {
-                            await apiRequest("POST", "/api/admin/clear-sponsors-cache");
-                            toast({ title: "Cache Cleared", description: "Sponsors will be re-extracted with show notes on next visit." });
-                          } catch (err: any) {
-                            toast({ title: "Error", description: err?.message || "Failed to clear cache", variant: "destructive" });
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
-                      >
-                        Clear Cache
-                      </button>
-                    </div>
-
-                    <BatchExpansionPanel />
-
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="glass-panel rounded-2xl p-6" data-testid="chart-top-podcasts">
                         <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
@@ -1509,13 +1379,159 @@ export default function Admin() {
                     <FileText className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
                     Episode Pages
                   </button>
+                  <button
+                    data-testid="subtab-tools"
+                    onClick={() => setBackfillSubTab("tools")}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      backfillSubTab === "tools"
+                        ? "bg-white text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Settings className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                    Tools
+                  </button>
                 </div>
                 <Suspense fallback={
                   <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
                 }>
-                  {backfillSubTab === "transcripts" ? <BackfillTracker /> : <EpisodePagesTracker />}
+                  {backfillSubTab === "transcripts" && <BackfillTracker />}
+                  {backfillSubTab === "pages" && <EpisodePagesTracker />}
+                  {backfillSubTab === "tools" && (
+                    <div className="space-y-4" data-testid="backfill-tools">
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-landing-recaps">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Landing Page Example Recaps</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Generate AI recaps for all ~50 podcast landing pages using their latest episodes.</p>
+                        </div>
+                        <button
+                          data-testid="button-generate-landing-recaps"
+                          onClick={async () => {
+                            if (!confirm("This will generate example recaps for all 50 landing pages. It may take several minutes. Continue?")) return;
+                            try {
+                              const res = await apiRequest("POST", "/api/admin/generate-landing-recaps");
+                              const reader = res.body?.getReader();
+                              if (reader) {
+                                const decoder = new TextDecoder();
+                                let successCount = 0;
+                                while (true) {
+                                  const { done, value } = await reader.read();
+                                  if (done) break;
+                                  const lines = decoder.decode(value).split("\n").filter(Boolean);
+                                  for (const line of lines) {
+                                    try {
+                                      const data = JSON.parse(line);
+                                      if (data.status === "success") successCount++;
+                                      if (data.done) {
+                                        toast({ title: "Landing Recaps Generated", description: `${data.success}/${data.total} recaps created successfully.` });
+                                      }
+                                    } catch {}
+                                  }
+                                }
+                              }
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to generate landing recaps", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
+                        >
+                          Generate All
+                        </button>
+                      </div>
+
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-enrich-metadata">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Enrich Podcast Metadata</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Auto-generate About, Known For, Host Bios, and other metadata for podcasts missing it.</p>
+                        </div>
+                        <button
+                          data-testid="button-enrich-metadata"
+                          onClick={async () => {
+                            if (!confirm("This will use AI to generate about info, host bios, and known-for for all podcasts missing this metadata. Continue?")) return;
+                            try {
+                              await apiRequest("POST", "/api/admin/enrich-podcast-metadata");
+                              toast({ title: "Enrichment Started", description: "Podcast metadata enrichment is running in the background." });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to start enrichment", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                        >
+                          Enrich All
+                        </button>
+                      </div>
+
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-topics">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Backfill Key Topics & Questions</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Generate key topics and top questions for all recaps that don't have them yet.</p>
+                        </div>
+                        <button
+                          data-testid="button-backfill-topics"
+                          onClick={async () => {
+                            if (!confirm("This will backfill key topics and top questions for all existing recaps. This may take a while. Continue?")) return;
+                            try {
+                              await apiRequest("POST", "/api/admin/backfill-topics-questions");
+                              toast({ title: "Backfill Started", description: "Key topics and questions backfill is running in the background." });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors whitespace-nowrap"
+                        >
+                          Start Backfill
+                        </button>
+                      </div>
+
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-show-notes">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Backfill Show Notes</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Fetch and store show notes from Taddy for all episodes that don't have them yet.</p>
+                        </div>
+                        <button
+                          data-testid="button-backfill-show-notes"
+                          onClick={async () => {
+                            if (!confirm("This will fetch show notes from Taddy for all existing recaps. This may take a while due to API rate limits. Continue?")) return;
+                            try {
+                              await apiRequest("POST", "/api/admin/backfill-show-notes");
+                              toast({ title: "Backfill Started", description: "Show notes backfill is running in the background. Check server logs for progress." });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors whitespace-nowrap"
+                        >
+                          Start Backfill
+                        </button>
+                      </div>
+
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-clear-sponsors-cache">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Clear Sponsors Cache</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Clear cached sponsor data so it re-extracts using show notes + transcript on next visit.</p>
+                        </div>
+                        <button
+                          data-testid="button-clear-sponsors-cache"
+                          onClick={async () => {
+                            if (!confirm("This will clear all cached sponsor data. Sponsors will be re-extracted (with show notes) the next time someone visits an episode. Continue?")) return;
+                            try {
+                              await apiRequest("POST", "/api/admin/clear-sponsors-cache");
+                              toast({ title: "Cache Cleared", description: "Sponsors will be re-extracted with show notes on next visit." });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to clear cache", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                        >
+                          Clear Cache
+                        </button>
+                      </div>
+
+                      <BatchExpansionPanel />
+                    </div>
+                  )}
                 </Suspense>
               </div>
             )}
