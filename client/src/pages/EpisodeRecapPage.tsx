@@ -533,7 +533,7 @@ export default function EpisodeRecapPage() {
           <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-people">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <Sparkles className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">People Mentioned in This Episode</span>
+              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">People Mentioned in This {episode.podcastName} Podcast Episode</span>
             </div>
             <div className="px-6 py-5">
               <p className="text-sm text-muted-foreground mb-4" data-testid="notable-people-intro">The following people were discussed or referenced during this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}. PodCap highlights the most notable and relevant individuals mentioned in the conversation, focusing on people who were meaningfully discussed rather than brief or passing references.</p>
@@ -564,7 +564,7 @@ export default function EpisodeRecapPage() {
           <section id={notablePeople.length === 0 ? "section-notable-mentions" : undefined} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-companies">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <Sparkles className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Companies Mentioned in This Episode</span>
+              <span className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Companies Mentioned in This {episode.podcastName} Podcast Episode</span>
             </div>
             <div className="px-6 py-5">
               <p className="text-sm text-muted-foreground mb-4" data-testid="notable-companies-intro">The following companies and organizations were discussed or referenced during this episode of the {episode.podcastName} podcast. PodCap highlights the most notable and relevant companies mentioned in the conversation, focusing on businesses that were meaningfully discussed rather than brief or passing references.</p>
