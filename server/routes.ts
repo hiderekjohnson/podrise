@@ -12,6 +12,7 @@ import { markdownToEmailHtml, recapHasContent, DEFAULT_TEMPLATE, MERGE_TAGS, typ
 import { generateRecap, DEFAULT_RECAP_PROMPT } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
+import { activeEpGenItunesIds } from "./epGenState";
 import { readFileSync } from "fs";
 
 declare module "express-session" {
@@ -5011,6 +5012,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
     const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
     const { generateRecapFromTranscript } = await import("./recapGenerator");
 
+    activeEpGenItunesIds.add(itunesId);
     const slug = ITUNES_ID_TO_SLUG[itunesId];
     const client = await pool.connect();
     try {
@@ -5096,7 +5098,18 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
             `INSERT INTO landing_page_recaps 
              (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, top_questions, audio_url, sponsors, guests, resources)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
-             ON CONFLICT DO NOTHING`,
+             ON CONFLICT (slug, episode_slug) DO UPDATE SET
+               tldl = EXCLUDED.tldl,
+               what_happened = EXCLUDED.what_happened,
+               key_insights = EXCLUDED.key_insights,
+               quote = EXCLUDED.quote,
+               quote_attribution = EXCLUDED.quote_attribution,
+               key_topics = EXCLUDED.key_topics,
+               top_questions = EXCLUDED.top_questions,
+               audio_url = EXCLUDED.audio_url,
+               sponsors = EXCLUDED.sponsors,
+               guests = EXCLUDED.guests,
+               resources = EXCLUDED.resources`,
             [
               podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
               durationStr, t.image_url || "", hosts,
@@ -5124,6 +5137,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
       epGenState.completedPodcasts.push(itunesId);
       console.log(`[EpGen] Finished ${podcastName}: ${epGenState.generated} generated, ${epGenState.failed} failed, ${epGenState.skipped} skipped`);
     } finally {
+      activeEpGenItunesIds.delete(itunesId);
       client.release();
     }
   }

@@ -5,6 +5,7 @@ import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "
 import { searchPodcastByItunesId, searchPodcastByName, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
+import { activeEpGenItunesIds } from "./epGenState";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
 const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
@@ -437,6 +438,10 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
   let errors = 0;
 
   for (const podcast of landingPodcasts) {
+    if (activeEpGenItunesIds.has(podcast.itunesId)) {
+      skipped++;
+      continue;
+    }
     landingRecapProgress.currentPodcast = podcast.name;
     try {
       const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;

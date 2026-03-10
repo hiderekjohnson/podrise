@@ -507,40 +507,52 @@ RULES:
 - guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Include their professional title and a bio based on how they are introduced. List the specific topics they discussed. Return empty array [] if no guests (solo host episodes or host-only conversations)
 - resources: Extract books, tools, products, newsletters, companies, websites, or services specifically recommended or discussed in depth. Do NOT include the podcast itself or the sponsors. Return empty array [] if none mentioned`;
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 12000,
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    });
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const usePrompt = attempt === 1 ? prompt : prompt + "\n\nIMPORTANT: Keep your response CONCISE. Limit whatHappened to 2 short paragraphs. Limit each topQuestions answer to 1-2 paragraphs. Keep guest bios to 1 sentence. The total JSON response must be under 8000 characters.";
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: usePrompt }],
+        max_tokens: 16384,
+        temperature: 0.7,
+        response_format: { type: "json_object" },
+      });
 
-    const content = completion.choices[0]?.message?.content;
-    if (!content) return null;
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        if (attempt < maxAttempts) continue;
+        return null;
+      }
 
-    let jsonContent = content.trim();
-    if (jsonContent.startsWith("```")) {
-      jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+      let jsonContent = content.trim();
+      if (jsonContent.startsWith("```")) {
+        jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+      }
+
+      const parsed = JSON.parse(jsonContent);
+      return {
+        podcastName: parsed.podcastName || podcastName,
+        episodeTitle: parsed.episodeTitle || episodeTitle,
+        tldl: parsed.tldl || "",
+        whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
+        keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
+        quote: parsed.quote,
+        quoteAttribution: parsed.quoteAttribution,
+        keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
+        topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
+        sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
+        guests: Array.isArray(parsed.guests) ? parsed.guests : [],
+        resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+      };
+    } catch (err) {
+      if (attempt < maxAttempts) {
+        console.warn(`[RecapGenerator] Attempt ${attempt} failed for "${episodeTitle}", retrying with concise prompt...`);
+        continue;
+      }
+      console.error(`[RecapGenerator] Failed to generate recap for "${episodeTitle}" after ${maxAttempts} attempts:`, err);
+      return null;
     }
-
-    const parsed = JSON.parse(jsonContent);
-    return {
-      podcastName: parsed.podcastName || podcastName,
-      episodeTitle: parsed.episodeTitle || episodeTitle,
-      tldl: parsed.tldl || "",
-      whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
-      keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
-      quote: parsed.quote,
-      quoteAttribution: parsed.quoteAttribution,
-      keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
-      topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
-      sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
-      guests: Array.isArray(parsed.guests) ? parsed.guests : [],
-      resources: Array.isArray(parsed.resources) ? parsed.resources : [],
-    };
-  } catch (err) {
-    console.error(`[RecapGenerator] Failed to generate recap for "${episodeTitle}":`, err);
-    return null;
   }
+  return null;
 }
