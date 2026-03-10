@@ -20,6 +20,7 @@ interface EpisodePageLayoutProps {
     duration?: string;
     hosts?: string;
     appleEpisodeUrl?: string;
+    spotifyEpisodeUrl?: string;
   };
   podcastSlug: string;
   episodeSlug: string;
@@ -66,7 +67,7 @@ export function EpisodePageLayout({
 
   const appleLink = episode.appleEpisodeUrl || `https://podcasts.apple.com/podcast/id${podcastConfig?.itunesId}`;
   const episodeSearchQuery = encodeURIComponent(episode.episodeTitle + ' ' + episode.podcastName);
-  const spotifyLink = `https://open.spotify.com/search/${episodeSearchQuery}`;
+  const spotifyLink = episode.spotifyEpisodeUrl || `https://open.spotify.com/search/${episodeSearchQuery}`;
   const youtubeSearchLink = `https://www.youtube.com/results?search_query=${episodeSearchQuery}`;
   const effectiveYoutubeUrl = podcastConfig.youtubeUrl ? youtubeSearchLink : undefined;
 

@@ -1604,3 +1604,45 @@ export async function backfillAppleEpisodeUrls() {
     client.release();
   }
 }
+
+export async function backfillSpotifyEpisodeUrls() {
+  const { pool: dbPool } = await import("./db");
+  const { searchSpotifyEpisode } = await import("./spotifyClient");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recaps } = await client.query(
+      `SELECT id, podcast_name, episode_title FROM landing_page_recaps WHERE (spotify_episode_url IS NULL OR spotify_episode_url = '') ORDER BY id`
+    );
+    console.log(`[BackfillSpotifyUrls] Found ${recaps.length} recaps missing Spotify episode URLs`);
+
+    let updated = 0;
+    let errors = 0;
+
+    for (let i = 0; i < recaps.length; i++) {
+      const recap = recaps[i];
+      try {
+        const url = await searchSpotifyEpisode(recap.podcast_name, recap.episode_title);
+        if (url) {
+          await client.query(
+            `UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2`,
+            [url, recap.id]
+          );
+          updated++;
+        }
+      } catch (err) {
+        errors++;
+      }
+
+      const processed = i + 1;
+      if (processed % 100 === 0 || processed === recaps.length) {
+        console.log(`[BackfillSpotifyUrls] Progress: ${processed}/${recaps.length} (${updated} updated, ${errors} errors)`);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    console.log(`[BackfillSpotifyUrls] Complete: ${updated} updated, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}

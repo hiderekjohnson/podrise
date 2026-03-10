@@ -1246,6 +1246,7 @@ export async function registerRoutes(
       const hasTimestamps = segments.some(s => s.timestampLabel);
 
       const appleEpisodeUrl = (recap as any)?.appleEpisodeUrl || "";
+      const spotifyEpisodeUrl = (recap as any)?.spotifyEpisodeUrl || "";
       const podcastName = recap?.podcastName || slug;
       const episodeTitle = recap?.episodeTitle || episodeSlug;
 
@@ -1269,6 +1270,7 @@ export async function registerRoutes(
           artworkUrl: recap?.artworkUrl || "",
           hosts: recap?.hosts || "",
           appleEpisodeUrl,
+          spotifyEpisodeUrl,
           totalSegments: segments.length,
           totalWords,
           readingMinutes,
@@ -2650,6 +2652,19 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       const { backfillAppleEpisodeUrls } = await import("./emailScheduler");
       backfillAppleEpisodeUrls();
       res.json({ message: "Apple episode URL backfill started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/backfill-spotify-episode-urls", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { backfillSpotifyEpisodeUrls } = await import("./emailScheduler");
+      backfillSpotifyEpisodeUrls();
+      res.json({ message: "Spotify episode URL backfill started." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
     }

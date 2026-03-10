@@ -25,6 +25,7 @@ interface TranscriptMeta {
   artworkUrl: string;
   hosts: string;
   appleEpisodeUrl: string;
+  spotifyEpisodeUrl?: string;
   totalSegments: number;
   totalWords: number;
   readingMinutes: number;
@@ -320,6 +321,7 @@ export default function EpisodeTranscriptPage() {
     duration: meta.duration,
     hosts: meta.hosts,
     appleEpisodeUrl: meta.appleEpisodeUrl,
+    spotifyEpisodeUrl: meta.spotifyEpisodeUrl,
   };
 
   return (
