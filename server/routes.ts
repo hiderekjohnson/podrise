@@ -1085,14 +1085,11 @@ export async function registerRoutes(
         const filtered = allRecaps.filter((r: any) => !hostedSet.has(r.slug));
 
         const guestRows = filtered.filter((r: any) => {
+          if (!r.guests) return false;
           return person.searchTerms.some(term => {
             const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const nameRegex = new RegExp(`\\b${escaped}\\b`, 'i');
-            if (r.guests && nameRegex.test(r.guests)) return true;
-            const bodyTexts = [r.what_happened, r.tldl].filter(Boolean).join(' ');
-            if (!nameRegex.test(bodyTexts)) return false;
-            const guestContextRegex = new RegExp(`(guest|interview|joins|joined|sits down with|welcome|featuring|welcomes)\\b.{0,80}\\b${escaped}\\b|\\b${escaped}\\b.{0,80}\\b(guest|joins|joined|sits down|interview|appears on|stopped by)`, 'i');
-            return guestContextRegex.test(bodyTexts);
+            const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+            return regex.test(r.guests);
           });
         });
         const guestKeys = new Set(guestRows.map((r: any) => `${r.slug}/${r.episode_slug}`));
@@ -1162,11 +1159,11 @@ export async function registerRoutes(
           return `\\m${escaped}\\M`;
         }), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
-        const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+        const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text", "episode_title"], i + 1, t));
         const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
         const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
         const { rows: mentionEpisodes } = await client.query(
