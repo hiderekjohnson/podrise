@@ -192,10 +192,13 @@ export async function generateRecap(
       const quote = recap.quote || "";
       const quoteAttribution = recap.quoteAttribution || recap.quote_attribution || "";
 
+      const recapSlug = recap.episodeSlug || recap.episode_slug || epSlug;
+      const recapPageUrl = `https://podcap.io/podcasts/${podSlug}/${recapSlug}`;
+
       const lines: string[] = [];
       lines.push(`## ${(podName || "UNKNOWN PODCAST").toUpperCase()}`);
       lines.push("");
-      lines.push(`**${epTitle || "Untitled Episode"}**`);
+      lines.push(`**[${epTitle || "Untitled Episode"}](${recapPageUrl})**`);
       lines.push("");
       const metaParts: string[] = [];
       if (meta.duration) metaParts.push(meta.duration);
@@ -214,12 +217,11 @@ export async function generateRecap(
           if (k.toLowerCase() === metaKey.toLowerCase()) { epSpotifyUrl = v; break; }
         }
       }
-      if (epAppleUrl || epSpotifyUrl) {
-        const linkParts: string[] = [];
-        if (epAppleUrl) linkParts.push(`[Apple Podcasts](${epAppleUrl})`);
-        if (epSpotifyUrl) linkParts.push(`[Spotify](${epSpotifyUrl})`);
-        lines.push(`🎧 ${linkParts.join(" · ")}`);
-      }
+      const linkParts: string[] = [];
+      linkParts.push(`[📖 Full Recap](${recapPageUrl})`);
+      if (epAppleUrl) linkParts.push(`[Apple Podcasts](${epAppleUrl})`);
+      if (epSpotifyUrl) linkParts.push(`[Spotify](${epSpotifyUrl})`);
+      lines.push(linkParts.join(" · "));
       lines.push("");
       if (tldl) {
         lines.push(`**TLDL:** ${tldl}`);
