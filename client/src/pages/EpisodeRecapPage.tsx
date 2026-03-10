@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -39,10 +39,9 @@ export default function EpisodeRecapPage() {
   const params = useParams<{ podcastSlug: string; episodeSlug: string }>();
   const podcastSlug = params.podcastSlug || "";
   const episodeSlug = params.episodeSlug || "";
-  const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
   const [askInput, setAskInput] = useState("");
   const [askAnswer, setAskAnswer] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState("section-tldl");
+  const [activeSection, setActiveSection] = useState("section-key-insights");
   const askSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
@@ -462,45 +461,15 @@ export default function EpisodeRecapPage() {
           <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
             <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
               <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-              <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Quick Q&A</span>
+              <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Questions answered in this episode</span>
             </div>
-            <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+            <div className="px-6 py-5 space-y-6">
               {topQuestions.map((item, i) => (
                 <div key={i} data-testid={`question-item-${i}`}>
-                  <button
-                    onClick={() => setExpandedQuestion(expandedQuestion === i ? null : i)}
-                    className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-black/[0.015] dark:hover:bg-white/[0.02] transition-colors"
-                    data-testid={`question-toggle-${i}`}
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-500 shrink-0 mt-0.5">
-                        <HelpCircle className="w-3 h-3" />
-                      </span>
-                      <span className="text-[15px] font-semibold text-foreground leading-snug">{item.question}</span>
-                    </div>
-                    {expandedQuestion === i ? (
-                      <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-                    )}
-                  </button>
-                  <AnimatePresence>
-                    {expandedQuestion === i && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-6 pb-5 pl-[3.25rem]">
-                          {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
-                            <p key={j} className="text-[15px] leading-[1.8] text-muted-foreground mb-2.5 last:mb-0">{p}</p>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <h3 className="text-[16px] font-bold text-foreground leading-snug mb-2" data-testid={`question-heading-${i}`}>{item.question}</h3>
+                  {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
+                    <p key={j} className="text-[15px] leading-[1.85] text-muted-foreground mb-2 last:mb-0">{p}</p>
+                  ))}
                 </div>
               ))}
             </div>
