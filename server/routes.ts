@@ -1558,251 +1558,6 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/podcasts/:slug/:episodeSlug/sponsors", async (req, res) => {
-    try {
-      const { slug, episodeSlug } = req.params;
-      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
-      if (!recap) return res.status(404).json({ error: "Recap not found" });
-
-      if (recap.sponsors) {
-        try {
-          return res.json({ sponsors: JSON.parse(recap.sponsors) });
-        } catch {
-          return res.json({ sponsors: [] });
-        }
-      }
-
-      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
-
-      const showNotes = recap.showNotes || "";
-
-      if ((!segments || segments.length === 0) && !showNotes) {
-        return res.json({ sponsors: [] });
-      }
-
-      const transcriptText = segments
-        ? segments.map(s => {
-            const speaker = s.speakerName ? `${s.speakerName}: ` : "";
-            return `${speaker}${s.text}`;
-          }).join("\n").slice(0, 16000)
-        : "";
-
-      const showNotesSection = showNotes
-        ? `\n\nSHOW NOTES (from the podcast's official listing — these often contain accurate sponsor names and URLs):\n${showNotes.slice(0, 5000)}`
-        : "";
-
-      const { openai } = await import("./replit_integrations/image/client");
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert at identifying sponsor mentions in podcasts. You will be given a transcript AND/OR the official show notes from the podcast listing. Extract ALL sponsor/advertiser mentions with RICH detail from the actual ad read. For each sponsor, extract:
-- "name": The sponsor or brand name
-- "description": A detailed summary of the sponsor's product/service as described in the ad read (2-4 sentences). Include what the product does, why the host recommends it, and any specific benefits mentioned.
-- "deal": The SPECIFIC deal or offer for listeners. Extract the EXACT offer from the ad read — e.g. "New subscribers get a free welcome kit worth $87 including AG1 and AGZ travel packs plus vitamin D3+K2", "Get 20% off your first order", "First month free", etc. Be specific with dollar amounts, percentages, free items, and trial lengths. If no specific deal is mentioned, return null.
-- "couponCode": Any promo/coupon code mentioned (or null)
-- "url": The sponsor's URL. IMPORTANT: Extract the EXACT URL the host tells listeners to visit, including any custom slug (e.g. "drinkag1.com/tim", "athleticgreens.com/huberman"). If the show notes contain a link for the sponsor, prefer that. If the host verbally mangles the URL, try to reconstruct the correct one. If neither source has a URL, return null.
-- "callToAction": The host's exact call to action — what they tell listeners to DO. e.g. "Visit drinkag1.com/tim to claim your free welcome kit", "Go to circle.so/tim to start your free trial", "Head to example.com and use code TIM at checkout". Quote or closely paraphrase the host's actual words. If no clear CTA, return null.
-
-Return a JSON object with a "sponsors" array. If no sponsors are found, return {"sponsors": []}.
-Only include actual paid sponsors/advertisers — not casual brand mentions or the podcast's own links. Look for patterns like "brought to you by", "sponsored by", "this episode is presented by", "our partners at", promo code mentions, special URLs, sections labeled "Sponsors" in show notes, etc.
-Cross-reference the transcript and show notes: the show notes often have the correct URLs that hosts mention verbally (and may mangle). Prefer show notes URLs over transcript URLs.`
-          },
-          {
-            role: "user",
-            content: `Podcast: ${recap.podcastName}\nEpisode: "${recap.episodeTitle}"\n\n${transcriptText ? `TRANSCRIPT:\n${transcriptText}` : "(No transcript available)"}${showNotesSection}`
-          }
-        ],
-        max_tokens: 2000,
-        temperature: 0.3,
-        response_format: { type: "json_object" },
-      });
-
-      const content = completion.choices[0]?.message?.content || '{"sponsors":[]}';
-      let parsed;
-      try {
-        parsed = JSON.parse(content);
-      } catch {
-        parsed = { sponsors: [] };
-      }
-
-      const rawSponsors = Array.isArray(parsed.sponsors) ? parsed.sponsors : [];
-      const sponsors = rawSponsors
-        .filter((s: any) => s && typeof s.name === "string" && s.name.trim())
-        .map((s: any) => ({
-          name: String(s.name).trim(),
-          description: typeof s.description === "string" ? s.description.trim() : "",
-          deal: typeof s.deal === "string" && s.deal.trim() ? s.deal.trim() : null,
-          couponCode: typeof s.couponCode === "string" && s.couponCode.trim() ? s.couponCode.trim() : null,
-          url: typeof s.url === "string" && s.url.trim() ? s.url.trim() : null,
-          callToAction: typeof s.callToAction === "string" && s.callToAction.trim() ? s.callToAction.trim() : null,
-        }));
-
-      const { db } = await import("./db");
-      const { eq, and } = await import("drizzle-orm");
-      const { landingPageRecaps } = await import("@shared/schema");
-      await db.update(landingPageRecaps)
-        .set({ sponsors: JSON.stringify(sponsors) })
-        .where(
-          and(
-            eq(landingPageRecaps.slug, slug),
-            eq(landingPageRecaps.episodeSlug, episodeSlug)
-          )
-        );
-
-      res.json({ sponsors });
-    } catch (err) {
-      console.error("[Sponsors] Error:", err);
-      res.status(500).json({ error: "Failed to extract sponsors" });
-    }
-  });
-
-  const resourcesInFlight = new Map<string, Promise<any>>();
-  app.get("/api/podcasts/:slug/:episodeSlug/resources", async (req, res) => {
-    try {
-      const { slug, episodeSlug } = req.params;
-      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
-      if (!recap) return res.status(404).json({ error: "Recap not found" });
-
-      if (recap.resources) {
-        try {
-          return res.json({ resources: JSON.parse(recap.resources) });
-        } catch {
-          return res.json({ resources: [] });
-        }
-      }
-
-      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
-      const showNotes = recap.showNotes || "";
-
-      if ((!segments || segments.length === 0) && !showNotes) {
-        const emptyResult: any[] = [];
-        const { db } = await import("./db");
-        const { eq, and } = await import("drizzle-orm");
-        const { landingPageRecaps } = await import("@shared/schema");
-        await db.update(landingPageRecaps)
-          .set({ resources: JSON.stringify(emptyResult) })
-          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
-        return res.json({ resources: [] });
-      }
-
-      const flightKey = `${slug}/${episodeSlug}`;
-      if (resourcesInFlight.has(flightKey)) {
-        const cached = await resourcesInFlight.get(flightKey);
-        return res.json({ resources: cached });
-      }
-
-      const extractionPromise = (async () => {
-        const transcriptText = segments
-          ? segments.map(s => {
-              const speaker = s.speakerName ? `${s.speakerName}: ` : "";
-              return `${speaker}${s.text}`;
-            }).join("\n").slice(0, 20000)
-          : "";
-
-        const showNotesSection = showNotes
-          ? `\n\nSHOW NOTES (official listing with links):\n${showNotes.slice(0, 5000)}`
-          : "";
-
-        let sponsorNames: string[] = [];
-        if (recap.sponsors) {
-          try {
-            const parsed = JSON.parse(recap.sponsors);
-            if (Array.isArray(parsed)) {
-              sponsorNames = parsed.map((s: any) => s.name).filter(Boolean);
-            }
-          } catch {}
-        }
-        const sponsorExclusionNote = sponsorNames.length > 0
-          ? `\n\nKNOWN SPONSORS FOR THIS EPISODE (EXCLUDE ALL OF THESE): ${sponsorNames.join(", ")}`
-          : "";
-
-        const { openai } = await import("./replit_integrations/image/client");
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are an expert at extracting shoppable items — things people can BUY or SUBSCRIBE to — mentioned in podcast episodes. Analyze the transcript and show notes to find products, books, supplements, gear, software, apps, courses, and other purchasable items that hosts or guests organically mention, recommend, or use.
-
-ONLY include items that someone could actually purchase, download, or subscribe to. Do NOT include:
-- TV shows, movies, organizations, concepts, methodologies, or general knowledge topics
-- People, places, or abstract ideas
-- Anything that isn't a buyable/subscribable product or service
-
-For each item, provide:
-- "name": The product name (book title, supplement name, app name, etc.)
-- "type": One of: "book", "supplement", "tool", "app", "software", "course", "newsletter", "product", "gear", "service"
-- "description": A brief 1-2 sentence description of what this product is and why it was mentioned
-- "url": For books AND physical products (supplements, gear, etc.), use an Amazon search URL: "https://www.amazon.com/s?k=PRODUCT+NAME&tag=podcap-20". For software/apps/courses/newsletters, use their actual website URL if mentioned. If no URL is available, use null.
-- "author": For books, the author name. For products/tools, the company name. null if unknown.
-- "context": One sentence about WHY this was mentioned (e.g. "Host takes this supplement daily", "Guest recommended this book as life-changing")
-
-IMPORTANT RULES:
-1. For ALL books, always use an Amazon URL with affiliate tag: https://www.amazon.com/s?k=BOOK+TITLE+AUTHOR&tag=podcap-20
-2. For physical products (supplements, gear, equipment, food products), also use Amazon affiliate URLs: https://www.amazon.com/s?k=PRODUCT+NAME&tag=podcap-20
-3. STRICTLY exclude ALL sponsors, advertisers, and paid promotions. A list of KNOWN SPONSORS will be provided — exclude every single one by name. If something is introduced with language like "brought to you by", "sponsored by", "this episode is presented by", or has a promo code — exclude it.
-4. Only include items genuinely discussed or recommended in organic conversation — NOT during ad segments
-5. For software/apps/websites, prefer the actual product URL from show notes or transcript over Amazon
-6. When in doubt whether something is a sponsor or organic, EXCLUDE it
-
-Return a JSON object: {"resources": [...]}
-If no resources are found, return {"resources": []}.`
-            },
-            {
-              role: "user",
-              content: `Podcast: "${recap.podcastName}"\nEpisode: "${recap.episodeTitle}"\nHosts: ${recap.hosts || "unknown"}${sponsorExclusionNote}\n\n${transcriptText ? `TRANSCRIPT:\n${transcriptText}` : "(No transcript available)"}${showNotesSection}`
-            }
-          ],
-          max_tokens: 4000,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        });
-
-        const content = completion.choices[0]?.message?.content || '{"resources":[]}';
-        let parsed;
-        try {
-          parsed = JSON.parse(content);
-        } catch {
-          parsed = { resources: [] };
-        }
-
-        const rawResources = Array.isArray(parsed.resources) ? parsed.resources : [];
-        const resources = rawResources
-          .filter((r: any) => r && typeof r.name === "string" && r.name.trim())
-          .map((r: any) => ({
-            name: String(r.name).trim(),
-            type: typeof r.type === "string" ? r.type.trim() : "other",
-            description: typeof r.description === "string" ? r.description.trim() : "",
-            url: typeof r.url === "string" && r.url.trim() ? r.url.trim() : null,
-            author: typeof r.author === "string" && r.author.trim() ? r.author.trim() : null,
-            context: typeof r.context === "string" ? r.context.trim() : "",
-          }));
-
-        const { db } = await import("./db");
-        const { eq, and } = await import("drizzle-orm");
-        const { landingPageRecaps } = await import("@shared/schema");
-        await db.update(landingPageRecaps)
-          .set({ resources: JSON.stringify(resources) })
-          .where(and(eq(landingPageRecaps.slug, slug), eq(landingPageRecaps.episodeSlug, episodeSlug)));
-
-        return resources;
-      })();
-
-      resourcesInFlight.set(flightKey, extractionPromise);
-      try {
-        const resources = await extractionPromise;
-        res.json({ resources });
-      } finally {
-        resourcesInFlight.delete(flightKey);
-      }
-    } catch (err) {
-      console.error("[Resources] Error:", err);
-      res.status(500).json({ error: "Failed to extract resources" });
-    }
-  });
-
   const guestsInFlight = new Map<string, Promise<any>>();
   app.get("/api/podcasts/:slug/:episodeSlug/guests", async (req, res) => {
     try {
@@ -2900,23 +2655,6 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
-  app.post("/api/admin/clear-sponsors-cache", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    try {
-      const { db } = await import("./db");
-      const { landingPageRecaps } = await import("@shared/schema");
-      const { isNotNull } = await import("drizzle-orm");
-      const result = await db.update(landingPageRecaps)
-        .set({ sponsors: null as any })
-        .where(isNotNull(landingPageRecaps.sponsors));
-      res.json({ message: `Cleared sponsors cache. Sponsors will be re-extracted (using show notes) on next visit.` });
-    } catch (err: any) {
-      res.status(500).json({ message: err?.message || "Failed to clear sponsors cache" });
-    }
-  });
-
   app.post("/api/admin/backfill-show-notes", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -2927,80 +2665,6 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       res.json({ message: "Show notes backfill started." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
-    }
-  });
-
-  app.post("/api/admin/backfill-sponsors", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    try {
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-      try {
-        const { rows: recaps } = await client.query(
-          `SELECT slug, episode_slug FROM landing_page_recaps WHERE sponsors IS NULL ORDER BY slug, id`
-        );
-        console.log(`[BackfillSponsors] Starting backfill for ${recaps.length} episodes`);
-        res.json({ message: `Sponsors backfill started for ${recaps.length} episodes.` });
-
-        let done = 0, errors = 0;
-        for (const recap of recaps) {
-          try {
-            const url = `http://localhost:${process.env.PORT || 5000}/api/podcasts/${recap.slug}/${recap.episode_slug}/sponsors`;
-            await fetch(url);
-            done++;
-          } catch (err) {
-            errors++;
-          }
-          if ((done + errors) % 25 === 0) {
-            console.log(`[BackfillSponsors] Progress: ${done + errors}/${recaps.length} (${done} done, ${errors} errors)`);
-          }
-          await new Promise(r => setTimeout(r, 500));
-        }
-        console.log(`[BackfillSponsors] Complete: ${done} done, ${errors} errors`);
-      } finally {
-        client.release();
-      }
-    } catch (err: any) {
-      console.error("[BackfillSponsors] Error:", err);
-    }
-  });
-
-  app.post("/api/admin/backfill-resources", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    try {
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-      try {
-        const { rows: recaps } = await client.query(
-          `SELECT slug, episode_slug FROM landing_page_recaps WHERE resources IS NULL ORDER BY slug, id`
-        );
-        console.log(`[BackfillResources] Starting backfill for ${recaps.length} episodes`);
-        res.json({ message: `Resources backfill started for ${recaps.length} episodes.` });
-
-        let done = 0, errors = 0;
-        for (const recap of recaps) {
-          try {
-            const url = `http://localhost:${process.env.PORT || 5000}/api/podcasts/${recap.slug}/${recap.episode_slug}/resources`;
-            await fetch(url);
-            done++;
-          } catch (err) {
-            errors++;
-          }
-          if ((done + errors) % 25 === 0) {
-            console.log(`[BackfillResources] Progress: ${done + errors}/${recaps.length} (${done} done, ${errors} errors)`);
-          }
-          await new Promise(r => setTimeout(r, 500));
-        }
-        console.log(`[BackfillResources] Complete: ${done} done, ${errors} errors`);
-      } finally {
-        client.release();
-      }
-    } catch (err: any) {
-      console.error("[BackfillResources] Error:", err);
     }
   });
 
@@ -4843,9 +4507,7 @@ RULES:
              COALESCE(lpr.has_quote, 0)::int as has_quote,
              COALESCE(lpr.has_topics, 0)::int as has_topics,
              COALESCE(lpr.has_questions, 0)::int as has_questions,
-             COALESCE(lpr.has_guests, 0)::int as has_guests,
-             COALESCE(lpr.has_sponsors, 0)::int as has_sponsors,
-             COALESCE(lpr.has_resources, 0)::int as has_resources
+             COALESCE(lpr.has_guests, 0)::int as has_guests
            FROM podcast_directory pd
            LEFT JOIN (
              SELECT podcast_id, 
@@ -4865,8 +4527,6 @@ RULES:
                       AND (key_topics IS NOT NULL AND array_length(key_topics, 1) > 0)
                       AND (top_questions IS NOT NULL AND top_questions != '')
                       AND (guests IS NOT NULL AND guests != '')
-                      AND (sponsors IS NOT NULL AND sponsors != '')
-                      AND (resources IS NOT NULL AND resources != '')
                     THEN 1 ELSE 0 END)::int as complete_recap_count,
                     SUM(CASE WHEN tldl IS NOT NULL AND tldl != '' THEN 1 ELSE 0 END)::int as has_tldl,
                     SUM(CASE WHEN what_happened IS NOT NULL AND what_happened != '' THEN 1 ELSE 0 END)::int as has_what_happened,
@@ -4874,9 +4534,7 @@ RULES:
                     SUM(CASE WHEN quote IS NOT NULL AND quote != '' THEN 1 ELSE 0 END)::int as has_quote,
                     SUM(CASE WHEN key_topics IS NOT NULL AND array_length(key_topics, 1) > 0 THEN 1 ELSE 0 END)::int as has_topics,
                     SUM(CASE WHEN top_questions IS NOT NULL AND top_questions != '' THEN 1 ELSE 0 END)::int as has_questions,
-                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' THEN 1 ELSE 0 END)::int as has_guests,
-                    SUM(CASE WHEN sponsors IS NOT NULL AND sponsors != '' THEN 1 ELSE 0 END)::int as has_sponsors,
-                    SUM(CASE WHEN resources IS NOT NULL AND resources != '' THEN 1 ELSE 0 END)::int as has_resources
+                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' THEN 1 ELSE 0 END)::int as has_guests
              FROM landing_page_recaps
              GROUP BY itunes_id
            ) lpr ON pd.itunes_id = lpr.itunes_id
@@ -4921,8 +4579,6 @@ RULES:
                 topics: p.has_topics,
                 questions: p.has_questions,
                 guests: p.has_guests,
-                sponsors: p.has_sponsors,
-                resources: p.has_resources,
               },
             };
           }),
@@ -5212,8 +4868,6 @@ RULES:
            FROM landing_page_recaps lpr
            WHERE (
              lpr.guests IS NULL OR lpr.guests = '' OR lpr.guests = '[]'
-             OR lpr.sponsors IS NULL OR lpr.sponsors = '' OR lpr.sponsors = '[]'
-             OR lpr.resources IS NULL OR lpr.resources = '' OR lpr.resources = '[]'
              OR lpr.top_questions IS NULL OR lpr.top_questions = ''
              OR lpr.tldl IS NULL OR lpr.tldl = ''
              OR lpr.what_happened IS NULL OR lpr.what_happened = ''

@@ -12,8 +12,6 @@ interface RecapQuality {
   topics: number;
   questions: number;
   guests: number;
-  sponsors: number;
-  resources: number;
 }
 
 interface EpisodePagePodcast {
@@ -273,7 +271,7 @@ export default function EpisodePagesTracker() {
               <button
                 data-testid="button-reprocess"
                 onClick={() => {
-                  if (confirm("Reprocess all existing episode pages to fill in missing data (guests, sponsors, resources)?")) {
+                  if (confirm("Reprocess all existing episode pages to fill in missing data (guests)?")) {
                     reprocess.mutate();
                   }
                 }}
@@ -425,8 +423,6 @@ export default function EpisodePagesTracker() {
                               { label: "Key Topics", value: p.quality.topics, key: "topics" },
                               { label: "Q&A", value: p.quality.questions, key: "questions" },
                               { label: "Guests", value: p.quality.guests, key: "guests" },
-                              { label: "Sponsors", value: p.quality.sponsors, key: "sponsors" },
-                              { label: "Resources", value: p.quality.resources, key: "resources" },
                             ]).map(q => {
                               const qPct = p.recapCount > 0 ? Math.round((q.value / p.recapCount) * 100) : 0;
                               return (
