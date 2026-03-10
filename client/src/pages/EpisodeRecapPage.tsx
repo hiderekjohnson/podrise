@@ -537,8 +537,8 @@ export default function EpisodeRecapPage() {
             </div>
             <div className="px-6 py-5">
               {notablePeople.length > 0 && (
-                <div className="mb-4 last:mb-0">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">People</p>
+                <div className="mb-5 last:mb-0">
+                  <p className="text-sm text-muted-foreground mb-3" data-testid="notable-people-intro">The following people were mentioned or discussed on this episode of the {episode.podcastName} podcast{episode.hosts ? ` with hosts ${episode.hosts.replace(/&amp;/g, "&")}` : ""}:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notablePeople.map((person, i) => (
                       <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`notable-person-${i}`}>
@@ -561,7 +561,7 @@ export default function EpisodeRecapPage() {
               )}
               {notableCompanies.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{notablePeople.length > 0 ? "Companies" : "Companies"}</p>
+                  <p className="text-sm text-muted-foreground mb-3" data-testid="notable-companies-intro">The following companies and organizations were referenced in this {episode.podcastName} episode:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {notableCompanies.map((company, i) => (
                       <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`notable-company-${i}`}>

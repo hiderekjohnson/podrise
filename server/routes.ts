@@ -1697,21 +1697,36 @@ export async function registerRoutes(
         if (rows.length > 0) transcriptText = rows[0].transcript || "";
       } finally { client.release(); }
 
-      const searchText = `${recap.whatHappened || ""} ${recap.tldl || ""} ${recap.episodeTitle || ""} ${transcriptText}`;
+      let sponsorNames: string[] = [];
+      try {
+        const sponsors = JSON.parse(recap.sponsors || "[]");
+        sponsorNames = sponsors.map((s: any) => (s.name || "").toLowerCase()).filter(Boolean);
+      } catch {}
+
+      const cutoff = Math.floor(transcriptText.length * 0.7);
+      const mainContent = transcriptText.slice(0, cutoff);
 
       const podcastHosts = await storage.getHostsByPodcastSlug(req.params.slug);
       const hostNameSet = new Set(podcastHosts.map(h => h.name.toLowerCase().trim()));
+
+      function countMentions(text: string, terms: string[], ambiguous?: Set<string>): number {
+        let total = 0;
+        for (const term of terms) {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const flags = (ambiguous && ambiguous.has(term)) ? 'g' : 'gi';
+          const regex = new RegExp(`\\b${escaped}\\b`, flags);
+          const matches = text.match(regex);
+          if (matches) total += matches.length;
+        }
+        return total;
+      }
 
       const matchedPeopleSlugs = ENTITY_PEOPLE.filter(p => {
         const nameLower = p.name.toLowerCase();
         if (hostNameSet.has(nameLower)) return false;
         if (p.searchTerms.some(term => hostNameSet.has(term.toLowerCase()))) return false;
         if (p.hostedSlugs.includes(req.params.slug)) return false;
-        return p.searchTerms.some(term => {
-          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`\\b${escaped}\\b`, 'i');
-          return regex.test(searchText);
-        });
+        return countMentions(mainContent, p.searchTerms) >= 2;
       }).map(p => p.slug);
 
       const RECAP_AMBIGUOUS_TERMS = new Set([
@@ -1722,14 +1737,9 @@ export async function registerRoutes(
       ]);
 
       const matchedCompanySlugs = ENTITY_COMPANIES.filter(c => {
+        if (sponsorNames.includes(c.name.toLowerCase())) return false;
         const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
-        return allTerms.some(term => {
-          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          if (RECAP_AMBIGUOUS_TERMS.has(term)) {
-            return new RegExp(`\\b${escaped}\\b`).test(searchText);
-          }
-          return new RegExp(`\\b${escaped}\\b`, 'i').test(searchText);
-        });
+        return countMentions(mainContent, allTerms, RECAP_AMBIGUOUS_TERMS) >= 2;
       }).map(c => c.slug);
 
       res.json({ ...recap, matchedPeopleSlugs, matchedCompanySlugs });
