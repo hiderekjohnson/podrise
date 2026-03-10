@@ -1,38 +1,37 @@
-let connectionSettings: any;
+let cachedToken: { token: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
-  if (connectionSettings && connectionSettings.settings.expires_at && new Date(connectionSettings.settings.expires_at).getTime() > Date.now()) {
-    return connectionSettings.settings.access_token;
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.token;
   }
 
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? 'repl ' + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL
-    : null;
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
-  if (!xReplitToken) {
-    throw new Error('X-Replit-Token not found');
+  if (!clientId || !clientSecret) {
+    throw new Error("SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET must be set");
   }
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=spotify',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X-Replit-Token': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"),
+    },
+    body: "grant_type=client_credentials",
+  });
 
-  const accessToken = connectionSettings?.settings?.access_token || connectionSettings?.settings?.oauth?.credentials?.access_token;
-
-  if (!accessToken) {
-    throw new Error('Spotify not connected');
+  if (!res.ok) {
+    throw new Error(`Spotify token request failed: ${res.status}`);
   }
 
-  return accessToken;
+  const data = await res.json();
+  cachedToken = {
+    token: data.access_token,
+    expiresAt: Date.now() + (data.expires_in - 60) * 1000,
+  };
+
+  return cachedToken.token;
 }
 
 export async function searchSpotifyEpisode(podcastName: string, episodeTitle: string): Promise<string | null> {
@@ -42,7 +41,7 @@ export async function searchSpotifyEpisode(podcastName: string, episodeTitle: st
     const res = await fetch(
       `https://api.spotify.com/v1/search?q=${query}&type=episode&limit=5`,
       {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}` }
       }
     );
 
