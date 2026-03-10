@@ -402,7 +402,7 @@ export default function EpisodeRecapPage() {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-top-questions"
             >
-              Quick Q&A
+              Key Questions
             </button>
           )}
           <button
@@ -410,7 +410,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-ask-episode" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-ask"
           >
-            Podcast Chat
+            Ask the Episode (AI)
           </button>
         </nav>
 
@@ -682,17 +682,17 @@ export default function EpisodeRecapPage() {
         <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-ask-episode">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
             <Sparkles className="w-4 h-4 text-violet-500" />
-            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Podcast Chat</span>
+            <span className="text-sm font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask the Episode</span>
             <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider"><Sparkles className="w-3 h-3" /> AI</span>
           </div>
           <div className="px-6 py-5">
-            <p className="text-sm text-muted-foreground mb-4">Ask any question and get an answer based on the episode transcript.</p>
+            <p className="text-sm text-muted-foreground mb-4">Search the full episode transcript using AI.</p>
             <form onSubmit={handleAskSubmit} className="flex gap-2" data-testid="form-ask-episode">
               <input
                 type="text"
                 value={askInput}
                 onChange={(e) => setAskInput(e.target.value)}
-                placeholder="What did this episode say about..."
+                placeholder="Ask anything this episode said about..."
                 className="flex-1 h-11 px-4 bg-black/[0.02] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
                 data-testid="input-ask-episode"
               />
@@ -711,27 +711,41 @@ export default function EpisodeRecapPage() {
               </button>
             </form>
 
-            {topQuestions.length > 0 && !askAnswer && !askMutation.isPending && (
-              <div className="mt-4" data-testid="ask-example-prompts">
-                <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Try asking:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {topQuestions.slice(0, 4).map((item, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setAskInput(item.question);
-                        setAskAnswer(null);
-                        askMutation.mutate(item.question);
-                      }}
-                      className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
-                      data-testid={`ask-example-${i}`}
-                    >
-                      {item.question}
-                    </button>
-                  ))}
+            {!askAnswer && !askMutation.isPending && (() => {
+              const keyQuestionTexts = new Set(topQuestions.map(q => q.question));
+              const aiPrompts: string[] = [];
+              if (guests.length > 0) aiPrompts.push(`What is ${guests[0].name}'s main argument?`);
+              const topics = matchedTopics.slice(0, 3);
+              if (topics.length > 0) aiPrompts.push(`What does this episode say about ${topics[0].name.toLowerCase()}?`);
+              if (episode.keyInsights && episode.keyInsights.length > 0) aiPrompts.push("What was the most surprising insight?");
+              if (guests.length > 1) aiPrompts.push(`What did ${guests[1].name} contribute?`);
+              if (topics.length > 1) aiPrompts.push(`How is ${topics[1].name.toLowerCase()} discussed?`);
+              aiPrompts.push("What are the key takeaways?");
+              aiPrompts.push("What predictions were made?");
+              const filtered = aiPrompts.filter(p => !keyQuestionTexts.has(p)).slice(0, 4);
+              if (filtered.length === 0) return null;
+              return (
+                <div className="mt-4" data-testid="ask-example-prompts">
+                  <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Try asking:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {filtered.map((prompt, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setAskInput(prompt);
+                          setAskAnswer(null);
+                          askMutation.mutate(prompt);
+                        }}
+                        className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
+                        data-testid={`ask-example-${i}`}
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             <AnimatePresence>
               {(askAnswer || askMutation.isPending) && (
