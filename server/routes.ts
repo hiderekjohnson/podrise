@@ -4903,19 +4903,19 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
         const totalRecaps = podcasts.reduce((s, p) => s + p.recap_count, 0);
         const totalRemaining = Math.max(0, totalTranscripts - totalRecaps);
 
+        const currentProcessingId = epGenState.running ? epGenState.currentItunesId : null;
+
         res.json({
           podcasts: podcasts.map((p) => {
             const remaining = Math.max(0, p.transcript_count - p.recap_count);
             const pct = p.transcript_count > 0 ? Math.round((p.recap_count / p.transcript_count) * 100) : 0;
             let status: string;
-            if (p.transcript_count === 0) {
-              status = "no_transcripts";
-            } else if (p.recap_count >= p.transcript_count) {
+            if (currentProcessingId === p.itunes_id) {
+              status = "processing";
+            } else if (p.transcript_count > 0 && p.recap_count >= p.transcript_count) {
               status = "complete";
-            } else if (p.recap_count > 0) {
-              status = "partial";
             } else {
-              status = "pending";
+              status = "incomplete";
             }
             return {
               name: p.name,
@@ -4941,9 +4941,9 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
           totalRecaps,
           totalRemaining,
           totalPodcasts: podcasts.length,
-          podcastsComplete: podcasts.filter(p => p.recap_count >= p.transcript_count && p.transcript_count > 0).length,
-          podcastsPartial: podcasts.filter(p => p.recap_count > 0 && p.recap_count < p.transcript_count).length,
-          podcastsPending: podcasts.filter(p => p.recap_count === 0 && p.transcript_count > 0).length,
+          podcastsComplete: podcasts.filter(p => p.recap_count >= p.transcript_count && p.transcript_count > 0 && (currentProcessingId !== p.itunes_id)).length,
+          podcastsIncomplete: podcasts.filter(p => (p.recap_count < p.transcript_count || p.transcript_count === 0) && (currentProcessingId !== p.itunes_id)).length,
+          podcastsProcessing: currentProcessingId ? 1 : 0,
         });
       } finally {
         client.release();
@@ -5099,10 +5099,15 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
   }
 
   async function runAutoQueue() {
+    const skippedIds = new Set<string>();
     while (epGenState.autoQueue && epGenState.running) {
       const client = await pool.connect();
       let nextItunesId: string | null = null;
       try {
+        const excludeIds = [...epGenState.completedPodcasts, ...skippedIds];
+        const excludePlaceholders = excludeIds.length > 0
+          ? `AND pd.itunes_id NOT IN (${excludeIds.map((_, i) => `$${i + 1}`).join(",")})`
+          : "";
         const { rows } = await client.query(
           `SELECT pd.itunes_id, pd.name,
                   COALESCE(et.cnt, 0)::int as transcript_count,
@@ -5111,8 +5116,10 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
            LEFT JOIN (SELECT podcast_id, COUNT(*)::int as cnt FROM episode_transcripts WHERE transcript IS NOT NULL AND transcript != '' GROUP BY podcast_id) et ON pd.itunes_id = et.podcast_id
            LEFT JOIN (SELECT itunes_id, COUNT(*)::int as cnt FROM landing_page_recaps GROUP BY itunes_id) lpr ON pd.itunes_id = lpr.itunes_id
            WHERE COALESCE(et.cnt, 0) > COALESCE(lpr.cnt, 0)
+           ${excludePlaceholders}
            ORDER BY COALESCE(lpr.cnt, 0) DESC, pd.name ASC
-           LIMIT 1`
+           LIMIT 1`,
+          excludeIds
         );
         if (rows.length > 0) {
           nextItunesId = rows[0].itunes_id;
@@ -5128,7 +5135,12 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
         break;
       }
 
+      const genBefore = epGenState.generated;
       await generatePagesForPodcast(nextItunesId);
+      if (epGenState.generated === genBefore && epGenState.totalEpisodes === 0) {
+        skippedIds.add(nextItunesId);
+        console.log(`[EpGen] Skipping ${nextItunesId} - no unmatched episodes found (count mismatch)`);
+      }
     }
 
     epGenState.running = false;

@@ -1,6 +1,6 @@
 import { useState, Fragment } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, CheckCircle2, Clock, RefreshCw, ArrowUp, ArrowDown, FileText, AlertCircle, BarChart3, Play, Square, Zap } from "lucide-react";
+import { Loader2, CheckCircle2, RefreshCw, ArrowUp, ArrowDown, AlertCircle, Square, Zap, CircleDot } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,7 +22,7 @@ interface EpisodePagePodcast {
   recapCount: number;
   remaining: number;
   pct: number;
-  status: "complete" | "partial" | "pending" | "no_transcripts";
+  status: "complete" | "incomplete" | "processing";
   quality: RecapQuality;
 }
 
@@ -33,8 +33,8 @@ interface EpisodePagesData {
   totalRemaining: number;
   totalPodcasts: number;
   podcastsComplete: number;
-  podcastsPartial: number;
-  podcastsPending: number;
+  podcastsIncomplete: number;
+  podcastsProcessing: number;
 }
 
 interface GenStatus {
@@ -51,7 +51,7 @@ interface GenStatus {
 }
 
 export default function EpisodePagesTracker() {
-  const [filter, setFilter] = useState<"all" | "complete" | "partial" | "pending">("all");
+  const [filter, setFilter] = useState<"all" | "complete" | "incomplete" | "processing">("all");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [sortCol, setSortCol] = useState<"name" | "transcriptCount" | "recapCount" | "remaining" | "pct">("remaining");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -59,24 +59,12 @@ export default function EpisodePagesTracker() {
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery<EpisodePagesData>({
     queryKey: ["/api/admin/episode-pages-status"],
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   const { data: genStatus } = useQuery<GenStatus>({
     queryKey: ["/api/admin/episode-pages-generate/status"],
     refetchInterval: 2000,
-  });
-
-  const startSingle = useMutation({
-    mutationFn: async (itunesId: string) => {
-      await apiRequest("POST", `/api/admin/episode-pages-generate/${itunesId}`);
-    },
-    onSuccess: () => {
-      toast({ title: "Generation Started", description: "Processing episodes for this podcast." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
-    },
   });
 
   const startAuto = useMutation({
@@ -147,7 +135,6 @@ export default function EpisodePagesTracker() {
 
   const overallPct = data.totalTranscripts > 0 ? Math.min(100, Math.round((data.totalRecaps / data.totalTranscripts) * 100)) : 0;
   const isRunning = genStatus?.running ?? false;
-  const isAutoQueue = genStatus?.autoQueue ?? false;
 
   return (
     <div data-testid="episode-pages-tracker">
@@ -166,7 +153,7 @@ export default function EpisodePagesTracker() {
         </div>
         <div className="bg-blue-50 rounded-xl p-4 text-center" data-testid="stat-overall-pct">
           <div className="text-2xl font-black text-blue-700">{overallPct}%</div>
-          <div className="text-xs font-bold text-blue-600 mt-1">Overall Coverage</div>
+          <div className="text-xs font-bold text-blue-600 mt-1">Overall Progress</div>
         </div>
       </div>
 
@@ -190,7 +177,7 @@ export default function EpisodePagesTracker() {
             <div className="flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
               <span className="text-sm font-bold text-blue-800">
-                {isAutoQueue ? "Auto-Queue: " : ""}Generating pages for {genStatus.currentPodcastName || "..."}
+                {genStatus.autoQueue ? "Auto-Queue: " : ""}Generating pages for {genStatus.currentPodcastName || "..."}
               </span>
             </div>
             <button
@@ -236,10 +223,10 @@ export default function EpisodePagesTracker() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2 flex-wrap">
           {([
-            { key: "all" as const, label: `All (${data.totalPodcasts})`, color: "" },
-            { key: "complete" as const, label: `Complete (${data.podcastsComplete})`, color: "text-emerald-600" },
-            { key: "partial" as const, label: `In Progress (${data.podcastsPartial})`, color: "text-blue-600" },
-            { key: "pending" as const, label: `Not Started (${data.podcastsPending})`, color: "text-amber-600" },
+            { key: "all" as const, label: `All (${data.totalPodcasts})` },
+            { key: "complete" as const, label: `Complete (${data.podcastsComplete})` },
+            { key: "incomplete" as const, label: `Incomplete (${data.podcastsIncomplete})` },
+            { key: "processing" as const, label: `Processing (${data.podcastsProcessing})` },
           ]).map(f => (
             <button
               key={f.key}
@@ -260,7 +247,7 @@ export default function EpisodePagesTracker() {
             <button
               data-testid="button-auto-queue"
               onClick={() => {
-                if (confirm("Start auto-generating episode pages for all podcasts, one at a time? This prioritizes podcasts with the most existing recaps first (to complete them).")) {
+                if (confirm("Start auto-generating episode pages for all incomplete podcasts, one at a time?")) {
                   startAuto.mutate();
                 }
               }}
@@ -268,7 +255,7 @@ export default function EpisodePagesTracker() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
             >
               <Zap className="w-3.5 h-3.5" />
-              Auto-Generate All
+              Start Processing
             </button>
           ) : (
             <button
@@ -301,7 +288,7 @@ export default function EpisodePagesTracker() {
                 { col: "transcriptCount" as const, label: "Transcripts", align: "text-center" },
                 { col: "recapCount" as const, label: "Pages Done", align: "text-center" },
                 { col: "remaining" as const, label: "Remaining", align: "text-center" },
-                { col: "pct" as const, label: "Coverage", align: "text-center" },
+                { col: "pct" as const, label: "Progress", align: "text-center" },
               ]).map(h => (
                 <th
                   key={h.col}
@@ -317,13 +304,13 @@ export default function EpisodePagesTracker() {
                   </span>
                 </th>
               ))}
-              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Action</th>
+              <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground">Status</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((p) => {
               const isExpanded = expandedRow === p.itunesId;
-              const isProcessing = isRunning && genStatus?.currentItunesId === p.itunesId;
+              const isProcessing = p.status === "processing";
               return (
                 <Fragment key={p.itunesId}>
                   <tr
@@ -370,27 +357,13 @@ export default function EpisodePagesTracker() {
                       ) : isProcessing ? (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600" data-testid={`status-pages-processing-${p.itunesId}`}>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          {genStatus.currentEpisode}/{genStatus.totalEpisodes}
+                          Processing
                         </span>
                       ) : (
-                        <button
-                          data-testid={`button-generate-${p.itunesId}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isRunning && p.remaining > 0) {
-                              startSingle.mutate(p.itunesId);
-                            }
-                          }}
-                          disabled={isRunning || p.remaining === 0}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                            isRunning || p.remaining === 0
-                              ? "text-muted-foreground bg-black/[0.03] cursor-not-allowed"
-                              : "text-primary bg-primary/10 hover:bg-primary/20"
-                          }`}
-                        >
-                          <Play className="w-3 h-3" />
-                          Generate
-                        </button>
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600" data-testid={`status-pages-incomplete-${p.itunesId}`}>
+                          <CircleDot className="w-3.5 h-3.5" />
+                          Incomplete
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -469,7 +442,7 @@ export default function EpisodePagesTracker() {
       </div>
 
       <p className="text-xs text-muted-foreground mt-3 text-center">
-        Click any row to see recap quality breakdown — auto-refreshes every 30 seconds — generation status polls every 2 seconds
+        Click any row to see recap quality breakdown — status refreshes every 10 seconds
       </p>
     </div>
   );
