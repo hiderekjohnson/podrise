@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Lightbulb, Quote, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent, BookMarked, Wrench, Globe, Mail, GraduationCap, ShoppingBag, Server, Package } from "lucide-react";
+import { Clock, Lightbulb, Tag, HelpCircle, MessageSquare, ChevronDown, ChevronUp, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Heart, ExternalLink, TicketPercent, BookMarked, Wrench, Globe, Mail, GraduationCap, ShoppingBag, Server, Package } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { Link } from "wouter";
@@ -318,7 +318,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-tldl" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-tldl"
           >
-            Quick Summary
+            Quick Recap
           </button>
           {episode.keyInsights?.length > 0 && (
             <button
@@ -334,7 +334,7 @@ export default function EpisodeRecapPage() {
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-what-happened"
           >
-            Summary
+            Full Recap
           </button>
           {hasKeyTopics && (
             <button
@@ -384,26 +384,11 @@ export default function EpisodeRecapPage() {
         <section id="section-tldl" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-tldl">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
             <Clock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary uppercase tracking-wider">Quick Summary</span>
+            <span className="text-sm font-bold text-primary uppercase tracking-wider">Quick Recap</span>
           </div>
           <div className="px-6 py-5">
             <p className="text-[17px] leading-[1.85] text-foreground font-medium">{episode.tldl}</p>
           </div>
-          {episode.quote && (
-            <div className="mx-6 mb-5 bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] rounded-xl px-5 py-4" data-testid="section-quote">
-              <div className="flex gap-3">
-                <Quote className="w-5 h-5 text-primary/30 shrink-0 mt-0.5" />
-                <div>
-                  <blockquote className="text-[15px] leading-[1.75] text-foreground/80 italic">
-                    "{episode.quote}"
-                  </blockquote>
-                  {episode.quoteAttribution && (
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">— {episode.quoteAttribution}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </section>
 
         {episode.keyInsights?.length > 0 && (
@@ -432,7 +417,7 @@ export default function EpisodeRecapPage() {
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
           <div className="flex items-center gap-2.5 px-6 py-3.5 bg-primary/[0.04] border-b border-primary/[0.08]">
             <BookOpen className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary uppercase tracking-wider">Summary</span>
+            <span className="text-sm font-bold text-primary uppercase tracking-wider">Full Recap</span>
           </div>
           <div className="px-6 py-5 space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
