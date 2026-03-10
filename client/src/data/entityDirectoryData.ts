@@ -6704,7 +6704,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     description: "Largest bank in the United States and global financial powerhouse.",
     background: "JPMorgan Chase is the largest bank in the United States and one of the world's most valuable financial institutions, with a history dating back to 1799. The current company was formed through the 2000 merger of J.P. Morgan & Co. and Chase Manhattan Corporation. JPMorgan Chase operates across investment banking, commercial banking, asset management, and consumer banking, serving millions of customers, corporations, and governments worldwide.",
     logoUrl: "/logos/jpmorgan.png",
-    searchTerms: ["JPMorgan", "JPMorgan Chase", "JP Morgan", "Chase"],
+    searchTerms: ["JPMorgan", "JPMorgan Chase", "JP Morgan", "Chase Bank"],
     details: {
       headquarters: "New York, NY",
       founded: "1799",

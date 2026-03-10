@@ -1109,7 +1109,7 @@ export async function registerRoutes(
     { slug: "blackrock", name: "BlackRock", description: "World's largest asset management firm", searchTerms: ["BlackRock"] },
     { slug: "blackstone", name: "Blackstone", description: "World's largest alternative asset manager", searchTerms: ["Blackstone"] },
     { slug: "goldman-sachs", name: "Goldman Sachs", description: "Leading global investment bank", searchTerms: ["Goldman Sachs"] },
-    { slug: "jpmorgan", name: "JPMorgan Chase", description: "Largest bank in the United States", searchTerms: ["JPMorgan", "JP Morgan", "Chase"] },
+    { slug: "jpmorgan", name: "JPMorgan Chase", description: "Largest bank in the United States", searchTerms: ["JPMorgan", "JP Morgan", "JPMorgan Chase", "Chase Bank"] },
     { slug: "morgan-stanley", name: "Morgan Stanley", description: "Global investment bank and wealth management firm", searchTerms: ["Morgan Stanley"] },
     { slug: "berkshire-hathaway", name: "Berkshire Hathaway", description: "Warren Buffett's conglomerate holding company", searchTerms: ["Berkshire Hathaway"] },
     { slug: "ark-invest", name: "ARK Invest", description: "Innovation-focused investment management firm", searchTerms: ["ARK Invest", "ARKK", "Cathie Wood"] },
