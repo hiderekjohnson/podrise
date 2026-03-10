@@ -500,7 +500,8 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "episode-pages">("pending");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "template" | "prompt" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill">("backfill");
+  const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
@@ -761,6 +762,18 @@ export default function Admin() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-2">
                 <button
+                  data-testid="tab-backfill"
+                  onClick={() => { setActiveTab("backfill"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === "backfill"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <Database className="w-4 h-4" />
+                  Backfill
+                </button>
+                <button
                   data-testid="tab-pending"
                   onClick={() => { setActiveTab("pending"); setSearchTerm(""); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -883,32 +896,8 @@ export default function Admin() {
                   <TrendingUp className="w-4 h-4" />
                   Updates
                 </button>
-                <button
-                  data-testid="tab-backfill"
-                  onClick={() => { setActiveTab("backfill"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    activeTab === "backfill"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Database className="w-4 h-4" />
-                  Transcript Backfill Project
-                </button>
-                <button
-                  data-testid="tab-episode-pages"
-                  onClick={() => { setActiveTab("episode-pages"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    activeTab === "episode-pages"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  Episode Pages Tracker
-                </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && activeTab !== "episode-pages" && (
+              {activeTab !== "analytics" && activeTab !== "template" && activeTab !== "prompt" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -1494,22 +1483,41 @@ export default function Admin() {
               <UpdatesPanel />
             )}
             {activeTab === "backfill" && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <div>
+                <div className="flex items-center gap-1 mb-5 bg-black/[0.03] rounded-xl p-1" data-testid="backfill-sub-tabs">
+                  <button
+                    data-testid="subtab-transcripts"
+                    onClick={() => setBackfillSubTab("transcripts")}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      backfillSubTab === "transcripts"
+                        ? "bg-white text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Database className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                    Episode Transcripts
+                  </button>
+                  <button
+                    data-testid="subtab-pages"
+                    onClick={() => setBackfillSubTab("pages")}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      backfillSubTab === "pages"
+                        ? "bg-white text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                    Episode Pages
+                  </button>
                 </div>
-              }>
-                <BackfillTracker />
-              </Suspense>
-            )}
-            {activeTab === "episode-pages" && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              }>
-                <EpisodePagesTracker />
-              </Suspense>
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                }>
+                  {backfillSubTab === "transcripts" ? <BackfillTracker /> : <EpisodePagesTracker />}
+                </Suspense>
+              </div>
             )}
           </motion.div>
         </section>
