@@ -678,18 +678,18 @@ export default function EpisodeRecapPage() {
               <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics in This {episode.podcastName} Episode</span>
             </div>
             <div className="px-6 py-5">
-              <p className="text-[15px] text-muted-foreground mb-4" data-testid="key-topics-intro">Main themes discussed in this episode of the {episode.podcastName} podcast{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-4">
                 {matchedTopics.map((topic, i) => (
-                  <Link
-                    key={topic.slug}
-                    href={`/topics/${topic.slug}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/[0.04] border border-emerald-500/[0.1] rounded-lg text-sm font-medium text-foreground hover:border-emerald-500/30 hover:bg-emerald-500/[0.08] transition-all active:scale-[0.97]"
-                    data-testid={`topic-chip-${i}`}
-                  >
-                    <Tag className="w-3 h-3 text-emerald-500 shrink-0" />
-                    {topic.name}
-                  </Link>
+                  <div key={topic.slug} data-testid={`topic-item-${i}`}>
+                    <Link
+                      href={`/topics/${topic.slug}`}
+                      className="text-[17px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                      data-testid={`topic-link-${i}`}
+                    >
+                      {topic.name}
+                    </Link>
+                    <p className="text-[15px] leading-relaxed text-muted-foreground mt-0.5">{topic.description.split(".")[0]}.</p>
+                  </div>
                 ))}
               </div>
             </div>
