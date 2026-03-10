@@ -1,6 +1,7 @@
 import { storage } from "./storage";
 import { openai } from "./replit_integrations/image/client";
-import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } from "./taddyClient";
+import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
+import { pool } from "./db";
 
 interface PodcastInfo {
   name: string;
@@ -61,71 +62,6 @@ function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Dat
   return [podcastEpisodes[0]];
 }
 
-export const DEFAULT_RECAP_PROMPT = `Respond with a JSON object containing episode recaps. Each episode must include tldl, whatHappened (2-4 narrative paragraphs), keyInsights (4 bullet points), quote, and quoteAttribution. Write like a sharp friend catching someone up. Be specific and concrete. Never fabricate quotes or facts — use only what's in the transcript.`;
-
-interface PromptParams {
-  dateContext: string;
-  transcriptNote: string;
-  episodeData: string;
-  podcastNames: string;
-  totalPodcasts: number;
-  durationLong: string;
-  customPrompt?: string;
-}
-
-function buildPrompt(p: PromptParams): string {
-  const formatInstructions = p.customPrompt || DEFAULT_RECAP_PROMPT;
-
-  return `You are PodCap, an AI that writes daily podcast digest emails. Generate a digest for ${p.dateContext}. Give each episode a thorough recap. Only cover podcasts that had episodes.
-
-${p.transcriptNote}
-
-Source episodes:
-${p.episodeData}
-
-Respond ONLY with a valid JSON object (no markdown, no code fences, no extra text). The JSON must have this exact structure:
-
-{
-  "episodes": [
-    {
-      "podcastName": "PODCAST NAME IN CAPS",
-      "episodeTitle": "The Episode Title",
-      "tldl": "2-3 sentence summary of the core thesis. Be direct and specific. TLDL = Too Long Didn't Listen.",
-      "whatHappened": "2-4 paragraphs telling the story of the episode in narrative style. Walk through the conversation beat by beat. Write like you're telling a friend about a conversation you overheard. Separate paragraphs with \\n\\n.",
-      "keyInsights": [
-        "Specific concrete insight #1",
-        "Specific concrete insight #2",
-        "Specific concrete insight #3",
-        "Specific concrete insight #4"
-      ],
-      "quoteAttribution": "Speaker Name on topic",
-      "quote": "A memorable quotable line from the episode taken directly from the transcript"
-    }
-  ]
-}
-
-RULES:
-- Every episode MUST have all fields: tldl, whatHappened (2-4 paragraphs), keyInsights (exactly 4), quote, quoteAttribution
-- Write like a sharp well-read friend catching you up — not a news anchor
-- Be specific and concrete. Say "NASA aims to land astronauts on the moon by 2028" not "The episode discussed space exploration"
-- Quotes MUST be taken directly from the transcript. Do NOT invent quotes. Always attribute to the speaker.
-- Key insights should be specific facts or claims from the transcript, not generic observations
-- Never say "In this episode" or "The hosts discuss" — state ideas directly
-- The whatHappened section should read like a story with flowing prose, NOT bullet points
-- NEVER fabricate any quotes, facts, speaker names, or content. Every claim must come from the transcript.
-- Use \\n\\n to separate paragraphs in whatHappened`;
-}
-
-function normalizeTitleForMatch(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/^\d+[\.\)\-:\s]+\s*/i, '')
-    .replace(/\s+/g, ' ')
-    .replace(/[''""]/g, "'")
-    .trim();
-}
-
 export async function generateRecap(
   user: { id: number; podcasts: string[] },
   yesterdayStart: Date,
@@ -133,7 +69,7 @@ export async function generateRecap(
   yesterdayLabel: string,
   dateStr: string,
   mode: RecapMode = "yesterday",
-  promptOverride?: string
+  _promptOverride?: string
 ): Promise<RecapResult | null> {
   const podcastInfos: PodcastInfo[] = user.podcasts.map((raw: string) => {
     try {
@@ -144,7 +80,6 @@ export async function generateRecap(
     }
   });
 
-  const episodeData: string[] = [];
   const podcastNamesWithEpisodes: string[] = [];
   const podcastIdsWithEpisodes: string[] = [];
   let hasAnyEpisodes = false;
@@ -152,7 +87,6 @@ export async function generateRecap(
   const episodeMetadata: Map<string, { duration: string; date: string; podcastId: string }> = new Map();
   const episodeLinks: Map<string, string> = new Map();
   const episodeSpotifyLinks: Map<string, string> = new Map();
-  const dateContext = mode === "latest" ? "the most recent episodes" : `episodes released on ${yesterdayLabel}`;
   const stats: EpisodeStats = { included: 0, noNewEpisode: 0, error: 0, details: [] };
 
   for (const podcast of podcastInfos) {
@@ -168,27 +102,6 @@ export async function generateRecap(
       }
 
       if (episodes.length > 0) {
-
-        let taddyPodcast: any = null;
-        let taddyEpisodes: any[] = [];
-        try {
-          const { storage } = await import("./storage");
-          const dirEntry = await storage.getPodcastDirectoryEntry(podcast.id);
-          taddyPodcast = await searchPodcastByItunesId(podcast.id, podcast.name, dirEntry?.taddyUuid || undefined);
-          if (taddyPodcast?.uuid) {
-            if (dirEntry && !dirEntry.taddyUuid) {
-              storage.updatePodcastTaddyUuid(podcast.id, taddyPodcast.uuid).catch(() => {});
-            }
-            taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
-            console.log(`[Recap] Taddy found ${taddyEpisodes.length} episodes for ${podcast.name} (uuid: ${taddyPodcast.uuid})`);
-          } else {
-            console.warn(`[Recap] Taddy could not find podcast ${podcast.name} (iTunes ID: ${podcast.id})`);
-          }
-        } catch (taddyErr) {
-          console.warn(`[Recap] Taddy lookup failed for ${podcast.name}:`, taddyErr);
-        }
-
-        const epDetails: string[] = [];
         for (const ep of episodes) {
           const durationMs = ep.trackTimeMillis || 0;
           const durationMin = Math.round(durationMs / 60000);
@@ -206,78 +119,12 @@ export async function generateRecap(
           const spotifySearchUrl = buildSpotifySearchUrl(podcast.name, ep.trackName || "");
           if (appleUrl) episodeLinks.set(metaKey, appleUrl);
           if (spotifySearchUrl) episodeSpotifyLinks.set(metaKey, spotifySearchUrl);
-
-          const episodeGuid = ep.episodeGuid || `${podcast.id}_${ep.trackId || ep.trackName}`;
-          let transcriptText: string | null = null;
-
-          const logEvent = (eventData: Parameters<typeof storage.logTranscriptEvent>[0]) => {
-            storage.logTranscriptEvent(eventData).catch(logErr => console.warn(`[Recap] Failed to log transcript event:`, logErr));
-          };
-
-          const cached = await storage.getTranscriptByEpisodeGuid(episodeGuid);
-          if (cached) {
-            transcriptText = cached.transcript;
-            console.log(`[Recap] Using cached transcript for "${ep.trackName}" (${transcriptText.length} chars)`);
-            logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, status: "cached", transcriptLength: transcriptText.length });
-          } else {
-            const itunesNorm = normalizeTitleForMatch(ep.trackName || "");
-            const taddyMatch = taddyEpisodes.find((te: any) => {
-              if (!te.name) return false;
-              if (te.name.toLowerCase().trim() === (ep.trackName || "").toLowerCase().trim()) return true;
-              const taddyNorm = normalizeTitleForMatch(te.name);
-              if (taddyNorm === itunesNorm) return true;
-              if (taddyNorm.includes(itunesNorm) || itunesNorm.includes(taddyNorm)) return true;
-              return false;
-            });
-            if (taddyMatch?.uuid) {
-              try {
-                const fetchedTranscript = await getEpisodeTranscript(taddyMatch.uuid);
-                if (fetchedTranscript) {
-                  transcriptText = fetchedTranscript;
-                  console.log(`[Recap] Fetched transcript for "${ep.trackName}" (${transcriptText.length} chars)`);
-                  await storage.saveTranscript({
-                    podcastId: podcast.id,
-                    episodeGuid,
-                    episodeTitle: ep.trackName,
-                    transcript: transcriptText,
-                  });
-                  logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, taddyUuid: taddyMatch.uuid, status: "fetched", transcriptLength: transcriptText.length });
-                } else {
-                  console.warn(`[Recap] Taddy returned empty transcript for "${ep.trackName}" (uuid: ${taddyMatch.uuid})`);
-                  logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, taddyUuid: taddyMatch.uuid, status: "empty", errorMessage: "Taddy returned empty transcript" });
-                }
-              } catch (transcriptErr: any) {
-                console.warn(`[Recap] Transcript fetch failed for "${ep.trackName}":`, transcriptErr);
-                logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, taddyUuid: taddyMatch.uuid, status: "error", errorMessage: transcriptErr?.message || String(transcriptErr) });
-              }
-            } else {
-              const availableTitles = taddyEpisodes.map((te: any) => te.name).join(", ");
-              console.warn(`[Recap] No Taddy title match for iTunes episode "${ep.trackName}" — available Taddy titles: ${availableTitles}`);
-              logEvent({ userId: user.id, podcastName: podcast.name, podcastId: podcast.id, episodeTitle: ep.trackName || "", episodeGuid, status: "no_match", errorMessage: `No Taddy title match. Available: ${availableTitles.slice(0, 300)}` });
-            }
-          }
-
-          const linksLine = `  Apple Podcasts: ${appleUrl || "N/A"}\n  Spotify Search: ${spotifySearchUrl}`;
-
-          if (transcriptText) {
-            const truncated = transcriptText.slice(0, 8000);
-            epDetails.push(`- Episode: "${ep.trackName}"\n  Duration: ${durationStr}\n${linksLine}\n  Transcript (excerpt):\n${truncated}`);
-          } else {
-            console.log(`[Recap] Skipping episode "${ep.trackName}" (${podcast.name}) — no transcript available`);
-          }
         }
-        if (epDetails.length > 0) {
-          hasAnyEpisodes = true;
-          podcastNamesWithEpisodes.push(podcast.name);
-          podcastIdsWithEpisodes.push(podcast.id);
-          episodeData.push(`Podcast: ${podcast.name}\n${epDetails.join("\n")}`);
-          stats.included++;
-          stats.details.push({ podcast: podcast.name, status: "included", episodeCount: epDetails.length });
-        } else {
-          console.log(`[Recap] No transcripts found for any episodes of ${podcast.name} — skipping podcast entirely`);
-          stats.error++;
-          stats.details.push({ podcast: podcast.name, status: "error", errorMessage: "No transcripts available for new episodes" });
-        }
+        hasAnyEpisodes = true;
+        podcastNamesWithEpisodes.push(podcast.name);
+        podcastIdsWithEpisodes.push(podcast.id);
+        stats.included++;
+        stats.details.push({ podcast: podcast.name, status: "included", episodeCount: episodes.length });
       }
     } catch (outerErr) {
       console.error(`[Recap] Error processing podcast ${podcast.name}:`, outerErr);
@@ -287,12 +134,11 @@ export async function generateRecap(
   }
 
   if (!hasAnyEpisodes) {
-    console.log(`[Recap] No episodes with transcripts found for user ${user.id} — no recap generated`);
+    console.log(`[Recap] No recent episodes found for user ${user.id} — no recap generated`);
     return null;
   }
 
   const podcastNames = podcastNamesWithEpisodes.join(" · ");
-  const totalPodcasts = podcastNamesWithEpisodes.length;
 
   const totalHours = Math.floor(totalDurationMin / 60);
   const totalMins = totalDurationMin % 60;
@@ -300,76 +146,72 @@ export async function generateRecap(
     ? (totalMins > 0 ? `${totalHours} hour${totalHours !== 1 ? "s" : ""} and ${totalMins} minute${totalMins !== 1 ? "s" : ""}` : `${totalHours} hour${totalHours !== 1 ? "s" : ""}`)
     : `${totalMins} minute${totalMins !== 1 ? "s" : ""}`;
 
-  const transcriptNote = `All episodes below include real transcript excerpts. Base ALL quotes, facts, insights, and summaries ONLY on what is explicitly stated in the transcript. NEVER fabricate, invent, or assume quotes, speaker names, facts, or details that are not directly present in the transcript text provided. If something is unclear from the transcript, omit it rather than guessing.`;
+  const recapEpisodes: ParsedEpisode[] = [];
+  const markdownSections: string[] = [];
+  markdownSections.push(podcastNames);
 
-  const prompt = buildPrompt({
-    dateContext,
-    transcriptNote,
-    episodeData: episodeData.join("\n\n"),
-    podcastNames,
-    totalPodcasts,
-    durationLong,
-    customPrompt: promptOverride,
-  });
+  for (const [metaKey, meta] of episodeMetadata) {
+    const [podName, epTitle] = metaKey.split("::");
+    const podcastId = meta.podcastId;
+    const podSlug = ITUNES_ID_TO_SLUG[podcastId] || podName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
+    const epSlug = (epTitle || "")
+      .toLowerCase()
+      .replace(/['']/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .split("-")
+      .slice(0, 8)
+      .join("-");
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 8000,
-    temperature: 0.7,
-    response_format: { type: "json_object" },
-  });
+    let recap: any = null;
+    try {
+      recap = await storage.getLandingPageRecapBySlug(podSlug, epSlug);
+    } catch {}
 
-  const content = completion.choices[0]?.message?.content;
-  if (!content) return null;
-
-  let jsonContent = content.trim();
-  if (jsonContent.startsWith("```")) {
-    jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
-  }
-
-  try {
-    const parsed = JSON.parse(jsonContent);
-    if (!parsed.episodes || !Array.isArray(parsed.episodes) || parsed.episodes.length === 0) {
-      console.warn(`[Recap] AI returned JSON with no episodes for user ${user.id}`);
-      return null;
+    if (!recap) {
+      try {
+        const { rows } = await pool.query(
+          `SELECT * FROM landing_page_recaps WHERE itunes_id = $1 AND LOWER(episode_title) = LOWER($2) LIMIT 1`,
+          [podcastId, epTitle]
+        );
+        if (rows.length > 0) recap = rows[0];
+      } catch {}
     }
 
-    const markdownSections: string[] = [];
-    markdownSections.push(podcastNames);
-    markdownSections.push(`**${durationLong}** Total duration · ${parsed.episodes.length} episode${parsed.episodes.length !== 1 ? "s" : ""}`);
-    markdownSections.push("---");
+    if (recap) {
+      console.log(`[Recap] Using stored recap for "${epTitle}" (${podName})`);
 
-    for (const ep of parsed.episodes) {
+      const tldl = recap.tldl || "";
+      const whatHappened = recap.whatHappened || recap.what_happened || "";
+      let keyInsights: string[] = [];
+      if (Array.isArray(recap.keyInsights || recap.key_insights)) {
+        keyInsights = recap.keyInsights || recap.key_insights;
+      }
+      const quote = recap.quote || "";
+      const quoteAttribution = recap.quoteAttribution || recap.quote_attribution || "";
+
       const lines: string[] = [];
-      lines.push(`## ${(ep.podcastName || "UNKNOWN PODCAST").toUpperCase()}`);
+      lines.push(`## ${(podName || "UNKNOWN PODCAST").toUpperCase()}`);
       lines.push("");
-      lines.push(`**${ep.episodeTitle || "Untitled Episode"}**`);
+      lines.push(`**${epTitle || "Untitled Episode"}**`);
       lines.push("");
-      const metaKey = `${ep.podcastName || ""}::${ep.episodeTitle || ""}`;
-      const metaKeyLower = metaKey.toLowerCase();
-      let meta = episodeMetadata.get(metaKey);
-      if (!meta) {
-        for (const [k, v] of episodeMetadata) {
-          if (k.toLowerCase() === metaKeyLower) { meta = v; break; }
-        }
-      }
-      if (meta) {
-        const metaParts: string[] = [];
-        if (meta.duration) metaParts.push(meta.duration);
-        if (meta.date) metaParts.push(meta.date);
-        if (metaParts.length > 0) lines.push(metaParts.join(" · "));
-      }
+      const metaParts: string[] = [];
+      if (meta.duration) metaParts.push(meta.duration);
+      if (meta.date) metaParts.push(meta.date);
+      if (metaParts.length > 0) lines.push(metaParts.join(" · "));
+
       let epAppleUrl = episodeLinks.get(metaKey) || "";
       let epSpotifyUrl = episodeSpotifyLinks.get(metaKey) || "";
       if (!epAppleUrl) {
         for (const [k, v] of episodeLinks) {
-          if (k.toLowerCase() === metaKeyLower) { epAppleUrl = v; break; }
+          if (k.toLowerCase() === metaKey.toLowerCase()) { epAppleUrl = v; break; }
         }
       }
       if (!epSpotifyUrl) {
         for (const [k, v] of episodeSpotifyLinks) {
-          if (k.toLowerCase() === metaKeyLower) { epSpotifyUrl = v; break; }
+          if (k.toLowerCase() === metaKey.toLowerCase()) { epSpotifyUrl = v; break; }
         }
       }
       if (epAppleUrl || epSpotifyUrl) {
@@ -379,77 +221,67 @@ export async function generateRecap(
         lines.push(`🎧 ${linkParts.join(" · ")}`);
       }
       lines.push("");
-      if (ep.tldl) {
-        lines.push(`**TLDL:** ${ep.tldl}`);
+      if (tldl) {
+        lines.push(`**TLDL:** ${tldl}`);
         lines.push("");
       }
-      if (ep.whatHappened) {
+      if (whatHappened) {
         lines.push("**What Happened**");
-        lines.push(ep.whatHappened.replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"));
+        const firstParagraphs = whatHappened.split("\n\n").slice(0, 3).join("\n\n");
+        lines.push(firstParagraphs);
         lines.push("");
       }
-      if (ep.keyInsights && Array.isArray(ep.keyInsights) && ep.keyInsights.length > 0) {
+      if (keyInsights.length > 0) {
         lines.push("**Key Insights:**");
-        for (const insight of ep.keyInsights) {
+        for (const insight of keyInsights) {
           lines.push(`- ${insight}`);
         }
         lines.push("");
       }
-      if (ep.quote && ep.quoteAttribution) {
+      if (quote && quoteAttribution) {
         lines.push("**Quote**");
-        lines.push(`${ep.quoteAttribution}:`);
-        lines.push(`> "${ep.quote}"`);
+        lines.push(`${quoteAttribution}:`);
+        lines.push(`> "${quote}"`);
         lines.push("");
       }
       lines.push("---");
       markdownSections.push(lines.join("\n"));
+
+      recapEpisodes.push({
+        podcastName: podName,
+        episodeTitle: epTitle,
+        episodeDuration: meta.duration,
+        episodeDate: meta.date,
+        tldl,
+        whatHappened: whatHappened.split("\n\n").slice(0, 3).join("\n\n"),
+        keyInsights,
+        quote: quote || undefined,
+        quoteAttribution: quoteAttribution || undefined,
+      });
+    } else {
+      console.log(`[Recap] No stored recap for "${epTitle}" — skipping from email`);
     }
-
-    const parsedEpisodes: ParsedEpisode[] = parsed.episodes.map((ep: any) => {
-      const metaKey = `${ep.podcastName || ""}::${ep.episodeTitle || ""}`;
-      const metaKeyLower = metaKey.toLowerCase();
-      let meta = episodeMetadata.get(metaKey);
-      if (!meta) {
-        for (const [k, v] of episodeMetadata) {
-          if (k.toLowerCase() === metaKeyLower) { meta = v; break; }
-        }
-      }
-      return {
-        podcastName: ep.podcastName || "Unknown Podcast",
-        episodeTitle: ep.episodeTitle || "Untitled Episode",
-        episodeDuration: meta?.duration,
-        episodeDate: meta?.date,
-        tldl: ep.tldl || "",
-        whatHappened: (ep.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
-        keyInsights: Array.isArray(ep.keyInsights) ? ep.keyInsights : [],
-        quote: ep.quote,
-        quoteAttribution: ep.quoteAttribution,
-      };
-    });
-
-    const recappedPodcasts = user.podcasts.filter((raw: string) => {
-      try {
-        const parsed = JSON.parse(raw);
-        return podcastIdsWithEpisodes.includes(parsed.id);
-      } catch {
-        return podcastNamesWithEpisodes.includes(raw);
-      }
-    });
-
-    const summary = markdownSections.join("\n\n");
-    return { summary, dateStr, episodeStats: stats, parsedEpisodes, recappedPodcasts };
-  } catch (parseErr) {
-    console.warn(`[Recap] Failed to parse AI JSON response for user ${user.id}, falling back to raw content. Error:`, parseErr);
-    const recappedPodcasts = user.podcasts.filter((raw: string) => {
-      try {
-        const parsed = JSON.parse(raw);
-        return podcastIdsWithEpisodes.includes(parsed.id);
-      } catch {
-        return podcastNamesWithEpisodes.includes(raw);
-      }
-    });
-    return { summary: content, dateStr, episodeStats: stats, parsedEpisodes: [], recappedPodcasts };
   }
+
+  if (recapEpisodes.length === 0) {
+    console.log(`[Recap] No stored recaps found for any discovered episodes — no email generated`);
+    return null;
+  }
+
+  markdownSections.splice(1, 0, `**${durationLong}** Total duration · ${recapEpisodes.length} episode${recapEpisodes.length !== 1 ? "s" : ""}`);
+  markdownSections.splice(2, 0, "---");
+
+  const recappedPodcasts = user.podcasts.filter((raw: string) => {
+    try {
+      const parsed = JSON.parse(raw);
+      return podcastIdsWithEpisodes.includes(parsed.id);
+    } catch {
+      return podcastNamesWithEpisodes.includes(raw);
+    }
+  });
+
+  const summary = markdownSections.join("\n\n");
+  return { summary, dateStr, episodeStats: stats, parsedEpisodes: recapEpisodes, recappedPodcasts };
 }
 
 export async function generateRecapFromTranscript(
