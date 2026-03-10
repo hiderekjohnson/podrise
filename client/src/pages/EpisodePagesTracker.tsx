@@ -22,6 +22,7 @@ interface EpisodePagePodcast {
   transcriptCount: number;
   completeTranscriptCount: number;
   recapCount: number;
+  completeRecapCount: number;
   remaining: number;
   pct: number;
   status: "complete" | "incomplete" | "processing";
@@ -32,6 +33,7 @@ interface EpisodePagesData {
   podcasts: EpisodePagePodcast[];
   totalTranscripts: number;
   totalRecaps: number;
+  totalCompleteRecaps: number;
   totalRemaining: number;
   totalPodcasts: number;
   podcastsComplete: number;
@@ -55,7 +57,7 @@ interface GenStatus {
 export default function EpisodePagesTracker() {
   const [filter, setFilter] = useState<"all" | "complete" | "incomplete" | "processing">("all");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [sortCol, setSortCol] = useState<"name" | "transcriptCount" | "recapCount" | "remaining" | "pct">("remaining");
+  const [sortCol, setSortCol] = useState<"name" | "transcriptCount" | "recapCount" | "completeRecapCount" | "remaining" | "pct">("remaining");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const { toast } = useToast();
 
@@ -147,34 +149,38 @@ export default function EpisodePagesTracker() {
       return dir * ((a[sortCol] || 0) - (b[sortCol] || 0));
     });
 
-  const overallPct = data.totalTranscripts > 0 ? Math.min(100, Math.round((data.totalRecaps / data.totalTranscripts) * 100)) : 0;
+  const overallPct = data.totalTranscripts > 0 ? Math.min(100, Math.round((data.totalCompleteRecaps / data.totalTranscripts) * 100)) : 0;
   const isRunning = genStatus?.running ?? false;
 
   return (
     <div data-testid="episode-pages-tracker">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         <div className="bg-black/[0.03] rounded-xl p-4 text-center" data-testid="stat-total-transcripts">
           <div className="text-2xl font-black text-foreground">{data.totalTranscripts.toLocaleString()}</div>
           <div className="text-xs font-bold text-muted-foreground mt-1">Transcripts Available</div>
         </div>
-        <div className="bg-emerald-50 rounded-xl p-4 text-center" data-testid="stat-total-recaps">
-          <div className="text-2xl font-black text-emerald-700">{data.totalRecaps.toLocaleString()}</div>
-          <div className="text-xs font-bold text-emerald-600 mt-1">Episode Pages Done</div>
+        <div className="bg-blue-50 rounded-xl p-4 text-center" data-testid="stat-total-recaps">
+          <div className="text-2xl font-black text-blue-700">{data.totalRecaps.toLocaleString()}</div>
+          <div className="text-xs font-bold text-blue-600 mt-1">Pages Created</div>
+        </div>
+        <div className="bg-emerald-50 rounded-xl p-4 text-center" data-testid="stat-complete-recaps">
+          <div className="text-2xl font-black text-emerald-700">{data.totalCompleteRecaps.toLocaleString()}</div>
+          <div className="text-xs font-bold text-emerald-600 mt-1">Fully Complete</div>
         </div>
         <div className="bg-amber-50 rounded-xl p-4 text-center" data-testid="stat-total-remaining">
           <div className="text-2xl font-black text-amber-700">{data.totalRemaining.toLocaleString()}</div>
-          <div className="text-xs font-bold text-amber-600 mt-1">Pages Remaining</div>
+          <div className="text-xs font-bold text-amber-600 mt-1">Remaining</div>
         </div>
-        <div className="bg-blue-50 rounded-xl p-4 text-center" data-testid="stat-overall-pct">
-          <div className="text-2xl font-black text-blue-700">{overallPct}%</div>
-          <div className="text-xs font-bold text-blue-600 mt-1">Overall Progress</div>
+        <div className="bg-purple-50 rounded-xl p-4 text-center" data-testid="stat-overall-pct">
+          <div className="text-2xl font-black text-purple-700">{overallPct}%</div>
+          <div className="text-xs font-bold text-purple-600 mt-1">Overall Progress</div>
         </div>
       </div>
 
       <div className="bg-black/[0.03] rounded-xl p-3 mb-6" data-testid="progress-bar-container">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-muted-foreground">Episode Page Generation Progress</span>
-          <span className="text-xs font-bold text-foreground">{data.totalRecaps.toLocaleString()} / {data.totalTranscripts.toLocaleString()}</span>
+          <span className="text-xs font-bold text-muted-foreground">Fully Complete Episode Pages</span>
+          <span className="text-xs font-bold text-foreground">{data.totalCompleteRecaps.toLocaleString()} / {data.totalTranscripts.toLocaleString()}</span>
         </div>
         <div className="w-full h-3 bg-black/[0.06] rounded-full overflow-hidden">
           <div
@@ -183,6 +189,11 @@ export default function EpisodePagesTracker() {
             data-testid="progress-bar"
           />
         </div>
+        {data.totalRecaps > data.totalCompleteRecaps && (
+          <div className="text-[10px] font-bold text-amber-600 mt-1.5">
+            {(data.totalRecaps - data.totalCompleteRecaps).toLocaleString()} pages created but missing data (need reprocessing)
+          </div>
+        )}
       </div>
 
       {isRunning && genStatus && (
@@ -315,7 +326,8 @@ export default function EpisodePagesTracker() {
               {([
                 { col: "name" as const, label: "Podcast", align: "text-left" },
                 { col: "transcriptCount" as const, label: "Transcripts", align: "text-center" },
-                { col: "recapCount" as const, label: "Pages Done", align: "text-center" },
+                { col: "recapCount" as const, label: "Created", align: "text-center" },
+                { col: "completeRecapCount" as const, label: "Complete", align: "text-center" },
                 { col: "remaining" as const, label: "Remaining", align: "text-center" },
                 { col: "pct" as const, label: "Progress", align: "text-center" },
               ]).map(h => (
@@ -358,8 +370,11 @@ export default function EpisodePagesTracker() {
                     <td className="px-4 py-2.5 text-center text-sm font-medium text-muted-foreground">
                       {p.transcriptCount.toLocaleString()}
                     </td>
-                    <td className="px-4 py-2.5 text-center text-sm font-bold text-emerald-600">
+                    <td className="px-4 py-2.5 text-center text-sm font-medium text-blue-600">
                       {p.recapCount > 0 ? p.recapCount.toLocaleString() : "-"}
+                    </td>
+                    <td className="px-4 py-2.5 text-center text-sm font-bold text-emerald-600">
+                      {p.completeRecapCount > 0 ? p.completeRecapCount.toLocaleString() : "-"}
                     </td>
                     <td className="px-4 py-2.5 text-center text-sm font-medium text-muted-foreground">
                       {p.remaining > 0 ? p.remaining.toLocaleString() : "-"}
@@ -398,7 +413,7 @@ export default function EpisodePagesTracker() {
                   </tr>
                   {isExpanded && (
                     <tr className="bg-blue-50/20 border-t border-black/[0.04]">
-                      <td colSpan={6} className="px-4 py-3">
+                      <td colSpan={7} className="px-4 py-3">
                         <div className="text-xs font-bold text-muted-foreground mb-2">Recap Quality Breakdown ({p.recapCount} pages)</div>
                         {p.recapCount > 0 ? (
                           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
@@ -453,8 +468,11 @@ export default function EpisodePagesTracker() {
               <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-page-transcripts">
                 {filtered.reduce((s, p) => s + p.transcriptCount, 0).toLocaleString()}
               </td>
-              <td className="px-4 py-3 text-center text-sm font-bold text-emerald-600" data-testid="total-page-recaps">
+              <td className="px-4 py-3 text-center text-sm font-bold text-blue-600" data-testid="total-page-recaps">
                 {filtered.reduce((s, p) => s + p.recapCount, 0).toLocaleString()}
+              </td>
+              <td className="px-4 py-3 text-center text-sm font-bold text-emerald-600" data-testid="total-page-complete">
+                {filtered.reduce((s, p) => s + p.completeRecapCount, 0).toLocaleString()}
               </td>
               <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-page-remaining">
                 {filtered.reduce((s, p) => s + p.remaining, 0).toLocaleString()}
@@ -462,7 +480,7 @@ export default function EpisodePagesTracker() {
               <td className="px-4 py-3 text-center text-sm font-bold text-foreground" data-testid="total-page-pct">
                 {(() => {
                   const ft = filtered.reduce((s, p) => s + p.transcriptCount, 0);
-                  const fr = filtered.reduce((s, p) => s + p.recapCount, 0);
+                  const fr = filtered.reduce((s, p) => s + p.completeRecapCount, 0);
                   return ft > 0 ? Math.min(100, Math.round((fr / ft) * 100)) : 0;
                 })()}%
               </td>

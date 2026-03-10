@@ -4867,6 +4867,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
              COALESCE(et.transcript_count, 0)::int as transcript_count,
              COALESCE(et.complete_count, 0)::int as complete_transcript_count,
              COALESCE(lpr.recap_count, 0)::int as recap_count,
+             COALESCE(lpr.complete_recap_count, 0)::int as complete_recap_count,
              COALESCE(lpr.has_tldl, 0)::int as has_tldl,
              COALESCE(lpr.has_what_happened, 0)::int as has_what_happened,
              COALESCE(lpr.has_insights, 0)::int as has_insights,
@@ -4887,15 +4888,26 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
            LEFT JOIN (
              SELECT itunes_id,
                     COUNT(*)::int as recap_count,
+                    SUM(CASE WHEN
+                      (tldl IS NOT NULL AND tldl != '')
+                      AND (what_happened IS NOT NULL AND what_happened != '')
+                      AND (key_insights IS NOT NULL AND array_length(key_insights, 1) > 0)
+                      AND (quote IS NOT NULL AND quote != '')
+                      AND (key_topics IS NOT NULL AND array_length(key_topics, 1) > 0)
+                      AND (top_questions IS NOT NULL AND top_questions != '')
+                      AND (guests IS NOT NULL AND guests != '')
+                      AND (sponsors IS NOT NULL AND sponsors != '')
+                      AND (resources IS NOT NULL AND resources != '')
+                    THEN 1 ELSE 0 END)::int as complete_recap_count,
                     SUM(CASE WHEN tldl IS NOT NULL AND tldl != '' THEN 1 ELSE 0 END)::int as has_tldl,
                     SUM(CASE WHEN what_happened IS NOT NULL AND what_happened != '' THEN 1 ELSE 0 END)::int as has_what_happened,
                     SUM(CASE WHEN key_insights IS NOT NULL AND array_length(key_insights, 1) > 0 THEN 1 ELSE 0 END)::int as has_insights,
                     SUM(CASE WHEN quote IS NOT NULL AND quote != '' THEN 1 ELSE 0 END)::int as has_quote,
                     SUM(CASE WHEN key_topics IS NOT NULL AND array_length(key_topics, 1) > 0 THEN 1 ELSE 0 END)::int as has_topics,
                     SUM(CASE WHEN top_questions IS NOT NULL AND top_questions != '' THEN 1 ELSE 0 END)::int as has_questions,
-                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' AND guests != '[]' THEN 1 ELSE 0 END)::int as has_guests,
-                    SUM(CASE WHEN sponsors IS NOT NULL AND sponsors != '' AND sponsors != '[]' THEN 1 ELSE 0 END)::int as has_sponsors,
-                    SUM(CASE WHEN resources IS NOT NULL AND resources != '' AND resources != '[]' THEN 1 ELSE 0 END)::int as has_resources
+                    SUM(CASE WHEN guests IS NOT NULL AND guests != '' THEN 1 ELSE 0 END)::int as has_guests,
+                    SUM(CASE WHEN sponsors IS NOT NULL AND sponsors != '' THEN 1 ELSE 0 END)::int as has_sponsors,
+                    SUM(CASE WHEN resources IS NOT NULL AND resources != '' THEN 1 ELSE 0 END)::int as has_resources
              FROM landing_page_recaps
              GROUP BY itunes_id
            ) lpr ON pd.itunes_id = lpr.itunes_id
@@ -4904,19 +4916,20 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
         );
 
         const totalTranscripts = podcasts.reduce((s, p) => s + p.transcript_count, 0);
+        const totalCompleteRecaps = podcasts.reduce((s, p) => s + p.complete_recap_count, 0);
         const totalRecaps = podcasts.reduce((s, p) => s + p.recap_count, 0);
-        const totalRemaining = Math.max(0, totalTranscripts - totalRecaps);
+        const totalRemaining = Math.max(0, totalTranscripts - totalCompleteRecaps);
 
         const currentProcessingId = epGenState.running ? epGenState.currentItunesId : null;
 
         res.json({
           podcasts: podcasts.map((p) => {
-            const remaining = Math.max(0, p.transcript_count - p.recap_count);
-            const pct = p.transcript_count > 0 ? Math.round((p.recap_count / p.transcript_count) * 100) : 0;
+            const remaining = Math.max(0, p.transcript_count - p.complete_recap_count);
+            const pct = p.transcript_count > 0 ? Math.round((p.complete_recap_count / p.transcript_count) * 100) : 0;
             let status: string;
             if (currentProcessingId === p.itunes_id) {
               status = "processing";
-            } else if (p.transcript_count > 0 && p.recap_count >= p.transcript_count) {
+            } else if (p.transcript_count > 0 && p.complete_recap_count >= p.transcript_count) {
               status = "complete";
             } else {
               status = "incomplete";
@@ -4927,6 +4940,7 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
               transcriptCount: p.transcript_count,
               completeTranscriptCount: p.complete_transcript_count,
               recapCount: p.recap_count,
+              completeRecapCount: p.complete_recap_count,
               remaining,
               pct,
               status,
@@ -4945,10 +4959,11 @@ ${customPrompt ? `\n${customPrompt}` : ""}`;
           }),
           totalTranscripts,
           totalRecaps,
+          totalCompleteRecaps,
           totalRemaining,
           totalPodcasts: podcasts.length,
-          podcastsComplete: podcasts.filter(p => p.recap_count >= p.transcript_count && p.transcript_count > 0 && (currentProcessingId !== p.itunes_id)).length,
-          podcastsIncomplete: podcasts.filter(p => (p.recap_count < p.transcript_count || p.transcript_count === 0) && (currentProcessingId !== p.itunes_id)).length,
+          podcastsComplete: podcasts.filter(p => p.complete_recap_count >= p.transcript_count && p.transcript_count > 0 && (currentProcessingId !== p.itunes_id)).length,
+          podcastsIncomplete: podcasts.filter(p => (p.complete_recap_count < p.transcript_count || p.transcript_count === 0) && (currentProcessingId !== p.itunes_id)).length,
           podcastsProcessing: currentProcessingId ? 1 : 0,
         });
       } finally {
