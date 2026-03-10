@@ -560,11 +560,11 @@ export default function EpisodeRecapPage() {
                         {entityContexts[person.slug] && (
                           <button
                             onClick={() => askAiAbout(person.name, "person")}
-                            className="relative block w-full text-left px-3.5 pb-3 group/ctx"
+                            title={`Ask the AI: In what context was ${person.name} mentioned?`}
+                            className="block w-full text-left px-3.5 pb-3 cursor-pointer"
                             data-testid={`ask-ai-person-${i}`}
                           >
-                            <p className="text-[13px] leading-relaxed text-muted-foreground group-hover/ctx:text-violet-600 dark:group-hover/ctx:text-violet-400 transition-colors">{entityContexts[person.slug]}</p>
-                            <span className="absolute right-3 bottom-2.5 opacity-0 group-hover/ctx:opacity-100 transition-opacity text-[11px] font-semibold text-violet-500 dark:text-violet-400 flex items-center gap-1 bg-violet-500/[0.08] px-2 py-0.5 rounded-full"><Sparkles className="w-3 h-3" /> Ask the AI</span>
+                            <p className="text-[13px] leading-relaxed text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{entityContexts[person.slug]}</p>
                           </button>
                         )}
                       </div>
@@ -597,11 +597,11 @@ export default function EpisodeRecapPage() {
                         {entityContexts[company.slug] && (
                           <button
                             onClick={() => askAiAbout(company.name, "company")}
-                            className="relative block w-full text-left px-3.5 pb-3 group/ctx"
+                            title={`Ask the AI: In what context was ${company.name} discussed?`}
+                            className="block w-full text-left px-3.5 pb-3 cursor-pointer"
                             data-testid={`ask-ai-company-${i}`}
                           >
-                            <p className="text-[13px] leading-relaxed text-muted-foreground group-hover/ctx:text-violet-600 dark:group-hover/ctx:text-violet-400 transition-colors">{entityContexts[company.slug]}</p>
-                            <span className="absolute right-3 bottom-2.5 opacity-0 group-hover/ctx:opacity-100 transition-opacity text-[11px] font-semibold text-violet-500 dark:text-violet-400 flex items-center gap-1 bg-violet-500/[0.08] px-2 py-0.5 rounded-full"><Sparkles className="w-3 h-3" /> Ask the AI</span>
+                            <p className="text-[13px] leading-relaxed text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{entityContexts[company.slug]}</p>
                           </button>
                         )}
                       </div>
