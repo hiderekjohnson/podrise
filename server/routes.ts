@@ -5039,7 +5039,7 @@ RULES:
             continue;
           }
 
-          const recap = await generateRecapFromTranscript(t.transcript, podcastName, epTitle);
+          const recap = await generateRecapFromTranscript(t.transcript, podcastName, epTitle, t.description || null);
           if (!recap) {
             epGenState.failed++;
             console.log(`[EpGen] Failed to generate recap for "${epTitle}"`);

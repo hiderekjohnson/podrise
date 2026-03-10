@@ -456,13 +456,15 @@ export async function generateRecapFromTranscript(
   transcript: string,
   podcastName: string,
   episodeTitle: string,
+  showNotes?: string | null,
 ): Promise<ParsedEpisode | null> {
+  const showNotesSection = showNotes ? `\nShow Notes (use for guest full names, social links, and additional context):\n${showNotes}\n` : "";
   const prompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
 
-All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content.
+All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content. Use the show notes to find guest full names, social media handles, and links.
 
 Podcast: ${podcastName}
-Episode: "${episodeTitle}"
+Episode: "${episodeTitle}"${showNotesSection}
 Transcript:
 ${transcript}
 
@@ -488,7 +490,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
     {"name": "Sponsor Name", "description": "What the sponsor does.", "couponCode": "CODE or null", "url": "https://sponsor.com or null", "howToRedeem": "How to use the offer or null"}
   ],
   "guests": [
-    {"name": "Guest Name", "title": "Professional Title", "bio": "2-3 sentence bio based on how they are introduced or described in the transcript.", "topicsDiscussed": ["Topic 1", "Topic 2"]}
+    {"name": "Full Name", "title": "Professional Title / Position at Company", "bio": "2-3 sentence bio based on how they are introduced or described in the transcript.", "twitter": "@handle or null", "linkedin": "https://linkedin.com/in/handle or null", "instagram": "@handle or null", "website": "https://their-site.com or null", "topicsDiscussed": ["Topic 1", "Topic 2"]}
   ],
   "resources": [
     {"name": "Resource Name", "type": "book|tool|product", "description": "Brief description of the item.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "How it was mentioned in the episode."}
@@ -504,7 +506,7 @@ RULES:
 - keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific — never generic
 - topQuestions: 5 concise questions phrased like real Google searches, focusing on key companies, people, strategies, or concepts. Each answer should be 2-3 paragraphs drawn from the transcript
 - sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
-- guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Include their professional title and a bio based on how they are introduced. List the specific topics they discussed. Return empty array [] if no guests (solo host episodes or host-only conversations)
+- guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Use their FULL NAME (first and last). Include their professional title/position at their company. Write a 2-3 sentence bio based on how they are introduced. Include social media handles if mentioned in the transcript or commonly known (twitter, linkedin, instagram, website). List the specific topics they discussed. Return empty array [] if no guests (solo host episodes or host-only conversations)
 - resources: ONLY include physical products, books, or tools that someone could actually BUY on Amazon. Do NOT include abstract concepts, philosophies, anecdotes, stories, work habits, websites, newsletters, services, SaaS products, or the podcast itself. Good examples: a specific book title, a gadget, a physical product. Bad examples: "Aristotle's Eudaimonia", "Aaron Sorkin's creative process", someone's personal story. If no purchasable items are mentioned, return empty array []. Do NOT include sponsors here either`;
 
   const maxAttempts = 2;
