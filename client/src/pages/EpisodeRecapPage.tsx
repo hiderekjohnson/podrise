@@ -1,7 +1,16 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const TOPIC_ICON_MAP: Record<string, LucideIcon> = {
+  Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone,
+  Handshake, Zap, GitFork, Cpu, LineChart, Building2, Heart, Flame,
+  ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, UserPlus,
+  Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Sparkles,
+  Hammer, Briefcase, Tag,
+};
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -693,19 +702,26 @@ export default function EpisodeRecapPage() {
               <p className="text-sm text-muted-foreground mt-1.5">Main themes discussed in this episode{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
             </div>
             <div className="px-6 py-5">
-              <div className="space-y-4">
-                {matchedTopics.map((topic, i) => (
-                  <div key={topic.slug} data-testid={`topic-item-${i}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {matchedTopics.map((topic, i) => {
+                  const IconComponent = TOPIC_ICON_MAP[topic.icon] || Tag;
+                  return (
                     <Link
+                      key={topic.slug}
                       href={`/topics/${topic.slug}`}
-                      className="text-[17px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                      className="group/topic flex gap-3.5 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-emerald-500/[0.03] transition-all"
                       data-testid={`topic-link-${i}`}
                     >
-                      {topic.name}
+                      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center shrink-0`}>
+                        <IconComponent className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-[15px] font-bold text-foreground group-hover/topic:text-emerald-600 dark:group-hover/topic:text-emerald-400 transition-colors">{topic.name}</h4>
+                        <p className="text-sm leading-snug text-muted-foreground mt-0.5 line-clamp-2">{topic.description.split(".")[0]}.</p>
+                      </div>
                     </Link>
-                    <p className="text-[15px] leading-relaxed text-muted-foreground mt-0.5">{topic.description.split(".")[0]}.</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
