@@ -124,11 +124,24 @@ export default function EpisodeRecapPage() {
     }).slice(0, 6);
   })();
 
+  const AMBIGUOUS_TERMS = new Set([
+    "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
+    "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
+    "The Information", "The Economist"
+  ]);
+
   const notableCompanies = (() => {
     if (!episode) return [];
-    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`.toLowerCase();
+    const originalText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
+    const searchTextLower = originalText.toLowerCase();
     return COMPANIES_DIRECTORY.filter(c => {
-      return c.searchTerms.some(term => searchText.includes(term.toLowerCase()));
+      return c.searchTerms.some(term => {
+        if (AMBIGUOUS_TERMS.has(term)) {
+          const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+          return regex.test(originalText);
+        }
+        return searchTextLower.includes(term.toLowerCase());
+      });
     }).slice(0, 6);
   })();
 

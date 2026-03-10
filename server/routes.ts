@@ -1012,7 +1012,18 @@ export async function registerRoutes(
     { slug: "chainalysis", name: "Chainalysis", description: "Blockchain analytics and compliance platform", searchTerms: ["Chainalysis"] },
   ];
 
+  const AMBIGUOUS_TERMS = new Set([
+    "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
+    "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
+    "The Information", "The Economist"
+  ]);
+
   function termMatchesInText(text: string, term: string): boolean {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (AMBIGUOUS_TERMS.has(term)) {
+      const regex = new RegExp(`\\b${escaped}\\b`);
+      return regex.test(text);
+    }
     const lower = term.toLowerCase();
     const textLower = text.toLowerCase();
     if (lower.length <= 4) {
@@ -1023,6 +1034,13 @@ export async function registerRoutes(
   }
 
   function buildSearchCondition(fields: string[], paramIndex: number, term: string): { sql: string; param: string } {
+    if (AMBIGUOUS_TERMS.has(term)) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return {
+        sql: fields.map(f => `${f} ~ $${paramIndex}`).join(" OR "),
+        param: `\\m${escaped}\\M`,
+      };
+    }
     if (term.length <= 4) {
       const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return {
@@ -1089,18 +1107,10 @@ export async function registerRoutes(
 
         const mentionRows = filtered.filter((r: any) => {
           if (guestKeys.has(`${r.slug}/${r.episode_slug}`)) return false;
-          return person.searchTerms.some(term => {
-            if (term.length <= 4) {
-              const regex = new RegExp(`\\b${term}\\b`, 'i');
-              return (r.what_happened && regex.test(r.what_happened)) ||
-                     (r.tldl && regex.test(r.tldl)) ||
-                     (r.key_insights_text && regex.test(r.key_insights_text));
-            }
-            const t = term.toLowerCase();
-            return (r.what_happened && r.what_happened.toLowerCase().includes(t)) ||
-                   (r.tldl && r.tldl.toLowerCase().includes(t)) ||
-                   (r.key_insights_text && r.key_insights_text.toLowerCase().includes(t));
-          });
+          const texts = [r.what_happened, r.tldl, r.key_insights_text].filter(Boolean);
+          return person.searchTerms.some(term =>
+            texts.some(t => termMatchesInText(t, term))
+          );
         });
 
         results.push({
@@ -1224,18 +1234,10 @@ export async function registerRoutes(
       for (const company of ENTITY_COMPANIES) {
         let mentionCount = 0;
         for (const row of allRecaps) {
-          const matched = company.searchTerms.some(term => {
-            if (term.length <= 4) {
-              const regex = new RegExp(`\\b${term}\\b`, 'i');
-              return (row.what_happened && regex.test(row.what_happened)) ||
-                     (row.tldl && regex.test(row.tldl)) ||
-                     (row.key_insights_text && regex.test(row.key_insights_text));
-            }
-            const t = term.toLowerCase();
-            return (row.what_happened && row.what_happened.toLowerCase().includes(t)) ||
-                   (row.tldl && row.tldl.toLowerCase().includes(t)) ||
-                   (row.key_insights_text && row.key_insights_text.toLowerCase().includes(t));
-          });
+          const texts = [row.what_happened, row.tldl, row.key_insights_text].filter(Boolean);
+          const matched = company.searchTerms.some(term =>
+            texts.some(t => termMatchesInText(t, term))
+          );
           if (matched) mentionCount++;
         }
         results.push({ slug: company.slug, name: company.name, description: company.description, mentionCount });
