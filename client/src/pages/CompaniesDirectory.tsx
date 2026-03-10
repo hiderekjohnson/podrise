@@ -161,13 +161,6 @@ export default function CompaniesDirectory() {
             ))}
           </div>
 
-          <div className="flex items-center">
-            {companies && (
-              <span className="text-sm text-muted-foreground" data-testid="text-results-count">
-                {filteredCompanies.length} of {companies.length} companies
-              </span>
-            )}
-          </div>
         </motion.section>
 
         {isLoading ? (
@@ -248,9 +241,6 @@ export default function CompaniesDirectory() {
 
             {hasMore && (
               <div className="flex flex-col items-center gap-2 pt-4 pb-2">
-                <p className="text-sm text-muted-foreground">
-                  Showing {visibleCount} of {filteredCompanies.length} companies
-                </p>
                 <button
                   onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
                   className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"

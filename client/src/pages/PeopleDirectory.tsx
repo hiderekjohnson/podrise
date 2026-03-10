@@ -241,11 +241,6 @@ export default function PeopleDirectory() {
               </button>
             </div>
 
-            {people && (
-              <span className="text-sm text-muted-foreground ml-auto" data-testid="text-results-count">
-                {filteredPeople.length} of {people.length} people
-              </span>
-            )}
           </div>
         </motion.section>
 
@@ -338,9 +333,6 @@ export default function PeopleDirectory() {
 
             {hasMore && (
               <div className="flex flex-col items-center gap-2 pt-4 pb-2">
-                <p className="text-sm text-muted-foreground">
-                  Showing {visibleCount} of {filteredPeople.length} people
-                </p>
                 <button
                   onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
                   className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
