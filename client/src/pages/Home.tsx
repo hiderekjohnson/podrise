@@ -9,8 +9,8 @@ import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const FEATURED_PODCAST_SLUGS = [
   "joerogan", "lexfridman", "hubermanlab", "myfirstmillion", "allin",
-  "theprof", "acquired", "shawnryanshow", "morningbrew", "onpurpose",
-  "worklifeadamgrant", "smartless",
+  "acquired", "shawnryanshow", "onpurpose", "smartless",
+  "diaryofaceo", "timferriss", "pivot",
 ];
 
 const FEATURED_PEOPLE_SLUGS = [
