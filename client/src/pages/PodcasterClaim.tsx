@@ -129,7 +129,7 @@ export default function PodcasterClaim() {
               )}
 
               <p className="text-[13px] text-muted-foreground/60 mt-4 text-center">
-                Don't see your podcast? <Link href="/we-heart-podcasters" className="text-primary font-semibold hover:underline">Get it added</Link>
+                Don't see your podcast? <Link href="/contact" className="text-primary font-semibold hover:underline">Get it added</Link>
               </p>
             </div>
           )}
