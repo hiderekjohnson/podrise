@@ -24,11 +24,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/insights" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-insights">
-                  Insights
-                </Link>
-              </li>
-              <li>
                 <Link href="/people" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-people">
                   People
                 </Link>
@@ -53,7 +48,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Insights</h3>
+            <Link href="/insights" className="text-base font-bold text-foreground mb-5 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-insights">Insights</Link>
             <ul className="space-y-3.5">
               {topInsights.map((topic) => (
                 <li key={topic.slug}>
