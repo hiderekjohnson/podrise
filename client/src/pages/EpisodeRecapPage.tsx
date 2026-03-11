@@ -11,26 +11,6 @@ import { TOPICS } from "../data/topicData";
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
 
-function PodcasterByline({ slug }: { slug: string }) {
-  const { data } = useQuery<{ claimed: boolean; byline?: { text: string; url: string | null; label: string | null } | null }>({
-    queryKey: ["/api/podcaster/claim", slug],
-    staleTime: 1000 * 60 * 60,
-    enabled: !!slug,
-  });
-  if (!data?.byline?.text) return null;
-  return (
-    <div className="flex items-center gap-2.5 p-3.5 mb-5 bg-primary/[0.04] border border-primary/10 rounded-xl text-[14px]" data-testid="section-byline">
-      <Mic className="w-4 h-4 text-primary shrink-0" />
-      <span className="text-foreground">{data.byline.text}</span>
-      {data.byline.label && data.byline.url && (data.byline.url.startsWith("http://") || data.byline.url.startsWith("https://")) && (
-        <a href={data.byline.url} target="_blank" rel="noopener noreferrer" className="text-primary font-display font-bold hover:underline inline-flex items-center gap-0.5 shrink-0 ml-auto">
-          {data.byline.label} <ExternalLink className="w-3 h-3" />
-        </a>
-      )}
-    </div>
-  );
-}
-
 const TOPIC_ICON_MAP: Record<string, LucideIcon> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone,
   Handshake, Zap, GitFork, Cpu, LineChart, Building2, Heart, Flame,
@@ -393,7 +373,7 @@ export default function EpisodeRecapPage() {
       "section-notable-mentions",
       "section-key-topics",
       "section-books",
-      "section-sponsors",
+      // "section-sponsors", // disabled — enable when podcaster promotion tools go public
       "section-top-questions",
       "section-ask-episode",
     ];
@@ -585,15 +565,7 @@ export default function EpisodeRecapPage() {
               Books
             </button>
           )}
-          {hasSponsors && (
-            <button
-              onClick={() => scrollTo("section-sponsors")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-sponsors" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-sponsors"
-            >
-              Sponsors
-            </button>
-          )}
+          {/* Sponsors nav chip — disabled for now, enable when podcaster promotion tools go public */}
           {hasTopQuestions && (
             <button
               onClick={() => scrollTo("section-top-questions")}
@@ -611,8 +583,6 @@ export default function EpisodeRecapPage() {
             Ask AI
           </button>
         </nav>
-
-        <PodcasterByline slug={podcastSlug} />
 
         <section className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-about-episode">
           <div className="px-6 py-4 bg-slate-500/[0.04] border-b border-slate-500/[0.08]">
@@ -986,24 +956,7 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {hasSponsors && (
-          <section id="section-sponsors" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-sponsors">
-            <div className="px-6 py-4 bg-teal-500/[0.04] border-b border-teal-500/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <Gift className="w-4 h-4 text-teal-500" />
-                <h2 className="text-base font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider m-0">Episode Sponsors</h2>
-              </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Sponsors featured in this episode of {episode.podcastName}.</p>
-            </div>
-            <div className="px-6 py-5">
-              <div className="space-y-5">
-                {sponsors.map((sponsor, i) => (
-                  <SponsorCard key={i} sponsor={sponsor} index={i} />
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        {/* Sponsors section — disabled for now, enable when podcaster promotion tools go public */}
 
         {hasTopQuestions && (
           <>
