@@ -227,9 +227,6 @@ export default function PodcastsExplorer() {
             <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
               {isSearching ? "Search Results" : "Browse by Topic"}
             </h2>
-            <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
-              {filteredPodcasts.length}
-            </span>
           </div>
 
           {!isSearching && (
@@ -307,7 +304,7 @@ export default function PodcastsExplorer() {
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary/[0.06] hover:bg-primary/[0.12] text-primary text-[15px] font-bold transition-colors"
               data-testid="button-show-more-podcasts"
             >
-              Show all {filteredPodcasts.length} podcasts
+              Show all podcasts
               <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>

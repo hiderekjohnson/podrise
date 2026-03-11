@@ -288,9 +288,6 @@ export default function TopicsDirectory() {
           <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-topics">
             {isSearching ? "Search Results" : "All Topics"}
           </h2>
-          <span className="text-[13px] font-mono text-muted-foreground/60 ml-2">
-            {filteredTopics.length}
-          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">

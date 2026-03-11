@@ -412,7 +412,7 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
             className="px-6 py-2.5 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-sm rounded-xl transition-colors border border-amber-500/10"
             data-testid="button-show-all-groups"
           >
-            Show all {groups.length} podcasts
+            Show all podcasts
           </button>
         </div>
       )}

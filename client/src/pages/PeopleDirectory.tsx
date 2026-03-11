@@ -593,9 +593,6 @@ export default function PeopleDirectory() {
                     <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-people">
                       {isSearching ? "Search Results" : "All People"}
                     </h2>
-                    <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
-                      {filteredPeople.length}
-                    </span>
                   </div>
                   <div className="flex-1" />
                   <div className="flex items-center gap-2">

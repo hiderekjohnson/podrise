@@ -555,9 +555,6 @@ export default function CompaniesDirectory() {
                     <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-companies">
                       {isSearching ? "Search Results" : "All Companies"}
                     </h2>
-                    <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
-                      {filteredCompanies.length}
-                    </span>
                   </div>
                   <div className="flex-1" />
                   <div className="flex items-center bg-card border border-border rounded-lg overflow-hidden" data-testid="sort-control">

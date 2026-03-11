@@ -657,14 +657,15 @@ export default function Bookstore() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[15px] text-muted-foreground" data-testid="text-result-count">
-                  {filteredBooks.length} {filteredBooks.length === 1 ? "book" : "books"}
-                  {selectedTopic && ` in ${selectedTopic}`}
-                  {selectedLength && ` (${LENGTH_FILTERS.find(l => l.value === selectedLength)?.desc})`}
-                  {searchQuery && ` matching "${searchQuery}"`}
-                </p>
-              </div>
+              {(searchQuery || selectedTopic || selectedLength) && (
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[15px] text-muted-foreground" data-testid="text-result-count">
+                    {searchQuery
+                      ? `${filteredBooks.length} ${filteredBooks.length === 1 ? "book" : "books"} matching "${searchQuery}"`
+                      : `Books${selectedTopic ? ` in ${selectedTopic}` : ""}${selectedLength ? ` (${LENGTH_FILTERS.find(l => l.value === selectedLength)?.desc})` : ""}`}
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="grid-books">
                 {visibleBooks.map((book, i) => (
