@@ -39,11 +39,6 @@ export function Footer() {
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
                 </Link>
               </li>
-              <li>
-                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-signal">
-                  Signal
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -81,6 +76,11 @@ export function Footer() {
               <li>
                 <Link href="/enterprise" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-enterprise">
                   Enterprise
+                </Link>
+              </li>
+              <li>
+                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-signal">
+                  Signal
                 </Link>
               </li>
             </ul>
