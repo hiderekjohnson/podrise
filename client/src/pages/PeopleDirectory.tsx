@@ -123,11 +123,11 @@ export default function PeopleDirectory() {
             <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
           ) : (
             <>
-              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
+              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </a>
-              <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
+              <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
             </>
           )}
         </div>
@@ -147,7 +147,7 @@ export default function PeopleDirectory() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               The most influential leaders, founders, and thinkers driving today's biggest ideas. See where they show up as guests, how often they're discussed, and explore every episode they're featured in.
             </p>
-            <p className="text-sm text-muted-foreground mt-3">
+            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3">
               Looking for notable companies?{" "}
               <a href="/companies" className="text-primary font-medium hover:text-primary/80 transition-colors" data-testid="link-companies-directory">
                 Explore Companies →
@@ -169,7 +169,7 @@ export default function PeopleDirectory() {
               placeholder="Search people..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setLetterFilter(null); }}
-              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-[17px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
               data-testid="input-search-people"
             />
           </div>
@@ -177,7 +177,7 @@ export default function PeopleDirectory() {
           <div className="flex flex-wrap gap-1 mb-4" data-testid="alphabet-filter">
             <button
               onClick={() => setLetterFilter(null)}
-              className={`px-2 py-1 rounded text-xs font-semibold transition-all ${!letterFilter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+              className={`px-3 py-2 rounded-lg text-[15px] min-h-[44px] min-w-[44px] font-semibold transition-all ${!letterFilter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               data-testid="letter-all"
             >
               All
@@ -186,7 +186,7 @@ export default function PeopleDirectory() {
               <button
                 key={letter}
                 onClick={() => { setLetterFilter(letter === letterFilter ? null : letter); setSearchQuery(""); }}
-                className={`px-2 py-1 rounded text-xs font-semibold transition-all ${letterFilter === letter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`px-3 py-2 rounded-lg text-[15px] min-h-[44px] min-w-[44px] font-semibold transition-all ${letterFilter === letter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                 data-testid={`letter-${letter}`}
               >
                 {letter}
@@ -199,7 +199,7 @@ export default function PeopleDirectory() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-[17px] text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                 data-testid="select-category-filter"
               >
                 {CATEGORIES.map(cat => (
@@ -213,7 +213,7 @@ export default function PeopleDirectory() {
               <select
                 value={genderFilter}
                 onChange={(e) => setGenderFilter(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                className="appearance-none pl-3 pr-8 py-2 bg-card border border-border rounded-lg text-[17px] text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                 data-testid="select-gender-filter"
               >
                 <option value="all">All Genders</option>
@@ -224,17 +224,17 @@ export default function PeopleDirectory() {
             </div>
 
             <div className="flex items-center gap-1 pl-3 pr-1 py-1 bg-card border border-border rounded-lg" data-testid="sort-control">
-              <span className="text-sm text-muted-foreground mr-1">Sort by:</span>
+              <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mr-1">Sort by:</span>
               <button
                 onClick={() => setSortBy("guests")}
-                className={`px-2.5 py-1 rounded-md text-sm font-medium transition-all ${sortBy === "guests" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`px-3.5 py-2 rounded-lg text-base min-h-[44px] font-medium transition-all ${sortBy === "guests" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                 data-testid="sort-appearances"
               >
                 Most Appearances
               </button>
               <button
                 onClick={() => setSortBy("mentions")}
-                className={`px-2.5 py-1 rounded-md text-sm font-medium transition-all ${sortBy === "mentions" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`px-3.5 py-2 rounded-lg text-base min-h-[44px] font-medium transition-all ${sortBy === "mentions" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                 data-testid="sort-mentions"
               >
                 Most Mentions
@@ -263,7 +263,7 @@ export default function PeopleDirectory() {
             <p className="text-muted-foreground text-lg" data-testid="text-no-results">No people found matching your filters.</p>
             <button
               onClick={() => { setSearchQuery(""); setGenderFilter("all"); setCategoryFilter("All Categories"); setLetterFilter(null); }}
-              className="mt-3 text-primary text-sm font-medium hover:text-primary/80 transition-colors"
+              className="mt-3 text-primary text-base font-medium hover:text-primary/80 transition-colors"
               data-testid="button-clear-filters"
             >
               Clear all filters
@@ -301,20 +301,20 @@ export default function PeopleDirectory() {
                         <h2 className="text-lg sm:text-xl font-display font-bold text-foreground group-hover:text-primary transition-colors mb-0.5" data-testid={`text-person-name-${person.slug}`}>
                           {person.name}
                         </h2>
-                        <p className="text-sm text-muted-foreground mb-2">{person.title}</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-2">{person.title}</p>
                         <div className="flex flex-wrap gap-3">
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                             <MessageSquare className="w-3.5 h-3.5" />
                             <span>Mentioned in <span className="font-semibold text-foreground">{person.mentionCount}</span> episodes</span>
                           </div>
                           {person.guestCount > 0 && (
-                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                               <Mic className="w-3.5 h-3.5" />
                               <span>Guest on <span className="font-semibold text-foreground">{person.guestCount}</span> episodes</span>
                             </div>
                           )}
                           {person.category && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/[0.06] text-xs font-medium text-primary" data-testid={`badge-category-${person.slug}`}>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/[0.06] text-[15px] font-medium text-primary" data-testid={`badge-category-${person.slug}`}>
                               {person.category}
                             </span>
                           )}
@@ -335,7 +335,7 @@ export default function PeopleDirectory() {
               <div className="flex flex-col items-center gap-2 pt-4 pb-2">
                 <button
                   onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                  className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
+                  className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-base font-semibold text-primary hover:bg-primary/15 transition-colors"
                   data-testid="button-show-more"
                 >
                   Show More

@@ -52,7 +52,7 @@ export default function Upgrade() {
           <button
             data-testid="link-back"
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to dashboard
@@ -67,7 +67,7 @@ export default function Upgrade() {
           <button
             data-testid="button-back-dashboard"
             onClick={() => navigate("/dashboard")}
-            className="h-11 px-6 rounded-lg font-display font-bold text-sm bg-primary text-primary-foreground"
+            className="h-11 px-6 rounded-lg font-display font-bold text-base bg-primary text-primary-foreground"
           >
             Back to Dashboard
           </button>
@@ -85,7 +85,7 @@ export default function Upgrade() {
         <button
           data-testid="link-back"
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-1.5 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to dashboard
@@ -122,7 +122,7 @@ export default function Upgrade() {
                   <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Check className="w-3 h-3 text-primary" />
                   </div>
-                  <span className="text-sm font-medium text-foreground">{feature}</span>
+                  <span className="text-base font-medium text-foreground">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -145,7 +145,7 @@ export default function Upgrade() {
                 </>
               )}
             </button>
-            <p className="text-center text-xs text-muted-foreground mt-3">
+            <p className="text-center text-[15px] text-muted-foreground mt-3">
               Cancel anytime. No questions asked.
             </p>
           </div>

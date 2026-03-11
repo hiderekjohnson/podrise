@@ -77,7 +77,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
           >
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-1.5 rounded-full text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/[0.04] transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               data-testid="button-close-modal"
               aria-label="Close"
             >
@@ -98,20 +98,20 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
                 Get recaps of every new {podcastName} episode
               </h2>
 
-              <p className="text-[15px] text-muted-foreground leading-relaxed mb-6" data-testid="text-modal-subtitle">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-6" data-testid="text-modal-subtitle">
                 Enter your email and we'll send a recap whenever a new episode drops.
               </p>
 
               <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4" data-testid="form-modal-signup">
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#71717A] pointer-events-none" />
                   <input
                     data-testid="input-email-modal"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-full h-14 pl-12 pr-4 bg-white border-2 border-primary/20 rounded-2xl text-foreground text-base focus:outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10 transition-all font-medium placeholder:text-muted-foreground/40"
+                    className="w-full h-[52px] pl-12 pr-4 bg-white border-2 border-primary/20 rounded-2xl text-foreground text-[17px] focus:outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10 transition-all font-medium placeholder:text-[#71717A]"
                     autoFocus
                   />
                 </div>
@@ -120,7 +120,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
                   data-testid="button-modal-submit"
                   type="submit"
                   disabled={isPending}
-                  className="w-full h-14 flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                  className="w-full min-h-[52px] flex items-center justify-center gap-2.5 rounded-2xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
                 >
                   {isPending ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -133,7 +133,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
                 </button>
               </form>
 
-              <p className="text-xs text-muted-foreground/60 mt-4 leading-relaxed" data-testid="text-modal-disclaimer">
+              <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-4 leading-relaxed" data-testid="text-modal-disclaimer">
                 Free forever for up to 3 podcasts. No credit card required.
               </p>
             </div>

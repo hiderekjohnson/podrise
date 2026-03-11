@@ -65,7 +65,7 @@ export default function TopicsDirectory() {
             {!user && (
               <button
                 onClick={() => navigate("/get-started")}
-                className="px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                className="px-4 py-2 rounded-full text-base font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                 data-testid="button-build-recap"
               >
                 Build Your Recap
@@ -73,7 +73,7 @@ export default function TopicsDirectory() {
             )}
             <button
               onClick={() => navigate(user ? "/dashboard" : "/login")}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-foreground text-background hover:opacity-90 transition-opacity"
+              className="px-4 py-2 rounded-full text-base font-medium bg-foreground text-background hover:opacity-90 transition-opacity"
               data-testid="button-login"
             >
               {user ? "Dashboard" : "Log In"}
@@ -110,7 +110,7 @@ export default function TopicsDirectory() {
             placeholder="Search topics..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-muted/50 border border-black/[0.06] dark:border-white/[0.06] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-base bg-muted/50 border border-black/[0.06] dark:border-white/[0.06] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
             data-testid="input-search-topics"
           />
         </div>
@@ -139,7 +139,7 @@ export default function TopicsDirectory() {
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" />
                     </div>
-                    <p className="text-sm text-muted-foreground/70 line-clamp-2">
+                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground/70 line-clamp-2">
                       {topic.description}
                     </p>
                   </div>

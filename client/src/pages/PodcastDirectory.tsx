@@ -116,7 +116,7 @@ export default function PodcastDirectory() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-foreground">Podcast Directory</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
             {entries?.length || 0} podcasts tracked · {landingCount} with landing pages
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function PodcastDirectory() {
           <button
             data-testid="button-add-podcast"
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-base font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             Add
@@ -150,123 +150,123 @@ export default function PodcastDirectory() {
           </h4>
 
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Required</p>
+            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Required</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">iTunes ID *</label>
+                <label className="block text-base font-medium text-foreground mb-1">iTunes ID *</label>
                 <input data-testid="input-itunes-id" type="text" value={form.itunesId} onChange={set("itunesId")} placeholder="1469759170" disabled={!!editEntry} className={`${inputCls} disabled:opacity-50`} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Name *</label>
+                <label className="block text-base font-medium text-foreground mb-1">Name *</label>
                 <input data-testid="input-podcast-name" type="text" value={form.name} onChange={set("name")} placeholder="My First Million" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Slug</label>
+                <label className="block text-base font-medium text-foreground mb-1">Slug</label>
                 <input data-testid="input-slug" type="text" value={form.slug} onChange={set("slug")} placeholder="myfirstmillion" className={inputCls} />
               </div>
             </div>
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Details</p>
+            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Details</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Hosts</label>
+                <label className="block text-base font-medium text-foreground mb-1">Hosts</label>
                 <input type="text" value={form.hosts} onChange={set("hosts")} placeholder="Sam Parr, Shaan Puri" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+                <label className="block text-base font-medium text-foreground mb-1">Category</label>
                 <input type="text" value={form.category} onChange={set("category")} placeholder="Business / Startups" className={inputCls} />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-foreground mb-1">Description</label>
+                <label className="block text-base font-medium text-foreground mb-1">Description</label>
                 <input type="text" value={form.description} onChange={set("description")} placeholder="Short description of the podcast" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Artwork URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Artwork URL</label>
                 <input type="text" value={form.artworkUrl} onChange={set("artworkUrl")} placeholder="https://..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Frequency</label>
+                <label className="block text-base font-medium text-foreground mb-1">Frequency</label>
                 <input type="text" value={form.frequency} onChange={set("frequency")} placeholder="Weekly" className={inputCls} />
               </div>
             </div>
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Links & Social</p>
+            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Links & Social</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Apple Podcasts URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Apple Podcasts URL</label>
                 <input type="text" value={form.appleUrl} onChange={set("appleUrl")} placeholder="https://podcasts.apple.com/..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Spotify URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Spotify URL</label>
                 <input type="text" value={form.spotifyUrl} onChange={set("spotifyUrl")} placeholder="https://open.spotify.com/..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">YouTube URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">YouTube URL</label>
                 <input type="text" value={form.youtubeUrl} onChange={set("youtubeUrl")} placeholder="https://youtube.com/..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">X Handle</label>
+                <label className="block text-base font-medium text-foreground mb-1">X Handle</label>
                 <input data-testid="input-twitter-handle" type="text" value={form.twitterHandle} onChange={set("twitterHandle")} placeholder="@myfirstmilpod" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Instagram URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Instagram URL</label>
                 <input data-testid="input-instagram-url" type="text" value={form.instagramUrl} onChange={set("instagramUrl")} placeholder="https://instagram.com/myfirstmilpod" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">TikTok URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">TikTok URL</label>
                 <input data-testid="input-tiktok-url" type="text" value={form.tiktokUrl} onChange={set("tiktokUrl")} placeholder="https://tiktok.com/@myfirstmilpod" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Facebook URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Facebook URL</label>
                 <input data-testid="input-facebook-url" type="text" value={form.facebookUrl} onChange={set("facebookUrl")} placeholder="https://facebook.com/groups/..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Discord URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Discord URL</label>
                 <input data-testid="input-discord-url" type="text" value={form.discordUrl} onChange={set("discordUrl")} placeholder="https://discord.gg/..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Website URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Website URL</label>
                 <input data-testid="input-website-url" type="text" value={form.websiteUrl} onChange={set("websiteUrl")} placeholder="https://www.mfmpod.com" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Store URL</label>
+                <label className="block text-base font-medium text-foreground mb-1">Store URL</label>
                 <input data-testid="input-store-url" type="text" value={form.storeUrl} onChange={set("storeUrl")} placeholder="https://store.mfmpod.com" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Host X Handle</label>
+                <label className="block text-base font-medium text-foreground mb-1">Host X Handle</label>
                 <input data-testid="input-host-handle" type="text" value={form.hostHandle} onChange={set("hostHandle")} placeholder="@ShaanVP" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Followers</label>
+                <label className="block text-base font-medium text-foreground mb-1">Followers</label>
                 <input data-testid="input-followers" type="number" value={form.followers} onChange={set("followers")} placeholder="50000" className={inputCls} />
               </div>
             </div>
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Stats</p>
+            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Stats</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Avg. Episode (min)</label>
+                <label className="block text-base font-medium text-foreground mb-1">Avg. Episode (min)</label>
                 <input type="number" value={form.avgEpisodeLength} onChange={set("avgEpisodeLength")} placeholder="45" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Total Episodes</label>
+                <label className="block text-base font-medium text-foreground mb-1">Total Episodes</label>
                 <input type="number" value={form.totalEpisodes} onChange={set("totalEpisodes")} placeholder="500" className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Year Started</label>
+                <label className="block text-base font-medium text-foreground mb-1">Year Started</label>
                 <input type="number" value={form.yearStarted} onChange={set("yearStarted")} placeholder="2020" className={inputCls} />
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3 pt-1">
-            <label className="flex items-center gap-2 text-sm font-medium text-foreground cursor-pointer">
+            <label className="flex items-center gap-2 text-base font-medium text-foreground cursor-pointer">
               <input type="checkbox" checked={form.hasLandingPage} onChange={set("hasLandingPage")} className="rounded border-border" />
               Has landing page
             </label>
@@ -277,11 +277,11 @@ export default function PodcastDirectory() {
               data-testid="button-save-podcast"
               onClick={() => upsertMutation.mutate(form)}
               disabled={!form.itunesId || !form.name || upsertMutation.isPending}
-              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-lg text-base font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {upsertMutation.isPending ? "Saving..." : editEntry ? "Update" : "Add"}
             </button>
-            <button data-testid="button-cancel-podcast" onClick={resetForm} className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <button data-testid="button-cancel-podcast" onClick={resetForm} className="px-4 py-2 border border-border rounded-lg text-base font-medium text-muted-foreground hover:text-foreground transition-colors">
               Cancel
             </button>
           </div>
@@ -306,15 +306,15 @@ export default function PodcastDirectory() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground text-sm truncate">{entry.name}</span>
+                    <span className="font-medium text-foreground text-base truncate">{entry.name}</span>
                     {entry.hasLandingPage && (
-                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase flex-shrink-0">Landing</span>
+                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[15px] font-bold rounded-md uppercase flex-shrink-0">Landing</span>
                     )}
                     {entry.slug && (
-                      <span className="text-xs text-muted-foreground/60 hidden sm:inline">/{entry.slug}</span>
+                      <span className="text-[15px] text-muted-foreground/60 hidden sm:inline">/{entry.slug}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                  <div className="flex items-center gap-3 text-[15px] text-muted-foreground mt-0.5">
                     {entry.hosts && <span>{entry.hosts}</span>}
                     {entry.category && <span className="hidden sm:inline">· {entry.category}</span>}
                     {entry.twitterHandle && (
@@ -364,58 +364,58 @@ export default function PodcastDirectory() {
                     {entry.frequency && <div><span className="text-muted-foreground">Frequency:</span> <span className="font-medium">{entry.frequency}</span></div>}
                     {entry.followers && <div><span className="text-muted-foreground">Followers:</span> <span className="font-medium">{entry.followers.toLocaleString()}</span></div>}
                   </div>
-                  {entry.description && <p className="text-xs text-muted-foreground mt-2">{entry.description}</p>}
+                  {entry.description && <p className="text-[15px] text-muted-foreground mt-2">{entry.description}</p>}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <a href={`https://podcasts.apple.com/podcast/id${entry.itunesId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                    <a href={`https://podcasts.apple.com/podcast/id${entry.itunesId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                       <ExternalLink className="w-3 h-3" /> Apple
                     </a>
                     {entry.spotifyUrl && (
-                      <a href={entry.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={entry.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> Spotify
                       </a>
                     )}
                     {entry.youtubeUrl && (
-                      <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> YouTube
                       </a>
                     )}
                     {entry.twitterHandle && (
-                      <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <Twitter className="w-3 h-3" /> {entry.twitterHandle}
                       </a>
                     )}
                     {(entry as any).instagramUrl && (
-                      <a href={(entry as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={(entry as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> Instagram
                       </a>
                     )}
                     {(entry as any).tiktokUrl && (
-                      <a href={(entry as any).tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={(entry as any).tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> TikTok
                       </a>
                     )}
                     {(entry as any).facebookUrl && (
-                      <a href={(entry as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={(entry as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> Facebook
                       </a>
                     )}
                     {(entry as any).discordUrl && (
-                      <a href={(entry as any).discordUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={(entry as any).discordUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> Discord
                       </a>
                     )}
                     {(entry as any).websiteUrl && (
-                      <a href={(entry as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={(entry as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <Globe className="w-3 h-3" /> Website
                       </a>
                     )}
                     {(entry as any).storeUrl && (
-                      <a href={(entry as any).storeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={(entry as any).storeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <ExternalLink className="w-3 h-3" /> Store
                       </a>
                     )}
                     {entry.slug && entry.hasLandingPage && (
-                      <a href={`/podcasts/${entry.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={`/podcasts/${entry.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
                         <Globe className="w-3 h-3" /> Landing page
                       </a>
                     )}

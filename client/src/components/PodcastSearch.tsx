@@ -107,7 +107,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                   <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
                     Free plan limit reached
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                     You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
                   </p>
                 </div>
@@ -115,20 +115,20 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                   <button
                     data-testid="button-upgrade-modal"
                     onClick={() => { setShowUpgradeModal(false); navigate("/dashboard?tab=plan"); }}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                    className="w-full min-h-[52px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                   >
-                    <Crown className="w-4 h-4" />
+                    <Crown className="w-5 h-5" />
                     Upgrade to Pro — $9.99/month
                   </button>
                   <button
                     data-testid="button-dismiss-upgrade"
                     onClick={() => setShowUpgradeModal(false)}
-                    className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                    className="w-full min-h-[44px] flex items-center justify-center rounded-xl text-base font-semibold text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.03] transition-colors"
                   >
                     Not now
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground/60">Cancel anytime. No questions asked.</p>
+                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA]">Cancel anytime. No questions asked.</p>
               </motion.div>
             </motion.div>
           )}
@@ -139,22 +139,22 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
       <div className="relative">
         <div className="relative group flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#3F3F46] dark:text-[#A1A1AA] w-5 h-5 transition-colors group-focus-within:text-primary" />
             <input
               data-testid="input-search-podcasts"
               type="search"
               placeholder="Search for a podcast to add..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 pl-12 pr-10 bg-white border border-black/[0.08] rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium text-sm"
+              className="w-full h-[52px] pl-12 pr-10 bg-white border-[1.5px] border-[#D4D4D8] rounded-xl text-foreground placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium text-[17px]"
             />
             {searchQuery && (
               <button
                 data-testid="button-clear-search"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/[0.06] text-muted-foreground hover:bg-black/[0.1] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/[0.06] text-[#3F3F46] dark:text-[#A1A1AA] hover:bg-black/[0.1] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -170,13 +170,13 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
               className="absolute left-0 right-0 z-50 bg-white rounded-2xl shadow-2xl shadow-black/[0.12] border border-black/[0.06] overflow-hidden max-h-[360px] overflow-y-auto"
             >
               {isSearching ? (
-                <div className="flex items-center justify-center gap-2.5 px-6 py-10 text-sm text-muted-foreground">
+                <div className="flex items-center justify-center gap-2.5 px-6 py-10 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                   <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   <span>Searching podcasts...</span>
                 </div>
               ) : filteredResults.length > 0 ? (
                 <div className="py-2">
-                  <p className="px-5 pt-3 pb-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                  <p className="px-5 pt-3 pb-2 text-[15px] font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">
                     Results
                   </p>
                   {filteredResults.map((podcast) => (
@@ -184,35 +184,35 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                         key={podcast.id}
                         data-testid={`button-add-podcast-${podcast.id}`}
                         onClick={() => handleAddClick(podcast)}
-                        className="flex items-center gap-3.5 px-5 py-3 w-full text-left transition-colors group/row hover:bg-black/[0.03] cursor-pointer"
+                        className="flex items-center gap-3.5 px-5 py-3.5 w-full text-left transition-colors group/row hover:bg-black/[0.03] cursor-pointer min-h-[52px]"
                       >
                         {podcast.artworkUrl ? (
                           <img
                             src={podcast.artworkUrl}
                             alt={podcast.name}
-                            className="w-11 h-11 rounded-lg object-cover shrink-0"
+                            className="w-12 h-12 rounded-lg object-cover shrink-0"
                           />
                         ) : (
-                          <div className="w-11 h-11 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                          <div className="w-12 h-12 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
                             <Podcast className="w-5 h-5 text-primary" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground text-sm truncate">
+                          <p className="font-semibold text-foreground text-base truncate">
                             {podcast.name}
                           </p>
-                          <p className="text-xs text-muted-foreground/60 truncate mt-0.5">
+                          <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] truncate mt-0.5">
                             {podcast.artistName}
                           </p>
                         </div>
-                        <Plus className="w-5 h-5 text-muted-foreground/30 shrink-0 transition-colors group-hover/row:text-primary" />
+                        <Plus className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA] shrink-0 transition-colors group-hover/row:text-primary" />
                       </div>
                     ))}
                 </div>
               ) : (
                 <div className="px-6 py-10 text-center">
-                  <p className="text-sm text-muted-foreground">No podcasts found</p>
-                  <p className="text-xs text-muted-foreground/50 mt-1">Try a different search term</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">No podcasts found</p>
+                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Try a different search term</p>
                 </div>
               )}
             </motion.div>

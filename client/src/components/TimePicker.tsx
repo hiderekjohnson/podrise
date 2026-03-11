@@ -65,12 +65,12 @@ function ColumnDropdown({ options, selected, onSelect, testIdPrefix, label }: Co
         type="button"
         data-testid={`${testIdPrefix}-trigger`}
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between gap-1 h-12 px-4 min-w-[72px] bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground font-semibold text-sm hover:bg-black/[0.05] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all cursor-pointer"
+        className="flex items-center justify-between gap-1 min-h-[52px] px-4 min-w-[72px] bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground font-semibold text-[17px] hover:bg-black/[0.05] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all cursor-pointer"
       >
         <span>{selectedLabel}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <span className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA]">{label}</span>
 
       {open && (
         <div
@@ -87,7 +87,7 @@ function ColumnDropdown({ options, selected, onSelect, testIdPrefix, label }: Co
                   data-active={isActive ? "true" : "false"}
                   data-testid={`${testIdPrefix}-${opt.value}`}
                   onClick={() => { onSelect(opt.value); setOpen(false); }}
-                  className={`w-full px-4 py-2 text-center text-sm transition-colors ${
+                  className={`w-full px-4 py-3 text-center text-base min-h-[48px] transition-colors ${
                     isActive
                       ? "bg-primary/8 text-primary font-semibold"
                       : "text-foreground hover:bg-black/[0.03] font-medium"
@@ -156,7 +156,7 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
           data-testid="button-confirm-time"
           onClick={handleConfirm}
           disabled={!isDirty}
-          className={`h-12 px-4 rounded-xl font-semibold text-sm transition-all flex items-center gap-1.5 ${
+          className={`min-h-[52px] px-5 rounded-xl font-semibold text-[17px] transition-all flex items-center gap-1.5 ${
             isDirty
               ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.97]"
               : "bg-black/[0.03] text-muted-foreground/40 cursor-default"
@@ -165,7 +165,7 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
           <Check className="w-4 h-4" />
           Set
         </button>
-        <span className="text-xs font-medium text-transparent select-none">.</span>
+        <span className="text-[15px] font-medium text-transparent select-none">.</span>
       </div>
     </div>
   );

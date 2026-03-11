@@ -31,17 +31,17 @@ export function EpisodeCard({
       >
         <div className="flex items-center gap-2 mb-2">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
-          <span className="text-sm font-semibold text-muted-foreground/60">{formatted}</span>
+          <span className="text-base font-semibold text-muted-foreground/60">{formatted}</span>
           {duration && (
             <>
               <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
-              <span className="text-sm text-muted-foreground/50">{duration}</span>
+              <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/50">{duration}</span>
             </>
           )}
         </div>
         <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{episodeTitle}</p>
-        {tldl && <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{tldl}</p>}
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-3">
+        {tldl && <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5 leading-relaxed line-clamp-2">{tldl}</p>}
+        <span className="inline-flex items-center gap-1.5 text-base font-medium text-primary/50 group-hover:text-primary transition-colors mt-3">
           See full episode recap
           <ArrowRight className="w-3.5 h-3.5" />
         </span>

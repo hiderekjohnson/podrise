@@ -107,7 +107,7 @@ export default function GetStarted() {
           <button
             data-testid="link-login"
             onClick={() => navigate("/login")}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Log in
           </button>
@@ -130,10 +130,10 @@ export default function GetStarted() {
           <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
             <section className="flex flex-col gap-5">
               <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-[15px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">Choose podcasts to recap</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                 </div>
               </div>
 
@@ -141,7 +141,7 @@ export default function GetStarted() {
                 <PodcastSearch selectedPodcasts={selectedPodcasts} onAdd={handleAdd} onRemove={handleRemove} maxSelection={3} />
                 {selectedPodcasts.length > 0 && (
                   <div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
+                    <p className="text-base font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
                     <div className="grid grid-cols-3 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div key={podcast.id} className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 relative group">
@@ -159,7 +159,7 @@ export default function GetStarted() {
                               <Podcast className="w-10 h-10 text-primary" />
                             </div>
                           )}
-                          <p className="mt-2.5 text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
+                          <p className="mt-2.5 text-base font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
                         </div>
                       ))}
                     </div>
@@ -172,10 +172,10 @@ export default function GetStarted() {
 
             <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">2</span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-[15px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">2</span>
                 <div>
                   <h2 className="text-lg font-display font-bold text-foreground">Where should we send your recap?</h2>
-                  <p className="text-sm text-muted-foreground mt-1">All your podcast recaps in one daily email.</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">All your podcast recaps in one daily email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
@@ -210,7 +210,7 @@ export default function GetStarted() {
                   </>
                 )}
               </button>
-              <p className="text-sm text-muted-foreground italic">Free forever for up to 3 podcasts.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] italic">Free forever for up to 3 podcasts.</p>
             </div>
           </div>
         </motion.div>
@@ -218,7 +218,7 @@ export default function GetStarted() {
         <section className="w-full max-w-2xl mt-12 text-center">
           <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
             <h3 className="text-lg font-display font-bold text-foreground mb-3">What you'll get</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-muted-foreground">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-2xl">📬</span>
                 <p className="font-medium text-foreground">Daily email</p>

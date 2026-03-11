@@ -105,7 +105,7 @@ export function PodcastPageLayout({
         rightContent={
           <button
             onClick={() => setShowRecapsModal(true)}
-            className="h-7 px-3 rounded-md font-display font-bold text-xs bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
             data-testid="button-get-recaps"
           >
             Get Recaps
@@ -127,7 +127,7 @@ export function PodcastPageLayout({
                 <img
                   src={artworkUrl}
                   alt={`${name} Podcast Cover Art`}
-                  className="relative w-48 h-48 sm:w-52 sm:h-52 rounded-2xl shadow-2xl shadow-black/[0.12] object-cover ring-1 ring-black/[0.04]"
+                  className="relative w-52 h-52 sm:w-56 sm:h-56 rounded-2xl shadow-2xl shadow-black/[0.12] object-cover ring-1 ring-black/[0.04]"
                   data-testid="img-podcast-artwork"
                 />
               </div>
@@ -141,26 +141,26 @@ export function PodcastPageLayout({
                 {name}
               </h1>
 
-              <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
+              <p className="text-base sm:text-lg text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
                 {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
               </p>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 mt-1">
                 {hosts && (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-hosts">
-                    <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-hosts">
+                    <Users className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
                     <span className="font-medium text-foreground/80">{hosts}</span>
                   </span>
                 )}
                 {totalEpisodes && (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-episodes">
-                    <Mic className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episodes">
+                    <Mic className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
                     {totalEpisodes}+ episodes
                   </span>
                 )}
                 {yearStarted && (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-since">
-                    <Calendar className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-since">
+                    <Calendar className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
                     Since {yearStarted}
                   </span>
                 )}
@@ -171,22 +171,22 @@ export function PodcastPageLayout({
                   href={appleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors min-h-[44px]"
                   data-testid="hero-link-apple"
                   title="Listen on Apple Podcasts"
                 >
-                  <SiApplepodcasts className="w-4 h-4 text-[#9933CC]" />
+                  <SiApplepodcasts className="w-5 h-5 text-[#9933CC]" />
                   Apple Podcasts
                 </a>
                 <a
                   href={effectiveSpotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors min-h-[44px]"
                   data-testid="hero-link-spotify"
                   title="Listen on Spotify"
                 >
-                  <SiSpotify className="w-4 h-4 text-[#1DB954]" />
+                  <SiSpotify className="w-5 h-5 text-[#1DB954]" />
                   Spotify
                 </a>
                 {youtubeUrl && (
@@ -194,11 +194,11 @@ export function PodcastPageLayout({
                     href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors min-h-[44px]"
                     data-testid="hero-link-youtube"
                     title="Watch on YouTube"
                   >
-                    <SiYoutube className="w-4 h-4 text-[#FF0000]" />
+                    <SiYoutube className="w-5 h-5 text-[#FF0000]" />
                     YouTube
                   </a>
                 )}
@@ -218,17 +218,17 @@ export function PodcastPageLayout({
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                className={`flex items-center gap-2 px-5 py-4 text-[17px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[52px] ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08]"
+                    : "border-transparent text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:border-black/[0.08]"
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
-                <tab.icon className="w-4 h-4" />
+                <tab.icon className="w-5 h-5" />
                 {tab.label}
                 {tab.id === "ask" && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
+                  <span className="ml-1 px-2 py-1 text-[14px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
                 )}
               </button>
             ))}
@@ -247,10 +247,10 @@ export function PodcastPageLayout({
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-bottom-cta">
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
+                <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2">
                   Get {name} recaps in your inbox
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                   We'll send a recap whenever a new episode drops.
                 </p>
               </div>
@@ -261,15 +261,15 @@ export function PodcastPageLayout({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  className="flex-1 sm:w-56 h-[52px] px-4 bg-white border-[1.5px] border-[#D4D4D8] rounded-xl text-foreground text-[17px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-[#71717A] shadow-sm shadow-black/[0.03]"
                 />
                 <button
                   data-testid="button-signup-bottom"
                   type="submit"
                   disabled={isPending}
-                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
+                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
                 >
-                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Get Started"}
+                  {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Get Started"}
                 </button>
               </form>
             </div>
@@ -289,12 +289,12 @@ export function PodcastPageLayout({
             className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
             data-testid="sticky-signup-bar"
           >
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center gap-3">
               <div className="flex items-center gap-3 shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                  <Mail className="w-4 h-4 text-primary" />
+                <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-primary" />
                 </div>
-                <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+                <p className="text-base font-semibold text-foreground whitespace-nowrap">
                   Never miss a <span className="text-primary">{name}</span> recap
                 </p>
               </div>
@@ -305,23 +305,23 @@ export function PodcastPageLayout({
                   value={stickyEmail}
                   onChange={(e) => setStickyEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/40"
+                  className="flex-1 h-[44px] px-4 bg-black/[0.03] dark:bg-white/[0.06] border-[1.5px] border-[#D4D4D8] dark:border-white/[0.08] rounded-lg text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-[#71717A]"
                 />
                 <button
                   data-testid="button-sticky-signup"
                   type="submit"
-                  className="h-9 px-4 rounded-lg font-bold text-sm bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                  className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
                 >
                   Subscribe free
                 </button>
               </form>
               <button
                 onClick={() => setStickyDismissed(true)}
-                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-1.5 rounded-md text-muted-foreground/40 hover:text-muted-foreground hover:bg-black/[0.04] transition-colors shrink-0"
+                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 data-testid="button-dismiss-sticky"
                 aria-label="Dismiss"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
           </motion.div>

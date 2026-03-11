@@ -154,7 +154,7 @@ export default function EpisodeArchivePage() {
               <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground" data-testid="text-archive-title">
                 All {config.name} Recaps
               </h2>
-              <p className="text-sm text-muted-foreground mt-1" data-testid="text-episode-count">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1" data-testid="text-episode-count">
                 {total} episode {total === 1 ? "recap" : "recaps"}
               </p>
             </div>
@@ -196,29 +196,29 @@ export default function EpisodeArchivePage() {
                 <div className="flex items-center justify-center gap-4 mt-10" data-testid="pagination">
                   {page > 1 ? (
                     <Link href={`/podcasts/${slug}/episodes${page > 2 ? `?page=${page - 1}` : ""}`}>
-                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-prev-page">
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-prev-page">
                         <ChevronLeft className="w-4 h-4" />
                         Previous
                       </span>
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground/40 cursor-not-allowed">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-semibold text-muted-foreground/40 cursor-not-allowed">
                       <ChevronLeft className="w-4 h-4" />
                       Previous
                     </span>
                   )}
-                  <span className="text-sm text-muted-foreground" data-testid="text-page-info">
+                  <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-page-info">
                     Page {page} of {totalPages}
                   </span>
                   {page < totalPages ? (
                     <Link href={`/podcasts/${slug}/episodes?page=${page + 1}`}>
-                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-next-page">
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors" data-testid="link-next-page">
                         Next
                         <ChevronRight className="w-4 h-4" />
                       </span>
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground/40 cursor-not-allowed">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-semibold text-muted-foreground/40 cursor-not-allowed">
                       Next
                       <ChevronRight className="w-4 h-4" />
                     </span>

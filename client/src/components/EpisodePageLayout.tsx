@@ -137,7 +137,7 @@ export function EpisodePageLayout({
         rightContent={
           <button
             onClick={() => setShowRecapsModal(true)}
-            className="h-8 px-3.5 rounded-lg font-display font-bold text-xs bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
             data-testid="button-get-recaps"
           >
             Get {episode.podcastName} Recaps
@@ -180,18 +180,18 @@ export function EpisodePageLayout({
               </Link>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
-                <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-episode-date">
+                <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-date">
                   <Calendar className="w-3.5 h-3.5 text-muted-foreground/50" />
                   {formattedDate}
                 </span>
                 {episode.duration && (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-episode-duration">
+                  <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-duration">
                     <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
                     {episode.duration}
                   </span>
                 )}
                 {episode.hosts && (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="text-hosts">
+                  <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-hosts">
                     <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
                     <span className="font-medium text-foreground/80">{episode.hosts}</span>
                   </span>
@@ -203,7 +203,7 @@ export function EpisodePageLayout({
                   href={appleLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                   data-testid="link-apple-podcasts"
                   title="Listen on Apple Podcasts"
                 >
@@ -215,7 +215,7 @@ export function EpisodePageLayout({
                   href={spotifyLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                   data-testid="link-spotify"
                   title="Listen on Spotify"
                 >
@@ -228,7 +228,7 @@ export function EpisodePageLayout({
                     href={effectiveYoutubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                     data-testid="link-youtube"
                     title="Watch on YouTube"
                   >
@@ -251,7 +251,7 @@ export function EpisodePageLayout({
           <div className="flex items-center border-b border-black/[0.06] mb-8" data-testid="nav-recap-transcript-tabs">
             {activeTab === "recap" ? (
               <span
-                className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+                className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-primary text-primary -mb-px"
                 data-testid="tab-recap-active"
               >
                 <FileText className="w-4 h-4" />
@@ -260,7 +260,7 @@ export function EpisodePageLayout({
             ) : (
               <Link href={recapUrl}>
                 <span
-                  className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
                   data-testid="tab-recap-link"
                 >
                   <FileText className="w-4 h-4" />
@@ -271,7 +271,7 @@ export function EpisodePageLayout({
 
             {activeTab === "transcript" ? (
               <span
-                className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary -mb-px"
+                className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-primary text-primary -mb-px"
                 data-testid="tab-transcript-active"
               >
                 <FileText className="w-4 h-4" />
@@ -280,7 +280,7 @@ export function EpisodePageLayout({
             ) : (
               <Link href={transcriptUrl}>
                 <span
-                  className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
                   data-testid="tab-transcript-link"
                 >
                   <FileText className="w-4 h-4" />
@@ -318,12 +318,12 @@ export function EpisodePageLayout({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
                 />
                 <button
                   data-testid="button-signup-episode"
                   type="submit"
-                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
+                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
                 >
                   Get Started
                 </button>
@@ -344,9 +344,9 @@ export function EpisodePageLayout({
               <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
                 <div className="flex items-center gap-2.5">
                   <ListChecks className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+                  <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1.5">Catch up on other recent episodes from {episode.podcastName}.</p>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Catch up on other recent episodes from {episode.podcastName}.</p>
               </div>
               <div className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
               {previousEpisodes.map((ep: any) => {
@@ -360,17 +360,17 @@ export function EpisodePageLayout({
                     >
                       <div className="flex items-center gap-2 mb-1.5">
                         <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
-                        <span className="text-sm font-semibold text-muted-foreground/60">{formatted}</span>
+                        <span className="text-base font-semibold text-muted-foreground/60">{formatted}</span>
                         {ep.duration && (
                           <>
                             <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
-                            <span className="text-sm text-muted-foreground/50">{ep.duration}</span>
+                            <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/50">{ep.duration}</span>
                           </>
                         )}
                       </div>
                       <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                      {ep.tldl && <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{ep.tldl}</p>}
-                      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary/50 group-hover:text-primary transition-colors mt-2.5">
+                      {ep.tldl && <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5 leading-relaxed line-clamp-2">{ep.tldl}</p>}
+                      <span className="inline-flex items-center gap-1.5 text-base font-medium text-primary/50 group-hover:text-primary transition-colors mt-2.5">
                         See full episode recap
                         <ArrowRight className="w-3.5 h-3.5" />
                       </span>
@@ -381,7 +381,7 @@ export function EpisodePageLayout({
               </div>
               <div className="flex justify-center px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.06]">
                 <Link href={`/podcasts/${podcastSlug}`}>
-                  <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-sm bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                  <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
                     View all {episode.podcastName} episodes
                     <ArrowRight className="w-4 h-4" />
                   </span>
@@ -409,7 +409,7 @@ export function EpisodePageLayout({
                 <div className="w-8 h-8 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
                   <Mail className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+                <p className="text-base font-semibold text-foreground whitespace-nowrap">
                   Never miss a <span className="text-primary">{episode.podcastName}</span> recap
                 </p>
               </div>
@@ -420,12 +420,12 @@ export function EpisodePageLayout({
                   value={stickyEmail}
                   onChange={(e) => setStickyEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/40"
+                  className="flex-1 h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-lg text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/40"
                 />
                 <button
                   data-testid="button-sticky-signup"
                   type="submit"
-                  className="h-9 px-4 rounded-lg font-bold text-sm bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                  className="h-9 px-4 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
                 >
                   Subscribe free
                 </button>

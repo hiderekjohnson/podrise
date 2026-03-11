@@ -65,7 +65,7 @@ function ContactSection() {
             <p className="text-[15px] text-muted-foreground">We'll get back to you as soon as possible.</p>
             <button
               onClick={() => setSent(false)}
-              className="mt-4 text-sm text-primary font-display font-bold hover:underline"
+              className="mt-4 text-base text-primary font-display font-bold hover:underline"
               data-testid="button-send-another"
             >
               Send another message
@@ -74,7 +74,7 @@ function ContactSection() {
         ) : (
           <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-4" data-testid="form-contact">
             <div>
-              <label htmlFor="podcaster-email" className="block text-sm font-display font-semibold mb-1.5">
+              <label htmlFor="podcaster-email" className="block text-base font-display font-semibold mb-1.5">
                 Your email
               </label>
               <input
@@ -89,7 +89,7 @@ function ContactSection() {
               />
             </div>
             <div>
-              <label htmlFor="podcaster-message" className="block text-sm font-display font-semibold mb-1.5">
+              <label htmlFor="podcaster-message" className="block text-base font-display font-semibold mb-1.5">
                 Tell us about your podcast
               </label>
               <textarea
@@ -146,12 +146,12 @@ export default function ForPodcasters() {
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-nav-login">
               Log In
             </Link>
           </div>
@@ -162,7 +162,7 @@ export default function ForPodcasters() {
 
         <section className="relative overflow-hidden pt-20 pb-16 sm:pt-28 sm:pb-20" data-testid="section-hero">
           <div className="relative max-w-3xl mx-auto px-6 text-center">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-sm font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-podcasters">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-base font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-podcasters">
               <Mic className="w-4 h-4" />
               For Podcasters
             </div>
@@ -195,7 +195,7 @@ export default function ForPodcasters() {
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
                   <p className="text-sm font-display font-semibold text-foreground/70 mb-1">{stat.label}</p>
-                  <p className="text-xs text-muted-foreground/50 leading-snug">{stat.detail}</p>
+                  <p className="text-[15px] text-muted-foreground/50 leading-snug">{stat.detail}</p>
                 </div>
               ))}
             </div>
@@ -336,9 +336,9 @@ export default function ForPodcasters() {
                 <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="group" data-testid={`card-podcast-${podcast.slug}`}>
                   <div className="bg-card border border-border rounded-2xl p-3.5 hover:border-primary/30 hover:shadow-md transition-all h-full flex flex-col">
                     <img src={podcast.artworkUrl} alt={podcast.name} className="w-full aspect-square rounded-xl object-cover mb-3 group-hover:scale-[1.02] transition-transform" loading="lazy" />
-                    <h3 className="font-display font-bold text-sm mb-0.5 leading-tight group-hover:text-primary transition-colors">{podcast.name}</h3>
-                    <p className="text-xs text-muted-foreground leading-snug flex-1 line-clamp-2">{podcast.description}</p>
-                    <span className="flex items-center text-primary text-xs font-display font-bold mt-2">
+                    <h3 className="font-display font-bold text-base mb-0.5 leading-tight group-hover:text-primary transition-colors">{podcast.name}</h3>
+                    <p className="text-[15px] text-muted-foreground leading-snug flex-1 line-clamp-2">{podcast.description}</p>
+                    <span className="flex items-center text-primary text-[15px] font-display font-bold mt-2">
                       View Page <ChevronRight className="w-3 h-3 ml-0.5" />
                     </span>
                   </div>
@@ -347,7 +347,7 @@ export default function ForPodcasters() {
             </div>
             <div className="text-center mt-8">
               <Link href="/podcasts" data-testid="link-browse-all">
-                <Button variant="outline" size="sm" className="rounded-xl font-display font-bold text-sm h-9 px-5">
+                <Button variant="outline" size="sm" className="rounded-xl font-display font-bold text-base h-9 px-5">
                   Browse All Podcasts <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               </Link>

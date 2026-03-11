@@ -118,7 +118,7 @@ function CopyFullTranscriptButton({ segments }: { segments: TranscriptSegment[] 
   return (
     <button
       onClick={handleCopy}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[15px] font-semibold transition-all ${
         copied
           ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
           : "bg-primary/[0.06] text-primary hover:bg-primary/[0.12]"
@@ -334,7 +334,7 @@ export default function EpisodeTranscriptPage() {
       allRecaps={allRecaps}
     >
       <div>
-        <p className="text-sm text-muted-foreground mb-6" data-testid="text-recap-link">
+        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-6" data-testid="text-recap-link">
           Too long to read?{" "}
           <Link
             href={`/podcasts/${podcastSlug}/${episodeSlug}`}
@@ -347,7 +347,7 @@ export default function EpisodeTranscriptPage() {
         </p>
 
         <div
-          className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground px-4 py-3 bg-white border border-black/[0.06] rounded-xl mb-4"
+          className="flex items-center gap-4 flex-wrap text-base text-[#3F3F46] dark:text-[#A1A1AA] px-4 py-3 bg-white border border-black/[0.06] rounded-xl mb-4"
           data-testid="stats-bar"
         >
           <div className="flex items-center gap-1.5">
@@ -371,7 +371,7 @@ export default function EpisodeTranscriptPage() {
             data-testid="input-transcript-search"
           />
           {debouncedQuery && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/50 pointer-events-none" data-testid="text-search-count">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-muted-foreground/50 pointer-events-none" data-testid="text-search-count">
               {matchCount} match{matchCount !== 1 ? "es" : ""}
             </span>
           )}
@@ -381,7 +381,7 @@ export default function EpisodeTranscriptPage() {
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06]">
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold text-foreground">Full Transcript</span>
+              <span className="text-base font-bold text-foreground">Full Transcript</span>
             </div>
             <CopyFullTranscriptButton segments={filteredSegments} />
           </div>
@@ -408,14 +408,14 @@ export default function EpisodeTranscriptPage() {
                         <a
                           href={`#${seg.anchorId}`}
                           onClick={(e) => handleTimestampClick(e, seg.anchorId)}
-                          className="text-xs font-bold text-primary bg-primary/[0.08] px-2 py-0.5 rounded-md font-mono hover:bg-primary/[0.14] transition-colors no-underline tabular-nums"
+                          className="text-[15px] font-bold text-primary bg-primary/[0.08] px-2 py-0.5 rounded-md font-mono hover:bg-primary/[0.14] transition-colors no-underline tabular-nums"
                           data-testid={`ts-${seg.anchorId}`}
                         >
                           {seg.timestampLabel}
                         </a>
                       )}
                       {validSpeaker && (
-                        <span className="text-sm font-bold text-foreground" data-testid={`speaker-${seg.anchorId}`}>
+                        <span className="text-base font-bold text-foreground" data-testid={`speaker-${seg.anchorId}`}>
                           {seg.speakerName}
                         </span>
                       )}

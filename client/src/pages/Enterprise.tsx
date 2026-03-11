@@ -43,7 +43,7 @@ function EnterpriseContactForm() {
         <p className="text-[15px] text-muted-foreground">A member of our team will follow up within one business day.</p>
         <button
           onClick={() => setSent(false)}
-          className="mt-4 text-sm text-primary font-display font-bold hover:underline"
+          className="mt-4 text-base text-primary font-display font-bold hover:underline"
           data-testid="button-send-another"
         >
           Send another message
@@ -55,7 +55,7 @@ function EnterpriseContactForm() {
   return (
     <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-4 max-w-lg mx-auto" data-testid="form-enterprise-contact">
       <div>
-        <label htmlFor="enterprise-email" className="block text-sm font-display font-semibold mb-1.5">
+        <label htmlFor="enterprise-email" className="block text-base font-display font-semibold mb-1.5">
           Work email
         </label>
         <input
@@ -70,7 +70,7 @@ function EnterpriseContactForm() {
         />
       </div>
       <div>
-        <label htmlFor="enterprise-message" className="block text-sm font-display font-semibold mb-1.5">
+        <label htmlFor="enterprise-message" className="block text-base font-display font-semibold mb-1.5">
           How can PodCap help your team?
         </label>
         <textarea
@@ -127,12 +127,12 @@ export default function Enterprise() {
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-nav-login">
               Log In
             </Link>
           </div>
@@ -144,7 +144,7 @@ export default function Enterprise() {
         <section className="relative overflow-hidden pt-20 pb-16 sm:pt-28 sm:pb-20" data-testid="section-hero">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-background to-background" />
           <div className="relative max-w-3xl mx-auto px-6 text-center">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-sm font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-enterprise">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-base font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-enterprise">
               <Building2 className="w-4 h-4" />
               Enterprise
             </div>
@@ -178,7 +178,7 @@ export default function Enterprise() {
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
                   <p className="text-sm font-display font-semibold text-foreground/70 mb-1">{stat.label}</p>
-                  <p className="text-xs text-muted-foreground/50 leading-snug">{stat.detail}</p>
+                  <p className="text-[15px] text-muted-foreground/50 leading-snug">{stat.detail}</p>
                 </div>
               ))}
             </div>

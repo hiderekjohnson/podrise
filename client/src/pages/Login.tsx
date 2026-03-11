@@ -79,13 +79,13 @@ export default function Login() {
           <h1 className="text-2xl font-display font-bold text-foreground mb-2" data-testid="text-check-email">
             Check Your Email
           </h1>
-          <p className="text-muted-foreground text-sm mb-1">
+          <p className="text-muted-foreground text-base mb-1">
             We sent a login link to
           </p>
-          <p className="font-semibold text-foreground text-sm mb-5" data-testid="text-sent-email">
+          <p className="font-semibold text-foreground text-base mb-5" data-testid="text-sent-email">
             {email}
           </p>
-          <p className="text-muted-foreground text-xs mb-6">
+          <p className="text-muted-foreground text-[15px] mb-6">
             The link expires in 15 minutes. Check your spam folder if you don't see it.
           </p>
           <button
@@ -157,7 +157,7 @@ export default function Login() {
         </form>
 
         <div className="mt-5 text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
             Don't have an account?{" "}
             <button
               data-testid="link-signup"

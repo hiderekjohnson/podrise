@@ -74,11 +74,11 @@ export default function CompanyDetailPage() {
             <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
           ) : (
             <>
-              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
+              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </a>
-              <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
+              <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
             </>
           )}
         </div>
@@ -88,7 +88,7 @@ export default function CompanyDetailPage() {
         <div className="w-full max-w-3xl">
           <button
             onClick={() => navigate("/companies")}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 mt-4"
+            className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-6 mt-4"
             data-testid="button-back-companies"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -126,7 +126,7 @@ export default function CompanyDetailPage() {
                       {company.name}
                     </h1>
                     <p className="text-base text-muted-foreground mb-3">{company.description}</p>
-                    <div className="flex items-center gap-1.5 text-sm justify-center sm:justify-start">
+                    <div className="flex items-center gap-1.5 text-base justify-center sm:justify-start">
                       <MessageSquare className="w-4 h-4 text-primary" />
                       <span className="font-semibold text-foreground">{company.mentionCount}</span>
                       <span className="text-muted-foreground">mentions across podcasts</span>
@@ -145,21 +145,21 @@ export default function CompanyDetailPage() {
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Headquarters</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Headquarters</p>
                         <p className="text-base font-medium text-foreground">{details.headquarters}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Clock className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Founded</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founded</p>
                         <p className="text-base font-medium text-foreground">{details.founded}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Employees</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Employees</p>
                         <p className="text-base font-medium text-foreground">{details.employees}</p>
                       </div>
                     </div>
@@ -167,7 +167,7 @@ export default function CompanyDetailPage() {
                       <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                         <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Market Cap</p>
+                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Market Cap</p>
                           <p className="text-base font-medium text-foreground">{details.marketCap}</p>
                         </div>
                       </div>
@@ -175,14 +175,14 @@ export default function CompanyDetailPage() {
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm text-muted-foreground">CEO</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">CEO</p>
                         <p className="text-base font-medium text-foreground">{details.ceo}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                       <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Industry</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Industry</p>
                         <p className="text-base font-medium text-foreground">{details.industry}</p>
                       </div>
                     </div>
@@ -190,7 +190,7 @@ export default function CompanyDetailPage() {
                       <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2 sm:col-span-3">
                         <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Website</p>
+                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Website</p>
                           <a href={details.website} target="_blank" rel="noopener noreferrer" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
                             {details.website.replace("https://", "")}
                           </a>
@@ -202,10 +202,10 @@ export default function CompanyDetailPage() {
 
                 {companyData?.associatedTerms && companyData.associatedTerms.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-border" data-testid="section-associated-terms">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
+                    <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
                     <div className="flex flex-wrap gap-2">
                       {companyData.associatedTerms.map((term) => (
-                        <span key={term} className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full" data-testid={`badge-term-${term.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <span key={term} className="px-3 py-1.5 bg-primary/10 text-primary text-base font-medium rounded-full" data-testid={`badge-term-${term.toLowerCase().replace(/\s+/g, '-')}`}>
                           {term}
                         </span>
                       ))}
@@ -215,7 +215,7 @@ export default function CompanyDetailPage() {
 
                 {companyData?.relatedPeople && companyData.relatedPeople.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-border" data-testid="section-related-people">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related People</p>
+                    <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related People</p>
                     <div className="flex flex-wrap gap-2">
                       {companyData.relatedPeople.map((personSlug) => {
                         const p = getPersonData(personSlug);
@@ -228,7 +228,7 @@ export default function CompanyDetailPage() {
                             data-testid={`chip-person-${personSlug}`}
                           >
                             <img src={p.imageUrl || `/people/default-avatar.png`} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
-                            <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
+                            <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                           </a>
                         );
                       })}
@@ -238,7 +238,7 @@ export default function CompanyDetailPage() {
 
                 {companyData?.similarCompanies && companyData.similarCompanies.length > 0 && (
                   <div className={`mt-4 ${companyData?.relatedPeople?.length ? '' : 'pt-4 border-t border-border'}`} data-testid="section-similar-companies">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar Companies</p>
+                    <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar Companies</p>
                     <div className="flex flex-wrap gap-2">
                       {companyData.similarCompanies.map((companySlug) => {
                         const c = COMPANIES_DIRECTORY.find(x => x.slug === companySlug);
@@ -251,7 +251,7 @@ export default function CompanyDetailPage() {
                             data-testid={`chip-company-${companySlug}`}
                           >
                             <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
-                            <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
+                            <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
                           </a>
                         );
                       })}
@@ -282,7 +282,7 @@ export default function CompanyDetailPage() {
                             <p className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
                               {ep.episode_title}
                             </p>
-                            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
                               <Headphones className="w-3.5 h-3.5" />
                               {ep.podcast_name}
                               {ep.publish_date && (
@@ -297,7 +297,7 @@ export default function CompanyDetailPage() {
                           <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0" />
                         </div>
                         {ep.context && (
-                          <p className="mt-3 text-sm text-muted-foreground/80 leading-relaxed pl-16 italic">
+                          <p className="mt-3 text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 leading-relaxed pl-16 italic">
                             &ldquo;{ep.context}&rdquo;
                           </p>
                         )}

@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ArrowRight, Headphones, Search, Sparkles, Library, Users, Zap } from "lucide-react";
+import { ArrowRight, Headphones, Search, Sparkles, Library, Users, Zap, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
@@ -66,7 +66,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead />
 
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+      <header className="w-full px-6 min-h-[68px] flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
           <PodCapWordmark />
         </a>
@@ -74,15 +74,15 @@ export default function Home() {
           <button
             data-testid="link-get-started-nav"
             onClick={() => navigate("/get-started")}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors min-h-[44px]"
           >
-            <Zap className="w-3.5 h-3.5" />
+            <Zap className="w-4 h-4" />
             Build Your Recap
           </button>
           <button
             data-testid="link-login"
             onClick={() => navigate("/login")}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3"
           >
             Log in
           </button>
@@ -96,22 +96,22 @@ export default function Home() {
             <h1 className="text-[2.5rem] sm:text-[3.25rem] md:text-[4rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
               The world's searchable library of podcast knowledge
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed font-medium">
+            <p className="text-lg sm:text-xl text-[#3F3F46] dark:text-[#A1A1AA] max-w-xl leading-relaxed font-medium">
               Search, skim, and stay current on the world's best podcasts — without listening to every full episode.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <button
                 data-testid="button-hero-cta"
                 onClick={() => navigate("/get-started")}
-                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
+                className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
               >
                 Build Your Recap
-                <ArrowRight className="w-4.5 h-4.5" />
+                <ArrowRight className="w-5 h-5" />
               </button>
               <button
                 data-testid="button-browse-podcasts"
                 onClick={() => navigate("/podcasts")}
-                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-card border border-border text-foreground hover:bg-accent transition-colors"
+                className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-card border-2 border-[#18181B] text-foreground hover:bg-[#F4F4F5] transition-colors"
               >
                 Browse Podcasts
               </button>
@@ -120,31 +120,31 @@ export default function Home() {
         </section>
 
         <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-20 sm:pb-24">
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-display font-bold text-foreground">Unlock podcast insights</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <h3 className="text-xl font-display font-bold text-foreground">Unlock podcast insights</h3>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                 Every episode is distilled into the key ideas, notable quotes, and actionable takeaways — so you get the value without the time commitment.
               </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Search className="w-5 h-5 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Search className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-display font-bold text-foreground">Searchable and skimmable</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <h3 className="text-xl font-display font-bold text-foreground">Searchable and skimmable</h3>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                 Browse recaps by podcast, topic, guest, or company. Find exactly the conversation you're looking for in seconds, not hours.
               </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Headphones className="w-5 h-5 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Headphones className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-display font-bold text-foreground">Never fall behind</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <h3 className="text-xl font-display font-bold text-foreground">Never fall behind</h3>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                 Get a personalized daily email with recaps of your favorite shows. Stay current on every podcast you follow — even the ones you can't listen to.
               </p>
             </div>
@@ -157,11 +157,11 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]">
                 Explore top podcasts
               </h2>
-              <p className="text-base text-muted-foreground mt-3 max-w-lg mx-auto">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
                 We cover thousands of the world's most popular and influential podcast shows. Browse episodes, read recaps, and get daily summaries delivered to your inbox.
               </p>
             </motion.div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
               {featuredPodcasts.map((podcast, i) => (
                 <motion.div
                   key={podcast.slug}
@@ -182,13 +182,13 @@ export default function Home() {
                         className="w-full aspect-square object-cover group-hover:scale-[1.03] transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
-                        <span className="text-white text-xs font-bold">Get Recaps →</span>
+                        <span className="text-white text-[15px] font-bold">Get Recaps →</span>
                       </div>
                     </div>
-                    <p className="mt-2.5 text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                    <p className="mt-2.5 text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                       {podcast.name}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{podcast.category}</p>
+                    <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-1">{podcast.category}</p>
                   </div>
                 </motion.div>
               ))}
@@ -197,10 +197,10 @@ export default function Home() {
               <button
                 data-testid="button-view-all-podcasts"
                 onClick={() => navigate("/podcasts")}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border text-sm font-bold text-foreground hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-2 px-7 py-4 rounded-[10px] bg-card border-2 border-[#18181B] text-[17px] font-bold text-foreground hover:bg-[#F4F4F5] transition-colors min-h-[52px]"
               >
                 View all podcasts
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]">
                 Notable voices across podcasts
               </h2>
-              <p className="text-base text-muted-foreground mt-3 max-w-lg mx-auto">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
                 The most influential founders, investors, and thinkers who shape the conversations across the podcast ecosystem.
               </p>
             </motion.div>
@@ -230,7 +230,7 @@ export default function Home() {
                     onClick={() => navigate(`/people/${person.slug}`)}
                     data-testid={`card-person-home-${person.slug}`}
                   >
-                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-border group-hover:border-primary/30 transition-colors shadow-sm">
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-border group-hover:border-primary/30 transition-colors shadow-sm">
                       <img
                         src={person.imageUrl}
                         alt={person.name}
@@ -240,10 +240,10 @@ export default function Home() {
                         }}
                       />
                     </div>
-                    <p className="mt-3 text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
+                    <p className="mt-3 text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
                       {person.name}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2 leading-relaxed">
                       {person.title}
                     </p>
                   </div>
@@ -254,10 +254,10 @@ export default function Home() {
               <button
                 data-testid="button-view-all-people"
                 onClick={() => navigate("/people")}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border text-sm font-bold text-foreground hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-2 px-7 py-4 rounded-[10px] bg-card border-2 border-[#18181B] text-[17px] font-bold text-foreground hover:bg-[#F4F4F5] transition-colors min-h-[52px]"
               >
                 View all people
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -272,19 +272,19 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold leading-[1.1] tracking-[-0.02em]">
                 We're organizing the world's podcast knowledge
               </h2>
-              <p className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed">
+              <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
                 Millions of hours of conversations happen across podcasts every year. The best ideas, the sharpest analysis, the most honest debates — locked inside audio files that most people will never hear. PodCap is changing that.
               </p>
-              <p className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed">
+              <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
                 We're building the infrastructure to make podcast knowledge searchable, skimmable, and accessible to everyone — episode by episode, idea by idea.
               </p>
               <a
                 href="/about"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white/80 transition-colors mt-2"
+                className="inline-flex items-center gap-2 text-base font-semibold text-white/60 hover:text-white/90 transition-colors mt-2 min-h-[44px]"
                 data-testid="link-about-vision"
               >
                 Read our story
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </a>
             </motion.div>
           </div>
@@ -296,16 +296,16 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]">
                 Start getting smarter about podcasts
               </h2>
-              <p className="text-base text-muted-foreground max-w-md">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-md">
                 Choose your favorite shows, and we'll send you a daily recap with the key ideas from every new episode. Free forever.
               </p>
               <button
                 data-testid="button-bottom-cta"
                 onClick={() => navigate("/get-started")}
-                className="h-12 px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
+                className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
               >
                 Build Your Recap
-                <ArrowRight className="w-4.5 h-4.5" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             </motion.div>
           </div>
@@ -345,54 +345,54 @@ function SampleEpisode({
   return (
     <div className="rounded-2xl border border-black/[0.06] overflow-hidden shadow-sm shadow-black/[0.03]">
       <div className={`${color} px-5 py-3.5`}>
-        <p className="text-xs font-bold text-white uppercase tracking-[0.15em]">{name}</p>
+        <p className="text-[15px] font-bold text-white uppercase tracking-[0.15em]">{name}</p>
       </div>
-      <div className="p-5 space-y-4 bg-white">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+      <div className="p-6 space-y-4 bg-white">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base">
           <div>
-            <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Episode</p>
+            <p className="text-[15px] font-semibold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">Episode</p>
             <p className="font-medium text-foreground mt-0.5">{episode}</p>
           </div>
           {guest && (
             <div>
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">{guestTitle === "Hosts" || guestTitle === "Host" ? guestTitle : "Guest"}</p>
+              <p className="text-[15px] font-semibold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">{guestTitle === "Hosts" || guestTitle === "Host" ? guestTitle : "Guest"}</p>
               <p className="font-medium text-foreground mt-0.5">{guest}</p>
               {guestTitle && guestTitle !== "Hosts" && guestTitle !== "Host" && (
-                <p className="text-xs text-muted-foreground">{guestTitle}</p>
+                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA]">{guestTitle}</p>
               )}
             </div>
           )}
           <div>
-            <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">Length</p>
+            <p className="text-[15px] font-semibold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">Length</p>
             <p className="font-medium text-foreground mt-0.5">{length}</p>
           </div>
         </div>
 
-        <div className="bg-black/[0.02] rounded-lg p-3.5">
-          <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">TLDR</p>
-          <p className="text-sm text-foreground">{tldr}</p>
+        <div className="bg-black/[0.02] rounded-lg p-4">
+          <p className="text-[15px] font-bold text-primary uppercase tracking-wider mb-1">TLDR</p>
+          <p className="text-base text-foreground">{tldr}</p>
         </div>
 
         <div>
-          <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider mb-1.5">{discussionLabel}</p>
-          <p className="text-sm text-muted-foreground leading-relaxed">{discussion}</p>
+          <p className="text-[15px] font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider mb-1.5">{discussionLabel}</p>
+          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{discussion}</p>
         </div>
 
         <div>
-          <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider mb-2">Key Insights</p>
-          <ul className="space-y-1.5">
+          <p className="text-[15px] font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider mb-2">Key Insights</p>
+          <ul className="space-y-2">
             {insights.map((insight, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
+              <li key={i} className="flex items-start gap-2.5 text-base text-foreground">
+                <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />
                 {insight}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="flex items-start gap-2.5 bg-gradient-to-r from-primary/[0.04] to-transparent rounded-lg p-3.5 border-l-2 border-primary/30">
-          <Quote className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-sm font-medium text-foreground italic">{hook}</p>
+        <div className="flex items-start gap-2.5 bg-gradient-to-r from-primary/[0.04] to-transparent rounded-lg p-4 border-l-2 border-primary/30">
+          <Quote className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <p className="text-base font-medium text-foreground italic">{hook}</p>
         </div>
       </div>
     </div>

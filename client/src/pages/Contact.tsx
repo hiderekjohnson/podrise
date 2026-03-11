@@ -61,12 +61,12 @@ export default function Contact() {
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-login">
               Log In
             </Link>
           </div>
@@ -88,10 +88,10 @@ export default function Contact() {
             <div className="text-center py-8" data-testid="contact-success">
               <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
               <p className="text-lg font-semibold">Message sent</p>
-              <p className="text-sm text-muted-foreground mt-1">We'll get back to you as soon as we can.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">We'll get back to you as soon as we can.</p>
               <button
                 onClick={() => submitMutation.reset()}
-                className="mt-4 text-sm text-primary font-medium hover:underline"
+                className="mt-4 text-base text-primary font-medium hover:underline"
                 data-testid="button-send-another"
               >
                 Send another message
@@ -100,7 +100,7 @@ export default function Contact() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-contact">
               <div>
-                <label htmlFor="contact-email" className="block text-sm font-semibold mb-1.5">Email address</label>
+                <label htmlFor="contact-email" className="block text-base font-semibold mb-1.5">Email address</label>
                 <input
                   id="contact-email"
                   type="email"
@@ -108,12 +108,12 @@ export default function Contact() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] dark:border-white/[0.1] bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] dark:border-white/[0.1] bg-background text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                   data-testid="input-contact-email"
                 />
               </div>
               <div>
-                <label htmlFor="contact-message" className="block text-sm font-semibold mb-1.5">Message</label>
+                <label htmlFor="contact-message" className="block text-base font-semibold mb-1.5">Message</label>
                 <textarea
                   id="contact-message"
                   required
@@ -121,14 +121,14 @@ export default function Contact() {
                   onChange={(e) => setMessage(e.target.value)}
                   rows={5}
                   placeholder="What's on your mind?"
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] dark:border-white/[0.1] bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] dark:border-white/[0.1] bg-background text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
                   data-testid="input-contact-message"
                 />
               </div>
               <button
                 type="submit"
                 disabled={submitMutation.isPending || !email.trim() || !message.trim()}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-base font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
                 data-testid="button-submit-contact"
               >
                 {submitMutation.isPending ? (

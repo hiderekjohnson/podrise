@@ -94,7 +94,7 @@ export default function Leaderboard() {
             <>
               <a
                 href="/get-started"
-                className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors"
                 data-testid="link-nav-get-started"
               >
                 <Zap className="w-3.5 h-3.5" />
@@ -102,7 +102,7 @@ export default function Leaderboard() {
               </a>
               <a
                 href="/login"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="link-login"
               >
                 Log in
@@ -129,7 +129,7 @@ export default function Leaderboard() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               Get free AI-powered recaps for any of the top podcasts delivered to your inbox.
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
               Can't find your favorite podcast? No problem —{" "}
               <Link href="/" className="text-primary font-medium hover:underline" data-testid="link-search-all">
                 click here to search all podcasts
@@ -152,7 +152,7 @@ export default function Leaderboard() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search podcasts by name, category, or host..."
-                className="w-full h-12 pl-11 pr-10 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50 shadow-sm"
+                className="w-full h-12 pl-11 pr-10 bg-white border border-black/[0.08] rounded-xl text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50 shadow-sm"
                 data-testid="input-podcast-search"
               />
               {searchTerm && (
@@ -169,7 +169,7 @@ export default function Leaderboard() {
             <div className="flex flex-wrap gap-2" data-testid="category-filters">
               <button
                 onClick={() => setSelectedCategory(null)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${
                   !selectedCategory
                     ? "bg-primary text-white shadow-sm"
                     : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
@@ -182,7 +182,7 @@ export default function Leaderboard() {
                 <button
                   key={group}
                   onClick={() => setSelectedCategory(selectedCategory === group ? null : group)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${
                     selectedCategory === group
                       ? "bg-primary text-white shadow-sm"
                       : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
@@ -203,7 +203,7 @@ export default function Leaderboard() {
                   {selectedCategory ? selectedCategory : "All Podcasts"}
                 </span>
               </div>
-              <span className="text-sm text-muted-foreground font-medium">
+              <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
                 {selectedCategory || searchTerm ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}` : ""}
               </span>
             </div>
@@ -211,8 +211,8 @@ export default function Leaderboard() {
             {filtered.length === 0 ? (
               <div className="px-8 py-16 text-center">
                 <Headphones className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-medium text-muted-foreground mb-1">No podcasts found</p>
-                <p className="text-xs text-muted-foreground/70">
+                <p className="text-base font-medium text-muted-foreground mb-1">No podcasts found</p>
+                <p className="text-[15px] text-muted-foreground/70">
                   Try a different search or{" "}
                   <button onClick={() => { setSearchTerm(""); setSelectedCategory(null); }} className="text-primary hover:underline" data-testid="button-clear-filters">
                     clear all filters
@@ -244,7 +244,7 @@ export default function Leaderboard() {
                       <p className="text-[15px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
                         {podcast.name}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-0.5">
+                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
                         {podcast.category}
                       </p>
                     </div>

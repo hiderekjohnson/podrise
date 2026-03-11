@@ -408,12 +408,12 @@ export default function Dashboard() {
                   Cancel your subscription?
                 </h3>
                 {podcastsOverLimit ? (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                     The free plan supports up to 3 podcasts. You currently have <span className="font-semibold text-foreground">{podcasts.length}</span> selected.
                     Please remove {podcastsToRemove} podcast{podcastsToRemove > 1 ? "s" : ""} before canceling.
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                     You'll lose access to unlimited podcasts and be moved to the free plan (up to 3 podcasts).
                   </p>
                 )}
@@ -423,7 +423,7 @@ export default function Dashboard() {
                   <button
                     data-testid="button-remove-podcasts-first"
                     onClick={() => { setShowCancelModal(false); setActiveTab("podcasts"); }}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
                   >
                     Remove podcasts first
                   </button>
@@ -432,7 +432,7 @@ export default function Dashboard() {
                     data-testid="button-confirm-cancel"
                     onClick={handleCancelSubscription}
                     disabled={isCanceling}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
                   >
                     {isCanceling ? (<><Loader2 className="w-4 h-4 animate-spin" />Canceling...</>) : "Yes, cancel subscription"}
                   </button>
@@ -440,7 +440,7 @@ export default function Dashboard() {
                 <button
                   data-testid="button-keep-subscription"
                   onClick={() => setShowCancelModal(false)}
-                  className="w-full h-10 flex items-center justify-center rounded-2xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                  className="w-full h-10 flex items-center justify-center rounded-2xl text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
                 >
                   {podcastsOverLimit ? "Never mind" : "Keep my subscription"}
                 </button>
@@ -473,7 +473,7 @@ export default function Dashboard() {
                 <h3 className="font-display font-extrabold text-xl text-foreground">
                   Free plan limit reached
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                   You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
                 </p>
               </div>
@@ -481,7 +481,7 @@ export default function Dashboard() {
                 <button
                   data-testid="button-upgrade-modal-dashboard"
                   onClick={() => { setShowUpgradeModal(false); setActiveTab("plan"); }}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                 >
                   <Crown className="w-4 h-4" />
                   Upgrade to Pro — $9.99/month
@@ -489,12 +489,12 @@ export default function Dashboard() {
                 <button
                   data-testid="button-dismiss-upgrade-dashboard"
                   onClick={() => setShowUpgradeModal(false)}
-                  className="w-full h-10 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                  className="w-full h-10 flex items-center justify-center rounded-xl text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
                 >
                   Not now
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground/60">Cancel anytime. No questions asked.</p>
+              <p className="text-[15px] text-muted-foreground/60">Cancel anytime. No questions asked.</p>
             </motion.div>
           </motion.div>
         )}
@@ -523,19 +523,19 @@ export default function Dashboard() {
                 <h3 className="font-display font-extrabold text-2xl text-foreground" data-testid="text-welcome-title">
                   You're all set!
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
                   Your podcast recap is locked and loaded. If any of your favorite shows drop a new episode today, you'll get your first digest <span className="font-semibold text-foreground">tomorrow morning</span>.
                 </p>
               </div>
               <div className="w-full rounded-xl bg-primary/[0.04] border border-primary/10 p-4">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[15px] text-muted-foreground">
                   We've saved PodCap listeners an estimated <span className="font-bold text-primary">2,400+ hours</span> of listening time. We're excited to start saving you some too.
                 </p>
               </div>
               <button
                 data-testid="button-close-welcome"
                 onClick={() => setShowWelcome(false)}
-                className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
+                className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-105 transition-all active:scale-[0.98]"
               >
                 Let's go!
               </button>
@@ -547,12 +547,12 @@ export default function Dashboard() {
       {impersonationStatus?.impersonating && (
         <div className="w-full bg-amber-500 text-white px-4 py-2.5 flex items-center justify-center gap-3" data-testid="banner-impersonating">
           <Shield className="w-4 h-4" />
-          <span className="text-sm font-semibold">Viewing as {user?.email}</span>
+          <span className="text-base font-semibold">Viewing as {user?.email}</span>
           <button
             data-testid="button-stop-impersonating"
             onClick={() => stopImpersonating.mutate()}
             disabled={stopImpersonating.isPending}
-            className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-xs font-bold transition-colors"
+            className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-[15px] font-bold transition-colors"
           >
             {stopImpersonating.isPending ? "Returning..." : "Back to Admin"}
           </button>
@@ -568,7 +568,7 @@ export default function Dashboard() {
             <a
               href="/help"
               data-testid="link-help"
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <HelpCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Help</span>
@@ -576,7 +576,7 @@ export default function Dashboard() {
             <button
               data-testid="button-logout"
               onClick={handleLogout}
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Log out</span>
@@ -592,7 +592,7 @@ export default function Dashboard() {
               key={tab.key}
               data-testid={`tab-${tab.key}`}
               onClick={() => setActiveTab(tab.key)}
-              className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+              className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-base font-semibold whitespace-nowrap transition-all ${
                 activeTab === tab.key
                   ? "bg-primary text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -621,7 +621,7 @@ export default function Dashboard() {
                       Your Podcasts
                     </h2>
                     {!isPro && (
-                      <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-full" data-testid="text-podcast-count">
+                      <span className="text-[15px] font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-full" data-testid="text-podcast-count">
                         {podcasts.length}/3
                       </span>
                     )}
@@ -663,7 +663,7 @@ export default function Dashboard() {
                                 <X className="w-3 h-3" />
                               </button>
                             </div>
-                            <p className="text-sm font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
+                            <p className="text-base font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
                               {podcast.name}
                             </p>
                           </motion.div>
@@ -679,7 +679,7 @@ export default function Dashboard() {
                             <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] group-hover/slot:border-primary/30 flex items-center justify-center transition-colors">
                               <Plus className="w-5 h-5 text-muted-foreground/30 group-hover/slot:text-primary/50 transition-colors" />
                             </div>
-                            <p className="text-xs text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
+                            <p className="text-[15px] text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
                           </button>
                         ))
                       )}
@@ -697,11 +697,11 @@ export default function Dashboard() {
                           <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] group-hover/slot:border-primary/30 flex items-center justify-center transition-colors">
                             <Plus className="w-5 h-5 text-muted-foreground/30 group-hover/slot:text-primary/50 transition-colors" />
                           </div>
-                          <p className="text-xs text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
+                          <p className="text-[15px] text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
                         </button>
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-3">Search below to add podcasts and start getting daily recaps.</p>
+                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3">Search below to add podcasts and start getting daily recaps.</p>
                   </div>
                 )}
               </div>
@@ -711,7 +711,7 @@ export default function Dashboard() {
                   <h2 className="text-base font-display font-bold text-foreground mb-1" data-testid="heading-add-podcasts">
                     Discover Podcasts
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                     Search or browse popular shows to add to your daily recap.
                   </p>
                 </div>
@@ -748,8 +748,8 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
+                            <p className="text-base font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
+                            <p className="text-[15px] text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
                           </div>
                           <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
                         </button>
@@ -782,8 +782,8 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">{podcast.genres.slice(0, 2).join(" · ")}</p>
+                            <p className="text-base font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
+                            <p className="text-[15px] text-muted-foreground truncate mt-0.5">{podcast.genres.slice(0, 2).join(" · ")}</p>
                           </div>
                           <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
                         </button>
@@ -814,7 +814,7 @@ export default function Dashboard() {
                       <FileText className="w-7 h-7 text-primary" />
                     </div>
                     <h3 className="text-lg font-display font-bold text-foreground mb-1">No recaps yet</h3>
-                    <p className="text-sm text-muted-foreground max-w-xs">
+                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-xs">
                       Your first recap will arrive after your next scheduled delivery time.
                     </p>
                   </div>
@@ -822,7 +822,7 @@ export default function Dashboard() {
                   <>
                     <div className="px-6 pt-6 pb-3 flex items-center justify-between">
                       <h2 className="text-lg font-display font-bold text-foreground">Daily Recaps</h2>
-                      <span className="text-xs font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full">
+                      <span className="text-[15px] font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full">
                         {recaps.length} recap{recaps.length !== 1 ? "s" : ""}
                       </span>
                     </div>
@@ -834,20 +834,20 @@ export default function Dashboard() {
                               <FileText className="w-4.5 h-4.5 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground">{formatRecapDate(recap.recapDate)}</p>
+                              <p className="text-base font-semibold text-foreground">{formatRecapDate(recap.recapDate)}</p>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {recap.podcasts.slice(0, 3).map((p, i) => (
-                                  <span key={i} className="text-xs text-muted-foreground">{parsePodcastName(p)}{i < Math.min(recap.podcasts.length, 3) - 1 ? "," : ""}</span>
+                                  <span key={i} className="text-[15px] text-muted-foreground">{parsePodcastName(p)}{i < Math.min(recap.podcasts.length, 3) - 1 ? "," : ""}</span>
                                 ))}
                                 {recap.podcasts.length > 3 && (
-                                  <span className="text-xs text-muted-foreground">+{recap.podcasts.length - 3} more</span>
+                                  <span className="text-[15px] text-muted-foreground">+{recap.podcasts.length - 3} more</span>
                                 )}
                               </div>
                             </div>
                             <button
                               data-testid={`button-view-recap-${recap.id}`}
                               onClick={() => setViewingRecap(recap)}
-                              className="shrink-0 h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/[0.06] transition-colors"
+                              className="shrink-0 h-8 px-3 rounded-lg flex items-center gap-1.5 text-[15px] font-semibold text-primary hover:bg-primary/[0.06] transition-colors"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               View
@@ -874,12 +874,12 @@ export default function Dashboard() {
               <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 pt-6 pb-2">
                   <h2 className="text-lg font-display font-bold text-foreground">Delivery Schedule</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Choose when to receive your daily recap email.</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Choose when to receive your daily recap email.</p>
                 </div>
                 <div className="px-6 pb-6 pt-3">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      <label className="flex items-center gap-1.5 text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                         <Clock className="w-3.5 h-3.5" />
                         Time
                       </label>
@@ -889,7 +889,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      <label className="flex items-center gap-1.5 text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                         <Globe className="w-3.5 h-3.5" />
                         Timezone
                       </label>
@@ -905,7 +905,7 @@ export default function Dashboard() {
               <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 pt-6 pb-2">
                   <h2 className="text-lg font-display font-bold text-foreground">Email Address</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Where we send your daily recap.</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Where we send your daily recap.</p>
                 </div>
                 <div className="px-6 pb-6 pt-3">
                   {editingEmail ? (
@@ -916,12 +916,12 @@ export default function Dashboard() {
                         value={email}
                         onChange={(e) => handleEmailChange(e.target.value)}
                         autoFocus
-                        className="flex-1 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium"
+                        className="flex-1 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-[17px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium"
                       />
                       <button
                         data-testid="button-edit-email"
                         onClick={() => setEditingEmail(false)}
-                        className="h-11 px-4 rounded-xl text-sm font-semibold bg-primary text-white hover:brightness-105 transition-all"
+                        className="h-11 px-4 rounded-xl text-base font-semibold bg-primary text-white hover:brightness-105 transition-all"
                       >
                         Done
                       </button>
@@ -930,12 +930,12 @@ export default function Dashboard() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span data-testid="text-user-email" className="text-sm font-medium text-foreground truncate">{email}</span>
+                        <span data-testid="text-user-email" className="text-base font-medium text-foreground truncate">{email}</span>
                       </div>
                       <button
                         data-testid="button-edit-email"
                         onClick={() => setEditingEmail(true)}
-                        className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
+                        className="text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
                       >
                         Change
                       </button>
@@ -950,15 +950,15 @@ export default function Dashboard() {
                     <Palmtree className="w-4.5 h-4.5 text-amber-500" />
                     <h2 className="text-lg font-display font-bold text-foreground">Vacation Mode</h2>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">Pause your daily recaps while you're away.</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Pause your daily recaps while you're away.</p>
                 </div>
                 <div className="px-6 pb-6 pt-3">
                   {vacationUntil ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4" data-testid="section-vacation-active">
-                      <p className="text-sm font-semibold text-foreground mb-1">
+                      <p className="text-base font-semibold text-foreground mb-1">
                         Recaps paused until {new Date(vacationUntil + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                       </p>
-                      <p className="text-xs text-muted-foreground mb-3">You won't receive emails until this date.</p>
+                      <p className="text-[15px] text-muted-foreground mb-3">You won't receive emails until this date.</p>
                       <div className="flex items-center gap-2">
                         <input
                           data-testid="input-vacation-update"
@@ -966,13 +966,13 @@ export default function Dashboard() {
                           value={vacationInput || vacationUntil}
                           min={new Date().toISOString().split("T")[0]}
                           onChange={(e) => setVacationInput(e.target.value)}
-                          className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
+                          className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-[17px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
                         />
                         {vacationInput && vacationInput !== vacationUntil && (
                           <button
                             data-testid="button-update-vacation"
                             onClick={() => { setVacationUntil(vacationInput); autoSave({ vacationUntil: vacationInput }); setVacationInput(""); }}
-                            className="h-9 px-3 rounded-lg text-xs font-semibold bg-primary text-white hover:brightness-105 transition-all"
+                            className="h-9 px-3 rounded-lg text-[15px] font-semibold bg-primary text-white hover:brightness-105 transition-all"
                           >
                             Update
                           </button>
@@ -980,7 +980,7 @@ export default function Dashboard() {
                         <button
                           data-testid="button-cancel-vacation"
                           onClick={() => { setVacationUntil(null); setVacationInput(""); autoSave({ vacationUntil: null }); }}
-                          className="h-9 px-3 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-50 transition-all flex items-center gap-1"
+                          className="h-9 px-3 rounded-lg text-[15px] font-semibold text-red-500 hover:bg-red-50 transition-all flex items-center gap-1"
                         >
                           <CalendarOff className="w-3 h-3" />
                           Cancel
@@ -995,7 +995,7 @@ export default function Dashboard() {
                         value={vacationInput}
                         min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
                         onChange={(e) => setVacationInput(e.target.value)}
-                        className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
+                        className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-[17px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
                       />
                       <button
                         data-testid="button-enable-vacation"
@@ -1006,7 +1006,7 @@ export default function Dashboard() {
                           setVacationInput("");
                           toast({ title: "Vacation mode enabled", description: `Your recaps are paused until ${new Date(vacationInput + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" })}.` });
                         }}
-                        className="h-9 px-4 rounded-lg text-xs font-bold bg-primary text-white shadow-sm shadow-primary/20 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                        className="h-9 px-4 rounded-lg text-[15px] font-bold bg-primary text-white shadow-sm shadow-primary/20 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
                       >
                         <Palmtree className="w-3.5 h-3.5" />
                         Enable
@@ -1022,7 +1022,7 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
-                    className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground py-1"
+                    className="flex items-center justify-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] py-1"
                   >
                     {autoSaveStatus === "saving" ? (
                       <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving...</>
@@ -1038,7 +1038,7 @@ export default function Dashboard() {
                   <button
                     data-testid="button-delete-account"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="text-sm text-muted-foreground hover:text-red-500 transition-colors"
+                    className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-red-500 transition-colors"
                   >
                     Delete account
                   </button>
@@ -1052,11 +1052,11 @@ export default function Dashboard() {
                       <AlertTriangle className="w-5 h-5 text-red-500" />
                       <h3 className="text-lg font-display font-bold text-red-600">Delete Account</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-2">
                       This will permanently delete your account, saved podcasts, recap history, and all email data. This action cannot be undone.
                     </p>
                     <div className="mt-4">
-                      <label className="text-xs font-semibold text-red-700 mb-1.5 block">
+                      <label className="text-[15px] font-semibold text-red-700 mb-1.5 block">
                         Type <span className="font-mono bg-red-100 px-1.5 py-0.5 rounded">DELETE</span> to confirm
                       </label>
                       <input
@@ -1065,7 +1065,7 @@ export default function Dashboard() {
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.target.value)}
                         placeholder="DELETE"
-                        className="h-9 w-full px-3 bg-white border border-red-200 rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-red-300 transition-all font-mono"
+                        className="h-9 w-full px-3 bg-white border border-red-200 rounded-lg text-[17px] text-foreground focus:outline-none focus:ring-2 focus:ring-red-300 transition-all font-mono"
                         autoComplete="off"
                       />
                     </div>
@@ -1074,7 +1074,7 @@ export default function Dashboard() {
                         data-testid="button-confirm-delete"
                         disabled={deleteConfirmText !== "DELETE" || deleteAccountMutation.isPending}
                         onClick={() => deleteAccountMutation.mutate()}
-                        className="h-9 px-4 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                        className="h-9 px-4 rounded-lg text-[15px] font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
                       >
                         {deleteAccountMutation.isPending ? (
                           <><Loader2 className="w-3.5 h-3.5 animate-spin" />Deleting...</>
@@ -1085,7 +1085,7 @@ export default function Dashboard() {
                       <button
                         data-testid="button-cancel-delete"
                         onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
-                        className="h-9 px-3 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-gray-100 transition-all"
+                        className="h-9 px-3 rounded-lg text-[15px] font-semibold text-muted-foreground hover:bg-gray-100 transition-all"
                       >
                         Cancel
                       </button>
@@ -1114,13 +1114,13 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <h2 className="text-base font-display font-bold text-foreground">Pro Plan</h2>
-                          <p className="text-sm text-muted-foreground">$9.99/month — unlimited podcasts</p>
+                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">$9.99/month — unlimited podcasts</p>
                         </div>
                       </div>
-                      <span className="text-xs bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
+                      <span className="text-[15px] bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
                     </div>
                     {subscriptionData?.subscription?.current_period_end && (
-                      <p className="text-sm text-muted-foreground mt-4">
+                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-4">
                         Next bill: <span className="font-semibold text-foreground">{new Date(
                           typeof subscriptionData.subscription.current_period_end === "number"
                             ? subscriptionData.subscription.current_period_end * 1000
@@ -1137,21 +1137,21 @@ export default function Dashboard() {
                           <CreditCard className="w-4.5 h-4.5 text-muted-foreground" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-foreground">Payment Method</h3>
+                          <h3 className="text-base font-semibold text-foreground">Payment Method</h3>
                           {paymentMethodData?.paymentMethod ? (
-                            <p className="text-sm text-muted-foreground mt-0.5">
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
                               {paymentMethodData.paymentMethod.brand.charAt(0).toUpperCase() + paymentMethodData.paymentMethod.brand.slice(1)} ending in {paymentMethodData.paymentMethod.last4}
-                              <span className="text-xs ml-2">Exp {paymentMethodData.paymentMethod.expMonth.toString().padStart(2, "0")}/{paymentMethodData.paymentMethod.expYear}</span>
+                              <span className="text-[15px] ml-2">Exp {paymentMethodData.paymentMethod.expMonth.toString().padStart(2, "0")}/{paymentMethodData.paymentMethod.expYear}</span>
                             </p>
                           ) : (
-                            <p className="text-sm text-muted-foreground mt-0.5">No card on file</p>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">No card on file</p>
                           )}
                         </div>
                       </div>
                       <button
                         data-testid="button-update-card"
                         onClick={handleManageBilling}
-                        className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                        className="text-base font-semibold text-primary hover:text-primary/80 transition-colors"
                       >
                         Update
                       </button>
@@ -1164,21 +1164,21 @@ export default function Dashboard() {
                         <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
                           <Receipt className="w-4.5 h-4.5 text-muted-foreground" />
                         </div>
-                        <h3 className="text-sm font-semibold text-foreground">Billing History</h3>
+                        <h3 className="text-base font-semibold text-foreground">Billing History</h3>
                       </div>
                       <div className="divide-y divide-black/[0.04]">
                         {invoicesData.invoices.map((inv) => (
                           <div key={inv.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0" data-testid={`invoice-${inv.id}`}>
                             <div>
-                              <p className="text-sm font-medium text-foreground">
+                              <p className="text-base font-medium text-foreground">
                                 ${(inv.amount / 100).toFixed(2)} {inv.currency.toUpperCase()}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-[15px] text-muted-foreground">
                                 {new Date(inv.date * 1000).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                               </p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${inv.status === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                              <span className={`text-[15px] font-semibold px-2 py-0.5 rounded-full ${inv.status === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
                                 {inv.status === "paid" ? "Paid" : inv.status}
                               </span>
                               {inv.invoiceUrl && (
@@ -1203,7 +1203,7 @@ export default function Dashboard() {
                     <button
                       data-testid="button-cancel-subscription"
                       onClick={() => setShowCancelModal(true)}
-                      className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+                      className="text-base font-medium text-red-500 hover:text-red-600 transition-colors"
                     >
                       Cancel subscription
                     </button>
@@ -1220,22 +1220,22 @@ export default function Dashboard() {
                           </div>
                           <h2 className="text-base font-display font-bold text-foreground">Free</h2>
                         </div>
-                        <span className="text-xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full" data-testid="badge-current-plan">Current</span>
+                        <span className="text-[15px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full" data-testid="badge-current-plan">Current</span>
                       </div>
                       <div className="mb-5">
                         <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
-                        <span className="text-sm text-muted-foreground font-medium">/month</span>
+                        <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">/month</span>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed flex-1">
                         Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
                       </p>
                     </div>
                     <div className="px-6 pb-6">
                       <div className="space-y-2">
-                        <div className="w-full h-11 flex items-center justify-center rounded-xl text-sm font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
+                        <div className="w-full h-11 flex items-center justify-center rounded-xl text-base font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
                           Your current plan
                         </div>
-                        <p className="text-center text-xs text-muted-foreground invisible">placeholder</p>
+                        <p className="text-center text-[15px] text-muted-foreground invisible">placeholder</p>
                       </div>
                     </div>
                   </div>
@@ -1250,9 +1250,9 @@ export default function Dashboard() {
                       </div>
                       <div className="mb-5">
                         <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
-                        <span className="text-sm text-muted-foreground font-medium">/month</span>
+                        <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">/month</span>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed flex-1">
                         Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
                       </p>
                     </div>
@@ -1262,7 +1262,7 @@ export default function Dashboard() {
                           data-testid="button-subscribe"
                           onClick={handleSubscribe}
                           disabled={isCheckingOut}
-                          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-[0.99] disabled:opacity-60"
+                          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-[0.99] disabled:opacity-60"
                         >
                           {isCheckingOut ? (
                             <><Loader2 className="w-4 h-4 animate-spin" />Redirecting...</>
@@ -1270,7 +1270,7 @@ export default function Dashboard() {
                             <><Crown className="w-4 h-4" />Upgrade to Pro</>
                           )}
                         </button>
-                        <p className="text-center text-xs text-muted-foreground">Cancel anytime.</p>
+                        <p className="text-center text-[15px] text-muted-foreground">Cancel anytime.</p>
                       </div>
                     </div>
                   </div>
@@ -1304,8 +1304,8 @@ export default function Dashboard() {
                     <FileText className="w-4.5 h-4.5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-foreground">Daily Recap</p>
-                    <p className="text-xs text-muted-foreground">{formatRecapDate(viewingRecap.recapDate)}</p>
+                    <p className="text-base font-bold text-foreground">Daily Recap</p>
+                    <p className="text-[15px] text-muted-foreground">{formatRecapDate(viewingRecap.recapDate)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1313,7 +1313,7 @@ export default function Dashboard() {
                     data-testid="button-send-email"
                     onClick={() => sendEmail.mutate(viewingRecap.id)}
                     disabled={sendEmail.isPending}
-                    className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-all disabled:opacity-50"
+                    className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[15px] font-medium text-primary hover:bg-primary/10 transition-all disabled:opacity-50"
                   >
                     {sendEmail.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
                     Send to Email
@@ -1330,7 +1330,7 @@ export default function Dashboard() {
               <div className="px-6 sm:px-8 py-6 sm:py-8">
                 <div className="flex flex-wrap gap-1.5 mb-6">
                   {viewingRecap.podcasts.map((p, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 bg-black/[0.04] text-foreground px-2.5 py-1 rounded-full text-xs font-medium">
+                    <span key={i} className="inline-flex items-center gap-1 bg-black/[0.04] text-foreground px-2.5 py-1 rounded-full text-[15px] font-medium">
                       <Podcast className="w-3 h-3 text-primary" />
                       {parsePodcastName(p)}
                     </span>
@@ -1352,7 +1352,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4">
-        <p className="text-xs text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodCap. All rights reserved.</p>
+        <p className="text-[15px] text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodCap. All rights reserved.</p>
       </footer>
     </div>
   );

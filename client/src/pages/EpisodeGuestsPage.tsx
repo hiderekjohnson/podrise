@@ -150,7 +150,7 @@ export default function EpisodeGuestsPage() {
         {guestsLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4" data-testid="guests-loading">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground font-medium">Identifying guests from transcript...</p>
+            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Identifying guests from transcript...</p>
           </div>
         ) : guestsError ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center" data-testid="guests-error">
@@ -159,7 +159,7 @@ export default function EpisodeGuestsPage() {
             </div>
             <div>
               <p className="text-lg font-display font-bold text-foreground mb-1">Unable to load guests</p>
-              <p className="text-sm text-muted-foreground max-w-sm">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-sm">
                 We couldn't identify the guests for this episode right now. Please try again later.
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function EpisodeGuestsPage() {
             </div>
             <div>
               <p className="text-lg font-display font-bold text-foreground mb-1">No guests on this episode</p>
-              <p className="text-sm text-muted-foreground max-w-sm">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-sm">
                 This episode features the regular hosts only. Check other episodes for guest appearances.
               </p>
             </div>
@@ -182,7 +182,7 @@ export default function EpisodeGuestsPage() {
               <h2 className="text-xl font-display font-bold tracking-tight mb-2" data-testid="text-guests-heading">
                 {guests.length === 1 ? "Guest on This Episode" : `${guests.length} Guests on This Episode`}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                 Learn more about {guests.length === 1 ? "the guest" : "the guests"} who appeared on "{episode.episodeTitle}"
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function EpisodeGuestsPage() {
                               href={safe}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                               data-testid={`link-guest-twitter-${idx}`}
                             >
                               <SiX className="w-3.5 h-3.5" />
@@ -246,7 +246,7 @@ export default function EpisodeGuestsPage() {
                             href={safeUrl(guest.linkedin)!}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                             data-testid={`link-guest-linkedin-${idx}`}
                           >
                             <SiLinkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
@@ -262,7 +262,7 @@ export default function EpisodeGuestsPage() {
                               href={safe}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                               data-testid={`link-guest-instagram-${idx}`}
                             >
                               <SiInstagram className="w-3.5 h-3.5 text-[#E4405F]" />
@@ -275,7 +275,7 @@ export default function EpisodeGuestsPage() {
                             href={safeUrl(guest.website)!}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                             data-testid={`link-guest-website-${idx}`}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -296,14 +296,14 @@ export default function EpisodeGuestsPage() {
 
                   {guest.topicsDiscussed.length > 0 && (
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
+                      <p className="text-[15px] font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
                         Topics Discussed
                       </p>
                       <div className="flex flex-wrap gap-2" data-testid={`topics-guest-${idx}`}>
                         {guest.topicsDiscussed.map((topic, i) => (
                           <span
                             key={i}
-                            className="px-3 py-1.5 bg-primary/[0.06] text-primary text-sm font-medium rounded-lg"
+                            className="px-3 py-1.5 bg-primary/[0.06] text-primary text-base font-medium rounded-lg"
                           >
                             {topic}
                           </span>

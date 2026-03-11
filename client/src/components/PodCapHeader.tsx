@@ -4,9 +4,9 @@ interface PodCapHeaderProps {
   rightContent?: React.ReactNode;
 }
 
-function PodCapIcon({ size = 28 }: { size?: number }) {
+function PodCapIcon({ size = 36 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect width="56" height="56" rx="16" fill="url(#headerGrad)" />
       <g transform="translate(28, 28)" fill="white">
         <rect x="-20" y="-6" width="4" height="12" rx="2" opacity="0.5" />
@@ -28,12 +28,12 @@ function PodCapIcon({ size = 28 }: { size?: number }) {
 }
 
 function PodCapWordmark({ variant = "light" }: { variant?: "light" | "dark" | "color" }) {
-  const podColor = variant === "dark" || variant === "color" ? "text-white" : "text-zinc-900";
+  const podColor = variant === "dark" || variant === "color" ? "text-white" : "text-[#09090B]";
   const capColor = variant === "dark" ? "text-[#A5B4FC]" : variant === "color" ? "text-white" : "text-[#6366F1]";
   return (
-    <span className="flex items-center gap-2" style={{ letterSpacing: "-0.04em" }}>
-      <PodCapIcon size={28} />
-      <span className="text-lg leading-none">
+    <span className="flex items-center gap-2.5" style={{ letterSpacing: "-0.04em" }} role="img" aria-label="PodCap">
+      <PodCapIcon size={36} />
+      <span className="text-xl leading-none">
         <span className={`font-semibold ${podColor}`}>Pod</span>
         <span className={`font-light ${capColor}`}>Cap</span>
       </span>
@@ -44,7 +44,7 @@ function PodCapWordmark({ variant = "light" }: { variant?: "light" | "dark" | "c
 export function PodCapHeader({ rightContent }: PodCapHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 min-h-[68px] flex items-center justify-between">
         <Link href="/">
           <span data-testid="link-home-logo">
             <PodCapWordmark />

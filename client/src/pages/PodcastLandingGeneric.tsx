@@ -53,7 +53,7 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
 
   return (
     <div data-testid="section-transcript-search">
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">
         Search across every episode transcript to find exactly where a topic was discussed.
       </p>
       <div className="relative mb-6">
@@ -84,7 +84,7 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
           {isLoading && (
             <div className="flex items-center justify-center py-10 text-muted-foreground gap-2.5" data-testid="search-loading">
               <Loader2 className="w-5 h-5 animate-spin text-primary/50" />
-              <span className="text-sm font-medium">Searching transcripts...</span>
+              <span className="text-base font-medium">Searching transcripts...</span>
             </div>
           )}
 
@@ -104,10 +104,10 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
           {!isLoading && data && data.results.length > 0 && (
             <div data-testid="search-results">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Found in {data.total} episode{data.total !== 1 ? "s" : ""}
                 </p>
-                <span className="text-xs text-muted-foreground/50">
+                <span className="text-[15px] text-muted-foreground/50">
                   "{data.query}"
                 </span>
               </div>
@@ -131,13 +131,13 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
                               </span>
                             </Link>
                             {dateStr && (
-                              <p className="text-xs text-muted-foreground/50 mt-0.5 flex items-center gap-1">
+                              <p className="text-[15px] text-muted-foreground/50 mt-0.5 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {dateStr}
                               </p>
                             )}
                           </div>
-                          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-primary/[0.08] text-primary">
+                          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-lg text-[15px] font-bold bg-primary/[0.08] text-primary">
                             {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
                           </span>
                         </div>
@@ -153,12 +153,12 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
                             data-testid={`search-hit-${idx}-${sIdx}`}
                           >
                             {hit.timestampLabel && (
-                              <span className="shrink-0 text-xs font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
+                              <span className="shrink-0 text-[15px] font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
                                 {hit.timestampLabel}
                               </span>
                             )}
-                            <span className="flex-1 text-sm text-muted-foreground leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
-                            <span className="shrink-0 flex items-center gap-1 text-xs font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
+                            <span className="flex-1 text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
+                            <span className="shrink-0 flex items-center gap-1 text-[15px] font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
                               View in transcript
                               <ArrowRight className="w-3 h-3" />
                             </span>
@@ -239,7 +239,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
       {topQLoading && (
         <div className="flex items-center justify-center py-10 text-muted-foreground gap-2.5 mb-8">
           <Loader2 className="w-5 h-5 animate-spin text-primary/50" />
-          <span className="text-sm font-medium">Loading top questions...</span>
+          <span className="text-base font-medium">Loading top questions...</span>
         </div>
       )}
 
@@ -287,10 +287,10 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/[0.1]">
             <Sparkles className="w-3.5 h-3.5 text-violet-500" />
           </span>
-          <span className="text-sm font-bold text-foreground">Ask your own question about this podcast</span>
-          <span className="ml-1 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none">Powered by AI</span>
+          <span className="text-base font-bold text-foreground">Ask your own question about this podcast</span>
+          <span className="ml-1 px-1.5 py-0.5 text-[15px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none">Powered by AI</span>
         </div>
-        <p className="text-sm text-muted-foreground mb-5">
+        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
           Ask any question and get an answer drawn from across all episodes of {podcastName}.
         </p>
 
@@ -310,7 +310,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
           <button
             type="submit"
             disabled={!question.trim() || isLoading}
-            className="h-11 px-5 flex items-center gap-2 rounded-xl font-bold text-sm bg-violet-500 text-white shadow-sm hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+            className="h-11 px-5 flex items-center gap-2 rounded-xl font-bold text-base bg-violet-500 text-white shadow-sm hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
             data-testid="button-ask-podcast-submit"
           >
             {isLoading ? (
@@ -324,7 +324,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
 
         {!answer && !isLoading && !error && (
           <div className="mt-4" data-testid="ask-podcast-examples">
-            <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2.5">Try asking:</p>
+            <p className="text-[15px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2.5">Try asking:</p>
             <div className="flex flex-wrap gap-2">
               {exampleQuestions.map((eq, i) => (
                 <button
@@ -344,7 +344,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
           <div className="mt-5 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4">
             <div className="flex items-center gap-3 py-2">
               <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
-              <span className="text-sm text-muted-foreground">Searching across all episodes...</span>
+              <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Searching across all episodes...</span>
             </div>
           </div>
         )}
@@ -359,7 +359,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
           <div className="mt-5 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl px-5 py-4" data-testid="ask-podcast-answer">
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare className="w-3.5 h-3.5 text-violet-500" />
-              <span className="text-xs font-bold text-violet-500 uppercase tracking-wider">Answer</span>
+              <span className="text-[15px] font-bold text-violet-500 uppercase tracking-wider">Answer</span>
             </div>
             <div className="space-y-3">
               {answer.answer.split("\n\n").filter(Boolean).map((p, i) => (
@@ -368,10 +368,10 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
             </div>
             {answer.episodesCited && answer.episodesCited.length > 0 && (
               <div className="mt-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
-                <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Sources</p>
+                <p className="text-[15px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Sources</p>
                 <div className="flex flex-wrap gap-1.5">
                   {answer.episodesCited.map((ep, i) => (
-                    <span key={i} className="text-sm text-muted-foreground bg-black/[0.03] dark:bg-white/[0.06] px-2 py-1 rounded-md">{ep}</span>
+                    <span key={i} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] bg-black/[0.03] dark:bg-white/[0.06] px-2 py-1 rounded-md">{ep}</span>
                   ))}
                 </div>
               </div>
@@ -574,7 +574,7 @@ export default function PodcastLandingGeneric() {
         <section className="pb-16" data-testid="section-episode-list">
           {episodeRecaps.length > 0 ? (
             <>
-              <p className="text-sm text-muted-foreground mb-5">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
                 Quick summaries of the latest episodes — key takeaways in minutes, not hours.
               </p>
               <div className="space-y-5">
@@ -592,7 +592,7 @@ export default function PodcastLandingGeneric() {
               </div>
               <div className="flex justify-center mt-8">
                 <Link href={`/podcasts/${slug}/episodes`}>
-                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-bold text-sm bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-view-all-episodes">
+                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-view-all-episodes">
                     View All Episode Recaps
                     <ArrowRight className="w-4 h-4" />
                   </span>
@@ -605,7 +605,7 @@ export default function PodcastLandingGeneric() {
                 <Mic className="w-6 h-6 text-primary/30" />
               </div>
               <p className="text-muted-foreground font-medium">Episode recaps are being generated.</p>
-              <p className="text-sm text-muted-foreground/60 mt-1">Check back soon for the latest summaries.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/60 mt-1">Check back soon for the latest summaries.</p>
             </div>
           )}
         </section>
@@ -633,11 +633,11 @@ export default function PodcastLandingGeneric() {
 
           {snapshotItems.length > 0 && (
             <div className="mb-6" data-testid="section-snapshot">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">At a Glance</h3>
+              <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">At a Glance</h3>
               <div className={`grid gap-3 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
                 {snapshotItems.map((item, i) => (
                   <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-4 py-4" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
-                    <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1">{item.label}</p>
+                    <p className="text-[15px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1">{item.label}</p>
                     <p className="text-base font-bold text-foreground">{item.value}</p>
                   </div>
                 ))}
@@ -647,13 +647,13 @@ export default function PodcastLandingGeneric() {
 
           {knownFor && knownFor.length > 0 && (
             <div className="mb-6" data-testid="section-known-for">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Known For</h3>
+              <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Known For</h3>
               <div className="bg-white border border-black/[0.06] rounded-xl p-5">
                 <ul className="space-y-3">
                   {knownFor.map((item, i) => (
                     <li key={i} className="flex items-start gap-3" data-testid={`known-for-${i}`}>
                       <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-primary" />
-                      <span className="text-sm text-foreground/75 leading-relaxed">{item}</span>
+                      <span className="text-[17px] text-foreground/75 leading-relaxed">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -668,7 +668,7 @@ export default function PodcastLandingGeneric() {
             if (!displayHosts || displayHosts.length === 0) return null;
             return (
               <div className="mb-6" data-testid="section-host-bios">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
                   {displayHosts.length === 1 ? "Host" : "Hosts"}
                 </h3>
                 <div className={`grid gap-3 ${displayHosts.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
@@ -687,7 +687,7 @@ export default function PodcastLandingGeneric() {
                       {host.bio && (() => {
                         const paragraphs = host.bio.split(/\n\n+/).filter((p: string) => p.trim());
                         return (
-                          <div className="text-sm text-muted-foreground leading-relaxed mb-3 space-y-2.5">
+                          <div className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-3 space-y-2.5">
                             {paragraphs.map((para: string, pi: number) => {
                               const lines = para.split('\n').filter((l: string) => l.trim());
                               const bulletLines = lines.filter((l: string) => /^[•\-\*]\s/.test(l.trim()));
@@ -732,25 +732,25 @@ export default function PodcastLandingGeneric() {
                       {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
                         <div className="flex items-center gap-2 flex-wrap">
                           {host.twitterHandle && (
-                            <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
+                            <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
                               <SiX className="w-3 h-3" />
                               {host.twitterHandle.startsWith('@') ? host.twitterHandle : `@${host.twitterHandle}`}
                             </a>
                           )}
                           {host.linkedinUrl && (
-                            <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
+                            <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
                               <SiLinkedin className="w-3 h-3" />
                               LinkedIn
                             </a>
                           )}
                           {host.instagramHandle && (
-                            <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
+                            <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
                               <SiInstagram className="w-3 h-3" />
                               {host.instagramHandle.startsWith('@') ? host.instagramHandle : `@${host.instagramHandle}`}
                             </a>
                           )}
                           {host.websiteUrl && (
-                            <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
+                            <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
                               <ExternalLink className="w-3 h-3" />
                               Website
                             </a>
@@ -765,13 +765,13 @@ export default function PodcastLandingGeneric() {
           })()}
 
           <div className="mb-6" data-testid="section-listen">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>
+            <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>
             <div className="flex flex-wrap gap-2.5">
               <a
                 href={appleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                 data-testid="link-apple-podcasts"
               >
                 <SiApplepodcasts className="w-4 h-4 text-[#872EC4]" />
@@ -781,7 +781,7 @@ export default function PodcastLandingGeneric() {
                 href={effectiveSpotifyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                 data-testid="link-spotify"
               >
                 <SiSpotify className="w-4 h-4 text-[#1DB954]" />
@@ -792,7 +792,7 @@ export default function PodcastLandingGeneric() {
                   href={youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-youtube"
                 >
                   <SiYoutube className="w-4 h-4 text-[#FF0000]" />
@@ -804,7 +804,7 @@ export default function PodcastLandingGeneric() {
                   href={`https://x.com/${twitterHandle.replace("@", "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-x-profile"
                 >
                   <SiX className="w-3.5 h-3.5" />
@@ -816,7 +816,7 @@ export default function PodcastLandingGeneric() {
                   href={instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-instagram"
                 >
                   <SiInstagram className="w-4 h-4 text-[#E4405F]" />
@@ -828,7 +828,7 @@ export default function PodcastLandingGeneric() {
                   href={tiktokUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-tiktok"
                 >
                   <SiTiktok className="w-4 h-4" />
@@ -840,7 +840,7 @@ export default function PodcastLandingGeneric() {
                   href={facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-facebook"
                 >
                   <SiFacebook className="w-4 h-4 text-[#1877F2]" />
@@ -852,7 +852,7 @@ export default function PodcastLandingGeneric() {
                   href={discordUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-discord"
                 >
                   <SiDiscord className="w-4 h-4 text-[#5865F2]" />
@@ -864,7 +864,7 @@ export default function PodcastLandingGeneric() {
                   href={websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-website"
                 >
                   <ExternalLink className="w-4 h-4 text-muted-foreground" />
@@ -876,7 +876,7 @@ export default function PodcastLandingGeneric() {
                   href={storeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm font-medium text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-store"
                 >
                   <ShoppingBag className="w-4 h-4 text-muted-foreground" />
@@ -886,7 +886,7 @@ export default function PodcastLandingGeneric() {
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground/40 mt-8">
+          <p className="text-[15px] text-muted-foreground/40 mt-8">
             PodCap is not affiliated with, endorsed by, or sponsored by {name}, {hosts}, or any podcast listed on this site.
           </p>
         </section>
@@ -896,7 +896,7 @@ export default function PodcastLandingGeneric() {
         <section className="pb-16" data-testid="section-discover">
           {relatedPodcasts.length > 0 ? (
             <>
-              <p className="text-sm text-muted-foreground mb-5">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
                 Podcasts that listeners of {name} also enjoy — with recaps available on PodCap.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -916,7 +916,7 @@ export default function PodcastLandingGeneric() {
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-[15px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
-                      <p className="text-xs text-muted-foreground/60 mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
+                      <p className="text-[15px] text-muted-foreground/60 mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
                     </div>
                     <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
                   </a>
@@ -929,7 +929,7 @@ export default function PodcastLandingGeneric() {
                 <Compass className="w-6 h-6 text-primary/30" />
               </div>
               <p className="text-muted-foreground font-medium">Discovering similar podcasts...</p>
-              <p className="text-sm text-muted-foreground/60 mt-1">We're finding shows you might enjoy.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/60 mt-1">We're finding shows you might enjoy.</p>
             </div>
           )}
         </section>

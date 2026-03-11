@@ -67,10 +67,10 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             </div>
             <div className="flex items-center gap-2 ml-auto">
               <Inbox className="w-4 h-4 text-muted-foreground/50" />
-              <span className="text-xs text-muted-foreground/50 font-medium">Inbox</span>
+              <span className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Inbox</span>
             </div>
           </div>
-          <div className="space-y-1.5 text-sm">
+          <div className="space-y-1.5 text-base">
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground/60 w-12 shrink-0">From:</span>
               <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
               >
                 {recap.episodeTitle}
               </h3>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                 {recap.episodeDate && (
                   <span className="flex items-center gap-2" data-testid="text-episode-date">
                     <Calendar className="w-4 h-4" />
@@ -128,7 +128,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-xl p-6" data-testid="section-tldl">
             <div className="flex items-center gap-2.5 mb-3">
               <FileText className="w-5 h-5 text-primary" />
-              <span className="text-sm font-display font-bold text-primary uppercase tracking-wider">TLDL</span>
+              <span className="text-base font-display font-bold text-primary uppercase tracking-wider">TLDL</span>
             </div>
             <p className="text-base sm:text-[17px] text-foreground leading-relaxed">{recap.tldl}</p>
           </div>
@@ -167,7 +167,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
               data-testid="section-quote"
             >
               <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">"{recap.quote}"</p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                 <Quote className="w-4 h-4" />
                 {recap.quoteAttribution}
               </div>
@@ -178,7 +178,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             <div className="flex items-center gap-2">
               <PodCapWordmark />
             </div>
-            <span className="text-xs text-muted-foreground/40">podcap.io</span>
+            <span className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA]">podcap.io</span>
           </div>
         </div>
       </div>

@@ -13,12 +13,12 @@ export default function Privacy() {
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-login">
               Log In
             </Link>
           </div>
@@ -32,7 +32,7 @@ export default function Privacy() {
             Privacy Policy
           </div>
           <h1 className="sr-only">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground">Last updated: January 1, 2026</p>
+          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Last updated: January 1, 2026</p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-foreground/80">

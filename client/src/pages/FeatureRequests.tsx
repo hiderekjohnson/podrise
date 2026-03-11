@@ -233,12 +233,12 @@ export default function FeatureRequests() {
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-login">
               Log In
             </Link>
           </div>
@@ -286,13 +286,13 @@ export default function FeatureRequests() {
                       {entry.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground/50 font-medium mb-1">{entry.date}</p>
+                      <p className="text-[15px] text-muted-foreground/50 font-medium mb-1">{entry.date}</p>
                       <h3 className="text-[15px] font-bold text-foreground leading-snug mb-1.5">{entry.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{entry.description}</p>
+                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{entry.description}</p>
                       {entry.link && (
                         <a
                           href={entry.link.url}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-3"
+                          className="inline-flex items-center gap-1.5 text-base font-medium text-primary hover:text-primary/80 transition-colors mt-3"
                           data-testid={`changelog-link-${i}`}
                         >
                           {entry.link.label}
@@ -321,7 +321,7 @@ export default function FeatureRequests() {
               </div>
               <div>
                 <h2 className="text-base font-display font-bold text-foreground">What should we build next?</h2>
-                <p className="text-xs text-muted-foreground">We read every suggestion — your ideas shape PodCap.</p>
+                <p className="text-[15px] text-muted-foreground">We read every suggestion — your ideas shape PodCap.</p>
               </div>
             </div>
 
@@ -330,11 +330,11 @@ export default function FeatureRequests() {
                 <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-sm font-semibold text-foreground">Thanks for the idea!</p>
-                <p className="text-sm text-muted-foreground max-w-xs">We read every suggestion and will reach out if we have questions.</p>
+                <p className="text-base font-semibold text-foreground">Thanks for the idea!</p>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-xs">We read every suggestion and will reach out if we have questions.</p>
                 <button
                   onClick={() => { setSent(false); setMessage(""); setEmail(""); }}
-                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors mt-1"
+                  className="text-base font-medium text-primary hover:text-primary/80 transition-colors mt-1"
                   data-testid="button-submit-another"
                 >
                   Submit another idea
@@ -365,7 +365,7 @@ export default function FeatureRequests() {
                 <div className="flex items-center justify-between pt-1">
                   <a
                     href="/support"
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-1.5 text-[15px] text-muted-foreground hover:text-foreground transition-colors"
                     data-testid="link-support"
                   >
                     <LifeBuoy className="w-3.5 h-3.5" />

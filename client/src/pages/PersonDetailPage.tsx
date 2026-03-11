@@ -89,12 +89,12 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
               {episode.episode_title}
             </Link>
             {showType && (
-              <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium flex-shrink-0 mt-0.5 ${isGuest ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              <span className={`text-[15px] px-2.5 py-0.5 rounded-full font-medium flex-shrink-0 mt-0.5 ${isGuest ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                 {isGuest ? "Guest" : "Mentioned"}
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
+          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1 flex items-center gap-1.5 flex-wrap">
             <Link href={`/podcasts/${episode.slug}`} className="hover:text-foreground transition-colors flex items-center gap-1">
               <Headphones className="w-3.5 h-3.5" />
               {episode.podcast_name}
@@ -110,7 +110,7 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
             )}
           </p>
           {episode.context && (
-            <p className="mt-2 text-sm text-muted-foreground/80 leading-relaxed italic">
+            <p className="mt-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 leading-relaxed italic">
               &ldquo;{episode.context}&rdquo;
             </p>
           )}
@@ -394,11 +394,11 @@ export default function PersonDetailPage() {
             <Link href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</Link>
           ) : (
             <>
-              <Link href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
+              <Link href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </Link>
-              <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</Link>
+              <Link href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</Link>
             </>
           )}
         </div>
@@ -406,7 +406,7 @@ export default function PersonDetailPage() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-3xl">
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 mt-2" data-testid="breadcrumb">
+          <nav className="flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-6 mt-2" data-testid="breadcrumb">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
             <Link href="/people" className="hover:text-foreground transition-colors">People</Link>
@@ -458,22 +458,22 @@ export default function PersonDetailPage() {
 
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
                       {socialLinks?.twitter && (
-                        <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
+                        <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
                           <SiX className="w-3.5 h-3.5" /> X / Twitter
                         </a>
                       )}
                       {socialLinks?.linkedin && (
-                        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
+                        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
                           <SiLinkedin className="w-3.5 h-3.5" /> LinkedIn
                         </a>
                       )}
                       {socialLinks?.instagram && (
-                        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
+                        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
                           <SiInstagram className="w-3.5 h-3.5" /> Instagram
                         </a>
                       )}
                       {socialLinks?.website && (
-                        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
+                        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
                           <Globe className="w-3.5 h-3.5" /> Website
                         </a>
                       )}
@@ -481,13 +481,13 @@ export default function PersonDetailPage() {
 
                     <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
                       {hasGuestAppearances && (
-                        <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors cursor-pointer" data-testid="jump-guests">
+                        <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-base hover:text-primary transition-colors cursor-pointer" data-testid="jump-guests">
                           <Mic className="w-4 h-4 text-primary" />
                           <span className="font-semibold text-foreground">{person.guestCount}</span>
                           <span className="text-muted-foreground">guest appearance{person.guestCount !== 1 ? "s" : ""}</span>
                         </button>
                       )}
-                      <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors cursor-pointer" data-testid="jump-mentions">
+                      <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-base hover:text-primary transition-colors cursor-pointer" data-testid="jump-mentions">
                         <MessageSquare className="w-4 h-4 text-primary" />
                         <span className="font-semibold text-foreground">{person.mentionCount}</span>
                         <span className="text-muted-foreground">mention{person.mentionCount !== 1 ? "s" : ""}</span>
@@ -496,7 +496,7 @@ export default function PersonDetailPage() {
 
                     {personData?.relatedCompanies && personData.relatedCompanies.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border" data-testid="section-related-companies">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related Companies</p>
+                        <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related Companies</p>
                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                           {personData.relatedCompanies.map((companySlug) => {
                             if (!EXISTING_COMPANY_SLUGS.has(companySlug)) return null;
@@ -505,7 +505,7 @@ export default function PersonDetailPage() {
                             return (
                               <Link key={companySlug} href={`/companies/${companySlug}`} className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-company-${companySlug}`}>
                                 <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
-                                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
+                                <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
                               </Link>
                             );
                           })}
@@ -515,7 +515,7 @@ export default function PersonDetailPage() {
 
                     {personData?.similarPeople && personData.similarPeople.length > 0 && (
                       <div className={`mt-4 ${personData?.relatedCompanies?.length ? "" : "pt-4 border-t border-border"}`} data-testid="section-similar-people">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar People</p>
+                        <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar People</p>
                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                           {personData.similarPeople.map((personSlug) => {
                             if (!EXISTING_PEOPLE_SLUGS.has(personSlug)) return null;
@@ -524,7 +524,7 @@ export default function PersonDetailPage() {
                             return (
                               <Link key={personSlug} href={`/people/${personSlug}`} className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-person-${personSlug}`}>
                                 <img src={p.imageUrl || '/people/default-avatar.png'} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
-                                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
+                                <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                               </Link>
                             );
                           })}
@@ -558,8 +558,8 @@ export default function PersonDetailPage() {
                           />
                           <div className="min-w-0">
                             <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{podcast.title}</p>
-                            <p className="text-sm text-muted-foreground truncate">{podcast.hosts}</p>
-                            <p className="text-xs text-primary font-medium mt-1">View Podcast &rarr;</p>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] truncate">{podcast.hosts}</p>
+                            <p className="text-[15px] text-primary font-medium mt-1">View Podcast &rarr;</p>
                           </div>
                         </Link>
                       ))}
@@ -580,12 +580,12 @@ export default function PersonDetailPage() {
                       <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`key-idea-${i}`}>
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
-                          <Link href={`/topics/${idea.topicPageSlug}`} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
+                          <span className="text-[15px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
+                          <Link href={`/topics/${idea.topicPageSlug}`} className="text-[15px] text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
                             Explore Topic &rarr;
                           </Link>
                         </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-3">
                           {hasGuestAppearances
                             ? `${person.name} discusses ${idea.topic.toLowerCase()} across ${idea.count} podcast episode${idea.count !== 1 ? "s" : ""}. Explore the full recaps for in-depth coverage of this theme.`
                             : `${person.name} is discussed in the context of ${idea.topic.toLowerCase()} across ${idea.count} episode${idea.count !== 1 ? "s" : ""}. Explore recaps for detailed coverage.`}
@@ -623,7 +623,7 @@ export default function PersonDetailPage() {
                             &ldquo;{quote.text}&rdquo;
                           </blockquote>
                           <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                            <div className="text-base text-[#3F3F46] dark:text-[#A1A1AA] flex items-center gap-1.5">
                               <Headphones className="w-3.5 h-3.5" />
                               <span>{quote.podcastName}</span>
                               {date && <><span>&middot;</span><span>{date}</span></>}
@@ -634,7 +634,7 @@ export default function PersonDetailPage() {
                               </Link>
                             </div>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
+                          <p className="text-[15px] text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
                         </div>
                       );
                     })}
@@ -661,7 +661,7 @@ export default function PersonDetailPage() {
                         </button>
                         {faqOpen[i] && (
                           <div className="px-4 pb-4" data-testid={`faq-answer-${i}`}>
-                            <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.a}</p>
                           </div>
                         )}
                       </div>
@@ -684,11 +684,11 @@ export default function PersonDetailPage() {
                         <button
                           key={tab}
                           onClick={() => setActiveTab(tab)}
-                          className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                          className={`px-3 py-2 rounded-lg text-base font-semibold transition-all ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                           data-testid={`tab-${tab}`}
                         >
                           {tab === "all" ? "All" : tab === "guests" ? "Guest" : "Mentions"}
-                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[15px] font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                             {tab === "all" ? totalEpisodes : tab === "guests" ? person.guestCount : person.mentionCount}
                           </span>
                         </button>
@@ -703,13 +703,13 @@ export default function PersonDetailPage() {
                         placeholder="Filter episodes..."
                         value={filterText}
                         onChange={(e) => setFilterText(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/30"
+                        className="w-full pl-9 pr-3 py-2 text-base bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/30"
                         data-testid="input-filter-episodes"
                       />
                     </div>
                     <button
                       onClick={() => setSortOrder(o => o === "relevance" ? "newest" : o === "newest" ? "oldest" : "relevance")}
-                      className="flex items-center gap-1 px-3 py-2 text-sm text-muted-foreground hover:text-foreground bg-muted/50 border border-border rounded-lg transition-colors flex-shrink-0"
+                      className="flex items-center gap-1 px-3 py-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground bg-muted/50 border border-border rounded-lg transition-colors flex-shrink-0"
                       data-testid="button-sort"
                     >
                       <ArrowUpDown className="w-3.5 h-3.5" />
@@ -747,10 +747,10 @@ export default function PersonDetailPage() {
                             <p className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>
                               {podcast.name}
                             </p>
-                            <p className="text-sm text-muted-foreground mt-0.5">
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
                               {podcast.count} episode{podcast.count !== 1 ? "s" : ""} {latestDate && <>&middot; Latest: {latestDate}</>}
                             </p>
-                            <p className="text-xs text-muted-foreground/70 mt-1 truncate">
+                            <p className="text-[15px] text-muted-foreground/70 mt-1 truncate">
                               {podcast.latestTitle}
                             </p>
                           </div>
@@ -776,8 +776,8 @@ export default function PersonDetailPage() {
                         <Link key={personSlug} href={`/people/${personSlug}`} className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 hover:border-primary/30 transition-all group" data-testid={`related-person-${personSlug}`}>
                           <img src={p.imageUrl || '/people/default-avatar.png'} alt={p.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{p.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{p.title}</p>
+                            <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{p.name}</p>
+                            <p className="text-[15px] text-muted-foreground truncate">{p.title}</p>
                           </div>
                         </Link>
                       );
@@ -797,7 +797,7 @@ export default function PersonDetailPage() {
                     {Object.entries(timelineByYear).map(([year, episodes]) => (
                       <div key={year} data-testid={`timeline-year-${year}`}>
                         <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{year}</span>
+                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-base font-bold flex items-center justify-center">{year}</span>
                         </h3>
                         <div className="border-l-2 border-border pl-5 ml-4 space-y-3">
                           {episodes.map((ep, i) => {
@@ -807,10 +807,10 @@ export default function PersonDetailPage() {
                                 <div className="absolute -left-[1.625rem] top-1.5 w-3 h-3 rounded-full bg-border border-2 border-background" />
                                 <div className="flex items-start gap-2">
                                   <div className="flex-1 min-w-0">
-                                    <Link href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                                    <Link href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-base font-medium text-foreground hover:text-primary transition-colors">
                                       {ep.episode_title}
                                     </Link>
-                                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                    <p className="text-[15px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
                                       <Link href={`/podcasts/${ep.slug}`} className="hover:text-foreground transition-colors">{ep.podcast_name}</Link>
                                       {date && <><span>&middot;</span><span>{date}</span></>}
                                       <span>&middot;</span>
@@ -838,8 +838,8 @@ export default function PersonDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     {broadTopics.slice(0, 5).map((topic, i) => (
                       <Link key={i} href={`/topics/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
-                        <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
-                        <span className="text-xs text-muted-foreground">{topic.count}</span>
+                        <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
+                        <span className="text-[15px] text-muted-foreground">{topic.count}</span>
                       </Link>
                     ))}
                   </div>

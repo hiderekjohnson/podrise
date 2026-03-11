@@ -41,12 +41,12 @@ export default function About() {
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-login">
               Log In
             </Link>
           </div>
@@ -74,7 +74,7 @@ export default function About() {
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a
               href="/"
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
               data-testid="link-get-summaries"
             >
               Get Free Summaries
@@ -82,7 +82,7 @@ export default function About() {
             </a>
             <Link
               href="/updates"
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl border border-black/[0.08] dark:border-white/[0.1] text-sm font-bold text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all"
               data-testid="link-whats-new"
             >
               See What's New
@@ -99,7 +99,7 @@ export default function About() {
         >
           <div className="relative overflow-hidden bg-gradient-to-br from-primary/[0.06] to-primary/[0.02] border border-primary/[0.08] rounded-2xl px-8 py-6 text-center">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.08),transparent_70%)]" />
-            <p className="relative text-sm text-muted-foreground font-medium mb-1">PodCap users have already saved</p>
+            <p className="relative text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium mb-1">PodCap users have already saved</p>
             <p className="relative text-4xl sm:text-5xl font-display font-extrabold text-primary tracking-tight">
               <HoursSavedCounter />
             </p>
@@ -115,7 +115,7 @@ export default function About() {
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-black/[0.06] dark:to-white/[0.06]" />
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/60">The Problem</h2>
+            <h2 className="text-[15px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">The Problem</h2>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-black/[0.06] dark:to-white/[0.06]" />
           </div>
           <div className="space-y-5 text-[17px] leading-[1.85] text-muted-foreground max-w-2xl mx-auto">
@@ -154,7 +154,7 @@ export default function About() {
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
               <div>
                 <p className="text-[15px] font-bold text-foreground">Derek Johnson</p>
-                <p className="text-sm text-muted-foreground">Founder, PodCap</p>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founder, PodCap</p>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function About() {
                   <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                 </div>
                 <p className="text-[15px] font-bold text-foreground mb-1.5">{item.title}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -215,7 +215,7 @@ export default function About() {
                     <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                   </div>
                   <p className="text-[15px] font-bold text-foreground mb-1.5">{item.title}</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -331,12 +331,12 @@ export default function About() {
           <div className="flex items-stretch gap-5 flex-col sm:flex-row">
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Constantly improving</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
                 We're constantly improving PodCap. Adding features, refining summaries, and making it easier to keep up.
               </p>
               <Link
                 href="/updates"
-                className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                className="inline-flex items-center gap-1.5 text-base font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="link-visit-whats-new"
               >
                 Visit What's New
@@ -345,12 +345,12 @@ export default function About() {
             </div>
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Browse podcasts</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
                 See which podcasts other users follow, explore recaps, and find your next favorite show.
               </p>
               <Link
                 href="/podcasts"
-                className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                className="inline-flex items-center gap-1.5 text-base font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="link-browse-podcasts"
               >
                 Browse Podcasts
@@ -380,7 +380,7 @@ export default function About() {
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <a
                   href="/"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
                   data-testid="link-cta-get-summaries"
                 >
                   Get Free Summaries
@@ -388,7 +388,7 @@ export default function About() {
                 </a>
                 <Link
                   href="/podcasts"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-sm font-bold text-foreground shadow-sm hover:shadow-md transition-all"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground shadow-sm hover:shadow-md transition-all"
                   data-testid="link-cta-browse"
                 >
                   Browse Podcasts

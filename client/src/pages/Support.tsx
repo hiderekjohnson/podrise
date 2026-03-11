@@ -20,7 +20,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed border-t border-black/[0.04] pt-3">
+        <div className="px-5 pb-4 text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground leading-relaxed border-t border-black/[0.04] pt-3">
           {answer}
         </div>
       )}
@@ -121,12 +121,12 @@ export default function Support() {
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
+              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </div>
             </Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
+            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
               Log In
             </Link>
           </div>
@@ -159,7 +159,7 @@ export default function Support() {
             <Mail className="w-5 h-5 text-primary" />
             <span>Contact Us</span>
           </h2>
-          <p className="text-sm text-muted-foreground mb-5">
+          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground mb-5">
             Can't find the answer you're looking for above? Send us a message below and we'll get back to you as soon as we can.
           </p>
 
@@ -168,10 +168,10 @@ export default function Support() {
               <div className="text-center py-8" data-testid="support-success">
                 <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
                 <p className="text-lg font-semibold">Message sent!</p>
-                <p className="text-sm text-muted-foreground mt-1">We'll get back to you as soon as we can.</p>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground mt-1">We'll get back to you as soon as we can.</p>
                 <button
                   onClick={() => submitMutation.reset()}
-                  className="mt-4 text-sm text-primary font-medium hover:underline"
+                  className="mt-4 text-base text-primary font-medium hover:underline"
                   data-testid="button-send-another"
                 >
                   Send another message
@@ -180,7 +180,7 @@ export default function Support() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-support">
                 <div>
-                  <label htmlFor="support-email" className="block text-sm font-semibold mb-1.5">Your PodCap email address</label>
+                  <label htmlFor="support-email" className="block text-base font-semibold mb-1.5">Your PodCap email address</label>
                   <input
                     id="support-email"
                     type="email"
@@ -188,12 +188,12 @@ export default function Support() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="The email you use to log in to PodCap"
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     data-testid="input-support-email"
                   />
                 </div>
                 <div>
-                  <label htmlFor="support-message" className="block text-sm font-semibold mb-1.5">How can we help?</label>
+                  <label htmlFor="support-message" className="block text-base font-semibold mb-1.5">How can we help?</label>
                   <textarea
                     id="support-message"
                     required
@@ -201,14 +201,14 @@ export default function Support() {
                     onChange={(e) => setMessage(e.target.value)}
                     rows={5}
                     placeholder="Describe your issue or question..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
                     data-testid="input-support-message"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={submitMutation.isPending || !email.trim() || !message.trim()}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-base font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
                   data-testid="button-submit-support"
                 >
                   {submitMutation.isPending ? (

@@ -1,0 +1,143 @@
+# PodCap — Full UI Accessibility Update
+
+Please do a full accessibility pass on the entire site. The goal is that anyone of any age — including older users — can read and use everything without squinting, guessing, or struggling. When in doubt, go bigger, bolder, and higher contrast. Apply every rule below to every page and component.
+
+---
+
+## 1. TEXT SIZES — apply everywhere, no exceptions
+
+```
+Body / paragraph text        → 18px, weight 400, line-height 1.65
+Captions, tags, meta, dates  → 16px minimum — nothing smaller anywhere on the site
+Card titles                  → 20px, weight 600
+Person names / item titles   → 20px, weight 700
+Subtitles under names/titles → 16px, weight 400
+Section subheadings          → 24px, weight 500
+Section headings             → 36px, weight 700
+Hero headings                → 56px minimum, weight 700
+Navigation links             → 17px, weight 500
+Buttons (all)                → 17px, weight 600
+Form inputs & placeholders   → 17px, weight 400
+Dropdown / select text       → 17px
+Badges / pills / chips       → 15px minimum, weight 500
+Tooltips                     → 15px minimum
+Footer text                  → 16px
+```
+
+---
+
+## 2. TEXT COLORS — high contrast everywhere
+
+```
+Body text on light bg        → #18181B  (near black — not grey)
+Headings on light bg         → #09090B  (full black)
+Muted / secondary text       → #3F3F46  (never lighter than this on white)
+Placeholder text             → #71717A  (never lighter than this)
+Body text on dark bg         → #F4F4F5  (near white)
+Muted text on dark bg        → #A1A1AA  (never darker/dimmer than this)
+Links                        → #6366F1  (indigo — always underlined or clearly styled)
+```
+
+Minimum contrast ratio: 4.5:1 for all text against its background (WCAG AA).
+
+---
+
+## 3. BUTTONS — must be unmissable
+
+- Minimum height: **52px**
+- Minimum padding: **16px top/bottom, 28px left/right**
+- Font size: **17px**, weight **600**
+- Border radius: **10px**
+- Primary button: background `#6366F1`, text `white`, hover background `#4F46E5`
+- Secondary/outline button: border `2px solid #18181B`, text `#18181B`, background transparent, hover background `#F4F4F5`
+- Ghost/text buttons: text `#6366F1`, weight 600, with visible underline or arrow
+- All buttons need a clearly visible focus ring: `outline: 3px solid #6366F1; outline-offset: 3px`
+- Button text must never be truncated or cut off
+
+---
+
+## 4. NAVIGATION
+
+- Logo in navbar: height **36px minimum** — must be clearly legible
+- Nav links: **17px**, weight 500, color `#18181B` on light, `#F4F4F5` on dark
+- Active nav link: color `#6366F1`, weight 600
+- Navbar height: **68px minimum**
+- Mobile hamburger icon: **28×28px minimum**
+- Dropdown menus: 17px text, 48px min row height, clear hover state
+
+---
+
+## 5. CARDS
+
+- Card padding: **24px** minimum
+- Card title: **20px**, weight 700
+- Card body text: **16px minimum**, weight 400, line-height 1.6
+- Card metadata (category, date, tags): **15px**, color `#3F3F46`
+- Card border: `1px solid #E4E4E7` on light bg
+- Card hover state: must have a clearly visible change (shadow, border color, or background)
+- CTA links on cards: **16px**, weight 600, color `#6366F1`
+
+---
+
+## 6. IMAGES & AVATARS
+
+- Person avatar circles: **96px minimum** on desktop, **72px on mobile**
+- Podcast cover art: **200px minimum width** on desktop
+- All images must have alt text
+
+---
+
+## 7. ICONS
+
+- Standalone icons: **24px minimum**
+- Icons next to text: **20px**, vertically centered
+- Icon-only buttons must have a visible label or tooltip
+- Icon color must meet 3:1 contrast ratio against background
+
+---
+
+## 8. FORMS & INPUTS
+
+- Input height: **52px minimum**
+- Font size inside inputs: **17px**
+- Label above input: **16px**, weight 600, color `#18181B`
+- Placeholder: **17px**, color `#71717A`
+- Input border: `1.5px solid #D4D4D8`, focus: `2px solid #6366F1`
+- Error messages: **15px**, color `#DC2626`, shown below the field
+- Search bar: 52px tall, 17px text, clear icon 20px
+
+---
+
+## 9. BADGES, TAGS & PILLS
+
+- Minimum font size: **14px**, weight **500**
+- Minimum padding: **6px top/bottom, 12px left/right**
+- Minimum height: **28px**
+- Text must never be cut off
+
+---
+
+## 10. SPACING
+
+- Section padding top/bottom: **80px** on desktop, **48px on mobile**
+- Gap between cards: **24px minimum**
+- Gap between heading and subheading: **16px**
+- Gap between subheading and content: **32px**
+- Max paragraph width: **680px** — never let body text span the full page width
+
+---
+
+## 11. MOBILE
+
+- No text smaller than **16px** on any screen size
+- Buttons full-width on mobile, **52px tall**
+- All tap targets: **44×44px minimum**
+- Card padding: **20px on mobile**
+- Avatar circles: **72px on mobile**
+- Nav items stacked vertically with **48px row height**
+
+---
+
+## The overall rule
+
+If you look at any element and think "that might be hard to read" — make it bigger. A 65-year-old using this site on a phone in sunlight should be able to read and tap everything without difficulty. Prioritise readability over fitting more content on screen.

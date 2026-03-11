@@ -90,11 +90,11 @@ export default function CompaniesDirectory() {
             <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
           ) : (
             <>
-              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
+              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
                 <Zap className="w-3.5 h-3.5" />
                 Build Your Recap
               </a>
-              <a href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
+              <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
             </>
           )}
         </div>
@@ -114,7 +114,7 @@ export default function CompaniesDirectory() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               The most influential companies driving conversation across the world's top podcasts. See how often they come up, in what context, and explore every episode where they're discussed.
             </p>
-            <p className="text-sm text-muted-foreground mt-3">
+            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3">
               Looking for notable people?{" "}
               <a href="/people" className="text-primary font-medium hover:text-primary/80 transition-colors" data-testid="link-people-directory">
                 Explore People →
@@ -136,7 +136,7 @@ export default function CompaniesDirectory() {
               placeholder="Search companies..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setLetterFilter(null); }}
-              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-[17px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
               data-testid="input-search-companies"
             />
           </div>
@@ -144,7 +144,7 @@ export default function CompaniesDirectory() {
           <div className="flex flex-wrap gap-1 mb-4" data-testid="alphabet-filter">
             <button
               onClick={() => setLetterFilter(null)}
-              className={`px-2 py-1 rounded text-xs font-semibold transition-all ${!letterFilter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+              className={`px-3 py-2 rounded-lg text-[15px] min-h-[44px] min-w-[44px] font-semibold transition-all ${!letterFilter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               data-testid="letter-all"
             >
               All
@@ -153,7 +153,7 @@ export default function CompaniesDirectory() {
               <button
                 key={letter}
                 onClick={() => { setLetterFilter(letter === letterFilter ? null : letter); setSearchQuery(""); }}
-                className={`px-2 py-1 rounded text-xs font-semibold transition-all ${letterFilter === letter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`px-3 py-2 rounded-lg text-[15px] min-h-[44px] min-w-[44px] font-semibold transition-all ${letterFilter === letter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                 data-testid={`letter-${letter}`}
               >
                 {letter}
@@ -182,7 +182,7 @@ export default function CompaniesDirectory() {
             <p className="text-muted-foreground text-lg" data-testid="text-no-results">No companies found matching your filters.</p>
             <button
               onClick={() => { setSearchQuery(""); setLetterFilter(null); }}
-              className="mt-3 text-primary text-sm font-medium hover:text-primary/80 transition-colors"
+              className="mt-3 text-primary text-base font-medium hover:text-primary/80 transition-colors"
               data-testid="button-clear-filters"
             >
               Clear all filters
@@ -220,9 +220,9 @@ export default function CompaniesDirectory() {
                         <h2 className="text-lg sm:text-xl font-display font-bold text-foreground group-hover:text-primary transition-colors mb-0.5" data-testid={`text-company-name-${company.slug}`}>
                           {company.name}
                         </h2>
-                        <p className="text-sm text-muted-foreground mb-2">{company.description}</p>
+                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-2">{company.description}</p>
                         <div className="flex flex-wrap gap-3">
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
                             <MessageSquare className="w-3.5 h-3.5" />
                             <span>Mentioned in <span className="font-semibold text-foreground">{company.mentionCount}</span> episodes</span>
                           </div>
@@ -243,7 +243,7 @@ export default function CompaniesDirectory() {
               <div className="flex flex-col items-center gap-2 pt-4 pb-2">
                 <button
                   onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                  className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
+                  className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-base font-semibold text-primary hover:bg-primary/15 transition-colors"
                   data-testid="button-show-more"
                 >
                   Show More

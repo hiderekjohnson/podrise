@@ -234,7 +234,7 @@ export default function TopicDetailPage() {
             {!user && (
               <button
                 onClick={() => navigate("/get-started")}
-                className="px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                className="px-4 py-2 rounded-full text-base font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                 data-testid="button-build-recap"
               >
                 Build Your Recap
@@ -242,7 +242,7 @@ export default function TopicDetailPage() {
             )}
             <button
               onClick={() => navigate(user ? "/dashboard" : "/login")}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-foreground text-background hover:opacity-90 transition-opacity"
+              className="px-4 py-2 rounded-full text-base font-medium bg-foreground text-background hover:opacity-90 transition-opacity"
               data-testid="button-login"
             >
               {user ? "Dashboard" : "Log In"}
@@ -252,7 +252,7 @@ export default function TopicDetailPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 pt-8 pb-20">
-        <Link href="/topics" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6" data-testid="link-back-topics">
+        <Link href="/topics" className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-6" data-testid="link-back-topics">
           <ArrowLeft className="w-3.5 h-3.5" />
           All Topics
         </Link>
@@ -289,7 +289,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
                   <Activity className="w-4 h-4 text-primary" />
-                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-recent-episodes">
+                  <h2 className="text-base font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-recent-episodes">
                     Recent Episodes
                   </h2>
                 </div>
@@ -305,15 +305,15 @@ export default function TopicDetailPage() {
                             loading="lazy"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                               {ep.episode_title}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-muted-foreground/60">{ep.podcast_name}</span>
+                              <span className="text-[15px] text-muted-foreground/60">{ep.podcast_name}</span>
                               {ep.publish_date && (
                                 <>
                                   <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                                  <span className="text-xs text-muted-foreground/50 flex items-center gap-1">
+                                  <span className="text-[15px] text-muted-foreground/50 flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />
                                     {formatDate(ep.publish_date)}
                                   </span>
@@ -321,7 +321,7 @@ export default function TopicDetailPage() {
                               )}
                             </div>
                             {ep.tldl && (
-                              <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{ep.tldl}</p>
+                              <p className="text-[15px] text-muted-foreground/70 mt-1.5 line-clamp-2">{ep.tldl}</p>
                             )}
                           </div>
                           <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
@@ -342,8 +342,8 @@ export default function TopicDetailPage() {
             {!episodesLoading && (!topicEpisodes || topicEpisodes.length === 0) && (
               <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-8 text-center">
                 <Activity className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-medium text-foreground mb-1">Episode data coming soon</p>
-                <p className="text-xs text-muted-foreground/60">We're building out {topicDisplayName.toLowerCase()} coverage across our podcast library.</p>
+                <p className="text-base font-medium text-foreground mb-1">Episode data coming soon</p>
+                <p className="text-[15px] text-muted-foreground/60">We're building out {topicDisplayName.toLowerCase()} coverage across our podcast library.</p>
               </div>
             )}
           </div>
@@ -358,7 +358,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
                   <Zap className="w-4 h-4 text-amber-500" />
-                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-key-insights">
+                  <h2 className="text-base font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-key-insights">
                     Key Insights
                   </h2>
                 </div>
@@ -366,7 +366,7 @@ export default function TopicDetailPage() {
                   {keyInsights.map((insight, i) => (
                     <div key={i} className="flex items-start gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-                      <p className="text-sm text-foreground/80 leading-relaxed">{insight}</p>
+                      <p className="text-base text-foreground/80 leading-relaxed">{insight}</p>
                     </div>
                   ))}
                 </div>
@@ -382,15 +382,15 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
                   <Quote className="w-4 h-4 text-purple-500" />
-                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-notable-quotes">
+                  <h2 className="text-base font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-notable-quotes">
                     From the Episodes
                   </h2>
                 </div>
                 <div className="px-5 py-4 space-y-4">
                   {quotes.map((q, i) => (
                     <div key={i} className="border-l-2 border-primary/20 pl-3.5">
-                      <p className="text-sm text-foreground/80 italic leading-relaxed">"{q.quote}"</p>
-                      <p className="text-xs text-muted-foreground/60 mt-1.5">{q.podcast}</p>
+                      <p className="text-base text-foreground/80 italic leading-relaxed">"{q.quote}"</p>
+                      <p className="text-[15px] text-muted-foreground/60 mt-1.5">{q.podcast}</p>
                     </div>
                   ))}
                 </div>
@@ -406,31 +406,31 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
                   <TrendingUp className="w-4 h-4 text-emerald-500" />
-                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-topic-pulse">
+                  <h2 className="text-base font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-topic-pulse">
                     Topic Pulse
                   </h2>
                 </div>
                 <div className="px-5 py-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Podcast coverage</span>
-                    <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1">
+                    <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Podcast coverage</span>
+                    <span className="text-base font-semibold text-emerald-600 flex items-center gap-1">
                       <TrendingUp className="w-3.5 h-3.5" /> Active
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Related podcasts</span>
-                    <span className="text-sm font-semibold text-foreground">{relatedPodcasts.length}+</span>
+                    <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Related podcasts</span>
+                    <span className="text-base font-semibold text-foreground">{relatedPodcasts.length}+</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Key voices</span>
-                    <span className="text-sm font-semibold text-foreground">{relatedPeople.length}+</span>
+                    <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Key voices</span>
+                    <span className="text-base font-semibold text-foreground">{relatedPeople.length}+</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Companies involved</span>
-                    <span className="text-sm font-semibold text-foreground">{relatedCompanies.length}+</span>
+                    <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Companies involved</span>
+                    <span className="text-base font-semibold text-foreground">{relatedCompanies.length}+</span>
                   </div>
                   <div className="h-px bg-black/[0.04] dark:bg-white/[0.04] my-1" />
-                  <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                  <p className="text-[15px] text-muted-foreground/60 leading-relaxed">
                     {topicDisplayName} is actively discussed across multiple top podcasts. Coverage spans interviews, deep dives, and expert analysis.
                   </p>
                 </div>
@@ -446,7 +446,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2.5">
                   <Users className="w-4 h-4 text-sky-500" />
-                  <h2 className="text-sm font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-related-people">
+                  <h2 className="text-base font-display font-bold text-foreground uppercase tracking-wider" data-testid="heading-related-people">
                     Related People
                   </h2>
                 </div>
@@ -455,8 +455,8 @@ export default function TopicDetailPage() {
                     <div key={i} className="flex items-start gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0 mt-1.5" />
                       <div>
-                        <p className="text-sm font-semibold text-foreground">{g.name}</p>
-                        {g.title && <p className="text-xs text-muted-foreground/60">{g.title}</p>}
+                        <p className="text-base font-semibold text-foreground">{g.name}</p>
+                        {g.title && <p className="text-[15px] text-muted-foreground/60">{g.title}</p>}
                       </div>
                     </div>
                   ))}
@@ -477,7 +477,7 @@ export default function TopicDetailPage() {
               <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-podcasts">
                 Relevant Podcasts
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">
                 These shows put {topicDisplayName.toLowerCase()} front and center. A must-follow if you're into this topic.
               </p>
             </div>
@@ -499,10 +499,10 @@ export default function TopicDetailPage() {
                           loading="lazy"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                             {podcast.name}
                           </h3>
-                          <p className="text-xs text-muted-foreground/60 truncate">{podcast.hosts}</p>
+                          <p className="text-[15px] text-muted-foreground/60 truncate">{podcast.hosts}</p>
                         </div>
                       </div>
                     </div>
@@ -524,7 +524,7 @@ export default function TopicDetailPage() {
               <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-people">
                 Key Voices
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">
                 The people shaping the {topicDisplayName.toLowerCase()} conversation across podcasts. Follow their appearances and mentions.
               </p>
             </div>
@@ -546,12 +546,12 @@ export default function TopicDetailPage() {
                           loading="lazy"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                             {person.name}
                           </h3>
-                          <p className="text-xs text-muted-foreground/60 truncate">{person.title}</p>
+                          <p className="text-[15px] text-muted-foreground/60 truncate">{person.title}</p>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground/50 flex-shrink-0">
+                        <div className="flex items-center gap-3 text-[15px] text-muted-foreground/50 flex-shrink-0">
                           {person.guestCount > 0 && (
                             <span className="flex items-center gap-1">
                               <Mic className="w-3 h-3" />
@@ -585,7 +585,7 @@ export default function TopicDetailPage() {
               <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-companies">
                 Notable Companies
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">
                 Companies at the center of the {topicDisplayName.toLowerCase()} landscape, frequently referenced across top podcasts.
               </p>
             </div>
@@ -607,10 +607,10 @@ export default function TopicDetailPage() {
                           loading="lazy"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                             {company.name}
                           </h3>
-                          <p className="text-xs text-muted-foreground/60 truncate">{company.details.industry}</p>
+                          <p className="text-[15px] text-muted-foreground/60 truncate">{company.details.industry}</p>
                         </div>
                       </div>
                     </div>
@@ -632,7 +632,7 @@ export default function TopicDetailPage() {
               <div className="max-w-2xl">
                 <div className="flex items-center gap-2 mb-4">
                   <Building2 className="w-5 h-5 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary">Enterprise</span>
+                  <span className="text-[15px] font-bold uppercase tracking-[0.15em] text-primary">Enterprise</span>
                 </div>
                 <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-3" data-testid="heading-enterprise-cta">
                   Does your team need to stay on top of {topicDisplayName.toLowerCase()}?
@@ -641,7 +641,7 @@ export default function TopicDetailPage() {
                   We work with enterprise clients to build customized podcast intelligence dashboards. Get structured data, automated monitoring, and real-time insights on the topics that matter to your organization — so your team is always informed.
                 </p>
                 <Link href="/enterprise" data-testid="link-enterprise-cta">
-                  <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors cursor-pointer">
+                  <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-base font-semibold hover:bg-primary/90 transition-colors cursor-pointer">
                     Learn about Enterprise
                     <ArrowRight className="w-4 h-4" />
                   </span>
@@ -665,7 +665,7 @@ export default function TopicDetailPage() {
                       <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${t.color} flex items-center justify-center`}>
                         <TIcon className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{t.name}</span>
+                      <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{t.name}</span>
                     </div>
                   </Link>
                 );
