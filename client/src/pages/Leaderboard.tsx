@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation, Link } from "wouter";
-import { Headphones, Globe, Search, X, ArrowRight, Zap, Tag } from "lucide-react";
+import { Headphones, Globe, Search, X, ArrowRight, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
@@ -54,6 +54,7 @@ export default function Leaderboard() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const podcastsWithGroups = useMemo(() => {
     return PODCAST_LANDINGS.map(p => ({
@@ -78,6 +79,9 @@ export default function Leaderboard() {
 
   const filtered = useMemo(() => {
     let results = podcastsWithGroups;
+    if (selectedCategory) {
+      results = results.filter(p => p.groups.includes(selectedCategory));
+    }
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       results = results.filter(p =>
@@ -87,7 +91,7 @@ export default function Leaderboard() {
       );
     }
     return results;
-  }, [podcastsWithGroups, searchTerm]);
+  }, [podcastsWithGroups, searchTerm, selectedCategory]);
 
   const categoryLinks = useMemo(() => getAllCategoryLinks(), []);
 
@@ -133,11 +137,10 @@ export default function Leaderboard() {
             <>
               <a
                 href="/get-started"
-                className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-lg text-[15px] font-semibold hover:bg-foreground/90 transition-colors"
                 data-testid="link-nav-get-started"
               >
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
+                Create Account
               </a>
               <a
                 href="/login"
@@ -206,24 +209,26 @@ export default function Leaderboard() {
             </div>
 
             <div className="flex flex-wrap gap-2" data-testid="category-filters">
-              <span
-                className="px-3.5 py-1.5 rounded-full text-[15px] font-bold bg-primary text-white shadow-sm"
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${!selectedCategory ? "bg-primary text-white shadow-sm" : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"}`}
                 data-testid="filter-all"
               >
                 All
-              </span>
+              </button>
               {availableGroups.map(group => {
                 const slug = DISPLAY_TO_CATEGORY_SLUG[group];
                 if (!slug) return null;
+                const isActive = selectedCategory === group;
                 return (
-                  <a
+                  <button
                     key={group}
-                    href={`/podcasts/${slug}`}
-                    className="px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
+                    onClick={() => setSelectedCategory(isActive ? null : group)}
+                    className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${isActive ? "bg-primary text-white shadow-sm" : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"}`}
                     data-testid={`filter-${group.toLowerCase().replace(/[^a-z]/g, "-")}`}
                   >
                     {group}
-                  </a>
+                  </button>
                 );
               })}
             </div>
@@ -234,11 +239,11 @@ export default function Leaderboard() {
               <div className="flex items-center gap-3">
                 <Globe className="w-5 h-5 text-primary" />
                 <span className="text-base font-display font-bold text-foreground">
-                  All Podcasts
+                  {selectedCategory ? selectedCategory : "All Podcasts"}
                 </span>
               </div>
               <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
-                {searchTerm ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}` : ""}
+                {(searchTerm || selectedCategory) ? `${filtered.length} podcast${filtered.length !== 1 ? "s" : ""}` : ""}
               </span>
             </div>
 
@@ -248,7 +253,7 @@ export default function Leaderboard() {
                 <p className="text-base font-medium text-muted-foreground mb-1">No podcasts found</p>
                 <p className="text-[15px] text-muted-foreground/70">
                   Try a different search or{" "}
-                  <button onClick={() => { setSearchTerm(""); }} className="text-primary hover:underline" data-testid="button-clear-filters">
+                  <button onClick={() => { setSearchTerm(""); setSelectedCategory(null); }} className="text-primary hover:underline" data-testid="button-clear-filters">
                     clear all filters
                   </button>
                 </p>
