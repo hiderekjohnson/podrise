@@ -1993,6 +1993,7 @@ export async function registerRoutes(
             podcastBuzz: enrichment?.podcast_buzz || null,
             amazonUrl,
             asin: finalAsin,
+            slug: enrichment?.slug || null,
             podcastCount: b.podcasts.size,
             podcastNames: Array.from(b.podcasts.values()),
             mentionCount: b.mentionCount,
@@ -2004,6 +2005,137 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Bookstore error:", err);
       res.status(500).json({ message: "Failed to load bookstore" });
+    }
+  });
+
+  app.get("/api/bookstore/:bookSlug", async (req, res) => {
+    try {
+      const { bookSlug } = req.params;
+
+      const { rows: enrichRows } = await pool.query(
+        "SELECT * FROM book_enrichments WHERE slug = $1",
+        [bookSlug]
+      );
+      if (enrichRows.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      const enrichment = enrichRows[0];
+      const bookKey = enrichment.book_key;
+
+      const { rows } = await pool.query(
+        `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.resources,
+                lpr.publish_date, lpr.hosts, lpr.guests,
+                pd.name as podcast_name
+         FROM landing_page_recaps lpr
+         JOIN podcast_directory pd ON pd.slug = lpr.slug
+         WHERE lpr.resources IS NOT NULL AND lpr.resources::text != '[]'
+           AND lpr.resources::text ILIKE $1`,
+        [`%${bookKey.replace(/[%_]/g, '\\$&')}%`]
+      );
+
+      const episodes: {
+        podcastSlug: string;
+        podcastName: string;
+        episodeSlug: string;
+        episodeTitle: string;
+        context: string;
+        publishedAt: string | null;
+        hosts: string | null;
+      }[] = [];
+      const podcastSet = new Map<string, string>();
+      const relatedBookKeys = new Set<string>();
+
+      for (const row of rows) {
+        let resources: any[];
+        try {
+          const parsed = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources;
+          if (!Array.isArray(parsed)) continue;
+          resources = parsed;
+        } catch { continue; }
+
+        let foundInEpisode = false;
+        let bookContext = "";
+        const otherBooks: string[] = [];
+
+        for (const r of resources) {
+          if (!r || r.type !== 'book' || !r.name) continue;
+          const rKey = r.name.toLowerCase().trim();
+          if (rKey === bookKey) {
+            foundInEpisode = true;
+            bookContext = r.context || "";
+          } else if (r.name !== '_books_checked') {
+            otherBooks.push(rKey);
+          }
+        }
+
+        if (foundInEpisode) {
+          episodes.push({
+            podcastSlug: row.slug,
+            podcastName: row.podcast_name,
+            episodeSlug: row.episode_slug,
+            episodeTitle: row.episode_title,
+            context: bookContext,
+            publishedAt: row.publish_date,
+            hosts: row.hosts,
+          });
+          podcastSet.set(row.slug, row.podcast_name);
+          otherBooks.forEach(k => relatedBookKeys.add(k));
+        }
+      }
+
+      episodes.sort((a, b) => {
+        if (a.publishedAt && b.publishedAt) return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+        return 0;
+      });
+
+      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null }[] = [];
+      if (relatedBookKeys.size > 0) {
+        const relKeys = Array.from(relatedBookKeys).slice(0, 20);
+        const placeholders = relKeys.map((_, i) => `$${i + 1}`).join(",");
+        const { rows: relRows } = await pool.query(
+          `SELECT book_key, book_title, author, slug, asin FROM book_enrichments WHERE book_key IN (${placeholders})`,
+          relKeys
+        );
+        const relMap = new Map(relRows.map((r: any) => [r.book_key, r]));
+
+        for (const rk of relKeys) {
+          const rel = relMap.get(rk);
+          if (rel && rel.slug) {
+            relatedBooks.push({
+              name: rel.book_title,
+              author: rel.author,
+              slug: rel.slug,
+              mentionCount: 0,
+              asin: rel.asin,
+            });
+          }
+        }
+        relatedBooks = relatedBooks.slice(0, 6);
+      }
+
+      const finalAsin = enrichment.asin || null;
+      const amazonUrl = finalAsin
+        ? `https://www.amazon.com/dp/${finalAsin}?tag=podcap-20`
+        : `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap-20`;
+
+      res.json({
+        name: enrichment.book_title,
+        author: enrichment.author,
+        description: enrichment.description,
+        podcastBuzz: enrichment.podcast_buzz,
+        slug: enrichment.slug,
+        asin: finalAsin,
+        amazonUrl,
+        mentionCount: episodes.length,
+        episodeCount: episodes.length,
+        podcastCount: podcastSet.size,
+        podcastNames: Array.from(podcastSet.values()),
+        episodes,
+        relatedBooks,
+      });
+    } catch (err) {
+      console.error("Book detail error:", err);
+      res.status(500).json({ message: "Failed to load book" });
     }
   });
 

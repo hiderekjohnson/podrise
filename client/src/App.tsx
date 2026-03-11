@@ -37,6 +37,7 @@ const DailyDropEdition = lazy(() => import("./pages/DailyDropEdition"));
 const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
 const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const Bookstore = lazy(() => import("./pages/Bookstore"));
+const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
 
 function PageLoader() {
   return (
@@ -56,6 +57,7 @@ function Router() {
         <Route path="/upgrade" component={Upgrade} />
         <Route path="/admin" component={Admin} />
         <Route path="/bookstore" component={Bookstore} />
+        <Route path="/bookstore/:bookSlug" component={BookDetailPage} />
         <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/transcript" component={EpisodeTranscriptPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />

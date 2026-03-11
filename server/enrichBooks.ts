@@ -105,6 +105,17 @@ Respond with ONLY valid JSON:
   };
 }
 
+function generateSlug(title: string, author: string | null): string {
+  const raw = author ? `${title}-${author}` : title;
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .substring(0, 120);
+}
+
 export async function enrichAllBooks(limit?: number): Promise<{ processed: number; errors: number }> {
   const books = await getAllBooks();
   const toProcess = limit ? books.slice(0, limit) : books;
@@ -130,16 +141,26 @@ export async function enrichAllBooks(limit?: number): Promise<{ processed: numbe
         ? `https://www.amazon.com/dp/${enrichment.asin}?tag=podcap-20`
         : null;
 
+      let slug = generateSlug(book.name, book.author);
+      const { rows: dupeRows } = await pool.query(
+        "SELECT id FROM book_enrichments WHERE slug = $1 AND book_key != $2",
+        [slug, book.bookKey]
+      );
+      if (dupeRows.length > 0) {
+        slug = `${slug}-${Date.now().toString(36)}`;
+      }
+
       await pool.query(
-        `INSERT INTO book_enrichments (book_key, book_title, author, description, podcast_buzz, asin, amazon_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO book_enrichments (book_key, book_title, author, description, podcast_buzz, asin, amazon_url, slug)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (book_key) DO UPDATE SET
            description = EXCLUDED.description,
            podcast_buzz = EXCLUDED.podcast_buzz,
            asin = COALESCE(EXCLUDED.asin, book_enrichments.asin),
            amazon_url = COALESCE(EXCLUDED.amazon_url, book_enrichments.amazon_url),
+           slug = COALESCE(book_enrichments.slug, EXCLUDED.slug),
            updated_at = NOW()`,
-        [book.bookKey, book.name, book.author, enrichment.description, enrichment.podcastBuzz, enrichment.asin, amazonUrl]
+        [book.bookKey, book.name, book.author, enrichment.description, enrichment.podcastBuzz, enrichment.asin, amazonUrl, slug]
       );
 
       processed++;
