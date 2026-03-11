@@ -7129,7 +7129,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Bitcoin",
     description: "The first and largest decentralized cryptocurrency and digital store of value.",
     background: "Bitcoin was created in 2009 by the pseudonymous Satoshi Nakamoto as a peer-to-peer electronic cash system. It introduced blockchain technology and remains the largest cryptocurrency by market capitalization. Bitcoin is widely discussed across business, finance, and technology podcasts as both an investment asset and a technological innovation that challenges traditional financial systems.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/bitcoin.png",
     searchTerms: ["Bitcoin", "BTC"],
     details: {
       headquarters: "Decentralized",
@@ -7148,7 +7148,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Ethereum",
     description: "Decentralized blockchain platform enabling smart contracts and decentralized applications.",
     background: "Ethereum was proposed by Vitalik Buterin in 2013 and launched in 2015. Unlike Bitcoin, Ethereum is a programmable blockchain that enables smart contracts and decentralized applications (dApps). It is the foundation for DeFi, NFTs, and much of the web3 ecosystem. Ethereum transitioned to proof-of-stake consensus in 2022, dramatically reducing its energy consumption.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/ethereum.png",
     searchTerms: ["Ethereum", "ETH"],
     details: {
       headquarters: "Decentralized",
@@ -7167,7 +7167,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Disney",
     description: "Global entertainment and media conglomerate spanning film, TV, theme parks, and streaming.",
     background: "The Walt Disney Company is one of the world's largest and most iconic entertainment companies. Founded by Walt Disney in 1923, it owns Marvel, Pixar, Lucasfilm (Star Wars), 20th Century Studios, ABC, ESPN, and the Disney+ streaming service. Disney's business strategies, leadership transitions, and competition with streaming rivals are frequently analyzed across business and media podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/disney.png",
     searchTerms: ["Disney"],
     details: {
       headquarters: "Burbank, CA",
@@ -7186,7 +7186,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Cursor",
     description: "AI-powered code editor revolutionizing software development.",
     background: "Cursor is an AI-first code editor built by Anysphere, launched in 2023. Built on VS Code's foundation, Cursor integrates AI deeply into the coding workflow with features like intelligent autocomplete, code generation, and natural language editing. It has become one of the fastest-growing developer tools and is frequently discussed in tech and AI podcasts as a prime example of AI transforming professional workflows.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/cursor.png",
     searchTerms: ["Cursor"],
     details: {
       headquarters: "San Francisco, CA",
@@ -7205,7 +7205,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Substack",
     description: "Newsletter and publishing platform empowering independent writers and creators.",
     background: "Substack is a publishing platform founded in 2017 that allows writers to create subscription-based newsletters. It has become a home for journalists, essayists, and thought leaders seeking to build direct relationships with their audiences outside traditional media. Top Substack writers earn millions annually, and the platform has expanded into podcasts, video, and community features.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/substack.png",
     searchTerms: ["Substack"],
     details: {
       headquarters: "San Francisco, CA",
@@ -7224,7 +7224,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Slack",
     description: "Business communication and collaboration platform used by millions of teams.",
     background: "Slack launched in 2013 and quickly became the default communication tool for tech companies and startups. Acquired by Salesforce in 2021 for $27.7 billion, Slack pioneered the concept of channel-based messaging for work. It integrates with thousands of apps and is central to how modern distributed teams collaborate, making it a frequent topic in business and productivity podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/slack.png",
     searchTerms: ["Slack"],
     details: {
       headquarters: "San Francisco, CA",
@@ -7243,7 +7243,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Waymo",
     description: "Alphabet's autonomous driving technology company operating robotaxi services.",
     background: "Waymo began as Google's self-driving car project in 2009 and became a standalone Alphabet subsidiary in 2016. It operates commercial robotaxi services in Phoenix, San Francisco, and Los Angeles, making it the leader in autonomous vehicle deployment. Waymo's technology, safety record, and expansion plans are widely discussed in technology and transportation podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/waymo.png",
     searchTerms: ["Waymo"],
     details: {
       headquarters: "Mountain View, CA",
@@ -7262,7 +7262,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Zoom",
     description: "Video communications platform that became essential for remote work.",
     background: "Zoom Video Communications was founded in 2011 by Eric Yuan and became a household name during the COVID-19 pandemic when it became the default video conferencing tool. The company went public in 2019 and saw explosive growth through 2020-2021. Zoom has since expanded into an AI-first work platform with Zoom Workplace, AI Companion, and contact center solutions.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/zoom.png",
     searchTerms: ["Zoom"],
     details: {
       headquarters: "San Jose, CA",
@@ -7281,7 +7281,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Walmart",
     description: "World's largest retailer by revenue with massive e-commerce and logistics operations.",
     background: "Walmart was founded by Sam Walton in 1962 and has grown into the world's largest company by revenue. With over 10,500 stores worldwide and a rapidly growing e-commerce business, Walmart is a frequent topic in business podcasts discussing retail strategy, supply chain innovation, competition with Amazon, and the future of brick-and-mortar retail.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/walmart.png",
     searchTerms: ["Walmart"],
     details: {
       headquarters: "Bentonville, AR",
@@ -7300,7 +7300,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "SoftBank",
     description: "Japanese conglomerate and technology investment firm behind the Vision Fund.",
     background: "SoftBank Group, founded by Masayoshi Son in 1981, is a Japanese multinational conglomerate and one of the world's largest technology investors. Its $100 billion Vision Fund reshaped venture capital and backed companies like Uber, WeWork, DoorDash, and ARM. SoftBank's investment strategies and Masa Son's bold bets are frequently discussed in business and technology podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/softbank.png",
     searchTerms: ["SoftBank", "SoftBank Vision Fund"],
     details: {
       headquarters: "Tokyo, Japan",
@@ -7319,7 +7319,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "ElevenLabs",
     description: "AI voice synthesis and cloning platform creating lifelike speech from text.",
     background: "ElevenLabs was founded in 2022 by Piotr Dabkowski and Mati Staniszewski, former Google and Palantir engineers. The company's AI voice technology can generate remarkably realistic speech and clone voices from short audio samples. ElevenLabs is at the forefront of the AI audio revolution, powering content creation, audiobooks, dubbing, and accessibility tools.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/elevenlabs.png",
     searchTerms: ["ElevenLabs", "Eleven Labs"],
     details: {
       headquarters: "New York, NY",
@@ -7338,7 +7338,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "AMD",
     description: "Semiconductor company designing CPUs and GPUs competing with Intel and Nvidia.",
     background: "Advanced Micro Devices (AMD) is a semiconductor company founded in 1969 that designs CPUs, GPUs, and data center processors. Under CEO Lisa Su's leadership since 2014, AMD has staged a remarkable comeback, gaining significant market share from Intel in CPUs and competing with Nvidia in AI accelerators. AMD's MI300 series chips position it as a key player in the AI infrastructure boom.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/amd.png",
     searchTerms: ["AMD"],
     details: {
       headquarters: "Santa Clara, CA",
@@ -7357,7 +7357,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Broadcom",
     description: "Global semiconductor and infrastructure software company powering enterprise technology.",
     background: "Broadcom Inc. is a global technology company that designs, develops, and supplies semiconductor and infrastructure software solutions. Following its $61 billion acquisition of VMware in 2023, Broadcom became one of the largest technology companies in the world. Its chips power networking, storage, and wireless communications, while its software portfolio serves enterprise cloud and security needs.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/broadcom.png",
     searchTerms: ["Broadcom"],
     details: {
       headquarters: "Palo Alto, CA",
@@ -7376,7 +7376,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Product Hunt",
     description: "Platform for discovering and launching new technology products and startups.",
     background: "Product Hunt is a website and community where makers share and discover new technology products. Founded by Ryan Hoover in 2013 and acquired by AngelList in 2016, it has become the go-to launchpad for startups and indie makers. A successful Product Hunt launch can drive thousands of early users and is frequently discussed in entrepreneurship and startup podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/product-hunt.png",
     searchTerms: ["Product Hunt"],
     details: {
       headquarters: "San Francisco, CA",
@@ -7395,7 +7395,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Zapier",
     description: "No-code automation platform connecting thousands of apps and workflows.",
     background: "Zapier is a no-code automation platform founded in 2011 that connects over 6,000 apps to automate workflows. The company is notably bootstrapped, fully remote, and profitable — a rarity among tech companies of its scale. Zapier is frequently discussed in entrepreneurship and productivity podcasts as both a powerful business tool and an exemplary case of bootstrapped growth.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/zapier.png",
     searchTerms: ["Zapier"],
     details: {
       headquarters: "San Francisco, CA (fully remote)",
@@ -7414,7 +7414,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Cisco",
     description: "Global leader in networking hardware, software, and enterprise technology.",
     background: "Cisco Systems was founded in 1984 by a group of Stanford computer scientists and became the backbone of the internet by manufacturing the routers and switches that power global networks. Today Cisco is a diversified technology company offering networking, security, collaboration, and cloud infrastructure solutions to enterprises worldwide.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/cisco.png",
     searchTerms: ["Cisco"],
     details: {
       headquarters: "San Jose, CA",
@@ -7433,7 +7433,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Discord",
     description: "Voice, video, and text communication platform for communities and gaming.",
     background: "Discord was founded in 2015 as a communication platform for gamers but has grown into a general-purpose community platform used by creators, educators, developers, and businesses. With over 200 million monthly active users, Discord offers voice channels, text messaging, video calls, and rich community features. It famously turned down a $12 billion acquisition offer from Microsoft in 2021.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/discord.png",
     searchTerms: ["Discord"],
     details: {
       headquarters: "San Francisco, CA",
@@ -7452,7 +7452,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Nike",
     description: "World's largest athletic footwear and apparel company.",
     background: "Nike was co-founded by Phil Knight and Bill Bowerman in 1964 and has grown into the world's most valuable apparel brand. Famous for its 'Just Do It' slogan and swoosh logo, Nike dominates global athletic footwear, apparel, and equipment markets. The company's marketing strategies, direct-to-consumer transformation, and cultural influence are frequently discussed in business and branding podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/nike.png",
     searchTerms: ["Nike"],
     details: {
       headquarters: "Beaverton, OR",
@@ -7471,7 +7471,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Costco",
     description: "Membership-based warehouse retailer known for bulk products and customer loyalty.",
     background: "Costco Wholesale was founded in 1983 and operates a chain of membership-only warehouse clubs. Known for its no-frills shopping experience, limited product selection, and famously cheap hot dogs, Costco has built one of the most loyal customer bases in retail. Its business model and culture are frequently analyzed in business podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/costco.png",
     searchTerms: ["Costco"],
     details: {
       headquarters: "Issaquah, WA",
@@ -7490,7 +7490,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Boeing",
     description: "Major aerospace and defense manufacturer of commercial aircraft and military systems.",
     background: "The Boeing Company was founded in 1916 and is one of the world's largest aerospace companies. It manufactures commercial jetliners (737, 787, 777), defense systems, and space vehicles. Boeing has faced significant scrutiny over safety issues with its 737 MAX aircraft and quality control problems, making it a frequent topic in business and news podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/boeing.png",
     searchTerms: ["Boeing"],
     details: {
       headquarters: "Arlington, VA",
@@ -7509,7 +7509,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Toast",
     description: "Restaurant technology and point-of-sale platform powering the food service industry.",
     background: "Toast is a cloud-based restaurant management platform founded in 2012. It provides point-of-sale systems, online ordering, payroll, and marketing tools specifically designed for restaurants. Toast went public in 2021 and has become the leading technology platform for the restaurant industry, serving hundreds of thousands of restaurant locations.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/toast-inc.png",
     searchTerms: ["Toast"],
     details: {
       headquarters: "Boston, MA",
@@ -7528,7 +7528,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "WeWork",
     description: "Flexible workspace and coworking company that became a cautionary tale of startup excess.",
     background: "WeWork was founded in 2010 by Adam Neumann and Miguel McKelvey as a coworking space provider. Once valued at $47 billion, WeWork's spectacular fall from grace — driven by corporate governance failures, an aborted IPO, and Neumann's ouster — became one of the most discussed business stories of the decade. WeWork filed for bankruptcy in 2023 and has since restructured.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/wework.png",
     searchTerms: ["WeWork"],
     details: {
       headquarters: "New York, NY",
@@ -7547,7 +7547,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Qualcomm",
     description: "Semiconductor company specializing in mobile chipsets and wireless technology.",
     background: "Qualcomm is a semiconductor and telecommunications company founded in 1985, best known for its Snapdragon mobile processors that power most of the world's Android smartphones. Qualcomm also holds essential patents for 3G, 4G, and 5G wireless standards, generating significant licensing revenue. The company is expanding into automotive, IoT, and AI edge computing.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/qualcomm.png",
     searchTerms: ["Qualcomm"],
     details: {
       headquarters: "San Diego, CA",
@@ -7566,7 +7566,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Groq",
     description: "AI inference chip company building ultra-fast hardware for LLM processing.",
     background: "Groq is an AI chip company founded in 2016 by Jonathan Ross, a former Google engineer who helped design the Tensor Processing Unit (TPU). Groq's Language Processing Unit (LPU) architecture delivers dramatically faster AI inference speeds compared to GPU-based systems. The company gained viral attention for its blazing-fast chatbot demos and is positioning itself as a key infrastructure player in the AI revolution.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/groq.png",
     searchTerms: ["Groq"],
     details: {
       headquarters: "Mountain View, CA",
@@ -7585,7 +7585,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Webflow",
     description: "No-code website builder and CMS empowering designers to build production sites.",
     background: "Webflow is a visual web development platform founded in 2013 that enables designers to build responsive websites without writing code. It combines a visual editor with a powerful CMS, hosting, and e-commerce capabilities. Webflow has become particularly popular among agencies, freelancers, and startups as an alternative to WordPress, and is frequently mentioned in creator economy and indie hacker podcasts.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/webflow.png",
     searchTerms: ["Webflow"],
     details: {
       headquarters: "San Francisco, CA",
@@ -7604,7 +7604,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     name: "Runway",
     description: "AI-powered creative tools for video generation, editing, and visual effects.",
     background: "Runway is an applied AI research company founded in 2018 that builds generative AI tools for creative professionals. Its Gen-2 and Gen-3 video generation models allow users to create and edit video using text prompts. Runway's technology was used in the Academy Award-winning film 'Everything Everywhere All at Once' and represents the cutting edge of AI-powered creative tools.",
-    logoUrl: "/logos/default-logo.png",
+    logoUrl: "/logos/runway-ml.png",
     searchTerms: ["Runway"],
     details: {
       headquarters: "New York, NY",
