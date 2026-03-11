@@ -193,6 +193,30 @@ async function buildSitemap(): Promise<string> {
     xml += `  </url>\n`;
   }
 
+  try {
+    const { getAllCategoryLinks, PODCAST_CATEGORIES, getQualifyingTopics } = await import("../client/src/data/podcastCategoryData");
+    const categoryLinks = getAllCategoryLinks();
+    for (const cat of categoryLinks) {
+      xml += `  <url>\n`;
+      xml += `    <loc>${DOMAIN}/podcasts/${cat.slug}</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>weekly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += `  </url>\n`;
+      const qualifyingTopics = getQualifyingTopics(cat.slug);
+      for (const topic of qualifyingTopics) {
+        xml += `  <url>\n`;
+        xml += `    <loc>${DOMAIN}/podcasts/${cat.slug}/${topic.slug}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>weekly</changefreq>\n`;
+        xml += `    <priority>0.7</priority>\n`;
+        xml += `  </url>\n`;
+      }
+    }
+  } catch (err) {
+    console.error("[Sitemap] Error generating category/topic URLs:", err);
+  }
+
   xml += `</urlset>`;
   return xml;
 }

@@ -1,0 +1,335 @@
+IMPORTANT CONSTRAINT - READ FIRST:
+Do NOT create any new /topics/[topic] pages. These pages already exist and are managed separately at /topics. Your job is only to: build the /podcasts/[category] and /podcasts/[category]/[topic] pages, link TO the existing /topics/[topic] pages where a slug match exists in the mapping table, and inject the "Top [Topic] Podcasts" section INTO the existing /topics/[topic] pages dynamically. The /topics pages are read-only from a creation standpoint - only inject the podcast section into their existing template. Do not create, duplicate, or replace any /topics page. If a podcast topic has no matching row in the mapping table, simply omit the cross-link. Do not create a topics page to fill the gap.
+
+CONTEXT:
+We have a podcast directory site. Currently it has a flat category filter on /podcasts with a single page. We need to build out SEO-optimized category and topic pages that scale automatically, with smart internal linking across the entire site.
+Each podcast has a name, a category (e.g. Business, Technology, Finance) and tags/topics (e.g. Entrepreneurship, AI, Investing).
+
+WHAT TO BUILD:
+URL Structure:
+/podcasts exists already, keep as-is
+/podcasts/[category] e.g. /podcasts/business
+/podcasts/[category]/[topic] e.g. /podcasts/business/entrepreneurship
+
+Category Pages e.g. /podcasts/business:
+H1 should be "Best Business Podcasts". Meta title should be "Best Business Podcasts (2026) — [Site Name]". Meta description should be "Browse the top Business podcasts including [top 3 podcast names dynamically inserted]. Get free AI-powered recaps delivered to your inbox." List all podcasts in that category. Show topic sub-filters at the top that link to topic pages. Show podcast count. Set canonical URL correctly.
+Below the podcast list add a section titled "Explore Business by Topic" with cards linking to each qualifying topic page showing topic name, short description, and podcast count.
+At the bottom of each category page add a section called "Go Deeper - Explore the [Category] Landscape" with links to matching /topics/[topic] pages. For example /podcasts/business links to /topics/entrepreneurship, /topics/leadership, /topics/venture-capital etc. Anchor text should be descriptive, e.g. "Explore Entrepreneurship trends, people and companies →". Only link to a /topics page if a mapping exists in the mapping table.
+
+Topic Pages e.g. /podcasts/business/entrepreneurship:
+H1 should be "Best Entrepreneurship Podcasts". Meta title should be "Best Entrepreneurship Podcasts (2026) — [Site Name]". Meta description dynamically generated using top 3 podcast names on that page. Only show podcasts matching that topic. Breadcrumb should be Podcasts → Business → Entrepreneurship. If fewer than 6 podcasts exist for a topic do NOT generate a topic page - redirect to parent category instead. Set canonical URL correctly.
+Add a section "Want to go deeper? Explore the full [Topic] landscape →" linking to the matching /topics/[topic] page only if a mapping exists.
+
+Bidirectional Cross-Linking:
+On every /topics/[topic] page, dynamically inject a section called "Top [Topic] Podcasts" showing 3-4 podcast cards pulled from the database matching that topic, with a link to /podcasts/[category]/[topic] using anchor text "Browse all [topic] podcasts →".
+This must be driven by a mapping table in the database:
+ai → artificial-intelligence
+entrepreneurship → entrepreneurship
+venture-capital → venture-capital
+investing → investing
+personal-finance → personal-finance
+leadership → leadership
+marketing → marketing
+product-management → product-management
+saas → saas
+crypto → crypto-web3
+productivity → productivity
+longevity → health-longevity
+psychology → psychology
+self-improvement → self-improvement
+startups → startups
+bootstrapping → bootstrapping
+side-hustles → side-hustles
+When a new topic is added, adding a row to this mapping table is all that is required to activate cross-linking on both sides. No hardcoding anywhere.
+
+Footer Navigation:
+Add a "Podcasts" column to the global site footer placed between the existing "Discover" and "Company" columns. The links should be: Business, Technology, Finance, Health, News & Politics, Self-Improvement, Education, Science, Psychology, Society & Culture. Each links to /podcasts/[category].
+Footer requirements: use standard href tags only, not JavaScript rendered, not dropdowns - Google must be able to crawl every link in raw HTML source. Order categories by podcast count descending. Labels should be short e.g. "Business" not "Business Podcasts". Do not list individual topic pages in the footer, category level only. Footer links must be dynamically generated from the database so new categories appear automatically when they reach 6+ podcasts.
+
+Main /podcasts Page Updates:
+Category filter chips (All, Business, Finance etc.) should now link to /podcasts/[category] instead of filtering in-place. Add an "Explore by Topic" section below the category grid showing the top 3 topic pages per category as linked cards.
+
+SEO Requirements for every page:
+Unique dynamically generated meta title and description. H1 with "Best [Topic/Category] Podcasts". JSON-LD structured data using ItemList schema listing each podcast with name and URL. Canonical tags. Open Graph tags for social sharing. Breadcrumbs on all category and topic pages. Sitemap.xml must auto-update when new category/topic pages are created - no manual updates ever.
+
+Scalability Requirements:
+Every page is dynamically generated from the database with zero hardcoded pages. Adding a new podcast with a category and topic automatically populates the relevant /podcasts/[category] and /podcasts/[category]/[topic] pages. Topic pages only render if 6+ podcasts qualify, otherwise redirect to parent category. Footer category list is database-driven. Topic cross-linking is driven by the mapping table. Sitemap regenerates on any podcast/category/topic addition.
+
+Priority Pages to Build First:
+/podcasts/technology/ai
+/podcasts/business/entrepreneurship
+/podcasts/business/leadership
+/podcasts/business/startups
+/podcasts/finance/investing
+/podcasts/finance/personal-finance
+/podcasts/business/venture-capital
+/podcasts/business/marketing
+/podcasts/technology/software-engineering
+/podcasts/technology/product-management
+
+Full Category Structure:
+/podcasts/business with topics: entrepreneurship, startups, leadership, marketing, saas, venture-capital, strategy, side-hustles, bootstrapping
+/podcasts/technology with topics: ai, software-engineering, product-management, crypto-web3, automation
+/podcasts/finance with topics: investing, personal-finance, crypto, markets, financial-independence
+/podcasts/health with topics: longevity, fitness, mental-health, functional-medicine, nutrition
+/podcasts/self-improvement with topics: productivity, mindfulness, motivation, career-growth
+/podcasts/society-culture with topics: interviews, comedy, storytelling
+/podcasts/news with topics: politics, daily-briefings, international
+/podcasts/education with topics: history, philosophy, science
+/podcasts/psychology
+/podcasts/science
+
+Full Podcast Catalog:
+The Joe Rogan Experience - Interviews / Culture
+The Diary of a CEO with Steven Bartlett - Business / Growth
+All-In Podcast - Tech / Venture Capital
+The Daily - Business / News
+Lex Fridman Podcast - AI / Tech / Science
+SmartLess - Interviews / Comedy
+Huberman Lab - Health / Performance Science
+New Heights with Jason and Travis Kelce - Sports / Business
+The Tim Ferriss Show - Productivity / Business
+Call Her Daddy - Interviews / Relationships
+Pivot - Tech / Business
+Acquired - Business History / Tech Deals
+Hard Fork - AI / Tech Trends
+Waveform The MKBHD Podcast - Consumer Tech
+The Vergecast - Tech News
+Search Engine - Internet Culture / Tech
+a16z Podcast - Venture Capital / Software
+BG2 Pod - VC / AI
+Decoder with Nilay Patel - Business of Tech
+The AI Daily Brief - AI / Tech
+Planet Money - Economics
+The Journal - Business News
+How I Built This - Entrepreneurship
+The Ramsey Show - Personal Finance
+HBR IdeaCast - Management / Strategy
+Financial Audit with Caleb Hammer - Finance / Interviews
+Founders - Lessons from History
+Business Breakdowns - Company Analysis
+Masters of Scale - Entrepreneurship
+BiggerPockets Real Estate - Investing
+The Indicator from Planet Money - Economic Trends
+Masters in Business - Finance / Interviews
+The Money Guy Show - Finance Strategy
+Equity - Startup Funding
+On Purpose with Jay Shetty - Growth / Mindset
+The Mel Robbins Podcast - Motivation / Science
+Armchair Expert with Dax Shepard - Human Stories
+Conan OBrien Needs a Friend - Comedy / Interviews
+The MeidasTouch Podcast - Politics / Law
+Shawn Ryan Show - Interviews / Society
+This American Life - Narrative / Culture
+Fresh Air - Arts / Culture Interviews
+Pod Save America - Politics / Interviews
+Hidden Brain - Psychology / Behavior
+TED Talks Daily - Big Ideas
+Office Ladies - TV / Entertainment
+Modern CTO - Tech Leadership
+Stuff You Should Know - General Knowledge
+My First Million - Business / Startups
+empowerHER - Personal Development / Empowerment
+Acquiring Minds - Business / Acquisitions
+All the Hacks - Personal Finance / Life Optimization
+Dwarkesh Podcast - Technology / Science
+The Iced Coffee Hour - Business / Entertainment
+Moneywise - Business / Finance
+Navigating Wealth - Finance / Wealth Management
+Prof G Markets - Business / Markets
+The Prof G Pod with Scott Galloway - Business / Culture
+The SaaS CFO - Business / SaaS Finance
+The SaaS Podcast - Business / SaaS
+The Official SaaStr Podcast - Business / SaaS and VC
+Wealthy Way - Business / Real Estate
+Valuetainment - Business / Entrepreneurship
+The Ultimate Human with Gary Brecka - Health and Fitness
+BigDeal - Business / Investing
+Joe Lonsdale American Optimist - Business / Technology
+The Game with Alex Hormozi - Business / Entrepreneurship
+The Driverless Digest Podcast - Technology / Automotive
+Moonshots with Peter Diamandis - Business / Future Tech
+Modern Wisdom - Society and Culture / Self-Improvement
+This Week in Startups - Technology / Startups
+The GaryVee Audio Experience - Business / Marketing
+Freakonomics Radio - Society and Culture / Economics
+The Peter Attia Drive - Health and Fitness / Medicine
+The Knowledge Project - Education / Self-Improvement
+Invest Like the Best - Business / Investing
+The Twenty Minute VC - Business / Venture Capital
+We Study Billionaires - Business / Investing
+Odd Lots - Business / Finance
+The Ezra Klein Show - News / Politics
+Capital Allocators - Business / Investing
+The Jordan Harbinger Show - Society and Culture / Self-Improvement
+Radiolab - Science / Society and Culture
+Darknet Diaries - Technology / True Crime
+Big Technology Podcast - Technology / Business
+Conversations with Tyler - Education / Society and Culture
+Ologies with Alie Ward - Science / Education
+The Big Picture - Entertainment / Film
+The Rewatchables - Entertainment / Film
+The Rest Is Politics - News / Politics
+NET Rocks - Technology / Software Development
+Daily Stoic - Philosophy / Self-Improvement
+Animal Spirits - Finance / Markets
+Lennys Podcast - Technology / Product Management
+Entrepreneurs on Fire - Business / Entrepreneurship
+The 100 MBA Show - Business / Education
+Startups For the Rest of Us - Business / Startups
+The Tropical MBA - Business / Entrepreneurship
+Marketing School - Business / Marketing
+Mixergy - Business / Startups
+Young and Profiting with Hala Taha - Business / Self-Improvement
+The Amy Porterfield Show - Business / Online Marketing
+The Side Hustle Show - Business / Side Hustles
+Coaching for Leaders - Business / Leadership
+WorkLife with Adam Grant - Business / Organizational Psychology
+Dare to Lead with Brene Brown - Business / Leadership
+At The Table with Patrick Lencioni - Business / Leadership
+No Bullshit Leadership - Business / Leadership
+The Learning Leader Show - Business / Leadership
+Jocko Podcast - Leadership / Military
+The EntreLeadership Podcast - Business / Leadership
+Money For the Rest of Us - Finance / Investing
+Rational Reminder - Finance / Investing
+ChooseFI - Finance / Financial Independence
+Afford Anything - Finance / Personal Finance
+The Clark Howard Podcast - Finance / Consumer Advice
+Unhedged - Finance / Markets
+The Intrinsic Value Podcast - Finance / Investing
+TWIML AI Podcast - Technology / AI
+Latent Space - Technology / AI Engineering
+Practical AI - Technology / AI
+Eye on AI - Technology / AI
+Techmeme Ride Home - Technology / News
+The Pragmatic Engineer - Technology / Software Engineering
+Cognitive Revolution - Technology / AI
+StarTalk Radio - Science / Space
+Science Vs - Science / Fact-Checking
+Science Friday - Science / News
+FoundMyFitness - Health / Longevity
+The Doctors Farmacy with Mark Hyman - Health / Functional Medicine
+The Model Health Show - Health / Fitness
+Rich Roll Podcast - Health / Self-Improvement
+The Art of Manliness - Self-Improvement / Lifestyle
+The Happiness Lab - Psychology / Wellbeing
+Deep Questions with Cal Newport - Productivity / Philosophy
+The Life Coach School Podcast - Self-Improvement / Coaching
+Philosophize This - Philosophy / Education
+Making Sense with Sam Harris - Philosophy / Science
+The Psychology Podcast - Psychology / Science
+Optimal Living Daily - Self-Improvement / Personal Development
+The One You Feed - Self-Improvement / Mental Health
+Ten Percent Happier - Mindfulness / Meditation
+Foundr Podcast with Nathan Chan - Business / Entrepreneurship
+Marketing Against the Grain - Business / Marketing
+DTC Podcast - Business / Marketing
+The Logan Bartlett Show - Technology / Venture Capital
+InvestED with Phil and Danielle Town - Finance / Investing
+The Compound and Friends - Finance / Markets
+Forward Thinking Investors - Finance / Investing
+Meb Faber Show - Finance / Investing
+Real Vision Daily Briefing - Finance / Markets
+The Pomp Podcast - Finance / Crypto
+Unchained - Finance / Crypto
+Bankless - Finance / Crypto
+The AI Breakdown - Technology / AI
+No Priors - Technology / AI
+Gradient Dissent - Technology / AI
+Software Engineering Daily - Technology / Software Engineering
+The Changelog - Technology / Software Development
+The Data Exchange Podcast - Technology / AI
+SuperDataScience Podcast - Technology / AI
+Machine Learning Street Talk - Technology / AI
+Future of Life Institute Podcast - Technology / AI
+EconTalk - Economics
+Macro Musings - Finance / Economics
+The Long View - Finance / Investing
+Compound Insights - Finance / Markets
+The Art of Investing - Finance / Investing
+InvestTalk - Finance / Investing
+The James Altucher Show - Business / Entrepreneurship
+Startup School by Y Combinator - Business / Startups
+Y Combinator Podcast - Business / Startups
+Indie Hackers Podcast - Business / Startups
+The Bootstrapped Founder - Business / Startups
+SaaS Revolution Show - Business / SaaS
+Product Thinking - Technology / Product Management
+The Product Podcast - Technology / Product Management
+Build with Maggie Crowley - Technology / Product Management
+The Lean Startup Podcast - Business / Startups
+The Strategy Skills Podcast - Business / Strategy
+Exponential View with Azeem Azhar - Technology / AI
+The School of Greatness - Self-Improvement / Personal Development
+Impact Theory - Self-Improvement / Personal Development
+The Skinny Confidential Him and Her Podcast - Business / Lifestyle
+The Tony Robbins Podcast - Self-Improvement / Personal Development
+Online Marketing Made Easy - Business / Online Marketing
+The Influencer Podcast - Business / Marketing
+Success Story - Business / Entrepreneurship
+Mind Your Business Podcast - Business / Online Marketing
+Social Proof - Business / Entrepreneurship
+TBPN - Technology / News
+The Daily Charge - Technology / News
+Accidental Tech Podcast - Technology / Apple
+Bloomberg Technology - Technology / News
+Exponent - Technology / Business
+Marketplace Tech - Technology / News
+Last Week in AI - Technology / AI
+AI For Humans - Technology / AI
+Product Hunt Radio - Technology / Startups
+The Next Wave - Technology / AI
+The Information 411 - Technology / Business
+Up First - News / Daily
+Today Explained - News / Daily
+NBC Nightly News - News / Daily
+Global News Podcast - News / International
+CBS Mornings on the Go - News / Daily
+Post Reports - News / Daily
+ABC World News This Week - News / Weekly
+The Economist Podcasts - News / Business
+Breaking Points - News / Politics
+The Megyn Kelly Show - News / Politics
+The Ben Shapiro Show - News / Politics
+Stay Tuned with Preet - News / Politics
+The Majority Report - News / Politics
+Pucks The Powers That Be - News / Business
+The Gist - News / Culture
+Democracy Now - News / Politics
+Rising - News / Politics
+The News Agents - News / Politics
+Redacted - News / Politics
+Citations Needed - News / Media
+The Young Turks - News / Politics
+The Daily Stoic - Philosophy / Self-Improvement
+The Rest is History - History / Education
+Choiceology with Katy Milkman - Psychology / Behavior
+No Stupid Questions - Psychology / Science
+99% Invisible - Design / Culture
+In Our Time - Education / History
+The Intelligence from The Economist - News / International
+Checks and Balance - News / Politics
+Slate Money - Finance / Business
+The White Coat Investor Podcast - Finance / Personal Finance
+Motley Fool Money - Finance / Investing
+The Marketing Book Podcast - Business / Marketing
+Social Media Marketing Podcast - Business / Marketing
+The Ed Mylett Show - Self-Improvement / Personal Development
+The High Performance Podcast - Self-Improvement / Performance
+ReThinking with Adam Grant - Psychology / Behavior
+The Startup Chat with Steli and Hiten - Business / Startups
+The Pitch - Business / Startups
+Land of the Giants - Technology / Business
+You Are Not So Smart - Psychology / Science
+Intelligence Squared US Debates - Education / Debates
+The Gray Area with Sean Illing - Society and Culture
+Lexicon Valley - Education / Language
+The Skeptics Guide to the Universe - Science / Education
+The Infinite Monkey Cage - Science / Comedy
+The McKinsey Podcast - Business / Strategy
+No Bullshit Leadership - Business / Leadership
+The Goal Digger Podcast - Business / Entrepreneurship
+The Daily Beans - News / Politics
+
+THE GOAL: Maximum SEO surface area that scales automatically as the podcast catalog grows, with full internal linking across podcasts, categories, topic pages, and the existing /topics pages, with zero manual page creation required ever.

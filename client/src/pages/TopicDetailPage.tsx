@@ -9,6 +9,7 @@ import { TOPICS, matchesKeywords } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { PodCapWordmark } from "@/components/PodCapHeader";
+import { TOPIC_TO_TOPICS_PAGE_MAP, PODCAST_CATEGORIES, getPodcastsForTopic } from "@/data/podcastCategoryData";
 
 const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users: Users,
@@ -175,6 +176,42 @@ export default function TopicDetailPage() {
 
   const quotes = useMemo(() => topicEpisodes ? extractQuotes(topicEpisodes) : [], [topicEpisodes]);
   const keyInsights = useMemo(() => topicEpisodes ? extractInsights(topicEpisodes) : [], [topicEpisodes]);
+
+  const taxonomyPodcasts = useMemo(() => {
+    if (!params.slug) return null;
+    const reverseMap: Record<string, string[]> = {};
+    for (const [catTopicSlug, topicsPageSlug] of Object.entries(TOPIC_TO_TOPICS_PAGE_MAP)) {
+      if (!reverseMap[topicsPageSlug]) reverseMap[topicsPageSlug] = [];
+      reverseMap[topicsPageSlug].push(catTopicSlug);
+    }
+    const matchingCatTopicSlugs = reverseMap[params.slug] || [];
+    if (matchingCatTopicSlugs.length === 0 && TOPIC_TO_TOPICS_PAGE_MAP[params.slug]) {
+      matchingCatTopicSlugs.push(params.slug);
+    }
+    if (matchingCatTopicSlugs.length === 0) return null;
+    const seen = new Set<string>();
+    const podcasts: { podcast: typeof PODCAST_LANDINGS[0]; categorySlug: string; topicSlug: string }[] = [];
+    for (const catTopicSlug of matchingCatTopicSlugs) {
+      for (const cat of PODCAST_CATEGORIES) {
+        if (cat.topics.some(t => t.slug === catTopicSlug)) {
+          const matched = getPodcastsForTopic(cat.slug, catTopicSlug);
+          for (const p of matched) {
+            if (!seen.has(p.slug)) {
+              seen.add(p.slug);
+              podcasts.push({ podcast: p, categorySlug: cat.slug, topicSlug: catTopicSlug });
+            }
+          }
+        }
+      }
+    }
+    if (podcasts.length === 0) return null;
+    const first = podcasts[0];
+    return {
+      podcasts: podcasts.slice(0, 4).map(p => p.podcast),
+      browseUrl: `/podcasts/${first.categorySlug}/${first.topicSlug}`,
+      topicSlug: first.topicSlug,
+    };
+  }, [params.slug]);
 
   const dynamicGuests = useMemo(() => {
     if (!isDynamic || !topicEpisodes) return [];
@@ -509,6 +546,64 @@ export default function TopicDetailPage() {
                   </Link>
                 </motion.div>
               ))}
+            </div>
+          </motion.section>
+        )}
+
+        {taxonomyPodcasts && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.32 }}
+            className="mb-14"
+            data-testid="section-top-podcasts"
+          >
+            <div className="mb-2">
+              <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-top-podcasts">
+                Top {topicDisplayName} Podcasts
+              </h2>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">
+                The best podcasts covering {topicDisplayName.toLowerCase()}, ranked by relevance and quality.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
+              {taxonomyPodcasts.podcasts.map((podcast, i) => (
+                <motion.div
+                  key={podcast.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
+                >
+                  <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-top-podcast-${podcast.slug}`}>
+                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3.5 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={podcast.artworkUrl}
+                          alt={podcast.name}
+                          className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                          loading="lazy"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                            {podcast.name}
+                          </h3>
+                          <p className="text-[15px] text-muted-foreground/60 truncate">{podcast.hosts}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+            <div className="mt-4">
+              <Link
+                href={taxonomyPodcasts.browseUrl}
+                className="inline-flex items-center gap-1.5 text-base font-medium text-primary hover:text-primary/80 transition-colors"
+                data-testid="link-browse-all-podcasts"
+              >
+                Browse all {topicDisplayName.toLowerCase()} podcasts
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </motion.section>
         )}

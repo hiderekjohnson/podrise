@@ -11,8 +11,8 @@ const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Admin = lazy(() => import("./pages/Admin"));
-const PodcastLandingGeneric = lazy(() => import("./pages/PodcastLandingGeneric"));
-const EpisodeRecapPage = lazy(() => import("./pages/EpisodeRecapPage"));
+const PodcastRouter = lazy(() => import("./pages/PodcastRouter"));
+const PodcastSubRouter = lazy(() => import("./pages/PodcastSubRouter"));
 const EpisodeTranscriptPage = lazy(() => import("./pages/EpisodeTranscriptPage"));
 const EpisodeGuestsPage = lazy(() => import("./pages/EpisodeGuestsPage"));
 const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
@@ -53,8 +53,8 @@ function Router() {
         <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/transcript" component={EpisodeTranscriptPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
-        <Route path="/podcasts/:podcastSlug/:episodeSlug" component={EpisodeRecapPage} />
-        <Route path="/podcasts/:slug" component={PodcastLandingGeneric} />
+        <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />
+        <Route path="/podcasts/:slug" component={PodcastRouter} />
         <Route path="/podcasts" component={Leaderboard} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />

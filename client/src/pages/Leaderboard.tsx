@@ -1,11 +1,17 @@
 import { useState, useMemo } from "react";
 import { useLocation, Link } from "wouter";
-import { Headphones, Globe, Search, X, ArrowRight, Zap } from "lucide-react";
+import { Headphones, Globe, Search, X, ArrowRight, Zap, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PodCapWordmark } from "@/components/PodCapHeader";
+import {
+  PODCAST_CATEGORIES,
+  getAllCategoryLinks,
+  getQualifyingTopics,
+  getPodcastsForTopic,
+} from "@/data/podcastCategoryData";
 
 const CATEGORY_MAP: Record<string, string[]> = {
   "Business": ["business", "entrepreneurship", "startup", "saas", "management", "strategy", "acquisitions", "growth", "marketing", "online marketing", "side hustles", "company analysis", "business of tech", "business news", "economic", "organizational"],
@@ -17,6 +23,18 @@ const CATEGORY_MAP: Record<string, string[]> = {
   "Politics & News": ["politics", "news", "law", "government"],
   "Entertainment": ["entertainment", "comedy", "film", "tv", "arts", "culture", "interviews", "human stories", "narrative", "sports"],
   "Psychology": ["psychology", "behavior", "mental health"],
+};
+
+const DISPLAY_TO_CATEGORY_SLUG: Record<string, string> = {
+  "Business": "business",
+  "Technology": "technology",
+  "Finance": "finance",
+  "Science": "science",
+  "Health": "health",
+  "Self-Improvement": "self-improvement",
+  "Politics & News": "news",
+  "Entertainment": "society-culture",
+  "Psychology": "psychology",
 };
 
 function getCategoryGroup(rawCategory: string): string[] {
@@ -36,7 +54,6 @@ export default function Leaderboard() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const podcastsWithGroups = useMemo(() => {
     return PODCAST_LANDINGS.map(p => ({
@@ -61,9 +78,6 @@ export default function Leaderboard() {
 
   const filtered = useMemo(() => {
     let results = podcastsWithGroups;
-    if (selectedCategory) {
-      results = results.filter(p => p.groups.includes(selectedCategory));
-    }
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       results = results.filter(p =>
@@ -73,7 +87,32 @@ export default function Leaderboard() {
       );
     }
     return results;
-  }, [podcastsWithGroups, selectedCategory, searchTerm]);
+  }, [podcastsWithGroups, searchTerm]);
+
+  const categoryLinks = useMemo(() => getAllCategoryLinks(), []);
+
+  const exploreByTopic = useMemo(() => {
+    return categoryLinks
+      .map(cat => {
+        const category = PODCAST_CATEGORIES.find(c => c.slug === cat.slug);
+        if (!category) return null;
+        const qualifyingTopics = getQualifyingTopics(cat.slug).slice(0, 3);
+        if (qualifyingTopics.length === 0) return null;
+        return {
+          categorySlug: cat.slug,
+          categoryName: cat.name,
+          topics: qualifyingTopics.map(t => ({
+            ...t,
+            count: getPodcastsForTopic(cat.slug, t.slug).length,
+          })),
+        };
+      })
+      .filter(Boolean) as {
+        categorySlug: string;
+        categoryName: string;
+        topics: { slug: string; name: string; description: string; count: number }[];
+      }[];
+  }, [categoryLinks]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -167,44 +206,39 @@ export default function Leaderboard() {
             </div>
 
             <div className="flex flex-wrap gap-2" data-testid="category-filters">
-              <button
-                onClick={() => setSelectedCategory(null)}
-                className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${
-                  !selectedCategory
-                    ? "bg-primary text-white shadow-sm"
-                    : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
-                }`}
+              <span
+                className="px-3.5 py-1.5 rounded-full text-[15px] font-bold bg-primary text-white shadow-sm"
                 data-testid="filter-all"
               >
                 All
-              </button>
-              {availableGroups.map(group => (
-                <button
-                  key={group}
-                  onClick={() => setSelectedCategory(selectedCategory === group ? null : group)}
-                  className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${
-                    selectedCategory === group
-                      ? "bg-primary text-white shadow-sm"
-                      : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
-                  }`}
-                  data-testid={`filter-${group.toLowerCase().replace(/[^a-z]/g, "-")}`}
-                >
-                  {group}
-                </button>
-              ))}
+              </span>
+              {availableGroups.map(group => {
+                const slug = DISPLAY_TO_CATEGORY_SLUG[group];
+                if (!slug) return null;
+                return (
+                  <a
+                    key={group}
+                    href={`/podcasts/${slug}`}
+                    className="px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"
+                    data-testid={`filter-${group.toLowerCase().replace(/[^a-z]/g, "-")}`}
+                  >
+                    {group}
+                  </a>
+                );
+              })}
             </div>
           </div>
 
           <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm">
-            <div className="px-6 sm:px-8 py-4 border-b border-black/[0.06] flex items-center justify-between">
+            <div className="px-6 sm:px-8 py-4 border-b border-black/[0.06] flex items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <Globe className="w-5 h-5 text-primary" />
                 <span className="text-base font-display font-bold text-foreground">
-                  {selectedCategory ? selectedCategory : "All Podcasts"}
+                  All Podcasts
                 </span>
               </div>
               <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
-                {selectedCategory || searchTerm ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}` : ""}
+                {searchTerm ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}` : ""}
               </span>
             </div>
 
@@ -214,7 +248,7 @@ export default function Leaderboard() {
                 <p className="text-base font-medium text-muted-foreground mb-1">No podcasts found</p>
                 <p className="text-[15px] text-muted-foreground/70">
                   Try a different search or{" "}
-                  <button onClick={() => { setSearchTerm(""); setSelectedCategory(null); }} className="text-primary hover:underline" data-testid="button-clear-filters">
+                  <button onClick={() => { setSearchTerm(""); }} className="text-primary hover:underline" data-testid="button-clear-filters">
                     clear all filters
                   </button>
                 </p>
@@ -254,6 +288,61 @@ export default function Leaderboard() {
             )}
           </div>
         </motion.div>
+
+        {exploreByTopic.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="w-full max-w-4xl mt-12"
+            data-testid="section-explore-by-topic"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Tag className="w-5 h-5 text-primary" />
+              <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground">
+                Explore by Topic
+              </h2>
+            </div>
+
+            <div className="space-y-6">
+              {exploreByTopic.map(({ categorySlug, categoryName, topics }) => (
+                <div key={categorySlug}>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <h3 className="text-base font-bold text-foreground">{categoryName}</h3>
+                    <a
+                      href={`/podcasts/${categorySlug}`}
+                      className="text-[15px] font-medium text-primary hover:underline flex items-center gap-1"
+                      data-testid={`link-category-${categorySlug}`}
+                    >
+                      View all
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {topics.map(topic => (
+                      <a
+                        key={topic.slug}
+                        href={`/podcasts/${categorySlug}/${topic.slug}`}
+                        className="bg-white border border-black/[0.06] rounded-xl p-4 transition-colors hover:bg-black/[0.015] group"
+                        data-testid={`topic-card-${categorySlug}-${topic.slug}`}
+                      >
+                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">
+                          {topic.name}
+                        </p>
+                        <p className="text-[13px] text-muted-foreground mt-1 line-clamp-2">
+                          {topic.description}
+                        </p>
+                        <p className="text-[13px] text-muted-foreground/70 mt-2 font-medium">
+                          {topic.count} podcasts
+                        </p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
       </main>
 
       <Footer />

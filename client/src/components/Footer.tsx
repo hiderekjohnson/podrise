@@ -1,12 +1,15 @@
 import { Link } from "wouter";
 import { SiX } from "react-icons/si";
 import { PodCapWordmark } from "./PodCapHeader";
+import { getAllCategoryLinks } from "@/data/podcastCategoryData";
 
 export function Footer() {
+  const categoryLinks = getAllCategoryLinks();
+
   return (
     <footer className="w-full border-t border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/40 backdrop-blur-sm mt-auto" data-testid="footer">
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-8 sm:gap-10 mb-12">
           <div>
             <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
             <ul className="space-y-3.5">
@@ -35,6 +38,19 @@ export function Footer() {
                   Build Your Recap
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Podcasts</h3>
+            <ul className="space-y-3.5">
+              {categoryLinks.map((cat) => (
+                <li key={cat.slug}>
+                  <a href={`/podcasts/${cat.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-category-${cat.slug}`}>
+                    {cat.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
