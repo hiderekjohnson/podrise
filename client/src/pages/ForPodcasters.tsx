@@ -427,7 +427,7 @@ export default function ForPodcasters() {
               <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
                 <p className="text-[15px] leading-[1.7] text-muted-foreground">
                   We also promote standout episodes daily on{" "}
-                  <a href="https://x.com/podcastio" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podcastio<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,
+                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podcap_io<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,
                   helping new listeners discover your show.
                 </p>
               </div>
