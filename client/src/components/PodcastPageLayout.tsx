@@ -214,7 +214,7 @@ export function PodcastPageLayout({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="w-full max-w-4xl"
+          className="w-full max-w-5xl"
         >
           <div className="flex items-center border-b border-black/[0.06] mb-8 overflow-x-auto" data-testid="section-tabs">
             {tabs.map((tab) => (
@@ -245,7 +245,7 @@ export function PodcastPageLayout({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="w-full max-w-4xl pb-16"
+          className="w-full max-w-5xl pb-16"
         >
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-bottom-cta">
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
