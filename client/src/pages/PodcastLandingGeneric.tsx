@@ -735,24 +735,28 @@ export default function PodcastLandingGeneric() {
                             <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
                               <SiX className="w-3 h-3" />
                               {host.twitterHandle.startsWith('@') ? host.twitterHandle : `@${host.twitterHandle}`}
+                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
                             </a>
                           )}
                           {host.linkedinUrl && (
                             <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
                               <SiLinkedin className="w-3 h-3" />
                               LinkedIn
+                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
                             </a>
                           )}
                           {host.instagramHandle && (
                             <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
                               <SiInstagram className="w-3 h-3" />
                               {host.instagramHandle.startsWith('@') ? host.instagramHandle : `@${host.instagramHandle}`}
+                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
                             </a>
                           )}
                           {host.websiteUrl && (
                             <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
                               <ExternalLink className="w-3 h-3" />
                               Website
+                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
                             </a>
                           )}
                         </div>
@@ -776,6 +780,7 @@ export default function PodcastLandingGeneric() {
               >
                 <SiApplepodcasts className="w-4 h-4 text-[#872EC4]" />
                 Apple Podcasts
+                <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
               </a>
               <a
                 href={effectiveSpotifyUrl}
@@ -786,6 +791,7 @@ export default function PodcastLandingGeneric() {
               >
                 <SiSpotify className="w-4 h-4 text-[#1DB954]" />
                 Spotify
+                <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
               </a>
               {youtubeUrl && (
                 <a
@@ -797,6 +803,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiYoutube className="w-4 h-4 text-[#FF0000]" />
                   YouTube
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {twitterHandle && (
@@ -809,6 +816,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiX className="w-3.5 h-3.5" />
                   {twitterHandle}
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {instagramUrl && (
@@ -821,6 +829,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiInstagram className="w-4 h-4 text-[#E4405F]" />
                   Instagram
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {tiktokUrl && (
@@ -833,6 +842,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiTiktok className="w-4 h-4" />
                   TikTok
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {facebookUrl && (
@@ -845,6 +855,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiFacebook className="w-4 h-4 text-[#1877F2]" />
                   Facebook
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {discordUrl && (
@@ -857,6 +868,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <SiDiscord className="w-4 h-4 text-[#5865F2]" />
                   Discord
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {websiteUrl && (
@@ -869,6 +881,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <ExternalLink className="w-4 h-4 text-muted-foreground" />
                   Website
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
               {storeUrl && (
@@ -881,6 +894,7 @@ export default function PodcastLandingGeneric() {
                 >
                   <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                   Store
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
               )}
             </div>
