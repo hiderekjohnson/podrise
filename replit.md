@@ -11,7 +11,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 **Backend**: An Express.js server manages API requests and user sessions.
 **Database**: PostgreSQL with Drizzle ORM provides data storage, featuring a connection pool with retry mechanisms.
 **Authentication**: Session-based, employing secure email-based magic link login.
-**Key Pages**: Includes a marketing landing page, a 2-step signup flow, user dashboards, podcast directories, SEO-optimized category and topic pages, individual episode recap and transcript pages, episode archives, entity directories for people and companies, dynamic topic pages, and "The Daily Drop" – an AI-generated newsletter-style daily briefing.
+**Key Pages**: Includes a marketing landing page, a 2-step signup flow, user dashboards, podcast directories, SEO-optimized category and topic pages, individual episode recap and transcript pages, episode archives, entity directories for people and companies, dynamic topic pages, and "Signal" – an AI-generated newsletter-style daily briefing (routes still use /daily-drop paths, DB table is daily_drop_editions).
 **Podcast Category System**: A defined taxonomy of 10 categories with nested topics drives routing and content organization.
 **AI Integration**: OpenAI (GPT-4o) generates episode recaps, including key insights, quotes, topics, and Q&A features. It also identifies guest data.
 **Email System**: Resend handles email delivery, including a scheduler for daily recap subscriptions.

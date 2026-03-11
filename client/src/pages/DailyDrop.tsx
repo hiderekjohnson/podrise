@@ -25,7 +25,7 @@ function formatDateShort(dateStr: string) {
 }
 
 function SEOHead() {
-  const title = "The Daily Drop | PodCap";
+  const title = "Signal | PodCap";
   const description = "A free-flowing daily briefing on the most interesting conversations happening across the podcast world. Smart, sharp, and built for discovery.";
   if (typeof document !== "undefined") {
     document.title = title;
@@ -74,7 +74,7 @@ export default function DailyDrop() {
               Daily Briefing
             </div>
             <h1 className="text-[2.5rem] sm:text-[3.5rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em]" data-testid="heading-daily-drop">
-              The Daily Drop
+              Signal
             </h1>
             <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg leading-relaxed font-medium">
               What happened yesterday in the podcast world. The stories, the quotes, and the ideas worth knowing about.
@@ -102,7 +102,7 @@ export default function DailyDrop() {
             <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="daily-drop-error">
               <Newspaper className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-lg font-display font-bold text-foreground mb-1">No editions yet</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Check back soon for the first Daily Drop.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Check back soon for the first edition of Signal.</p>
             </div>
           ) : editions.length > 0 ? (
             <div className="space-y-4">
@@ -182,7 +182,7 @@ export default function DailyDrop() {
             <div className="bg-card border border-border rounded-2xl p-8 text-center">
               <Newspaper className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-lg font-display font-bold text-foreground mb-1">No editions yet</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">The first Daily Drop is coming soon.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">The first edition of Signal is coming soon.</p>
             </div>
           )}
         </div>

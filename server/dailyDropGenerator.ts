@@ -64,9 +64,9 @@ Full recap link slug: /podcasts/${ep.slug}/${ep.episodeSlug}`;
     `"${ep.episodeTitle}" - ${ep.podcastName} (${ep.hosts || "Unknown host"}) | Summary: ${ep.tldl} | Link: /podcasts/${ep.slug}/${ep.episodeSlug}`
   ).join("\n");
 
-  const prompt = `You are writing The Daily Drop for ${formatDateForPrompt(dateStr)}.
+  const prompt = `You are writing Signal for ${formatDateForPrompt(dateStr)}.
 
-THE DAILY DROP is a daily newsletter for avid podcast listeners. It is NOT a news recap. It is a podcast recap. Think of it like a trade publication for the podcast world, written by an in-house editorial team that listens so the reader doesn't have to.
+SIGNAL is a daily newsletter for avid podcast listeners. It is NOT a news recap. It is a podcast recap. Think of it like a trade publication for the podcast world, written by an in-house editorial team that listens so the reader doesn't have to.
 
 The reader loves podcasts, is always looking for their next great listen, and wants to know: what dropped yesterday that was worth their time? Who were the big guests? What did someone say that's getting people talking? Which show just landed a massive booking?
 
@@ -109,7 +109,7 @@ VOICE AND TONE:
 - Reads like a knowledgeable friend texting you: "okay you have to listen to this one"
 
 STRUCTURE:
-1. TAGLINE: One line that captures the mood or theme of that day's episodes (10-20 words). This sits below "The Daily Drop" header.
+1. TAGLINE: One line that captures the mood or theme of that day's episodes (10-20 words). This sits below the "Signal" header.
 
 2. BODY: ~550 words of flowing prose. No bullets, no subheadings, no headers mid-newsletter.
    - Open with the strongest recommendation or most interesting booking of the day. Pull the reader in immediately
@@ -170,7 +170,7 @@ Respond with ONLY valid JSON (no markdown fences):
       : mainBody;
 
     return {
-      headline: parsed.headline || "The Daily Drop",
+      headline: parsed.headline || "Signal",
       subheadline: parsed.subheadline || "",
       body: fullBody,
       episodeSlugs: bestEpisodes.map(ep => `${ep.slug}/${ep.episodeSlug}`),

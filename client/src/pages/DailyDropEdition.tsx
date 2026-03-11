@@ -92,8 +92,8 @@ export default function DailyDropEdition() {
 
   function SEOHead() {
     const title = data
-      ? `${data.headline} - The Daily Drop - PodCap`
-      : "The Daily Drop - PodCap";
+      ? `${data.headline} - Signal - PodCap`
+      : "Signal - PodCap";
     const description = data?.subheadline || "Your daily podcast briefing from PodCap.";
     if (typeof document !== "undefined") {
       document.title = title;
@@ -139,7 +139,7 @@ export default function DailyDropEdition() {
             <div className="text-center py-16" data-testid="edition-error">
               <Newspaper className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-lg font-display font-bold text-foreground mb-1">Edition not found</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">We couldn't find a Daily Drop for this date.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">We couldn't find a Signal edition for this date.</p>
               <Link href="/daily-drop" className="text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors">
                 Browse all editions →
               </Link>
@@ -163,7 +163,7 @@ export default function DailyDropEdition() {
 
                 <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-primary mb-4">
                   <Newspaper className="w-3.5 h-3.5" />
-                  The Daily Drop
+                  Signal
                   <span className="text-muted-foreground/40 mx-1">·</span>
                   <span className="flex items-center gap-1.5 text-[#3F3F46] dark:text-[#A1A1AA] font-medium normal-case tracking-normal">
                     <Calendar className="w-3 h-3" />

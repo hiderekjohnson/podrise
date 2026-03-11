@@ -4024,7 +4024,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         return res.status(404).json({ message: "No episodes found for this date or generation failed" });
       }
       await saveDailyDropEdition(date, edition);
-      res.json({ message: "Daily Drop edition generated", date, headline: edition.headline });
+      res.json({ message: "Signal edition generated", date, headline: edition.headline });
     } catch (err: any) {
       console.error("[DailyDrop] Generation error:", err);
       res.status(500).json({ message: err?.message || "Failed to generate edition" });
