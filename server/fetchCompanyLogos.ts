@@ -5,33 +5,38 @@ import http from "http";
 
 const LOGOS_DIR = path.join(process.cwd(), "client", "public", "logos");
 const PLACEHOLDER_SIZE_THRESHOLD = 1000;
+const LOGO_DEV_TOKEN = "pk_LXNkoTXrTpe8BARnvuKgHA";
 
-function getExistingLogoStatus(slug: string): { exists: boolean; isPlaceholder: boolean; size: number } {
+function getExistingLogoStatus(slug: string): { exists: boolean; isPlaceholder: boolean } {
   const filePath = path.join(LOGOS_DIR, `${slug}.png`);
-  if (!fs.existsSync(filePath)) return { exists: false, isPlaceholder: false, size: 0 };
+  if (!fs.existsSync(filePath)) return { exists: false, isPlaceholder: false };
   const stat = fs.statSync(filePath);
-  return { exists: true, isPlaceholder: stat.size < PLACEHOLDER_SIZE_THRESHOLD, size: stat.size };
+  return { exists: true, isPlaceholder: stat.size < PLACEHOLDER_SIZE_THRESHOLD };
 }
 
-function fetchUrl(url: string, maxRedirects = 5): Promise<Buffer> {
+function fetchUrl(url: string, redirectCount = 0): Promise<Buffer> {
+  if (redirectCount > 5) return Promise.reject(new Error("Too many redirects"));
   return new Promise((resolve, reject) => {
-    if (maxRedirects <= 0) { reject(new Error("Too many redirects")); return; }
-    const handler = (res: http.IncomingMessage) => {
-      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        fetchUrl(res.headers.location, maxRedirects - 1).then(resolve).catch(reject);
-        return;
-      }
-      if (!res.statusCode || res.statusCode >= 400) {
-        reject(new Error(`HTTP ${res.statusCode}`));
-        return;
-      }
-      const chunks: Buffer[] = [];
-      res.on("data", (chunk: Buffer) => chunks.push(chunk));
-      res.on("end", () => resolve(Buffer.concat(chunks)));
-      res.on("error", reject);
-    };
-    const protocol = url.startsWith("https") ? https : http;
-    protocol.get(url, { headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" }, timeout: 10000 }, handler).on("error", reject);
+    try {
+      const handler = (res: http.IncomingMessage) => {
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          fetchUrl(res.headers.location, redirectCount + 1).then(resolve).catch(reject);
+          return;
+        }
+        if (!res.statusCode || res.statusCode >= 400) {
+          reject(new Error(`HTTP ${res.statusCode}`));
+          return;
+        }
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => resolve(Buffer.concat(chunks)));
+        res.on("error", reject);
+      };
+      const protocol = url.startsWith("https") ? https : http;
+      protocol.get(url, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 10000 }, handler).on("error", reject);
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
@@ -44,26 +49,19 @@ function extractDomain(websiteUrl: string): string | null {
   }
 }
 
-async function tryFetchLogo(slug: string, domain: string, companyName: string): Promise<boolean> {
-  const sources = [
-    { name: "Clearbit", url: `https://logo.clearbit.com/${domain}?size=256` },
-    { name: "Unavatar", url: `https://unavatar.io/${domain}?fallback=false` },
-    { name: "DuckDuckGo", url: `https://icons.duckduckgo.com/ip3/${domain}.ico` },
-    { name: "Google HD", url: `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128` },
-  ];
-
-  for (const source of sources) {
-    try {
-      const data = await fetchUrl(source.url);
-      if (data.length > PLACEHOLDER_SIZE_THRESHOLD) {
-        const outPath = path.join(LOGOS_DIR, `${slug}.png`);
-        fs.writeFileSync(outPath, data);
-        console.log(`    ✓ ${source.name} (${(data.length / 1024).toFixed(1)}KB)`);
-        return true;
-      }
-    } catch {}
+async function fetchLogoFromLogoDev(slug: string, domain: string): Promise<boolean> {
+  const url = `https://img.logo.dev/${domain}?token=${LOGO_DEV_TOKEN}&size=256&format=png`;
+  try {
+    const data = await fetchUrl(url);
+    if (data.length > PLACEHOLDER_SIZE_THRESHOLD) {
+      const outPath = path.join(LOGOS_DIR, `${slug}.png`);
+      fs.writeFileSync(outPath, data);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
   }
-  return false;
 }
 
 async function main() {
@@ -100,27 +98,25 @@ async function main() {
 
     process.stdout.write(`  ${company.name} (${company.domain})... `);
 
-    try {
-      const success = await tryFetchLogo(company.slug, company.domain, company.name);
-      if (!success) {
-        console.log(`✗ No usable logo found`);
-        failed++;
-      } else {
-        resolved++;
-      }
-    } catch (err: any) {
-      console.log(`✗ Error: ${err.message}`);
+    const success = await fetchLogoFromLogoDev(company.slug, company.domain);
+    if (success) {
+      const size = fs.statSync(path.join(LOGOS_DIR, `${company.slug}.png`)).size;
+      console.log(`✓ (${(size / 1024).toFixed(1)}KB)`);
+      resolved++;
+    } else {
+      console.log(`✗`);
       failed++;
     }
 
-    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 200));
   }
 
   console.log(`\n===== Results =====`);
   console.log(`Resolved: ${resolved}`);
   console.log(`Failed: ${failed}`);
   console.log(`No domain: ${noDomain}`);
-  console.log(`Total missing: ${missing.length}`);
 }
 
+process.on("uncaughtException", (err) => { console.error("Uncaught:", err.message); });
+process.on("unhandledRejection", (err: any) => { console.error("Unhandled:", err?.message || err); });
 main().catch(console.error);

@@ -6,6 +6,10 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 ## User Preferences
 - **User Data Safety**: NEVER bulk-delete user accounts. All user accounts are real users. Only delete individual accounts via the admin panel delete button (with confirmation). The 8 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com, ru1@mac.com
 
+## Rules
+- **Company Logos**: ALWAYS use Logo.dev for all company logo needs. API: `https://img.logo.dev/{domain}?token=pk_LXNkoTXrTpe8BARnvuKgHA&size=256&format=png`. The key is a publishable key (safe for client-side). Script: `server/fetchCompanyLogos.ts`. Logos stored in `client/public/logos/{slug}.png`. Free plan: 500,000 requests/month. Never use Clearbit, Google favicons, DuckDuckGo, or other logo sources.
+- **People Profile Photos**: Use Wikipedia/Wikimedia Commons as primary source, Twitter/X via unavatar.io as fallback. Script: `server/fetchPeopleImages.ts`. Photos stored in `client/public/people/{slug}.png`. Placeholder threshold: <5KB. Run via CLI: `npx tsx server/fetchPeopleImages.ts`.
+
 ## System Architecture
 **Frontend**: Built with React, Vite, Tailwind CSS, and Shadcn UI (trimmed to ~14 active components), using `wouter` for routing. The design uses DM Sans (all weights 300-700) for body and headings, DM Mono for monospace, an indigo (#6366F1) / violet (#8B5CF6) brand palette, and `framer-motion` for animations. The logo is an inline SVG wordmark with waveform icon — "Pod" in semibold + "Cap" in light indigo.
 **Backend**: An Express.js server handles API requests and user sessions.
