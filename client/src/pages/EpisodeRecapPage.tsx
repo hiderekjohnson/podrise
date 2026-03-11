@@ -224,7 +224,7 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
 }
 
 function QuoteShareBar({ quote, podcastName, episodeTitle }: { quote: EpisodeQuoteData; podcastName: string; episodeTitle: string }) {
-  const shareText = `"${quote.quoteText}" - ${quote.speakerName}${quote.speakerRole ? `, ${quote.speakerRole}` : ""}\n\nFrom ${podcastName}: ${episodeTitle}\nvia @PodCapHQ`;
+  const shareText = `"${quote.quoteText}" - ${quote.speakerName}${quote.speakerRole ? `, ${quote.speakerRole}` : ""}\n\nFrom ${podcastName}: ${episodeTitle}\nvia @podcastio`;
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const encodedText = encodeURIComponent(shareText);
   const encodedUrl = encodeURIComponent(shareUrl);

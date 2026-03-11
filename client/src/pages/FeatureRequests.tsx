@@ -81,7 +81,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "PodCap is now on X",
     description: "We created an X account where we'll be posting our top episode recaps daily. Follow us to discover great episodes and stay in the loop.",
-    link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
+    link: { url: "https://x.com/podcastio", label: "Follow @podcastio on X" },
     emoji: "𝕏",
     date: "Jan 30, 2026",
   },

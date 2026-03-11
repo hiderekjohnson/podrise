@@ -128,7 +128,7 @@ export function Footer() {
           <div className="w-full flex items-center gap-6 mb-6">
             <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
             <a
-              href="https://x.com/podcap_io"
+              href="https://x.com/podcastio"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors p-2"
