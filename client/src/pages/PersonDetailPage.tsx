@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles, BookOpen } from "lucide-react";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
@@ -51,6 +51,17 @@ interface QuoteEntry {
   isFromGuestEpisode?: boolean;
 }
 
+interface RecommendedBook {
+  name: string;
+  author: string | null;
+  slug: string | null;
+  amazonUrl: string;
+  asin: string | null;
+  context: string;
+  mentionCount: number;
+  podcastCount: number;
+}
+
 interface PersonDetail {
   name: string;
   title: string;
@@ -62,6 +73,7 @@ interface PersonDetail {
   topTopics: TopicEntry[];
   podcastsFeaturingPerson: PodcastFeature[];
   quotes: QuoteEntry[];
+  recommendedBooks: RecommendedBook[];
 }
 
 const EXISTING_TOPIC_SLUGS = new Set(TOPICS.map(t => t.slug));
@@ -839,7 +851,72 @@ export default function PersonDetailPage() {
                 </section>
               )}
 
-              {/* 9. Topics - only if quality is high (broad, existing topic pages) */}
+              {/* 9. Recommended Books */}
+              {person.recommendedBooks && person.recommendedBooks.length > 0 && (
+                <section className="mb-8" data-testid="section-recommended-books">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                      Books Discussed by {person.name}
+                    </h2>
+                    <Link
+                      href="/bookstore"
+                      className="text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
+                      data-testid="link-browse-bookstore"
+                    >
+                      Browse Bookstore <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {person.recommendedBooks.slice(0, 8).map((book) => (
+                      <Link
+                        key={book.slug}
+                        href={`/bookstore/${book.slug}`}
+                        className="block group"
+                        data-testid={`book-card-${book.slug}`}
+                      >
+                        <div className="bg-card border border-border rounded-xl p-3 hover:border-primary/30 hover:shadow-sm transition-all h-full flex flex-col">
+                          <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
+                            {book.asin ? (
+                              <img
+                                src={`https://images-na.ssl-images-amazon.com/images/P/${book.asin}.01._SCLZZZZZZZ_SX120_.jpg`}
+                                alt={book.name}
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    const fallback = document.createElement('div');
+                                    fallback.className = 'flex items-center justify-center w-full h-full';
+                                    fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400/60"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>';
+                                    parent.appendChild(fallback);
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <BookOpen className="w-8 h-8 text-amber-400/60" />
+                            )}
+                          </div>
+                          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
+                            {book.name}
+                          </h3>
+                          {book.author && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
+                          )}
+                          {book.mentionCount >= 2 && (
+                            <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">
+                              {book.mentionCount} mentions
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* 10. Topics - only if quality is high (broad, existing topic pages) */}
               {showTopicsSection && (
                 <section className="mb-8" data-testid="section-associated-topics">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">

@@ -1440,7 +1440,7 @@ export async function registerRoutes(
           return `\\m${escaped}\\M`;
         }), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
@@ -1448,7 +1448,7 @@ export async function registerRoutes(
         const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
         const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
         const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
           mentionParams
         );
 
@@ -1633,6 +1633,84 @@ export async function registerRoutes(
           }
         }
 
+        let hostedEpisodesWithResources: any[] = [];
+        if (person.hostedSlugs.length > 0) {
+          const hostedPlaceholders = person.hostedSlugs.map((_, i) => `$${i + 1}`).join(",");
+          const { rows: hostedRows } = await client.query(
+            `SELECT slug, resources FROM landing_page_recaps WHERE slug IN (${hostedPlaceholders}) AND resources IS NOT NULL AND resources::text != '[]'`,
+            person.hostedSlugs
+          );
+          hostedEpisodesWithResources = hostedRows;
+        }
+
+        const bookMentionMap = new Map<string, { name: string; author: string | null; url: string; context: string; mentionCount: number; podcastSlugs: Set<string> }>();
+        const allEpisodesForBooks = [...allRelevantEpisodes, ...hostedEpisodesWithResources];
+        for (const ep of allEpisodesForBooks) {
+          if (!ep.resources) continue;
+          let resources: any[];
+          try {
+            const parsed = typeof ep.resources === 'string' ? JSON.parse(ep.resources) : ep.resources;
+            if (!Array.isArray(parsed)) continue;
+            resources = parsed;
+          } catch { continue; }
+          for (const r of resources) {
+            if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
+            const key = r.name.toLowerCase().trim();
+            const existing = bookMentionMap.get(key);
+            if (existing) {
+              existing.mentionCount++;
+              existing.podcastSlugs.add(ep.slug);
+              if (!existing.author && r.author) existing.author = r.author;
+              if (!existing.context && r.context) existing.context = r.context;
+              if (r.url && r.url.includes('/dp/') && !existing.url?.includes('/dp/')) existing.url = r.url;
+            } else {
+              const podcastSlugs = new Set<string>();
+              podcastSlugs.add(ep.slug);
+              bookMentionMap.set(key, {
+                name: r.name,
+                author: r.author || null,
+                url: r.url || "",
+                context: r.context || "",
+                mentionCount: 1,
+                podcastSlugs,
+              });
+            }
+          }
+        }
+
+        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; context: string; mentionCount: number; podcastCount: number }[] = [];
+        if (bookMentionMap.size > 0) {
+          const bookKeys = Array.from(bookMentionMap.keys());
+          const placeholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+          const { rows: enrichRows } = await client.query(
+            `SELECT book_key, slug, author, asin, amazon_url FROM book_enrichments WHERE book_key IN (${placeholders})`,
+            bookKeys
+          );
+          const enrichByKey = new Map(enrichRows.map((e: any) => [e.book_key, e]));
+
+          recommendedBooks = Array.from(bookMentionMap.entries())
+            .map(([key, b]) => {
+              const enrich = enrichByKey.get(key) as any;
+              const asin = enrich?.asin || extractAsinFromUrl(b.url);
+              const amazonUrl = asin
+                ? `https://www.amazon.com/dp/${asin}?tag=podcap-20`
+                : enrich?.amazon_url || b.url || "";
+              return {
+                name: b.name,
+                author: enrich?.author || b.author,
+                slug: enrich?.slug || null,
+                amazonUrl,
+                asin,
+                context: b.context,
+                mentionCount: b.mentionCount,
+                podcastCount: b.podcastSlugs.size,
+              };
+            })
+            .filter(b => b.slug)
+            .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount)
+            .slice(0, 12);
+        }
+
         res.json({
           name: person.name,
           title: person.title,
@@ -1644,6 +1722,7 @@ export async function registerRoutes(
           topTopics,
           podcastsFeaturingPerson,
           quotes,
+          recommendedBooks,
         });
       } finally {
         client.release();
