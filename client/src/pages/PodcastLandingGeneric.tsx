@@ -663,7 +663,7 @@ export default function PodcastLandingGeneric() {
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">Podcast not found</h1>
             <p className="text-muted-foreground mb-4">We couldn't find a landing page for this podcast.</p>
-            <a href="/podcasts" className="text-primary hover:underline">Browse all podcasts</a>
+            <a href="/" className="text-primary hover:underline">Back to home</a>
           </div>
         </main>
         <Footer />

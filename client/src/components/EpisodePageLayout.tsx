@@ -10,7 +10,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
+import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 
 interface EpisodePageLayoutProps {
   episode: {
@@ -180,23 +180,19 @@ export function EpisodePageLayout({
                     {episode.podcastName}
                   </span>
                 </Link>
-                {categoryInfo.category && (
+                {categoryInfo.category && categoryInfo.topics.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 justify-center sm:justify-start">
-                    <Link href={`/podcasts/${categoryInfo.category.slug}`}>
-                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
-                        {categoryInfo.category.name}
-                      </span>
-                    </Link>
-                    {categoryInfo.topics.map((topic) => (
-                      <span key={topic.slug} className="inline-flex items-center gap-1">
-                        <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
-                        <Link href={`/podcasts/${categoryInfo.category!.slug}/${topic.slug}`}>
+                    {categoryInfo.topics.map((topic) => {
+                      const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
+                      if (!insightsSlug) return null;
+                      return (
+                        <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
                           <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                             {topic.name}
                           </span>
                         </Link>
-                      </span>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

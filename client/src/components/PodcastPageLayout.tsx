@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PodCapHeader } from "@/components/PodCapHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
+import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 
 export type PodcastTab = "episodes" | "ask" | "about" | "discover" | "books";
 
@@ -147,23 +147,19 @@ export function PodcastPageLayout({
                 {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
               </p>
 
-              {categoryInfo.category && (
+              {categoryInfo.category && categoryInfo.topics.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 text-[14px] text-muted-foreground justify-center sm:justify-start" data-testid="podcast-category-labels">
-                  <Link href={`/podcasts/${categoryInfo.category.slug}`}>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
-                      {categoryInfo.category.name}
-                    </span>
-                  </Link>
-                  {categoryInfo.topics.map((topic) => (
-                    <span key={topic.slug} className="inline-flex items-center gap-1">
-                      <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
-                      <Link href={`/podcasts/${categoryInfo.category!.slug}/${topic.slug}`}>
+                  {categoryInfo.topics.map((topic) => {
+                    const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
+                    if (!insightsSlug) return null;
+                    return (
+                      <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
                         <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                           {topic.name}
                         </span>
                       </Link>
-                    </span>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 

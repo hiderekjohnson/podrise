@@ -108,7 +108,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Top podcasts directory",
     description: "Browse and discover the top podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
-    link: { url: "/podcasts", label: "Explore the top podcast summaries" },
+    link: { url: "/insights", label: "Explore podcast insights by topic" },
     emoji: "📊",
     date: "Jan 11, 2026",
   },

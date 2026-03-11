@@ -327,16 +327,16 @@ export default function About() {
               </Link>
             </div>
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
-              <h3 className="text-lg font-display font-bold mb-2">Browse podcasts</h3>
+              <h3 className="text-lg font-display font-bold mb-2">Explore insights</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                See which podcasts other users follow, explore recaps, and find your next favorite show.
+                Track what's being said across podcasts on the topics that matter to you.
               </p>
               <Link
-                href="/podcasts"
+                href="/insights"
                 className="inline-flex items-center gap-1.5 text-base font-bold text-primary hover:text-primary/80 transition-colors"
-                data-testid="link-browse-podcasts"
+                data-testid="link-browse-insights"
               >
-                Browse Podcasts
+                Explore Insights
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -370,11 +370,11 @@ export default function About() {
                   <ArrowRight className="w-4 h-4" />
                 </a>
                 <Link
-                  href="/podcasts"
+                  href="/insights"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground shadow-sm hover:shadow-md transition-all"
                   data-testid="link-cta-browse"
                 >
-                  Browse Podcasts
+                  Explore Insights
                 </Link>
               </div>
             </div>

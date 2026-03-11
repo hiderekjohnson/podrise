@@ -1,8 +1,5 @@
-import { useParams } from "wouter";
-import { ALL_CATEGORY_SLUGS } from "@/data/podcastCategoryData";
 import { lazy, Suspense } from "react";
 
-const PodcastTopicPage = lazy(() => import("./PodcastTopicPage"));
 const EpisodeRecapPage = lazy(() => import("./EpisodeRecapPage"));
 
 function PageLoader() {
@@ -14,16 +11,6 @@ function PageLoader() {
 }
 
 export default function PodcastSubRouter() {
-  const { podcastSlug } = useParams<{ podcastSlug: string; episodeSlug: string }>();
-
-  if (podcastSlug && ALL_CATEGORY_SLUGS.includes(podcastSlug)) {
-    return (
-      <Suspense fallback={<PageLoader />}>
-        <PodcastTopicPage />
-      </Suspense>
-    );
-  }
-
   return (
     <Suspense fallback={<PageLoader />}>
       <EpisodeRecapPage />

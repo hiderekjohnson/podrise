@@ -2,10 +2,10 @@ import { Link } from "wouter";
 import { ExternalLink } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { PodCapWordmark } from "./PodCapHeader";
-import { getAllCategoryLinks } from "@/data/podcastCategoryData";
+import { TOPICS } from "@/data/topicData";
 
 export function Footer() {
-  const categoryLinks = getAllCategoryLinks();
+  const topInsights = TOPICS.slice(0, 8);
 
   return (
     <footer className="w-full border-t border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/40 backdrop-blur-sm mt-auto" data-testid="footer">
@@ -15,8 +15,8 @@ export function Footer() {
             <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
             <ul className="space-y-3.5">
               <li>
-                <Link href="/podcasts" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-podcasts">
-                  Top Podcasts
+                <Link href="/insights" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-insights">
+                  Insights
                 </Link>
               </li>
               <li>
@@ -30,27 +30,27 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/topics" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-topics">
-                  Topics
-                </Link>
-              </li>
-              <li>
                 <Link href="/bookstore" className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-bookstore">
                   Bookstore
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-signal">
+                  Signal
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Categories</h3>
+            <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Insights</h3>
             <ul className="space-y-3.5">
-              {categoryLinks.map((cat) => (
-                <li key={cat.slug}>
-                  <a href={`/podcasts/${cat.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-category-${cat.slug}`}>
-                    {cat.name}
-                  </a>
+              {topInsights.map((topic) => (
+                <li key={topic.slug}>
+                  <Link href={`/insights/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-insight-${topic.slug}`}>
+                    {topic.name}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -62,11 +62,6 @@ export function Footer() {
               <li>
                 <Link href="/about" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-about">
                   About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-daily-drop">
-                  Signal
                 </Link>
               </li>
               <li>

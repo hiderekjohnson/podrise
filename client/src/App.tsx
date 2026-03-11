@@ -16,7 +16,6 @@ const PodcastSubRouter = lazy(() => import("./pages/PodcastSubRouter"));
 
 const EpisodeGuestsPage = lazy(() => import("./pages/EpisodeGuestsPage"));
 const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
-const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Support = lazy(() => import("./pages/Support"));
@@ -62,7 +61,6 @@ function Router() {
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />
         <Route path="/podcasts/:slug" component={PodcastRouter} />
-        <Route path="/podcasts" component={Leaderboard} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/support" component={Support} />
@@ -76,8 +74,8 @@ function Router() {
         <Route path="/companies" component={CompaniesDirectory} />
         <Route path="/get-started" component={GetStarted} />
         <Route path="/enterprise" component={Enterprise} />
-        <Route path="/topics/:slug" component={TopicDetailPage} />
-        <Route path="/topics" component={TopicsDirectory} />
+        <Route path="/insights/:slug" component={TopicDetailPage} />
+        <Route path="/insights" component={TopicsDirectory} />
         <Route path="/daily-drop/:date" component={DailyDropEdition} />
         <Route path="/daily-drop" component={DailyDrop} />
         <Route path="/podcaster/claim" component={PodcasterClaim} />

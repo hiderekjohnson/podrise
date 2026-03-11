@@ -3,7 +3,7 @@ import { useParams, Link } from "wouter";
 import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X, Clock, Calendar as CalendarIcon, UserCheck, Filter, Timer } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
-import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
+import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
@@ -350,8 +350,8 @@ export default function EpisodeArchivePage() {
         <div className="text-center">
           <h1 className="text-2xl font-display font-bold text-foreground mb-3" data-testid="text-not-found">Podcast not found</h1>
           <p className="text-muted-foreground mb-6">We don't have recaps for this podcast yet.</p>
-          <Link href="/podcasts">
-            <span className="text-primary font-semibold hover:underline" data-testid="link-back">Browse all podcasts</span>
+          <Link href="/">
+            <span className="text-primary font-semibold hover:underline" data-testid="link-back">Back to home</span>
           </Link>
         </div>
       </div>
@@ -400,21 +400,17 @@ export default function EpisodeArchivePage() {
                 if (!catInfo.category) return null;
                 return (
                   <div className="flex flex-wrap items-center gap-1.5 mt-2.5" data-testid="archive-category-labels">
-                    <Link href={`/podcasts/${catInfo.category.slug}`}>
-                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${catInfo.category.slug}`}>
-                        {catInfo.category.name}
-                      </span>
-                    </Link>
-                    {catInfo.topics.map((topic) => (
-                      <span key={topic.slug} className="inline-flex items-center gap-1">
-                        <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
-                        <Link href={`/podcasts/${catInfo.category!.slug}/${topic.slug}`}>
+                    {catInfo.topics.map((topic) => {
+                      const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
+                      if (!insightsSlug) return null;
+                      return (
+                        <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
                           <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                             {topic.name}
                           </span>
                         </Link>
-                      </span>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })()}

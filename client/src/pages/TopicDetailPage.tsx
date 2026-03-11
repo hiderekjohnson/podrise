@@ -219,7 +219,7 @@ export default function TopicDetailPage() {
     const first = podcasts[0];
     return {
       podcasts: podcasts.slice(0, 4).map(p => p.podcast),
-      browseUrl: `/podcasts/${first.categorySlug}/${first.topicSlug}`,
+      browseUrl: `/insights/${params.slug}`,
       topicSlug: first.topicSlug,
     };
   }, [params.slug]);
@@ -284,29 +284,10 @@ export default function TopicDetailPage() {
 
       <SiteHeader />
 
-      <div className="border-b border-black/[0.06] dark:border-white/[0.06] bg-muted/30">
-        <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-6 text-[13px] font-mono tracking-wide text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="uppercase font-semibold text-emerald-600 dark:text-emerald-400">Monitoring</span>
-            </span>
-            <span className="hidden sm:inline" data-testid="metric-status">
-              Continuous monitoring
-            </span>
-          </div>
-          {latestEpisodeDate && (
-            <span className="text-[12px] font-mono text-muted-foreground/60 hidden sm:inline" data-testid="metric-last-signal">
-              Last signal: {formatRelativeDate(latestEpisodeDate)}
-            </span>
-          )}
-        </div>
-      </div>
-
       <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
         <div className="flex items-center gap-2 text-[14px] text-muted-foreground mb-6">
-          <Link href="/topics" className="hover:text-foreground transition-colors" data-testid="link-back-topics">
-            Intelligence
+          <Link href="/insights" className="hover:text-foreground transition-colors" data-testid="link-back-insights">
+            Insights
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
           <span className="text-foreground font-medium">{topicDisplayName}</span>
@@ -323,9 +304,6 @@ export default function TopicDetailPage() {
               <Icon className="w-7 h-7 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2.5 mb-1">
-                <span className="text-[12px] font-semibold uppercase tracking-[0.15em] text-primary">Intelligence Brief</span>
-              </div>
               <h1 className="text-3xl sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="text-topic-title">
                 {topicDisplayName}
               </h1>
@@ -335,14 +313,28 @@ export default function TopicDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-coverage">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Coverage Status</p>
-              <p className="text-lg font-display font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-status">
+              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Status</p>
+              <p className="text-base font-display font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Active
               </p>
             </div>
+            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-sources">
+              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Sources</p>
+              <p className="text-base font-display font-bold text-foreground">{uniquePodcastSources || relatedPodcasts.length} podcasts</p>
+            </div>
+            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-episodes">
+              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Episodes</p>
+              <p className="text-base font-display font-bold text-foreground">{topicEpisodes?.length || 0}</p>
+            </div>
+            {latestEpisodeDate && (
+              <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-latest">
+                <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Latest</p>
+                <p className="text-base font-display font-bold text-foreground">{formatRelativeDate(latestEpisodeDate)}</p>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -803,7 +795,7 @@ export default function TopicDetailPage() {
               {relatedTopics.map(t => {
                 const TIcon = ICON_MAP[t.icon] || Sparkles;
                 return (
-                  <Link key={t.slug} href={`/topics/${t.slug}`} data-testid={`link-related-topic-${t.slug}`}>
+                  <Link key={t.slug} href={`/insights/${t.slug}`} data-testid={`link-related-topic-${t.slug}`}>
                     <div className="group flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
                       <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${t.color} flex items-center justify-center`}>
                         <TIcon className="w-3.5 h-3.5 text-white" />

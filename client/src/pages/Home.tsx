@@ -86,18 +86,18 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <button
                 data-testid="button-hero-explore"
-                onClick={() => navigate("/podcasts")}
+                onClick={() => navigate("/insights")}
                 className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
               >
-                Explore Podcasts
+                Explore Insights
                 <ArrowRight className="w-5 h-5" />
               </button>
               <button
-                data-testid="button-hero-topics"
-                onClick={() => navigate("/topics")}
+                data-testid="button-hero-signal"
+                onClick={() => navigate("/daily-drop")}
                 className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-card border-2 border-border text-foreground hover:bg-muted/60 transition-colors"
               >
-                Browse Topics
+                Read Signal
               </button>
             </div>
           </motion.div>
@@ -171,21 +171,12 @@ export default function Home() {
               </p>
             </motion.div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link href="/podcasts" className="block">
-                <div className="group bg-card border border-border rounded-xl p-6 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer h-full" data-testid="nav-card-podcasts">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                    <Mic className="w-5 h-5 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse shows with episode recaps, key insights, and AI-powered analysis.</p>
-                </div>
-              </Link>
-              <Link href="/topics" className="block">
-                <div className="group bg-card border border-border rounded-xl p-6 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer h-full" data-testid="nav-card-topics">
+              <Link href="/insights" className="block">
+                <div className="group bg-card border border-border rounded-xl p-6 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer h-full" data-testid="nav-card-insights">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Topics</h3>
+                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Insights</h3>
                   <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what's being said across podcasts on AI, crypto, leadership, markets, and more.</p>
                 </div>
               </Link>
@@ -255,11 +246,11 @@ export default function Home() {
             </div>
             <div className="text-center mt-10">
               <button
-                data-testid="button-view-all-podcasts"
-                onClick={() => navigate("/podcasts")}
+                data-testid="button-view-all-insights"
+                onClick={() => navigate("/insights")}
                 className="inline-flex items-center gap-2 px-7 py-4 rounded-[10px] bg-card border-2 border-border text-[17px] font-bold text-foreground hover:bg-muted/60 transition-colors min-h-[52px]"
               >
-                View all podcasts
+                Explore all insights
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>

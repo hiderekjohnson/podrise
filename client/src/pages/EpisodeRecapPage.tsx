@@ -986,7 +986,7 @@ export default function EpisodeRecapPage() {
                   return (
                     <Link
                       key={topic.slug}
-                      href={`/topics/${topic.slug}`}
+                      href={`/insights/${topic.slug}`}
                       className="group/topic flex gap-3.5 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-emerald-500/[0.03] transition-all"
                       data-testid={`topic-link-${i}`}
                     >
