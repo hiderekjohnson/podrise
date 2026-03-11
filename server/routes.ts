@@ -3490,6 +3490,110 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.post("/api/admin/backfill-books", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { podcastSlug, episodeSlug } = req.body || {};
+    const batchLimit = Math.max(1, Math.min(50, parseInt(req.body?.limit) || 10));
+    try {
+      const { extractBooksFromTranscript } = await import("./recapGenerator");
+
+      let query: string;
+      let params: any[];
+
+      if (podcastSlug && episodeSlug) {
+        query = `
+          SELECT r.id, r.slug as podcast_slug, r.episode_slug, r.episode_title, r.podcast_name, r.resources,
+                 t.transcript
+          FROM landing_page_recaps r
+          JOIN podcast_directory pd ON pd.slug = r.slug
+          JOIN episode_transcripts t ON t.podcast_id = pd.itunes_id::text AND LOWER(t.episode_title) = LOWER(r.episode_title)
+          WHERE r.slug = $1 AND r.episode_slug = $2
+          LIMIT 1
+        `;
+        params = [podcastSlug, episodeSlug];
+      } else {
+        const maxBatch = Math.min(batchLimit || 10, 50);
+        query = `
+          SELECT r.id, r.slug as podcast_slug, r.episode_slug, r.episode_title, r.podcast_name, r.resources,
+                 t.transcript
+          FROM landing_page_recaps r
+          JOIN podcast_directory pd ON pd.slug = r.slug
+          JOIN episode_transcripts t ON t.podcast_id = pd.itunes_id::text AND LOWER(t.episode_title) = LOWER(r.episode_title)
+          WHERE (r.resources IS NULL OR r.resources::text = '[]'
+            OR (
+              NOT EXISTS (
+                SELECT 1 FROM jsonb_array_elements(r.resources::jsonb) elem
+                WHERE elem->>'type' = 'book'
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM jsonb_array_elements(r.resources::jsonb) elem
+                WHERE elem->>'type' = '_meta'
+              )
+            ))
+          ORDER BY r.id DESC
+          LIMIT $1
+        `;
+        params = [maxBatch];
+      }
+
+      const { rows } = await pool.query(query, params);
+      if (rows.length === 0) {
+        return res.json({ message: "No episodes found to process", processed: 0 });
+      }
+
+      let processed = 0;
+      let booksFound = 0;
+      const results: { episode: string; bookCount: number }[] = [];
+
+      for (const row of rows) {
+        try {
+          const books = await extractBooksFromTranscript(
+            row.transcript,
+            row.podcast_name || row.podcast_slug,
+            row.episode_title,
+          );
+
+          const existingResources = row.resources ? (typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources) : [];
+          const nonBookResources = existingResources.filter((r: any) => r.type !== 'book');
+
+          const validBooks = books
+            .filter((b: any) => b && typeof b.name === 'string' && b.name.trim().length > 0)
+            .map((b: any) => ({
+              name: b.name.trim(),
+              type: "book",
+              description: b.description || "",
+              url: typeof b.url === 'string' ? b.url : "",
+              author: b.author || null,
+              context: b.context || "",
+            }));
+
+          const merged = validBooks.length > 0
+            ? [...nonBookResources, ...validBooks]
+            : (nonBookResources.length > 0 ? nonBookResources : [{ name: "_books_checked", type: "_meta", description: "No books found" }]);
+
+          await pool.query(
+            `UPDATE landing_page_recaps SET resources = $1::jsonb WHERE id = $2`,
+            [JSON.stringify(merged), row.id]
+          );
+          booksFound += validBooks.length;
+
+          results.push({ episode: `${row.podcast_slug}/${row.episode_slug}`, bookCount: books.length });
+          processed++;
+          console.log(`[BookBackfill] ${row.podcast_slug}/${row.episode_slug}: ${books.length} books found`);
+        } catch (err: any) {
+          console.error(`[BookBackfill] Error processing ${row.episode_slug}:`, err?.message);
+          results.push({ episode: `${row.podcast_slug}/${row.episode_slug}`, bookCount: -1 });
+        }
+      }
+
+      res.json({ message: "Book backfill complete", processed, booksFound, results });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to run book backfill" });
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

@@ -341,7 +341,7 @@ RULES:
 - topQuestions: 5 SEO-optimized questions phrased like real Google searches someone would type. Each question MUST contain the specific entity, person, concept, or framework name (e.g. "What is the regret minimization framework?" not "What framework was discussed?"). Each answer should be 2-4 sentences that naturally repeat the key entity/concept name at least once. Answers must read naturally — not keyword-stuffed. Draw all content from the transcript
 - sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
 - guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Use their FULL NAME (first and last). Include their professional title/position at their company. Write a 2-3 sentence bio based on how they are introduced. Include social media handles if mentioned in the transcript or commonly known (twitter, linkedin, instagram, website). Do NOT include photoUrl — set it to null. Return empty array [] if no guests (solo host episodes or host-only conversations)
-- resources: ONLY include physical products, books, or tools that someone could actually BUY on Amazon. Do NOT include abstract concepts, philosophies, anecdotes, stories, work habits, websites, newsletters, services, SaaS products, or the podcast itself. Good examples: a specific book title, a gadget, a physical product. Bad examples: "Aristotle's Eudaimonia", "Aaron Sorkin's creative process", someone's personal story. If no purchasable items are mentioned, return empty array []. Do NOT include sponsors here either`;
+- resources: Extract ALL books mentioned, recommended, quoted, referenced, or discussed — even briefly. Also include physical products or tools that someone could actually BUY on Amazon. For books: include the full title, author name, and a 1-2 sentence "context" explaining how/why the book came up in conversation. For URLs, use https://www.amazon.com/dp/ASIN if you know the ASIN, or https://www.amazon.com/s?k=Book+Title+Author for search fallback. Do NOT include abstract concepts, philosophies, anecdotes, websites, newsletters, services, SaaS products, or the podcast itself. Do NOT include sponsors here either. If no purchasable items or books are mentioned, return empty array []`;
 
   const maxAttempts = 2;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -391,4 +391,70 @@ RULES:
     }
   }
   return null;
+}
+
+export async function extractBooksFromTranscript(
+  transcript: string,
+  podcastName: string,
+  episodeTitle: string,
+): Promise<{ name: string; type: string; description: string; url: string; author: string | null; context: string }[]> {
+  const prompt = `You are a book extraction specialist. Your ONLY job is to find every book mentioned, recommended, quoted, referenced, or discussed in this podcast transcript.
+
+Podcast: ${podcastName}
+Episode: "${episodeTitle}"
+
+Transcript:
+${transcript}
+
+Find ALL books mentioned in any context:
+- Books explicitly recommended ("you should read...", "I loved this book...")
+- Books quoted or referenced ("as [author] wrote in [book]...")
+- Books discussed at length or briefly
+- Books mentioned in passing ("that reminds me of [book]...")
+- Textbooks, memoirs, novels, business books, self-help — any published book
+
+For each book, provide:
+- name: The exact book title
+- author: The author's full name (look it up if you know it, even if the transcript only gives a last name)
+- description: A 1-sentence description of what the book is about
+- context: 1-2 sentences explaining exactly what was said about this book in the episode — why it was mentioned, what point it supported, or why it was recommended. This should feel like transcript context, not a generic description.
+- url: An Amazon direct product URL in format https://www.amazon.com/dp/ASIN if you know the ASIN, otherwise https://www.amazon.com/s?k=Book+Title+Author+Name
+
+Respond ONLY with a valid JSON object:
+{
+  "books": [
+    {"name": "Book Title", "type": "book", "description": "Brief description.", "url": "https://www.amazon.com/dp/ASIN", "author": "Author Name", "context": "What was said about this book in the episode."}
+  ]
+}
+
+RULES:
+- Include EVERY book mentioned, no matter how briefly
+- Do NOT include podcasts, newsletters, websites, apps, SaaS products, or abstract concepts
+- Do NOT fabricate books that weren't mentioned in the transcript
+- If no books are mentioned, return {"books": []}
+- Try to find the correct Amazon ASIN for well-known books`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 4096,
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return [];
+
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith("```")) {
+      jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+    }
+
+    const parsed = JSON.parse(jsonContent);
+    return Array.isArray(parsed.books) ? parsed.books : [];
+  } catch (err) {
+    console.error(`[BookExtractor] Failed for "${episodeTitle}":`, err);
+    return [];
+  }
 }

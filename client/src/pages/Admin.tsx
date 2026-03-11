@@ -1506,6 +1506,29 @@ export default function Admin() {
                         </button>
                       </div>
 
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-books">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Backfill Books from Transcripts</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Run dedicated AI book extraction on episodes that currently have no books. Processes 10 at a time.</p>
+                        </div>
+                        <button
+                          data-testid="button-backfill-books"
+                          onClick={async () => {
+                            if (!confirm("This will run AI book extraction on up to 10 episodes without books. Each episode costs ~1 API call. Continue?")) return;
+                            try {
+                              const res = await apiRequest("POST", "/api/admin/backfill-books", { limit: 10 });
+                              const data = await res.json();
+                              toast({ title: "Book Backfill Complete", description: `Processed ${data.processed} episodes, found ${data.booksFound} books total.` });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to run book backfill", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                        >
+                          Extract Books (10)
+                        </button>
+                      </div>
+
                       <BatchExpansionPanel />
                     </div>
                   )}
