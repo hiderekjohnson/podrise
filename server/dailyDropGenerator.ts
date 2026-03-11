@@ -115,16 +115,18 @@ STRUCTURE:
    - Open with the strongest recommendation or most interesting booking of the day. Pull the reader in immediately
    - Each episode mention should feel like a recommendation, not a report
    - Show titles in *italics* (markdown)
-   - Close with a single line inviting the reader to share what they listened to, making it feel like a community, not a broadcast. Something like: "What did you listen to yesterday that we should have on our radar? Drop it in the comments, we read every one."
+   - Close with a simple, warm one-liner inviting the reader to share what they listened to. Keep it conversational and grounded, not corny or over-the-top. Example: "Heard something great yesterday? Let us know." Do NOT use cheesy catchphrases, pop culture references, or try-hard sign-offs. No "see you tomorrow, heretics" type closings. Just be a normal, friendly person wrapping up a note
 
 3. ALSO WORTH CHECKING OUT: After the sign-off, write a short "Also worth checking out" section. Pick 5-7 episodes from the ADDITIONAL episodes list (NOT from the main newsletter episodes). Write it as 1-2 flowing sentences, not a list. Link each episode title to its episode page using markdown links. Keep it brief and punchy, like a bonus tip from a friend. Prioritize interesting or lesser-known episodes that deserve attention over big-name shows. This section should feel like a casual postscript.
 
 LINKING RULES:
-- Include 4-8 links naturally woven in. Use markdown links
+- Include 6-10 links naturally woven in. Use markdown links
 - For episode titles or show names: link to [show or episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs
-- Link guest names to their most relevant professional profile on first mention (Wikipedia, personal site)
-- Don't over-link. If a name is mentioned in passing, skip it. Link a show or person once, then leave it
-- Links should sit on meaningful anchor text: show names, guest names, episode titles. Never "click here" or "this episode"
+- For notable people mentioned (guests, hosts, public figures): link to their PodCap page if one might exist, e.g. [Elon Musk](/people/elon-musk). Use the format /people/{first-last} with lowercase and hyphens. Only do this for well-known people who likely have a page
+- For notable companies mentioned (Palantir, Tesla, OpenAI, etc.): link to their PodCap page if one might exist, e.g. [Palantir](/companies/palantir). Use the format /companies/{slug} with lowercase. Only do this for well-known companies
+- Don't over-link. If a name is mentioned in passing, skip it. Link a show, person, or company once, then leave subsequent mentions unlinked
+- Links should sit on meaningful anchor text: show names, guest names, company names, episode titles. Never "click here" or "this episode"
+- Internal links (to /podcasts/, /people/, /companies/) are preferred over external links for SEO. Only link externally if there is no internal page
 
 CONSTRAINTS:
 - Include 2-3 direct quotes from episodes, embedded naturally
