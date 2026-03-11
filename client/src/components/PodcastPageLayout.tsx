@@ -108,7 +108,7 @@ export function PodcastPageLayout({
             className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
             data-testid="button-get-recaps"
           >
-            Get Recaps
+            Get {name} Recaps
           </button>
         }
       />
