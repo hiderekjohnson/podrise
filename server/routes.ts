@@ -112,6 +112,7 @@ const DOMAIN = "https://podcap.io";
 
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
+  { path: "/podcasts", priority: "0.9", changefreq: "daily" },
   { path: "/insights", priority: "0.9", changefreq: "daily" },
   { path: "/login", priority: "0.5", changefreq: "monthly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
@@ -3457,6 +3458,57 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     } catch (err) {
       console.error("Leaderboard error:", err);
       res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+  });
+
+  app.get("/api/podcasts-discovery", async (req, res) => {
+    try {
+      const client = await pool.connect();
+      try {
+        const recentResult = await client.query(`
+          SELECT slug, episode_slug, episode_title, podcast_name, publish_date, artwork_url, tldl, hosts, created_at
+          FROM landing_page_recaps
+          WHERE publish_date IS NOT NULL
+          ORDER BY publish_date DESC, created_at DESC
+          LIMIT 20
+        `);
+
+        const statsResult = await client.query(`
+          SELECT slug, podcast_name,
+            COUNT(*) as episode_count,
+            MAX(publish_date) as latest_episode,
+            MIN(publish_date) as first_episode
+          FROM landing_page_recaps
+          WHERE publish_date IS NOT NULL
+          GROUP BY slug, podcast_name
+          ORDER BY MAX(publish_date) DESC
+        `);
+
+        res.json({
+          recentEpisodes: recentResult.rows.map(r => ({
+            slug: r.slug,
+            episodeSlug: r.episode_slug,
+            episodeTitle: r.episode_title,
+            podcastName: r.podcast_name,
+            publishDate: r.publish_date,
+            artworkUrl: r.artwork_url,
+            tldl: r.tldl,
+            hosts: r.hosts,
+          })),
+          podcastStats: statsResult.rows.map(r => ({
+            slug: r.slug,
+            podcastName: r.podcast_name,
+            episodeCount: parseInt(r.episode_count),
+            latestEpisode: r.latest_episode,
+            firstEpisode: r.first_episode,
+          })),
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error("Podcasts discovery error:", err);
+      res.status(500).json({ message: "Failed to fetch discovery data" });
     }
   });
 

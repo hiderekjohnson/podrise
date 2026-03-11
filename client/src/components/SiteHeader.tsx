@@ -14,6 +14,13 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
+            href="/podcasts"
+            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
+            data-testid="nav-podcasts"
+          >
+            Podcasts
+          </Link>
+          <Link
             href="/insights"
             className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
             data-testid="nav-insights"

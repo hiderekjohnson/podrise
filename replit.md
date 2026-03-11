@@ -16,7 +16,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 **AI Integration**: OpenAI (GPT-4o) generates episode recaps, including key insights, quotes, topics, and Q&A features. It also identifies guest data.
 **Email System**: Resend handles email delivery, including a scheduler for daily recap subscriptions.
 **Admin Tools**: An admin dashboard facilitates user management, content templating, and episode page generation status tracking, along with tools for podcast expansion and data backfilling.
-**Podcast Features**: Manages a directory of podcasts with landing pages, AI-generated recaps, host information, enhanced show notes from Taddy, and podcast-level AI Q&A.
+**Podcast Features**: Manages a directory of podcasts with landing pages, AI-generated recaps, host information, enhanced show notes from Taddy, and podcast-level AI Q&A. The /podcasts page is a Google Trends-inspired discovery experience with "Just Dropped" latest episodes, "Hot Right Now" trending shows, search functionality, and full podcast grid. Powered by /api/podcasts-discovery endpoint.
 **Entity Directories**: `PEOPLE_DIRECTORY` and `COMPANIES_DIRECTORY` power dedicated pages and enable "Notable Mentions" matching in recaps. Company entries include `associatedTerms` for sub-brand matching.
 **Local Asset Storage**: All images (company logos, people photos, podcast artwork, host photos) are stored locally.
 **People Image Pipeline**: A system resolves profile photos for directory entries, prioritizing existing local images, then Wikipedia/Wikimedia Commons, then X/Twitter via unavatar.io, with a fallback placeholder.

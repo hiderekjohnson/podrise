@@ -15,6 +15,11 @@ export function Footer() {
             <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
             <ul className="space-y-3.5">
               <li>
+                <Link href="/podcasts" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-podcasts">
+                  Podcasts
+                </Link>
+              </li>
+              <li>
                 <Link href="/insights" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-insights">
                   Insights
                 </Link>

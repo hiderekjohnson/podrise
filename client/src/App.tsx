@@ -13,6 +13,7 @@ const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Admin = lazy(() => import("./pages/Admin"));
 const PodcastRouter = lazy(() => import("./pages/PodcastRouter"));
 const PodcastSubRouter = lazy(() => import("./pages/PodcastSubRouter"));
+const PodcastsExplorer = lazy(() => import("./pages/PodcastsExplorer"));
 
 const EpisodeGuestsPage = lazy(() => import("./pages/EpisodeGuestsPage"));
 const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
@@ -61,6 +62,7 @@ function Router() {
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />
         <Route path="/podcasts/:slug" component={PodcastRouter} />
+        <Route path="/podcasts" component={PodcastsExplorer} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/support" component={Support} />
