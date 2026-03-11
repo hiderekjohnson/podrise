@@ -317,6 +317,16 @@ export default function EpisodeRecapPage() {
 
   const episodeQuotes = quotesData?.quotes || [];
 
+  const { data: bookSlugMap = {} } = useQuery<Record<string, string>>({
+    queryKey: ["/api/book-slugs"],
+    queryFn: async () => {
+      const res = await fetch("/api/book-slugs");
+      if (!res.ok) return {};
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 60,
+  });
+
   interface Guest {
     name: string;
     title?: string;
@@ -1065,17 +1075,31 @@ export default function EpisodeRecapPage() {
                 {books.map((book, i) => {
                   const asin = extractAsin(book.url || "");
                   const amazonUrl = getAmazonUrl(book);
+                  const bookKey = book.name.toLowerCase().trim();
+                  const bookSlug = bookSlugMap[bookKey];
                   return (
                     <div
                       key={i}
                       className="flex gap-4 sm:gap-5"
                       data-testid={`book-card-${i}`}
                     >
-                      <BookCover title={book.name} asin={asin} author={book.author} testId={`book-cover-${i}`} />
+                      {bookSlug ? (
+                        <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
+                          <BookCover title={book.name} asin={asin} author={book.author} testId={`book-cover-${i}`} />
+                        </Link>
+                      ) : (
+                        <BookCover title={book.name} asin={asin} author={book.author} testId={`book-cover-${i}`} />
+                      )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
-                          {book.name}
-                        </h3>
+                        {bookSlug ? (
+                          <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                            {book.name}
+                          </Link>
+                        ) : (
+                          <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                            {book.name}
+                          </h3>
+                        )}
                         {book.author && book.author !== "null" && (() => {
                           const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
                           return (
@@ -1093,17 +1117,28 @@ export default function EpisodeRecapPage() {
                             {book.context}
                           </p>
                         )}
-                        <a
-                          href={amazonUrl}
-                          target="_blank"
-                          rel="sponsored noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors mt-2"
-                          data-testid={`book-amazon-${i}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {asin ? "Buy on Amazon" : "Find on Amazon"}
-                          <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
-                        </a>
+                        <div className="flex items-center gap-3 mt-2">
+                          {bookSlug && (
+                            <Link
+                              href={`/bookstore/${bookSlug}`}
+                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                              data-testid={`book-detail-link-${i}`}
+                            >
+                              View Book Details
+                            </Link>
+                          )}
+                          <a
+                            href={amazonUrl}
+                            target="_blank"
+                            rel="sponsored noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                            data-testid={`book-amazon-${i}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Buy on Amazon
+                            <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
+                          </a>
+                        </div>
                       </div>
                     </div>
                   );

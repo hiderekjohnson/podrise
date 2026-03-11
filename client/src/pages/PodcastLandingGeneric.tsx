@@ -465,6 +465,16 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
     queryKey: ["/api/podcasts", slug, "books"],
   });
 
+  const { data: bookSlugMap = {} } = useQuery<Record<string, string>>({
+    queryKey: ["/api/book-slugs"],
+    queryFn: async () => {
+      const res = await fetch("/api/book-slugs");
+      if (!res.ok) return {};
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 60,
+  });
+
   const books = data?.books || [];
   const query = searchQuery.toLowerCase().trim();
 
@@ -570,6 +580,8 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
               const asin = extractAsin(book.url || "");
               const amazonUrl = getAmazonBookUrl(book.url, book.name);
               const isExpanded = expandedBook === book.name;
+              const bookKey = book.name.toLowerCase().trim();
+              const bookSlug = bookSlugMap[bookKey];
 
               return (
                 <div
@@ -578,16 +590,28 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                   data-testid={`book-row-${i}`}
                 >
                   <div className="flex gap-4">
-                    <div className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                      <PodcastBookCover title={book.name} asin={asin} />
-                    </div>
+                    {bookSlug ? (
+                      <Link href={`/bookstore/${bookSlug}`} className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                        <PodcastBookCover title={book.name} asin={asin} />
+                      </Link>
+                    ) : (
+                      <div className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                        <PodcastBookCover title={book.name} asin={asin} />
+                      </div>
+                    )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
-                            {book.name}
-                          </h3>
+                          {bookSlug ? (
+                            <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                              {book.name}
+                            </Link>
+                          ) : (
+                            <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                              {book.name}
+                            </h3>
+                          )}
                           {book.author && book.author !== "null" && (() => {
                             const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
                             return (
@@ -611,6 +635,15 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                       )}
 
                       <div className="flex items-center gap-3 mt-3">
+                        {bookSlug && (
+                          <Link
+                            href={`/bookstore/${bookSlug}`}
+                            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                            data-testid={`book-detail-link-${i}`}
+                          >
+                            View Book Details
+                          </Link>
+                        )}
                         <a
                           href={amazonUrl}
                           target="_blank"
@@ -619,7 +652,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                           data-testid={`book-amazon-${i}`}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {asin ? "Buy on Amazon" : "Find on Amazon"}
+                          Buy on Amazon
                           <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
                         </a>
                         {book.episodes.length > 0 && (

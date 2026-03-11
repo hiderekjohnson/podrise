@@ -1989,6 +1989,23 @@ export async function registerRoutes(
     return null;
   }
 
+  app.get("/api/book-slugs", async (_req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT book_key, slug FROM book_enrichments WHERE slug IS NOT NULL`
+      );
+      const map: Record<string, string> = {};
+      for (const r of rows) {
+        map[r.book_key] = r.slug;
+      }
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.json(map);
+    } catch (err) {
+      console.error("Book slugs error:", err);
+      res.status(500).json({});
+    }
+  });
+
   app.get("/api/bookstore", async (_req, res) => {
     try {
       const { rows } = await pool.query(
