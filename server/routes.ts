@@ -1910,7 +1910,26 @@ export async function registerRoutes(
         }
       }
 
+      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
+      const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
+
       const books = Array.from(bookMap.values())
+        .map(b => {
+          const key = b.name.toLowerCase().trim();
+          const enrichment = enrichMap.get(key) as any;
+          const originalAsin = extractAsinFromUrl(b.url);
+          const finalAsin = enrichment?.asin || originalAsin;
+          return {
+            ...b,
+            description: enrichment?.description || b.description,
+            author: enrichment?.author || b.author,
+            asin: finalAsin,
+            slug: enrichment?.slug || null,
+            pageCount: enrichment?.page_count || null,
+            publishYear: enrichment?.publish_year || null,
+            rating: enrichment?.rating ? parseFloat(enrichment.rating) : null,
+          };
+        })
         .sort((a, b) => b.mentionCount - a.mentionCount);
 
       res.json({ books, total: books.length });
@@ -1937,11 +1956,19 @@ export async function registerRoutes(
   app.get("/api/book-slugs", async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT book_key, slug FROM book_enrichments WHERE slug IS NOT NULL`
+        `SELECT book_key, slug, rating, page_count, publish_year, asin, description, author FROM book_enrichments`
       );
-      const map: Record<string, string> = {};
+      const map: Record<string, any> = {};
       for (const r of rows) {
-        map[r.book_key] = r.slug;
+        map[r.book_key] = {
+          slug: r.slug || null,
+          rating: r.rating ? parseFloat(r.rating) : null,
+          pageCount: r.page_count || null,
+          publishYear: r.publish_year || null,
+          asin: r.asin || null,
+          description: r.description || null,
+          author: r.author || null,
+        };
       }
       res.setHeader("Cache-Control", "public, max-age=3600");
       res.json(map);

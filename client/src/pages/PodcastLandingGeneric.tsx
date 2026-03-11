@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen, ChevronRight } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -300,6 +300,11 @@ interface PodcastBook {
   context: string[];
   episodes: { slug: string; title: string }[];
   mentionCount: number;
+  asin: string | null;
+  slug: string | null;
+  pageCount: number | null;
+  publishYear: number | null;
+  rating: number | null;
 }
 
 function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: string }) {
@@ -310,16 +315,6 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
 
   const { data, isLoading, isError } = useQuery<{ books: PodcastBook[]; total: number }>({
     queryKey: ["/api/podcasts", slug, "books"],
-  });
-
-  const { data: bookSlugMap = {} } = useQuery<Record<string, string>>({
-    queryKey: ["/api/book-slugs"],
-    queryFn: async () => {
-      const res = await fetch("/api/book-slugs");
-      if (!res.ok) return {};
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 60,
   });
 
   const books = data?.books || [];
@@ -422,115 +417,95 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
             {sorted.length} book{sorted.length !== 1 ? "s" : ""}{searchQuery ? ` matching "${searchQuery}"` : ""}
           </p>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {visible.map((book, i) => {
-              const asin = extractAsin(book.url || "");
-              const amazonUrl = getAmazonBookUrl(book.url, book.name);
-              const isExpanded = expandedBook === book.name;
-              const bookKey = book.name.toLowerCase().trim();
-              const bookSlug = bookSlugMap[bookKey];
+              const asin = book.asin || extractAsin(book.url || "");
+              const amazonUrl = asin
+                ? `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`
+                : getAmazonBookUrl(book.url, book.name);
+              const bookSlug = book.slug;
 
               return (
                 <div
                   key={book.name}
-                  className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-amber-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all"
+                  className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-amber-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all flex flex-col"
                   data-testid={`book-row-${i}`}
                 >
                   <div className="flex gap-4">
                     {bookSlug ? (
-                      <Link href={`/bookstore/${bookSlug}`} className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      <Link href={`/bookstore/${bookSlug}`} className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
                         <PodcastBookCover title={book.name} asin={asin} />
                       </Link>
                     ) : (
-                      <div className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      <div className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
                         <PodcastBookCover title={book.name} asin={asin} />
                       </div>
                     )}
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          {bookSlug ? (
-                            <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors leading-snug" data-testid={`book-title-${i}`}>
-                              {book.name}
-                            </Link>
-                          ) : (
-                            <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
-                              {book.name}
-                            </h3>
-                          )}
-                          {book.author && book.author !== "null" && (() => {
-                            const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
-                            return (
-                              <p className="text-[13px] text-muted-foreground/60 mt-0.5" data-testid={`book-author-${i}`}>
-                                by {authorPerson ? (
-                                  <Link href={`/people/${authorPerson.slug}`} className="text-amber-700 dark:text-amber-400 hover:underline" onClick={(e) => e.stopPropagation()}>
-                                    {book.author}
-                                  </Link>
-                                ) : book.author}
-                              </p>
-                            );
-                          })()}
-                        </div>
-                        <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[12px] font-bold bg-amber-500/[0.08] text-amber-700 dark:text-amber-400 whitespace-nowrap" data-testid={`book-mentions-${i}`}>
-                          {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
+                      {bookSlug ? (
+                        <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                          {book.name}
+                        </Link>
+                      ) : (
+                        <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                          {book.name}
+                        </h3>
+                      )}
+                      {book.author && book.author !== "null" && (
+                        <p className="text-sm text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
+                          by {book.author}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`book-mentions-${i}`}>
+                          <Mic className="w-3 h-3" />
+                          {book.mentionCount} {book.mentionCount === 1 ? "mention" : "mentions"}
                         </span>
-                      </div>
-
-                      {book.description && (
-                        <p className="text-[14px] text-muted-foreground leading-relaxed mt-2 line-clamp-2">{book.description}</p>
-                      )}
-
-                      <div className="flex items-center gap-3 mt-3">
-                        {bookSlug && (
-                          <Link
-                            href={`/bookstore/${bookSlug}`}
-                            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:text-primary/80 transition-colors"
-                            data-testid={`book-detail-link-${i}`}
-                          >
-                            View Book Details
-                          </Link>
+                        {book.rating && (
+                          <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                            <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                            {book.rating.toFixed(1)}
+                          </span>
                         )}
-                        <a
-                          href={amazonUrl}
-                          target="_blank"
-                          rel="sponsored noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-                          data-testid={`book-amazon-${i}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Buy on Amazon
-                          <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
-                        </a>
-                        {book.episodes.length > 0 && (
-                          <button
-                            onClick={() => setExpandedBook(isExpanded ? null : book.name)}
-                            className="inline-flex items-center gap-1 text-[13px] font-semibold text-primary/70 hover:text-primary transition-colors"
-                            data-testid={`book-episodes-toggle-${i}`}
-                          >
-                            {isExpanded ? "Hide" : "See"} {book.episodes.length} episode{book.episodes.length !== 1 ? "s" : ""}
-                          </button>
+                        {book.pageCount && (
+                          <span className="text-xs text-muted-foreground">{book.pageCount}p</span>
+                        )}
+                        {book.publishYear && (
+                          <span className="text-xs text-muted-foreground">{book.publishYear}</span>
                         )}
                       </div>
-
-                      {isExpanded && (
-                        <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] space-y-2">
-                          {book.context[0] && (
-                            <p className="text-[13px] text-muted-foreground italic leading-relaxed mb-2">"{book.context[0]}"</p>
-                          )}
-                          {book.episodes.map((ep, ei) => (
-                            <Link
-                              key={ep.slug}
-                              href={`/podcasts/${slug}/${ep.slug}`}
-                              className="block text-[13px] text-primary/70 hover:text-primary transition-colors truncate"
-                              data-testid={`book-episode-link-${i}-${ei}`}
-                            >
-                              → {ep.title}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
                     </div>
+                  </div>
+
+                  {book.description && (
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-2" data-testid={`book-description-${i}`}>
+                      {book.description}
+                    </p>
+                  )}
+
+                  <div className="mt-auto pt-3 flex items-center justify-end">
+                    {bookSlug ? (
+                      <Link
+                        href={`/bookstore/${bookSlug}`}
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                        data-testid={`book-view-${i}`}
+                      >
+                        View
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    ) : (
+                      <a
+                        href={amazonUrl}
+                        target="_blank"
+                        rel="sponsored noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                        data-testid={`book-buy-${i}`}
+                      >
+                        Buy
+                        <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
+                      </a>
+                    )}
                   </div>
                 </div>
               );

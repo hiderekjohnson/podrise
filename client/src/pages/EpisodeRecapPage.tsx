@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Gift, Ticket, Copy, Check, Quote, Share2, X } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Gift, Ticket, Copy, Check, Quote, Share2, X, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
@@ -314,7 +314,7 @@ export default function EpisodeRecapPage() {
 
   const episodeQuotes = quotesData?.quotes || [];
 
-  const { data: bookSlugMap = {} } = useQuery<Record<string, string>>({
+  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null }>>({
     queryKey: ["/api/book-slugs"],
     queryFn: async () => {
       const res = await fetch("/api/book-slugs");
@@ -1016,74 +1016,92 @@ export default function EpisodeRecapPage() {
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Books recommended or discussed in this {episode.podcastName} episode.</p>
             </div>
             <div className="px-6 py-5">
-              <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {books.map((book, i) => {
-                  const asin = extractAsin(book.url || "");
-                  const amazonUrl = getAmazonUrl(book);
                   const bookKey = book.name.toLowerCase().trim();
-                  const bookSlug = bookSlugMap[bookKey];
+                  const enrichment = bookSlugMap[bookKey];
+                  const bookSlug = enrichment?.slug;
+                  const asin = enrichment?.asin || extractAsin(book.url || "");
+                  const amazonUrl = asin
+                    ? `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`
+                    : getAmazonUrl(book);
+                  const displayAuthor = enrichment?.author || book.author;
+                  const displayDescription = enrichment?.description || book.context;
+
                   return (
                     <div
                       key={i}
-                      className="flex gap-4 sm:gap-5"
+                      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-amber-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all flex flex-col"
                       data-testid={`book-card-${i}`}
                     >
-                      {bookSlug ? (
-                        <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
-                          <BookCover title={book.name} asin={asin} author={book.author} testId={`book-cover-${i}`} />
-                        </Link>
-                      ) : (
-                        <BookCover title={book.name} asin={asin} author={book.author} testId={`book-cover-${i}`} />
-                      )}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex gap-4">
                         {bookSlug ? (
-                          <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors leading-snug" data-testid={`book-title-${i}`}>
-                            {book.name}
+                          <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
+                            <BookCover title={book.name} asin={asin} author={displayAuthor} testId={`book-cover-${i}`} />
                           </Link>
                         ) : (
-                          <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
-                            {book.name}
-                          </h3>
+                          <BookCover title={book.name} asin={asin} author={displayAuthor} testId={`book-cover-${i}`} />
                         )}
-                        {book.author && book.author !== "null" && (() => {
-                          const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
-                          return (
-                            <p className="text-sm text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5" data-testid={`book-author-${i}`}>
-                              by {authorPerson ? (
-                                <Link href={`/people/${authorPerson.slug}`} className="text-amber-700 dark:text-amber-400 hover:underline" onClick={(e) => e.stopPropagation()}>
-                                  {book.author}
-                                </Link>
-                              ) : book.author}
-                            </p>
-                          );
-                        })()}
-                        {book.context && (
-                          <p className="text-base text-muted-foreground leading-relaxed mt-2 line-clamp-3" data-testid={`book-context-${i}`}>
-                            {book.context}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-3 mt-2">
-                          {bookSlug && (
-                            <Link
-                              href={`/bookstore/${bookSlug}`}
-                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                              data-testid={`book-detail-link-${i}`}
-                            >
-                              View Book Details
+                        <div className="flex-1 min-w-0">
+                          {bookSlug ? (
+                            <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                              {book.name}
                             </Link>
+                          ) : (
+                            <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                              {book.name}
+                            </h3>
                           )}
+                          {displayAuthor && displayAuthor !== "null" && (
+                            <p className="text-sm text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
+                              by {displayAuthor}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            {enrichment?.rating && (
+                              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                                <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                {enrichment.rating.toFixed(1)}
+                              </span>
+                            )}
+                            {enrichment?.pageCount && (
+                              <span className="text-xs text-muted-foreground">{enrichment.pageCount}p</span>
+                            )}
+                            {enrichment?.publishYear && (
+                              <span className="text-xs text-muted-foreground">{enrichment.publishYear}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {displayDescription && (
+                        <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-2" data-testid={`book-context-${i}`}>
+                          {displayDescription}
+                        </p>
+                      )}
+
+                      <div className="mt-auto pt-3 flex items-center justify-end">
+                        {bookSlug ? (
+                          <Link
+                            href={`/bookstore/${bookSlug}`}
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                            data-testid={`book-view-${i}`}
+                          >
+                            View
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </Link>
+                        ) : (
                           <a
                             href={amazonUrl}
                             target="_blank"
                             rel="sponsored noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-                            data-testid={`book-amazon-${i}`}
-                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                            data-testid={`book-buy-${i}`}
                           >
-                            Buy on Amazon
+                            Buy
                             <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
                           </a>
-                        </div>
+                        )}
                       </div>
                     </div>
                   );
