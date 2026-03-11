@@ -84,27 +84,58 @@ function getAmazonUrl(book: BookResource): string {
   return `https://www.amazon.com/s?k=${searchQuery}&tag=${AMAZON_AFFILIATE_TAG}`;
 }
 
-function BookCover({ title, asin, testId }: { title: string; asin: string | null; testId: string }) {
+function BookCover({ title, asin, author, testId }: { title: string; asin: string | null; author?: string | null; testId: string }) {
   const [failed, setFailed] = useState(false);
+  const [olSrc, setOlSrc] = useState<string | null>(null);
+  const [olFailed, setOlFailed] = useState(false);
 
-  if (!asin || failed) {
+  useEffect(() => {
+    if (asin && !failed) return;
+    if (olSrc || olFailed) return;
+    const q = encodeURIComponent(title);
+    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
+      .then(r => r.json())
+      .then(data => {
+        const coverId = data?.docs?.[0]?.cover_i;
+        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
+        else setOlFailed(true);
+      })
+      .catch(() => setOlFailed(true));
+  }, [title, asin, failed, olSrc, olFailed]);
+
+  const placeholder = (
+    <div className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10" data-testid={testId}>
+      <BookOpen className="w-5 h-5 text-amber-500/40" />
+    </div>
+  );
+
+  if (asin && !failed) {
     return (
-      <div className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10" data-testid={testId}>
-        <BookOpen className="w-5 h-5 text-amber-500/40" />
-      </div>
+      <img
+        src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX120_.jpg`}
+        alt={title}
+        className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
+        data-testid={testId}
+        onError={() => setFailed(true)}
+        loading="lazy"
+      />
     );
   }
 
-  return (
-    <img
-      src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX120_.jpg`}
-      alt={title}
-      className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
-      data-testid={testId}
-      onError={() => setFailed(true)}
-      loading="lazy"
-    />
-  );
+  if (olSrc && !olFailed) {
+    return (
+      <img
+        src={olSrc}
+        alt={title}
+        className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
+        data-testid={testId}
+        onError={() => setOlFailed(true)}
+        loading="lazy"
+      />
+    );
+  }
+
+  return placeholder;
 }
 
 function GuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: string; testId: string }) {
@@ -1255,12 +1286,12 @@ export default function EpisodeRecapPage() {
                       className="flex gap-4 sm:gap-5"
                       data-testid={`book-card-${i}`}
                     >
-                      <BookCover title={book.name} asin={asin} testId={`book-cover-${i}`} />
+                      <BookCover title={book.name} asin={asin} author={book.author} testId={`book-cover-${i}`} />
                       <div className="flex-1 min-w-0">
                         <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
                           {book.name}
                         </h3>
-                        {book.author && (() => {
+                        {book.author && book.author !== "null" && (() => {
                           const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
                           return (
                             <p className="text-sm text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5" data-testid={`book-author-${i}`}>

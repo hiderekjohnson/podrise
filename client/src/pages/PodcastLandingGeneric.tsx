@@ -405,6 +405,46 @@ function getAmazonBookUrl(url: string, name: string): string {
   return `https://www.amazon.com/s?k=${encodeURIComponent(name)}&tag=${AMAZON_AFFILIATE_TAG}`;
 }
 
+function PodcastBookCover({ title, asin }: { title: string; asin: string | null }) {
+  const [failed, setFailed] = useState(false);
+  const [olSrc, setOlSrc] = useState<string | null>(null);
+  const [olFailed, setOlFailed] = useState(false);
+
+  const coverUrl = asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX100_.jpg` : null;
+
+  useEffect(() => {
+    if (coverUrl && !failed) return;
+    if (olSrc || olFailed) return;
+    const q = encodeURIComponent(title);
+    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
+      .then(r => r.json())
+      .then(data => {
+        const coverId = data?.docs?.[0]?.cover_i;
+        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
+        else setOlFailed(true);
+      })
+      .catch(() => setOlFailed(true));
+  }, [title, coverUrl, failed, olSrc, olFailed]);
+
+  const imgSrc = (coverUrl && !failed) ? coverUrl : (olSrc && !olFailed) ? olSrc : null;
+
+  if (imgSrc) {
+    return (
+      <img
+        src={imgSrc}
+        alt={title}
+        className="w-full h-full object-cover rounded-lg"
+        onError={() => {
+          if (coverUrl && !failed) setFailed(true);
+          else setOlFailed(true);
+        }}
+      />
+    );
+  }
+
+  return <BookOpen className="w-5 h-5 text-amber-400/50" />;
+}
+
 interface PodcastBook {
   name: string;
   author: string | null;
@@ -530,7 +570,6 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
               const asin = extractAsin(book.url || "");
               const amazonUrl = getAmazonBookUrl(book.url, book.name);
               const isExpanded = expandedBook === book.name;
-              const coverUrl = asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX100_.jpg` : null;
 
               return (
                 <div
@@ -540,20 +579,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                 >
                   <div className="flex gap-4">
                     <div className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                      {coverUrl ? (
-                        <img
-                          src={coverUrl}
-                          alt={book.name}
-                          className="w-full h-full object-cover rounded-lg"
-                          onError={(e) => {
-                            const el = e.target as HTMLImageElement;
-                            el.style.display = 'none';
-                            el.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400/50"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>';
-                          }}
-                        />
-                      ) : (
-                        <BookOpen className="w-5 h-5 text-amber-400/50" />
-                      )}
+                      <PodcastBookCover title={book.name} asin={asin} />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -562,7 +588,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                           <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
                             {book.name}
                           </h3>
-                          {book.author && (() => {
+                          {book.author && book.author !== "null" && (() => {
                             const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
                             return (
                               <p className="text-[13px] text-muted-foreground/60 mt-0.5" data-testid={`book-author-${i}`}>
