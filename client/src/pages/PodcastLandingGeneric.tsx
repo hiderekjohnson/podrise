@@ -254,14 +254,24 @@ function getBlinkistBookUrl(name: string): string {
   return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
-function PodcastBookCover({ title, asin }: { title: string; asin: string | null }) {
+function PodcastBookCover({ title, asin, slug }: { title: string; asin: string | null; slug?: string | null }) {
+  const [localFailed, setLocalFailed] = useState(false);
   const [failed, setFailed] = useState(false);
   const [olSrc, setOlSrc] = useState<string | null>(null);
   const [olFailed, setOlFailed] = useState(false);
 
+  const localUrl = slug ? `/books/${slug}.jpg` : null;
   const coverUrl = asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX100_.jpg` : null;
 
   useEffect(() => {
+    setLocalFailed(false);
+    setFailed(false);
+    setOlSrc(null);
+    setOlFailed(false);
+  }, [title, asin, slug]);
+
+  useEffect(() => {
+    if (localUrl && !localFailed) return;
     if (coverUrl && !failed) return;
     if (olSrc || olFailed) return;
     const q = encodeURIComponent(title);
@@ -273,9 +283,9 @@ function PodcastBookCover({ title, asin }: { title: string; asin: string | null 
         else setOlFailed(true);
       })
       .catch(() => setOlFailed(true));
-  }, [title, coverUrl, failed, olSrc, olFailed]);
+  }, [title, coverUrl, failed, olSrc, olFailed, localUrl, localFailed]);
 
-  const imgSrc = (coverUrl && !failed) ? coverUrl : (olSrc && !olFailed) ? olSrc : null;
+  const imgSrc = (localUrl && !localFailed) ? localUrl : (coverUrl && !failed) ? coverUrl : (olSrc && !olFailed) ? olSrc : null;
 
   if (imgSrc) {
     return (
@@ -284,7 +294,8 @@ function PodcastBookCover({ title, asin }: { title: string; asin: string | null 
         alt={title}
         className="w-full h-full object-cover rounded-lg"
         onError={() => {
-          if (coverUrl && !failed) setFailed(true);
+          if (localUrl && !localFailed) setLocalFailed(true);
+          else if (coverUrl && !failed) setFailed(true);
           else setOlFailed(true);
         }}
       />
@@ -434,11 +445,11 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                   <div className="flex gap-4">
                     {bookSlug ? (
                       <Link href={`/bookstore/${bookSlug}`} className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        <PodcastBookCover title={book.name} asin={asin} />
+                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} />
                       </Link>
                     ) : (
                       <div className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        <PodcastBookCover title={book.name} asin={asin} />
+                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} />
                       </div>
                     )}
 

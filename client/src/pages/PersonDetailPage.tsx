@@ -82,6 +82,48 @@ const EXISTING_COMPANY_SLUGS = new Set(COMPANIES_DIRECTORY.map(c => c.slug));
 const EXISTING_PEOPLE_SLUGS = new Set(PEOPLE_DIRECTORY.map(p => p.slug));
 
 
+function PersonBookCover({ name, asin, slug }: { name: string; asin: string | null; slug: string | null }) {
+  const [localFailed, setLocalFailed] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [olSrc, setOlSrc] = useState<string | null>(null);
+  const [olFailed, setOlFailed] = useState(false);
+
+  const localUrl = slug ? `/books/${slug}.jpg` : null;
+
+  useEffect(() => {
+    setLocalFailed(false);
+    setFailed(false);
+    setOlSrc(null);
+    setOlFailed(false);
+  }, [name, asin, slug]);
+
+  useEffect(() => {
+    if (localUrl && !localFailed) return;
+    if (asin && !failed) return;
+    if (olSrc || olFailed) return;
+    const q = encodeURIComponent(name);
+    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
+      .then(r => r.json())
+      .then(data => {
+        const coverId = data?.docs?.[0]?.cover_i;
+        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
+        else setOlFailed(true);
+      })
+      .catch(() => setOlFailed(true));
+  }, [name, asin, localUrl, localFailed, failed, olSrc, olFailed]);
+
+  if (localUrl && !localFailed) {
+    return <img src={localUrl} alt={name} className="w-full h-full object-contain" onError={() => setLocalFailed(true)} />;
+  }
+  if (asin && !failed) {
+    return <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX120_.jpg`} alt={name} className="w-full h-full object-contain" onError={() => setFailed(true)} />;
+  }
+  if (olSrc && !olFailed) {
+    return <img src={olSrc} alt={name} className="w-full h-full object-contain" onError={() => setOlFailed(true)} />;
+  }
+  return <BookOpen className="w-8 h-8 text-amber-400/60" />;
+}
+
 function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: boolean }) {
   const date = episode.publish_date ? new Date(episode.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
   const isGuest = episode.type === "guest";
@@ -925,26 +967,7 @@ export default function PersonDetailPage() {
                       >
                         <div className="bg-card border border-border rounded-xl p-3 hover:border-primary/30 hover:shadow-sm transition-all h-full flex flex-col">
                           <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
-                            {book.asin ? (
-                              <img
-                                src={`https://images-na.ssl-images-amazon.com/images/P/${book.asin}.01._SCLZZZZZZZ_SX120_.jpg`}
-                                alt={book.name}
-                                className="w-full h-full object-contain"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    const fallback = document.createElement('div');
-                                    fallback.className = 'flex items-center justify-center w-full h-full';
-                                    fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400/60"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>';
-                                    parent.appendChild(fallback);
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <BookOpen className="w-8 h-8 text-amber-400/60" />
-                            )}
+                            <PersonBookCover name={book.name} asin={book.asin} slug={book.slug} />
                           </div>
                           <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
                             {book.name}

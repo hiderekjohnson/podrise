@@ -62,12 +62,23 @@ interface BookDetail {
   relatedBooks: RelatedBook[];
 }
 
-function BookCover({ title, asin, size = "lg" }: { title: string; asin: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
+function BookCover({ title, asin, slug, size = "lg" }: { title: string; asin: string | null; slug?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
+  const [localFailed, setLocalFailed] = useState(false);
   const [failed, setFailed] = useState(false);
   const [olSrc, setOlSrc] = useState<string | null>(null);
   const [olFailed, setOlFailed] = useState(false);
 
+  const localUrl = slug ? `/books/${slug}.jpg` : null;
+
   useEffect(() => {
+    setLocalFailed(false);
+    setFailed(false);
+    setOlSrc(null);
+    setOlFailed(false);
+  }, [title, asin, slug]);
+
+  useEffect(() => {
+    if (localUrl && !localFailed) return;
     if (asin && !failed) return;
     if (olSrc || olFailed) return;
     const q = encodeURIComponent(title);
@@ -79,7 +90,7 @@ function BookCover({ title, asin, size = "lg" }: { title: string; asin: string |
         else setOlFailed(true);
       })
       .catch(() => setOlFailed(true));
-  }, [title, asin, failed, olSrc, olFailed]);
+  }, [title, asin, failed, olSrc, olFailed, localUrl, localFailed]);
 
   const sizeClasses: Record<string, string> = {
     sm: "w-12 h-[72px]",
@@ -88,43 +99,43 @@ function BookCover({ title, asin, size = "lg" }: { title: string; asin: string |
     xl: "w-36 h-[216px] sm:w-44 sm:h-[264px]",
   };
 
+  const imgCls = `${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`;
+
   const placeholder = (
     <div className={`${sizeClasses[size]} rounded-xl bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
       <BookOpen className="w-8 h-8 text-amber-500/40" />
     </div>
   );
 
+  if (localUrl && !localFailed) {
+    return <img src={localUrl} alt={title} className={imgCls} onError={() => setLocalFailed(true)} />;
+  }
   if (asin && !failed) {
-    return (
-      <img
-        src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX300_.jpg`}
-        alt={title}
-        className={`${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`}
-        onError={() => setFailed(true)}
-      />
-    );
+    return <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX300_.jpg`} alt={title} className={imgCls} onError={() => setFailed(true)} />;
   }
-
   if (olSrc && !olFailed) {
-    return (
-      <img
-        src={olSrc}
-        alt={title}
-        className={`${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`}
-        onError={() => setOlFailed(true)}
-      />
-    );
+    return <img src={olSrc} alt={title} className={imgCls} onError={() => setOlFailed(true)} />;
   }
-
   return placeholder;
 }
 
-function SmallBookCover({ title, asin }: { title: string; asin: string | null }) {
+function SmallBookCover({ title, asin, slug }: { title: string; asin: string | null; slug?: string | null }) {
+  const [localFailed, setLocalFailed] = useState(false);
   const [failed, setFailed] = useState(false);
   const [olSrc, setOlSrc] = useState<string | null>(null);
   const [olFailed, setOlFailed] = useState(false);
 
+  const localUrl = slug ? `/books/${slug}.jpg` : null;
+
   useEffect(() => {
+    setLocalFailed(false);
+    setFailed(false);
+    setOlSrc(null);
+    setOlFailed(false);
+  }, [title, asin, slug]);
+
+  useEffect(() => {
+    if (localUrl && !localFailed) return;
     if (asin && !failed) return;
     if (olSrc || olFailed) return;
     const q = encodeURIComponent(title);
@@ -136,10 +147,13 @@ function SmallBookCover({ title, asin }: { title: string; asin: string | null })
         else setOlFailed(true);
       })
       .catch(() => setOlFailed(true));
-  }, [title, asin, failed, olSrc, olFailed]);
+  }, [title, asin, failed, olSrc, olFailed, localUrl, localFailed]);
 
   const cls = "w-16 h-24 rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]";
 
+  if (localUrl && !localFailed) {
+    return <img src={localUrl} alt={title} className={cls} onError={() => setLocalFailed(true)} loading="lazy" />;
+  }
   if (asin && !failed) {
     return <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX200_.jpg`} alt={title} className={cls} onError={() => setFailed(true)} loading="lazy" />;
   }
@@ -510,7 +524,7 @@ export default function BookDetailPage() {
             className="flex flex-col sm:flex-row gap-8 items-start"
             data-testid="section-hero"
           >
-            <BookCover title={book.name} asin={book.asin} size="xl" />
+            <BookCover title={book.name} asin={book.asin} slug={book.slug} size="xl" />
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight" data-testid="heading-book-title">
                 {book.name}
@@ -776,7 +790,7 @@ export default function BookDetailPage() {
                     data-testid={`related-book-${rb.slug}`}
                   >
                     <div className="flex justify-center mb-2">
-                      <SmallBookCover title={rb.name} asin={rb.asin} />
+                      <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} />
                     </div>
                     <p className="text-xs font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
                       {rb.name}

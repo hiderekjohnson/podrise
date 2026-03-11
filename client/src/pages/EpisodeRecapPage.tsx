@@ -78,12 +78,23 @@ function getBlinkistUrl(book: BookResource): string {
   return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
-function BookCover({ title, asin, author, testId }: { title: string; asin: string | null; author?: string | null; testId: string }) {
+function BookCover({ title, asin, slug, testId }: { title: string; asin: string | null; slug?: string | null; author?: string | null; testId: string }) {
+  const [localFailed, setLocalFailed] = useState(false);
   const [failed, setFailed] = useState(false);
   const [olSrc, setOlSrc] = useState<string | null>(null);
   const [olFailed, setOlFailed] = useState(false);
 
+  const localUrl = slug ? `/books/${slug}.jpg` : null;
+
   useEffect(() => {
+    setLocalFailed(false);
+    setFailed(false);
+    setOlSrc(null);
+    setOlFailed(false);
+  }, [title, asin, slug]);
+
+  useEffect(() => {
+    if (localUrl && !localFailed) return;
     if (asin && !failed) return;
     if (olSrc || olFailed) return;
     const q = encodeURIComponent(title);
@@ -95,7 +106,7 @@ function BookCover({ title, asin, author, testId }: { title: string; asin: strin
         else setOlFailed(true);
       })
       .catch(() => setOlFailed(true));
-  }, [title, asin, failed, olSrc, olFailed]);
+  }, [title, asin, failed, olSrc, olFailed, localUrl, localFailed]);
 
   const placeholder = (
     <div className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10" data-testid={testId}>
@@ -103,29 +114,23 @@ function BookCover({ title, asin, author, testId }: { title: string; asin: strin
     </div>
   );
 
+  const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
+
+  if (localUrl && !localFailed) {
+    return (
+      <img src={localUrl} alt={title} className={imgCls} data-testid={testId} onError={() => setLocalFailed(true)} loading="lazy" />
+    );
+  }
+
   if (asin && !failed) {
     return (
-      <img
-        src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX120_.jpg`}
-        alt={title}
-        className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
-        data-testid={testId}
-        onError={() => setFailed(true)}
-        loading="lazy"
-      />
+      <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX120_.jpg`} alt={title} className={imgCls} data-testid={testId} onError={() => setFailed(true)} loading="lazy" />
     );
   }
 
   if (olSrc && !olFailed) {
     return (
-      <img
-        src={olSrc}
-        alt={title}
-        className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
-        data-testid={testId}
-        onError={() => setOlFailed(true)}
-        loading="lazy"
-      />
+      <img src={olSrc} alt={title} className={imgCls} data-testid={testId} onError={() => setOlFailed(true)} loading="lazy" />
     );
   }
 
@@ -1036,10 +1041,10 @@ export default function EpisodeRecapPage() {
                       <div className="flex gap-4">
                         {bookSlug ? (
                           <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
-                            <BookCover title={book.name} asin={asin} author={displayAuthor} testId={`book-cover-${i}`} />
+                            <BookCover title={book.name} asin={asin} slug={bookSlug} testId={`book-cover-${i}`} />
                           </Link>
                         ) : (
-                          <BookCover title={book.name} asin={asin} author={displayAuthor} testId={`book-cover-${i}`} />
+                          <BookCover title={book.name} asin={asin} slug={bookSlug} testId={`book-cover-${i}`} />
                         )}
                         <div className="flex-1 min-w-0">
                           {bookSlug ? (
