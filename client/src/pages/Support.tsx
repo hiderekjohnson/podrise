@@ -83,7 +83,7 @@ export default function Support() {
     },
     {
       question: "How does PodCap create such accurate podcast recaps?",
-      answer: "PodCap uses advanced AI to analyze real podcast transcripts and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode transcript - nothing is fabricated or guessed. This makes PodCap one of the most reliable podcast summary services available.",
+      answer: "PodCap uses advanced AI to analyze podcast episodes and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode content - nothing is fabricated or guessed. This makes PodCap one of the most reliable podcast summary services available.",
     },
     {
       question: "I'm not receiving my daily podcast recap emails. What should I do?",
@@ -100,15 +100,15 @@ export default function Support() {
   ];
 
   useEffect(() => {
-    document.title = "Help & Support - PodCap | Podcast Recaps, Summaries & Transcripts";
+    document.title = "Help & Support - PodCap | Podcast Recaps & Summaries";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "Find answers about PodCap's AI-powered podcast recaps, episode summaries, searchable transcripts, delivery settings, Pro plan features, and more. Get help or contact our team.");
-    setMeta("property", "og:title", "Help & Support - PodCap | Podcast Recaps, Summaries & Transcripts");
-    setMeta("property", "og:description", "Get answers about podcast recaps, episode summaries, searchable transcripts, delivery timing, and your subscription. Contact the PodCap support team.");
+    setMeta("name", "description", "Find answers about PodCap's AI-powered podcast recaps, episode summaries, delivery settings, Pro plan features, and more. Get help or contact our team.");
+    setMeta("property", "og:title", "Help & Support - PodCap | Podcast Recaps & Summaries");
+    setMeta("property", "og:description", "Get answers about podcast recaps, episode summaries, delivery timing, and your subscription. Contact the PodCap support team.");
   }, []);
 
   return (

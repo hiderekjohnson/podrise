@@ -214,9 +214,9 @@ export default function ForPodcasters() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: BookOpen, title: "AI-powered episode recaps", description: "Each episode gets a detailed summary with key takeaways, notable quotes, topic breakdowns, and chapter-by-chapter analysis. Your content, made scannable.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: Search, title: "Full searchable transcripts", description: "Every word from every episode becomes searchable text. Listeners can find exactly the conversation they're looking for in seconds.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: Search, title: "Deep episode analysis", description: "Every episode gets structured breakdowns with key insights, topic tagging, and entity extraction. Listeners can explore exactly what was discussed.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
                 { icon: Globe, title: "SEO-indexed episode pages", description: "Each recap is a new page indexed by Google. Someone searching for a topic you've covered can discover your show for the first time.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { icon: Sparkles, title: "AI Q&A about your podcast", description: "Listeners can ask questions about your show and get AI-powered answers drawn from real transcripts. Your episodes become a knowledge base.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: Sparkles, title: "AI-powered podcast intelligence", description: "Listeners can ask questions about your show and get AI-powered answers drawn from episode recaps and analysis. Your episodes become a knowledge base.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: Layers, title: "Guest and topic pages", description: "Guests who appear on your show get their own profile pages. Topics discussed across your episodes are cross-referenced and linked.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
                 { icon: Clock, title: "Daily recap emails", description: "Your fans can subscribe to daily email recaps. They stay connected to your show even on busy days and come back for the episodes that resonate.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
               ].map((item) => (
@@ -405,7 +405,7 @@ export default function ForPodcasters() {
             <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
               <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
-                There's no cost, no contract, and no catch. PodCap creates episode recaps, searchable transcripts, and discovery pages for your show automatically. Our goal is to make your content more valuable - not to gatekeep it.
+                There's no cost, no contract, and no catch. PodCap creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable - not to gatekeep it.
               </p>
               <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
                 <p className="text-[15px] leading-[1.7] text-muted-foreground">

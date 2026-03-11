@@ -150,7 +150,7 @@ export default function EpisodeGuestsPage() {
         {guestsLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4" data-testid="guests-loading">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Identifying guests from transcript...</p>
+            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Identifying guests from episode...</p>
           </div>
         ) : guestsError ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center" data-testid="guests-error">

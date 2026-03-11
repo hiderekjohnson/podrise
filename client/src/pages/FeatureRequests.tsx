@@ -16,21 +16,8 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
-    title: "Full episode transcripts",
-    description: "Every episode now has a full, searchable transcript you can read right alongside the recap.",
-    link: { url: "/podcasts/myfirstmillion", label: "Read a transcript" },
-    emoji: "📜",
-    date: "Mar 7, 2026",
-  },
-  {
-    title: "Search across transcripts",
-    description: "Search any keyword across all episodes of a podcast and find exactly where it was discussed, with direct links to the relevant transcript sections.",
-    emoji: "🔍",
-    date: "Mar 4, 2026",
-  },
-  {
     title: "Ask AI about any podcast",
-    description: "Ask questions about any podcast and get AI-powered answers drawn from real transcripts and episode summaries across the entire show's history.",
+    description: "Ask questions about any podcast and get AI-powered answers drawn from episode recaps and summaries across the entire show's history.",
     emoji: "🤖",
     date: "Feb 28, 2026",
   },
@@ -168,10 +155,10 @@ export default function FeatureRequests() {
       el.setAttribute("content", content);
     };
 
-    setMeta("name", "description", "See what we've shipped - AI-powered podcast recaps, searchable transcripts, episode summaries, people and topic pages, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.");
-    setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodCap changelog, searchable transcripts, AI podcast knowledge, episode recap platform");
+    setMeta("name", "description", "See what we've shipped - AI-powered podcast recaps, episode summaries, people and topic pages, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.");
+    setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodCap changelog, AI podcast knowledge, episode recap platform");
     setMeta("property", "og:title", "What's New - PodCap Updates, Features & Changelog");
-    setMeta("property", "og:description", "See what we've shipped - AI-powered podcast recaps, searchable transcripts, episode summaries, and more. Follow PodCap's journey.");
+    setMeta("property", "og:description", "See what we've shipped - AI-powered podcast recaps, episode summaries, and more. Follow PodCap's journey.");
     setMeta("property", "og:url", "https://podcap.io/updates");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodCap");
@@ -186,7 +173,7 @@ export default function FeatureRequests() {
       "@context": "https://schema.org",
       "@type": "WebPage",
       "name": "What's New - PodCap Updates, Features & Changelog",
-      "description": "See what we've shipped - AI-powered podcast recaps, searchable transcripts, podcast summaries, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.",
+      "description": "See what we've shipped - AI-powered podcast recaps, podcast summaries, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.",
       "url": "https://podcap.io/updates",
       "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
     });

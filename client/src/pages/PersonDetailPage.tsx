@@ -130,11 +130,6 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
             <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}`} className="text-primary hover:text-primary/80 font-medium transition-colors" data-testid={`link-recap-${episode.slug}-${episode.episode_slug}`}>
               Read Recap
             </Link>
-            {episode.hasTranscript && (
-              <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}/transcript`} className="text-muted-foreground hover:text-foreground font-medium transition-colors" data-testid={`link-transcript-${episode.slug}-${episode.episode_slug}`}>
-                View Transcript
-              </Link>
-            )}
           </div>
         </div>
       </div>
@@ -328,12 +323,12 @@ export default function PersonDetailPage() {
     if (hasGuestAppearances) {
       items.push({
         q: `What podcasts has ${person.name} appeared on?`,
-        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} related to ${person.name}, including ${person.guestCount} direct guest appearance${person.guestCount !== 1 ? "s" : ""} and ${person.mentionCount} mention${person.mentionCount !== 1 ? "s" : ""}. Featured podcasts include ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. On this page, you can browse the latest related episodes, recaps, and transcripts where available.`
+        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} related to ${person.name}, including ${person.guestCount} direct guest appearance${person.guestCount !== 1 ? "s" : ""} and ${person.mentionCount} mention${person.mentionCount !== 1 ? "s" : ""}. Featured podcasts include ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. On this page, you can browse the latest related episodes and recaps.`
       });
     } else {
       items.push({
         q: `What podcasts discuss ${person.name}?`,
-        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} that discuss or mention ${person.name} across ${podcastNames.length} podcast${podcastNames.length !== 1 ? "s" : ""}, including ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. Browse episode recaps, key themes, and transcripts where available on this page.`
+        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} that discuss or mention ${person.name} across ${podcastNames.length} podcast${podcastNames.length !== 1 ? "s" : ""}, including ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. Browse episode recaps and key themes on this page.`
       });
     }
 
@@ -341,7 +336,7 @@ export default function PersonDetailPage() {
       const topicNames = broadTopics.slice(0, 5).map(t => t.topic);
       items.push({
         q: `What topics are associated with ${person.name} on podcasts?`,
-        a: `Across podcast episodes, ${person.name} is frequently associated with topics like ${topicNames.join(", ")}. These themes emerge from episode recaps and transcripts tracked by PodCap. Explore individual episode recaps for detailed coverage of each topic.`
+        a: `Across podcast episodes, ${person.name} is frequently associated with topics like ${topicNames.join(", ")}. These themes emerge from episode recaps tracked by PodCap. Explore individual episode recaps for detailed coverage of each topic.`
       });
     }
 
@@ -360,11 +355,6 @@ export default function PersonDetailPage() {
         a: `${person.name} is associated with ${relatedCompanies.join(", ")}. These connections are tracked across podcast conversations on PodCap. Explore company pages and related episodes for deeper coverage of each organization.`
       });
     }
-
-    items.push({
-      q: `Can I read transcripts of ${person.name} podcast episodes?`,
-      a: `Yes, PodCap provides full transcripts for many episodes. Look for the "View Transcript" link on individual episode cards. Transcripts are available for most recent episodes and are being added continuously.`
-    });
 
     return items;
   }, [person, personData, broadTopics, hasGuestAppearances, totalEpisodes]);
@@ -447,7 +437,7 @@ export default function PersonDetailPage() {
                         ? personData.bio
                         : hasGuestAppearances
                           ? `Discover podcast interviews, guest appearances, and mentions featuring ${person.name} across top business, technology, and AI podcasts.`
-                          : `Explore podcast episodes discussing ${person.name}, including key themes, recaps, and transcripts across top business, technology, and AI podcasts.`}
+                          : `Explore podcast episodes discussing ${person.name}, including key themes and recaps across top business, technology, and AI podcasts.`}
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">

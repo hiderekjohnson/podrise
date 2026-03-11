@@ -24,159 +24,6 @@ function highlightMatch(text: string, query: string) {
   );
 }
 
-function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: string }) {
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
-  const handleChange = useCallback((val: string) => {
-    setQuery(val);
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQuery(val), 400);
-  }, []);
-
-  type SearchHit = { text: string; anchorId: string; timestampLabel: string | null; speakerName: string | null };
-  type SearchResult = { episodeTitle: string; episodeSlug: string; publishDate: string; mentions: number; hits: SearchHit[] };
-  type SearchResponse = { results: SearchResult[]; query: string; total: number };
-
-  const { data, isLoading, isError } = useQuery<SearchResponse>({
-    queryKey: ["/api/podcasts", slug, "search", debouncedQuery],
-    queryFn: async () => {
-      const res = await fetch(`/api/podcasts/${slug}/search?q=${encodeURIComponent(debouncedQuery)}`);
-      if (!res.ok) throw new Error("Search failed");
-      return res.json();
-    },
-    enabled: debouncedQuery.length >= 2,
-    retry: 1,
-  });
-
-  return (
-    <div data-testid="section-transcript-search">
-      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">
-        Search across every episode transcript to find exactly where a topic was discussed.
-      </p>
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/40" />
-        <input
-          ref={inputRef}
-          data-testid="input-transcript-search"
-          type="text"
-          value={query}
-          onChange={(e) => { handleChange(e.target.value); setIsOpen(true); }}
-          onFocus={() => setIsOpen(true)}
-          placeholder={`Search "${podcastName}" transcripts...`}
-          className="w-full h-12 pl-12 pr-10 bg-white border border-black/[0.06] rounded-xl text-foreground text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.02]"
-        />
-        {query && (
-          <button
-            data-testid="button-clear-search"
-            onClick={() => { setQuery(""); setDebouncedQuery(""); setIsOpen(false); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-black/[0.04] transition-all"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-
-      {isOpen && debouncedQuery.length >= 2 && (
-        <div>
-          {isLoading && (
-            <div className="flex items-center justify-center py-10 text-muted-foreground gap-2.5" data-testid="search-loading">
-              <Loader2 className="w-5 h-5 animate-spin text-primary/50" />
-              <span className="text-base font-medium">Searching transcripts...</span>
-            </div>
-          )}
-
-          {!isLoading && isError && (
-            <div className="text-center py-10 bg-red-50/50 rounded-xl border border-red-100" data-testid="search-error">
-              <p className="text-muted-foreground text-sm">Search is temporarily unavailable. Please try again.</p>
-            </div>
-          )}
-
-          {!isLoading && !isError && data && data.results.length === 0 && (
-            <div className="text-center py-10" data-testid="search-no-results">
-              <Search className="w-8 h-8 text-muted-foreground/15 mx-auto mb-2" />
-              <p className="text-muted-foreground text-sm">No mentions of "<span className="font-semibold text-foreground/70">{debouncedQuery}</span>" found in transcripts.</p>
-            </div>
-          )}
-
-          {!isLoading && data && data.results.length > 0 && (
-            <div data-testid="search-results">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Found in {data.total} episode{data.total !== 1 ? "s" : ""}
-                </p>
-                <span className="text-[15px] text-muted-foreground/50">
-                  "{data.query}"
-                </span>
-              </div>
-              <div className="space-y-4">
-                {data.results.map((result, idx) => {
-                  const dateStr = result.publishDate
-                    ? new Date(result.publishDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                    : null;
-                  return (
-                    <div
-                      key={idx}
-                      className="bg-white border border-black/[0.06] rounded-xl overflow-hidden"
-                      data-testid={`search-result-${idx}`}
-                    >
-                      <div className="px-5 py-3.5 border-b border-black/[0.04] bg-black/[0.01]">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <Link href={`/podcasts/${slug}/${result.episodeSlug}`}>
-                              <span className="text-[15px] font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-snug" data-testid={`search-result-title-${idx}`}>
-                                {result.episodeTitle}
-                              </span>
-                            </Link>
-                            {dateStr && (
-                              <p className="text-[15px] text-muted-foreground/50 mt-0.5 flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {dateStr}
-                              </p>
-                            )}
-                          </div>
-                          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-lg text-[15px] font-bold bg-primary/[0.08] text-primary">
-                            {result.mentions} mention{result.mentions !== 1 ? "s" : ""}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="divide-y divide-black/[0.03]">
-                        {result.hits.map((hit, sIdx) => (
-                          <a
-                            key={sIdx}
-                            href={`/podcasts/${slug}/${result.episodeSlug}/transcript#${hit.anchorId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-start gap-2.5 px-5 py-3 hover:bg-primary/[0.03] transition-colors group"
-                            data-testid={`search-hit-${idx}-${sIdx}`}
-                          >
-                            {hit.timestampLabel && (
-                              <span className="shrink-0 text-[15px] font-bold text-primary/70 bg-primary/[0.06] rounded px-1.5 py-0.5 mt-0.5 font-mono">
-                                {hit.timestampLabel}
-                              </span>
-                            )}
-                            <span className="flex-1 text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
-                            <span className="shrink-0 flex items-center gap-1 text-[15px] font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
-                              View in transcript
-                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                            </span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 
 function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }) {
@@ -718,7 +565,7 @@ export default function PodcastLandingGeneric() {
 
   const getTabFromUrl = () => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (urlTab === "search" || urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes" || urlTab === "books") return urlTab;
+    if (urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes" || urlTab === "books") return urlTab;
     return "episodes" as PodcastTab;
   };
   const [activeTab, setActiveTab] = useState<PodcastTab>(getTabFromUrl);
@@ -958,12 +805,6 @@ export default function PodcastLandingGeneric() {
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/60 mt-1">Check back soon for the latest summaries.</p>
             </div>
           )}
-        </section>
-      )}
-
-      {activeTab === "search" && (
-        <section className="pb-16">
-          <TranscriptSearch slug={slug || ""} podcastName={name} />
         </section>
       )}
 

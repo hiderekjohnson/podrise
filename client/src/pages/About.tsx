@@ -14,15 +14,15 @@ export default function About() {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, full transcripts, and structured insights so great ideas travel further.");
+    setMeta("name", "description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, and structured insights so great ideas travel further.");
     setMeta("property", "og:title", "About PodCap - Building the World's Searchable Library of Podcast Knowledge");
-    setMeta("property", "og:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, full transcripts, and structured insights so great ideas travel further.");
+    setMeta("property", "og:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, and structured insights so great ideas travel further.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
     setMeta("name", "twitter:title", "About PodCap - Building the World's Searchable Library of Podcast Knowledge");
-    setMeta("name", "twitter:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, full transcripts, and structured insights so great ideas travel further.");
+    setMeta("name", "twitter:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, and structured insights so great ideas travel further.");
     setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;

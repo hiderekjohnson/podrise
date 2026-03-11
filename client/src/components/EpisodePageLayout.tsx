@@ -26,7 +26,7 @@ interface EpisodePageLayoutProps {
   podcastSlug: string;
   episodeSlug: string;
   podcastConfig: PodcastLandingConfig;
-  activeTab: "recap" | "transcript" | "guests";
+  activeTab: "recap" | "guests";
   allRecaps?: any[];
   children: React.ReactNode;
 }
@@ -131,7 +131,6 @@ export function EpisodePageLayout({
   }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   const recapUrl = `/podcasts/${podcastSlug}/${episodeSlug}`;
-  const transcriptUrl = `/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -292,25 +291,6 @@ export function EpisodePageLayout({
               </Link>
             )}
 
-            {activeTab === "transcript" ? (
-              <span
-                className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-primary text-primary -mb-px"
-                data-testid="tab-transcript-active"
-              >
-                <FileText className="w-4 h-4" />
-                Full Transcript
-              </span>
-            ) : (
-              <Link href={transcriptUrl}>
-                <span
-                  className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
-                  data-testid="tab-transcript-link"
-                >
-                  <FileText className="w-4 h-4" />
-                  Full Transcript
-                </span>
-              </Link>
-            )}
 
           </div>
 

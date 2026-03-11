@@ -36,7 +36,7 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function SEOHead() {
   const title = "Notable People in Podcasts | PodCap";
-  const description = "Explore the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned most, and discover searchable transcripts, podcast recaps, and podcast summaries featuring them.";
+  const description = "Explore the most talked-about people across top podcasts. See who appears as a guest, who gets mentioned most, and discover podcast recaps, podcast summaries, and structured insights featuring them.";
 
   if (typeof document !== "undefined") {
     document.title = title;

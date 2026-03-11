@@ -166,22 +166,6 @@ export function injectPodcastMeta(html: string, url: string): string {
     }
   }
 
-  const transcriptMatch = cleanUrl.match(/^\/podcasts\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)\/transcript$/);
-  if (transcriptMatch) {
-    const podcastSlug = transcriptMatch[1].toLowerCase();
-    const episodeSlug = transcriptMatch[2].toLowerCase();
-    const episode = EPISODE_SEO.find(e => e.podcastSlug === podcastSlug && e.episodeSlug === episodeSlug);
-    if (episode) {
-      const desc = `Read the full transcript of "${episode.episodeTitle}" from ${episode.podcastName}. Timestamped, searchable transcript with direct links to any moment.`;
-      return replaceMetaTags(html, {
-        title: `${episode.podcastName}, ${episode.episodeTitle}, Full Transcript`,
-        description: desc,
-        image: episode.artworkUrl,
-        url: `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}/transcript`,
-        twitterCard: "summary",
-      });
-    }
-  }
 
   const episodeMatch = cleanUrl.match(/^\/podcasts\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)$/);
   if (episodeMatch) {

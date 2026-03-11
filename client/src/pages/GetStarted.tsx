@@ -20,7 +20,7 @@ interface SelectedPodcast {
 
 function SEOHead() {
   const title = "Build Your Custom Podcast Recap - PodCap";
-  const description = "Choose your favorite podcasts and get personalized podcast recaps and podcast summaries delivered daily. AI-powered key takeaways, searchable transcripts, and insights - stay current in minutes.";
+  const description = "Choose your favorite podcasts and get personalized podcast recaps and podcast summaries delivered daily. AI-powered key takeaways, structured insights, and analysis - stay current in minutes.";
 
   if (typeof document !== "undefined") {
     document.title = title;

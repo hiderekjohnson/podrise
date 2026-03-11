@@ -13,7 +13,7 @@ const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Admin = lazy(() => import("./pages/Admin"));
 const PodcastRouter = lazy(() => import("./pages/PodcastRouter"));
 const PodcastSubRouter = lazy(() => import("./pages/PodcastSubRouter"));
-const EpisodeTranscriptPage = lazy(() => import("./pages/EpisodeTranscriptPage"));
+
 const EpisodeGuestsPage = lazy(() => import("./pages/EpisodeGuestsPage"));
 const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
@@ -59,7 +59,6 @@ function Router() {
         <Route path="/bookstore" component={Bookstore} />
         <Route path="/bookstore/:bookSlug" component={BookDetailPage} />
         <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
-        <Route path="/podcasts/:podcastSlug/:episodeSlug/transcript" component={EpisodeTranscriptPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />
         <Route path="/podcasts/:slug" component={PodcastRouter} />

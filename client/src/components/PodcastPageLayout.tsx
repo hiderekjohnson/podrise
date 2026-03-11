@@ -11,7 +11,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
 
-export type PodcastTab = "episodes" | "search" | "ask" | "about" | "discover" | "books";
+export type PodcastTab = "episodes" | "ask" | "about" | "discover" | "books";
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
@@ -95,7 +95,6 @@ export function PodcastPageLayout({
 
   const tabs: { id: PodcastTab; label: string; icon: typeof Mic }[] = [
     { id: "episodes", label: "Episode Recaps", icon: Mic },
-    { id: "search", label: "Search Transcripts", icon: Search },
     { id: "ask", label: "Ask About This Podcast", icon: Sparkles },
     { id: "about", label: "About Podcast", icon: Users },
     { id: "books", label: "Recommended Reading", icon: BookOpen },

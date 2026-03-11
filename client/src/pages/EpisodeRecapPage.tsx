@@ -280,10 +280,7 @@ export default function EpisodeRecapPage() {
   const params = useParams<{ podcastSlug: string; episodeSlug: string }>();
   const podcastSlug = params.podcastSlug || "";
   const episodeSlug = params.episodeSlug || "";
-  const [askInput, setAskInput] = useState("");
-  const [askAnswer, setAskAnswer] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("section-key-insights");
-  const askSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
     queryKey: ["/api/podcasts", podcastSlug, "recaps", episodeSlug],
@@ -338,20 +335,6 @@ export default function EpisodeRecapPage() {
     photoUrl?: string;
   }
 
-  const askMutation = useMutation({
-    mutationFn: async (question: string) => {
-      const res = await fetch(`/api/podcasts/${podcastSlug}/${episodeSlug}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      if (!res.ok) throw new Error("Failed to get answer");
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setAskAnswer(data.answer);
-    },
-  });
 
   const guests: Guest[] = (() => {
     try {
@@ -494,7 +477,6 @@ export default function EpisodeRecapPage() {
       "section-key-topics",
       "section-books",
       "section-top-questions",
-      "section-ask-episode",
     ];
 
     const handleScroll = () => {
@@ -514,22 +496,6 @@ export default function EpisodeRecapPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [episode]);
 
-  const handleAskSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!askInput.trim() || askMutation.isPending) return;
-    setAskAnswer(null);
-    askMutation.mutate(askInput.trim());
-  };
-
-  const askAiAbout = (entityName: string, entityType: "person" | "company") => {
-    const question = entityType === "person"
-      ? `In what context was ${entityName} mentioned in this episode?`
-      : `In what context was ${entityName} discussed in this episode?`;
-    setAskInput(question);
-    setAskAnswer(null);
-    askMutation.mutate(question);
-    askSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   if (episodeLoading) {
     return (
@@ -711,13 +677,6 @@ export default function EpisodeRecapPage() {
               Q&A
             </button>
           )}
-          <button
-            onClick={() => scrollTo("section-ask-episode")}
-            className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-ask-episode" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-            data-testid="nav-ask"
-          >
-            Ask AI
-          </button>
         </nav>
 
         <section className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-about-episode">
@@ -967,13 +926,6 @@ export default function EpisodeRecapPage() {
                           {entityContexts[person.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
                           )}
-                          <button
-                            onClick={() => askAiAbout(person.name, "person")}
-                            className="text-base font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1.5 transition-colors"
-                            data-testid={`ask-ai-person-${i}`}
-                          >
-                            <Sparkles className="w-5 h-5" /> Ask AI for context
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -1005,13 +957,6 @@ export default function EpisodeRecapPage() {
                           {entityContexts[company.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
                           )}
-                          <button
-                            onClick={() => askAiAbout(company.name, "company")}
-                            className="text-base font-semibold text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1.5 transition-colors"
-                            data-testid={`ask-ai-company-${i}`}
-                          >
-                            <Sparkles className="w-5 h-5" /> Ask AI for context
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -1210,113 +1155,6 @@ export default function EpisodeRecapPage() {
           </>
         )}
 
-        <section id="section-ask-episode" ref={askSectionRef} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02] scroll-mt-24" data-testid="section-ask-episode">
-          <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-violet-500" />
-              <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Ask the AI About This Episode</span>
-              <span className="ml-auto inline-flex items-center gap-1 text-[15px] font-bold text-violet-500 bg-violet-500/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider"><Sparkles className="w-3 h-3" /> AI</span>
-            </div>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Search the full transcript of this {episode.podcastName} episode and ask questions about anything discussed.</p>
-          </div>
-          <div className="px-6 py-5">
-            <form onSubmit={handleAskSubmit} className="flex gap-2" data-testid="form-ask-episode">
-              <input
-                type="text"
-                value={askInput}
-                onChange={(e) => setAskInput(e.target.value)}
-                placeholder="Ask anything this episode said about..."
-                className="flex-1 h-11 px-4 bg-black/[0.02] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/30 transition-all placeholder:text-muted-foreground/40"
-                data-testid="input-ask-episode"
-              />
-              <button
-                type="submit"
-                disabled={!askInput.trim() || askMutation.isPending}
-                className="h-11 px-5 flex items-center gap-2 rounded-xl font-bold text-base bg-violet-500 text-white shadow-sm hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
-                data-testid="button-ask-submit"
-              >
-                {askMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-                Ask
-              </button>
-            </form>
-
-            {!askAnswer && !askMutation.isPending && (() => {
-              const keyQuestionTexts = new Set(topQuestions.map(q => q.question));
-              const aiPrompts: string[] = [];
-              if (guests.length > 0) aiPrompts.push(`What is ${guests[0].name}'s main argument?`);
-              const topics = matchedTopics.slice(0, 3);
-              if (topics.length > 0) aiPrompts.push(`What does this episode say about ${topics[0].name.toLowerCase()}?`);
-              if (episode.keyInsights && episode.keyInsights.length > 0) aiPrompts.push("What was the most surprising insight?");
-              if (guests.length > 1) aiPrompts.push(`What did ${guests[1].name} contribute?`);
-              if (topics.length > 1) aiPrompts.push(`How is ${topics[1].name.toLowerCase()} discussed?`);
-              aiPrompts.push("What are the key takeaways?");
-              aiPrompts.push("What predictions were made?");
-              const filtered = aiPrompts.filter(p => !keyQuestionTexts.has(p)).slice(0, 4);
-              if (filtered.length === 0) return null;
-              return (
-                <div className="mt-4" data-testid="ask-example-prompts">
-                  <p className="text-[15px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">Try asking:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {filtered.map((prompt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          setAskInput(prompt);
-                          setAskAnswer(null);
-                          askMutation.mutate(prompt);
-                        }}
-                        className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/[0.06] px-2.5 py-1 rounded-lg transition-colors text-left"
-                        data-testid={`ask-example-${i}`}
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-
-            <AnimatePresence>
-              {(askAnswer || askMutation.isPending) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-5 bg-violet-500/[0.03] border border-violet-500/[0.1] rounded-xl px-5 py-4"
-                  data-testid="ask-answer-container"
-                >
-                  {askMutation.isPending ? (
-                    <div className="flex items-center gap-3 py-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
-                      <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Searching the transcript...</span>
-                    </div>
-                  ) : askAnswer ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="w-5 h-5 text-violet-500" />
-                        <span className="text-[15px] font-bold text-violet-500 uppercase tracking-wider">Answer</span>
-                      </div>
-                      {askAnswer.split("\n\n").filter(Boolean).map((p, i) => (
-                        <p key={i} className="text-[15px] leading-[1.8] text-muted-foreground">{p}</p>
-                      ))}
-                    </div>
-                  ) : null}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {askMutation.isError && (
-              <p className="mt-3 text-base text-red-500" data-testid="ask-error">
-                Unable to generate an answer. The transcript may not be available for this episode.
-              </p>
-            )}
-          </div>
-        </section>
       </motion.article>
     </EpisodePageLayout>
   );

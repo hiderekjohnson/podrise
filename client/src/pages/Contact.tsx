@@ -38,9 +38,9 @@ export default function Contact() {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "Get in touch with the PodCap team. Questions about podcast recaps, episode summaries, transcripts, or the platform - we'd love to hear from you.");
+    setMeta("name", "description", "Get in touch with the PodCap team. Questions about podcast recaps, episode summaries, or the platform - we'd love to hear from you.");
     setMeta("property", "og:title", "Contact Us - PodCap");
-    setMeta("property", "og:description", "Get in touch with the PodCap team. Questions about podcast recaps, episode summaries, transcripts, or the platform - we'd love to hear from you.");
+    setMeta("property", "og:description", "Get in touch with the PodCap team. Questions about podcast recaps, episode summaries, or the platform - we'd love to hear from you.");
     setMeta("property", "og:url", "https://podcap.io/contact");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");

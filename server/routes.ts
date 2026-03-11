@@ -162,12 +162,6 @@ async function buildSitemap(): Promise<string> {
         xml += `    <changefreq>monthly</changefreq>\n`;
         xml += `    <priority>0.7</priority>\n`;
         xml += `  </url>\n`;
-        xml += `  <url>\n`;
-        xml += `    <loc>${DOMAIN}/podcasts/${slug}/${recap.episodeSlug}/transcript</loc>\n`;
-        xml += `    <lastmod>${today}</lastmod>\n`;
-        xml += `    <changefreq>monthly</changefreq>\n`;
-        xml += `    <priority>0.5</priority>\n`;
-        xml += `  </url>\n`;
       }
     }
   } catch (err) {
@@ -1821,57 +1815,8 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/podcasts/:slug/:episodeSlug/transcript-segments", async (req, res) => {
-    try {
-      const { slug, episodeSlug } = req.params;
-      const segments = await storage.getTranscriptSegmentsBySlug(slug, episodeSlug);
-      if (!segments || segments.length === 0) {
-        return res.status(404).json({ error: "Transcript not found" });
-      }
-
-      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
-      const allRecaps = await storage.getLandingPageRecaps(slug, 50);
-      const itunesId = recap?.itunesId || allRecaps.find(r => r.itunesId)?.itunesId || "";
-
-      const totalWords = segments.reduce((sum, s) => sum + s.text.split(/\s+/).length, 0);
-      const readingMinutes = Math.ceil(totalWords / 200);
-      const hasTimestamps = segments.some(s => s.timestampLabel);
-
-      const appleEpisodeUrl = (recap as any)?.appleEpisodeUrl || "";
-      const spotifyEpisodeUrl = (recap as any)?.spotifyEpisodeUrl || "";
-      const podcastName = recap?.podcastName || slug;
-      const episodeTitle = recap?.episodeTitle || episodeSlug;
-
-      res.json({
-        segments: segments.map(s => ({
-          id: s.id,
-          text: s.text,
-          anchorId: s.anchorId,
-          timestampLabel: s.timestampLabel,
-          speakerName: s.speakerName,
-          sequenceIndex: s.sequenceIndex,
-        })),
-        meta: {
-          podcastName,
-          podcastSlug: slug,
-          episodeTitle,
-          episodeSlug,
-          itunesId,
-          publishDate: recap?.publishDate || "",
-          duration: recap?.duration || "",
-          artworkUrl: recap?.artworkUrl || "",
-          hosts: recap?.hosts || "",
-          appleEpisodeUrl,
-          spotifyEpisodeUrl,
-          totalSegments: segments.length,
-          totalWords,
-          readingMinutes,
-          hasTimestamps,
-        },
-      });
-    } catch {
-      res.status(500).json({ error: "Failed to fetch transcript segments" });
-    }
+  app.get("/api/podcasts/:slug/:episodeSlug/transcript-segments", (_req, res) => {
+    res.status(410).json({ error: "Transcript access has been removed" });
   });
 
   app.get("/api/podcasts/:slug/recaps", async (req, res) => {

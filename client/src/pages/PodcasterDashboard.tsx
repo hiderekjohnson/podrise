@@ -422,7 +422,7 @@ export default function PodcasterDashboard() {
                 )}
 
                 <p className="text-[13px] text-muted-foreground/50 mt-5 leading-relaxed">
-                  Sponsors are automatically extracted from your episode transcripts. Contact us if you'd like to update or add sponsor information.
+                  Sponsors are automatically extracted from your episode content. Contact us if you'd like to update or add sponsor information.
                 </p>
               </section>
             </>

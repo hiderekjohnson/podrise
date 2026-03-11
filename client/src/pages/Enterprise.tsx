@@ -191,7 +191,7 @@ export default function Enterprise() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: Search, title: "Search across conversations", description: "Full-text search across transcripts, summaries, and episode metadata. Find the exact discussion you're looking for across thousands of episodes.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: Search, title: "Search across conversations", description: "Full-text search across episode summaries, recaps, and metadata. Find the exact discussion you're looking for across thousands of episodes.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
                 { icon: BarChart3, title: "Topic monitoring", description: "Track mentions of companies, people, products, and ideas across the podcast ecosystem. Know when your market is being discussed.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
                 { icon: Layers, title: "Structured knowledge extraction", description: "AI-powered extraction of key insights, quotes, guest appearances, and topic breakdowns from every episode processed.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
                 { icon: Database, title: "API access", description: "Programmatic access to structured podcast data. Integrate podcast intelligence into your existing tools and workflows.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
@@ -258,7 +258,7 @@ export default function Enterprise() {
             </h2>
             <div className="text-[15px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
-                PodCap is building the structured data layer that makes podcast content accessible to machines and teams alike. We process episodes into searchable transcripts, extract entities and topics, link ideas across shows, and create knowledge graphs from conversations.
+                PodCap is building the structured data layer that makes podcast content accessible to machines and teams alike. We process episodes into structured recaps, extract entities and topics, link ideas across shows, and create knowledge graphs from conversations.
               </p>
               <p>
                 Today we cover thousands of the world's most popular and influential podcast shows. The platform is expanding, and enterprise partnerships help us prioritize coverage that matters to your organization.

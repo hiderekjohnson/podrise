@@ -25,7 +25,7 @@ function hiResArtwork(url: string) {
 
 function SEOHead() {
   const title = "PodCap - Search What the World Is Saying";
-  const description = "Podcasts are the last unsearchable corner of the internet. PodCap indexes, analyzes, and structures the world's most influential podcast conversations. Search transcripts, discover insights by topic, and get analyst-grade briefings delivered to your inbox.";
+  const description = "Podcasts are the last unsearchable corner of the internet. PodCap indexes, analyzes, and structures the world's most influential podcast conversations. Discover insights by topic, explore entity pages, and get analyst-grade briefings delivered to your inbox.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -111,7 +111,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-1">Search every conversation</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
-                Full transcripts, indexed and searchable. Find exactly what was said about any topic, company, or person across thousands of podcast episodes.
+                AI-powered recaps and structured insights. Find exactly what was discussed about any topic, company, or person across thousands of podcast episodes.
               </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
@@ -177,7 +177,7 @@ export default function Home() {
                     <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse shows with episode recaps, transcripts, and AI-powered analysis.</p>
+                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse shows with episode recaps, key insights, and AI-powered analysis.</p>
                 </div>
               </Link>
               <Link href="/topics" className="block">
