@@ -253,7 +253,7 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
       data-testid={`quote-card-${index}`}
     >
       <div className="px-6 py-5">
-        <blockquote className="text-[17px] sm:text-[19px] leading-[1.7] font-medium text-foreground mb-4" data-testid={`quote-text-${index}`}>
+        <blockquote className="text-[15px] leading-[1.8] font-medium text-foreground mb-4" data-testid={`quote-text-${index}`}>
           <span className="text-primary/40 text-2xl mr-1">{"\u201C"}</span>
           {quote.quoteText}
           <span className="text-primary/40 text-2xl ml-1">{"\u201D"}</span>
