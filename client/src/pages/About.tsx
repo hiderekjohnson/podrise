@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Clock, Mail, Sparkles, Search, BookOpen, Globe } from "lucide-react";
+import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Clock, Mail, Sparkles, Search, BookOpen, Globe, BarChart3 } from "lucide-react";
 import derekPhoto from "@assets/Derek_Johnson_nobg.png";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -52,7 +52,7 @@ export default function About() {
             Google indexed the web. We're indexing the conversation.
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-            Podcasts have become the world's most valuable knowledge base. Investors, founders, scientists, and operators are sharing everything in long-form conversations that go deeper than any article or tweet. PodCap makes all of it searchable.
+            150 million hours of podcast content exist today. That's longer than all of recorded human civilization. The world's best thinkers are sharing everything in audio nobody can search. Until now.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a
@@ -73,21 +73,32 @@ export default function About() {
           </div>
         </motion.section>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="max-w-md mx-auto mb-16 px-6"
-          data-testid="social-proof"
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.12 }}
+          className="max-w-3xl mx-auto px-6 mb-16"
+          data-testid="section-stat-block"
         >
-          <div className="relative overflow-hidden bg-gradient-to-br from-primary/[0.06] to-primary/[0.02] border border-primary/[0.08] rounded-2xl px-8 py-6 text-center">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.08),transparent_70%)]" />
-            <p className="relative text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium mb-1">PodCap users have already saved</p>
-            <p className="relative text-4xl sm:text-5xl font-display font-extrabold text-primary tracking-tight">
-              <HoursSavedCounter />
-            </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { value: "150M+", label: "hours of podcast content", sublabel: "exist today" },
+              { value: "12,000+", label: "years of civilization", sublabel: "and podcasts have surpassed it" },
+              { value: "2,000x", label: "more content than", sublabel: "Netflix's entire library" },
+              { value: "80,000+", label: "new hours published", sublabel: "every single day" },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 sm:p-5 text-center"
+                data-testid={`stat-card-${i}`}
+              >
+                <p className="text-2xl sm:text-3xl font-display font-extrabold text-primary tracking-tight mb-1">{stat.value}</p>
+                <p className="text-[13px] sm:text-[14px] font-semibold text-foreground leading-snug">{stat.label}</p>
+                <p className="text-[12px] sm:text-[13px] text-muted-foreground/70 leading-snug mt-0.5">{stat.sublabel}</p>
+              </div>
+            ))}
           </div>
-        </motion.div>
+        </motion.section>
 
         <motion.section
           className="max-w-3xl mx-auto px-6 pb-20"
@@ -103,19 +114,19 @@ export default function About() {
           </div>
           <div className="space-y-5 text-[17px] leading-[1.85] text-muted-foreground max-w-2xl mx-auto">
             <p>
-              Every week, thousands of conversations happen between founders, investors, scientists, economists, authors, and operators. Some of the best ideas on the internet are now shared in long-form podcast conversations that go deeper than any article or tweet ever could.
+              Every day, 80,000 new hours of podcast content are published. Founders, investors, scientists, economists, and operators are sharing their best thinking in long-form conversations that go deeper than any article or tweet ever could.
             </p>
             <p className="text-foreground font-semibold text-lg">
-              The problem? It all disappears the moment it's published.
+              The problem? Almost none of it is searchable.
             </p>
             <p>
-              No search. No index. No way to know what was said, or where. Audio has always been a black box. While you slept, thousands of hours of new podcast content were published. The best insight you'll ever hear is probably already out there, buried in an episode you'll never find.
+              While you slept last night, more than 3,000 hours of new audio dropped every hour. The breakthrough insight you need is probably already out there, buried in an episode you'll never find. Every contrarian take, every playbook, every hard-won lesson - recorded, published, and lost.
             </p>
             <p>
-              The web got indexed in the 90s. Podcasts are getting indexed now.
+              You'd need 9 years of continuous listening just to catch up on what dropped this week.
             </p>
             <p className="text-foreground font-semibold text-lg">
-              PodCap was built to solve this.
+              Nobody can keep up. That's the point - you shouldn't have to.
             </p>
           </div>
         </motion.section>
@@ -125,13 +136,67 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
+          data-testid="section-netflix-comparison"
+        >
+          <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 shadow-sm overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
+            <div className="flex items-center gap-2.5 mb-6">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-display font-bold text-foreground">The Scale Problem, Visualized</h3>
+            </div>
+            <p className="text-[15px] text-muted-foreground mb-6">
+              Netflix spent decades building a 50,000-hour library. Podcasters create that much content every 12 hours.
+            </p>
+            <div className="space-y-5">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[14px] font-semibold text-foreground">Netflix</span>
+                  <span className="text-[13px] text-muted-foreground font-medium">~50,000 hours</span>
+                </div>
+                <div className="h-5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-red-400 to-red-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: "2.5%" }}
+                    transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-[12px] text-muted-foreground/60 mt-1">Built over 25+ years</p>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[14px] font-semibold text-foreground">Podcasts</span>
+                  <span className="text-[13px] text-muted-foreground font-medium">~150,000,000 hours</span>
+                </div>
+                <div className="h-5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-primary/80 to-primary"
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 1.8, delay: 0.9, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-[12px] text-muted-foreground/60 mt-1">2,000x more content - and growing by 80,000+ hours every day</p>
+              </div>
+            </div>
+            <p className="text-[15px] text-foreground font-semibold mt-6 text-center">
+              A trillion dollars of business insight, locked in audio files nobody can search.
+            </p>
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="max-w-3xl mx-auto px-6 pb-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           data-testid="section-team-quote"
         >
           <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
             <Quote className="w-10 h-10 text-primary/10 mb-4" />
             <blockquote className="text-xl sm:text-2xl font-display leading-relaxed text-foreground italic mb-8">
-              "After I stepped back from running my company, I had more free time and started listening to a lot more podcasts. The funny thing is, even with more time, I kept falling hopelessly behind. That's when it hit me. If even someone with time on their hands can't keep up, maybe the problem isn't the person. It's the format."
+              "Millions of hours of the world's most valuable conversations have already been recorded. Founders sharing exactly how they built their companies. Scientists explaining breakthroughs. Investors revealing how they really think. It's all been said - but until now, there's been no way to search through that immense library of human knowledge. That's what we're building."
             </blockquote>
             <div className="flex items-center gap-4">
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
@@ -147,12 +212,12 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
           data-testid="section-what-we-do"
         >
           <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">What PodCap does today</h2>
           <p className="text-[17px] leading-[1.85] text-muted-foreground mb-10 text-center max-w-2xl mx-auto">
-            We recap podcast episodes and extract the key ideas so you can quickly understand what was discussed, what mattered, and what's worth listening to. Instead of spending hours catching up, you can skim the most important insights in minutes.
+            We process thousands of podcast episodes every week, turning hours of audio into structured, searchable knowledge. Instead of spending your day trying to keep up, you get the key ideas in minutes.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
@@ -175,7 +240,7 @@ export default function About() {
           className="w-full py-20 bg-gradient-to-b from-black/[0.015] to-transparent dark:from-white/[0.02]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
           data-testid="section-bigger-vision"
         >
           <div className="max-w-3xl mx-auto px-6">
@@ -221,7 +286,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 py-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
           data-testid="section-where-were-headed"
         >
           <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">Where we're headed</h2>
@@ -251,32 +316,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.42 }}
-          data-testid="section-how-it-works"
-        >
-          <div className="relative overflow-hidden bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm">
-            <div className="space-y-5 text-[17px] leading-[1.85] text-muted-foreground max-w-2xl mx-auto">
-              <p>
-                The podcast industry continues to grow rapidly, with millions of shows and billions of hours of audio produced every year. But the tools for navigating that content have barely evolved.
-              </p>
-              <p className="text-foreground font-semibold text-lg">
-                We think the next generation of podcast platforms won't just distribute audio.
-              </p>
-              <p>
-                They'll make the knowledge inside podcasts accessible.
-              </p>
-              <p className="text-foreground font-semibold text-lg">
-                That's what PodCap is building.
-              </p>
-            </div>
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.45 }}
+          transition={{ duration: 0.5, delay: 0.48 }}
           data-testid="section-still-love-podcasts"
         >
           <div className="relative overflow-hidden bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm">
@@ -288,10 +328,10 @@ export default function About() {
               </div>
               <div className="space-y-4 text-[17px] leading-[1.85] text-muted-foreground">
                 <p>
-                  We didn't create PodCap to have people stop listening to podcasts. Quite the opposite. We want people to listen to the <span className="text-foreground font-medium">right</span> podcast episodes at the <span className="text-foreground font-medium">right</span> time.
+                  We didn't build PodCap to replace podcasts. We built it to make them more powerful. Every episode you've ever loved is full of ideas worth revisiting, sharing, and acting on. PodCap turns that audio into searchable, structured knowledge that's easy to find and easy to use.
                 </p>
                 <p>
-                  That's what PodCap does. It gives you a summary before you spend 60 minutes listening, only to find out the episode isn't a great fit for you right now. Instead, you can focus your time on the episodes that are. Skip the noise, keep the signal.
+                  For listeners, that means spending less time sifting through episodes and more time on the ones that matter. For creators, it means your best ideas don't disappear after publish day. Your content becomes discoverable, quotable, and actionable for your audience long after the episode drops.
                 </p>
                 <p>
                   We're also committed to supporting the creators who make these shows. <a href="/we-heart-podcasters" className="text-primary font-medium hover:underline">Find out how we support podcasters</a>.
@@ -355,7 +395,7 @@ export default function About() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,hsl(var(--primary)/0.12),transparent_60%)]" />
             <div className="relative">
               <h2 className="text-3xl md:text-4xl font-display font-extrabold mb-4 tracking-[-0.02em]">
-                We listen so you don't have to.
+                While you slept, 80,000 hours of new content dropped. We read it for you.
               </h2>
               <p className="text-lg text-muted-foreground mb-10 max-w-md mx-auto">
                 The fastest way to learn from the world's podcasts.
@@ -385,36 +425,4 @@ export default function About() {
       <Footer />
     </div>
   );
-}
-
-function HoursSavedCounter() {
-  const [displayed, setDisplayed] = useState(0);
-
-  const getHoursSaved = () => {
-    const launchDate = new Date("2026-02-15T00:00:00Z").getTime();
-    const now = Date.now();
-    const daysSinceLaunch = Math.max(0, (now - launchDate) / (1000 * 60 * 60 * 24));
-    const base = 12400;
-    const daily = 287;
-    return Math.floor(base + daysSinceLaunch * daily);
-  };
-
-  const target = getHoursSaved();
-
-  useEffect(() => {
-    const duration = 1400;
-    const steps = 40;
-    const stepTime = duration / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current++;
-      const progress = current / steps;
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.floor(target * eased));
-      if (current >= steps) clearInterval(timer);
-    }, stepTime);
-    return () => clearInterval(timer);
-  }, [target]);
-
-  return <>{displayed.toLocaleString()} hours</>;
 }
