@@ -87,20 +87,6 @@ function MentionBar({ count, maxCount }: { count: number; maxCount: number }) {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: typeof Building2; color: string }) {
-  return (
-    <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-5">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-4 h-4 text-white" />
-        </div>
-      </div>
-      <div className="text-2xl font-display font-bold text-foreground" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}>{value}</div>
-      <div className="text-[13px] text-muted-foreground/70 mt-0.5">{label}</div>
-    </div>
-  );
-}
-
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -334,11 +320,6 @@ export default function CompaniesDirectory() {
                 transition={{ duration: 0.3 }}
                 key="overview"
               >
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                  <StatCard label="Companies Tracked" value={stats.total} icon={Building2} color="bg-blue-500" />
-                  <StatCard label="Rising" value={stats.rising} icon={TrendingUp} color="bg-emerald-500" />
-                  <StatCard label="Total Mentions" value={stats.totalMentions.toLocaleString()} icon={BarChart3} color="bg-violet-500" />
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                   <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-6">
