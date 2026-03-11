@@ -551,7 +551,7 @@ export default function PodcastLandingGeneric() {
 
   const getTabFromUrl = () => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes" || urlTab === "books") return urlTab;
+    if (urlTab === "ask" || urlTab === "discover" || urlTab === "episodes" || urlTab === "books") return urlTab;
     return "episodes" as PodcastTab;
   };
   const [activeTab, setActiveTab] = useState<PodcastTab>(getTabFromUrl);

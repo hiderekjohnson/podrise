@@ -95,10 +95,9 @@ export function PodcastPageLayout({
 
   const tabs: { id: PodcastTab; label: string; icon: typeof Mic }[] = [
     { id: "episodes", label: "Episode Recaps", icon: Mic },
-    { id: "ask", label: "Ask About This Podcast", icon: Sparkles },
-    { id: "about", label: "About Podcast", icon: Users },
-    { id: "books", label: "Recommended Reading", icon: BookOpen },
     { id: "discover", label: "Discover", icon: Compass },
+    { id: "books", label: "Recommended Reading", icon: BookOpen },
+    { id: "ask", label: "Ask About This Podcast", icon: Sparkles },
   ];
 
   return (
@@ -243,26 +242,26 @@ export function PodcastPageLayout({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-5xl"
         >
-          <div className="flex items-center border-b border-black/[0.06] mb-8 overflow-x-auto" data-testid="section-tabs">
+          <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-1 overflow-x-auto hide-scrollbar mb-8" data-testid="section-tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex items-center gap-2 px-5 py-4 text-[17px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[52px] ${
+                className={`flex items-center gap-2 px-4 py-3.5 text-[15px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[48px] ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:border-black/[0.08]"
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
-                <tab.icon className="w-5 h-5" />
+                <tab.icon className="w-4 h-4" />
                 {tab.label}
                 {tab.id === "ask" && (
-                  <span className="ml-1 px-2 py-1 text-[14px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
+                  <span className="ml-1 px-2 py-0.5 text-[12px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
                 )}
               </button>
             ))}
-          </div>
+          </nav>
 
           {children}
         </motion.div>
