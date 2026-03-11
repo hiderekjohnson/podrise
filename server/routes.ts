@@ -2048,7 +2048,8 @@ export async function registerRoutes(
         hosts: string | null;
       }[] = [];
       const podcastSet = new Map<string, string>();
-      const relatedBookKeys = new Set<string>();
+      const relatedBookCounts = new Map<string, number>();
+      const hostMentionCounts = new Map<string, number>();
 
       for (const row of rows) {
         let resources: any[];
@@ -2084,7 +2085,14 @@ export async function registerRoutes(
             hosts: row.hosts,
           });
           podcastSet.set(row.slug, row.podcast_name);
-          otherBooks.forEach(k => relatedBookKeys.add(k));
+          otherBooks.forEach(k => relatedBookCounts.set(k, (relatedBookCounts.get(k) || 0) + 1));
+
+          if (row.hosts) {
+            const hostList = row.hosts.split(/[,&]/).map((h: string) => h.trim()).filter(Boolean);
+            for (const h of hostList) {
+              hostMentionCounts.set(h, (hostMentionCounts.get(h) || 0) + 1);
+            }
+          }
         }
       }
 
@@ -2093,35 +2101,62 @@ export async function registerRoutes(
         return 0;
       });
 
-      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null }[] = [];
-      if (relatedBookKeys.size > 0) {
-        const relKeys = Array.from(relatedBookKeys).slice(0, 20);
-        const placeholders = relKeys.map((_, i) => `$${i + 1}`).join(",");
+      const firstMentioned = episodes.length > 0 ? episodes[episodes.length - 1].publishedAt : null;
+      const lastMentioned = episodes.length > 0 ? episodes[0].publishedAt : null;
+
+      const topHosts = Array.from(hostMentionCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([name, count]) => ({ name, count }));
+
+      const podcastDiversity = podcastSet.size;
+      const mentionTotal = episodes.length;
+      const repeatHosts = topHosts.filter(h => h.count >= 2).length;
+      const rawScore = Math.min(10, (
+        Math.min(mentionTotal, 20) / 20 * 4 +
+        Math.min(podcastDiversity, 10) / 10 * 3.5 +
+        Math.min(repeatHosts, 3) / 3 * 2.5
+      ));
+      const podcastScore = mentionTotal >= 2 ? Math.round(rawScore * 10) / 10 : null;
+
+      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null; topics: string[] }[] = [];
+      if (relatedBookCounts.size > 0) {
+        const sortedRelKeys = Array.from(relatedBookCounts.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 30)
+          .map(([k]) => k);
+        const placeholders = sortedRelKeys.map((_, i) => `$${i + 1}`).join(",");
         const { rows: relRows } = await pool.query(
-          `SELECT book_key, book_title, author, slug, asin FROM book_enrichments WHERE book_key IN (${placeholders})`,
-          relKeys
+          `SELECT book_key, book_title, author, slug, asin, topics FROM book_enrichments WHERE book_key IN (${placeholders})`,
+          sortedRelKeys
         );
         const relMap = new Map(relRows.map((r: any) => [r.book_key, r]));
 
-        for (const rk of relKeys) {
+        for (const rk of sortedRelKeys) {
           const rel = relMap.get(rk);
           if (rel && rel.slug) {
-            relatedBooks.push({
-              name: rel.book_title,
-              author: rel.author,
-              slug: rel.slug,
-              mentionCount: 0,
-              asin: rel.asin,
-            });
+            const existing = relatedBooks.find(b => b.slug === rel.slug);
+            if (!existing) {
+              relatedBooks.push({
+                name: rel.book_title,
+                author: rel.author,
+                slug: rel.slug,
+                mentionCount: relatedBookCounts.get(rk) || 1,
+                asin: rel.asin,
+                topics: rel.topics || [],
+              });
+            }
           }
         }
-        relatedBooks = relatedBooks.slice(0, 6);
+        relatedBooks = relatedBooks.slice(0, 8);
       }
 
       const finalAsin = enrichment.asin || null;
       const amazonUrl = finalAsin
         ? `https://www.amazon.com/dp/${finalAsin}?tag=podcap-20`
         : `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap-20`;
+
+      const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}`;
 
       res.json({
         name: enrichment.book_title,
@@ -2131,10 +2166,20 @@ export async function registerRoutes(
         slug: enrichment.slug,
         asin: finalAsin,
         amazonUrl,
+        audibleUrl,
+        topics: enrichment.topics || [],
+        rating: enrichment.rating ? parseFloat(enrichment.rating) : null,
+        ratingCount: enrichment.rating_count || null,
+        pageCount: enrichment.page_count || null,
+        publishYear: enrichment.publish_year || null,
+        podcastScore,
         mentionCount: episodes.length,
         episodeCount: episodes.length,
         podcastCount: podcastSet.size,
         podcastNames: Array.from(podcastSet.values()),
+        firstMentioned,
+        lastMentioned,
+        topHosts,
         episodes,
         relatedBooks,
       });
