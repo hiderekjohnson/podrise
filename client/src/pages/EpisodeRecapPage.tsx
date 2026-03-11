@@ -54,8 +54,6 @@ interface EpisodeQuoteData {
 }
 
 
-const AMAZON_AFFILIATE_TAG = "podcap-20";
-
 function extractAsin(url: string): string | null {
   const patterns = [
     /\/dp\/([A-Za-z0-9]{10})/,
@@ -70,11 +68,14 @@ function extractAsin(url: string): string | null {
   return null;
 }
 
-function getAmazonUrl(book: BookResource): string {
-  const asin = extractAsin(book.url || "");
-  if (asin) return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`;
-  const searchQuery = encodeURIComponent(`${book.name}${book.author ? ` ${book.author}` : ""}`);
-  return `https://www.amazon.com/s?k=${searchQuery}&tag=${AMAZON_AFFILIATE_TAG}`;
+function getBlinkistUrl(book: BookResource): string {
+  const slug = book.name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
 function BookCover({ title, asin, author, testId }: { title: string; asin: string | null; author?: string | null; testId: string }) {
@@ -1022,9 +1023,7 @@ export default function EpisodeRecapPage() {
                   const enrichment = bookSlugMap[bookKey];
                   const bookSlug = enrichment?.slug;
                   const asin = enrichment?.asin || extractAsin(book.url || "");
-                  const amazonUrl = asin
-                    ? `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`
-                    : getAmazonUrl(book);
+                  const blinkistUrl = getBlinkistUrl(book);
                   const displayAuthor = enrichment?.author || book.author;
                   const displayDescription = enrichment?.description || book.context;
 
@@ -1092,13 +1091,13 @@ export default function EpisodeRecapPage() {
                           </Link>
                         ) : (
                           <a
-                            href={amazonUrl}
+                            href={blinkistUrl}
                             target="_blank"
-                            rel="sponsored noopener noreferrer"
+                            rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
                             data-testid={`book-buy-${i}`}
                           >
-                            Buy
+                            Summary
                             <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
                           </a>
                         )}
@@ -1107,9 +1106,6 @@ export default function EpisodeRecapPage() {
                   );
                 })}
               </div>
-              <p className="text-xs text-muted-foreground/50 mt-5 pt-4 border-t border-black/[0.04] dark:border-white/[0.04]">
-                Amazon links may earn PodCap a small commission at no extra cost to you.
-              </p>
             </div>
           </section>
         )}

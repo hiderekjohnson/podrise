@@ -231,8 +231,6 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
   );
 }
 
-const AMAZON_AFFILIATE_TAG = "podcap-20";
-
 function extractAsin(url: string): string | null {
   const patterns = [
     /\/dp\/([A-Za-z0-9]{10})/,
@@ -246,10 +244,14 @@ function extractAsin(url: string): string | null {
   return null;
 }
 
-function getAmazonBookUrl(url: string, name: string): string {
-  const asin = extractAsin(url || "");
-  if (asin) return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`;
-  return `https://www.amazon.com/s?k=${encodeURIComponent(name)}&tag=${AMAZON_AFFILIATE_TAG}`;
+function getBlinkistBookUrl(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
 function PodcastBookCover({ title, asin }: { title: string; asin: string | null }) {
@@ -420,9 +422,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {visible.map((book, i) => {
               const asin = book.asin || extractAsin(book.url || "");
-              const amazonUrl = asin
-                ? `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`
-                : getAmazonBookUrl(book.url, book.name);
+              const blinkistUrl = getBlinkistBookUrl(book.name);
               const bookSlug = book.slug;
 
               return (
@@ -496,13 +496,13 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                       </Link>
                     ) : (
                       <a
-                        href={amazonUrl}
+                        href={blinkistUrl}
                         target="_blank"
-                        rel="sponsored noopener noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
                         data-testid={`book-buy-${i}`}
                       >
-                        Buy
+                        Summary
                         <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
                       </a>
                     )}
@@ -523,7 +523,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
           )}
 
           <p className="text-[11px] text-muted-foreground/40 mt-5 text-center">
-            Amazon links may earn PodCap a small commission at no extra cost to you.
+            Blinkist links open summaries of recommended books.
           </p>
         </>
       )}

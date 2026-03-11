@@ -2,14 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, Headphones, User, FileText } from "lucide-react";
+import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, User, FileText } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
-
-const AMAZON_AFFILIATE_TAG = "podcap-20";
 
 interface BookEpisode {
   podcastSlug: string;
@@ -577,36 +575,17 @@ export default function BookDetailPage() {
               )}
 
               <div className="flex flex-wrap items-center gap-3 mt-5">
-                <a
-                  href={book.amazonUrl}
-                  target="_blank"
-                  rel="sponsored noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
-                  data-testid="button-buy-amazon"
-                >
-                  Buy on Amazon
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-                <a
-                  href={book.audibleUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-foreground font-semibold text-sm rounded-xl transition-colors border border-black/[0.06] dark:border-white/[0.08]"
-                  data-testid="button-audible"
-                >
-                  <Headphones className="w-4 h-4" />
-                  Listen on Audible
-                </a>
                 {book.blinkistUrl && (
                   <a
                     href={book.blinkistUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-500/[0.08] hover:bg-emerald-500/[0.14] text-emerald-700 dark:text-emerald-400 font-semibold text-sm rounded-xl transition-colors border border-emerald-500/[0.12]"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
                     data-testid="button-blinkist"
                   >
                     <FileText className="w-4 h-4" />
                     Read Summary on Blinkist
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
                 <ShareButton book={book} />
@@ -816,60 +795,39 @@ export default function BookDetailPage() {
             </motion.section>
           )}
 
-          <div className="mt-12 pt-6 border-t border-black/[0.06] dark:border-white/[0.06] flex flex-col items-center gap-4">
-            <div className="flex flex-wrap items-center justify-center gap-3">
+          {book.blinkistUrl && (
+            <div className="mt-12 pt-6 border-t border-black/[0.06] dark:border-white/[0.06] flex flex-col items-center gap-4">
               <a
-                href={book.amazonUrl}
-                target="_blank"
-                rel="sponsored noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
-                data-testid="button-buy-amazon-bottom"
-              >
-                Buy {book.name} on Amazon
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href={book.audibleUrl}
+                href={book.blinkistUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-foreground font-semibold text-sm rounded-xl transition-colors border border-black/[0.06] dark:border-white/[0.08]"
-                data-testid="button-audible-bottom"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
+                data-testid="button-blinkist-bottom"
               >
-                <Headphones className="w-4 h-4" />
-                Listen on Audible
+                <FileText className="w-4 h-4" />
+                Read Summary on Blinkist
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
-              {book.blinkistUrl && (
-                <a
-                  href={book.blinkistUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-emerald-500/[0.08] hover:bg-emerald-500/[0.14] text-emerald-700 dark:text-emerald-400 font-semibold text-sm rounded-xl transition-colors border border-emerald-500/[0.12]"
-                  data-testid="button-blinkist-bottom"
-                >
-                  <FileText className="w-4 h-4" />
-                  Read Summary on Blinkist
-                </a>
-              )}
             </div>
-            <p className="text-xs text-muted-foreground/50 text-center" data-testid="text-affiliate-disclosure">
-              Links may be affiliate links. PodCap may earn a small commission on purchases at no extra cost to you.
-            </p>
-          </div>
+          )}
         </div>
       </main>
 
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-black/[0.08] dark:border-white/[0.08] px-4 py-3 z-50" data-testid="mobile-sticky-cta">
-        <a
-          href={book?.amazonUrl}
-          target="_blank"
-          rel="sponsored noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
-          data-testid="button-buy-amazon-sticky"
-        >
-          Buy on Amazon
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
-      </div>
+      {book?.blinkistUrl && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-black/[0.08] dark:border-white/[0.08] px-4 py-3 z-50" data-testid="mobile-sticky-cta">
+          <a
+            href={book.blinkistUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
+            data-testid="button-blinkist-sticky"
+          >
+            <FileText className="w-4 h-4" />
+            Read Summary on Blinkist
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      )}
 
       <Footer />
     </div>
