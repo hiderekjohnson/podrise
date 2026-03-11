@@ -276,7 +276,9 @@ export function getPodcastCategoryInfo(podcast: PodcastLandingConfig): {
   const cat = getCategoryBySlug(primarySlug);
   if (!cat) return { category: null, topics: [] };
   const topicSlugs = getTopicsForPodcast(podcast, primarySlug);
+  const qualifyingSlugs = new Set(getQualifyingTopics(primarySlug).map(t => t.slug));
   const topics = topicSlugs
+    .filter(ts => qualifyingSlugs.has(ts))
     .map(ts => cat.topics.find(t => t.slug === ts))
     .filter(Boolean) as { slug: string; name: string }[];
   return { category: { slug: cat.slug, name: cat.name }, topics };
