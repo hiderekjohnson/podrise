@@ -232,10 +232,7 @@ function PodcastScoreBadge({ score }: { score: number }) {
 function ShareButton({ book }: { book: BookDetail }) {
   const [copied, setCopied] = useState(false);
   const url = `https://podcap.io/bookstore/${book.slug}`;
-  const bestQuote = book.episodes.find(e => e.context)?.context || "";
-  const tweetText = bestQuote
-    ? `"${bestQuote.slice(0, 200)}" - mentioned on ${book.podcastCount} podcasts\n\n${book.name}${book.author ? ` by ${book.author}` : ""}\n${url}`
-    : `${book.name}${book.author ? ` by ${book.author}` : ""} - mentioned on ${book.podcastCount} podcasts\n${url}`;
+  const tweetText = `${book.name}${book.author ? ` by ${book.author}` : ""} - mentioned on ${book.podcastCount} podcasts\n${url}`;
 
   const handleCopy = async () => {
     try {
@@ -371,8 +368,8 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                         )}
                       </div>
                       {ep.context && (
-                        <p className="text-sm text-muted-foreground/80 leading-relaxed mt-2 line-clamp-2 italic">
-                          "{ep.context}"
+                        <p className="text-sm text-muted-foreground/80 leading-relaxed mt-2">
+                          {ep.context.length > 150 ? ep.context.slice(0, 150).replace(/\s+\S*$/, "") + "." : ep.context}
                         </p>
                       )}
                     </div>
@@ -651,8 +648,9 @@ export default function BookDetailPage() {
               data-testid="section-featured-quote"
             >
               <div className="px-6 py-5 bg-amber-500/[0.04] border-l-4 border-amber-500 rounded-r-xl">
-                <p className="text-lg font-medium text-foreground leading-relaxed italic" data-testid="text-featured-quote">
-                  "{featuredQuote.context}"
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">How It Was Mentioned</p>
+                <p className="text-[15px] text-foreground leading-relaxed" data-testid="text-featured-quote">
+                  {featuredQuote.context}
                 </p>
                 <p className="mt-3 text-sm text-muted-foreground">
                   {featuredQuote.hosts && <span className="font-semibold text-foreground">{featuredQuote.hosts}</span>}
