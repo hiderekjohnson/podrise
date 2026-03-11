@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe, Building2, Tag, UserCircle } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -384,6 +384,263 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
   );
 }
 
+const AMAZON_AFFILIATE_TAG = "podcap-20";
+
+function extractAsin(url: string): string | null {
+  const patterns = [
+    /\/dp\/([A-Za-z0-9]{10})/,
+    /\/gp\/product\/([A-Za-z0-9]{10})/,
+    /\/product\/([A-Za-z0-9]{10})/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1].toUpperCase();
+  }
+  return null;
+}
+
+function getAmazonBookUrl(url: string, name: string): string {
+  const asin = extractAsin(url || "");
+  if (asin) return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`;
+  return `https://www.amazon.com/s?k=${encodeURIComponent(name)}&tag=${AMAZON_AFFILIATE_TAG}`;
+}
+
+interface PodcastBook {
+  name: string;
+  author: string | null;
+  description: string;
+  url: string;
+  context: string[];
+  episodes: { slug: string; title: string }[];
+  mentionCount: number;
+}
+
+function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: string }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"mentions" | "alpha">("mentions");
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [expandedBook, setExpandedBook] = useState<string | null>(null);
+
+  const { data, isLoading, isError } = useQuery<{ books: PodcastBook[]; total: number }>({
+    queryKey: ["/api/podcasts", slug, "books"],
+  });
+
+  const books = data?.books || [];
+  const query = searchQuery.toLowerCase().trim();
+
+  const filtered = books.filter(b => {
+    if (!query) return true;
+    return b.name.toLowerCase().includes(query) ||
+      (b.author || "").toLowerCase().includes(query) ||
+      b.description.toLowerCase().includes(query);
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "alpha") return a.name.localeCompare(b.name);
+    return b.mentionCount - a.mentionCount;
+  });
+
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
+
+  return (
+    <section className="pb-16" data-testid="section-books-tab">
+      <div className="flex items-center gap-2.5 mb-2">
+        <BookOpen className="w-5 h-5 text-amber-600" />
+        <h2 className="text-[17px] font-display font-bold text-foreground">Recommended Reading</h2>
+      </div>
+      <p className="text-[15px] text-muted-foreground mb-6">
+        Books mentioned across {podcastName} episodes — sorted by how often they come up in conversation.
+      </p>
+
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+          <input
+            type="text"
+            placeholder="Search books, authors..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(20); }}
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-zinc-900 text-[15px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            data-testid="input-books-search"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2" data-testid="button-books-clear-search">
+              <X className="w-4 h-4 text-muted-foreground/40 hover:text-foreground" />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortBy("mentions")}
+            className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="button-sort-mentions"
+          >
+            Most mentioned
+          </button>
+          <button
+            onClick={() => setSortBy("alpha")}
+            className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="button-sort-alpha"
+          >
+            A–Z
+          </button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 animate-pulse">
+              <div className="flex gap-4">
+                <div className="w-14 h-20 bg-muted rounded-lg shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 bg-muted rounded w-2/3" />
+                  <div className="h-4 bg-muted rounded w-1/3" />
+                  <div className="h-4 bg-muted rounded w-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="text-center py-12">
+          <BookOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+          <p className="text-[15px] font-semibold text-foreground mb-1">Couldn't load books</p>
+          <p className="text-[15px] text-muted-foreground">Something went wrong. Try refreshing the page.</p>
+        </div>
+      ) : sorted.length === 0 ? (
+        <div className="text-center py-12">
+          <BookOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+          <p className="text-[15px] font-semibold text-foreground mb-1">
+            {searchQuery ? "No books match your search" : "No books found yet"}
+          </p>
+          <p className="text-[15px] text-muted-foreground">
+            {searchQuery ? "Try a different search term." : "Book data is still being extracted for this podcast."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="text-[13px] text-muted-foreground/50 mb-4" data-testid="text-books-count">
+            {sorted.length} book{sorted.length !== 1 ? "s" : ""}{searchQuery ? ` matching "${searchQuery}"` : ""}
+          </p>
+
+          <div className="space-y-3">
+            {visible.map((book, i) => {
+              const asin = extractAsin(book.url || "");
+              const amazonUrl = getAmazonBookUrl(book.url, book.name);
+              const isExpanded = expandedBook === book.name;
+              const coverUrl = asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX100_.jpg` : null;
+
+              return (
+                <div
+                  key={book.name}
+                  className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-amber-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all"
+                  data-testid={`book-row-${i}`}
+                >
+                  <div className="flex gap-4">
+                    <div className="w-14 h-20 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      {coverUrl ? (
+                        <img
+                          src={coverUrl}
+                          alt={book.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            const el = e.target as HTMLImageElement;
+                            el.style.display = 'none';
+                            el.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400/50"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>';
+                          }}
+                        />
+                      ) : (
+                        <BookOpen className="w-5 h-5 text-amber-400/50" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                            {book.name}
+                          </h3>
+                          {book.author && (
+                            <p className="text-[13px] text-muted-foreground/60 mt-0.5">by {book.author}</p>
+                          )}
+                        </div>
+                        <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[12px] font-bold bg-amber-500/[0.08] text-amber-700 dark:text-amber-400 whitespace-nowrap" data-testid={`book-mentions-${i}`}>
+                          {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+
+                      {book.description && (
+                        <p className="text-[14px] text-muted-foreground leading-relaxed mt-2 line-clamp-2">{book.description}</p>
+                      )}
+
+                      <div className="flex items-center gap-3 mt-3">
+                        <a
+                          href={amazonUrl}
+                          target="_blank"
+                          rel="sponsored noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                          data-testid={`book-amazon-${i}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {asin ? "Buy on Amazon" : "Find on Amazon"}
+                          <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
+                        </a>
+                        {book.episodes.length > 0 && (
+                          <button
+                            onClick={() => setExpandedBook(isExpanded ? null : book.name)}
+                            className="inline-flex items-center gap-1 text-[13px] font-semibold text-primary/70 hover:text-primary transition-colors"
+                            data-testid={`book-episodes-toggle-${i}`}
+                          >
+                            {isExpanded ? "Hide" : "See"} {book.episodes.length} episode{book.episodes.length !== 1 ? "s" : ""}
+                          </button>
+                        )}
+                      </div>
+
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] space-y-2">
+                          {book.context[0] && (
+                            <p className="text-[13px] text-muted-foreground italic leading-relaxed mb-2">"{book.context[0]}"</p>
+                          )}
+                          {book.episodes.map((ep, ei) => (
+                            <Link
+                              key={ep.slug}
+                              href={`/podcasts/${slug}/${ep.slug}`}
+                              className="block text-[13px] text-primary/70 hover:text-primary transition-colors truncate"
+                              data-testid={`book-episode-link-${i}-${ei}`}
+                            >
+                              → {ep.title}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {hasMore && (
+            <button
+              onClick={() => setVisibleCount(prev => prev + 20)}
+              className="w-full mt-6 py-3 rounded-xl border border-black/[0.06] dark:border-white/[0.08] text-[15px] font-semibold text-primary hover:bg-primary/[0.04] transition-colors"
+              data-testid="button-load-more-books"
+            >
+              Show more books ({sorted.length - visibleCount} remaining)
+            </button>
+          )}
+
+          <p className="text-[11px] text-muted-foreground/40 mt-5 text-center">
+            Amazon links may earn PodCap a small commission at no extra cost to you.
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function PodcastLandingGeneric() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -393,7 +650,7 @@ export default function PodcastLandingGeneric() {
 
   const getTabFromUrl = () => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (urlTab === "search" || urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes") return urlTab;
+    if (urlTab === "search" || urlTab === "ask" || urlTab === "about" || urlTab === "discover" || urlTab === "episodes" || urlTab === "books") return urlTab;
     return "episodes" as PodcastTab;
   };
   const [activeTab, setActiveTab] = useState<PodcastTab>(getTabFromUrl);
@@ -943,6 +1200,10 @@ export default function PodcastLandingGeneric() {
             PodCap is not affiliated with, endorsed by, or sponsored by {name}, {hosts}, or any podcast listed on this site.
           </p>
         </section>
+      )}
+
+      {activeTab === "books" && (
+        <PodcastBooksTab slug={slug} podcastName={config.name} />
       )}
 
       {activeTab === "discover" && (

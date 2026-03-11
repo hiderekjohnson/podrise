@@ -1817,6 +1817,72 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/books", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { rows } = await pool.query(
+        `SELECT episode_slug, episode_title, resources
+         FROM landing_page_recaps
+         WHERE slug = $1 AND resources IS NOT NULL AND resources::text != '[]'`,
+        [slug]
+      );
+
+      const bookMap = new Map<string, {
+        name: string;
+        author: string | null;
+        description: string;
+        url: string;
+        context: string[];
+        episodes: { slug: string; title: string }[];
+        mentionCount: number;
+      }>();
+
+      for (const row of rows) {
+        let resources: any[];
+        try {
+          resources = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources;
+        } catch { continue; }
+
+        for (const r of resources) {
+          if (r.type !== 'book' || !r.name) continue;
+
+          const key = r.name.toLowerCase().trim();
+          const existing = bookMap.get(key);
+          if (existing) {
+            existing.mentionCount++;
+            if (r.context && !existing.context.includes(r.context)) {
+              existing.context.push(r.context);
+            }
+            if (!existing.episodes.find((e: any) => e.slug === row.episode_slug)) {
+              existing.episodes.push({ slug: row.episode_slug, title: row.episode_title });
+            }
+            if (!existing.author && r.author) existing.author = r.author;
+            if (!existing.url && r.url) existing.url = r.url;
+            if (r.url && !existing.url?.includes('/dp/')) existing.url = r.url;
+          } else {
+            bookMap.set(key, {
+              name: r.name,
+              author: r.author || null,
+              description: r.description || "",
+              url: r.url || "",
+              context: r.context ? [r.context] : [],
+              episodes: [{ slug: row.episode_slug, title: row.episode_title }],
+              mentionCount: 1,
+            });
+          }
+        }
+      }
+
+      const books = Array.from(bookMap.values())
+        .sort((a, b) => b.mentionCount - a.mentionCount);
+
+      res.json({ books, total: books.length });
+    } catch (err) {
+      console.error("Podcast books error:", err);
+      res.status(500).json({ message: "Failed to load books" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/entity-links", async (req, res) => {
     try {
       const { slug } = req.params;

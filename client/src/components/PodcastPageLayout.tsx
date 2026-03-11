@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
@@ -11,7 +11,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
 
-export type PodcastTab = "episodes" | "search" | "ask" | "about" | "discover";
+export type PodcastTab = "episodes" | "search" | "ask" | "about" | "discover" | "books";
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
@@ -98,6 +98,7 @@ export function PodcastPageLayout({
     { id: "search", label: "Search Transcripts", icon: Search },
     { id: "ask", label: "Ask About This Podcast", icon: Sparkles },
     { id: "about", label: "About Podcast", icon: Users },
+    { id: "books", label: "Recommended Reading", icon: BookOpen },
     { id: "discover", label: "Discover", icon: Compass },
   ];
 
