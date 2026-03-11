@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, Link } from "wouter";
-import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X, Clock, Calendar as CalendarIcon, UserCheck, Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
@@ -10,6 +10,33 @@ import { Footer } from "@/components/Footer";
 
 const PAGE_SIZE = 20;
 
+function parseDurationMinutes(dur?: string): number {
+  if (!dur) return 0;
+  let total = 0;
+  const hrMatch = dur.match(/(\d+)\s*hr/);
+  const minMatch = dur.match(/(\d+)\s*min/);
+  if (hrMatch) total += parseInt(hrMatch[1]) * 60;
+  if (minMatch) total += parseInt(minMatch[1]);
+  if (!hrMatch && !minMatch) {
+    const num = parseInt(dur);
+    if (!isNaN(num)) total = num;
+  }
+  return total;
+}
+
+function getEpisodeYear(ep: any): string {
+  if (!ep.publishDate) return "";
+  return ep.publishDate.substring(0, 4);
+}
+
+function episodeHasGuests(ep: any): boolean {
+  if (!ep.guests) return false;
+  try {
+    const guests = typeof ep.guests === "string" ? JSON.parse(ep.guests) : ep.guests;
+    return Array.isArray(guests) && guests.length > 0 && guests.some((g: any) => g.name);
+  } catch { return false; }
+}
+
 export default function EpisodeArchivePage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug || "";
@@ -18,10 +45,14 @@ export default function EpisodeArchivePage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedGuest, setSelectedGuest] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [guestPresence, setGuestPresence] = useState<"all" | "with" | "without">("all");
   const [sort, setSort] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [guestDropdownOpen, setGuestDropdownOpen] = useState(false);
   const [topicDropdownOpen, setTopicDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [guestSearch, setGuestSearch] = useState("");
   const [topicSearch, setTopicSearch] = useState("");
 
@@ -98,9 +129,25 @@ export default function EpisodeArchivePage() {
       .map(([topic, count]) => ({ topic, count }));
   }, [allEpisodes]);
 
+  const yearList = useMemo(() => {
+    if (!allEpisodes) return [];
+    const counts = new Map<string, number>();
+    for (const ep of allEpisodes) {
+      const year = getEpisodeYear(ep);
+      if (year) counts.set(year, (counts.get(year) || 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[0].localeCompare(a[0])).map(([year, count]) => ({ year, count }));
+  }, [allEpisodes]);
+
+  const durationStats = useMemo(() => {
+    if (!allEpisodes || allEpisodes.length === 0) return { hasDuration: false };
+    const durations = allEpisodes.map(e => parseDurationMinutes(e.duration)).filter(d => d > 0);
+    return { hasDuration: durations.length > 0 };
+  }, [allEpisodes]);
+
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [debouncedSearch, selectedGuest, selectedTopic, sort]);
+  }, [debouncedSearch, selectedGuest, selectedTopic, selectedYear, guestPresence, sort]);
 
   const filteredEpisodes = useMemo(() => {
     if (!allEpisodes) return [];
@@ -121,7 +168,7 @@ export default function EpisodeArchivePage() {
         if (!ep.guests) return false;
         try {
           const guests = typeof ep.guests === "string" ? JSON.parse(ep.guests) : ep.guests;
-          return Array.isArray(guests) && guests.some((g: any) => g.name === selectedGuest);
+          return Array.isArray(guests) && guests.some((g: any) => g.name?.trim() === selectedGuest);
         } catch { return false; }
       });
     }
@@ -133,24 +180,62 @@ export default function EpisodeArchivePage() {
       );
     }
 
+    if (selectedYear) {
+      result = result.filter(ep => getEpisodeYear(ep) === selectedYear);
+    }
+
+    if (guestPresence === "with") {
+      result = result.filter(ep => episodeHasGuests(ep));
+    } else if (guestPresence === "without") {
+      result = result.filter(ep => !episodeHasGuests(ep));
+    }
+
     if (sort === "oldest") {
       result.sort((a, b) => (a.publishDate || "").localeCompare(b.publishDate || ""));
+    } else if (sort === "longest") {
+      result.sort((a, b) => {
+        const da = parseDurationMinutes(a.duration);
+        const db = parseDurationMinutes(b.duration);
+        if (da === 0 && db === 0) return 0;
+        if (da === 0) return 1;
+        if (db === 0) return -1;
+        return db - da;
+      });
+    } else if (sort === "shortest") {
+      result.sort((a, b) => {
+        const da = parseDurationMinutes(a.duration);
+        const db = parseDurationMinutes(b.duration);
+        if (da === 0 && db === 0) return 0;
+        if (da === 0) return 1;
+        if (db === 0) return -1;
+        return da - db;
+      });
     } else {
       result.sort((a, b) => (b.publishDate || "").localeCompare(a.publishDate || ""));
     }
 
     return result;
-  }, [allEpisodes, debouncedSearch, selectedGuest, selectedTopic, sort]);
+  }, [allEpisodes, debouncedSearch, selectedGuest, selectedTopic, selectedYear, guestPresence, sort]);
 
   const visibleEpisodes = filteredEpisodes.slice(0, visibleCount);
   const hasMore = visibleCount < filteredEpisodes.length;
-  const hasActiveFilters = debouncedSearch || selectedGuest || selectedTopic || sort !== "newest";
+  const hasActiveFilters = debouncedSearch || selectedGuest || selectedTopic || selectedYear || guestPresence !== "all" || sort !== "newest";
+
+  const activeFilterCount = [
+    !!debouncedSearch,
+    !!selectedGuest,
+    !!selectedTopic,
+    !!selectedYear,
+    guestPresence !== "all",
+  ].filter(Boolean).length;
 
   const clearAllFilters = useCallback(() => {
     setSearchTerm("");
     setDebouncedSearch("");
     setSelectedGuest("");
     setSelectedTopic("");
+    setSelectedYear("");
+    setGuestPresence("all");
     setSort("newest");
   }, []);
 
@@ -174,7 +259,7 @@ export default function EpisodeArchivePage() {
       return;
     }
     const pageTitle = `${config.name} Episodes Archive | PodCap`;
-    const pageDescription = `Browse every ${config.name} episode recap on PodCap. Search by keyword, filter by guest or topic.`;
+    const pageDescription = `Browse every ${config.name} episode recap on PodCap. Search by keyword, filter by guest, topic, or year.`;
     const canonicalUrl = `https://podcap.io/podcasts/${slug}/episodes`;
 
     document.title = pageTitle;
@@ -216,6 +301,8 @@ export default function EpisodeArchivePage() {
       const target = e.target as HTMLElement;
       if (!target.closest("[data-dropdown='guest']")) setGuestDropdownOpen(false);
       if (!target.closest("[data-dropdown='topic']")) setTopicDropdownOpen(false);
+      if (!target.closest("[data-dropdown='year']")) setYearDropdownOpen(false);
+      if (!target.closest("[data-dropdown='sort']")) setSortDropdownOpen(false);
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -235,34 +322,48 @@ export default function EpisodeArchivePage() {
     );
   }
 
+  const sortLabels: Record<string, string> = {
+    newest: "Newest first",
+    oldest: "Oldest first",
+    longest: "Longest first",
+    shortest: "Shortest first",
+  };
+  const sortOptions = durationStats.hasDuration
+    ? ["newest", "oldest", "longest", "shortest"]
+    : ["newest", "oldest"];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PodCapHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-4xl pt-8 sm:pt-12 pb-16">
-          <div className="flex items-center gap-5 mb-8">
+        <div className="w-full max-w-5xl pt-8 sm:pt-12 pb-16">
+
+          <div className="flex items-start gap-5 mb-8">
             {config.artworkUrl && (
               <Link href={`/podcasts/${slug}`}>
                 <img
                   src={config.artworkUrl}
                   alt={config.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shadow-lg shadow-black/[0.08] object-cover ring-1 ring-black/[0.04] cursor-pointer hover:ring-primary/[0.2] transition-all"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shadow-lg shadow-black/[0.08] object-cover ring-1 ring-black/[0.04] cursor-pointer hover:ring-primary/[0.2] transition-all flex-shrink-0"
                   data-testid="img-podcast-artwork"
                 />
               </Link>
             )}
             <div className="min-w-0 flex-1">
-              <Link href={`/podcasts/${slug}`} className="hover:text-primary transition-colors">
+              <Link href={`/podcasts/${slug}`} className="inline-block hover:text-primary transition-colors">
                 <h1 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-tight" data-testid="heading-archive-title">
-                  {config.name} Episodes Archive
+                  {config.name}
                 </h1>
               </Link>
+              <p className="text-base font-semibold text-muted-foreground mt-0.5" data-testid="text-archive-subtitle">
+                Episodes Archive
+              </p>
               {podcastConfig && (() => {
                 const catInfo = getPodcastCategoryInfo(podcastConfig);
                 if (!catInfo.category) return null;
                 return (
-                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5" data-testid="archive-category-labels">
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2" data-testid="archive-category-labels">
                     <Link href={`/podcasts/${catInfo.category.slug}`}>
                       <span className="text-[13px] px-2 py-0.5 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${catInfo.category.slug}`}>
                         {catInfo.category.name}
@@ -281,9 +382,6 @@ export default function EpisodeArchivePage() {
                   </div>
                 );
               })()}
-              <p className="text-base text-muted-foreground mt-1" data-testid="text-episode-count">
-                {isLoading ? "Loading..." : `${filteredEpisodes.length} episode ${filteredEpisodes.length === 1 ? "recap" : "recaps"}${hasActiveFilters ? " matching filters" : ""}`}
-              </p>
             </div>
           </div>
 
@@ -293,7 +391,7 @@ export default function EpisodeArchivePage() {
               <input
                 data-testid="input-search"
                 type="text"
-                placeholder="Search episodes by keyword..."
+                placeholder={`Search ${config.name} episodes...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-12 pl-12 pr-4 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all placeholder:text-muted-foreground/40"
@@ -309,23 +407,23 @@ export default function EpisodeArchivePage() {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              {guestList.length > 0 && (
-                <div className="relative" data-dropdown="guest">
+            <div className="flex flex-wrap items-center gap-2">
+              {yearList.length > 0 && (
+                <div className="relative" data-dropdown="year">
                   <button
-                    onClick={() => { setGuestDropdownOpen(!guestDropdownOpen); setTopicDropdownOpen(false); }}
+                    onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setGuestDropdownOpen(false); setTopicDropdownOpen(false); setSortDropdownOpen(false); }}
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
-                      selectedGuest
+                      selectedYear
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
                         : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
                     }`}
-                    data-testid="button-filter-guest"
+                    data-testid="button-filter-year"
                   >
-                    <Users className="w-4 h-4" />
-                    {selectedGuest || "Filter by guest"}
-                    {selectedGuest ? (
+                    <CalendarIcon className="w-4 h-4" />
+                    {selectedYear || "Year"}
+                    {selectedYear ? (
                       <span
-                        onClick={(e) => { e.stopPropagation(); setSelectedGuest(""); setGuestDropdownOpen(false); }}
+                        onClick={(e) => { e.stopPropagation(); setSelectedYear(""); setYearDropdownOpen(false); }}
                         className="ml-1 p-0.5 rounded hover:bg-primary/20"
                       >
                         <X className="w-3 h-3" />
@@ -334,36 +432,22 @@ export default function EpisodeArchivePage() {
                       <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                     )}
                   </button>
-                  {guestDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1.5 w-72 max-h-72 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.1] rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden z-50" data-testid="dropdown-guest">
-                      <div className="p-2 border-b border-black/[0.06] dark:border-white/[0.06]">
-                        <input
-                          type="text"
-                          placeholder="Search guests..."
-                          value={guestSearch}
-                          onChange={(e) => setGuestSearch(e.target.value)}
-                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-sm text-foreground focus:outline-none placeholder:text-muted-foreground/40"
-                          data-testid="input-search-guest"
-                          autoFocus
-                        />
-                      </div>
+                  {yearDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1.5 w-48 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.1] rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden z-50" data-testid="dropdown-year">
                       <div className="overflow-y-auto max-h-56">
-                        {filteredGuests.map((g) => (
+                        {yearList.map((y) => (
                           <button
-                            key={g.name}
-                            onClick={() => { setSelectedGuest(g.name); setGuestDropdownOpen(false); setGuestSearch(""); }}
+                            key={y.year}
+                            onClick={() => { setSelectedYear(y.year); setYearDropdownOpen(false); }}
                             className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
-                              selectedGuest === g.name ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
+                              selectedYear === y.year ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
                             }`}
-                            data-testid={`option-guest-${g.name}`}
+                            data-testid={`option-year-${y.year}`}
                           >
-                            <span className="truncate">{g.name}</span>
-                            <span className="text-[13px] text-muted-foreground/50 ml-2 shrink-0">{g.count} ep{g.count !== 1 ? "s" : ""}</span>
+                            <span>{y.year}</span>
+                            <span className="text-[13px] text-muted-foreground/50 ml-2 shrink-0">{y.count}</span>
                           </button>
                         ))}
-                        {filteredGuests.length === 0 && (
-                          <p className="px-4 py-3 text-sm text-muted-foreground/50">No guests found</p>
-                        )}
                       </div>
                     </div>
                   )}
@@ -373,7 +457,7 @@ export default function EpisodeArchivePage() {
               {topicList.length > 0 && (
                 <div className="relative" data-dropdown="topic">
                   <button
-                    onClick={() => { setTopicDropdownOpen(!topicDropdownOpen); setGuestDropdownOpen(false); }}
+                    onClick={() => { setTopicDropdownOpen(!topicDropdownOpen); setGuestDropdownOpen(false); setYearDropdownOpen(false); setSortDropdownOpen(false); }}
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
                       selectedTopic
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
@@ -382,7 +466,7 @@ export default function EpisodeArchivePage() {
                     data-testid="button-filter-topic"
                   >
                     <Tag className="w-4 h-4" />
-                    {selectedTopic || "Filter by topic"}
+                    <span className="max-w-[140px] truncate">{selectedTopic || "Topic"}</span>
                     {selectedTopic ? (
                       <span
                         onClick={(e) => { e.stopPropagation(); setSelectedTopic(""); setTopicDropdownOpen(false); }}
@@ -430,30 +514,172 @@ export default function EpisodeArchivePage() {
                 </div>
               )}
 
-              <div className="relative ml-auto">
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="appearance-none h-10 pl-9 pr-8 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-lg text-[15px] font-medium text-foreground/70 cursor-pointer hover:border-primary/[0.15] transition-all focus:outline-none focus:ring-2 focus:ring-primary/15"
-                  data-testid="select-sort"
-                >
-                  <option value="newest">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                </select>
-                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none" />
-              </div>
+              {guestList.length > 0 && (
+                <div className="relative" data-dropdown="guest">
+                  <button
+                    onClick={() => { setGuestDropdownOpen(!guestDropdownOpen); setTopicDropdownOpen(false); setYearDropdownOpen(false); setSortDropdownOpen(false); }}
+                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                      selectedGuest
+                        ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                    }`}
+                    data-testid="button-filter-guest"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span className="max-w-[140px] truncate">{selectedGuest || "Guest"}</span>
+                    {selectedGuest ? (
+                      <span
+                        onClick={(e) => { e.stopPropagation(); setSelectedGuest(""); setGuestDropdownOpen(false); }}
+                        className="ml-1 p-0.5 rounded hover:bg-primary/20"
+                      >
+                        <X className="w-3 h-3" />
+                      </span>
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                    )}
+                  </button>
+                  {guestDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1.5 w-72 max-h-72 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.1] rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden z-50" data-testid="dropdown-guest">
+                      <div className="p-2 border-b border-black/[0.06] dark:border-white/[0.06]">
+                        <input
+                          type="text"
+                          placeholder="Search guests..."
+                          value={guestSearch}
+                          onChange={(e) => setGuestSearch(e.target.value)}
+                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-sm text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                          data-testid="input-search-guest"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="overflow-y-auto max-h-56">
+                        {filteredGuests.map((g) => (
+                          <button
+                            key={g.name}
+                            onClick={() => { setSelectedGuest(g.name); setGuestDropdownOpen(false); setGuestSearch(""); }}
+                            className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
+                              selectedGuest === g.name ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
+                            }`}
+                            data-testid={`option-guest-${g.name}`}
+                          >
+                            <span className="truncate">{g.name}</span>
+                            <span className="text-[13px] text-muted-foreground/50 ml-2 shrink-0">{g.count} ep{g.count !== 1 ? "s" : ""}</span>
+                          </button>
+                        ))}
+                        {filteredGuests.length === 0 && (
+                          <p className="px-4 py-3 text-sm text-muted-foreground/50">No guests found</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {hasActiveFilters && (
+              {guestList.length > 0 && (
                 <button
-                  onClick={clearAllFilters}
-                  className="inline-flex items-center gap-1.5 h-10 px-3 rounded-lg text-[15px] font-medium text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
-                  data-testid="button-clear-all"
+                  onClick={() => setGuestPresence(guestPresence === "all" ? "with" : guestPresence === "with" ? "without" : "all")}
+                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                    guestPresence !== "all"
+                      ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
+                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                  }`}
+                  data-testid="button-filter-guest-presence"
                 >
-                  <X className="w-4 h-4" />
-                  Clear all
+                  <UserCheck className="w-4 h-4" />
+                  {guestPresence === "all" ? "Guest episodes" : guestPresence === "with" ? "With guests" : "Hosts only"}
+                  {guestPresence !== "all" && (
+                    <span
+                      onClick={(e) => { e.stopPropagation(); setGuestPresence("all"); }}
+                      className="ml-1 p-0.5 rounded hover:bg-primary/20"
+                    >
+                      <X className="w-3 h-3" />
+                    </span>
+                  )}
                 </button>
               )}
+
+              <div className="relative ml-auto" data-dropdown="sort">
+                <button
+                  onClick={() => { setSortDropdownOpen(!sortDropdownOpen); setGuestDropdownOpen(false); setTopicDropdownOpen(false); setYearDropdownOpen(false); }}
+                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                    sort !== "newest"
+                      ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
+                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                  }`}
+                  data-testid="button-sort"
+                >
+                  <ArrowUpDown className="w-4 h-4" />
+                  {sortLabels[sort]}
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                </button>
+                {sortDropdownOpen && (
+                  <div className="absolute top-full right-0 mt-1.5 w-48 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.1] rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden z-50" data-testid="dropdown-sort">
+                    {sortOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => { setSort(opt); setSortDropdownOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors ${
+                          sort === opt ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
+                        }`}
+                        data-testid={`option-sort-${opt}`}
+                      >
+                        {sortLabels[opt]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {(activeFilterCount > 0) && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {activeFilterCount > 0 && (
+                  <span className="text-[13px] font-medium text-muted-foreground/60 flex items-center gap-1">
+                    <Filter className="w-3 h-3" />
+                    {filteredEpisodes.length} result{filteredEpisodes.length !== 1 ? "s" : ""}
+                  </span>
+                )}
+                {debouncedSearch && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
+                    <Search className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">"{debouncedSearch}"</span>
+                    <button onClick={() => { setSearchTerm(""); setDebouncedSearch(""); }} className="p-0.5 rounded hover:bg-primary/20 flex-shrink-0"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                {selectedYear && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                    {selectedYear}
+                    <button onClick={() => setSelectedYear("")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                {selectedTopic && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
+                    <span className="truncate">{selectedTopic}</span>
+                    <button onClick={() => setSelectedTopic("")} className="p-0.5 rounded hover:bg-primary/20 flex-shrink-0"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                {selectedGuest && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
+                    <span className="truncate">{selectedGuest}</span>
+                    <button onClick={() => setSelectedGuest("")} className="p-0.5 rounded hover:bg-primary/20 flex-shrink-0"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                {guestPresence !== "all" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                    {guestPresence === "with" ? "With guests" : "Hosts only"}
+                    <button onClick={() => setGuestPresence("all")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                {(activeFilterCount > 1 || (activeFilterCount >= 1 && sort !== "newest")) && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors ml-1"
+                    data-testid="button-clear-all"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {isLoading ? (
@@ -499,7 +725,7 @@ export default function EpisodeArchivePage() {
                     data-testid="button-show-more"
                   >
                     <ChevronDown className="w-4 h-4" />
-                    Show more ({filteredEpisodes.length - visibleCount} remaining)
+                    Show more
                   </button>
                 </div>
               )}
