@@ -1896,6 +1896,88 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/bookstore", async (_req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT slug, episode_slug, episode_title, resources
+         FROM landing_page_recaps
+         WHERE resources IS NOT NULL AND resources::text != '[]'`
+      );
+
+      const bookMap = new Map<string, {
+        name: string;
+        author: string | null;
+        description: string;
+        url: string;
+        context: string[];
+        podcasts: Map<string, string>;
+        episodes: { podcastSlug: string; episodeSlug: string; episodeTitle: string }[];
+        mentionCount: number;
+      }>();
+
+      for (const row of rows) {
+        let resources: any[];
+        try {
+          const parsed = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources;
+          if (!Array.isArray(parsed)) continue;
+          resources = parsed;
+        } catch { continue; }
+
+        for (const r of resources) {
+          if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
+
+          const key = r.name.toLowerCase().trim();
+          const existing = bookMap.get(key);
+          if (existing) {
+            existing.mentionCount++;
+            if (r.context && !existing.context.includes(r.context)) {
+              existing.context.push(r.context);
+            }
+            if (!existing.episodes.find(e => e.episodeSlug === row.episode_slug && e.podcastSlug === row.slug)) {
+              existing.episodes.push({ podcastSlug: row.slug, episodeSlug: row.episode_slug, episodeTitle: row.episode_title });
+            }
+            existing.podcasts.set(row.slug, row.slug);
+            if (!existing.author && r.author) existing.author = r.author;
+            if (!existing.url && r.url) existing.url = r.url;
+            if (r.url && r.url.includes('/dp/') && !existing.url?.includes('/dp/')) existing.url = r.url;
+          } else {
+            const podcasts = new Map<string, string>();
+            podcasts.set(row.slug, row.slug);
+            bookMap.set(key, {
+              name: r.name,
+              author: r.author || null,
+              description: r.description || "",
+              url: r.url || "",
+              context: r.context ? [r.context] : [],
+              podcasts,
+              episodes: [{ podcastSlug: row.slug, episodeSlug: row.episode_slug, episodeTitle: row.episode_title }],
+              mentionCount: 1,
+            });
+          }
+        }
+      }
+
+      const books = Array.from(bookMap.values())
+        .map(b => ({
+          name: b.name,
+          author: b.author,
+          description: b.description,
+          url: b.url,
+          context: b.context,
+          podcastCount: b.podcasts.size,
+          podcastSlugs: Array.from(b.podcasts.keys()),
+          episodes: b.episodes,
+          mentionCount: b.mentionCount,
+        }))
+        .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
+
+      res.json({ books, total: books.length });
+    } catch (err) {
+      console.error("Bookstore error:", err);
+      res.status(500).json({ message: "Failed to load bookstore" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/entity-links", async (req, res) => {
     try {
       const { slug } = req.params;

@@ -48,6 +48,14 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **`connect-pg-simple`**: For PostgreSQL-backed Express session storage.
 - **`framer-motion`**: For frontend animations.
 
+## Podcast Bookstore
+**Route**: `/podcasts/bookstore` — aggregates all books mentioned across all podcast episode recaps.
+**API**: `GET /api/bookstore` returns `{ books: [...], total: number }`. Books are ranked by mention count (how many times discussed across episodes) and podcast count (how many different shows mention them).
+**Data source**: Book resources extracted from `landing_page_recaps.resources` JSON during AI recap generation. No separate scraping needed.
+**Features**: Search by title/author, sort (Most Mentioned, Most Podcasts, A-Z), expandable episode lists per book, Amazon affiliate links (tag: `podcap-20`).
+**Book Covers**: Amazon image via ASIN (primary), Open Library API fallback (search by title → cover_i ID).
+**Affiliate Disclosure**: Shown at bottom of page per FTC guidelines.
+
 ## Episode Recap Page Sections (in order)
 About this Episode (SEO intro paragraph), Key Takeaways, Notable Quotes (violet-500, quote cards with share bars and Make Image modal), Full Recap, Guests (sky-500), Notable Mentions (orange-500, matches PEOPLE_DIRECTORY/COMPANIES_DIRECTORY, links to /people and /companies), Key Topics (emerald-500, chips link to /topics/{slug}), Books Mentioned (amber-500, Amazon affiliate links with tag podcap-20), Sponsors (teal-500, coupon codes with copy button), Hosts (indigo-500, from /api/podcasts/:slug/hosts), Questions Answered in This Episode (violet-500, expanded H3s), Podcast Chat (violet-500, AI sparkle badge). Navigation chips at top scroll to each section. Podcaster Byline banner appears above content when podcast has a verified claim with byline text.
 
