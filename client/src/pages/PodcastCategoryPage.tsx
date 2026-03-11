@@ -181,27 +181,6 @@ export default function PodcastCategoryPage() {
             </p>
           </motion.div>
 
-          {qualifyingTopics.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="flex flex-wrap gap-2 mb-8"
-              data-testid="topic-chips"
-            >
-              {qualifyingTopics.map(topic => (
-                <Link
-                  key={topic.slug}
-                  href={`/podcasts/${categorySlug}/${topic.slug}`}
-                  className="px-3.5 py-1.5 rounded-full text-[15px] font-bold bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] hover:text-foreground transition-all"
-                  data-testid={`chip-topic-${topic.slug}`}
-                >
-                  {topic.name}
-                </Link>
-              ))}
-            </motion.div>
-          )}
-
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
