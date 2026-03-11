@@ -1896,12 +1896,27 @@ export async function registerRoutes(
     }
   });
 
+  function extractAsinFromUrl(url: string): string | null {
+    if (!url) return null;
+    const patterns = [
+      /\/dp\/([A-Za-z0-9]{10})/,
+      /\/gp\/product\/([A-Za-z0-9]{10})/,
+      /\/product\/([A-Za-z0-9]{10})/,
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1].toUpperCase();
+    }
+    return null;
+  }
+
   app.get("/api/bookstore", async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT slug, episode_slug, episode_title, resources
-         FROM landing_page_recaps
-         WHERE resources IS NOT NULL AND resources::text != '[]'`
+        `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.resources, pd.name as podcast_name
+         FROM landing_page_recaps lpr
+         JOIN podcast_directory pd ON pd.slug = lpr.slug
+         WHERE lpr.resources IS NOT NULL AND lpr.resources::text != '[]'`
       );
 
       const bookMap = new Map<string, {
@@ -1936,13 +1951,13 @@ export async function registerRoutes(
             if (!existing.episodes.find(e => e.episodeSlug === row.episode_slug && e.podcastSlug === row.slug)) {
               existing.episodes.push({ podcastSlug: row.slug, episodeSlug: row.episode_slug, episodeTitle: row.episode_title });
             }
-            existing.podcasts.set(row.slug, row.slug);
+            existing.podcasts.set(row.slug, row.podcast_name);
             if (!existing.author && r.author) existing.author = r.author;
             if (!existing.url && r.url) existing.url = r.url;
             if (r.url && r.url.includes('/dp/') && !existing.url?.includes('/dp/')) existing.url = r.url;
           } else {
             const podcasts = new Map<string, string>();
-            podcasts.set(row.slug, row.slug);
+            podcasts.set(row.slug, row.podcast_name);
             bookMap.set(key, {
               name: r.name,
               author: r.author || null,
@@ -1957,18 +1972,32 @@ export async function registerRoutes(
         }
       }
 
+      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
+      const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
+
       const books = Array.from(bookMap.values())
-        .map(b => ({
-          name: b.name,
-          author: b.author,
-          description: b.description,
-          url: b.url,
-          context: b.context,
-          podcastCount: b.podcasts.size,
-          podcastSlugs: Array.from(b.podcasts.keys()),
-          episodes: b.episodes,
-          mentionCount: b.mentionCount,
-        }))
+        .map(b => {
+          const key = b.name.toLowerCase().trim();
+          const enrichment = enrichMap.get(key) as any;
+          const enrichedAsin = enrichment?.asin || null;
+          const originalAsin = extractAsinFromUrl(b.url);
+          const finalAsin = enrichedAsin || originalAsin;
+          const amazonUrl = finalAsin
+            ? `https://www.amazon.com/dp/${finalAsin}?tag=podcap-20`
+            : enrichment?.amazon_url || b.url || `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${b.author ? ` ${b.author}` : ""}`)}&tag=podcap-20`;
+
+          return {
+            name: b.name,
+            author: enrichment?.author || b.author,
+            description: enrichment?.description || b.description,
+            podcastBuzz: enrichment?.podcast_buzz || null,
+            amazonUrl,
+            asin: finalAsin,
+            podcastCount: b.podcasts.size,
+            podcastNames: Array.from(b.podcasts.values()),
+            mentionCount: b.mentionCount,
+          };
+        })
         .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
 
       res.json({ books, total: books.length });
@@ -3849,6 +3878,22 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       res.json({ message: "Book backfill complete", processed, booksFound, results });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to run book backfill" });
+    }
+  });
+
+  app.post("/api/admin/enrich-books", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { enrichAllBooks } = await import("./enrichBooks");
+      const limit = req.body?.limit || undefined;
+      res.json({ message: "Book enrichment started" });
+      enrichAllBooks(limit).then(result => {
+        console.log(`[BookEnrich] Complete: ${result.processed} processed, ${result.errors} errors`);
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to enrich books" });
     }
   });
 

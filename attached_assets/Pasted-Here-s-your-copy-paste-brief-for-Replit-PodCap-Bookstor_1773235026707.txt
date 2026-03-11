@@ -1,0 +1,77 @@
+Here's your copy-paste brief for Replit:
+
+PodCap Bookstore — Individual Book Pages
+Overview
+We need to create individual pages for every book in our database at the URL structure: podcap.io/books/[book-slug] (e.g. podcap.io/books/mastery-robert-greene).
+These pages should be auto-generated whenever a new book is added to our database or detected in a transcript. No manual work required.
+
+Two-page strategy to understand before building
+The bookstore page (podcap.io/books) is a discovery engine. Its only job is to get someone excited enough to click on a book. No Amazon links on this page — we want to keep users browsing, not send them away too early.
+The individual book page (podcap.io/books/[slug]) is a conversion page. Its job is to get someone to buy the book. This is where the Amazon affiliate link lives.
+
+What to build on the individual book page
+1. Hero section
+
+Book cover image (pull from Open Library or Google Books API)
+Title, author, publish year
+Category/genre tags
+Star rating (aggregated from podcast mention sentiment if possible, or pull from Google Books)
+A single "Buy on Amazon" CTA button — prominent, above the fold
+Key stats: total mentions, number of podcasts, number of unique hosts who recommended it
+
+2. Social proof banner
+
+Pull the single most impressive quote about this book from our database and feature it huge at the top. Example: "This book changed how I think about everything." — Elon Musk, Lex Fridman Podcast
+If multiple high-profile people mentioned it, show 2-3 of their avatars with a line like "Recommended by Tim Ferriss, Sam Parr, and 89 others"
+
+3. Podcast mentions section
+
+List every episode where this book was mentioned
+Each entry shows: podcast name, episode title, host name, date, and the exact quote from the transcript
+Sort by most recent by default, with option to sort by most prominent podcast
+Each entry links back to that episode on PodCap
+
+4. About this book
+
+Pull a description from Google Books API or Open Library
+Key themes/topics as tags
+
+5. "Listeners also read" section
+
+Internal links to other books that tend to be mentioned in the same episodes or by the same hosts
+Show as a mini bookshelf grid — 4 to 6 books with cover, title, mention count
+This is critical for SEO internal linking and for keeping users on the site
+
+6. Buy the book
+
+Repeat the Amazon CTA at the bottom of the page
+Optionally add Audible link as a second option
+
+
+Auto-generation logic
+When a book is added to the database or first detected in a transcript, the system should:
+
+Create the book record with a URL slug (format: title-author-lastname, all lowercase, hyphens)
+Pull metadata automatically from Open Library API (free, no key needed) or Google Books API
+Generate the page using the template above
+The page populates dynamically as more mentions are added over time — it gets richer automatically
+
+
+SEO requirements for each page
+
+Page title: [Book Title] by [Author] — Mentioned on [X] Podcasts | PodCap
+Meta description: auto-generated from the top quote + mention count. Example: "Mastery by Robert Greene has been mentioned 1,203 times across 91 podcasts. Hear what Tim Ferriss, Sam Parr, and others said about it."
+H1: Book title
+H2s: "What Podcasters Say About [Title]", "Episodes Featuring [Title]", "Readers Also Enjoyed"
+Each quote from a podcast is its own indexable text block — this is where the long-tail SEO value lives
+Canonical URL on every page
+Schema markup: use Book schema and Review schema for the podcast quotes so Google can display rich results
+
+
+What to remove from the bookstore/discovery page
+
+Remove Amazon links from the bookstore grid — replace with an internal link to the book's individual page
+The bookstore page CTA should be "View Book" or "See All Mentions" not "Buy on Amazon"
+
+
+That's it. The pages auto-generate, get richer over time as more mentions come in, and each one becomes a standalone SEO asset. Let me know if you have questions.

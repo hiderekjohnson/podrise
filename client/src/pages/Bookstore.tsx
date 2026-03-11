@@ -2,50 +2,28 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, Search, ExternalLink, Mic, ChevronDown, X } from "lucide-react";
+import { BookOpen, Search, ExternalLink, Mic, X } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { PodCapWordmark } from "@/components/PodCapHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { Zap } from "lucide-react";
 
-const AMAZON_AFFILIATE_TAG = "podcap-20";
 
 interface BookstoreBook {
   name: string;
   author: string | null;
   description: string;
-  url: string;
-  context: string[];
+  podcastBuzz: string | null;
+  amazonUrl: string;
+  asin: string | null;
   podcastCount: number;
-  podcastSlugs: string[];
-  episodes: { podcastSlug: string; episodeSlug: string; episodeTitle: string }[];
+  podcastNames: string[];
   mentionCount: number;
 }
 
 interface BookstoreData {
   books: BookstoreBook[];
   total: number;
-}
-
-function extractAsin(url: string): string | null {
-  const patterns = [
-    /\/dp\/([A-Za-z0-9]{10})/,
-    /\/gp\/product\/([A-Za-z0-9]{10})/,
-    /\/product\/([A-Za-z0-9]{10})/,
-    /amazon\.com\/([A-Z0-9]{10})(?:[/?]|$)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1].toUpperCase();
-  }
-  return null;
-}
-
-function getAmazonUrl(book: BookstoreBook): string {
-  const asin = extractAsin(book.url || "");
-  if (asin) return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`;
-  const searchQuery = encodeURIComponent(`${book.name}${book.author ? ` ${book.author}` : ""}`);
-  return `https://www.amazon.com/s?k=${searchQuery}&tag=${AMAZON_AFFILIATE_TAG}`;
 }
 
 function BookCover({ title, asin, author, size = "md" }: { title: string; asin: string | null; author?: string | null; size?: "sm" | "md" | "lg" }) {
@@ -151,11 +129,6 @@ function SEOHead() {
 }
 
 function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
-  const [expanded, setExpanded] = useState(false);
-  const asin = extractAsin(book.url || "");
-  const amazonUrl = getAmazonUrl(book);
-  const bestContext = book.context[0] || book.description || "";
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -166,12 +139,12 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
     >
       <div className="p-5">
         <div className="flex gap-4">
-          <a href={amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0" data-testid={`book-cover-link-${index}`}>
-            <BookCover title={book.name} asin={asin} author={book.author} size="md" />
+          <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0" data-testid={`book-cover-link-${index}`}>
+            <BookCover title={book.name} asin={book.asin} author={book.author} size="md" />
           </a>
           <div className="flex-1 min-w-0">
             <a
-              href={amazonUrl}
+              href={book.amazonUrl}
               target="_blank"
               rel="sponsored noopener noreferrer"
               className="block group/title"
@@ -193,66 +166,46 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
               </span>
               {book.podcastCount > 1 && (
                 <span className="text-xs text-muted-foreground" data-testid={`book-podcasts-${index}`}>
-                  {book.podcastCount} podcasts
+                  across {book.podcastCount} podcasts
                 </span>
               )}
             </div>
-            {bestContext && (
-              <p className="text-sm text-muted-foreground leading-relaxed mt-2.5 line-clamp-2" data-testid={`book-context-${index}`}>
-                {bestContext}
-              </p>
-            )}
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              {book.episodes.length > 0 && (
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  data-testid={`book-toggle-episodes-${index}`}
-                >
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
-                  {book.episodes.length} {book.episodes.length === 1 ? "episode" : "episodes"}
-                </button>
-              )}
-            </div>
-            <a
-              href={amazonUrl}
-              target="_blank"
-              rel="sponsored noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-              data-testid={`book-buy-${index}`}
-            >
-              Buy on Amazon
-              <ExternalLink className="w-3 h-3 opacity-40" />
-            </a>
-          </div>
+        {book.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed mt-4" data-testid={`book-description-${index}`}>
+            {book.description}
+          </p>
+        )}
 
-          {expanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              transition={{ duration: 0.2 }}
-              className="mt-3 space-y-1.5"
-            >
-              {book.episodes.slice(0, 10).map((ep, i) => (
-                <Link
-                  key={`${ep.podcastSlug}-${ep.episodeSlug}-${i}`}
-                  href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
-                  className="block text-sm text-primary hover:text-primary/80 truncate transition-colors"
-                  data-testid={`book-episode-link-${index}-${i}`}
-                >
-                  {ep.episodeTitle}
-                </Link>
-              ))}
-              {book.episodes.length > 10 && (
-                <p className="text-xs text-muted-foreground">and {book.episodes.length - 10} more...</p>
-              )}
-            </motion.div>
-          )}
+        {book.podcastBuzz && (
+          <div className="mt-3 px-3.5 py-2.5 bg-amber-500/[0.04] border border-amber-500/[0.08] rounded-xl" data-testid={`book-buzz-${index}`}>
+            <p className="text-sm text-amber-800 dark:text-amber-300/90 leading-relaxed">
+              <Mic className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5 text-amber-600/60" />
+              {book.podcastBuzz}
+            </p>
+          </div>
+        )}
+
+        {!book.podcastBuzz && book.podcastNames.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-3" data-testid={`book-podcast-list-${index}`}>
+            Mentioned on {book.podcastNames.slice(0, 3).join(", ")}
+            {book.podcastNames.length > 3 && ` and ${book.podcastNames.length - 3} more`}
+          </p>
+        )}
+
+        <div className="mt-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.04] flex items-center justify-end">
+          <a
+            href={book.amazonUrl}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+            data-testid={`book-buy-${index}`}
+          >
+            Buy on Amazon
+            <ExternalLink className="w-3 h-3 opacity-40" />
+          </a>
         </div>
       </div>
     </motion.div>
