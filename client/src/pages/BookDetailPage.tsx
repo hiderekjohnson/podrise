@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
@@ -62,35 +62,10 @@ interface BookDetail {
   relatedBooks: RelatedBook[];
 }
 
-function BookCover({ title, asin, slug, size = "lg" }: { title: string; asin: string | null; slug?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
-  const [localFailed, setLocalFailed] = useState(false);
+function BookCover({ title, slug, size = "lg" }: { title: string; asin?: string | null; slug?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
   const [failed, setFailed] = useState(false);
-  const [olSrc, setOlSrc] = useState<string | null>(null);
-  const [olFailed, setOlFailed] = useState(false);
-
+  useEffect(() => { setFailed(false); }, [slug]);
   const localUrl = slug ? `/books/${slug}.jpg` : null;
-
-  useEffect(() => {
-    setLocalFailed(false);
-    setFailed(false);
-    setOlSrc(null);
-    setOlFailed(false);
-  }, [title, asin, slug]);
-
-  useEffect(() => {
-    if (localUrl && !localFailed) return;
-    if (asin && !failed) return;
-    if (olSrc || olFailed) return;
-    const q = encodeURIComponent(title);
-    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
-      .then(r => r.json())
-      .then(data => {
-        const coverId = data?.docs?.[0]?.cover_i;
-        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-L.jpg`);
-        else setOlFailed(true);
-      })
-      .catch(() => setOlFailed(true));
-  }, [title, asin, failed, olSrc, olFailed, localUrl, localFailed]);
 
   const sizeClasses: Record<string, string> = {
     sm: "w-12 h-[72px]",
@@ -101,64 +76,24 @@ function BookCover({ title, asin, slug, size = "lg" }: { title: string; asin: st
 
   const imgCls = `${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`;
 
-  const placeholder = (
+  if (localUrl && !failed) {
+    return <img src={localUrl} alt={title} className={imgCls} onError={() => setFailed(true)} />;
+  }
+  return (
     <div className={`${sizeClasses[size]} rounded-xl bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
       <BookOpen className="w-8 h-8 text-amber-500/40" />
     </div>
   );
-
-  if (localUrl && !localFailed) {
-    return <img src={localUrl} alt={title} className={imgCls} onError={() => setLocalFailed(true)} />;
-  }
-  if (asin && !failed) {
-    return <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX300_.jpg`} alt={title} className={imgCls} onError={() => setFailed(true)} />;
-  }
-  if (olSrc && !olFailed) {
-    return <img src={olSrc} alt={title} className={imgCls} onError={() => setOlFailed(true)} />;
-  }
-  return placeholder;
 }
 
-function SmallBookCover({ title, asin, slug }: { title: string; asin: string | null; slug?: string | null }) {
-  const [localFailed, setLocalFailed] = useState(false);
+function SmallBookCover({ title, slug }: { title: string; asin?: string | null; slug?: string | null }) {
   const [failed, setFailed] = useState(false);
-  const [olSrc, setOlSrc] = useState<string | null>(null);
-  const [olFailed, setOlFailed] = useState(false);
-
+  useEffect(() => { setFailed(false); }, [slug]);
   const localUrl = slug ? `/books/${slug}.jpg` : null;
-
-  useEffect(() => {
-    setLocalFailed(false);
-    setFailed(false);
-    setOlSrc(null);
-    setOlFailed(false);
-  }, [title, asin, slug]);
-
-  useEffect(() => {
-    if (localUrl && !localFailed) return;
-    if (asin && !failed) return;
-    if (olSrc || olFailed) return;
-    const q = encodeURIComponent(title);
-    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
-      .then(r => r.json())
-      .then(data => {
-        const coverId = data?.docs?.[0]?.cover_i;
-        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
-        else setOlFailed(true);
-      })
-      .catch(() => setOlFailed(true));
-  }, [title, asin, failed, olSrc, olFailed, localUrl, localFailed]);
-
   const cls = "w-16 h-24 rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]";
 
-  if (localUrl && !localFailed) {
-    return <img src={localUrl} alt={title} className={cls} onError={() => setLocalFailed(true)} loading="lazy" />;
-  }
-  if (asin && !failed) {
-    return <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX200_.jpg`} alt={title} className={cls} onError={() => setFailed(true)} loading="lazy" />;
-  }
-  if (olSrc && !olFailed) {
-    return <img src={olSrc} alt={title} className={cls} onError={() => setOlFailed(true)} loading="lazy" />;
+  if (localUrl && !failed) {
+    return <img src={localUrl} alt={title} className={cls} onError={() => setFailed(true)} loading="lazy" />;
   }
   return (
     <div className="w-16 h-24 rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10">

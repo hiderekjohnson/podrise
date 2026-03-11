@@ -49,50 +49,18 @@ function getBlinkistBookUrl(name: string): string {
   return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
-function PodcastBookCover({ title, asin, slug }: { title: string; asin: string | null; slug?: string | null }) {
-  const [localFailed, setLocalFailed] = useState(false);
+function PodcastBookCover({ title, slug }: { title: string; asin?: string | null; slug?: string | null }) {
   const [failed, setFailed] = useState(false);
-  const [olSrc, setOlSrc] = useState<string | null>(null);
-  const [olFailed, setOlFailed] = useState(false);
-
+  useEffect(() => { setFailed(false); }, [slug]);
   const localUrl = slug ? `/books/${slug}.jpg` : null;
-  const coverUrl = asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX100_.jpg` : null;
 
-  useEffect(() => {
-    setLocalFailed(false);
-    setFailed(false);
-    setOlSrc(null);
-    setOlFailed(false);
-  }, [title, asin, slug]);
-
-  useEffect(() => {
-    if (localUrl && !localFailed) return;
-    if (coverUrl && !failed) return;
-    if (olSrc || olFailed) return;
-    const q = encodeURIComponent(title);
-    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
-      .then(r => r.json())
-      .then(data => {
-        const coverId = data?.docs?.[0]?.cover_i;
-        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
-        else setOlFailed(true);
-      })
-      .catch(() => setOlFailed(true));
-  }, [title, coverUrl, failed, olSrc, olFailed, localUrl, localFailed]);
-
-  const imgSrc = (localUrl && !localFailed) ? localUrl : (coverUrl && !failed) ? coverUrl : (olSrc && !olFailed) ? olSrc : null;
-
-  if (imgSrc) {
+  if (localUrl && !failed) {
     return (
       <img
-        src={imgSrc}
+        src={localUrl}
         alt={title}
         className="w-full h-full object-cover rounded-lg"
-        onError={() => {
-          if (localUrl && !localFailed) setLocalFailed(true);
-          else if (coverUrl && !failed) setFailed(true);
-          else setOlFailed(true);
-        }}
+        onError={() => setFailed(true)}
       />
     );
   }

@@ -82,44 +82,13 @@ const EXISTING_COMPANY_SLUGS = new Set(COMPANIES_DIRECTORY.map(c => c.slug));
 const EXISTING_PEOPLE_SLUGS = new Set(PEOPLE_DIRECTORY.map(p => p.slug));
 
 
-function PersonBookCover({ name, asin, slug }: { name: string; asin: string | null; slug: string | null }) {
-  const [localFailed, setLocalFailed] = useState(false);
+function PersonBookCover({ name, slug }: { name: string; asin?: string | null; slug: string | null }) {
   const [failed, setFailed] = useState(false);
-  const [olSrc, setOlSrc] = useState<string | null>(null);
-  const [olFailed, setOlFailed] = useState(false);
-
+  useEffect(() => { setFailed(false); }, [slug]);
   const localUrl = slug ? `/books/${slug}.jpg` : null;
 
-  useEffect(() => {
-    setLocalFailed(false);
-    setFailed(false);
-    setOlSrc(null);
-    setOlFailed(false);
-  }, [name, asin, slug]);
-
-  useEffect(() => {
-    if (localUrl && !localFailed) return;
-    if (asin && !failed) return;
-    if (olSrc || olFailed) return;
-    const q = encodeURIComponent(name);
-    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
-      .then(r => r.json())
-      .then(data => {
-        const coverId = data?.docs?.[0]?.cover_i;
-        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
-        else setOlFailed(true);
-      })
-      .catch(() => setOlFailed(true));
-  }, [name, asin, localUrl, localFailed, failed, olSrc, olFailed]);
-
-  if (localUrl && !localFailed) {
-    return <img src={localUrl} alt={name} className="w-full h-full object-contain" onError={() => setLocalFailed(true)} />;
-  }
-  if (asin && !failed) {
-    return <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SCLZZZZZZZ_SX120_.jpg`} alt={name} className="w-full h-full object-contain" onError={() => setFailed(true)} />;
-  }
-  if (olSrc && !olFailed) {
-    return <img src={olSrc} alt={name} className="w-full h-full object-contain" onError={() => setOlFailed(true)} />;
+  if (localUrl && !failed) {
+    return <img src={localUrl} alt={name} className="w-full h-full object-contain" onError={() => setFailed(true)} />;
   }
   return <BookOpen className="w-8 h-8 text-amber-400/60" />;
 }

@@ -6,6 +6,7 @@ import http from "http";
 
 const BOOKS_DIR = path.join(process.cwd(), "public", "books");
 const DELAY_MS = 150;
+const MIN_IMAGE_SIZE = 8000;
 
 if (!fs.existsSync(BOOKS_DIR)) {
   fs.mkdirSync(BOOKS_DIR, { recursive: true });
@@ -43,7 +44,7 @@ function downloadImage(url: string, dest: string): Promise<boolean> {
         totalSize += chunk.length;
       });
       res.on("end", () => {
-        if (totalSize < 1000) {
+        if (totalSize < MIN_IMAGE_SIZE) {
           resolve(false);
           return;
         }
@@ -58,6 +59,32 @@ function downloadImage(url: string, dest: string): Promise<boolean> {
       req.destroy();
       resolve(false);
     });
+  });
+}
+
+async function fetchGoogleBooksCover(title: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const q = encodeURIComponent(title);
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&fields=items(volumeInfo/imageLinks)`;
+    https.get(url, { timeout: 10000 }, (res) => {
+      let data = "";
+      res.on("data", (chunk: string) => { data += chunk; });
+      res.on("end", () => {
+        try {
+          const json = JSON.parse(data);
+          const imageLinks = json?.items?.[0]?.volumeInfo?.imageLinks;
+          const coverUrl = imageLinks?.thumbnail || imageLinks?.smallThumbnail;
+          if (coverUrl) {
+            resolve(coverUrl.replace("http://", "https://").replace("&edge=curl", "").replace("zoom=1", "zoom=2"));
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
+        }
+      });
+      res.on("error", () => resolve(null));
+    }).on("error", () => resolve(null));
   });
 }
 
@@ -101,6 +128,7 @@ async function main() {
     let skipped = 0;
     let failed = 0;
     let amazonSuccess = 0;
+    let googleSuccess = 0;
     let olSuccess = 0;
 
     for (const row of rows) {
@@ -108,7 +136,7 @@ async function main() {
 
       if (fs.existsSync(destPath)) {
         const stat = fs.statSync(destPath);
-        if (stat.size > 1000) {
+        if (stat.size >= MIN_IMAGE_SIZE) {
           skipped++;
           continue;
         }
@@ -118,12 +146,24 @@ async function main() {
       let success = false;
 
       if (row.asin) {
-        const amazonUrl = `https://images-na.ssl-images-amazon.com/images/P/${row.asin}.01._SX300_.jpg`;
+        const amazonUrl = `https://images-na.ssl-images-amazon.com/images/P/${row.asin}.01._SX400_.jpg`;
         success = await downloadImage(amazonUrl, destPath);
         if (success) {
           amazonSuccess++;
           downloaded++;
           console.log(`  [Amazon] ${row.book_title} -> ${row.slug}.jpg`);
+          await sleep(DELAY_MS);
+          continue;
+        }
+      }
+
+      const googleCoverUrl = await fetchGoogleBooksCover(row.book_title);
+      if (googleCoverUrl) {
+        success = await downloadImage(googleCoverUrl, destPath);
+        if (success) {
+          googleSuccess++;
+          downloaded++;
+          console.log(`  [Google] ${row.book_title} -> ${row.slug}.jpg`);
           await sleep(DELAY_MS);
           continue;
         }
@@ -150,7 +190,7 @@ async function main() {
     console.log(`\n========== RESULTS ==========`);
     console.log(`Total books: ${rows.length}`);
     console.log(`Already had: ${skipped}`);
-    console.log(`Downloaded: ${downloaded} (Amazon: ${amazonSuccess}, OpenLibrary: ${olSuccess})`);
+    console.log(`Downloaded: ${downloaded} (Amazon: ${amazonSuccess}, Google: ${googleSuccess}, OpenLibrary: ${olSuccess})`);
     console.log(`No cover found: ${failed}`);
   } finally {
     client.release();

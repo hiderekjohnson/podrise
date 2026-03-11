@@ -78,63 +78,23 @@ function getBlinkistUrl(book: BookResource): string {
   return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
-function BookCover({ title, asin, slug, testId }: { title: string; asin: string | null; slug?: string | null; author?: string | null; testId: string }) {
-  const [localFailed, setLocalFailed] = useState(false);
+function BookCover({ title, slug, testId }: { title: string; asin?: string | null; slug?: string | null; author?: string | null; testId: string }) {
   const [failed, setFailed] = useState(false);
-  const [olSrc, setOlSrc] = useState<string | null>(null);
-  const [olFailed, setOlFailed] = useState(false);
-
+  useEffect(() => { setFailed(false); }, [slug]);
   const localUrl = slug ? `/books/${slug}.jpg` : null;
+  const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
 
-  useEffect(() => {
-    setLocalFailed(false);
-    setFailed(false);
-    setOlSrc(null);
-    setOlFailed(false);
-  }, [title, asin, slug]);
+  if (localUrl && !failed) {
+    return (
+      <img src={localUrl} alt={title} className={imgCls} data-testid={testId} onError={() => setFailed(true)} loading="lazy" />
+    );
+  }
 
-  useEffect(() => {
-    if (localUrl && !localFailed) return;
-    if (asin && !failed) return;
-    if (olSrc || olFailed) return;
-    const q = encodeURIComponent(title);
-    fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`)
-      .then(r => r.json())
-      .then(data => {
-        const coverId = data?.docs?.[0]?.cover_i;
-        if (coverId) setOlSrc(`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`);
-        else setOlFailed(true);
-      })
-      .catch(() => setOlFailed(true));
-  }, [title, asin, failed, olSrc, olFailed, localUrl, localFailed]);
-
-  const placeholder = (
+  return (
     <div className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10" data-testid={testId}>
       <BookOpen className="w-5 h-5 text-amber-500/40" />
     </div>
   );
-
-  const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
-
-  if (localUrl && !localFailed) {
-    return (
-      <img src={localUrl} alt={title} className={imgCls} data-testid={testId} onError={() => setLocalFailed(true)} loading="lazy" />
-    );
-  }
-
-  if (asin && !failed) {
-    return (
-      <img src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX120_.jpg`} alt={title} className={imgCls} data-testid={testId} onError={() => setFailed(true)} loading="lazy" />
-    );
-  }
-
-  if (olSrc && !olFailed) {
-    return (
-      <img src={olSrc} alt={title} className={imgCls} data-testid={testId} onError={() => setOlFailed(true)} loading="lazy" />
-    );
-  }
-
-  return placeholder;
 }
 
 function GuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: string; testId: string }) {
