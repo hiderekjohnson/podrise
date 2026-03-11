@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Users, ListChecks, ExternalLink, ChevronRight } from "lucide-react";
+import { Calendar, Clock, Headphones, ArrowRight, Mail, X, Users, ListChecks, ExternalLink, ChevronRight } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +26,7 @@ interface EpisodePageLayoutProps {
   podcastSlug: string;
   episodeSlug: string;
   podcastConfig: PodcastLandingConfig;
-  activeTab: "recap" | "guests";
+  activeTab?: "recap" | "guests";
   allRecaps?: any[];
   children: React.ReactNode;
 }
@@ -36,7 +36,6 @@ export function EpisodePageLayout({
   podcastSlug,
   episodeSlug,
   podcastConfig,
-  activeTab,
   allRecaps = [],
   children,
 }: EpisodePageLayoutProps) {
@@ -129,8 +128,6 @@ export function EpisodePageLayout({
       }
     );
   }, [stickyEmail, podcastConfig, register, navigate, toast]);
-
-  const recapUrl = `/podcasts/${podcastSlug}/${episodeSlug}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -266,30 +263,6 @@ export function EpisodePageLayout({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-4xl"
         >
-          <div className="flex items-center border-b border-black/[0.06] mb-8" data-testid="nav-recap-transcript-tabs">
-            {activeTab === "recap" ? (
-              <span
-                className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-primary text-primary -mb-px"
-                data-testid="tab-recap-active"
-              >
-                <FileText className="w-4 h-4" />
-                Episode Recap
-              </span>
-            ) : (
-              <Link href={recapUrl}>
-                <span
-                  className="flex items-center gap-2 px-5 py-4 text-[17px] font-semibold min-h-[52px] border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-black/[0.08] -mb-px transition-colors cursor-pointer"
-                  data-testid="tab-recap-link"
-                >
-                  <FileText className="w-4 h-4" />
-                  Episode Recap
-                </span>
-              </Link>
-            )}
-
-
-          </div>
-
           {children}
         </motion.div>
 
