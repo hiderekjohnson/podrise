@@ -44,7 +44,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
 - **OpenAI**: AI-driven podcast recap generation and content extraction.
-- **Taddy GraphQL API**: Podcast transcription services and show notes.
+- **Taddy GraphQL API**: Podcast transcription services and show notes. CRITICAL: Taddy has transcripts for ALL podcasts. Do NOT filter by `taddyTranscribeStatus` -- that field is unreliable. Instead, call `getEpisodeTranscript(uuid)` for every episode and check if it returns data. The backfill script is `server/downloadAllTranscripts.ts` (workflow: "Backfill Transcripts"). It downloads transcripts + all episode metadata, uses retry logic with backoff, and targets 100 transcripts per podcast.
 - **iTunes Search API**: Podcast search functionality.
 - **Resend**: Email delivery.
 - **`connect-pg-simple`**: PostgreSQL-backed Express session storage.
