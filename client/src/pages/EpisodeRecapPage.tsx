@@ -386,6 +386,20 @@ export default function EpisodeRecapPage() {
     }).slice(0, 12);
   }, [episode, guests, podcastHosts]);
 
+  const getPersonSlug = useMemo(() => {
+    const nameMap = new Map<string, string>();
+    for (const p of PEOPLE_DIRECTORY) {
+      nameMap.set(p.name.toLowerCase().trim(), p.slug);
+      for (const term of p.searchTerms) {
+        nameMap.set(term.toLowerCase().trim(), p.slug);
+      }
+    }
+    return (name: string): string | null => {
+      if (!name) return null;
+      return nameMap.get(name.toLowerCase().trim()) || null;
+    };
+  }, []);
+
   const notableCompanies = useMemo(() => {
     if (!episode) return [];
     const serverSlugs: string[] = (episode as any).matchedCompanySlugs || [];
@@ -792,12 +806,24 @@ export default function EpisodeRecapPage() {
                 <div className="mb-6">
                   <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-guest-label">{guests.length > 1 ? "Guests" : "Guest"}</h3>
                   <div className="space-y-5">
-                    {guests.map((guest, i) => (
+                    {guests.map((guest, i) => {
+                      const personSlug = getPersonSlug(guest.name);
+                      return (
                       <div key={i} className="flex items-start gap-4" data-testid={`guest-card-${i}`}>
-                        <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                        {personSlug ? (
+                          <Link href={`/people/${personSlug}`} className="flex-shrink-0">
+                            <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                          </Link>
+                        ) : (
+                          <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                        )}
                         <div className="flex-1 min-w-0">
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
-                            {guest.name}
+                            {personSlug ? (
+                              <Link href={`/people/${personSlug}`} className="hover:text-primary transition-colors" data-testid={`guest-link-${i}`}>
+                                {guest.name}
+                              </Link>
+                            ) : guest.name}
                           </h4>
                           <p className="text-[15px] leading-[1.8] text-muted-foreground mt-1">
                             {guest.title ? guest.title + ". " : ""}{guest.bio || ""}
@@ -832,7 +858,8 @@ export default function EpisodeRecapPage() {
                           )}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -841,22 +868,35 @@ export default function EpisodeRecapPage() {
                 <div>
                   <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-hosts-label">Hosts</h3>
                   <div className="space-y-5">
-                    {podcastHosts.map((host: any, i: number) => (
+                    {podcastHosts.map((host: any, i: number) => {
+                      const hostPersonSlug = getPersonSlug(host.name);
+                      const hostPhoto = host.photoUrl ? (
+                        <img
+                          src={host.photoUrl}
+                          alt={host.name}
+                          className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted border border-black/[0.06] dark:border-white/[0.08]"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
+                          <span className="text-lg font-bold text-primary">{host.name.charAt(0)}</span>
+                        </div>
+                      );
+                      return (
                       <div key={i} className="flex items-start gap-4" data-testid={`host-card-${i}`}>
-                        {host.photoUrl ? (
-                          <img
-                            src={host.photoUrl}
-                            alt={host.name}
-                            className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted border border-black/[0.06] dark:border-white/[0.08]"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg font-bold text-primary">{host.name.charAt(0)}</span>
-                          </div>
-                        )}
+                        {hostPersonSlug ? (
+                          <Link href={`/people/${hostPersonSlug}`} className="flex-shrink-0">
+                            {hostPhoto}
+                          </Link>
+                        ) : hostPhoto}
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-[17px] font-bold text-foreground" data-testid={`host-name-${i}`}>{host.name}</h4>
+                          <h4 className="text-[17px] font-bold text-foreground" data-testid={`host-name-${i}`}>
+                            {hostPersonSlug ? (
+                              <Link href={`/people/${hostPersonSlug}`} className="hover:text-primary transition-colors" data-testid={`host-link-${i}`}>
+                                {host.name}
+                              </Link>
+                            ) : host.name}
+                          </h4>
                           {host.bio && (
                             <p className="text-[15px] leading-[1.8] text-muted-foreground mt-1">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
                           )}
@@ -890,7 +930,8 @@ export default function EpisodeRecapPage() {
                           )}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
