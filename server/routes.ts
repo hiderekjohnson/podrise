@@ -21,6 +21,7 @@ declare module "express-session" {
     isAdmin?: boolean;
     impersonatingUserId?: number;
     originalUserId?: number;
+    podcasterEmail?: string;
   }
 }
 
@@ -764,6 +765,18 @@ export async function registerRoutes(
       res.json({ podcasts: podcastDetails });
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch founder podcasts" });
+    }
+  });
+
+  app.get("/api/podcasts/directory", async (_req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT slug, name, artwork_url FROM podcast_directory WHERE slug IS NOT NULL ORDER BY name ASC`
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[Directory] Error:", err);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
@@ -5908,6 +5921,259 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       epGenState.running = false;
       epGenState.autoQueue = false;
     });
+  });
+
+  // ─── Podcaster Claim & Dashboard Routes ─────────────────────────
+  app.post("/api/podcaster/claim", async (req, res) => {
+    try {
+      const schema = z.object({
+        podcastSlug: z.string().min(1),
+        email: z.string().email(),
+        name: z.string().min(1),
+      });
+      const data = schema.parse(req.body);
+      const podcastCheck = await pool.query(
+        `SELECT slug FROM podcast_directory WHERE slug = $1`,
+        [data.podcastSlug]
+      );
+      if (podcastCheck.rows.length === 0) {
+        return res.status(404).json({ message: "Podcast not found" });
+      }
+      const existing = await pool.query(
+        `SELECT id, verified FROM podcaster_claims WHERE podcast_slug = $1`,
+        [data.podcastSlug]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(409).json({ message: "This podcast has already been claimed" });
+      }
+      await pool.query(
+        `INSERT INTO podcaster_claims (podcast_slug, email, name) VALUES ($1, $2, $3)`,
+        [data.podcastSlug, data.email, data.name]
+      );
+      try {
+        const { client, fromEmail } = await getUncachableResendClient();
+        await client.emails.send({
+          from: `PodCap <${fromEmail}>`,
+          to: "hiderekjohnson@gmail.com",
+          subject: `🎙️ New Podcaster Claim: ${data.podcastSlug}`,
+          html: `<p><strong>${data.name}</strong> (${data.email}) wants to claim <strong>${data.podcastSlug}</strong>.</p><p>Verify in the admin panel.</p>`,
+        });
+      } catch {}
+      res.json({ success: true, message: "Claim submitted. We'll verify your ownership and get back to you." });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Invalid input", errors: err.errors });
+      console.error("[Podcaster] Claim error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/podcaster/claim/:slug", async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT podcast_slug, name, verified, custom_byline_text, custom_byline_url, custom_byline_label FROM podcaster_claims WHERE podcast_slug = $1 AND verified = true`,
+        [req.params.slug]
+      );
+      if (result.rows.length === 0) {
+        return res.json({ claimed: false });
+      }
+      const row = result.rows[0];
+      res.json({
+        claimed: true,
+        name: row.name,
+        byline: row.custom_byline_text ? {
+          text: row.custom_byline_text,
+          url: row.custom_byline_url,
+          label: row.custom_byline_label,
+        } : null,
+      });
+    } catch (err) {
+      console.error("[Podcaster] Claim check error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/podcaster/login", async (req, res) => {
+    try {
+      const schema = z.object({ email: z.string().email() });
+      const { email } = schema.parse(req.body);
+      const claims = await pool.query(
+        `SELECT id, podcast_slug, name, verified FROM podcaster_claims WHERE email = $1`,
+        [email]
+      );
+      if (claims.rows.length === 0) {
+        return res.status(404).json({ message: "No claims found for this email" });
+      }
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+      await pool.query(
+        `INSERT INTO magic_links (email, token, expires_at) VALUES ($1, $2, $3)`,
+        [email, token, expiresAt]
+      );
+      const loginUrl = `${req.protocol}://${req.get("host")}/podcaster/verify?token=${token}`;
+      try {
+        const { client, fromEmail } = await getUncachableResendClient();
+        await client.emails.send({
+          from: `PodCap <${fromEmail}>`,
+          to: email,
+          subject: "Your PodCap Podcaster Login Link",
+          html: `<p>Click below to access your podcaster dashboard:</p><p><a href="${loginUrl}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Open Dashboard</a></p><p style="color:#666;font-size:13px;">This link expires in 15 minutes.</p>`,
+        });
+      } catch (emailErr) {
+        console.error("[Podcaster] Login email error:", emailErr);
+        return res.status(500).json({ message: "Failed to send login email" });
+      }
+      res.json({ success: true, message: "Login link sent to your email" });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Invalid email" });
+      console.error("[Podcaster] Login error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/podcaster/verify", async (req, res) => {
+    try {
+      const token = req.query.token as string;
+      if (!token) return res.status(400).json({ message: "Missing token" });
+      const result = await pool.query(
+        `SELECT id, email, expires_at, used_at FROM magic_links WHERE token = $1`,
+        [token]
+      );
+      if (result.rows.length === 0) return res.status(404).json({ message: "Invalid link" });
+      const link = result.rows[0];
+      if (link.used_at) return res.status(410).json({ message: "Link already used" });
+      if (new Date(link.expires_at) < new Date()) return res.status(410).json({ message: "Link expired" });
+      await pool.query(`UPDATE magic_links SET used_at = NOW() WHERE id = $1`, [link.id]);
+      (req.session as any).podcasterEmail = link.email;
+      const claims = await pool.query(
+        `SELECT podcast_slug FROM podcaster_claims WHERE email = $1`,
+        [link.email]
+      );
+      const slugs = claims.rows.map((r: any) => r.podcast_slug);
+      res.json({ success: true, email: link.email, podcasts: slugs });
+    } catch (err) {
+      console.error("[Podcaster] Verify error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/podcaster/dashboard/:slug", async (req, res) => {
+    const podcasterEmail = (req.session as any).podcasterEmail;
+    const isAdmin = req.session.isAdmin;
+    if (!podcasterEmail && !isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    try {
+      const claimQuery = isAdmin
+        ? `SELECT * FROM podcaster_claims WHERE podcast_slug = $1`
+        : `SELECT * FROM podcaster_claims WHERE podcast_slug = $1 AND email = $2`;
+      const claimParams = isAdmin ? [req.params.slug] : [req.params.slug, podcasterEmail];
+      const claimResult = await pool.query(claimQuery, claimParams);
+      if (claimResult.rows.length === 0) return res.status(403).json({ message: "Not authorized for this podcast" });
+      const claim = claimResult.rows[0];
+      const podcastResult = await pool.query(
+        `SELECT name, artwork_url, description FROM podcast_directory WHERE slug = $1`,
+        [req.params.slug]
+      );
+      const podcast = podcastResult.rows[0] || {};
+      const sponsorResult = await pool.query(
+        `SELECT sponsors, episode_title, episode_slug, publish_date FROM landing_page_recaps WHERE slug = $1 AND sponsors IS NOT NULL AND sponsors::text != '[]' AND sponsors::text != 'null' ORDER BY publish_date DESC LIMIT 20`,
+        [req.params.slug]
+      );
+      const episodeSponsors = sponsorResult.rows.map((r: any) => ({
+        episodeTitle: r.episode_title,
+        episodeSlug: r.episode_slug,
+        publishDate: r.publish_date,
+        sponsors: (() => { try { return JSON.parse(r.sponsors); } catch { return []; } })(),
+      }));
+      res.json({
+        claim: {
+          id: claim.id,
+          podcastSlug: claim.podcast_slug,
+          email: claim.email,
+          name: claim.name,
+          verified: claim.verified,
+          byline: {
+            text: claim.custom_byline_text || "",
+            url: claim.custom_byline_url || "",
+            label: claim.custom_byline_label || "",
+          },
+          customSponsors: (() => { try { return JSON.parse(claim.custom_sponsors || "[]"); } catch { return []; } })(),
+        },
+        podcast: {
+          name: podcast.name,
+          artworkUrl: podcast.artwork_url,
+          description: podcast.description,
+        },
+        episodeSponsors,
+      });
+    } catch (err) {
+      console.error("[Podcaster] Dashboard error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/podcaster/dashboard/:slug", async (req, res) => {
+    const podcasterEmail = (req.session as any).podcasterEmail;
+    const isAdmin = req.session.isAdmin;
+    if (!podcasterEmail && !isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    try {
+      const updateSchema = z.object({
+        bylineText: z.string().max(200).optional(),
+        bylineUrl: z.string().url().refine(u => !u || u.startsWith("http://") || u.startsWith("https://"), { message: "URL must use http or https" }).or(z.literal("")).optional(),
+        bylineLabel: z.string().max(60).optional(),
+        customSponsors: z.array(z.object({
+          name: z.string(),
+          description: z.string().optional(),
+          couponCode: z.string().optional(),
+          url: z.string().optional(),
+          howToRedeem: z.string().optional(),
+        })).optional(),
+      });
+      const data = updateSchema.parse(req.body);
+      const authQuery = isAdmin
+        ? `SELECT id FROM podcaster_claims WHERE podcast_slug = $1 AND verified = true`
+        : `SELECT id FROM podcaster_claims WHERE podcast_slug = $1 AND email = $2 AND verified = true`;
+      const authParams = isAdmin ? [req.params.slug] : [req.params.slug, podcasterEmail];
+      const claimResult = await pool.query(authQuery, authParams);
+      if (claimResult.rows.length === 0) return res.status(403).json({ message: "Not authorized or claim not verified" });
+      await pool.query(
+        `UPDATE podcaster_claims SET custom_byline_text = $1, custom_byline_url = $2, custom_byline_label = $3, custom_sponsors = $4 WHERE podcast_slug = $5`,
+        [
+          data.bylineText || null,
+          data.bylineUrl || null,
+          data.bylineLabel || null,
+          data.customSponsors ? JSON.stringify(data.customSponsors) : null,
+          req.params.slug,
+        ]
+      );
+      res.json({ success: true });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Invalid input", errors: err.errors });
+      console.error("[Podcaster] Dashboard update error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/podcaster-claims", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    try {
+      const result = await pool.query(
+        `SELECT pc.*, pd.name as podcast_name, pd.artwork_url FROM podcaster_claims pc LEFT JOIN podcast_directory pd ON pd.slug = pc.podcast_slug ORDER BY pc.created_at DESC`
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[Admin] Claims error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/admin/podcaster-claims/:id/verify", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    try {
+      await pool.query(`UPDATE podcaster_claims SET verified = true WHERE id = $1`, [req.params.id]);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[Admin] Verify claim error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   return httpServer;

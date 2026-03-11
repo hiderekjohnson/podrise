@@ -43,4 +43,12 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **`framer-motion`**: For frontend animations.
 
 ## Episode Recap Page Sections (in order)
-About this Episode (SEO intro paragraph), Key Takeaways, Full Recap, Guests (sky-500), Notable Mentions (orange-500, matches PEOPLE_DIRECTORY/COMPANIES_DIRECTORY, links to /people and /companies), Key Topics (emerald-500, chips link to /topics/{slug}), Hosts (indigo-500, from /api/podcasts/:slug/hosts), Questions Answered in This Episode (violet-500, expanded H3s), Podcast Chat (violet-500, AI sparkle badge). Navigation chips at top scroll to each section.
+About this Episode (SEO intro paragraph), Key Takeaways, Full Recap, Guests (sky-500), Notable Mentions (orange-500, matches PEOPLE_DIRECTORY/COMPANIES_DIRECTORY, links to /people and /companies), Key Topics (emerald-500, chips link to /topics/{slug}), Books Mentioned (amber-500, Amazon affiliate links with tag podcap-20), Sponsors (teal-500, coupon codes with copy button), Hosts (indigo-500, from /api/podcasts/:slug/hosts), Questions Answered in This Episode (violet-500, expanded H3s), Podcast Chat (violet-500, AI sparkle badge). Navigation chips at top scroll to each section. Podcaster Byline banner appears above content when podcast has a verified claim with byline text.
+
+## Podcaster System
+**Podcaster Claims**: `podcaster_claims` table stores podcast ownership claims. Podcasters claim their show at `/podcaster/claim`, admin verifies via `/api/admin/podcaster-claims/:id/verify`. Verified claims unlock the dashboard.
+**Podcaster Dashboard**: `/podcaster/dashboard/:slug` — manages custom byline (text, URL, label) and views detected sponsors. Auth via magic link email + session (`podcasterEmail` on session).
+**Custom Byline**: Verified podcasters set a message + optional link that appears on every podcast page and episode recap page via `PodcasterByline` component. Fetched from `GET /api/podcaster/claim/:slug` (public, cached 1hr).
+**Sponsor Display**: Sponsors extracted by AI during recap generation are displayed on episode recap pages in a dedicated "Sponsors" section with name, description, coupon code (copy button), URL, and how-to-redeem.
+**For Podcasters Page**: `/we-heart-podcasters` — marketing page with sponsor amplification value prop, custom byline section, and claim CTA.
+**API Routes**: `POST /api/podcaster/claim`, `GET /api/podcaster/claim/:slug` (public byline), `POST /api/podcaster/login`, `GET /api/podcaster/verify`, `GET/PUT /api/podcaster/dashboard/:slug`, `GET /api/admin/podcaster-claims`, `PUT /api/admin/podcaster-claims/:id/verify`.

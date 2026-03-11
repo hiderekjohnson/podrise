@@ -1,8 +1,35 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Gift, Ticket, Copy, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
+import { getPodcastBySlug } from "../data/podcastLandingData";
+import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
+import { TOPICS } from "../data/topicData";
+import { Link } from "wouter";
+import { EpisodePageLayout } from "@/components/EpisodePageLayout";
+
+function PodcasterByline({ slug }: { slug: string }) {
+  const { data } = useQuery<{ claimed: boolean; byline?: { text: string; url: string | null; label: string | null } | null }>({
+    queryKey: ["/api/podcaster/claim", slug],
+    staleTime: 1000 * 60 * 60,
+    enabled: !!slug,
+  });
+  if (!data?.byline?.text) return null;
+  return (
+    <div className="flex items-center gap-2.5 p-3.5 mb-5 bg-primary/[0.04] border border-primary/10 rounded-xl text-[14px]" data-testid="section-byline">
+      <Mic className="w-4 h-4 text-primary shrink-0" />
+      <span className="text-foreground">{data.byline.text}</span>
+      {data.byline.label && data.byline.url && (data.byline.url.startsWith("http://") || data.byline.url.startsWith("https://")) && (
+        <a href={data.byline.url} target="_blank" rel="noopener noreferrer" className="text-primary font-display font-bold hover:underline inline-flex items-center gap-0.5 shrink-0 ml-auto">
+          {data.byline.label} <ExternalLink className="w-3 h-3" />
+        </a>
+      )}
+    </div>
+  );
+}
 
 const TOPIC_ICON_MAP: Record<string, LucideIcon> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone,
@@ -11,13 +38,6 @@ const TOPIC_ICON_MAP: Record<string, LucideIcon> = {
   Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Sparkles,
   Hammer, Briefcase, Tag,
 };
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
-import { getPodcastBySlug } from "../data/podcastLandingData";
-import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
-import { TOPICS } from "../data/topicData";
-import { Link } from "wouter";
-import { EpisodePageLayout } from "@/components/EpisodePageLayout";
 
 interface TopQuestion {
   question: string;
@@ -31,6 +51,14 @@ interface BookResource {
   url: string;
   author: string | null;
   context: string;
+}
+
+interface Sponsor {
+  name: string;
+  description?: string;
+  couponCode?: string;
+  url?: string;
+  howToRedeem?: string;
 }
 
 const AMAZON_AFFILIATE_TAG = "podcap-20";
@@ -97,6 +125,76 @@ function GuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: strin
   return (
     <div className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0" data-testid={testId}>
       <span className="text-lg font-bold text-primary">{name.charAt(0)}</span>
+    </div>
+  );
+}
+
+function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (sponsor.couponCode) {
+      navigator.clipboard.writeText(sponsor.couponCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div
+      className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.01] dark:bg-white/[0.02] p-4 sm:p-5"
+      data-testid={`sponsor-card-${index}`}
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg bg-teal-500/[0.08] flex items-center justify-center shrink-0">
+          <Megaphone className="w-5 h-5 text-teal-500" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-[17px] font-bold text-foreground" data-testid={`sponsor-name-${index}`}>
+              {sponsor.name}
+            </h3>
+            {sponsor.url && (
+              <a
+                href={sponsor.url.startsWith("http") ? sponsor.url : `https://${sponsor.url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+                data-testid={`sponsor-url-${index}`}
+              >
+                Visit
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+          {sponsor.description && (
+            <p className="text-base leading-[1.8] text-muted-foreground mt-1.5" data-testid={`sponsor-description-${index}`}>
+              {sponsor.description}
+            </p>
+          )}
+          {sponsor.couponCode && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap" data-testid={`sponsor-coupon-${index}`}>
+              <div className="inline-flex items-center gap-2 bg-teal-500/[0.06] border border-teal-500/[0.15] rounded-lg px-3 py-1.5">
+                <Ticket className="w-4 h-4 text-teal-500 shrink-0" />
+                <span className="text-sm font-bold text-teal-700 dark:text-teal-300 tracking-wide font-mono">{sponsor.couponCode}</span>
+              </div>
+              <button
+                onClick={handleCopy}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                data-testid={`sponsor-copy-${index}`}
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-teal-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? "Copied" : "Copy code"}
+              </button>
+            </div>
+          )}
+          {sponsor.howToRedeem && (
+            <p className="text-sm text-muted-foreground/80 mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
+              {sponsor.howToRedeem}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -295,6 +393,7 @@ export default function EpisodeRecapPage() {
       "section-notable-mentions",
       "section-key-topics",
       "section-books",
+      "section-sponsors",
       "section-top-questions",
       "section-ask-episode",
     ];
@@ -393,9 +492,20 @@ export default function EpisodeRecapPage() {
     books = allResources.filter(r => r.type === "book" && r.name);
   } catch { books = []; }
 
+  let sponsors: Sponsor[] = [];
+  try {
+    const raw = episode.sponsors;
+    if (raw) {
+      sponsors = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (!Array.isArray(sponsors)) sponsors = [];
+      sponsors = sponsors.filter(s => s.name);
+    }
+  } catch { sponsors = []; }
+
   const hasKeyTopics = matchedTopics.length > 0;
   const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
+  const hasSponsors = sponsors.length > 0;
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -475,6 +585,15 @@ export default function EpisodeRecapPage() {
               Books
             </button>
           )}
+          {hasSponsors && (
+            <button
+              onClick={() => scrollTo("section-sponsors")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-sponsors" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-sponsors"
+            >
+              Sponsors
+            </button>
+          )}
           {hasTopQuestions && (
             <button
               onClick={() => scrollTo("section-top-questions")}
@@ -492,6 +611,8 @@ export default function EpisodeRecapPage() {
             Ask AI
           </button>
         </nav>
+
+        <PodcasterByline slug={podcastSlug} />
 
         <section className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-about-episode">
           <div className="px-6 py-4 bg-slate-500/[0.04] border-b border-slate-500/[0.08]">
@@ -861,6 +982,25 @@ export default function EpisodeRecapPage() {
               <p className="text-xs text-muted-foreground/50 mt-5 pt-4 border-t border-black/[0.04] dark:border-white/[0.04]">
                 Amazon links may earn PodCap a small commission at no extra cost to you.
               </p>
+            </div>
+          </section>
+        )}
+
+        {hasSponsors && (
+          <section id="section-sponsors" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-sponsors">
+            <div className="px-6 py-4 bg-teal-500/[0.04] border-b border-teal-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Gift className="w-4 h-4 text-teal-500" />
+                <h2 className="text-base font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider m-0">Episode Sponsors</h2>
+              </div>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Sponsors featured in this episode of {episode.podcastName}.</p>
+            </div>
+            <div className="px-6 py-5">
+              <div className="space-y-5">
+                {sponsors.map((sponsor, i) => (
+                  <SponsorCard key={i} sponsor={sponsor} index={i} />
+                ))}
+              </div>
             </div>
           </section>
         )}

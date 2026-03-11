@@ -34,6 +34,8 @@ const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
 const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
 const DailyDrop = lazy(() => import("./pages/DailyDrop"));
 const DailyDropEdition = lazy(() => import("./pages/DailyDropEdition"));
+const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
+const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 
 function PageLoader() {
   return (
@@ -75,6 +77,10 @@ function Router() {
         <Route path="/topics" component={TopicsDirectory} />
         <Route path="/daily-drop/:date" component={DailyDropEdition} />
         <Route path="/daily-drop" component={DailyDrop} />
+        <Route path="/podcaster/claim" component={PodcasterClaim} />
+        <Route path="/podcaster/verify" component={PodcasterDashboard} />
+        <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />
+        <Route path="/podcaster/dashboard" component={PodcasterDashboard} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

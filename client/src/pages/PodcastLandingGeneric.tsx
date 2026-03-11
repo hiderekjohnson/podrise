@@ -838,12 +838,29 @@ export default function PodcastLandingGeneric() {
     yearStarted ? { icon: Calendar, label: "Since", value: `${yearStarted}` } : null,
   ].filter(Boolean) as { icon: typeof Star; label: string; value: string }[];
 
+  const { data: claimData } = useQuery<{ claimed: boolean; name?: string; byline?: { text: string; url: string | null; label: string | null } | null }>({
+    queryKey: ["/api/podcaster/claim", slug],
+    staleTime: 1000 * 60 * 60,
+  });
+
   return (
     <PodcastPageLayout
       config={config}
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
+      {claimData?.byline?.text && (
+        <div className="flex items-center gap-2.5 p-3.5 mb-6 bg-primary/[0.04] border border-primary/10 rounded-xl text-[14px]" data-testid="section-byline">
+          <Mic className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-foreground">{claimData.byline.text}</span>
+          {claimData.byline.label && claimData.byline.url && (claimData.byline.url.startsWith("http://") || claimData.byline.url.startsWith("https://")) && (
+            <a href={claimData.byline.url} target="_blank" rel="noopener noreferrer" className="text-primary font-display font-bold hover:underline inline-flex items-center gap-0.5 shrink-0 ml-auto">
+              {claimData.byline.label} <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
+      )}
+
       {activeTab === "episodes" && (
         <section className="pb-16" data-testid="section-episode-list">
           {episodeRecaps.length > 0 ? (

@@ -323,3 +323,25 @@ export const dailyDropEditions = pgTable("daily_drop_editions", {
 
 export type DailyDropEdition = typeof dailyDropEditions.$inferSelect;
 
+export const podcasterClaims = pgTable("podcaster_claims", {
+  id: serial("id").primaryKey(),
+  podcastSlug: text("podcast_slug").notNull().unique(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
+  verified: boolean("verified").notNull().default(false),
+  customBylineText: text("custom_byline_text"),
+  customBylineUrl: text("custom_byline_url"),
+  customBylineLabel: text("custom_byline_label"),
+  customSponsors: text("custom_sponsors"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPodcasterClaimSchema = createInsertSchema(podcasterClaims).omit({
+  id: true,
+  verified: true,
+  createdAt: true,
+});
+
+export type PodcasterClaim = typeof podcasterClaims.$inferSelect;
+export type InsertPodcasterClaim = z.infer<typeof insertPodcasterClaimSchema>;
+

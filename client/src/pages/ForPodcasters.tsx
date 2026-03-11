@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Search, TrendingUp, ArrowRight, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Library, Sparkles, BookOpen, Layers, ExternalLink } from "lucide-react";
+import { Search, TrendingUp, ArrowRight, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Library, Sparkles, BookOpen, Layers, ExternalLink, Megaphone, PenLine, ShieldCheck, Mail, Tag } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -125,15 +125,15 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "For Podcasters — How PodCap Helps Your Show Reach More People | PodCap";
-    const desc = "PodCap turns your podcast episodes into searchable, discoverable knowledge assets. Increase discoverability, deepen audience engagement, and extend the life of every conversation.";
+    document.title = "For Podcasters — Amplify Your Sponsors, Add Your Byline, Grow Your Show | PodCap";
+    const desc = "PodCap amplifies your podcast sponsors on web and email recaps, lets you add a custom byline to every page, and turns episodes into searchable knowledge assets. Claim your podcast today.";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "For Podcasters — How PodCap Helps Your Show Reach More People");
+    setMeta("property", "og:title", "For Podcasters — Amplify Your Sponsors, Add Your Byline, Grow Your Show");
     setMeta("property", "og:description", desc);
   }, []);
 
@@ -167,11 +167,17 @@ export default function ForPodcasters() {
               For Podcasters
             </div>
             <h1 className="text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.12] mb-6" data-testid="text-hero-title">
-              Your episodes deserve a longer life than 48 hours
+              Your episodes, sponsors, and message — amplified everywhere
             </h1>
-            <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto" data-testid="text-hero-subtitle">
-              Most podcast episodes get a burst of downloads after release and then disappear. PodCap turns every episode into a searchable, discoverable knowledge asset that keeps working for your show long after publish day.
+            <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8" data-testid="text-hero-subtitle">
+              PodCap turns every episode into a searchable knowledge asset, displays your sponsors on web and email recaps, and lets you add a custom byline across every page featuring your show. Claim your podcast and take control.
             </p>
+            <Link href="/podcaster/claim" data-testid="link-hero-claim">
+              <Button className="rounded-xl font-display font-bold text-[15px] px-6 shadow-sm">
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Claim Your Podcast
+              </Button>
+            </Link>
           </div>
         </section>
 
@@ -247,7 +253,115 @@ export default function ForPodcasters() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20" data-testid="section-how-helps">
+        <section className="py-16 sm:py-20 border-t border-border" data-testid="section-sponsor-amplification">
+          <div className="max-w-3xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-4">
+                <Megaphone className="w-6 h-6 text-amber-600" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-sponsor-title">
+                Sponsor amplification
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps — reaching fans who read but don't always listen.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { icon: Globe, title: "Web visibility", description: "Sponsors appear on every episode recap page with their name, description, coupon code, and a direct link. Visible to every visitor, not just listeners.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: Mail, title: "Email reach", description: "Daily recap emails include sponsor details alongside episode summaries. Your sponsors reach subscribers who catch up by reading instead of listening.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: Tag, title: "Coupon codes highlighted", description: "Promo codes and special offers are styled prominently so readers can act on them immediately — no need to rewind and re-listen.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="bg-card border border-border rounded-2xl p-6"
+                  data-testid={`card-sponsor-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
+                    <item.icon className="w-[18px] h-[18px]" />
+                  </div>
+                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 bg-card border border-border rounded-2xl p-6 sm:p-8 text-center">
+              <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-lg mx-auto">
+                Most podcast sponsors only get value during the episode itself. With PodCap, their investment keeps delivering impressions on the web and in inboxes — giving you a stronger pitch for renewals and rate increases.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20 bg-card/50 border-y border-border" data-testid="section-custom-byline">
+          <div className="max-w-3xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center mx-auto mb-4">
+                <PenLine className="w-6 h-6 text-purple-600" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-byline-title">
+                Custom byline on every page
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Claim your podcast and add a custom byline that appears on your podcast page and every episode recap. Promote your merch store, newsletter, Patreon, live tour, or anything you want your audience to see.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                { icon: PenLine, title: "Your message, your link", description: "Write a short callout with a custom URL. It appears as a prominent banner on your podcast page and every episode recap — visible to every visitor.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { icon: ShieldCheck, title: "Verified podcast owner", description: "Claiming your podcast gives you a verified badge and access to a dashboard where you can update your byline and review sponsor data at any time.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="bg-card border border-border rounded-2xl p-6"
+                  data-testid={`card-byline-${item.title.toLowerCase().replace(/\s+/g, '-').slice(0, 20)}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
+                    <item.icon className="w-[18px] h-[18px]" />
+                  </div>
+                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 bg-card border border-border rounded-2xl p-6 sm:p-8">
+              <div className="flex items-start gap-4 max-w-lg mx-auto">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Mic className="w-[18px] h-[18px] text-primary" />
+                </div>
+                <div>
+                  <p className="text-[14px] font-display font-bold mb-0.5">Example byline</p>
+                  <p className="text-[14px] leading-[1.6] text-muted-foreground">
+                    "From the host: New merch drop! Visit our store for limited-edition gear <span className="text-primary font-semibold">yourpodcast.com/merch</span>"
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20" data-testid="section-claim-cta">
+          <div className="max-w-2xl mx-auto px-6 text-center">
+            <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-claim-title">
+              Ready to take control of your podcast on PodCap?
+            </h2>
+            <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
+              Claim your podcast in under a minute. Add your custom byline, review your sponsor visibility, and make sure your show is represented exactly the way you want.
+            </p>
+            <Link href="/podcaster/claim" data-testid="link-claim-cta">
+              <Button className="rounded-xl font-display font-bold text-[15px] px-8 shadow-sm">
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Claim Your Podcast
+              </Button>
+            </Link>
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20 border-t border-border" data-testid="section-how-helps">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-benefits-title">
