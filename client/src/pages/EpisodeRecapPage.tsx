@@ -24,6 +24,61 @@ interface TopQuestion {
   answer: string;
 }
 
+interface BookResource {
+  name: string;
+  type: string;
+  description: string;
+  url: string;
+  author: string | null;
+  context: string;
+}
+
+const AMAZON_AFFILIATE_TAG = "podcap-20";
+
+function extractAsin(url: string): string | null {
+  const patterns = [
+    /\/dp\/([A-Za-z0-9]{10})/,
+    /\/gp\/product\/([A-Za-z0-9]{10})/,
+    /\/product\/([A-Za-z0-9]{10})/,
+    /amazon\.com\/([A-Z0-9]{10})(?:[/?]|$)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1].toUpperCase();
+  }
+  return null;
+}
+
+function getAmazonUrl(book: BookResource): string {
+  const asin = extractAsin(book.url || "");
+  if (asin) return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_AFFILIATE_TAG}`;
+  const searchQuery = encodeURIComponent(`${book.name}${book.author ? ` ${book.author}` : ""}`);
+  return `https://www.amazon.com/s?k=${searchQuery}&tag=${AMAZON_AFFILIATE_TAG}`;
+}
+
+function BookCover({ title, asin, testId }: { title: string; asin: string | null; testId: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!asin || failed) {
+    return (
+      <div className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10" data-testid={testId}>
+        <BookOpen className="w-5 h-5 text-amber-500/40" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={`https://images-na.ssl-images-amazon.com/images/P/${asin}.01._SX120_.jpg`}
+      alt={title}
+      className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
+      data-testid={testId}
+      onError={() => setFailed(true)}
+      loading="lazy"
+    />
+  );
+}
+
 function GuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: string; testId: string }) {
   const [failed, setFailed] = useState(false);
 
@@ -239,6 +294,7 @@ export default function EpisodeRecapPage() {
       "section-guests",
       "section-notable-mentions",
       "section-key-topics",
+      "section-books",
       "section-top-questions",
       "section-ask-episode",
     ];
@@ -331,8 +387,15 @@ export default function EpisodeRecapPage() {
     topQuestions = episode.topQuestions ? (typeof episode.topQuestions === "string" ? JSON.parse(episode.topQuestions) : episode.topQuestions) : [];
   } catch { topQuestions = []; }
 
+  let books: BookResource[] = [];
+  try {
+    const allResources: BookResource[] = episode.resources ? (typeof episode.resources === "string" ? JSON.parse(episode.resources) : episode.resources) : [];
+    books = allResources.filter(r => r.type === "book" && r.name);
+  } catch { books = []; }
+
   const hasKeyTopics = matchedTopics.length > 0;
   const hasTopQuestions = topQuestions.length > 0;
+  const hasBooks = books.length > 0;
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -401,6 +464,15 @@ export default function EpisodeRecapPage() {
               data-testid="nav-key-topics"
             >
               Topics
+            </button>
+          )}
+          {hasBooks && (
+            <button
+              onClick={() => scrollTo("section-books")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-books" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-books"
+            >
+              Books
             </button>
           )}
           {hasTopQuestions && (
@@ -736,6 +808,62 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
+
+        {hasBooks && (
+          <section id="section-books" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-books">
+            <div className="px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-4 h-4 text-amber-600" />
+                <h2 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned in This Episode</h2>
+              </div>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Books recommended or discussed in this {episode.podcastName} episode.</p>
+            </div>
+            <div className="px-6 py-5">
+              <div className="space-y-5">
+                {books.map((book, i) => {
+                  const asin = extractAsin(book.url || "");
+                  const amazonUrl = getAmazonUrl(book);
+                  return (
+                    <div
+                      key={i}
+                      className="flex gap-4 sm:gap-5"
+                      data-testid={`book-card-${i}`}
+                    >
+                      <BookCover title={book.name} asin={asin} testId={`book-cover-${i}`} />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                          {book.name}
+                        </h3>
+                        {book.author && (
+                          <p className="text-sm text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">by {book.author}</p>
+                        )}
+                        {book.context && (
+                          <p className="text-base text-muted-foreground leading-relaxed mt-2 line-clamp-3" data-testid={`book-context-${i}`}>
+                            {book.context}
+                          </p>
+                        )}
+                        <a
+                          href={amazonUrl}
+                          target="_blank"
+                          rel="sponsored noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors mt-2"
+                          data-testid={`book-amazon-${i}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {asin ? "Buy on Amazon" : "Find on Amazon"}
+                          <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground/50 mt-5 pt-4 border-t border-black/[0.04] dark:border-white/[0.04]">
+                Amazon links may earn PodCap a small commission at no extra cost to you.
+              </p>
+            </div>
+          </section>
+        )}
 
         {hasTopQuestions && (
           <>
