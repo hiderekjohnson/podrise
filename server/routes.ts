@@ -1994,6 +1994,11 @@ export async function registerRoutes(
             amazonUrl,
             asin: finalAsin,
             slug: enrichment?.slug || null,
+            topics: enrichment?.topics || [],
+            pageCount: enrichment?.page_count || null,
+            publishYear: enrichment?.publish_year || null,
+            rating: enrichment?.rating ? parseFloat(enrichment.rating) : null,
+            ratingCount: enrichment?.rating_count || null,
             podcastCount: b.podcasts.size,
             podcastNames: Array.from(b.podcasts.values()),
             mentionCount: b.mentionCount,
@@ -4026,6 +4031,21 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to enrich books" });
+    }
+  });
+
+  app.post("/api/admin/enrich-book-metadata", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { enrichAllBookMetadata } = await import("./enrichBookMetadata");
+      res.json({ message: "Book metadata enrichment started" });
+      enrichAllBookMetadata().then(result => {
+        console.log(`[BookMeta] Complete: ${result.topics} topics, ${result.openLibrary} Open Library`);
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to enrich book metadata" });
     }
   });
 
