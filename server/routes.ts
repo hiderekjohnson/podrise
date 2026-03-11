@@ -2298,6 +2298,21 @@ export async function registerRoutes(
 
       const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap0b-20`;
 
+      let blinkistUrl: string | null = null;
+      try {
+        const blinkistSlug = enrichment.book_title
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+        const blinkistCheckUrl = `https://www.blinkist.com/en/books/${blinkistSlug}-en`;
+        const blinkistRes = await fetch(blinkistCheckUrl, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(3000) });
+        if (blinkistRes.ok) {
+          blinkistUrl = blinkistCheckUrl;
+        }
+      } catch {}
+
       res.json({
         name: enrichment.book_title,
         author: enrichment.author,
@@ -2307,6 +2322,7 @@ export async function registerRoutes(
         asin: finalAsin,
         amazonUrl,
         audibleUrl,
+        blinkistUrl,
         topics: enrichment.topics || [],
         rating: enrichment.rating ? parseFloat(enrichment.rating) : null,
         ratingCount: enrichment.rating_count || null,
