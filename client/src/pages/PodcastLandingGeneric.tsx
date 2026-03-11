@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen, ChevronRight } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen, ChevronRight } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -259,7 +259,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                         </h3>
                       )}
                       {book.author && book.author !== "null" && (
-                        <p className="text-sm text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
+                        <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
                           by {book.author}
                         </p>
                       )}
@@ -285,7 +285,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                   </div>
 
                   {book.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${i}`}>
+                    <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${i}`}>
                       {book.description.length > 180 ? book.description.slice(0, 180).replace(/\s+\S*$/, "") + "." : book.description}
                     </p>
                   )}

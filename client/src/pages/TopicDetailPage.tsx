@@ -315,23 +315,23 @@ export default function TopicDetailPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-status">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Status</p>
+              <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Status</p>
               <p className="text-base font-display font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Active
               </p>
             </div>
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-sources">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Sources</p>
+              <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Sources</p>
               <p className="text-base font-display font-bold text-foreground">{uniquePodcastSources || relatedPodcasts.length} podcasts</p>
             </div>
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-episodes">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Episodes</p>
+              <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Episodes</p>
               <p className="text-base font-display font-bold text-foreground">{topicEpisodes?.length || 0}</p>
             </div>
             {latestEpisodeDate && (
               <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-latest">
-                <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Latest</p>
+                <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Latest</p>
                 <p className="text-base font-display font-bold text-foreground">{formatRelativeDate(latestEpisodeDate)}</p>
               </div>
             )}
@@ -350,12 +350,12 @@ export default function TopicDetailPage() {
                 <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-primary" />
-                    <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-recent-episodes">
+                    <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-recent-episodes">
                       Signal Feed
                     </h2>
                   </div>
                   {latestEpisodeDate && (
-                    <span className="text-[12px] font-mono text-muted-foreground/50">
+                    <span className="text-[13px] font-mono text-muted-foreground/50">
                       Updated {formatRelativeDate(latestEpisodeDate)}
                     </span>
                   )}
@@ -373,12 +373,12 @@ export default function TopicDetailPage() {
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[12px] font-mono text-muted-foreground/60 flex items-center gap-1">
+                              <span className="text-[13px] font-mono text-muted-foreground/60 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 {ep.publish_date ? formatRelativeDate(ep.publish_date) : ""}
                               </span>
                               <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                              <span className="text-[12px] font-mono text-muted-foreground/50 truncate">{ep.podcast_name}</span>
+                              <span className="text-[13px] font-mono text-muted-foreground/50 truncate">{ep.podcast_name}</span>
                             </div>
                             <p className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                               {ep.episode_title}
@@ -424,7 +424,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
                   <Zap className="w-4 h-4 text-amber-500" />
-                  <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-key-insights">
+                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-key-insights">
                     Key Intelligence
                   </h2>
                 </div>
@@ -448,7 +448,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
                   <Quote className="w-4 h-4 text-purple-500" />
-                  <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-notable-quotes">
+                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-notable-quotes">
                     Signal Excerpts
                   </h2>
                 </div>
@@ -457,11 +457,11 @@ export default function TopicDetailPage() {
                     <div key={i} className="border-l-2 border-primary/20 pl-3.5">
                       <p className="text-[14px] text-foreground/80 italic leading-relaxed">"{q.quote}"</p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[12px] font-mono text-muted-foreground/50">{q.podcast}</span>
+                        <span className="text-[13px] font-mono text-muted-foreground/50">{q.podcast}</span>
                         {q.date && (
                           <>
                             <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                            <span className="text-[12px] font-mono text-muted-foreground/40">{formatRelativeDate(q.date)}</span>
+                            <span className="text-[13px] font-mono text-muted-foreground/40">{formatRelativeDate(q.date)}</span>
                           </>
                         )}
                       </div>
@@ -480,7 +480,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-emerald-500" />
-                  <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-topic-pulse">
+                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-topic-pulse">
                     Coverage Metrics
                   </h2>
                 </div>
@@ -497,7 +497,7 @@ export default function TopicDetailPage() {
                       <div className="h-px bg-black/[0.04] dark:bg-white/[0.04]" />
                       <div className="flex items-center justify-between">
                         <span className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA]">Latest signal</span>
-                        <span className="text-[12px] font-mono text-muted-foreground">{formatDate(latestEpisodeDate)}</span>
+                        <span className="text-[13px] font-mono text-muted-foreground">{formatDate(latestEpisodeDate)}</span>
                       </div>
                     </>
                   )}
@@ -514,7 +514,7 @@ export default function TopicDetailPage() {
               >
                 <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
                   <Users className="w-4 h-4 text-sky-500" />
-                  <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-related-people">
+                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-related-people">
                     Key Stakeholders
                   </h2>
                 </div>
@@ -543,7 +543,7 @@ export default function TopicDetailPage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <Radio className="w-4 h-4 text-primary" />
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-podcasts">
+              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-podcasts">
                 Monitored Sources
               </h2>
             </div>
@@ -592,7 +592,7 @@ export default function TopicDetailPage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <Podcast className="w-4 h-4 text-primary" />
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-top-podcasts">
+              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-top-podcasts">
                 Top {topicDisplayName} Sources
               </h2>
             </div>
@@ -650,7 +650,7 @@ export default function TopicDetailPage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <Users className="w-4 h-4 text-sky-500" />
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-people">
+              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-people">
                 Key Stakeholders
               </h2>
             </div>
@@ -712,7 +712,7 @@ export default function TopicDetailPage() {
           >
             <div className="flex items-center gap-2 mb-1">
               <Building2 className="w-4 h-4 text-orange-500" />
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-companies">
+              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-companies">
                 Companies in Focus
               </h2>
             </div>
@@ -787,7 +787,7 @@ export default function TopicDetailPage() {
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-5">
               <Tag className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-related-topics">
+              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-related-topics">
                 Related Intelligence
               </h2>
             </div>

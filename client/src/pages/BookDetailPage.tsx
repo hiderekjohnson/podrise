@@ -381,7 +381,7 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                         )}
                       </div>
                       {ep.context && (
-                        <p className="text-sm text-muted-foreground/80 leading-relaxed mt-2">
+                        <p className="text-[15px] text-muted-foreground/80 leading-relaxed mt-2">
                           {ep.context.length > 150 ? ep.context.slice(0, 150).replace(/\s+\S*$/, "") + "." : ep.context}
                         </p>
                       )}
@@ -512,7 +512,7 @@ export default function BookDetailPage() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-4xl">
-          <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
+          <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-[15px] text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
             <ArrowLeft className="w-4 h-4" />
             Back to Bookstore
           </Link>
@@ -546,7 +546,7 @@ export default function BookDetailPage() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3 mt-3 text-[15px] text-muted-foreground">
                 {book.rating && (
                   <span className="inline-flex items-center gap-1" data-testid="stat-rating">
                     <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
@@ -637,7 +637,7 @@ export default function BookDetailPage() {
                   </Link>
                 ))}
                 {book.podcastCount > featuredPodcasts.length && (
-                  <span className="flex items-center px-3 py-2 text-sm text-muted-foreground">
+                  <span className="flex items-center px-3 py-2 text-[15px] text-muted-foreground">
                     +{book.podcastCount - featuredPodcasts.length} more
                   </span>
                 )}
@@ -658,7 +658,7 @@ export default function BookDetailPage() {
                 <p className="text-[15px] text-foreground leading-relaxed" data-testid="text-featured-quote">
                   {featuredQuote.context}
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="mt-3 text-[15px] text-muted-foreground">
                   {featuredQuote.hosts && <span className="font-semibold text-foreground">{featuredQuote.hosts}</span>}
                   {featuredQuote.hosts && " on "}
                   <Link href={`/podcasts/${featuredQuote.podcastSlug}`} className="font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2">
@@ -698,7 +698,7 @@ export default function BookDetailPage() {
               {hasAuthorAppearance && (
                 <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-violet-500/[0.04] border border-violet-500/[0.12] rounded-xl" data-testid="author-appearance-note">
                   <User className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-[15px] text-muted-foreground">
                     <span className="font-semibold text-violet-700 dark:text-violet-400">{book.author}</span> appeared as a guest to discuss this book
                   </span>
                 </div>

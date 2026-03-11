@@ -205,7 +205,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
               </a>
             )}
             {book.author && book.author !== "null" && (
-              <p className="text-sm text-muted-foreground mt-0.5" data-testid={`book-author-${index}`}>
+              <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${index}`}>
                 by {book.author}
               </p>
             )}
@@ -230,7 +230,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
         </div>
 
         {book.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-2" data-testid={`book-description-${index}`}>
+          <p className="text-[15px] text-muted-foreground leading-relaxed mt-3 line-clamp-2" data-testid={`book-description-${index}`}>
             {book.description}
           </p>
         )}
@@ -653,12 +653,12 @@ export default function Bookstore() {
             <div className="text-center py-16">
               <BookOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
               <p className="text-lg font-medium text-muted-foreground" data-testid="text-no-results">No books found</p>
-              <p className="text-sm text-muted-foreground/60 mt-1">Try adjusting your filters or search</p>
+              <p className="text-[15px] text-muted-foreground/60 mt-1">Try adjusting your filters or search</p>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-muted-foreground" data-testid="text-result-count">
+                <p className="text-[15px] text-muted-foreground" data-testid="text-result-count">
                   {filteredBooks.length} {filteredBooks.length === 1 ? "book" : "books"}
                   {selectedTopic && ` in ${selectedTopic}`}
                   {selectedLength && ` (${LENGTH_FILTERS.find(l => l.value === selectedLength)?.desc})`}

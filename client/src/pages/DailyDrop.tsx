@@ -168,7 +168,7 @@ export default function DailyDrop() {
                             {edition.headline}
                           </h3>
                           {edition.subheadline && (
-                            <p className="text-sm text-[#52525B] dark:text-[#A1A1AA] line-clamp-1">{edition.subheadline}</p>
+                            <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-1">{edition.subheadline}</p>
                           )}
                         </div>
                         <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0 mt-1" />

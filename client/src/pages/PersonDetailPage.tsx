@@ -165,7 +165,7 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
               &ldquo;{episode.context}&rdquo;
             </p>
           )}
-          <div className="mt-2 flex items-center gap-3 text-xs">
+          <div className="mt-2 flex items-center gap-3 text-[13px]">
             <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}`} className="text-primary hover:text-primary/80 font-medium transition-colors" data-testid={`link-recap-${episode.slug}-${episode.episode_slug}`}>
               Read Recap
             </Link>
@@ -713,10 +713,10 @@ export default function PersonDetailPage() {
                         {idea.relatedEps.length > 0 && (
                           <div className="flex flex-col gap-1.5">
                             {idea.relatedEps.map((ep, j) => (
-                              <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-sm text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5" data-testid={`key-idea-ep-${i}-${j}`}>
+                              <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[15px] text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5" data-testid={`key-idea-ep-${i}-${j}`}>
                                 <Headphones className="w-3 h-3" />
                                 {ep.episode_title}
-                                <span className="text-muted-foreground text-xs">on {ep.podcast_name}</span>
+                                <span className="text-muted-foreground text-[13px]">on {ep.podcast_name}</span>
                               </Link>
                             ))}
                           </div>
@@ -749,7 +749,7 @@ export default function PersonDetailPage() {
                                 <span>{quote.podcastName}</span>
                                 {date && <><span>&middot;</span><span>{date}</span></>}
                               </div>
-                              <span className="text-xs text-primary font-medium group-hover:text-primary/80 transition-colors" data-testid={`link-quote-recap-${i}`}>
+                              <span className="text-[13px] text-primary font-medium group-hover:text-primary/80 transition-colors" data-testid={`link-quote-recap-${i}`}>
                                 Read Recap →
                               </span>
                             </div>
@@ -843,7 +843,7 @@ export default function PersonDetailPage() {
                       <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} showType />
                     ))
                   ) : (
-                    <p className="text-center py-8 text-muted-foreground text-sm">No episodes match your filters.</p>
+                    <p className="text-center py-8 text-muted-foreground text-[15px]">No episodes match your filters.</p>
                   )}
                 </div>
                 {!showAllEpisodes && filteredEpisodes.length > 8 && (
@@ -976,7 +976,7 @@ export default function PersonDetailPage() {
                     </h2>
                     <Link
                       href="/bookstore"
-                      className="text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
+                      className="text-[13px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
                       data-testid="link-browse-bookstore"
                     >
                       Browse Bookstore <ArrowRight className="w-3 h-3" />
@@ -994,14 +994,14 @@ export default function PersonDetailPage() {
                           <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
                             <PersonBookCover name={book.name} asin={book.asin} slug={book.slug} />
                           </div>
-                          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
+                          <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
                             {book.name}
                           </h3>
                           {book.author && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
+                            <p className="text-[13px] text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
                           )}
                           {book.mentionCount >= 2 && (
-                            <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">
+                            <p className="text-[13px] text-amber-600 dark:text-amber-400 font-medium mt-1">
                               {book.mentionCount} mentions
                             </p>
                           )}

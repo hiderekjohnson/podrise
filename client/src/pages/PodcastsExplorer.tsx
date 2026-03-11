@@ -206,7 +206,7 @@ export default function PodcastsExplorer() {
                         <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-1">
                           {podcast.name}
                         </h3>
-                        <p className="text-[12px] text-muted-foreground/60 truncate w-full">{podcast.hosts}</p>
+                        <p className="text-[13px] text-muted-foreground/60 truncate w-full">{podcast.hosts}</p>
                       </div>
                     </Link>
                   </motion.div>
@@ -284,7 +284,7 @@ export default function PodcastsExplorer() {
                     <p className="text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed capitalize">
                       {podcast.description}
                     </p>
-                    <div className="flex items-center gap-3 text-[12px] font-mono text-muted-foreground/70">
+                    <div className="flex items-center gap-3 text-[13px] font-mono text-muted-foreground/70">
                       {stat && (
                         <span className="flex items-center gap-1">
                           <Mic className="w-3 h-3" />

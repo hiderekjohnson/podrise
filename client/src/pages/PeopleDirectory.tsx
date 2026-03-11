@@ -83,7 +83,7 @@ function SEOHead() {
 function TrendBadge({ trend, changePercent }: { trend: string; changePercent: number }) {
   if (trend === "rising") {
     return (
-      <span className="inline-flex items-center gap-1 text-[12px] font-mono text-emerald-600 dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 text-[13px] font-mono text-emerald-600 dark:text-emerald-400">
         <TrendingUp className="w-3 h-3" />
         +{Math.abs(changePercent)}%
       </span>
@@ -91,14 +91,14 @@ function TrendBadge({ trend, changePercent }: { trend: string; changePercent: nu
   }
   if (trend === "falling") {
     return (
-      <span className="inline-flex items-center gap-1 text-[12px] font-mono text-red-500 dark:text-red-400">
+      <span className="inline-flex items-center gap-1 text-[13px] font-mono text-red-500 dark:text-red-400">
         <TrendingDown className="w-3 h-3" />
         {changePercent}%
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[12px] font-mono text-muted-foreground/60">
+    <span className="inline-flex items-center gap-1 text-[13px] font-mono text-muted-foreground/60">
       <Minus className="w-3 h-3" />
       Stable
     </span>
@@ -544,7 +544,7 @@ export default function PeopleDirectory() {
                   <span className="text-[13px] text-muted-foreground/60 ml-1">Biggest increase in mentions</span>
                 </div>
                 <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[12px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
                     <span className="w-6">#</span>
                     <span>Person</span>
                     <span>Recent</span>
@@ -628,7 +628,7 @@ export default function PeopleDirectory() {
                 </div>
 
                 <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[12px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
                     <span className="w-6">#</span>
                     <span>Person</span>
                     <span>Mentions</span>

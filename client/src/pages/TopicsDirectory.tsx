@@ -205,7 +205,7 @@ export default function TopicsDirectory() {
                                   <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors">
                                     {topic.name}
                                   </h3>
-                                  <span className="text-[12px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <span className="text-[13px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3" />
                                     Rising
                                   </span>
@@ -216,11 +216,11 @@ export default function TopicsDirectory() {
                             <MiniTrendLine seed={i * 7 + 3} rising={true} />
                           </div>
                           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                            <span className="text-[12px] font-mono text-muted-foreground/70 flex items-center gap-1">
+                            <span className="text-[13px] font-mono text-muted-foreground/70 flex items-center gap-1">
                               <Podcast className="w-3 h-3" />
                               {sourceCount} sources
                             </span>
-                            <span className="ml-auto text-[12px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                            <span className="ml-auto text-[13px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                               Explore <ArrowUpRight className="w-3 h-3" />
                             </span>
                           </div>
@@ -268,7 +268,7 @@ export default function TopicsDirectory() {
                           </div>
                           <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-3 leading-relaxed">{topic.description}</p>
                           <div className="flex items-center gap-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                            <span className="text-[12px] font-mono text-muted-foreground/70 flex items-center gap-1">
+                            <span className="text-[13px] font-mono text-muted-foreground/70 flex items-center gap-1">
                               <Podcast className="w-3 h-3" />
                               {sourceCount} sources
                             </span>
@@ -320,7 +320,7 @@ export default function TopicsDirectory() {
                     <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed">
                       {topic.description}
                     </p>
-                    <div className="flex items-center gap-3 text-[12px] font-mono text-muted-foreground/70">
+                    <div className="flex items-center gap-3 text-[13px] font-mono text-muted-foreground/70">
                       <span className="flex items-center gap-1">
                         <Podcast className="w-3 h-3" />
                         {sourceCount}

@@ -517,7 +517,7 @@ export default function EpisodeArchivePage() {
                           placeholder="Search topics..."
                           value={topicSearch}
                           onChange={(e) => setTopicSearch(e.target.value)}
-                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-sm text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-[15px] text-foreground focus:outline-none placeholder:text-muted-foreground/40"
                           data-testid="input-search-topic"
                           autoFocus
                         />
@@ -536,7 +536,7 @@ export default function EpisodeArchivePage() {
                           </button>
                         ))}
                         {filteredTopics.length === 0 && (
-                          <p className="px-4 py-3 text-sm text-muted-foreground/50">No topics found</p>
+                          <p className="px-4 py-3 text-[15px] text-muted-foreground/50">No topics found</p>
                         )}
                       </div>
                     </div>
@@ -576,7 +576,7 @@ export default function EpisodeArchivePage() {
                           placeholder="Search guests..."
                           value={guestSearch}
                           onChange={(e) => setGuestSearch(e.target.value)}
-                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-sm text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-[15px] text-foreground focus:outline-none placeholder:text-muted-foreground/40"
                           data-testid="input-search-guest"
                           autoFocus
                         />
@@ -595,7 +595,7 @@ export default function EpisodeArchivePage() {
                           </button>
                         ))}
                         {filteredGuests.length === 0 && (
-                          <p className="px-4 py-3 text-sm text-muted-foreground/50">No guests found</p>
+                          <p className="px-4 py-3 text-[15px] text-muted-foreground/50">No guests found</p>
                         )}
                       </div>
                     </div>

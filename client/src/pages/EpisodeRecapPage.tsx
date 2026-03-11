@@ -1,9 +1,9 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Gift, Ticket, Copy, Check, Quote, Share2, X, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { Lightbulb, Tag, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
@@ -219,7 +219,7 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
             </div>
           )}
           {sponsor.howToRedeem && (
-            <p className="text-sm text-muted-foreground/80 mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
+            <p className="text-[15px] text-muted-foreground/80 mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
               {sponsor.howToRedeem}
             </p>
           )}
@@ -1098,7 +1098,7 @@ export default function EpisodeRecapPage() {
                             </h3>
                           )}
                           {displayAuthor && displayAuthor !== "null" && (
-                            <p className="text-sm text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
+                            <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
                               by {displayAuthor}
                             </p>
                           )}
@@ -1120,7 +1120,7 @@ export default function EpisodeRecapPage() {
                       </div>
 
                       {displayDescription && (
-                        <p className="text-sm text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
+                        <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
                           {displayDescription.length > 180 ? displayDescription.slice(0, 180).replace(/\s+\S*$/, "") + "." : displayDescription}
                         </p>
                       )}

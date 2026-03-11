@@ -217,10 +217,10 @@ export default function TrendsPage() {
                     <div className="flex items-center gap-2 mb-4">
                       <Flame className="w-4 h-4 text-orange-500" />
                       <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-top-people">Top People</h2>
-                      <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+                      <span className="text-[13px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
                     </div>
                     <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[11px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
                         <span>#</span>
                         <span>Person</span>
                         <span>Podcast Interest</span>
@@ -248,7 +248,7 @@ export default function TrendsPage() {
                         );
                       })}
                     </div>
-                    <Link href="/people" className="flex items-center gap-1 text-[13px] font-medium text-primary mt-3 hover:text-primary/80 transition-colors" data-testid="link-all-people">
+                    <Link href="/people" className="flex items-center gap-1 text-[14px] font-medium text-primary mt-3 hover:text-primary/80 transition-colors" data-testid="link-all-people">
                       View all people <ArrowUpRight className="w-3 h-3" />
                     </Link>
                   </div>
@@ -257,10 +257,10 @@ export default function TrendsPage() {
                     <div className="flex items-center gap-2 mb-4">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
                       <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-rising-people">Rising People</h2>
-                      <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+                      <span className="text-[13px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
                     </div>
                     <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[11px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
                         <span>#</span>
                         <span>Person</span>
                         <span>Podcast Interest</span>
@@ -306,10 +306,10 @@ export default function TrendsPage() {
                     <div className="flex items-center gap-2 mb-4">
                       <Flame className="w-4 h-4 text-orange-500" />
                       <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-top-companies">Top Companies</h2>
-                      <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+                      <span className="text-[13px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
                     </div>
                     <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[11px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
                         <span>#</span>
                         <span>Company</span>
                         <span>Podcast Interest</span>
@@ -337,7 +337,7 @@ export default function TrendsPage() {
                         );
                       })}
                     </div>
-                    <Link href="/companies" className="flex items-center gap-1 text-[13px] font-medium text-primary mt-3 hover:text-primary/80 transition-colors" data-testid="link-all-companies">
+                    <Link href="/companies" className="flex items-center gap-1 text-[14px] font-medium text-primary mt-3 hover:text-primary/80 transition-colors" data-testid="link-all-companies">
                       View all companies <ArrowUpRight className="w-3 h-3" />
                     </Link>
                   </div>
@@ -346,10 +346,10 @@ export default function TrendsPage() {
                     <div className="flex items-center gap-2 mb-4">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
                       <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-rising-companies">Rising Companies</h2>
-                      <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+                      <span className="text-[13px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
                     </div>
                     <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[11px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
                         <span>#</span>
                         <span>Company</span>
                         <span>Podcast Interest</span>

@@ -327,7 +327,7 @@ export default function CompanyDetailPage() {
               ) : (
                 <div className="text-center py-16 text-muted-foreground">
                   <p className="text-lg">No episodes found for {company.name} yet.</p>
-                  <p className="text-sm mt-1">Check back soon as we add more podcast recaps.</p>
+                  <p className="text-[15px] mt-1">Check back soon as we add more podcast recaps.</p>
                 </div>
               )}
 
