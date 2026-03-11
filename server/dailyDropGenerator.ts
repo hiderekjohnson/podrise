@@ -58,34 +58,37 @@ ${ep.quote ? `Quote: "${ep.quote}" - ${ep.quoteAttribution || ep.hosts}` : ""}
 Full recap link slug: /podcasts/${ep.slug}/${ep.episodeSlug}`;
   }).join("\n\n");
 
-  const prompt = `You are the editor of "The Daily Drop" - PodCap's daily newsletter. Write today's edition for ${formatDateForPrompt(dateStr)}.
+  const prompt = `You are writing The Daily Drop for ${formatDateForPrompt(dateStr)} - a daily newsletter for avid podcast listeners. You are recapping yesterday's most interesting podcast moments: what was said, why it matters, and how it all connects to the bigger picture.
 
-Your voice: Smart, conversational, occasionally witty. Think Morning Brew meets podcast culture. You're catching up a busy professional on the most interesting conversations that happened yesterday across the podcast world. Never clinical or listy. Always flowing, always interesting.
+The reader is already a podcast fan. They don't need to be sold on podcasts. Speak to them like a smart friend who also spent yesterday with their earbuds in.
 
-Here are the most noteworthy episodes from today (${episodes.length} total dropped):
+Here are the most noteworthy episodes from yesterday:
 
 ${episodeBriefs}
 
-Write a newsletter-style article. Rules:
+GOALS:
+- Write as if you're texting a fellow listener: "you have to hear what Sankar said..." energy, not "in this episode, Sankar discussed..."
+- Connect the dots between episodes - the reader wants to feel like yesterday's podcast universe had a hidden coherence, even if accidental
+- Trim any over-explanation of who people are; trust the reader knows or can infer
+- Make the transitions feel like a natural conversation jumping between topics, not a segmented report
+- The opening should feel like walking into a conversation already in progress
 
-1. HEADLINE: A catchy, specific headline that captures the day's most compelling theme or story. Not generic - something that makes you want to read. Like a newsletter subject line.
+TONE: Curious, punchy, insider-y - like a group chat among people who listen to too many podcasts
+
+STRUCTURE:
+1. HEADLINE: A catchy, specific headline. Not generic - something that makes you want to read. Like a text from a friend about what you missed.
 
 2. SUBHEADLINE: A one-line teaser that adds context (15-25 words).
 
-3. BODY: Write 4-8 paragraphs of free-flowing narrative. This is NOT a list of episode recaps. This is a story about what happened yesterday in the podcast world. Weave the most interesting ideas, revelations, and quotes together into a cohesive read.
+3. BODY: ~500 words of flowing prose. No bullets, no subheadings. Just a natural, conversational piece that weaves between episodes.
 
-Guidelines for the body:
-- Open with the most compelling story or idea from the day - hook the reader
-- Weave between episodes naturally, like a journalist connecting stories
-- Include 2-3 direct quotes from episodes, embedded naturally in the text
-- For every episode or podcast you reference, include a link in markdown format: [episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs. Example: [Invest Like the Best](/podcasts/investlikethebest/shyam-sankar-celebrating-heretics-invest-like-the-best)
-- Don't just summarize - editorialize lightly. What's interesting? What's the tension? What should the reader care about?
-- End with a strong closer - a thought-provoking takeaway, a question, or a punchy sign-off
-- Write at a 10th-grade reading level. Short sentences mixed with longer ones. Punchy paragraphs.
-- You don't need to cover every episode. Focus on the 4-8 most interesting ones.
-- NEVER write "X episodes dropped" or "here's what happened" type intros. Start with the story.
-- Reference podcasts and episodes by linking to their recap pages using the slug format provided
-- When mentioning how many conversations happened, use natural language like "across dozens of conversations" not exact counts
+CONSTRAINTS:
+- Keep all 5+ podcast segments, proper nouns, and factual claims intact
+- Include 2-3 direct quotes from episodes, embedded naturally
+- For every episode or podcast you reference, include a markdown link: [episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs
+- You don't need to cover every episode. Focus on the most interesting ones
+- NEVER write "X episodes dropped" or "here's what we're covering" type intros. Drop the reader mid-conversation
+- Never use em dashes. Use commas, periods, or just start a new sentence instead
 
 Respond with ONLY valid JSON (no markdown fences):
 {
@@ -98,8 +101,8 @@ Respond with ONLY valid JSON (no markdown fences):
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 4096,
-      temperature: 0.8,
+      max_tokens: 2048,
+      temperature: 0.85,
       response_format: { type: "json_object" },
     });
 
