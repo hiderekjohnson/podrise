@@ -479,8 +479,8 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                   </div>
 
                   {book.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-2" data-testid={`book-description-${i}`}>
-                      {book.description}
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${i}`}>
+                      {book.description.length > 180 ? book.description.slice(0, 180).replace(/\s+\S*$/, "") + "." : book.description}
                     </p>
                   )}
 

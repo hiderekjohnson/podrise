@@ -995,7 +995,7 @@ export default function EpisodeRecapPage() {
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-[15px] font-bold text-foreground group-hover/topic:text-emerald-600 dark:group-hover/topic:text-emerald-400 transition-colors">{topic.name}</h4>
-                        <p className="text-base leading-snug text-muted-foreground mt-0.5 line-clamp-2">{displayDesc}</p>
+                        <p className="text-base leading-snug text-muted-foreground mt-0.5">{displayDesc.length > 120 ? displayDesc.slice(0, 120).replace(/\s+\S*$/, "") + "." : displayDesc}</p>
                       </div>
                     </Link>
                   );
@@ -1075,8 +1075,8 @@ export default function EpisodeRecapPage() {
                       </div>
 
                       {displayDescription && (
-                        <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-2" data-testid={`book-context-${i}`}>
-                          {displayDescription}
+                        <p className="text-sm text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
+                          {displayDescription.length > 180 ? displayDescription.slice(0, 180).replace(/\s+\S*$/, "") + "." : displayDescription}
                         </p>
                       )}
 
