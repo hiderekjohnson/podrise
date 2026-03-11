@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe, Building2, Tag, UserCircle } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -556,6 +556,22 @@ export default function PodcastLandingGeneric() {
     enabled: !!slug,
   });
 
+  const { data: entityLinks } = useQuery<{
+    companies: Array<{ slug: string; name: string; description: string; count: number }>;
+    people: Array<{ slug: string; name: string; title: string; count: number }>;
+    topics: Array<{ topic: string; count: number }>;
+    guests: Array<{ name: string; title?: string; episodeTitle: string; episodeSlug: string; publishDate: string }>;
+  }>({
+    queryKey: ["/api/podcasts", slug, "entity-links"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${slug}/entity-links`);
+      if (!res.ok) return { companies: [], people: [], topics: [], guests: [] };
+      return res.json();
+    },
+    enabled: !!slug,
+    staleTime: 1000 * 60 * 30,
+  });
+
   const snapshotItems = [
     category ? { icon: Star, label: "Category", value: category } : null,
     avgEpisodeLength ? { icon: Clock, label: "Avg. Episode", value: `${avgEpisodeLength} min` } : null,
@@ -915,18 +931,128 @@ export default function PodcastLandingGeneric() {
       )}
 
       {activeTab === "discover" && (
-        <section className="pb-16" data-testid="section-discover">
-          {relatedPodcasts.length > 0 ? (
-            <>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-                Podcasts that listeners of {name} also enjoy — with recaps available on PodCap.
-              </p>
+        <section className="pb-16 space-y-10" data-testid="section-discover">
+          {entityLinks?.guests && entityLinks.guests.length > 0 && (
+            <div data-testid="section-recent-guests">
+              <div className="flex items-center gap-2.5 mb-4">
+                <UserCircle className="w-5 h-5 text-primary" />
+                <h3 className="text-[17px] font-display font-bold text-foreground">Recent Guests</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {entityLinks.guests.map((guest, i) => {
+                  const personSlug = entityLinks.people.find(p => p.name === guest.name)?.slug;
+                  const date = new Date(guest.publishDate + "T00:00:00");
+                  const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                  return (
+                    <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex flex-col gap-1.5" data-testid={`card-guest-${i}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        {personSlug ? (
+                          <Link href={`/people/${personSlug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-guest-person-${i}`}>{guest.name}</Link>
+                        ) : (
+                          <span className="text-[15px] font-bold text-foreground">{guest.name}</span>
+                        )}
+                      </div>
+                      {guest.title && <p className="text-[15px] text-muted-foreground/60 leading-snug">{guest.title}</p>}
+                      <Link href={`/podcasts/${slug}/${guest.episodeSlug}`} className="text-[15px] text-primary/70 hover:text-primary transition-colors line-clamp-1 mt-0.5" data-testid={`link-guest-episode-${i}`}>
+                        {guest.episodeTitle}
+                      </Link>
+                      <span className="text-[15px] text-muted-foreground/40">{formatted}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {entityLinks?.companies && entityLinks.companies.length > 0 && (
+            <div data-testid="section-top-companies">
+              <div className="flex items-center gap-2.5 mb-4">
+                <Building2 className="w-5 h-5 text-primary" />
+                <h3 className="text-[17px] font-display font-bold text-foreground">Most Discussed Companies</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {entityLinks.companies.map((company, i) => (
+                  <Link key={company.slug} href={`/companies/${company.slug}`} className="block" data-testid={`link-company-${company.slug}`}>
+                    <div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group">
+                      <img
+                        src={`/logos/${company.slug}.png`}
+                        alt={company.name}
+                        className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-black/[0.06] shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</p>
+                        <p className="text-[15px] text-muted-foreground/60 mt-0.5 line-clamp-1">{company.description}</p>
+                      </div>
+                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[13px] font-bold bg-primary/[0.08] text-primary">{company.count} ep{company.count !== 1 ? "s" : ""}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {entityLinks?.people && entityLinks.people.length > 0 && (
+            <div data-testid="section-top-people">
+              <div className="flex items-center gap-2.5 mb-4">
+                <Users className="w-5 h-5 text-primary" />
+                <h3 className="text-[17px] font-display font-bold text-foreground">Most Mentioned People</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {entityLinks.people.map((person) => (
+                  <Link key={person.slug} href={`/people/${person.slug}`} className="block" data-testid={`link-person-${person.slug}`}>
+                    <div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group">
+                      <img
+                        src={`/people/${person.slug}.webp`}
+                        alt={person.name}
+                        className="w-10 h-10 rounded-full object-cover shrink-0"
+                        onError={(e) => {
+                          const el = e.target as HTMLImageElement;
+                          el.onerror = null;
+                          el.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=6366f1&color=fff&size=80`;
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">{person.name}</p>
+                        {person.title && <p className="text-[15px] text-muted-foreground/60 mt-0.5 line-clamp-1">{person.title}</p>}
+                      </div>
+                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[13px] font-bold bg-primary/[0.08] text-primary">{person.count} ep{person.count !== 1 ? "s" : ""}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {entityLinks?.topics && entityLinks.topics.length > 0 && (
+            <div data-testid="section-top-topics">
+              <div className="flex items-center gap-2.5 mb-4">
+                <Tag className="w-5 h-5 text-primary" />
+                <h3 className="text-[17px] font-display font-bold text-foreground">Top Topics Discussed</h3>
+              </div>
+              <div className="flex flex-wrap gap-2.5">
+                {entityLinks.topics.map((t, i) => (
+                  <span key={i} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[15px] font-medium text-foreground capitalize" data-testid={`tag-topic-${i}`}>
+                    {t.topic}
+                    <span className="text-muted-foreground/40 text-[13px] font-bold">({t.count})</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {relatedPodcasts.length > 0 && (
+            <div data-testid="section-related-podcasts">
+              <div className="flex items-center gap-2.5 mb-4">
+                <Headphones className="w-5 h-5 text-primary" />
+                <h3 className="text-[17px] font-display font-bold text-foreground">Related Podcasts</h3>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {relatedPodcasts.map((rp) => (
                   <a
                     key={rp.slug}
                     href={`/podcasts/${rp.slug}`}
-                    className="bg-white border border-black/[0.06] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
+                    className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
                     data-testid={`related-podcast-${rp.slug}`}
                   >
                     {rp.artworkUrl ? (
@@ -944,14 +1070,15 @@ export default function PodcastLandingGeneric() {
                   </a>
                 ))}
               </div>
-            </>
-          ) : (
+            </div>
+          )}
+
+          {!entityLinks && (
             <div className="text-center py-16">
               <div className="w-14 h-14 rounded-2xl bg-primary/[0.06] flex items-center justify-center mx-auto mb-4">
-                <Compass className="w-6 h-6 text-primary/30" />
+                <Loader2 className="w-6 h-6 text-primary/30 animate-spin" />
               </div>
-              <p className="text-muted-foreground font-medium">Discovering similar podcasts...</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/60 mt-1">We're finding shows you might enjoy.</p>
+              <p className="text-muted-foreground font-medium">Loading discover content...</p>
             </div>
           )}
         </section>

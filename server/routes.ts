@@ -1684,6 +1684,126 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/entity-links", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const allRecaps = await storage.getLandingPageRecaps(slug, 200, 0);
+      if (!allRecaps.length) return res.json({ companies: [], people: [], topics: [], guests: [] });
+
+      const hostNames = new Set<string>();
+      const hostsResult = await pool.query(`SELECT name FROM podcast_hosts WHERE podcast_slug = $1`, [slug]);
+      for (const h of hostsResult.rows) {
+        if (h.name) h.name.split(/[,&]/).forEach((n: string) => hostNames.add(n.trim().toLowerCase()));
+      }
+      if (allRecaps[0]?.hosts) {
+        allRecaps[0].hosts.split(/[,&]/).forEach((h: string) => hostNames.add(h.trim().toLowerCase()));
+      }
+
+      const companyCounts: Record<string, number> = {};
+      const peopleCounts: Record<string, number> = {};
+      const topicCounts: Record<string, number> = {};
+
+      function countMentions(text: string, terms: string[], ambiguous?: Set<string>): number {
+        let total = 0;
+        for (const term of terms) {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const flags = (ambiguous && ambiguous.has(term)) ? 'g' : 'gi';
+          const regex = new RegExp(`\\b${escaped}\\b`, flags);
+          const matches = text.match(regex);
+          if (matches) total += matches.length;
+        }
+        return total;
+      }
+
+      const RECAP_AMBIGUOUS_TERMS_SET = new Set([
+        "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
+        "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
+        "The Information", "The Economist",
+        "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway",
+        "Cursor", "Box", "Circle"
+      ]);
+
+      for (const recap of allRecaps) {
+        const content = `${recap.tldl || ""} ${recap.whatHappened || ""} ${(recap.keyInsights || []).join(" ")}`;
+
+        for (const company of ENTITY_COMPANIES) {
+          const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
+          if (countMentions(content, allTerms, RECAP_AMBIGUOUS_TERMS_SET) >= 2) {
+            companyCounts[company.slug] = (companyCounts[company.slug] || 0) + 1;
+          }
+        }
+
+        for (const person of ENTITY_PEOPLE) {
+          if (person.hostedSlugs.includes(slug)) continue;
+          if (person.searchTerms.some(t => hostNames.has(t.toLowerCase()))) continue;
+          if (countMentions(content, person.searchTerms) >= 2) {
+            peopleCounts[person.slug] = (peopleCounts[person.slug] || 0) + 1;
+          }
+        }
+
+        if (recap.keyTopics) {
+          for (const topic of recap.keyTopics) {
+            const normalized = topic.toLowerCase().trim();
+            if (normalized) topicCounts[normalized] = (topicCounts[normalized] || 0) + 1;
+          }
+        }
+      }
+
+      const topCompanies = Object.entries(companyCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([cSlug, count]) => {
+          const c = ENTITY_COMPANIES.find(x => x.slug === cSlug);
+          return c ? { slug: c.slug, name: c.name, description: c.description, count } : null;
+        })
+        .filter(Boolean);
+
+      const topPeople = Object.entries(peopleCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([pSlug, count]) => {
+          const p = ENTITY_PEOPLE.find(x => x.slug === pSlug);
+          return p ? { slug: p.slug, name: p.name, title: p.title, count } : null;
+        })
+        .filter(Boolean);
+
+      const topTopics = Object.entries(topicCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([topic, count]) => ({ topic, count }));
+
+      const recentGuests: Array<{ name: string; title?: string; episodeTitle: string; episodeSlug: string; publishDate: string }> = [];
+      const seenGuestNames = new Set<string>();
+      for (const recap of allRecaps) {
+        if (recentGuests.length >= 10) break;
+        if (!recap.guests) continue;
+        try {
+          const parsed = JSON.parse(recap.guests);
+          const guestList = Array.isArray(parsed) ? parsed : [];
+          for (const g of guestList) {
+            const gName = (g.name || "").trim();
+            if (!gName || seenGuestNames.has(gName.toLowerCase())) continue;
+            if (hostNames.has(gName.toLowerCase())) continue;
+            seenGuestNames.add(gName.toLowerCase());
+            recentGuests.push({
+              name: gName,
+              title: g.title || undefined,
+              episodeTitle: recap.episodeTitle,
+              episodeSlug: recap.episodeSlug,
+              publishDate: recap.publishDate,
+            });
+            if (recentGuests.length >= 10) break;
+          }
+        } catch {}
+      }
+
+      res.json({ companies: topCompanies, people: topPeople, topics: topTopics, guests: recentGuests });
+    } catch (err) {
+      console.error("Entity links error:", err);
+      res.status(500).json({ error: "Failed to fetch entity links" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/recaps/:episodeSlug", async (req, res) => {
     try {
       const recap = await storage.getLandingPageRecapBySlug(req.params.slug, req.params.episodeSlug);
