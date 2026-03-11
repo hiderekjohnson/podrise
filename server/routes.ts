@@ -3510,14 +3510,16 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
         `);
 
         const statsResult = await client.query(`
-          SELECT slug, podcast_name,
+          SELECT lpr.slug, lpr.podcast_name,
             COUNT(*) as episode_count,
-            MAX(publish_date) as latest_episode,
-            MIN(publish_date) as first_episode
-          FROM landing_page_recaps
-          WHERE publish_date IS NOT NULL
-          GROUP BY slug, podcast_name
-          ORDER BY MAX(publish_date) DESC
+            MAX(lpr.publish_date) as latest_episode,
+            MIN(lpr.publish_date) as first_episode,
+            COALESCE(pd.total_episodes, 0)::int as total_episodes
+          FROM landing_page_recaps lpr
+          LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
+          WHERE lpr.publish_date IS NOT NULL
+          GROUP BY lpr.slug, lpr.podcast_name, pd.total_episodes
+          ORDER BY MAX(lpr.publish_date) DESC
         `);
 
         res.json({
@@ -3534,7 +3536,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
           podcastStats: statsResult.rows.map(r => ({
             slug: r.slug,
             podcastName: r.podcast_name,
-            episodeCount: parseInt(r.episode_count),
+            episodeCount: r.total_episodes > 0 ? r.total_episodes : parseInt(r.episode_count),
             latestEpisode: r.latest_episode,
             firstEpisode: r.first_episode,
           })),

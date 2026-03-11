@@ -90,9 +90,12 @@ const STAFF_PICKS_SLUGS = [
   "oddlots",
 ];
 
+const INITIAL_PODCAST_COUNT = 20;
+
 export default function PodcastsExplorer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
+  const [showAllPodcasts, setShowAllPodcasts] = useState(false);
 
   const { data: discoveryData, isLoading } = useQuery<DiscoveryData>({
     queryKey: ["/api/podcasts-discovery"],
@@ -234,7 +237,7 @@ export default function PodcastsExplorer() {
               {DISCOVER_CATEGORIES.map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  onClick={() => setActiveCategory(key)}
+                  onClick={() => { setActiveCategory(key); setShowAllPodcasts(false); }}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all border ${
                     activeCategory === key
                       ? "bg-primary text-primary-foreground border-primary shadow-sm"
@@ -251,7 +254,7 @@ export default function PodcastsExplorer() {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-          {filteredPodcasts.map((podcast, i) => {
+          {(isSearching || showAllPodcasts ? filteredPodcasts : filteredPodcasts.slice(0, INITIAL_PODCAST_COUNT)).map((podcast, i) => {
             const stat = discoveryData?.podcastStats.find(s => s.slug === podcast.slug);
 
             return (
@@ -296,6 +299,19 @@ export default function PodcastsExplorer() {
             );
           })}
         </div>
+
+        {!isSearching && !showAllPodcasts && filteredPodcasts.length > INITIAL_PODCAST_COUNT && (
+          <div className="text-center py-8">
+            <button
+              onClick={() => setShowAllPodcasts(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary/[0.06] hover:bg-primary/[0.12] text-primary text-[15px] font-bold transition-colors"
+              data-testid="button-show-more-podcasts"
+            >
+              Show all {filteredPodcasts.length} podcasts
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {filteredPodcasts.length === 0 && (
           <div className="text-center py-20">
