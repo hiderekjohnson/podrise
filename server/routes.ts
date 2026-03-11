@@ -5090,7 +5090,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     res.json({ stopped: true });
   });
 
-  async function generatePagesForPodcast(itunesId: string) {
+  async function generatePagesForPodcast(itunesId: string, forceRegenerate = false) {
     const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
     const { generateRecapFromTranscript } = await import("./recapGenerator");
 
@@ -5111,25 +5111,30 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       const hosts = podcastInfo.hosts || "";
       const podcastArtwork = podcastInfo.artwork_url || "";
 
-      epGenState.currentPodcastName = podcastName;
+      epGenState.currentPodcastName = forceRegenerate ? `Regenerate: ${podcastName}` : podcastName;
       epGenState.currentItunesId = itunesId;
 
-      const { rows: transcripts } = await client.query(
-        `SELECT et.* FROM episode_transcripts et
-         WHERE et.podcast_id = $1
-           AND et.transcript IS NOT NULL
-           AND et.transcript != ''
-           AND NOT EXISTS (
-             SELECT 1 FROM landing_page_recaps lpr
-             WHERE lpr.itunes_id = $1
-               AND (
-                 lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-                 OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g'))
-               )
-           )
-         ORDER BY et.date_published DESC NULLS LAST`,
-        [itunesId]
-      );
+      const query = forceRegenerate
+        ? `SELECT et.* FROM episode_transcripts et
+           WHERE et.podcast_id = $1
+             AND et.transcript IS NOT NULL
+             AND et.transcript != ''
+           ORDER BY et.date_published DESC NULLS LAST`
+        : `SELECT et.* FROM episode_transcripts et
+           WHERE et.podcast_id = $1
+             AND et.transcript IS NOT NULL
+             AND et.transcript != ''
+             AND NOT EXISTS (
+               SELECT 1 FROM landing_page_recaps lpr
+               WHERE lpr.itunes_id = $1
+                 AND (
+                   lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+                   OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g'))
+                 )
+             )
+           ORDER BY et.date_published DESC NULLS LAST`;
+
+      const { rows: transcripts } = await client.query(query, [itunesId]);
 
       epGenState.totalEpisodes = transcripts.length;
       epGenState.currentEpisode = 0;
@@ -5151,13 +5156,15 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
           const epTitle = t.episode_title || "Untitled";
           const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
-          const { rows: existing } = await client.query(
-            `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND episode_slug = $2 LIMIT 1`,
-            [itunesId, epSlug]
-          );
-          if (existing.length > 0) {
-            epGenState.skipped++;
-            continue;
+          if (!forceRegenerate) {
+            const { rows: existing } = await client.query(
+              `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND episode_slug = $2 LIMIT 1`,
+              [itunesId, epSlug]
+            );
+            if (existing.length > 0) {
+              epGenState.skipped++;
+              continue;
+            }
           }
 
           const recap = await generateRecapFromTranscript(t.transcript, podcastName, epTitle, t.description || null);
@@ -5292,12 +5299,13 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     if (epGenState.running) return res.status(409).json({ message: "Generation already in progress" });
 
     const { itunesId } = req.params;
+    const forceRegenerate = req.body?.forceRegenerate === true;
     epGenState.running = true;
     epGenState.autoQueue = false;
     epGenState.completedPodcasts = [];
-    res.json({ started: true, itunesId });
+    res.json({ started: true, itunesId, forceRegenerate });
 
-    generatePagesForPodcast(itunesId).then(() => {
+    generatePagesForPodcast(itunesId, forceRegenerate).then(() => {
       epGenState.running = false;
     }).catch(err => {
       console.error(`[EpGen] Fatal error:`, err);
