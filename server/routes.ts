@@ -25,6 +25,36 @@ declare module "express-session" {
   }
 }
 
+class DataCache<T> {
+  private data: T | null = null;
+  private cachedAt = 0;
+  private refreshing = false;
+  constructor(public readonly name: string, private ttlMs: number = 24 * 60 * 60 * 1000) {}
+  get(): T | null {
+    if (this.data && (Date.now() - this.cachedAt) < this.ttlMs) return this.data;
+    return null;
+  }
+  set(data: T): void {
+    this.data = data;
+    this.cachedAt = Date.now();
+  }
+  invalidate(): void {
+    this.data = null;
+    this.cachedAt = 0;
+  }
+  isRefreshing(): boolean { return this.refreshing; }
+  setRefreshing(v: boolean): void { this.refreshing = v; }
+  age(): number { return this.data ? Date.now() - this.cachedAt : -1; }
+}
+
+const directoryCache = {
+  people: new DataCache<any[]>("people"),
+  companies: new DataCache<any[]>("companies"),
+  bookstore: new DataCache<any>("bookstore"),
+  podcastsDiscovery: new DataCache<any>("podcastsDiscovery"),
+  podcastsDirectory: new DataCache<any[]>("podcastsDirectory"),
+};
+
 function parsePodcastName(raw: string): string {
   try {
     const parsed = JSON.parse(raw);
@@ -722,9 +752,12 @@ export async function registerRoutes(
 
   app.get("/api/podcasts/directory", async (_req, res) => {
     try {
+      const cached = directoryCache.podcastsDirectory.get();
+      if (cached) return res.json(cached);
       const result = await pool.query(
         `SELECT slug, name, artwork_url FROM podcast_directory WHERE slug IS NOT NULL ORDER BY name ASC`
       );
+      directoryCache.podcastsDirectory.set(result.rows);
       res.json(result.rows);
     } catch (err) {
       console.error("[Directory] Error:", err);
@@ -1295,10 +1328,6 @@ export async function registerRoutes(
     return "";
   }
 
-  let peopleCacheData: any[] | null = null;
-  let peopleCacheTime = 0;
-  const PEOPLE_CACHE_TTL = 5 * 60 * 1000;
-
   function computeTrendDirection(recentCount: number, olderCount: number): { direction: "rising" | "stable" | "falling"; changePercent: number } {
     if (olderCount === 0 && recentCount > 0) return { direction: "rising", changePercent: 100 };
     if (olderCount === 0 && recentCount === 0) return { direction: "stable", changePercent: 0 };
@@ -1375,13 +1404,10 @@ export async function registerRoutes(
 
   app.get("/api/entities/people", async (_req, res) => {
     try {
-      const now = Date.now();
-      if (peopleCacheData && (now - peopleCacheTime) < PEOPLE_CACHE_TTL) {
-        return res.json(peopleCacheData);
-      }
+      const cached = directoryCache.people.get();
+      if (cached) return res.json(cached);
       const results = await computePeopleData();
-      peopleCacheData = results;
-      peopleCacheTime = Date.now();
+      directoryCache.people.set(results);
       res.json(results);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Failed to fetch people" });
@@ -1704,9 +1730,6 @@ export async function registerRoutes(
     }
   });
 
-  let companiesCacheData: any[] | null = null;
-  let companiesCacheTime = 0;
-
   async function computeCompaniesData() {
     const { pool: dbPool } = await import("./db");
     const client = await dbPool.connect();
@@ -1752,13 +1775,10 @@ export async function registerRoutes(
 
   app.get("/api/entities/companies", async (_req, res) => {
     try {
-      const now = Date.now();
-      if (companiesCacheData && (now - companiesCacheTime) < PEOPLE_CACHE_TTL) {
-        return res.json(companiesCacheData);
-      }
+      const cached = directoryCache.companies.get();
+      if (cached) return res.json(cached);
       const results = await computeCompaniesData();
-      companiesCacheData = results;
-      companiesCacheTime = Date.now();
+      directoryCache.companies.set(results);
       res.json(results);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Failed to fetch companies" });
@@ -1973,6 +1993,9 @@ export async function registerRoutes(
 
   app.get("/api/bookstore", async (_req, res) => {
     try {
+      const cached = directoryCache.bookstore.get();
+      if (cached) return res.json(cached);
+
       const { rows } = await pool.query(
         `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.resources, pd.name as podcast_name
          FROM landing_page_recaps lpr
@@ -2067,7 +2090,9 @@ export async function registerRoutes(
         })
         .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
 
-      res.json({ books, total: books.length });
+      const result = { books, total: books.length };
+      directoryCache.bookstore.set(result);
+      res.json(result);
     } catch (err) {
       console.error("Bookstore error:", err);
       res.status(500).json({ message: "Failed to load bookstore" });
@@ -3045,6 +3070,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.get("/api/podcasts-discovery", async (req, res) => {
     try {
+      const cached = directoryCache.podcastsDiscovery.get();
+      if (cached) return res.json(cached);
+
       const client = await pool.connect();
       try {
         const recentResult = await client.query(`
@@ -3068,7 +3096,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           ORDER BY MAX(lpr.publish_date) DESC
         `);
 
-        res.json({
+        const result = {
           recentEpisodes: recentResult.rows.map(r => ({
             slug: r.slug,
             episodeSlug: r.episode_slug,
@@ -3086,7 +3114,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             latestEpisode: r.latest_episode,
             firstEpisode: r.first_episode,
           })),
-        });
+        };
+        directoryCache.podcastsDiscovery.set(result);
+        res.json(result);
       } finally {
         client.release();
       }
@@ -3303,6 +3333,59 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/admin/logout", (req, res) => {
     req.session.isAdmin = false;
     res.json({ message: "Admin logged out" });
+  });
+
+  app.post("/api/admin/refresh-caches", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const targets = req.body.targets as string[] | undefined;
+    const toRefresh = targets && targets.length > 0
+      ? targets
+      : Object.keys(directoryCache) as (keyof typeof directoryCache)[];
+
+    for (const key of toRefresh) {
+      if (key in directoryCache) {
+        directoryCache[key as keyof typeof directoryCache].invalidate();
+      }
+    }
+
+    const refreshed: string[] = [];
+    try {
+      if (toRefresh.includes("people")) {
+        const data = await computePeopleData();
+        directoryCache.people.set(data);
+        refreshed.push("people");
+      }
+      if (toRefresh.includes("companies")) {
+        const data = await computeCompaniesData();
+        directoryCache.companies.set(data);
+        refreshed.push("companies");
+      }
+    } catch (err: any) {
+      console.error("[Cache Refresh] Error:", err);
+    }
+
+    res.json({
+      message: `Invalidated ${toRefresh.length} cache(s). Pre-warmed: ${refreshed.join(", ") || "none"}.`,
+      invalidated: toRefresh,
+      preWarmed: refreshed,
+    });
+  });
+
+  app.get("/api/admin/cache-status", (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const status: Record<string, { cached: boolean; ageMinutes: number }> = {};
+    for (const [key, cache] of Object.entries(directoryCache)) {
+      const age = cache.age();
+      status[key] = {
+        cached: age >= 0,
+        ageMinutes: age >= 0 ? Math.round(age / 60000) : -1,
+      };
+    }
+    res.json(status);
   });
 
   app.get("/api/admin/users", async (req, res) => {
@@ -4354,6 +4437,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       }
 
+      if (totalGenerated > 0) {
+        for (const c of Object.values(directoryCache)) c.invalidate();
+        console.log(`[Cache] Invalidated all directory caches after ${totalGenerated} new recaps`);
+      }
+
       res.write(JSON.stringify({
         type: "done",
         totalGenerated,
@@ -4827,6 +4915,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           totalErrors++;
           res.write(JSON.stringify({ slug, status: "podcast_error", error: err?.message?.slice(0, 150) }) + "\n");
         }
+      }
+
+      if (totalGenerated > 0) {
+        for (const c of Object.values(directoryCache)) c.invalidate();
+        console.log(`[Cache] Invalidated all directory caches after ${totalGenerated} new recaps`);
       }
 
       res.write(JSON.stringify({ type: "done", totalGenerated, totalSkipped, totalErrors }) + "\n");
