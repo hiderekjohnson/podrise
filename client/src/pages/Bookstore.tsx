@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { BookOpen, Search, ExternalLink, Mic, X, Star, Clock, TrendingUp, Sparkles, ChevronRight, Filter, Feather, Users } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 
 interface BookstoreBook {
   name: string;
@@ -49,6 +50,28 @@ function BookCover({ title, slug, size = "md" }: { title: string; asin?: string 
     <div className={`${sizeClasses[size]} rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
       <BookOpen className="w-5 h-5 text-amber-500/40" />
     </div>
+  );
+}
+
+const PEOPLE_SLUG_MAP: Record<string, string> = {};
+PEOPLE_DIRECTORY.forEach(p => { PEOPLE_SLUG_MAP[p.name.toLowerCase()] = p.slug; });
+
+function AuthorWithLinks({ author }: { author: string }) {
+  const parts = author.split(/(\s+and\s+)/i);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const slug = PEOPLE_SLUG_MAP[part.trim().toLowerCase()];
+        if (slug) {
+          return (
+            <Link key={i} href={`/people/${slug}`} className="text-amber-700 dark:text-amber-400 hover:underline">
+              {part}
+            </Link>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
   );
 }
 
@@ -173,7 +196,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
             )}
             {book.author && book.author !== "null" && (
               <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${index}`}>
-                by {book.author}
+                by <AuthorWithLinks author={book.author} />
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -184,12 +207,12 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
               {book.rating && <StarRating rating={book.rating} />}
               {book.pageCount && (
                 <span className="text-xs text-muted-foreground">
-                  {book.pageCount}p
+                  {book.pageCount} pages
                 </span>
               )}
               {book.publishYear && (
                 <span className="text-xs text-muted-foreground">
-                  {book.publishYear}
+                  Published {book.publishYear}
                 </span>
               )}
             </div>

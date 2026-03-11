@@ -9,6 +9,28 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 
+const PEOPLE_SLUG_MAP: Record<string, string> = {};
+PEOPLE_DIRECTORY.forEach(p => { PEOPLE_SLUG_MAP[p.name.toLowerCase()] = p.slug; });
+
+function AuthorWithLinks({ author }: { author: string }) {
+  const parts = author.split(/(\s+and\s+)/i);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const slug = PEOPLE_SLUG_MAP[part.trim().toLowerCase()];
+        if (slug) {
+          return (
+            <Link key={i} href={`/people/${slug}`} className="text-amber-700 dark:text-amber-400 hover:underline">
+              {part}
+            </Link>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 interface BookEpisode {
   podcastSlug: string;
   podcastName: string;
@@ -466,7 +488,7 @@ export default function BookDetailPage() {
               </h1>
               {book.author && (
                 <p className="text-lg text-muted-foreground mt-1" data-testid="text-book-author">
-                  by {book.author}
+                  by <AuthorWithLinks author={book.author} />
                 </p>
               )}
 
