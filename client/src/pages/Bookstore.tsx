@@ -135,7 +135,7 @@ function SEOHead() {
     setOrCreate("name", "description", description);
     setOrCreate("property", "og:title", title);
     setOrCreate("property", "og:description", description);
-    setOrCreate("property", "og:url", "https://podcap.io/podcasts/bookstore");
+    setOrCreate("property", "og:url", "https://podcap.io/bookstore");
     setOrCreate("property", "og:type", "website");
     setOrCreate("name", "twitter:card", "summary");
 
@@ -145,7 +145,7 @@ function SEOHead() {
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-    canonical.href = "https://podcap.io/podcasts/bookstore";
+    canonical.href = "https://podcap.io/bookstore";
   }
   return null;
 }

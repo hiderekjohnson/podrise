@@ -55,7 +55,7 @@ function Router() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/upgrade" component={Upgrade} />
         <Route path="/admin" component={Admin} />
-        <Route path="/podcasts/bookstore" component={Bookstore} />
+        <Route path="/bookstore" component={Bookstore} />
         <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/transcript" component={EpisodeTranscriptPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
