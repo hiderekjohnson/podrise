@@ -367,51 +367,51 @@ export default function PodcastDirectory() {
                   {entry.description && <p className="text-[15px] text-muted-foreground mt-2">{entry.description}</p>}
                   <div className="flex flex-wrap gap-2 mt-2">
                     <a href={`https://podcasts.apple.com/podcast/id${entry.itunesId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                      <ExternalLink className="w-3 h-3" /> Apple
+                      Apple <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                     </a>
                     {entry.spotifyUrl && (
                       <a href={entry.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> Spotify
+                        Spotify <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {entry.youtubeUrl && (
                       <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> YouTube
+                        YouTube <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {entry.twitterHandle && (
                       <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <Twitter className="w-3 h-3" /> {entry.twitterHandle}
+                        <Twitter className="w-3 h-3" /> {entry.twitterHandle} <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).instagramUrl && (
                       <a href={(entry as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> Instagram
+                        Instagram <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).tiktokUrl && (
                       <a href={(entry as any).tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> TikTok
+                        TikTok <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).facebookUrl && (
                       <a href={(entry as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> Facebook
+                        Facebook <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).discordUrl && (
                       <a href={(entry as any).discordUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> Discord
+                        Discord <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).websiteUrl && (
                       <a href={(entry as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <Globe className="w-3 h-3" /> Website
+                        <Globe className="w-3 h-3" /> Website <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).storeUrl && (
                       <a href={(entry as any).storeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <ExternalLink className="w-3 h-3" /> Store
+                        Store <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {entry.slug && entry.hasLandingPage && (

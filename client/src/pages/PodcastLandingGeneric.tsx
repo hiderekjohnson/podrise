@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, Sparkles, Send, MessageSquare, ShoppingBag, Globe } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -735,28 +735,28 @@ export default function PodcastLandingGeneric() {
                             <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
                               <SiX className="w-3 h-3" />
                               {host.twitterHandle.startsWith('@') ? host.twitterHandle : `@${host.twitterHandle}`}
-                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                           {host.linkedinUrl && (
                             <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
                               <SiLinkedin className="w-3 h-3" />
                               LinkedIn
-                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                           {host.instagramHandle && (
                             <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
                               <SiInstagram className="w-3 h-3" />
                               {host.instagramHandle.startsWith('@') ? host.instagramHandle : `@${host.instagramHandle}`}
-                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                           {host.websiteUrl && (
                             <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
-                              <ExternalLink className="w-3 h-3" />
+                              <Globe className="w-3 h-3" />
                               Website
-                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/30" />
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                         </div>
@@ -879,7 +879,7 @@ export default function PodcastLandingGeneric() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
                   data-testid="link-website"
                 >
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  <Globe className="w-4 h-4 text-muted-foreground" />
                   Website
                   <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>

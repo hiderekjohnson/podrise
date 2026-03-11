@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, ExternalLink, Loader2, Mic, AlertCircle } from "lucide-react";
+import { Users, ExternalLink, Globe, Loader2, Mic, AlertCircle } from "lucide-react";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -278,8 +278,9 @@ export default function EpisodeGuestsPage() {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
                             data-testid={`link-guest-website-${idx}`}
                           >
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            <Globe className="w-3.5 h-3.5" />
                             Website
+                            <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                           </a>
                         )}
                       </div>

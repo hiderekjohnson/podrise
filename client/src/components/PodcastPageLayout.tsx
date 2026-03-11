@@ -177,7 +177,7 @@ export function PodcastPageLayout({
                 >
                   <SiApplepodcasts className="w-5 h-5 text-[#9933CC]" />
                   Apple Podcasts
-                  <ExternalLink className="w-3.5 h-3.5 text-foreground/30" />
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
                 <a
                   href={effectiveSpotifyUrl}
@@ -189,7 +189,7 @@ export function PodcastPageLayout({
                 >
                   <SiSpotify className="w-5 h-5 text-[#1DB954]" />
                   Spotify
-                  <ExternalLink className="w-3.5 h-3.5 text-foreground/30" />
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
                 {youtubeUrl && (
                   <a
@@ -202,7 +202,7 @@ export function PodcastPageLayout({
                   >
                     <SiYoutube className="w-5 h-5 text-[#FF0000]" />
                     YouTube
-                    <ExternalLink className="w-3.5 h-3.5 text-foreground/30" />
+                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                   </a>
                 )}
               </div>
