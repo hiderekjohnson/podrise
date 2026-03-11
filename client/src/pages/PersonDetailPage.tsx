@@ -2,11 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles } from "lucide-react";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
+import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPICS } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PodCapWordmark } from "@/components/PodCapHeader";
@@ -292,8 +293,8 @@ export default function PersonDetailPage() {
   const displayQuotes = guestQuotes.length >= 2 ? guestQuotes : mentionQuotes.length >= 2 ? mentionQuotes : [];
   const showQuotesSection = displayQuotes.length >= 2;
   const quoteSectionTitle = displayQuotes.length > 0 && displayQuotes[0]?.isFromGuestEpisode
-    ? `Notable Quotes From ${person?.name || ""} Podcast Appearances`
-    : `Notable Podcast Mentions of ${person?.name || ""}`;
+    ? `Key Insights From ${person?.name || ""} Episodes`
+    : `${person?.name || ""} in the Podcast Ecosystem`;
 
   const timelineByYear = useMemo(() => {
     if (!person) return {};
@@ -562,7 +563,7 @@ export default function PersonDetailPage() {
                           />
                           <div className="min-w-0">
                             <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{podcast.title}</p>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] truncate">{podcast.hosts}</p>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
                             <p className="text-[15px] text-primary font-medium mt-1">View Podcast &rarr;</p>
                           </div>
                         </Link>
@@ -615,31 +616,31 @@ export default function PersonDetailPage() {
               {showQuotesSection && (
                 <section className="mb-8" data-testid="section-quotes">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Quote className="w-5 h-5 text-primary" />
+                    <Sparkles className="w-5 h-5 text-primary" />
                     {quoteSectionTitle}
                   </h2>
                   <div className="space-y-3">
                     {displayQuotes.map((quote, i) => {
                       const date = quote.date ? new Date(quote.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
                       return (
-                        <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`quote-${i}`}>
-                          <blockquote className="text-[15px] text-foreground leading-relaxed italic mb-3">
-                            &ldquo;{quote.text}&rdquo;
-                          </blockquote>
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="text-base text-[#3F3F46] dark:text-[#A1A1AA] flex items-center gap-1.5">
-                              <Headphones className="w-3.5 h-3.5" />
-                              <span>{quote.podcastName}</span>
-                              {date && <><span>&middot;</span><span>{date}</span></>}
+                        <Link key={i} href={`/podcasts/${quote.slug}/${quote.episodeSlug}`} className="block">
+                          <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 hover:shadow-sm transition-all group" data-testid={`quote-${i}`}>
+                            <p className="text-[15px] text-foreground leading-relaxed mb-3">
+                              {quote.text}
+                            </p>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="text-base text-[#3F3F46] dark:text-[#A1A1AA] flex items-center gap-1.5">
+                                <Headphones className="w-3.5 h-3.5" />
+                                <span>{quote.podcastName}</span>
+                                {date && <><span>&middot;</span><span>{date}</span></>}
+                              </div>
+                              <span className="text-xs text-primary font-medium group-hover:text-primary/80 transition-colors" data-testid={`link-quote-recap-${i}`}>
+                                Read Recap →
+                              </span>
                             </div>
-                            <div className="flex items-center gap-3 text-xs">
-                              <Link href={`/podcasts/${quote.slug}/${quote.episodeSlug}`} className="text-primary hover:text-primary/80 font-medium transition-colors" data-testid={`link-quote-recap-${i}`}>
-                                Read Recap
-                              </Link>
-                            </div>
+                            <p className="text-[15px] text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
                           </div>
-                          <p className="text-[15px] text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>

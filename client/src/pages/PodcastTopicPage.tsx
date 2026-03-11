@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PodCapWordmark } from "@/components/PodCapHeader";
+import { LinkedHosts } from "@/components/LinkedHosts";
 import {
   getCategoryBySlug,
   getPodcastsForTopic,
@@ -278,7 +279,7 @@ export default function PodcastTopicPage() {
                       {podcast.name}
                     </p>
                     <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 truncate">
-                      {podcast.hosts}
+                      <LinkedHosts hosts={podcast.hosts || ""} />
                     </p>
                   </div>
                 </a>

@@ -9,6 +9,7 @@ import { TOPICS, matchesKeywords } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { PodCapWordmark } from "@/components/PodCapHeader";
+import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPIC_TO_TOPICS_PAGE_MAP, PODCAST_CATEGORIES, getPodcastsForTopic } from "@/data/podcastCategoryData";
 
 const ICON_MAP: Record<string, any> = {
@@ -637,7 +638,7 @@ export default function TopicDetailPage() {
                           <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                             {podcast.name}
                           </h3>
-                          <p className="text-[13px] text-muted-foreground/60 truncate">{podcast.hosts}</p>
+                          <p className="text-[13px] text-muted-foreground/60 truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
                         </div>
                       </div>
                     </div>
@@ -686,7 +687,7 @@ export default function TopicDetailPage() {
                           <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                             {podcast.name}
                           </h3>
-                          <p className="text-[13px] text-muted-foreground/60 truncate">{podcast.hosts}</p>
+                          <p className="text-[13px] text-muted-foreground/60 truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
                         </div>
                       </div>
                     </div>
