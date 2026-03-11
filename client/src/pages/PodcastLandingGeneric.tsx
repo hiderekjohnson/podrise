@@ -1003,7 +1003,7 @@ export default function PodcastLandingGeneric() {
                   <Link key={person.slug} href={`/people/${person.slug}`} className="block" data-testid={`link-person-${person.slug}`}>
                     <div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group">
                       <img
-                        src={`/people/${person.slug}.webp`}
+                        src={`/people/${person.slug}.png`}
                         alt={person.name}
                         className="w-10 h-10 rounded-full object-cover shrink-0"
                         onError={(e) => {
