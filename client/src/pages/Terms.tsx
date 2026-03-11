@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { FileText, Zap } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 export default function Terms() {
   return (
@@ -9,7 +9,7 @@ export default function Terms() {
       <nav className="sticky top-0 z-50 w-full border-b border-black/[0.04] bg-white/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
           <a href="/" className="flex items-center" data-testid="link-home">
-            <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
+            <PodCapWordmark />
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">

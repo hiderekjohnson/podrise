@@ -6,7 +6,7 @@ import { Users, ArrowRight, Mic, MessageSquare, Search, ChevronDown, Zap } from 
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 interface PersonSummary {
   slug: string;
@@ -116,7 +116,7 @@ export default function PeopleDirectory() {
       <SEOHead />
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+          <PodCapWordmark />
         </a>
         <div className="flex items-center gap-4">
           {user ? (

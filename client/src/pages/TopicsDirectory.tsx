@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { TOPICS } from "@/data/topicData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users,
@@ -59,7 +59,7 @@ export default function TopicsDirectory() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04] dark:border-white/[0.04]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2" data-testid="link-home">
-            <img src={logoPath} alt="PodCap" className="h-7 object-contain" />
+            <PodCapWordmark />
           </Link>
           <div className="flex items-center gap-3">
             {!user && (

@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { SiX } from "react-icons/si";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "./PodCapHeader";
 
 export function Footer() {
   return (
@@ -8,7 +8,7 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 mb-12">
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
             <ul className="space-y-3">
               <li>
                 <Link href="/podcasts" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-podcasts">
@@ -39,7 +39,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Company</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-5 tracking-wide uppercase">Company</h3>
             <ul className="space-y-3">
               <li>
                 <Link href="/about" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-about">
@@ -65,7 +65,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Support</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-5 tracking-wide uppercase">Support</h3>
             <ul className="space-y-3">
               <li>
                 <Link href="/support" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-support">
@@ -81,7 +81,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-display font-bold text-foreground mb-5 tracking-wide uppercase">Legal</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-5 tracking-wide uppercase">Legal</h3>
             <ul className="space-y-3">
               <li>
                 <Link href="/privacy" className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors" data-testid="link-privacy">
@@ -113,8 +113,8 @@ export function Footer() {
             <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
           </div>
 
-          <img src={logoPath} alt="PodCap" className="h-7 object-contain mb-2" />
-          <p className="text-xs text-muted-foreground/50">
+          <PodCapWordmark />
+          <p className="text-xs text-muted-foreground/50 mt-2">
             &copy; {new Date().getFullYear()} PodCap, Inc. All rights reserved.
           </p>
         </div>

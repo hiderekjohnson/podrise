@@ -11,8 +11,8 @@ import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayo
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
 import { EpisodeCard } from "@/components/EpisodeCard";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 function highlightMatch(text: string, query: string) {
   if (!query) return text;

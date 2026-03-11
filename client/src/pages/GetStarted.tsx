@@ -6,7 +6,7 @@ import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import { Footer } from "@/components/Footer";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 function hiResArtwork(url: string) {
   return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
@@ -101,7 +101,7 @@ export default function GetStarted() {
       <SEOHead />
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+          <PodCapWordmark />
         </a>
         <div className="flex items-center gap-3">
           <button

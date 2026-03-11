@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,38 +6,69 @@
 
 @layer base {
   :root {
-    --font-sans: 'Inter', sans-serif;
-    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-sans: 'DM Sans', system-ui, sans-serif;
+    --font-display: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'DM Mono', monospace;
 
-    --background: 30 20% 97%;
-    --foreground: 0 0% 13%;
+    --background: 240 33% 97%;
+    --foreground: 240 6% 10%;
     
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 13%;
+    --card-foreground: 240 6% 10%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
+    --popover-foreground: 240 6% 10%;
     
-    --primary: 207 90% 54%;
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 30 15% 94%;
-    --secondary-foreground: 0 0% 13%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
     
-    --muted: 30 10% 90%;
-    --muted-foreground: 0 0% 44%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
     
-    --accent: 207 90% 54%;
+    --accent: 258 90% 66%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 10% 90%;
-    --input: 30 10% 90%;
-    --ring: 207 90% 54%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 239 84% 67%;
 
-    --radius: 1rem;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 47% 5%;
+    --foreground: 0 0% 100%;
+
+    --card: 240 38% 9%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 240 38% 9%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 6% 17%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 6% 17%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 258 90% 66%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 17%;
+    --input: 240 6% 17%;
+    --ring: 239 84% 67%;
   }
 
   * {
@@ -52,14 +83,14 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply tracking-tight;
+    letter-spacing: -0.04em;
   }
 }
 
 @layer utilities {
   .glass-panel {
     @apply bg-white border border-black/[0.06] shadow-xl shadow-black/[0.05];
-    border-radius: 24px;
+    border-radius: 20px;
   }
   
   .hide-scrollbar::-webkit-scrollbar {

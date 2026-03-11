@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { TOPICS } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 interface EpisodeEntry {
   slug: string;
@@ -387,7 +387,7 @@ export default function PersonDetailPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <Link href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+          <PodCapWordmark />
         </Link>
         <div className="flex items-center gap-4">
           {user ? (

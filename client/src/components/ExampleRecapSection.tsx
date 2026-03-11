@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Lightbulb, Quote, FileText, Inbox } from "lucide-react";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 interface ExampleRecap {
   id: number;
@@ -74,7 +74,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground/60 w-12 shrink-0">From:</span>
               <div className="flex items-center gap-2">
-                <img src={logoPath} alt="PodCap" className="h-4 object-contain" />
+                <PodCapWordmark />
                 <span className="text-foreground font-medium">PodCap Daily Recap</span>
                 <span className="text-muted-foreground/50">&lt;digest@podcap.io&gt;</span>
               </div>
@@ -176,7 +176,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
 
           <div className="border-t border-black/[0.06] pt-6 mt-8 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src={logoPath} alt="PodCap" className="h-5 object-contain opacity-50" />
+              <PodCapWordmark />
             </div>
             <span className="text-xs text-muted-foreground/40">podcap.io</span>
           </div>

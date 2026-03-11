@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const FEATURES = [
   "Unlimited podcast summaries",
@@ -47,7 +47,7 @@ export default function Upgrade() {
       <div className="min-h-screen flex flex-col">
         <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <a href="/" className="flex items-center">
-            <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+            <PodCapWordmark />
           </a>
           <button
             data-testid="link-back"
@@ -80,7 +80,7 @@ export default function Upgrade() {
     <div className="min-h-screen flex flex-col">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center">
-          <img src={logoPath} alt="PodCap" className="h-8 object-contain" />
+          <PodCapWordmark />
         </a>
         <button
           data-testid="link-back"

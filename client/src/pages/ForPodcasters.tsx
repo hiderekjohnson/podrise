@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const FEATURED_PODCASTS = [
   { slug: "myfirstmillion", name: "My First Million", description: "Business ideas, side hustles, and startup strategies", artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/fc/be/b0/fcbeb0f0-fb7a-509e-1cd0-ab60222ee7e5/mza_17824311072672278584.jpeg/600x600bb.jpg" },
@@ -142,7 +142,7 @@ export default function ForPodcasters() {
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
           <Link href="/" data-testid="link-home">
-            <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
+            <PodCapWordmark />
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">

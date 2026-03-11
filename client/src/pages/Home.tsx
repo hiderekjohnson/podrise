@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const FEATURED_PODCAST_SLUGS = [
   "joerogan", "lexfridman", "hubermanlab", "myfirstmillion", "allin",
@@ -68,7 +68,7 @@ export default function Home() {
 
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+          <PodCapWordmark />
         </a>
         <div className="flex items-center gap-3">
           <button

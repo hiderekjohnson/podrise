@@ -3,8 +3,8 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Clock, Mail, Sparkles, Search, BookOpen, Globe } from "lucide-react";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
 import derekPhoto from "@assets/Derek_Johnson_nobg.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 export default function About() {
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function About() {
       <nav className="sticky top-0 z-50 w-full border-b border-black/[0.04] bg-white/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
           <a href="/" className="flex items-center" data-testid="link-home">
-            <img src={logoPath} alt="PodCap" className="h-6 object-contain" />
+            <PodCapWordmark />
           </a>
           <div className="flex items-center gap-4">
             <Link href="/get-started" data-testid="link-nav-get-started">

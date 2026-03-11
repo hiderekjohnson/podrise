@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import logoPath from "@assets/Podcap_logo_1772731738179.png";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const CATEGORY_MAP: Record<string, string[]> = {
   "Business": ["business", "entrepreneurship", "startup", "saas", "management", "strategy", "acquisitions", "growth", "marketing", "online marketing", "side hustles", "company analysis", "business of tech", "business news", "economic", "organizational"],
@@ -79,7 +79,7 @@ export default function Leaderboard() {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <img src={logoPath} alt="PodCap" className="h-9 object-contain" />
+          <PodCapWordmark />
         </a>
         <div className="flex items-center gap-4">
           {user ? (
