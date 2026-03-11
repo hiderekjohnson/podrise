@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, Link } from "wouter";
-import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X, Clock, Calendar as CalendarIcon, UserCheck, Filter } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X, Clock, Calendar as CalendarIcon, UserCheck, Filter, Timer } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
@@ -37,6 +37,25 @@ function episodeHasGuests(ep: any): boolean {
   } catch { return false; }
 }
 
+type DurationRange = "all" | "quick" | "standard" | "deep";
+
+const DURATION_LABELS: Record<DurationRange, string> = {
+  all: "Any length",
+  quick: "Quick (under 30 min)",
+  standard: "Standard (30–60 min)",
+  deep: "Deep dive (60+ min)",
+};
+
+function matchesDurationRange(dur: string | undefined, range: DurationRange): boolean {
+  if (range === "all") return true;
+  const mins = parseDurationMinutes(dur);
+  if (mins === 0) return false;
+  if (range === "quick") return mins < 30;
+  if (range === "standard") return mins >= 30 && mins < 60;
+  if (range === "deep") return mins >= 60;
+  return true;
+}
+
 export default function EpisodeArchivePage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug || "";
@@ -47,12 +66,14 @@ export default function EpisodeArchivePage() {
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [guestPresence, setGuestPresence] = useState<"all" | "with" | "without">("all");
+  const [durationRange, setDurationRange] = useState<DurationRange>("all");
   const [sort, setSort] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [guestDropdownOpen, setGuestDropdownOpen] = useState(false);
   const [topicDropdownOpen, setTopicDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [durationDropdownOpen, setDurationDropdownOpen] = useState(false);
   const [guestSearch, setGuestSearch] = useState("");
   const [topicSearch, setTopicSearch] = useState("");
 
@@ -147,7 +168,7 @@ export default function EpisodeArchivePage() {
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [debouncedSearch, selectedGuest, selectedTopic, selectedYear, guestPresence, sort]);
+  }, [debouncedSearch, selectedGuest, selectedTopic, selectedYear, guestPresence, durationRange, sort]);
 
   const filteredEpisodes = useMemo(() => {
     if (!allEpisodes) return [];
@@ -190,6 +211,10 @@ export default function EpisodeArchivePage() {
       result = result.filter(ep => !episodeHasGuests(ep));
     }
 
+    if (durationRange !== "all") {
+      result = result.filter(ep => matchesDurationRange(ep.duration, durationRange));
+    }
+
     if (sort === "oldest") {
       result.sort((a, b) => (a.publishDate || "").localeCompare(b.publishDate || ""));
     } else if (sort === "longest") {
@@ -215,11 +240,11 @@ export default function EpisodeArchivePage() {
     }
 
     return result;
-  }, [allEpisodes, debouncedSearch, selectedGuest, selectedTopic, selectedYear, guestPresence, sort]);
+  }, [allEpisodes, debouncedSearch, selectedGuest, selectedTopic, selectedYear, guestPresence, durationRange, sort]);
 
   const visibleEpisodes = filteredEpisodes.slice(0, visibleCount);
   const hasMore = visibleCount < filteredEpisodes.length;
-  const hasActiveFilters = debouncedSearch || selectedGuest || selectedTopic || selectedYear || guestPresence !== "all" || sort !== "newest";
+  const hasActiveFilters = debouncedSearch || selectedGuest || selectedTopic || selectedYear || guestPresence !== "all" || durationRange !== "all" || sort !== "newest";
 
   const activeFilterCount = [
     !!debouncedSearch,
@@ -227,6 +252,7 @@ export default function EpisodeArchivePage() {
     !!selectedTopic,
     !!selectedYear,
     guestPresence !== "all",
+    durationRange !== "all",
   ].filter(Boolean).length;
 
   const clearAllFilters = useCallback(() => {
@@ -236,7 +262,16 @@ export default function EpisodeArchivePage() {
     setSelectedTopic("");
     setSelectedYear("");
     setGuestPresence("all");
+    setDurationRange("all");
     setSort("newest");
+  }, []);
+
+  const closeAllDropdowns = useCallback(() => {
+    setGuestDropdownOpen(false);
+    setTopicDropdownOpen(false);
+    setYearDropdownOpen(false);
+    setSortDropdownOpen(false);
+    setDurationDropdownOpen(false);
   }, []);
 
   const filteredGuests = useMemo(() => {
@@ -258,8 +293,8 @@ export default function EpisodeArchivePage() {
       document.title = "Podcast Not Found | PodCap";
       return;
     }
-    const pageTitle = `${config.name} Episodes Archive | PodCap`;
-    const pageDescription = `Browse every ${config.name} episode recap on PodCap. Search by keyword, filter by guest, topic, or year.`;
+    const pageTitle = `${config.name} — Episode Archive | PodCap`;
+    const pageDescription = `Browse every ${config.name} episode on PodCap. Search by keyword, filter by guest, topic, year, or episode length to find your next listen.`;
     const canonicalUrl = `https://podcap.io/podcasts/${slug}/episodes`;
 
     document.title = pageTitle;
@@ -303,6 +338,7 @@ export default function EpisodeArchivePage() {
       if (!target.closest("[data-dropdown='topic']")) setTopicDropdownOpen(false);
       if (!target.closest("[data-dropdown='year']")) setYearDropdownOpen(false);
       if (!target.closest("[data-dropdown='sort']")) setSortDropdownOpen(false);
+      if (!target.closest("[data-dropdown='duration']")) setDurationDropdownOpen(false);
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -351,19 +387,19 @@ export default function EpisodeArchivePage() {
               </Link>
             )}
             <div className="min-w-0 flex-1">
-              <Link href={`/podcasts/${slug}`} className="inline-block hover:text-primary transition-colors">
-                <h1 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-tight" data-testid="heading-archive-title">
+              <Link href={`/podcasts/${slug}`} className="inline-block group">
+                <h1 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-tight group-hover:text-primary transition-colors" data-testid="heading-archive-title">
                   {config.name}
                 </h1>
               </Link>
-              <p className="text-base font-semibold text-muted-foreground mt-0.5" data-testid="text-archive-subtitle">
-                Episodes Archive
+              <p className="text-base text-muted-foreground mt-1" data-testid="text-archive-subtitle">
+                Episode Archive
               </p>
               {podcastConfig && (() => {
                 const catInfo = getPodcastCategoryInfo(podcastConfig);
                 if (!catInfo.category) return null;
                 return (
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2" data-testid="archive-category-labels">
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2.5" data-testid="archive-category-labels">
                     <Link href={`/podcasts/${catInfo.category.slug}`}>
                       <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${catInfo.category.slug}`}>
                         {catInfo.category.name}
@@ -391,7 +427,7 @@ export default function EpisodeArchivePage() {
               <input
                 data-testid="input-search"
                 type="text"
-                placeholder={`Search ${config.name} episodes...`}
+                placeholder={`Search episodes by title, topic, or keyword...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-12 pl-12 pr-4 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all placeholder:text-muted-foreground/40"
@@ -411,7 +447,7 @@ export default function EpisodeArchivePage() {
               {yearList.length > 0 && (
                 <div className="relative" data-dropdown="year">
                   <button
-                    onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setGuestDropdownOpen(false); setTopicDropdownOpen(false); setSortDropdownOpen(false); }}
+                    onClick={() => { const next = !yearDropdownOpen; closeAllDropdowns(); setYearDropdownOpen(next); }}
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
                       selectedYear
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
@@ -445,7 +481,6 @@ export default function EpisodeArchivePage() {
                             data-testid={`option-year-${y.year}`}
                           >
                             <span>{y.year}</span>
-                            <span className="text-[13px] text-muted-foreground/50 ml-2 shrink-0">{y.count}</span>
                           </button>
                         ))}
                       </div>
@@ -457,7 +492,7 @@ export default function EpisodeArchivePage() {
               {topicList.length > 0 && (
                 <div className="relative" data-dropdown="topic">
                   <button
-                    onClick={() => { setTopicDropdownOpen(!topicDropdownOpen); setGuestDropdownOpen(false); setYearDropdownOpen(false); setSortDropdownOpen(false); }}
+                    onClick={() => { const next = !topicDropdownOpen; closeAllDropdowns(); setTopicDropdownOpen(next); }}
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
                       selectedTopic
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
@@ -502,7 +537,6 @@ export default function EpisodeArchivePage() {
                             data-testid={`option-topic-${t.topic}`}
                           >
                             <span className="truncate">{t.topic}</span>
-                            <span className="text-[13px] text-muted-foreground/50 ml-2 shrink-0">{t.count} ep{t.count !== 1 ? "s" : ""}</span>
                           </button>
                         ))}
                         {filteredTopics.length === 0 && (
@@ -517,7 +551,7 @@ export default function EpisodeArchivePage() {
               {guestList.length > 0 && (
                 <div className="relative" data-dropdown="guest">
                   <button
-                    onClick={() => { setGuestDropdownOpen(!guestDropdownOpen); setTopicDropdownOpen(false); setYearDropdownOpen(false); setSortDropdownOpen(false); }}
+                    onClick={() => { const next = !guestDropdownOpen; closeAllDropdowns(); setGuestDropdownOpen(next); }}
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
                       selectedGuest
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
@@ -562,7 +596,6 @@ export default function EpisodeArchivePage() {
                             data-testid={`option-guest-${g.name}`}
                           >
                             <span className="truncate">{g.name}</span>
-                            <span className="text-[13px] text-muted-foreground/50 ml-2 shrink-0">{g.count} ep{g.count !== 1 ? "s" : ""}</span>
                           </button>
                         ))}
                         {filteredGuests.length === 0 && (
@@ -597,9 +630,52 @@ export default function EpisodeArchivePage() {
                 </button>
               )}
 
+              {durationStats.hasDuration && (
+                <div className="relative" data-dropdown="duration">
+                  <button
+                    onClick={() => { const next = !durationDropdownOpen; closeAllDropdowns(); setDurationDropdownOpen(next); }}
+                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                      durationRange !== "all"
+                        ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                    }`}
+                    data-testid="button-filter-duration"
+                  >
+                    <Timer className="w-4 h-4" />
+                    {durationRange === "all" ? "Length" : DURATION_LABELS[durationRange].split(" (")[0]}
+                    {durationRange !== "all" ? (
+                      <span
+                        onClick={(e) => { e.stopPropagation(); setDurationRange("all"); setDurationDropdownOpen(false); }}
+                        className="ml-1 p-0.5 rounded hover:bg-primary/20"
+                      >
+                        <X className="w-3 h-3" />
+                      </span>
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                    )}
+                  </button>
+                  {durationDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1.5 w-56 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.1] rounded-xl shadow-lg shadow-black/[0.08] overflow-hidden z-50" data-testid="dropdown-duration">
+                      {(["quick", "standard", "deep"] as DurationRange[]).map((range) => (
+                        <button
+                          key={range}
+                          onClick={() => { setDurationRange(range); setDurationDropdownOpen(false); }}
+                          className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors ${
+                            durationRange === range ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
+                          }`}
+                          data-testid={`option-duration-${range}`}
+                        >
+                          {DURATION_LABELS[range]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="relative ml-auto" data-dropdown="sort">
                 <button
-                  onClick={() => { setSortDropdownOpen(!sortDropdownOpen); setGuestDropdownOpen(false); setTopicDropdownOpen(false); setYearDropdownOpen(false); }}
+                  onClick={() => { const next = !sortDropdownOpen; closeAllDropdowns(); setSortDropdownOpen(next); }}
                   className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
                     sort !== "newest"
                       ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
@@ -630,14 +706,8 @@ export default function EpisodeArchivePage() {
               </div>
             </div>
 
-            {(activeFilterCount > 0 || sort !== "newest") && (
+            {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                {activeFilterCount > 0 && (
-                  <span className="text-[13px] font-medium text-muted-foreground/60 flex items-center gap-1">
-                    <Filter className="w-3 h-3" />
-                    {filteredEpisodes.length} result{filteredEpisodes.length !== 1 ? "s" : ""}
-                  </span>
-                )}
                 {debouncedSearch && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
                     <Search className="w-3 h-3 flex-shrink-0" />
@@ -669,9 +739,15 @@ export default function EpisodeArchivePage() {
                     <button onClick={() => setGuestPresence("all")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
                 )}
+                {durationRange !== "all" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                    {DURATION_LABELS[durationRange].split(" (")[0]}
+                    <button onClick={() => setDurationRange("all")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
                 {sort !== "newest" && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
-                    {sort === "oldest" ? "Oldest first" : sort === "longest" ? "Longest first" : "Shortest first"}
+                    {sortLabels[sort]}
                     <button onClick={() => setSort("newest")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
                 )}
@@ -731,7 +807,7 @@ export default function EpisodeArchivePage() {
                     data-testid="button-show-more"
                   >
                     <ChevronDown className="w-4 h-4" />
-                    Show more
+                    Show more episodes
                   </button>
                 </div>
               )}

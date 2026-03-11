@@ -1,0 +1,12 @@
+We need a new Quotes tab added to each episode page, sitting alongside the existing tabs (Takeaways, Recap, Participants, Mentions, Topics, Books, Q&A).
+The quotes are extracted from the episode transcript using AI. The extraction needs to be opinionated and editorial — not just pulling anything someone said, but specifically hunting for the most shareable, spicy, and culturally relevant lines. The audience cares about AI, startups, money, and the future of work. They want hot takes and predictions, not generic advice or personal anecdotes.
+QUOTE EXTRACTION LOGIC
+Always prefer quotes from guests over the host. Host quotes only if genuinely exceptional.
+A quote is worth extracting if it passes this test: would someone screenshot this and send it to a friend?
+Prioritize: contrarian or spicy takes, tweetable self-contained lines, hot topic relevance (AI, future of work, money, startups), specific opinions and predictions over general wisdom, memorable phrasing.
+Skip: personal travel or family stories, generic motivational filler, factual statements with no opinion, rambling passages that need editing to land, host filler and transitions.
+Pull 3 to 5 quotes per episode. One must be the clear hero quote. At least one must be a hot take or prediction. Include a bonus exchange quote if there is a memorable back-and-forth.
+OUTPUT PER QUOTE
+Speaker name and role, the quote verbatim, a one-line context setter (e.g. "On why he thinks most startup advice is wrong"), and a type label — one of: Hero Quote, Hot Take, Prediction, Spicy, Tweetable.
+THE EPISODE PAGE UI
+Each quote card needs: the quote text, context setter, speaker name and role, quote type badge, and a share bar with buttons for X, Threads, Bluesky, LinkedIn, Facebook, and Instagram. Instagram should copy the text to clipboard since it doesn't support direct share links. There should also be a Make Image button that opens a modal where the user can generate and download a branded quote graphic in square (1:1) or story (9:16) format, ready to post.
