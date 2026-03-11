@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, Headphones } from "lucide-react";
+import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, Headphones, User } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { PodCapWordmark } from "@/components/PodCapHeader";
@@ -19,6 +19,9 @@ interface BookEpisode {
   context: string;
   publishedAt: string | null;
   hosts: string | null;
+  guests: string | null;
+  recommendedBy: string | null;
+  recommenderRole: "host" | "guest" | "author" | null;
 }
 
 interface RelatedBook {
@@ -346,16 +349,24 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                       <h3 className="text-[15px] font-bold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2">
                         {ep.episodeTitle}
                       </h3>
-                      <div className="flex items-center gap-3 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        {ep.recommendedBy && (
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                            ep.recommenderRole === "author"
+                              ? "bg-violet-500/[0.08] text-violet-700 dark:text-violet-400"
+                              : ep.recommenderRole === "guest"
+                              ? "bg-blue-500/[0.08] text-blue-700 dark:text-blue-400"
+                              : "bg-amber-500/[0.08] text-amber-700 dark:text-amber-400"
+                          }`} data-testid={`recommender-${gi}-${ei}`}>
+                            {ep.recommenderRole === "author" ? "Author appearance" :
+                             ep.recommenderRole === "guest" ? `Guest: ${ep.recommendedBy}` :
+                             `Host: ${ep.recommendedBy}`}
+                          </span>
+                        )}
                         {ep.publishedAt && (
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {formatDate(ep.publishedAt)}
-                          </span>
-                        )}
-                        {ep.hosts && (
-                          <span className="text-xs text-muted-foreground">
-                            {ep.hosts}
                           </span>
                         )}
                       </div>
@@ -408,6 +419,27 @@ export default function BookDetailPage() {
     queryKey: ["/api/bookstore", bookSlug],
     enabled: !!bookSlug,
   });
+
+  const recommenders = useMemo(() => {
+    if (!book) return [];
+    const map = new Map<string, { name: string; role: "host" | "guest" | "author"; count: number }>();
+    for (const ep of book.episodes) {
+      if (ep.recommendedBy && ep.recommenderRole) {
+        const key = ep.recommendedBy.toLowerCase();
+        const existing = map.get(key);
+        if (existing) {
+          existing.count++;
+        } else {
+          map.set(key, { name: ep.recommendedBy, role: ep.recommenderRole, count: 1 });
+        }
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [book]);
+
+  const hasAuthorAppearance = recommenders.some(r => r.role === "author");
+  const hostRecommenders = recommenders.filter(r => r.role === "host");
+  const guestRecommenders = recommenders.filter(r => r.role === "guest");
 
   if (isLoading) {
     return (
@@ -630,22 +662,44 @@ export default function BookDetailPage() {
             </motion.section>
           )}
 
-          {topHostsWithMultiple.length > 0 && (
+          {recommenders.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.18 }}
               className="mt-8"
-              data-testid="section-repeat-hosts"
+              data-testid="section-who-recommends"
             >
-              <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-repeat-hosts">Who Keeps Recommending It</h2>
+              <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-who-recommends">Who Recommends This Book</h2>
+              {hasAuthorAppearance && (
+                <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-violet-500/[0.04] border border-violet-500/[0.12] rounded-xl" data-testid="author-appearance-note">
+                  <User className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-violet-700 dark:text-violet-400">{book.author}</span> appeared as a guest to discuss this book
+                  </span>
+                </div>
+              )}
               <div className="flex flex-wrap gap-3">
-                {topHostsWithMultiple.map(h => (
-                  <div key={h.name} className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl">
-                    <span className="text-sm font-semibold text-foreground">{h.name}</span>
-                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/[0.1] px-2 py-0.5 rounded-full">
-                      {h.count} mentions
-                    </span>
+                {hostRecommenders.slice(0, 8).map(r => (
+                  <div key={r.name} className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl">
+                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Host</span>
+                    <span className="text-sm font-semibold text-foreground">{r.name}</span>
+                    {r.count >= 2 && (
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/[0.1] px-2 py-0.5 rounded-full">
+                        {r.count}x
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {guestRecommenders.slice(0, 6).map(r => (
+                  <div key={r.name} className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl">
+                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Guest</span>
+                    <span className="text-sm font-semibold text-foreground">{r.name}</span>
+                    {r.count >= 2 && (
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/[0.1] px-2 py-0.5 rounded-full">
+                        {r.count}x
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

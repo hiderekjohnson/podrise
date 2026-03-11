@@ -2046,10 +2046,32 @@ export async function registerRoutes(
         context: string;
         publishedAt: string | null;
         hosts: string | null;
+        guests: string | null;
+        recommendedBy: string | null;
+        recommenderRole: "host" | "guest" | "author" | null;
       }[] = [];
       const podcastSet = new Map<string, string>();
       const relatedBookCounts = new Map<string, number>();
       const hostMentionCounts = new Map<string, number>();
+      const bookAuthor = enrichment.author?.toLowerCase().trim() || "";
+
+      function normalizeForMatch(name: string): string {
+        return name.toLowerCase().replace(/[^a-z\s]/g, '').trim();
+      }
+
+      function namesMatch(a: string, b: string): boolean {
+        const na = normalizeForMatch(a);
+        const nb = normalizeForMatch(b);
+        if (!na || !nb) return false;
+        if (na === nb) return true;
+        const partsA = na.split(/\s+/);
+        const partsB = nb.split(/\s+/);
+        if (partsA.length >= 2 && partsB.length >= 2) {
+          return partsA[partsA.length - 1] === partsB[partsB.length - 1] &&
+            partsA[0] === partsB[0];
+        }
+        return false;
+      }
 
       for (const row of rows) {
         let resources: any[];
@@ -2075,6 +2097,56 @@ export async function registerRoutes(
         }
 
         if (foundInEpisode) {
+          const rawHosts = row.hosts && row.hosts !== '[]' && row.hosts !== 'null' ? row.hosts : '';
+          const rawGuests = row.guests && row.guests !== '[]' && row.guests !== 'null' ? row.guests : '';
+          const hostNames = rawHosts ? rawHosts.split(/[,&]/).map((h: string) => h.trim()).filter((h: string) => h && h.length > 1 && !/^\[|^\]/.test(h)) : [];
+          const guestNames = rawGuests ? rawGuests.split(/[,&]/).map((g: string) => g.trim()).filter((g: string) => g && g.length > 1 && !/^\[|^\]/.test(g)) : [];
+
+          let recommendedBy: string | null = null;
+          let recommenderRole: "host" | "guest" | "author" | null = null;
+
+          if (bookAuthor && guestNames.some((g: string) => namesMatch(g, bookAuthor))) {
+            recommendedBy = guestNames.find((g: string) => namesMatch(g, bookAuthor)) || bookAuthor;
+            recommenderRole = "author";
+          } else if (bookAuthor && bookContext) {
+            const ctxLower = bookContext.toLowerCase();
+            const authorFirst = normalizeForMatch(bookAuthor).split(/\s+/)[0];
+            if (authorFirst && ctxLower.includes(authorFirst) && (
+              ctxLower.includes("discusses") || ctxLower.includes("his book") || ctxLower.includes("her book") ||
+              ctxLower.includes("their book") || ctxLower.includes("the author")
+            )) {
+              recommendedBy = enrichment.author || bookAuthor;
+              recommenderRole = "author";
+            }
+          }
+
+          if (!recommendedBy && bookContext) {
+            const ctxLower = bookContext.toLowerCase();
+            for (const g of guestNames) {
+              const firstName = normalizeForMatch(g).split(/\s+/)[0];
+              if (firstName && firstName.length > 1 && ctxLower.includes(firstName)) {
+                recommendedBy = g;
+                recommenderRole = "guest";
+                break;
+              }
+            }
+            if (!recommendedBy) {
+              for (const h of hostNames) {
+                const firstName = normalizeForMatch(h).split(/\s+/)[0];
+                if (firstName && firstName.length > 1 && ctxLower.includes(firstName)) {
+                  recommendedBy = h;
+                  recommenderRole = "host";
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!recommendedBy && hostNames.length > 0) {
+            recommendedBy = hostNames[0];
+            recommenderRole = "host";
+          }
+
           episodes.push({
             podcastSlug: row.slug,
             podcastName: row.podcast_name,
@@ -2083,15 +2155,15 @@ export async function registerRoutes(
             context: bookContext,
             publishedAt: row.publish_date,
             hosts: row.hosts,
+            guests: row.guests || null,
+            recommendedBy,
+            recommenderRole,
           });
           podcastSet.set(row.slug, row.podcast_name);
           otherBooks.forEach(k => relatedBookCounts.set(k, (relatedBookCounts.get(k) || 0) + 1));
 
-          if (row.hosts) {
-            const hostList = row.hosts.split(/[,&]/).map((h: string) => h.trim()).filter(Boolean);
-            for (const h of hostList) {
-              hostMentionCounts.set(h, (hostMentionCounts.get(h) || 0) + 1);
-            }
+          for (const h of hostNames) {
+            hostMentionCounts.set(h, (hostMentionCounts.get(h) || 0) + 1);
           }
         }
       }
