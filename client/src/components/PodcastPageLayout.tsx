@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
@@ -177,6 +177,7 @@ export function PodcastPageLayout({
                 >
                   <SiApplepodcasts className="w-5 h-5 text-[#9933CC]" />
                   Apple Podcasts
+                  <ExternalLink className="w-3.5 h-3.5 text-foreground/30" />
                 </a>
                 <a
                   href={effectiveSpotifyUrl}
@@ -188,6 +189,7 @@ export function PodcastPageLayout({
                 >
                   <SiSpotify className="w-5 h-5 text-[#1DB954]" />
                   Spotify
+                  <ExternalLink className="w-3.5 h-3.5 text-foreground/30" />
                 </a>
                 {youtubeUrl && (
                   <a
@@ -200,6 +202,7 @@ export function PodcastPageLayout({
                   >
                     <SiYoutube className="w-5 h-5 text-[#FF0000]" />
                     YouTube
+                    <ExternalLink className="w-3.5 h-3.5 text-foreground/30" />
                   </a>
                 )}
               </div>
