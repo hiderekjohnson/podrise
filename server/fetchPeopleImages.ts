@@ -23,27 +23,32 @@ function getExistingImageStatus(slug: string): { exists: boolean; isPlaceholder:
   return { exists: true, isPlaceholder: stat.size < PLACEHOLDER_SIZE_THRESHOLD };
 }
 
-function fetchUrl(url: string): Promise<Buffer> {
+function fetchUrl(url: string, redirectCount = 0): Promise<Buffer> {
+  if (redirectCount > 5) return Promise.reject(new Error("Too many redirects"));
   return new Promise((resolve, reject) => {
-    const handler = (res: http.IncomingMessage) => {
-      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        fetchUrl(res.headers.location).then(resolve).catch(reject);
-        return;
-      }
-      if (res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode}`));
-        return;
-      }
-      const chunks: Buffer[] = [];
-      res.on("data", (chunk: Buffer) => chunks.push(chunk));
-      res.on("end", () => resolve(Buffer.concat(chunks)));
-      res.on("error", reject);
-    };
+    try {
+      const handler = (res: http.IncomingMessage) => {
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          fetchUrl(res.headers.location, redirectCount + 1).then(resolve).catch(reject);
+          return;
+        }
+        if (res.statusCode !== 200) {
+          reject(new Error(`HTTP ${res.statusCode}`));
+          return;
+        }
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => resolve(Buffer.concat(chunks)));
+        res.on("error", reject);
+      };
 
-    const mod = url.startsWith("https") ? https : http;
-    const req = mod.get(url, { headers: { "User-Agent": "PodCap/1.0 (podcap.io; profile-image-pipeline)" } }, handler);
-    req.on("error", reject);
-    req.setTimeout(10000, () => { req.destroy(); reject(new Error("Timeout")); });
+      const mod = url.startsWith("https") ? https : http;
+      const req = mod.get(url, { headers: { "User-Agent": "PodCap/1.0 (podcap.io; profile-image-pipeline)" }, timeout: 8000 }, handler);
+      req.on("error", reject);
+      req.on("timeout", () => { req.destroy(); reject(new Error("Timeout")); });
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
@@ -116,12 +121,11 @@ async function tryTwitter(handle: string): Promise<string | null> {
   }
 }
 
-async function downloadAndSaveImage(url: string, slug: string, retries = 2): Promise<boolean> {
+async function downloadAndSaveImage(url: string, slug: string, retries = 1): Promise<boolean> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       if (attempt > 0) {
-        console.log(`  Retry ${attempt}/${retries} after delay...`);
-        await new Promise(r => setTimeout(r, 2000 * attempt));
+        await new Promise(r => setTimeout(r, 1000));
       }
       const buf = await fetchUrl(url);
       if (buf.length < 5000) return false;
@@ -132,8 +136,7 @@ async function downloadAndSaveImage(url: string, slug: string, retries = 2): Pro
       return true;
     } catch (err) {
       const msg = (err as Error).message;
-      if (msg.includes("429") && attempt < retries) continue;
-      console.log(`  Failed to download image for ${slug}: ${msg}`);
+      if (attempt < retries) continue;
       return false;
     }
   }
@@ -184,7 +187,7 @@ async function resolvePersonImage(person: { slug: string; name: string; title?: 
   return { source: "fallback", resolved: false };
 }
 
-export async function runImagePipeline(peopleData: { slug: string; name: string; socialLinks?: any }[], onlyMissing = true): Promise<{
+export async function runImagePipeline(peopleData: { slug: string; name: string; title?: string; socialLinks?: any }[], onlyMissing = true): Promise<{
   total: number;
   resolved: number;
   skipped: number;
@@ -200,6 +203,7 @@ export async function runImagePipeline(peopleData: { slug: string; name: string;
     fs.mkdirSync(PEOPLE_DIR, { recursive: true });
   }
 
+  const toProcess: typeof peopleData = [];
   for (const person of peopleData) {
     if (onlyMissing) {
       const { exists, isPlaceholder } = getExistingImageStatus(person.slug);
@@ -209,19 +213,36 @@ export async function runImagePipeline(peopleData: { slug: string; name: string;
         continue;
       }
     }
+    toProcess.push(person);
+  }
 
-    const result = await resolvePersonImage(person);
-    results.push({ slug: person.slug, name: person.name, ...result });
+  console.log(`${toProcess.length} people need images (${skipped} already have good images)`);
 
-    if (result.resolved && result.source !== "local") {
-      resolved++;
-    } else if (!result.resolved) {
-      failed++;
-    } else {
-      skipped++;
+  const CONCURRENCY = 2;
+  for (let i = 0; i < toProcess.length; i += CONCURRENCY) {
+    const batch = toProcess.slice(i, i + CONCURRENCY);
+    const batchResults = await Promise.all(batch.map(person => resolvePersonImage(person).catch(() => ({ source: "error", resolved: false }))));
+
+    for (let j = 0; j < batch.length; j++) {
+      const person = batch[j];
+      const result = batchResults[j];
+      results.push({ slug: person.slug, name: person.name, ...result });
+
+      if (result.resolved && result.source !== "local") {
+        resolved++;
+      } else if (!result.resolved) {
+        failed++;
+      } else {
+        skipped++;
+      }
     }
 
-    await new Promise(r => setTimeout(r, 1000));
+    const processed = Math.min(i + CONCURRENCY, toProcess.length);
+    if (processed % 10 === 0 || processed === toProcess.length) {
+      console.log(`  Progress: ${processed}/${toProcess.length} (${resolved} resolved, ${failed} failed)`);
+    }
+
+    await new Promise(r => setTimeout(r, 1500));
   }
 
   return { total: peopleData.length, resolved, skipped, failed, results };
@@ -229,32 +250,17 @@ export async function runImagePipeline(peopleData: { slug: string; name: string;
 
 const isMainModule = import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("fetchPeopleImages.ts");
 if (isMainModule) {
+  process.on("uncaughtException", (err) => { console.error("Uncaught:", err.message); });
+  process.on("unhandledRejection", (err: any) => { console.error("Unhandled:", err?.message || err); });
   (async () => {
-    const entityDataPath = path.join(process.cwd(), "client", "src", "data", "entityDirectoryData.ts");
-    const content = fs.readFileSync(entityDataPath, "utf8");
+    const { PEOPLE_DIRECTORY } = await import("../client/src/data/entityDirectoryData");
 
-    const peopleMatch = content.match(/export const PEOPLE_DIRECTORY[^=]*=\s*\[([\s\S]*?)\n\];/);
-    if (!peopleMatch) {
-      console.error("Could not parse PEOPLE_DIRECTORY");
-      process.exit(1);
-    }
-
-    const people: { slug: string; name: string; title?: string; socialLinks?: any }[] = [];
-
-    const entries = peopleMatch[1].split(/\n\s*\{/);
-    for (const entry of entries) {
-      const slugM = entry.match(/slug:\s*"([^"]+)"/);
-      const nameM = entry.match(/name:\s*"([^"]+)"/);
-      if (!slugM || !nameM) continue;
-      const titleM = entry.match(/title:\s*"([^"]+)"/);
-      const twitterM = entry.match(/twitter:\s*"([^"]+)"/);
-      people.push({
-        slug: slugM[1],
-        name: nameM[1],
-        title: titleM?.[1],
-        socialLinks: twitterM ? { twitter: twitterM[1] } : undefined,
-      });
-    }
+    const people = PEOPLE_DIRECTORY.map((p: any) => ({
+      slug: p.slug,
+      name: p.name,
+      title: p.title,
+      socialLinks: p.socialLinks,
+    }));
 
     console.log(`Found ${people.length} people in directory`);
     console.log(`Checking for missing or placeholder images...\n`);
