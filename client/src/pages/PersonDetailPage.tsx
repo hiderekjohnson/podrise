@@ -81,9 +81,6 @@ const EXISTING_TOPIC_NAMES = new Map(TOPICS.map(t => [t.slug, t.name]));
 const EXISTING_COMPANY_SLUGS = new Set(COMPANIES_DIRECTORY.map(c => c.slug));
 const EXISTING_PEOPLE_SLUGS = new Set(PEOPLE_DIRECTORY.map(p => p.slug));
 
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
 
 function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: boolean }) {
   const date = episode.publish_date ? new Date(episode.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
@@ -147,6 +144,7 @@ export default function PersonDetailPage() {
   const [filterText, setFilterText] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "guests" | "mentions">("all");
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({});
+  const [activeSection, setActiveSection] = useState("");
 
   const { data: person, isLoading } = useQuery<PersonDetail>({
     queryKey: ["/api/entities/people", slug],
@@ -383,6 +381,51 @@ export default function PersonDetailPage() {
   const showTopicsSection = broadTopics.length >= 3;
   const showTimelineSection = Object.keys(timelineByYear).length >= 2;
   const showPodcastsSection = (person?.podcastsFeaturingPerson || []).length >= 2;
+  const showHostedPodcasts = !!(personData?.hostedPodcastSlugs && personData.hostedPodcastSlugs.length > 0 && PODCAST_LANDINGS.some(p => personData.hostedPodcastSlugs!.includes(p.slug)));
+  const showKeyIdeas = keyIdeas.length >= 2;
+  const showRecommendedBooks = !!(person?.recommendedBooks && person.recommendedBooks.length > 0);
+  const showRelatedPeople = !!(personData?.similarPeople && personData.similarPeople.filter(s => EXISTING_PEOPLE_SLUGS.has(s)).length > 0);
+
+  const navSections = useMemo(() => {
+    if (!person) return [];
+    const sections: { id: string; label: string }[] = [];
+    if (showHostedPodcasts) sections.push({ id: "section-hosted-podcasts", label: "Podcast" });
+    if (showKeyIdeas) sections.push({ id: "section-key-ideas", label: "Key Ideas" });
+    if (showQuotesSection) sections.push({ id: "section-quotes", label: "Quotes" });
+    sections.push({ id: "section-appearances", label: "Episodes" });
+    if (showPodcastsSection) sections.push({ id: "section-podcasts-featuring", label: "Podcasts" });
+    if (showRelatedPeople) sections.push({ id: "section-related-people", label: "Related" });
+    if (showTimelineSection) sections.push({ id: "section-timeline", label: "Timeline" });
+    if (showRecommendedBooks) sections.push({ id: "section-recommended-books", label: "Books" });
+    if (faqItems.length > 0) sections.push({ id: "section-faq", label: "FAQ" });
+    return sections;
+  }, [person, showHostedPodcasts, showKeyIdeas, showQuotesSection, showPodcastsSection, showRelatedPeople, showTimelineSection, showRecommendedBooks, faqItems.length]);
+
+  useEffect(() => {
+    if (navSections.length === 0) return;
+    const handleScroll = () => {
+      const offset = 68 + 52 + 40;
+      let current = navSections[0]?.id || "";
+      for (const s of navSections) {
+        const el = document.getElementById(s.id);
+        if (el && el.getBoundingClientRect().top <= offset) {
+          current = s.id;
+        }
+      }
+      setActiveSection(current);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [navSections]);
+
+  const scrollToNav = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const offset = 68 + 52 + 16;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -412,8 +455,8 @@ export default function PersonDetailPage() {
           ) : person ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 
-              {/* 1. Hero Section */}
-              <section className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-8" data-testid="section-hero">
+              {/* Hero Section */}
+              <section className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-0" data-testid="section-hero">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                   <div className="flex-shrink-0">
                     <img
@@ -469,13 +512,13 @@ export default function PersonDetailPage() {
 
                     <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
                       {hasGuestAppearances && (
-                        <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-base hover:text-primary transition-colors cursor-pointer" data-testid="jump-guests">
+                        <button onClick={() => scrollToNav("section-appearances")} className="flex items-center gap-1.5 text-base hover:text-primary transition-colors cursor-pointer" data-testid="jump-guests">
                           <Mic className="w-4 h-4 text-primary" />
                           <span className="font-semibold text-foreground">{person.guestCount}</span>
                           <span className="text-muted-foreground">guest appearance{person.guestCount !== 1 ? "s" : ""}</span>
                         </button>
                       )}
-                      <button onClick={() => scrollToSection("section-appearances")} className="flex items-center gap-1.5 text-base hover:text-primary transition-colors cursor-pointer" data-testid="jump-mentions">
+                      <button onClick={() => scrollToNav("section-appearances")} className="flex items-center gap-1.5 text-base hover:text-primary transition-colors cursor-pointer" data-testid="jump-mentions">
                         <MessageSquare className="w-4 h-4 text-primary" />
                         <span className="font-semibold text-foreground">{person.mentionCount}</span>
                         <span className="text-muted-foreground">mention{person.mentionCount !== 1 ? "s" : ""}</span>
@@ -523,13 +566,28 @@ export default function PersonDetailPage() {
                 </div>
               </section>
 
+              {navSections.length > 1 && (
+                <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-0 px-4 sm:px-0 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-6" data-testid="nav-in-page">
+                  {navSections.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => scrollToNav(s.id)}
+                      className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                      data-testid={`nav-${s.id}`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </nav>
+              )}
+
               {personData?.hostedPodcastSlugs && personData.hostedPodcastSlugs.length > 0 && (() => {
                 const hostedPodcasts = personData.hostedPodcastSlugs
                   .map(slug => PODCAST_LANDINGS.find(p => p.slug === slug))
                   .filter(Boolean);
                 if (hostedPodcasts.length === 0) return null;
                 return (
-                  <section className="mb-8" data-testid="section-hosted-podcasts">
+                  <section id="section-hosted-podcasts" className="mb-8" data-testid="section-hosted-podcasts">
                     <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
                       <Mic className="w-5 h-5 text-primary" />
                       Podcast Host
@@ -583,7 +641,7 @@ export default function PersonDetailPage() {
 
               {/* 2. Key Ideas Section */}
               {keyIdeas.length >= 2 && (
-                <section className="mb-8" data-testid="section-key-ideas">
+                <section id="section-key-ideas" className="mb-8" data-testid="section-key-ideas">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Tag className="w-5 h-5 text-primary" />
                     Key Ideas {person.name} {hasGuestAppearances ? "Discusses" : "Is Discussed About"} on Podcasts
@@ -622,7 +680,7 @@ export default function PersonDetailPage() {
 
               {/* 3. Notable Quotes / Mentions Section */}
               {showQuotesSection && (
-                <section className="mb-8" data-testid="section-quotes">
+                <section id="section-quotes" className="mb-8" data-testid="section-quotes">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
                     {quoteSectionTitle}
@@ -657,7 +715,7 @@ export default function PersonDetailPage() {
 
               {/* 4. FAQ Section */}
               {faqItems.length > 0 && (
-                <section className="mb-8" data-testid="section-faq">
+                <section id="section-faq" className="mb-8" data-testid="section-faq">
                   <h2 className="text-xl font-bold text-foreground mb-4">
                     Frequently Asked Questions About {person.name} on Podcasts
                   </h2>
@@ -743,7 +801,7 @@ export default function PersonDetailPage() {
 
               {/* 6. Podcasts Featuring This Person */}
               {showPodcastsSection && (
-                <section className="mb-8" data-testid="section-podcasts-featuring">
+                <section id="section-podcasts-featuring" className="mb-8" data-testid="section-podcasts-featuring">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Radio className="w-5 h-5 text-primary" />
                     Podcasts Featuring {person.name}
@@ -776,7 +834,7 @@ export default function PersonDetailPage() {
 
               {/* 7. Related People */}
               {personData?.similarPeople && personData.similarPeople.filter(s => EXISTING_PEOPLE_SLUGS.has(s)).length > 0 && (
-                <section className="mb-8" data-testid="section-related-people">
+                <section id="section-related-people" className="mb-8" data-testid="section-related-people">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
                     People Often Mentioned With {person.name}
@@ -801,7 +859,7 @@ export default function PersonDetailPage() {
 
               {/* 8. Timeline */}
               {showTimelineSection && (
-                <section className="mb-8" data-testid="section-timeline">
+                <section id="section-timeline" className="mb-8" data-testid="section-timeline">
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Clock className="w-5 h-5 text-primary" />
                     Timeline
@@ -843,7 +901,7 @@ export default function PersonDetailPage() {
 
               {/* 9. Recommended Books */}
               {person.recommendedBooks && person.recommendedBooks.length > 0 && (
-                <section className="mb-8" data-testid="section-recommended-books">
+                <section id="section-recommended-books" className="mb-8" data-testid="section-recommended-books">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-primary" />

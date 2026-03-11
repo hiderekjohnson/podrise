@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -29,6 +30,7 @@ export default function CompanyDetailPage() {
   const [match, params] = useRoute("/companies/:slug");
   const slug = params?.slug || "";
   const companyData = getCompanyBySlug(slug);
+  const [activeSection, setActiveSection] = useState("");
 
   const { data: company, isLoading } = useQuery<CompanyDetail>({
     queryKey: ["/api/entities/companies", slug],
@@ -60,6 +62,45 @@ export default function CompanyDetailPage() {
   }
 
   const details = companyData?.details;
+  const hasRelatedPeople = !!(companyData?.relatedPeople && companyData.relatedPeople.length > 0);
+  const hasSimilarCompanies = !!(companyData?.similarCompanies && companyData.similarCompanies.length > 0);
+  const hasAssociatedTerms = !!(companyData?.associatedTerms && companyData.associatedTerms.length > 0);
+  const hasAboutContent = !!(details || companyData?.background || hasRelatedPeople || hasSimilarCompanies || hasAssociatedTerms);
+  const hasEpisodes = !!(company && company.mentions.length > 0);
+
+  const navSections = useMemo(() => {
+    if (!company) return [];
+    const sections: { id: string; label: string }[] = [];
+    if (hasAboutContent) sections.push({ id: "section-about", label: "About" });
+    if (hasEpisodes) sections.push({ id: "section-episodes", label: "Episodes" });
+    return sections;
+  }, [company, hasAboutContent, hasEpisodes]);
+
+  useEffect(() => {
+    if (navSections.length === 0) return;
+    const handleScroll = () => {
+      const offset = 68 + 52 + 40;
+      let current = navSections[0]?.id || "";
+      for (const s of navSections) {
+        const el = document.getElementById(s.id);
+        if (el && el.getBoundingClientRect().top <= offset) {
+          current = s.id;
+        }
+      }
+      setActiveSection(current);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [navSections]);
+
+  const scrollToNav = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const offset = 68 + 52 + 16;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -89,7 +130,7 @@ export default function CompanyDetailPage() {
             </div>
           ) : company ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-8">
+              <div id="section-about" className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-0">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
                   <div className="flex-shrink-0">
                     <img
@@ -242,8 +283,23 @@ export default function CompanyDetailPage() {
                 )}
               </div>
 
+              {navSections.length > 1 && (
+                <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-0 px-4 sm:px-0 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-6" data-testid="nav-in-page">
+                  {navSections.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => scrollToNav(s.id)}
+                      className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                      data-testid={`nav-${s.id}`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </nav>
+              )}
+
               {company.mentions.length > 0 ? (
-                <section className="mb-10">
+                <section id="section-episodes" className="mb-10">
                   <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-mentioned-episodes">
                     <MessageSquare className="w-5 h-5 text-primary" />
                     Episodes Mentioning {company.name}
