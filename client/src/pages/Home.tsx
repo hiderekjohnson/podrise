@@ -177,7 +177,7 @@ export default function Home() {
                     <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover trending shows, see what just dropped, and search any podcast in our network.</p>
+                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by topic, explore our picks, or search for exactly the podcast you're looking for.</p>
                 </div>
               </Link>
               <Link href="/insights" className="block">
