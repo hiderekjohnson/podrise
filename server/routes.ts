@@ -4192,6 +4192,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
                   appleEpisodeUrl: appleUrl || null,
                   audioUrl: ep.episodeUrl || null,
                   keyTopics: recap.keyTopics || null,
+                  topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
                   topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
                   guests: recap.guests ? JSON.stringify(recap.guests) : null,
                   sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
@@ -4677,6 +4678,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
                 appleEpisodeUrl: appleUrl || null,
                 audioUrl: ep.episodeUrl || null,
                 keyTopics: recap.keyTopics || null,
+                topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
                 topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
                 guests: recap.guests ? JSON.stringify(recap.guests) : null,
                 sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
@@ -5773,8 +5775,8 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
 
           await client.query(
             `INSERT INTO landing_page_recaps 
-             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, top_questions, audio_url, sponsors, guests, resources)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
              ON CONFLICT (slug, episode_slug) DO UPDATE SET
                tldl = EXCLUDED.tldl,
                what_happened = EXCLUDED.what_happened,
@@ -5782,6 +5784,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
                quote = EXCLUDED.quote,
                quote_attribution = EXCLUDED.quote_attribution,
                key_topics = EXCLUDED.key_topics,
+               topic_contexts = EXCLUDED.topic_contexts,
                top_questions = EXCLUDED.top_questions,
                audio_url = EXCLUDED.audio_url,
                sponsors = EXCLUDED.sponsors,
@@ -5793,6 +5796,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
               recap.tldl, recap.whatHappened,
               recap.keyInsights, recap.quote, recap.quoteAttribution,
               recap.keyTopics,
+              recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
               recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
               t.audio_url || "",
               recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
@@ -5993,11 +5997,12 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
                 quote = COALESCE(NULLIF($4, ''), quote),
                 quote_attribution = COALESCE(NULLIF($5, ''), quote_attribution),
                 key_topics = CASE WHEN $6::text[] IS NOT NULL AND array_length($6::text[], 1) > 0 THEN $6::text[] ELSE key_topics END,
-                top_questions = COALESCE(NULLIF($7, ''), top_questions),
-                sponsors = COALESCE(NULLIF($8, ''), NULLIF($8, '[]'), sponsors),
-                guests = COALESCE(NULLIF($9, ''), NULLIF($9, '[]'), guests),
-                resources = COALESCE(NULLIF($10, ''), NULLIF($10, '[]'), resources)
-              WHERE id = $11`,
+                topic_contexts = COALESCE(NULLIF($7, ''), topic_contexts),
+                top_questions = COALESCE(NULLIF($8, ''), top_questions),
+                sponsors = COALESCE(NULLIF($9, ''), NULLIF($9, '[]'), sponsors),
+                guests = COALESCE(NULLIF($10, ''), NULLIF($10, '[]'), guests),
+                resources = COALESCE(NULLIF($11, ''), NULLIF($11, '[]'), resources)
+              WHERE id = $12`,
               [
                 recap.tldl || "",
                 recap.whatHappened || "",
@@ -6005,6 +6010,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
                 recap.quote || "",
                 recap.quoteAttribution || "",
                 recap.keyTopics && recap.keyTopics.length > 0 ? recap.keyTopics : null,
+                recap.topicContexts ? JSON.stringify(recap.topicContexts) : "",
                 recap.topQuestions ? JSON.stringify(recap.topQuestions) : "",
                 recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
                 recap.guests ? JSON.stringify(recap.guests) : "[]",

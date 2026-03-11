@@ -815,6 +815,13 @@ export default function EpisodeRecapPage() {
     }
   } catch { sponsors = []; }
 
+  const parsedTopicContexts: Record<string, string> = (() => {
+    try {
+      const raw = (episode as any).topicContexts;
+      if (!raw) return {};
+      return typeof raw === "string" ? JSON.parse(raw) : raw;
+    } catch { return {}; }
+  })();
   const hasKeyTopics = matchedTopics.length > 0;
   const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
@@ -1243,6 +1250,8 @@ export default function EpisodeRecapPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {matchedTopics.map((topic, i) => {
                   const IconComponent = TOPIC_ICON_MAP[topic.icon] || Tag;
+                  const contextDesc = parsedTopicContexts[topic.slug];
+                  const displayDesc = contextDesc || `${topic.description.split(".")[0]}.`;
                   return (
                     <Link
                       key={topic.slug}
@@ -1255,7 +1264,7 @@ export default function EpisodeRecapPage() {
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-[15px] font-bold text-foreground group-hover/topic:text-emerald-600 dark:group-hover/topic:text-emerald-400 transition-colors">{topic.name}</h4>
-                        <p className="text-base leading-snug text-muted-foreground mt-0.5 line-clamp-2">{topic.description.split(".")[0]}.</p>
+                        <p className="text-base leading-snug text-muted-foreground mt-0.5 line-clamp-2">{displayDesc}</p>
                       </div>
                     </Link>
                   );

@@ -26,6 +26,7 @@ export interface ParsedEpisode {
   quote?: string;
   quoteAttribution?: string;
   keyTopics?: string[];
+  topicContexts?: Record<string, string>;
   topQuestions?: { question: string; answer: string }[];
   sponsors?: { name: string; description: string; couponCode?: string; url?: string; howToRedeem?: string }[];
   guests?: { name: string; title: string; bio: string; twitter?: string; linkedin?: string; instagram?: string; website?: string; photoUrl?: string; topicsDiscussed: string[] }[];
@@ -313,6 +314,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "quote": "A memorable line from the transcript",
   "quoteAttribution": "Speaker Name on topic",
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
+  "topicContexts": {"topic-slug": "1-2 sentence description of how this specific topic was covered in this episode, referencing specific points or perspectives discussed."},
   "topQuestions": [
     {"question": "SEO-optimized question containing the key entity or concept?", "answer": "2-4 sentence answer that naturally repeats the key entity/concept name. Drawn from transcript."},
     {"question": "Question 2?", "answer": "Answer 2."},
@@ -338,6 +340,7 @@ RULES:
 - Quotes MUST be from the transcript
 - whatHappened must be a flowing 2-minute read narrative (6-10 short paragraphs, 2-4 sentences each). Write like a well-crafted article recap - NOT chapter headings or bullet summaries. Cover the full arc: what opened the episode, the key discussions, turning points, and how it concluded. Use \\n\\n between paragraphs
 - keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific - never generic
+- topicContexts: For each keyTopic, write a 1-2 sentence episode-specific description of how that topic was covered. Use the kebab-case slug of the broad category as the key (e.g. "ai", "startups", "self-improvement", "career-growth", "leadership", "real-estate", "crypto", "health-wellness", "marketing", "venture-capital", "finance", "geopolitics", "sports-business", "entertainment", "ecommerce", "climate-energy", "science", "true-crime", "politics", "education", "social-media", "mental-health", "food-beverage", "space-exploration", "cybersecurity", "gaming", "music-industry", "travel", "podcasting", "media", "legal", "biotech-pharma", "automotive", "saas", "creator-economy", "parenting", "relationships", "philosophy", "history", "data-privacy"). Reference specific points, people, or perspectives from this episode. Write like a sharp analyst, not generic marketing copy
 - topQuestions: 5 SEO-optimized questions phrased like real Google searches someone would type. Each question MUST contain the specific entity, person, concept, or framework name (e.g. "What is the regret minimization framework?" not "What framework was discussed?"). Each answer should be 2-4 sentences that naturally repeat the key entity/concept name at least once. Answers must read naturally - not keyword-stuffed. Draw all content from the transcript
 - sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
 - guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Use their FULL NAME (first and last). Include their professional title/position at their company. Write a 2-3 sentence bio based on how they are introduced. Include social media handles if mentioned in the transcript or commonly known (twitter, linkedin, instagram, website). Do NOT include photoUrl - set it to null. Return empty array [] if no guests (solo host episodes or host-only conversations)
@@ -376,6 +379,7 @@ RULES:
         quote: parsed.quote,
         quoteAttribution: parsed.quoteAttribution,
         keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
+        topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
         topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
         sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
         guests: Array.isArray(parsed.guests) ? parsed.guests : [],

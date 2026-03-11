@@ -185,6 +185,7 @@ export const landingPageRecaps = pgTable("landing_page_recaps", {
   spotifyEpisodeUrl: text("spotify_episode_url"),
   audioUrl: text("audio_url"),
   keyTopics: text("key_topics").array(),
+  topicContexts: text("topic_contexts"),
   topQuestions: text("top_questions"),
   sponsors: text("sponsors"),
   guests: text("guests"),
