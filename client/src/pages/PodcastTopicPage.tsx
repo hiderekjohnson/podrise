@@ -250,7 +250,6 @@ export default function PodcastTopicPage() {
                 </span>
               </div>
               <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
-                {podcasts.length} result{podcasts.length !== 1 ? "s" : ""}
               </span>
             </div>
 

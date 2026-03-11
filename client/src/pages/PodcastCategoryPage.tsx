@@ -242,7 +242,6 @@ export default function PodcastCategoryPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {qualifyingTopics.map(topic => {
-                  const count = getPodcastsForTopic(categorySlug, topic.slug).length;
                   return (
                     <Link
                       key={topic.slug}
@@ -257,7 +256,7 @@ export default function PodcastCategoryPage() {
                         {topic.description}
                       </p>
                       <div className="flex items-center gap-1.5 text-[15px] font-medium text-primary">
-                        <span>{count} podcast{count !== 1 ? "s" : ""}</span>
+                        <span>Explore</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </div>
                     </Link>
