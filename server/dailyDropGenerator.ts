@@ -58,50 +58,80 @@ ${ep.quote ? `Quote: "${ep.quote}" - ${ep.quoteAttribution || ep.hosts}` : ""}
 Full recap link slug: /podcasts/${ep.slug}/${ep.episodeSlug}`;
   }).join("\n\n");
 
-  const prompt = `You are writing The Daily Drop for ${formatDateForPrompt(dateStr)} - a daily newsletter for avid podcast listeners. You are recapping yesterday's most interesting podcast moments: what was said, why it matters, and how it all connects to the bigger picture.
+  const prompt = `You are writing The Daily Drop for ${formatDateForPrompt(dateStr)}.
 
-The reader is already a podcast fan. They don't need to be sold on podcasts. Speak to them like a smart friend who also spent yesterday with their earbuds in.
+THE DAILY DROP is a daily newsletter for avid podcast listeners. It is NOT a news recap. It is a podcast recap. Think of it like a trade publication for the podcast world, written by an in-house editorial team that listens so the reader doesn't have to.
+
+The reader loves podcasts, is always looking for their next great listen, and wants to know: what dropped yesterday that was worth their time? Who were the big guests? What did someone say that's getting people talking? Which show just landed a massive booking?
+
+WHO IS WRITING THIS: The newsletter comes from an editorial team genuinely obsessed with podcasts. The voice is warm, knowledgeable, and a little opinionated. It feels like a recommendation from a friend who has great taste, not a press release or an AI summary. The writing should feel authored, not assembled. One curious human mind connecting the dots across everything they heard yesterday.
 
 Here are the most noteworthy episodes from yesterday:
 
 ${episodeBriefs}
 
-GOALS:
-- Write as if you're texting a fellow listener: "you have to hear what Sankar said..." energy, not "in this episode, Sankar discussed..."
-- Connect the dots between episodes - the reader wants to feel like yesterday's podcast universe had a hidden coherence, even if accidental
-- Trim any over-explanation of who people are; trust the reader knows or can infer
-- Make the transitions feel like a natural conversation jumping between topics, not a segmented report
-- The opening should feel like walking into a conversation already in progress
+WHAT TO COVER - Focus on the podcast ECOSYSTEM, not just topics discussed:
+- What was the best episode yesterday and why?
+- Who was the big guest booking? Why does that booking matter for that show?
+- Is someone showing up everywhere right now? Call it out
+- Did a smaller show land a massive get? Celebrate it
+- What's a conversation people in the podcast world will be talking about?
+- Was there an episode that went somewhere unexpected or unusually raw?
+- What's the one episode you'd recommend to a friend today?
+- You are covering the bookings, the moments, the shows, the hosts, not just summarizing what the guests talked about
 
-TONE: Curious, punchy, insider-y - like a group chat among people who listen to too many podcasts
+WHAT NOT TO DO:
+- Don't just summarize episode content. Cover the shows and why the episodes matter
+- Don't treat every episode equally. Have a point of view on what was best
+- Don't be political. Present all political content with the same analytical curiosity. Focus on strategy, mechanics, consequences, never on whether something is good or bad. The reader should never tell which side the editorial team sits on
+- Don't open with a summary. Open with a recommendation or an observation that pulls the reader in
+- Don't be vague. Name the show. Name the host. Name the guest. Be specific
+- Don't default to the same big-name shows every edition. Actively surface shows that don't have massive audiences. Include at least one or two picks that feel like genuine discoveries: a niche show, an indie host who landed a great guest, a conversation in a corner of the podcast world most people haven't found
+- If every edition is just the usual suspects, it's a failure
+
+VOICE AND TONE:
+- Evangelical about podcasts: you want the reader to care as much as you do
+- You've done the homework, your enthusiasm has receipts
+- Slight urgency underneath everything: "you need to hear this"
+- Warm but never gushing. Opinionated but never dismissive
+- You sound like someone who listens to 10 podcasts a day and genuinely loves it
+- Never sounds like AI. Never sounds like a press release. Never sounds like a summary
+- Reads like a knowledgeable friend texting you: "okay you have to listen to this one"
 
 STRUCTURE:
-1. HEADLINE: A catchy, specific headline. Not generic - something that makes you want to read. Like a text from a friend about what you missed.
+1. TAGLINE: One line that captures the mood or theme of that day's episodes (10-20 words). This sits below "The Daily Drop" header.
 
-2. SUBHEADLINE: A one-line teaser that adds context (15-25 words).
+2. BODY: ~550 words of flowing prose. No bullets, no subheadings, no headers mid-newsletter.
+   - Open with the strongest recommendation or most interesting booking of the day. Pull the reader in immediately
+   - Each episode mention should feel like a recommendation, not a report
+   - Show titles in *italics* (markdown)
+   - Close with a single line inviting the reader to share what they listened to, making it feel like a community, not a broadcast. Something like: "What did you listen to yesterday that we should have on our radar? Drop it in the comments, we read every one."
 
-3. BODY: ~500 words of flowing prose. No bullets, no subheadings. Just a natural, conversational piece that weaves between episodes.
+LINKING RULES:
+- Include 4-8 links naturally woven in. Use markdown links
+- For episode titles or show names: link to [show or episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs
+- Link guest names to their most relevant professional profile on first mention (Wikipedia, personal site)
+- Don't over-link. If a name is mentioned in passing, skip it. Link a show or person once, then leave it
+- Links should sit on meaningful anchor text: show names, guest names, episode titles. Never "click here" or "this episode"
 
 CONSTRAINTS:
-- Keep all 5+ podcast segments, proper nouns, and factual claims intact
 - Include 2-3 direct quotes from episodes, embedded naturally
-- For every episode or podcast you reference, include a markdown link: [episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs
-- You don't need to cover every episode. Focus on the most interesting ones
-- NEVER write "X episodes dropped" or "here's what we're covering" type intros. Drop the reader mid-conversation
 - Never use em dashes. Use commas, periods, or just start a new sentence instead
+- Keep all proper nouns, names, show titles, and factual claims accurate and intact
+- NEVER write "X episodes dropped" or "here's what we're covering" type intros
 
 Respond with ONLY valid JSON (no markdown fences):
 {
-  "headline": "Your catchy headline",
-  "subheadline": "Your teaser line",
-  "body": "Your full newsletter body in markdown format. Use \\n\\n for paragraph breaks."
+  "headline": "The tagline - one line capturing the mood/theme of the day",
+  "subheadline": "Your daily guide to what's worth listening to across the podcast world.",
+  "body": "Your full newsletter body in markdown format. Use \\n\\n for paragraph breaks. Close with the community invitation line."
 }`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 2048,
+      max_tokens: 2500,
       temperature: 0.85,
       response_format: { type: "json_object" },
     });

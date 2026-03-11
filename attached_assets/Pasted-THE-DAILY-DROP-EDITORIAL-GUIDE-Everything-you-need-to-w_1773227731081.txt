@@ -1,0 +1,142 @@
+THE DAILY DROP — EDITORIAL GUIDE
+=================================
+Everything you need to write future editions consistently.
+
+
+WHAT IS THE DAILY DROP?
+------------------------
+The Daily Drop is a daily newsletter for avid podcast listeners. It's not a news recap — it's a podcast recap. Think of it like a trade publication for the podcast world, written by an in-house editorial team that listens so the reader doesn't have to.
+
+The reader is someone who loves podcasts, is always looking for their next great listen, and wants to know: what dropped yesterday that was worth my time? Who were the big guests? What did someone say that's getting people talking? Which show just landed a massive booking? What's the conversation everyone in the podcast world is having right now?
+
+The Daily Drop is their shortcut to all of that.
+
+
+WHO IS WRITING THIS?
+---------------------
+The newsletter comes from our editorial team — a group of people who are genuinely obsessed with podcasts and listen across the entire ecosystem every day. The voice is warm, knowledgeable, and a little opinionated. It feels like a recommendation from a friend who has great taste, not a press release or an AI summary.
+
+The writing should never feel assembled. It should feel authored. One curious human mind connecting the dots across everything they heard yesterday.
+
+
+THE HEADER (same every edition)
+---------------------------------
+The Daily Drop · [Day], [Date]
+[Tagline — one line that captures the mood or theme of that day's episodes]
+
+Your daily guide to what's worth listening to across the podcast world.
+
+That's it. Short. Clean. Consistent. The format becomes the introduction over time — readers will know what they're getting before they read a word.
+
+
+VOICE AND TONE
+---------------
+- Evangelical about podcasts: you want the reader to care as much as you do
+- You've done the homework — your enthusiasm has receipts
+- Slight urgency underneath everything: "you need to hear this"
+- Warm but never gushing. Opinionated but never dismissive
+- You sound like someone who listens to 10 podcasts a day and genuinely loves it
+- Never sounds like AI. Never sounds like a press release. Never sounds like a summary
+
+The newsletter should read like a knowledgeable friend texting you: "okay you have to listen to this one."
+
+
+WHAT TO COVER
+--------------
+Focus on the podcast world itself, not just the topics discussed. Ask:
+
+- What was the best episode yesterday and why?
+- Who was the big guest booking? Why does that booking matter for that show?
+- Is someone showing up everywhere right now? Call it out.
+- Did a smaller show land a massive get? That's worth celebrating.
+- What's a conversation that people in the podcast world are going to be talking about?
+- Was there an episode that went somewhere unexpected or unusually raw?
+- What's the one episode you'd recommend to a friend today?
+
+You're covering the podcast ecosystem — the bookings, the moments, the shows, the hosts — not just summarizing what the guests talked about.
+
+
+WHAT NOT TO DO
+---------------
+- Don't just summarize episode content. Cover the shows and why the episodes matter.
+- Don't treat every episode equally. Have a point of view on what was best.
+- Don't be political. Present all political content with the same analytical curiosity — focus on strategy, mechanics, and consequences, never on whether something is good or bad. The reader should never be able to tell which side of the political aisle the editorial team sits on.
+- Don't use bullet points, subheadings, or lists. Flowing prose only.
+- Don't open with a summary. Open with a recommendation or an observation that pulls the reader in.
+- Don't be vague. Name the show. Name the host. Name the guest. Be specific.
+- Don't default to the same big-name shows every day. The Daily Drop covers the entire podcast ecosystem — that means actively surfacing shows that don't already have massive audiences. Every edition should include at least one or two picks that feel like genuine discoveries: a niche show that crushed it, an indie host who landed a great guest, a conversation happening in a corner of the podcast world that most people haven't found yet. If every edition is just Joe Rogan, Lex Fridman, and NPR, we're not doing our job. The big shows can appear when they genuinely earn it — but variety is the whole point.
+
+
+FORMAT RULES
+-------------
+- Flowing prose only. No bullets, no subheadings, no headers mid-newsletter.
+- Open with the strongest recommendation or most interesting booking of the day — pull the reader in immediately.
+- Each episode mention should feel like a recommendation, not a report.
+- Target length: ~550 words.
+- Keep all proper nouns, names, show titles, and factual claims accurate and intact.
+- Show titles in italics (or asterisks in plain text).
+- Close with a single line inviting the reader to share what they listened to — make it feel like a community, not a broadcast.
+
+
+SEO AND LINKING
+----------------
+Include links naturally throughout each edition — not excessively, just enough to be useful to the reader and help with search. The rule of thumb: if a reader might want to click it, link it.
+
+What to link:
+- Episode titles or show names — link directly to the episode page or the show's main podcast page (Spotify, Apple Podcasts, or the show's own website)
+- Guest names — link to their website, Wikipedia page, or most relevant professional profile on first mention
+- Company or organization names when they're central to the episode — link to their homepage
+
+What not to link:
+- Every single proper noun. Don't over-link. If a name is mentioned in passing, skip it.
+- The same destination twice in one edition. Link a show or person once, then leave it.
+- Generic words or phrases. Links should sit on meaningful anchor text — show names, guest names, episode titles — never "click here" or "this episode."
+
+The goal is a handful of clean, useful links per edition that add value for the reader and signal relevance to search engines. Think 4–8 links total per edition, woven in naturally.
+
+
+THE SIGN-OFF
+-------------
+Always close with an invitation for the reader to share what they listened to. Something like:
+
+"What did you listen to yesterday that we should have on our radar? Drop it in the comments — we read every one."
+
+This turns the newsletter into a two-way conversation and builds community among listeners.
+
+
+POLITICAL CONTENT — NON-NEGOTIABLE
+-------------------------------------
+When covering episodes that touch on politics, policy, or political figures:
+- Focus on strategy, mechanics, and consequences only
+- No cheerleading, no contempt
+- No coded language or framing that signals tribal affiliation
+- Present all sides with the same analytical curiosity
+- If a sentence could be used to place the editorial team politically, rewrite it
+
+
+EXAMPLE EDITION
+----------------
+Below is a full example of a well-executed Daily Drop. Use this as the reference for tone, format, length, and approach.
+
+---
+
+The Daily Drop · Tuesday, March 10, 2026
+Your daily guide to what's worth listening to across the podcast world.
+
+Things you may want to listen to today:
+
+If you only had time for one sit-down yesterday, make it Shyam Sankar on Invest Like the Best. The Palantir CTO has been making the rounds lately, but Patrick O'Shaughnessy got the best version of him — loose, opinionated, genuinely interesting. Sankar's whole thing right now is that institutions don't change, heretics do. "All change comes from these heretics, and they only later become heroes." It's the kind of conversation that reminds you why Invest Like the Best has stayed must-listen for this long. If you're not subscribed, fix that.
+
+The other booking worth flagging: Nadia Shadlow on The Ezra Klein Show. Bringing in a former Trump official to actually explain the internal logic of second-term foreign policy is a gutsy move for that show, and it paid off. Shadlow's argument — that the administration is deliberately "elevating action over process" — is one of the cleaner frameworks floating around right now for understanding what's happening in Washington, wherever you land on it. Ezra's been on a run of guests who genuinely challenge his audience's priors. This one continues the streak.
+
+The Economist Podcasts did what they always do — took the Iran oil story and made it make sense. Edward Carr walked through the numbers: 15 million barrels a day off the market, prices potentially hitting $93. If you're trying to actually understand the energy story instead of just feeling anxious about it, this is your episode. Not flashy, but the kind of thing you end up sending to three people.
+
+On the more personal end of the feed, Mike Posner showed up on The Ed Mylett Show and delivered one of those episodes that catches you off guard. Posner's been on a strange, fascinating journey the last few years, and he went somewhere real here — talking about avoidance, fear of relationships, the cost of building a life around external validation. Ed Mylett's show lives and dies by guests willing to go there. Posner went there.
+
+And if you're in the mood for something that feels nothing like the rest of your queue, Fab 5 Freddy on The James Altucher Show is the one. A firsthand oral history of hip-hop's origins in the Bronx, told by someone who was actually there. The kind of episode you forget podcasts can do until one reminds you.
+
+What did you listen to yesterday that we should have on our radar? Drop it in the comments — we read every one.
+
+---
+
+END OF GUIDE
