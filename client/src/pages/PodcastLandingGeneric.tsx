@@ -562,9 +562,18 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                           <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
                             {book.name}
                           </h3>
-                          {book.author && (
-                            <p className="text-[13px] text-muted-foreground/60 mt-0.5">by {book.author}</p>
-                          )}
+                          {book.author && (() => {
+                            const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
+                            return (
+                              <p className="text-[13px] text-muted-foreground/60 mt-0.5" data-testid={`book-author-${i}`}>
+                                by {authorPerson ? (
+                                  <Link href={`/people/${authorPerson.slug}`} className="text-amber-700 dark:text-amber-400 hover:underline" onClick={(e) => e.stopPropagation()}>
+                                    {book.author}
+                                  </Link>
+                                ) : book.author}
+                              </p>
+                            );
+                          })()}
                         </div>
                         <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[12px] font-bold bg-amber-500/[0.08] text-amber-700 dark:text-amber-400 whitespace-nowrap" data-testid={`book-mentions-${i}`}>
                           {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}

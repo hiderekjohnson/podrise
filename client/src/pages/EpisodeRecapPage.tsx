@@ -1260,9 +1260,18 @@ export default function EpisodeRecapPage() {
                         <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
                           {book.name}
                         </h3>
-                        {book.author && (
-                          <p className="text-sm text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">by {book.author}</p>
-                        )}
+                        {book.author && (() => {
+                          const authorPerson = PEOPLE_DIRECTORY.find(p => p.name.toLowerCase() === book.author!.toLowerCase());
+                          return (
+                            <p className="text-sm text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5" data-testid={`book-author-${i}`}>
+                              by {authorPerson ? (
+                                <Link href={`/people/${authorPerson.slug}`} className="text-amber-700 dark:text-amber-400 hover:underline" onClick={(e) => e.stopPropagation()}>
+                                  {book.author}
+                                </Link>
+                              ) : book.author}
+                            </p>
+                          );
+                        })()}
                         {book.context && (
                           <p className="text-base text-muted-foreground leading-relaxed mt-2 line-clamp-3" data-testid={`book-context-${i}`}>
                             {book.context}
