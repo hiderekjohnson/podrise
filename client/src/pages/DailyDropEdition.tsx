@@ -1,20 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Calendar, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Calendar, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { PodCapWordmark } from "@/components/PodCapHeader";
-
-interface EpisodeRef {
-  slug: string;
-  episodeSlug: string;
-  podcastName: string;
-  episodeTitle: string;
-  tldl: string;
-  artworkUrl: string | null;
-  duration: string | null;
-  hosts: string | null;
-}
 
 interface DailyDropData {
   date: string;
@@ -22,8 +11,6 @@ interface DailyDropData {
   subheadline: string;
   body: string;
   episodeSlugs: string[];
-  episodeCount: number;
-  episodes: EpisodeRef[];
   prevDate: string | null;
   nextDate: string | null;
 }
@@ -228,43 +215,6 @@ export default function DailyDropEdition() {
               </motion.div>
 
               <div className="w-full h-px bg-border mt-10 mb-8" />
-
-              {data.episodes.length > 0 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                  className="mb-10"
-                  data-testid="section-all-episodes"
-                >
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-[#3F3F46] dark:text-[#A1A1AA] mb-4">
-                    All {data.episodeCount} recaps from {formatDateLong(data.date).split(",")[0]}
-                  </h2>
-                  <div className="bg-card border border-border rounded-2xl divide-y divide-border">
-                    {data.episodes.map((ep, i) => (
-                      <Link
-                        key={`${ep.slug}-${ep.episodeSlug}`}
-                        href={`/podcasts/${ep.slug}/${ep.episodeSlug}`}
-                        className="flex items-center gap-3.5 px-4 sm:px-5 py-3.5 group hover:bg-muted/30 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
-                        data-testid={`link-episode-${i}`}
-                      >
-                        {ep.artworkUrl && (
-                          <img
-                            src={ep.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")}
-                            alt={ep.podcastName}
-                            className="w-9 h-9 rounded-lg object-cover shadow-sm shrink-0"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-primary/60 truncate">{ep.podcastName}</p>
-                          <p className="text-[14px] font-semibold text-foreground truncate group-hover:text-primary transition-colors">{ep.episodeTitle}</p>
-                        </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0" />
-                      </Link>
-                    ))}
-                  </div>
-                </motion.section>
-              )}
 
               <nav className="flex items-center justify-between" data-testid="nav-editions">
                 {data.prevDate ? (

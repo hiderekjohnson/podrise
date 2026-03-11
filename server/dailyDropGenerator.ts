@@ -48,6 +48,7 @@ export async function generateDailyDropEdition(dateStr: string): Promise<Generat
   }));
 
   const bestEpisodes = selectBestEpisodes(episodes);
+  const bestSlugs = new Set(bestEpisodes.map(ep => `${ep.slug}/${ep.episodeSlug}`));
 
   const episodeBriefs = bestEpisodes.map((ep, i) => {
     const guestInfo = ep.guests ? ` | Guests: ${tryParseGuestNames(ep.guests)}` : "";
@@ -57,6 +58,11 @@ Key insight: ${ep.keyInsights[0] || "N/A"}
 ${ep.quote ? `Quote: "${ep.quote}" - ${ep.quoteAttribution || ep.hosts}` : ""}
 Full recap link slug: /podcasts/${ep.slug}/${ep.episodeSlug}`;
   }).join("\n\n");
+
+  const bonusEpisodes = episodes.filter(ep => !bestSlugs.has(`${ep.slug}/${ep.episodeSlug}`));
+  const bonusBriefs = bonusEpisodes.slice(0, 25).map(ep =>
+    `"${ep.episodeTitle}" - ${ep.podcastName} (${ep.hosts || "Unknown host"}) | Summary: ${ep.tldl} | Link: /podcasts/${ep.slug}/${ep.episodeSlug}`
+  ).join("\n");
 
   const prompt = `You are writing The Daily Drop for ${formatDateForPrompt(dateStr)}.
 
@@ -69,6 +75,10 @@ WHO IS WRITING THIS: The newsletter comes from an editorial team genuinely obses
 Here are the most noteworthy episodes from yesterday:
 
 ${episodeBriefs}
+
+Here are additional episodes from yesterday that didn't make the main newsletter:
+
+${bonusBriefs}
 
 WHAT TO COVER - Focus on the podcast ECOSYSTEM, not just topics discussed:
 - What was the best episode yesterday and why?
@@ -107,6 +117,8 @@ STRUCTURE:
    - Show titles in *italics* (markdown)
    - Close with a single line inviting the reader to share what they listened to, making it feel like a community, not a broadcast. Something like: "What did you listen to yesterday that we should have on our radar? Drop it in the comments, we read every one."
 
+3. ALSO WORTH CHECKING OUT: After the sign-off, write a short "Also worth checking out" section. Pick 5-7 episodes from the ADDITIONAL episodes list (NOT from the main newsletter episodes). Write it as 1-2 flowing sentences, not a list. Link each episode title to its episode page using markdown links. Keep it brief and punchy, like a bonus tip from a friend. Prioritize interesting or lesser-known episodes that deserve attention over big-name shows. This section should feel like a casual postscript.
+
 LINKING RULES:
 - Include 4-8 links naturally woven in. Use markdown links
 - For episode titles or show names: link to [show or episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs
@@ -124,14 +136,15 @@ Respond with ONLY valid JSON (no markdown fences):
 {
   "headline": "The tagline - one line capturing the mood/theme of the day",
   "subheadline": "Your daily guide to what's worth listening to across the podcast world.",
-  "body": "Your full newsletter body in markdown format. Use \\n\\n for paragraph breaks. Close with the community invitation line."
+  "body": "Your full newsletter body in markdown format. Use \\n\\n for paragraph breaks. Close with the community invitation line.",
+  "alsoWorthCheckingOut": "1-2 flowing sentences with 5-7 linked episode titles from the bonus list. Not a bullet list. Brief and punchy."
 }`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 2500,
+      max_tokens: 3000,
       temperature: 0.85,
       response_format: { type: "json_object" },
     });
@@ -146,10 +159,18 @@ Respond with ONLY valid JSON (no markdown fences):
 
     const parsed = JSON.parse(jsonContent);
 
+    const mainBody = (parsed.body || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n");
+    const bonusSection = parsed.alsoWorthCheckingOut
+      ? (parsed.alsoWorthCheckingOut || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n")
+      : "";
+    const fullBody = bonusSection
+      ? `${mainBody}\n\n**Also worth checking out:** ${bonusSection}`
+      : mainBody;
+
     return {
       headline: parsed.headline || "The Daily Drop",
       subheadline: parsed.subheadline || "",
-      body: (parsed.body || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
+      body: fullBody,
       episodeSlugs: bestEpisodes.map(ep => `${ep.slug}/${ep.episodeSlug}`),
     };
   } catch (err) {
