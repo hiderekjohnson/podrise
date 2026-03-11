@@ -134,9 +134,20 @@ export default function Enterprise() {
               Podcast intelligence{" "}
               <span className="text-primary">for teams that need to know</span>
             </h1>
-            <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto" data-testid="text-hero-subtitle">
+            <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-6" data-testid="text-hero-subtitle">
               Podcasts have become one of the most important sources of expert insight, market signals, and emerging ideas. PodCap makes that knowledge searchable, structured, and accessible at scale.
             </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {[
+                "What have top VCs said about AI valuations this quarter?",
+                "Find every founder interview about pricing strategy",
+                "Track competitor mentions across the podcast ecosystem",
+              ].map((q) => (
+                <span key={q} className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-[13px] text-primary/80 font-medium">
+                  {q}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -147,7 +158,7 @@ export default function Enterprise() {
                 The knowledge is there. The access isn't.
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Every week, thousands of podcast episodes surface expert analysis, industry signals, and strategic conversations that matter to your business. But that knowledge is locked inside hours of audio - unsearchable, unstructured, and invisible to your team.
+                Every week, thousands of podcast episodes surface expert analysis, industry signals, and strategic conversations that matter to your business. But that knowledge disappears into a black box the moment it's published. No search, no index, no way to know what was said or where. Your team is flying blind.
               </p>
             </div>
 

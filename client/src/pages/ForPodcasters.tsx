@@ -125,15 +125,15 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "For Podcasters - Amplify Your Sponsors, Add Your Byline, Grow Your Show | PodCap";
-    const desc = "PodCap amplifies your podcast sponsors on web and email recaps, lets you add a custom byline to every page, and turns episodes into searchable knowledge assets. Claim your podcast today.";
+    document.title = "For Podcasters - Make Your Episodes Searchable and Discoverable | PodCap";
+    const desc = "Your best ideas deserve to travel further than audio. PodCap turns every episode into a searchable knowledge asset, amplifies your sponsors, and makes your content discoverable long after it drops.";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "For Podcasters - Amplify Your Sponsors, Add Your Byline, Grow Your Show");
+    setMeta("property", "og:title", "For Podcasters - Make Your Episodes Searchable and Discoverable | PodCap");
     setMeta("property", "og:description", desc);
   }, []);
 
@@ -150,10 +150,10 @@ export default function ForPodcasters() {
               For Podcasters
             </div>
             <h1 className="text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.12] mb-6" data-testid="text-hero-title">
-              Your episodes, sponsors, and message - amplified everywhere
+              Your best ideas deserve to travel further than audio
             </h1>
             <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8" data-testid="text-hero-subtitle">
-              PodCap turns every episode into a searchable knowledge asset, displays your sponsors on web and email recaps, and lets you add a custom byline across every page featuring your show. Claim your podcast and take control.
+              You spend hours recording conversations worth hearing. But once they publish, the ideas inside are only accessible to people with time to listen start to finish. PodCap makes every episode searchable, skimmable, and shareable - so your content keeps working long after it drops.
             </p>
             <Link href="/podcaster/claim" data-testid="link-hero-claim">
               <Button className="rounded-xl font-display font-bold text-[15px] px-6 shadow-sm">
@@ -168,10 +168,10 @@ export default function ForPodcasters() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-problem-title">
-                The podcast discovery problem
+                Your content's biggest enemy isn't competition. It's invisibility.
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Podcasts contain some of the most valuable conversations happening today. But the ideas inside them are hard to find, hard to search, and hard to share.
+                Audio is a black box to search engines. The moment an episode publishes, the ideas inside become invisible to anyone who wasn't already listening.
               </p>
             </div>
 
@@ -191,7 +191,7 @@ export default function ForPodcasters() {
 
             <div className="max-w-xl mx-auto text-center">
               <p className="text-[15px] leading-[1.75] text-muted-foreground">
-                You spend hours preparing, recording, and editing each episode. But once it publishes, the ideas inside are only accessible to people who have the time to listen from start to finish. Everyone else moves on.
+                You put everything into each episode. But once it publishes, the ideas inside are only accessible to people who listen start to finish. Everyone else moves on. The best insight you've ever shared might already be out there, buried in an episode most people will never find.
               </p>
               <p className="text-[15px] leading-[1.75] font-display font-bold text-foreground mt-4">
                 PodCap makes your content findable, skimmable, and shareable - so your best ideas travel further.

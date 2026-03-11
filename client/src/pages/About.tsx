@@ -49,10 +49,10 @@ export default function About() {
             About PodCap
           </div>
           <h1 className="text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
-            The world's best ideas are locked inside audio. We're changing that.
+            Google indexed the web. We're indexing the conversation.
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-            Podcasts have quietly become one of the largest knowledge platforms in the world. PodCap is building the infrastructure to make that knowledge accessible to everyone.
+            Podcasts have become the world's most valuable knowledge base. Investors, founders, scientists, and operators are sharing everything in long-form conversations that go deeper than any article or tweet. PodCap makes all of it searchable.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a
@@ -103,16 +103,16 @@ export default function About() {
           </div>
           <div className="space-y-5 text-[17px] leading-[1.85] text-muted-foreground max-w-2xl mx-auto">
             <p>
-              Every week, thousands of conversations happen between founders, investors, scientists, economists, authors, and operators. Some of the best ideas on the internet are now being shared in long-form podcast conversations instead of written articles.
+              Every week, thousands of conversations happen between founders, investors, scientists, economists, authors, and operators. Some of the best ideas on the internet are now shared in long-form podcast conversations that go deeper than any article or tweet ever could.
             </p>
             <p className="text-foreground font-semibold text-lg">
-              There's just one problem.
+              The problem? It all disappears the moment it's published.
             </p>
             <p>
-              Almost all of that knowledge is locked inside audio.
+              No search. No index. No way to know what was said, or where. Audio has always been a black box. While you slept, thousands of hours of new podcast content were published. The best insight you'll ever hear is probably already out there, buried in an episode you'll never find.
             </p>
             <p>
-              If you want to learn what was said in an episode, you usually have to listen to the entire conversation. Two hours here. Three hours there. Multiply that by dozens of shows and hundreds of episodes. Even the most dedicated listeners can't keep up.
+              The web got indexed in the 90s. Podcasts are getting indexed now.
             </p>
             <p className="text-foreground font-semibold text-lg">
               PodCap was built to solve this.
@@ -184,7 +184,7 @@ export default function About() {
               <h2 className="text-2xl sm:text-3xl font-display font-bold">The bigger vision</h2>
             </div>
             <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto text-[17px] leading-[1.85]">
-              But the vision goes far beyond recaps. Our long-term goal is to build the most complete library of podcast knowledge ever created.
+              The vision goes far beyond recaps. We're building the search engine for human conversation - every podcast, every word, searchable.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">

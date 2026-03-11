@@ -24,8 +24,8 @@ function hiResArtwork(url: string) {
 }
 
 function SEOHead() {
-  const title = "PodCap - Podcast Intelligence for Decision-Makers";
-  const description = "PodCap tracks, analyzes, and synthesizes the world's most influential podcasts. Search transcripts, discover insights by topic, company, or person, and get analyst-grade briefings delivered to your inbox.";
+  const title = "PodCap - Search What the World Is Saying";
+  const description = "Podcasts are the last unsearchable corner of the internet. PodCap indexes, analyzes, and structures the world's most influential podcast conversations. Search transcripts, discover insights by topic, and get analyst-grade briefings delivered to your inbox.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -78,10 +78,10 @@ export default function Home() {
               Podcast Intelligence Platform
             </div>
             <h1 className="text-[2.5rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
-              The world's searchable library of podcast knowledge
+              The world's smartest people are talking. Now you can find what they said.
             </h1>
             <p className="text-lg sm:text-xl text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
-              We track, analyze, and synthesize everything being said across the world's most influential podcasts. Search transcripts, discover insights by topic, and get analyst-grade briefings - without listening to every episode.
+              Podcasts are the last unsearchable corner of the internet. PodCap indexes, analyzes, and structures the world's most influential podcast conversations so you can search them, skim them, and act on them - without listening to every episode.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <button
@@ -103,7 +103,7 @@ export default function Home() {
           </motion.div>
         </section>
 
-        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-20 sm:pb-24">
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -133,6 +133,30 @@ export default function Home() {
               </p>
             </div>
           </motion.div>
+        </section>
+
+        <section className="w-full py-14 sm:py-16 border-y border-border bg-card/30" data-testid="section-scale">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+              <p className="text-center text-[15px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-8" data-testid="text-scale-label">
+                The scale of what you've been missing
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                {[
+                  { value: "150M+", label: "hours of podcast content", sub: "and counting" },
+                  { value: "80K", label: "new hours published", sub: "every single day" },
+                  { value: "95%", label: "of audio is unsearchable", sub: "invisible to Google" },
+                  { value: "2,000x", label: "more content than Netflix", sub: "all of it unindexed" },
+                ].map((stat) => (
+                  <div key={stat.label} className="text-center py-4">
+                    <p className="text-[2rem] sm:text-[2.5rem] font-display font-extrabold tracking-tight leading-none text-foreground" data-testid={`stat-${stat.label.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`}>{stat.value}</p>
+                    <p className="text-[14px] font-semibold text-foreground/70 mt-1.5">{stat.label}</p>
+                    <p className="text-[13px] text-muted-foreground/50">{stat.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         </section>
 
 
@@ -306,13 +330,13 @@ export default function Home() {
                 <Library className="w-6 h-6 text-white/80" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold leading-[1.1] tracking-[-0.02em]" data-testid="text-vision-heading">
-                Podcast intelligence for the information age
+                Audio has always been a black box. We're opening it.
               </h2>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                Millions of hours of conversations happen across podcasts every year - the sharpest analysis, the most candid insights, the earliest signals on emerging trends. Most of this intelligence is locked inside audio files that decision-makers will never have time to hear.
+                Google made the web searchable. For over 20 years, podcasts have been the one place search can't reach. Investors, founders, scientists, and operators are sharing their deepest thinking in long-form conversations that go deeper than any article or tweet ever could.
               </p>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                PodCap is building the infrastructure to make this knowledge searchable, structured, and actionable - turning podcast conversations into a competitive advantage.
+                PodCap is building the search engine audio always deserved - making that knowledge discoverable, structured, and actionable.
               </p>
               <a
                 href="/about"
@@ -333,10 +357,10 @@ export default function Home() {
                 <BookOpen className="w-6 h-6 text-primary" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-cta-heading">
-                Get podcast intelligence delivered
+                While you slept, thousands of hours of new podcasts dropped. We read them for you.
               </h2>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg">
-                Choose the podcasts you follow. We'll analyze every new episode and deliver structured briefings to your inbox - key insights, notable quotes, and the takeaways that matter.
+                Choose the podcasts you follow. We'll analyze every new episode and deliver structured briefings to your inbox - the key insights, notable quotes, and takeaways that matter.
               </p>
               <button
                 data-testid="button-bottom-cta"
