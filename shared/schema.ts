@@ -311,3 +311,15 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const dailyDropEditions = pgTable("daily_drop_editions", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull().unique(),
+  headline: text("headline").notNull(),
+  subheadline: text("subheadline"),
+  body: text("body").notNull(),
+  episodeSlugs: text("episode_slugs").array(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
+
+export type DailyDropEdition = typeof dailyDropEditions.$inferSelect;
+

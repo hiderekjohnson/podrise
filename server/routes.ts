@@ -382,24 +382,20 @@ export async function registerRoutes(
 
   app.get("/api/daily-drop/editions", async (_req, res) => {
     try {
-      const recaps = await storage.getRecentRecapsForRss(null, 200);
+      const { rows } = await pool.query(
+        `SELECT d.date, d.headline, d.subheadline,
+                (SELECT COUNT(*) FROM landing_page_recaps r WHERE r.publish_date = d.date) as episode_count
+         FROM daily_drop_editions d
+         ORDER BY d.date DESC
+         LIMIT 30`
+      );
 
-      const editionMap = new Map<string, { date: string; count: number; hero: typeof recaps[0] | null; }>();
-      for (const r of recaps) {
-        if (!r.publishDate) continue;
-        const d = new Date(r.publishDate);
-        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-        const existing = editionMap.get(dateKey);
-        if (existing) {
-          existing.count++;
-        } else {
-          editionMap.set(dateKey, { date: dateKey, count: 1, hero: r });
-        }
-      }
-
-      const editions = Array.from(editionMap.values())
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 30);
+      const editions = rows.map((r: any) => ({
+        date: r.date,
+        headline: r.headline,
+        subheadline: r.subheadline,
+        episodeCount: parseInt(r.episode_count) || 0,
+      }));
 
       res.json({ editions });
     } catch (err) {
@@ -410,56 +406,63 @@ export async function registerRoutes(
 
   app.get("/api/daily-drop/:date", async (req, res) => {
     try {
-      const dateParam = req.params.date;
-      const recaps = await storage.getRecentRecapsForRss(null, 200);
+      let dateParam = req.params.date;
 
-      const sortedByPublishDate = [...recaps].sort((a, b) => {
-        const da = a.publishDate ? new Date(a.publishDate).getTime() : 0;
-        const db = b.publishDate ? new Date(b.publishDate).getTime() : 0;
-        return db - da;
-      });
-
-      let episodes;
       if (dateParam === "latest") {
-        const grouped = new Map<string, typeof recaps>();
-        for (const r of sortedByPublishDate) {
-          if (!r.publishDate) continue;
-          const d = new Date(r.publishDate);
-          const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          if (!grouped.has(dateKey)) grouped.set(dateKey, []);
-          grouped.get(dateKey)!.push(r);
+        const { rows: latestRows } = await pool.query(
+          `SELECT date FROM daily_drop_editions ORDER BY date DESC LIMIT 1`
+        );
+        if (latestRows.length === 0) {
+          return res.status(404).json({ message: "No editions available" });
         }
-        const latestKey = Array.from(grouped.keys()).sort().reverse()[0];
-        episodes = latestKey ? grouped.get(latestKey)! : sortedByPublishDate.slice(0, 10);
-      } else {
-        episodes = sortedByPublishDate.filter(r => {
-          if (!r.publishDate) return false;
-          const d = new Date(r.publishDate);
-          const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          return dateKey === dateParam;
-        });
+        dateParam = latestRows[0].date;
       }
 
-      if (episodes.length === 0) {
-        return res.status(404).json({ message: "No episodes found for this date" });
+      const { rows } = await pool.query(
+        `SELECT date, headline, subheadline, body, episode_slugs FROM daily_drop_editions WHERE date = $1`,
+        [dateParam]
+      );
+
+      if (rows.length === 0) {
+        return res.status(404).json({ message: "No edition found for this date" });
       }
 
-      const hero = episodes[0] || null;
-      const todaysDrops = episodes.slice(1, 5);
-      const allDrops = episodes.slice(1);
-      const quoteEpisode = episodes.find(e => e.quote && e.quoteAttribution) || null;
+      const edition = rows[0];
 
-      const resolvedDate = dateParam === "latest"
-        ? (() => { const d = new Date(episodes[0].publishDate); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })()
-        : dateParam;
+      const { rows: episodeRows } = await pool.query(
+        `SELECT slug, episode_slug, podcast_name, episode_title, tldl, artwork_url, duration, hosts
+         FROM landing_page_recaps WHERE publish_date = $1 ORDER BY id`,
+        [dateParam]
+      );
+
+      const { rows: navRows } = await pool.query(
+        `SELECT date FROM daily_drop_editions WHERE date < $1 ORDER BY date DESC LIMIT 1`,
+        [dateParam]
+      );
+      const { rows: navNextRows } = await pool.query(
+        `SELECT date FROM daily_drop_editions WHERE date > $1 ORDER BY date ASC LIMIT 1`,
+        [dateParam]
+      );
 
       res.json({
-        date: resolvedDate,
-        episodeCount: episodes.length,
-        hero,
-        todaysDrops,
-        allDrops,
-        quoteEpisode,
+        date: edition.date,
+        headline: edition.headline,
+        subheadline: edition.subheadline,
+        body: edition.body,
+        episodeSlugs: edition.episode_slugs || [],
+        episodeCount: episodeRows.length,
+        episodes: episodeRows.map((r: any) => ({
+          slug: r.slug,
+          episodeSlug: r.episode_slug,
+          podcastName: r.podcast_name,
+          episodeTitle: r.episode_title,
+          tldl: r.tldl,
+          artworkUrl: r.artwork_url,
+          duration: r.duration,
+          hosts: r.hosts,
+        })),
+        prevDate: navRows[0]?.date || null,
+        nextDate: navNextRows[0]?.date || null,
       });
     } catch (err) {
       console.error("Daily drop error:", err);
@@ -3487,6 +3490,28 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       res.json({ message: "Show notes backfill started." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/generate-daily-drop", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { date } = req.body || {};
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ message: "Provide a valid date in YYYY-MM-DD format" });
+    }
+    try {
+      const { generateDailyDropEdition, saveDailyDropEdition } = await import("./dailyDropGenerator");
+      const edition = await generateDailyDropEdition(date);
+      if (!edition) {
+        return res.status(404).json({ message: "No episodes found for this date or generation failed" });
+      }
+      await saveDailyDropEdition(date, edition);
+      res.json({ message: "Daily Drop edition generated", date, headline: edition.headline });
+    } catch (err: any) {
+      console.error("[DailyDrop] Generation error:", err);
+      res.status(500).json({ message: err?.message || "Failed to generate edition" });
     }
   });
 
