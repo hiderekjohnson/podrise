@@ -231,9 +231,6 @@ export default function PodcastTopicPage() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-topic-description">
               {topic.description}
             </p>
-            <p className="text-[15px] text-muted-foreground/70">
-              {podcasts.length} podcast{podcasts.length !== 1 ? "s" : ""}
-            </p>
           </motion.div>
         </section>
 

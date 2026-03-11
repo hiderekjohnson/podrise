@@ -179,9 +179,6 @@ export default function PodcastCategoryPage() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed mb-2">
               {category.description}
             </p>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-podcast-count">
-              {podcasts.length} podcast{podcasts.length !== 1 ? "s" : ""}
-            </p>
           </motion.div>
 
           {qualifyingTopics.length > 0 && (
