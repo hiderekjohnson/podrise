@@ -198,7 +198,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
 
         {book.description && (
           <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${index}`}>
-            {book.description.length > 200 ? book.description.slice(0, 200).replace(/\s+\S*$/, '') + '...' : book.description}
+            {book.description}
           </p>
         )}
 
