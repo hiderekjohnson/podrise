@@ -32,6 +32,7 @@ const GetStarted = lazy(() => import("./pages/GetStarted"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
 const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
 const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
+const DailyDrop = lazy(() => import("./pages/DailyDrop"));
 
 function PageLoader() {
   return (
@@ -71,6 +72,7 @@ function Router() {
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/topics/:slug" component={TopicDetailPage} />
         <Route path="/topics" component={TopicsDirectory} />
+        <Route path="/daily-drop" component={DailyDrop} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

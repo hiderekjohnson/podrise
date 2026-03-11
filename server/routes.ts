@@ -380,6 +380,44 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/daily-drop", async (_req, res) => {
+    try {
+      const recaps = await storage.getRecentRecapsForRss(null, 50);
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      const sortedByPublishDate = [...recaps].sort((a, b) => {
+        const da = a.publishDate ? new Date(a.publishDate).getTime() : 0;
+        const db = b.publishDate ? new Date(b.publishDate).getTime() : 0;
+        return db - da;
+      });
+
+      const dailyEpisodes = sortedByPublishDate.filter(r => {
+        if (!r.publishDate) return false;
+        return new Date(r.publishDate) >= oneDayAgo;
+      });
+
+      const displayEpisodes = dailyEpisodes.length >= 3 ? dailyEpisodes : sortedByPublishDate.slice(0, 10);
+      const dailyEpisodeCount = dailyEpisodes.length;
+
+      const hero = displayEpisodes[0] || null;
+      const todaysDrops = displayEpisodes.slice(1, 5);
+      const quoteEpisode = displayEpisodes.find(e => e.quote && e.quoteAttribution) || null;
+
+      res.json({
+        date: now.toISOString(),
+        episodeCount: dailyEpisodeCount,
+        displayCount: displayEpisodes.length,
+        hero,
+        todaysDrops,
+        quoteEpisode,
+      });
+    } catch (err) {
+      console.error("Daily drop error:", err);
+      res.status(500).json({ message: "Failed to load daily drop" });
+    }
+  });
+
   app.get("/robots.txt", (_req, res) => {
     res.set("Content-Type", "text/plain");
     res.set("Cache-Control", "public, max-age=86400");

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles } from "lucide-react";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
@@ -540,7 +540,6 @@ export default function PersonDetailPage() {
                 </div>
               </section>
 
-              {/* 1b. Hosted Podcasts Section */}
               {personData?.hostedPodcastSlugs && personData.hostedPodcastSlugs.length > 0 && (() => {
                 const hostedPodcasts = personData.hostedPodcastSlugs
                   .map(slug => PODCAST_LANDINGS.find(p => p.slug === slug))
@@ -548,23 +547,49 @@ export default function PersonDetailPage() {
                 if (hostedPodcasts.length === 0) return null;
                 return (
                   <section className="mb-8" data-testid="section-hosted-podcasts">
-                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
                       <Mic className="w-5 h-5 text-primary" />
-                      {hostedPodcasts.length === 1 ? "Podcast Host" : "Podcast Host"}
+                      Podcast Host
                     </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">
+                      {person?.name} is the host of the following podcast{hostedPodcasts.length !== 1 ? "s" : ""}:
+                    </p>
+                    <div className="grid grid-cols-1 gap-4">
                       {hostedPodcasts.map((podcast: any) => (
-                        <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="flex items-center gap-4 bg-card border border-border rounded-xl p-4 hover:border-primary/30 hover:shadow-md transition-all group" data-testid={`hosted-podcast-${podcast.slug}`}>
+                        <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="flex items-start gap-5 bg-card border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-md transition-all group" data-testid={`hosted-podcast-${podcast.slug}`}>
                           <img
-                            src={podcast.imageUrl}
-                            alt={podcast.title}
-                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-sm"
+                            src={podcast.artworkUrl}
+                            alt={podcast.name}
+                            className="w-20 h-20 rounded-xl object-cover flex-shrink-0 shadow-md shadow-black/[0.06]"
                             loading="lazy"
                           />
-                          <div className="min-w-0">
-                            <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{podcast.title}</p>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
-                            <p className="text-[15px] text-primary font-medium mt-1">View Podcast &rarr;</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors">{podcast.name}</p>
+                            <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2">{podcast.description}</p>
+                            <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
+                              {podcast.yearStarted && (
+                                <span className="inline-flex items-center gap-1">
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  Since {podcast.yearStarted}
+                                </span>
+                              )}
+                              {podcast.totalEpisodes && (
+                                <span className="inline-flex items-center gap-1">
+                                  <Headphones className="w-3.5 h-3.5" />
+                                  {podcast.totalEpisodes.toLocaleString()} episodes
+                                </span>
+                              )}
+                              {podcast.frequency && (
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {podcast.frequency}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[15px] text-primary font-semibold mt-2.5 flex items-center gap-1">
+                              View Podcast
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </p>
                           </div>
                         </Link>
                       ))}

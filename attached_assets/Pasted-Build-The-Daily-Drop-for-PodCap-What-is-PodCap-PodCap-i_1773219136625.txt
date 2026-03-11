@@ -1,0 +1,36 @@
+Build "The Daily Drop" for PodCap
+What is PodCap?
+PodCap is a platform for people who are obsessed with podcasts. Not podcasters — listeners. People who listen to multiple shows a week, want to discover new ones, and want to get the most out of every episode. Think of the audience as people who treat podcasts the way others treat books or news — seriously, habitually, hungrily.
+What is The Daily Drop?
+The Daily Drop is a daily digest that lives inside PodCap. Every day it recaps what dropped across the podcasts PodCap tracks. It's not a trade publication, it's not for the industry — it's purely for listeners. The tone is like a really smart friend who listens to everything and gives you the highlights over coffee. Informed, fun, a little witty, never stuffy. Think Morning Brew meets The Ringer. Editorial but approachable. Professional but with personality.
+The goal is that a user opens it every morning and within 2-3 minutes knows exactly what dropped, what's worth their time, and maybe discovers something they didn't know they wanted to listen to.
+What to mimic:
+
+Morning Brew for tone and daily digest format
+The Ringer for sports-meets-culture editorial voice
+Bloomberg's The Daily Brief for clean scannable structure
+A newspaper front page for visual hierarchy — there's a hero story, supporting stories, and quick hits
+
+Build a single HTML file called the-daily-drop.html.
+Structure the page in this order:
+
+Masthead — centered at top. Says "The Daily Drop." Below it: today's date and how many episodes dropped in the last 24 hours across PodCap.
+Episode of the Day — the hero. Show name above the headline, big bold episode title, 3-4 sentence write-up that tells the listener exactly why this one matters and what moment to listen for, runtime, topic tags, and a clear "Listen on PodCap →" link.
+Today's Drops — a clean scannable list of 4 other episodes from the last 24 hours. One line each: show name, episode title, runtime, listen link. No long write-ups.
+Stat of the Day — one surprising number from the last 24 hours. Big and prominent. One sentence of context underneath.
+Quote of the Day — one pull quote from a recent episode. Attribution with show name and a link to the episode at the exact timestamp.
+Footer — date, link to all episodes on PodCap, link to the weekly edition called "The Drop."
+
+Populate with this example content:
+Date: Wednesday, December 25, 2024. 9 episodes dropped today across PodCap.
+Episode of the Day: Lex Fridman #441 with Elon Musk. 3hr 12min. Tags: AI, Mars, Must Listen. Write-up: This is the conversation everyone is going to be talking about. Elon Musk sits down with Lex Fridman for over three hours covering AI timelines, Mars, and why he thinks most economists have it wrong on automation. The section around 1hr 22min on the difference between AI fluency and actual understanding is worth the whole runtime alone. Even if you've never listened to Lex before, start here.
+Today's Drops:
+
+Huberman Lab Ep. 182 · Sleep Science Revisited · 1hr 48min
+How I Built This · Patagonia Founder · 54min
+Tim Ferriss Ep. 709 · Year-End Reflection · 28min
+Darknet Diaries Ep. 158 · Casino Cyberattack · 52min
+
+Stat of the Day: 9 shows dropped on Christmas Day. Context: "Either they planned ahead, or they knew some of us would need an escape from the family chaos."
+Quote of the Day: "The most dangerous assumption in AI is that because something looks intelligent, it is. We're mistaking fluency for understanding, and that gap is going to bite us." — Elon Musk, Lex Fridman Podcast #441, at 1hr 22min.
+Match the styling to the rest of the PodCap website.
