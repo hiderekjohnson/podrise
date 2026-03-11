@@ -11,6 +11,11 @@ export function serveStatic(app: Express) {
     );
   }
 
+  const projectPublic = path.resolve(__dirname, "..", "public");
+  if (fs.existsSync(projectPublic)) {
+    app.use(express.static(projectPublic));
+  }
+
   app.use(express.static(distPath));
 
   app.use("/{*path}", (req, res) => {
