@@ -10,6 +10,7 @@ import { PodCapHeader } from "@/components/PodCapHeader";
 import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayout";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { PodCapWordmark } from "@/components/PodCapHeader";
@@ -698,7 +699,21 @@ export default function PodcastLandingGeneric() {
                             <Users className="w-5 h-5 text-primary/60" />
                           </div>
                         )}
-                        <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
+                        {(() => {
+                          const personEntry = PEOPLE_DIRECTORY.find((p) => p.name === host.name);
+                          return personEntry ? (
+                            <div>
+                              <Link href={`/people/${personEntry.slug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-host-profile-${i}`}>
+                                {host.name}
+                              </Link>
+                              <Link href={`/people/${personEntry.slug}`} className="block text-xs text-muted-foreground hover:text-primary/80 transition-colors mt-0.5" data-testid={`link-host-profile-cta-${i}`}>
+                                View full profile →
+                              </Link>
+                            </div>
+                          ) : (
+                            <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
+                          );
+                        })()}
                       </div>
                       {host.bio && (() => {
                         const paragraphs = host.bio.split(/\n\n+/).filter((p: string) => p.trim());

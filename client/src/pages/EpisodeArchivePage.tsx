@@ -630,7 +630,7 @@ export default function EpisodeArchivePage() {
               </div>
             </div>
 
-            {(activeFilterCount > 0) && (
+            {(activeFilterCount > 0 || sort !== "newest") && (
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 {activeFilterCount > 0 && (
                   <span className="text-[13px] font-medium text-muted-foreground/60 flex items-center gap-1">
@@ -669,7 +669,13 @@ export default function EpisodeArchivePage() {
                     <button onClick={() => setGuestPresence("all")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
                 )}
-                {(activeFilterCount > 1 || (activeFilterCount >= 1 && sort !== "newest")) && (
+                {sort !== "newest" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                    {sort === "oldest" ? "Oldest first" : sort === "longest" ? "Longest first" : "Shortest first"}
+                    <button onClick={() => setSort("newest")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                {(activeFilterCount + (sort !== "newest" ? 1 : 0)) > 1 && (
                   <button
                     onClick={clearAllFilters}
                     className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors ml-1"
