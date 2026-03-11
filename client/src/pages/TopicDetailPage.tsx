@@ -295,7 +295,7 @@ export default function TopicDetailPage() {
                 </div>
                 <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
                   {topicEpisodes.slice(0, 6).map((ep, i) => (
-                    <Link key={`${ep.slug}-${ep.episode_slug}`} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} data-testid={`link-episode-${i}`}>
+                    <Link key={`${ep.slug}-${ep.episode_slug}`} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="block" data-testid={`link-episode-${i}`}>
                       <div className="group px-5 py-4 hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors cursor-pointer">
                         <div className="flex items-start gap-3">
                           <img

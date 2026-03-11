@@ -172,7 +172,7 @@ export default function EpisodeArchivePage() {
             </div>
           ) : (
             <>
-              <div className="space-y-5">
+              <div className="flex flex-col gap-5">
                 {episodes.map((ep) => (
                   <EpisodeCard
                     key={ep.episodeSlug}

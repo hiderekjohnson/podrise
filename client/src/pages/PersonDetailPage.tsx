@@ -717,7 +717,7 @@ export default function PersonDetailPage() {
                     </button>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-4">
                   {filteredEpisodes.length > 0 ? (
                     filteredEpisodes.map((ep) => (
                       <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} showType />

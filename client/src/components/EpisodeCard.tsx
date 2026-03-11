@@ -24,9 +24,9 @@ export function EpisodeCard({
   const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   return (
-    <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`}>
+    <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`} className="block">
       <div
-        className="bg-white border border-black/[0.1] rounded-xl px-6 py-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:shadow-md hover:shadow-black/[0.06] hover:border-primary/[0.2] transition-all cursor-pointer group"
+        className="bg-white dark:bg-zinc-900 border border-black/[0.1] dark:border-white/[0.1] rounded-xl px-6 py-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:shadow-md hover:shadow-black/[0.06] hover:border-primary/[0.2] transition-all cursor-pointer group"
         data-testid={`${testIdPrefix}-${episodeSlug}`}
       >
         <div className="flex items-center gap-2 mb-2">
@@ -34,7 +34,7 @@ export function EpisodeCard({
           <span className="text-base font-semibold text-muted-foreground/60">{formatted}</span>
           {duration && (
             <>
-              <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
+              <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12] dark:bg-white/[0.12]" />
               <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/50">{duration}</span>
             </>
           )}

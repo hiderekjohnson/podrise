@@ -353,7 +353,7 @@ export function EpisodePageLayout({
                 const date = new Date(ep.publishDate + "T00:00:00");
                 const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                 return (
-                  <Link key={ep.episodeSlug} href={`/podcasts/${podcastSlug}/${ep.episodeSlug}`}>
+                  <Link key={ep.episodeSlug} href={`/podcasts/${podcastSlug}/${ep.episodeSlug}`} className="block">
                     <div
                       className="px-6 py-5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors cursor-pointer group"
                       data-testid={`card-more-episode-${ep.episodeSlug}`}

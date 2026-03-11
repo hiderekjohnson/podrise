@@ -577,7 +577,7 @@ export default function PodcastLandingGeneric() {
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
                 Quick summaries of the latest episodes — key takeaways in minutes, not hours.
               </p>
-              <div className="space-y-5">
+              <div className="flex flex-col gap-5">
                 {episodeRecaps.slice(0, 10).map((ep: any) => (
                   <EpisodeCard
                     key={ep.episodeSlug}
