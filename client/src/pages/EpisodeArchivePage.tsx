@@ -365,7 +365,7 @@ export default function EpisodeArchivePage() {
                 return (
                   <div className="flex flex-wrap items-center gap-1.5 mt-2" data-testid="archive-category-labels">
                     <Link href={`/podcasts/${catInfo.category.slug}`}>
-                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${catInfo.category.slug}`}>
+                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${catInfo.category.slug}`}>
                         {catInfo.category.name}
                       </span>
                     </Link>

@@ -150,7 +150,7 @@ export function PodcastPageLayout({
               {categoryInfo.category && (
                 <div className="flex flex-wrap items-center gap-1.5 text-[14px] text-muted-foreground justify-center sm:justify-start" data-testid="podcast-category-labels">
                   <Link href={`/podcasts/${categoryInfo.category.slug}`}>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
                       {categoryInfo.category.name}
                     </span>
                   </Link>
