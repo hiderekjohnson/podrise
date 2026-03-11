@@ -2528,6 +2528,78 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/podcasts/:slug/:episodeSlug/quotes", async (req, res) => {
+    try {
+      const { slug, episodeSlug } = req.params;
+      const quotes = await storage.getEpisodeQuotes(slug, episodeSlug);
+      res.json({ quotes });
+    } catch (err) {
+      console.error("[Quotes] Error:", err);
+      res.status(500).json({ error: "Failed to fetch quotes" });
+    }
+  });
+
+  app.post("/api/podcasts/:slug/:episodeSlug/quotes/generate", async (req, res) => {
+    try {
+      const { slug, episodeSlug } = req.params;
+      const { password } = req.body;
+      if (password !== "tatango123") {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const recap = await storage.getLandingPageRecapBySlug(slug, episodeSlug);
+      if (!recap) return res.status(404).json({ error: "Recap not found" });
+
+      const client = await pool.connect();
+      let transcriptText = "";
+      try {
+        const { rows } = await client.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND et.episode_title = $2
+           LIMIT 1`,
+          [slug, recap.episodeTitle]
+        );
+        if (rows.length > 0) transcriptText = rows[0].transcript || "";
+      } finally { client.release(); }
+
+      if (!transcriptText) {
+        return res.status(404).json({ error: "Transcript not available for this episode" });
+      }
+
+      const { extractQuotesFromTranscript } = await import("./recapGenerator");
+      const extractedQuotes = await extractQuotesFromTranscript(
+        transcriptText,
+        recap.podcastName,
+        recap.episodeTitle,
+        recap.hosts,
+        recap.guests,
+      );
+
+      if (extractedQuotes.length === 0) {
+        return res.json({ quotes: [], message: "No notable quotes found" });
+      }
+
+      await storage.deleteEpisodeQuotes(slug, episodeSlug);
+
+      const quotesToSave = extractedQuotes.map((q, i) => ({
+        podcastSlug: slug,
+        episodeSlug: episodeSlug,
+        speakerName: q.speakerName,
+        speakerRole: q.speakerRole || null,
+        quoteText: q.quoteText,
+        context: q.context,
+        quoteType: q.quoteType,
+      }));
+
+      const saved = await storage.saveEpisodeQuotes(quotesToSave);
+      res.json({ quotes: saved, message: `Extracted ${saved.length} quotes` });
+    } catch (err) {
+      console.error("[QuoteGenerate] Error:", err);
+      res.status(500).json({ error: "Failed to generate quotes" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/:episodeSlug/guests", async (req, res) => {
     try {
       const { slug, episodeSlug } = req.params;

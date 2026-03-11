@@ -345,3 +345,25 @@ export const insertPodcasterClaimSchema = createInsertSchema(podcasterClaims).om
 export type PodcasterClaim = typeof podcasterClaims.$inferSelect;
 export type InsertPodcasterClaim = z.infer<typeof insertPodcasterClaimSchema>;
 
+export const episodeQuotes = pgTable("episode_quotes", {
+  id: serial("id").primaryKey(),
+  podcastSlug: text("podcast_slug").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  speakerName: text("speaker_name").notNull(),
+  speakerRole: text("speaker_role"),
+  quoteText: text("quote_text").notNull(),
+  context: text("context").notNull(),
+  quoteType: text("quote_type").notNull(),
+  sortOrder: serial("sort_order"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEpisodeQuoteSchema = createInsertSchema(episodeQuotes).omit({
+  id: true,
+  sortOrder: true,
+  createdAt: true,
+});
+
+export type EpisodeQuote = typeof episodeQuotes.$inferSelect;
+export type InsertEpisodeQuote = z.infer<typeof insertEpisodeQuoteSchema>;
+

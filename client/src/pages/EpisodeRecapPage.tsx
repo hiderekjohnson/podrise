@@ -1,10 +1,10 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Gift, Ticket, Copy, Check } from "lucide-react";
+import { Lightbulb, Tag, MessageSquare, Send, Loader2, Sparkles, BookOpen, ListChecks, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Gift, Ticket, Copy, Check, Quote, Share2, Download, X, Image } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
+import { SiX, SiLinkedin, SiInstagram, SiThreads, SiBluesky, SiFacebook } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
 import { TOPICS } from "../data/topicData";
@@ -40,6 +40,26 @@ interface Sponsor {
   url?: string;
   howToRedeem?: string;
 }
+
+interface EpisodeQuoteData {
+  id: number;
+  podcastSlug: string;
+  episodeSlug: string;
+  speakerName: string;
+  speakerRole: string | null;
+  quoteText: string;
+  context: string;
+  quoteType: string;
+  sortOrder: number;
+}
+
+const QUOTE_TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  "Hero Quote": { bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", border: "border-amber-500/20" },
+  "Hot Take": { bg: "bg-red-500/10", text: "text-red-700 dark:text-red-400", border: "border-red-500/20" },
+  "Prediction": { bg: "bg-violet-500/10", text: "text-violet-700 dark:text-violet-400", border: "border-violet-500/20" },
+  "Spicy": { bg: "bg-orange-500/10", text: "text-orange-700 dark:text-orange-400", border: "border-orange-500/20" },
+  "Tweetable": { bg: "bg-sky-500/10", text: "text-sky-700 dark:text-sky-400", border: "border-sky-500/20" },
+};
 
 const AMAZON_AFFILIATE_TAG = "podcap-20";
 
@@ -179,6 +199,276 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
   );
 }
 
+function QuoteShareBar({ quote, podcastName, episodeTitle }: { quote: EpisodeQuoteData; podcastName: string; episodeTitle: string }) {
+  const [copiedInsta, setCopiedInsta] = useState(false);
+  const shareText = `"${quote.quoteText}" - ${quote.speakerName}${quote.speakerRole ? `, ${quote.speakerRole}` : ""}\n\nFrom ${podcastName}: ${episodeTitle}\nvia @PodCapHQ`;
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const encodedText = encodeURIComponent(shareText);
+  const encodedUrl = encodeURIComponent(shareUrl);
+
+  const shareLinks = [
+    { icon: SiX, label: "X", href: `https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}` },
+    { icon: SiThreads, label: "Threads", href: `https://threads.net/intent/post?text=${encodedText}` },
+    { icon: SiBluesky, label: "Bluesky", href: `https://bsky.app/intent/compose?text=${encodedText}` },
+    { icon: SiLinkedin, label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
+    { icon: SiFacebook, label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}` },
+  ];
+
+  const handleInstagramCopy = () => {
+    navigator.clipboard.writeText(`"${quote.quoteText}" - ${quote.speakerName}\n\nFrom ${podcastName}: ${episodeTitle}`);
+    setCopiedInsta(true);
+    setTimeout(() => setCopiedInsta(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap" data-testid={`quote-share-bar-${quote.id}`}>
+      {shareLinks.map(({ icon: Icon, label, href }) => (
+        <a
+          key={label}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+          title={`Share on ${label}`}
+          data-testid={`share-${label.toLowerCase()}-${quote.id}`}
+        >
+          <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+        </a>
+      ))}
+      <button
+        onClick={handleInstagramCopy}
+        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors"
+        title={copiedInsta ? "Copied to clipboard" : "Copy for Instagram"}
+        data-testid={`share-instagram-${quote.id}`}
+      >
+        {copiedInsta ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <SiInstagram className="w-3.5 h-3.5 text-muted-foreground" />}
+      </button>
+    </div>
+  );
+}
+
+function QuoteImageModal({ quote, podcastName, isOpen, onClose }: { quote: EpisodeQuoteData; podcastName: string; isOpen: boolean; onClose: () => void }) {
+  const [format, setFormat] = useState<"square" | "story">("square");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const generateImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setGenerating(true);
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const w = format === "square" ? 1080 : 1080;
+    const h = format === "square" ? 1080 : 1920;
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.fillStyle = "#0a0a0a";
+    ctx.fillRect(0, 0, w, h);
+
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, "rgba(99, 102, 241, 0.08)");
+    grad.addColorStop(1, "rgba(168, 85, 247, 0.05)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    const margin = 80;
+    const contentW = w - margin * 2;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.font = `bold ${format === "square" ? 200 : 280}px serif`;
+    ctx.fillText("\u201C", margin - 20, format === "square" ? 200 : 300);
+
+    const colors = QUOTE_TYPE_COLORS[quote.quoteType] || QUOTE_TYPE_COLORS["Tweetable"];
+    const badgeY = format === "square" ? 240 : 380;
+    ctx.fillStyle = "rgba(99, 102, 241, 0.15)";
+    const badgeText = quote.quoteType.toUpperCase();
+    ctx.font = "bold 24px system-ui, sans-serif";
+    const badgeW = ctx.measureText(badgeText).width + 32;
+    const rounding = 8;
+    ctx.beginPath();
+    ctx.roundRect(margin, badgeY, badgeW, 40, rounding);
+    ctx.fill();
+    ctx.fillStyle = "#a78bfa";
+    ctx.fillText(badgeText, margin + 16, badgeY + 28);
+
+    const quoteY = badgeY + 72;
+    ctx.fillStyle = "#ffffff";
+    const fontSize = quote.quoteText.length > 200 ? 32 : quote.quoteText.length > 120 ? 38 : 44;
+    ctx.font = `600 ${fontSize}px system-ui, -apple-system, sans-serif`;
+
+    const words = quote.quoteText.split(" ");
+    const lines: string[] = [];
+    let currentLine = "";
+    for (const word of words) {
+      const test = currentLine ? `${currentLine} ${word}` : word;
+      if (ctx.measureText(test).width > contentW) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    const lineHeight = fontSize * 1.5;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, margin, quoteY + i * lineHeight);
+    });
+
+    const attrY = quoteY + lines.length * lineHeight + 48;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "500 24px system-ui, sans-serif";
+    ctx.fillText(quote.context, margin, attrY);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px system-ui, sans-serif";
+    ctx.fillText(quote.speakerName, margin, attrY + 44);
+
+    if (quote.speakerRole) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.font = "500 22px system-ui, sans-serif";
+      ctx.fillText(quote.speakerRole, margin, attrY + 76);
+    }
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.font = "bold 20px system-ui, sans-serif";
+    const bottomY = h - margin;
+    ctx.fillText(`${podcastName}  \u00B7  podcap.io`, margin, bottomY);
+
+    ctx.strokeStyle = "rgba(99, 102, 241, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 40, w - 80, h - 80);
+
+    setGenerating(false);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(generateImage, 50);
+    }
+  }, [isOpen, format]);
+
+  const downloadImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.download = `podcap-quote-${quote.speakerName.toLowerCase().replace(/\s+/g, "-")}-${format}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose} data-testid="quote-image-modal">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h3 className="text-lg font-bold text-foreground" data-testid="modal-title">Make Quote Image</h3>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors" data-testid="modal-close">
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          <div className="flex gap-2" data-testid="format-selector">
+            <button
+              onClick={() => setFormat("square")}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${format === "square" ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+              data-testid="format-square"
+            >
+              Square (1:1)
+            </button>
+            <button
+              onClick={() => setFormat("story")}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${format === "story" ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+              data-testid="format-story"
+            >
+              Story (9:16)
+            </button>
+          </div>
+          <div className="bg-black rounded-xl overflow-hidden flex items-center justify-center p-4">
+            <canvas
+              ref={canvasRef}
+              className={`w-full ${format === "story" ? "max-h-[400px]" : ""}`}
+              style={{ maxWidth: format === "square" ? "100%" : "225px" }}
+              data-testid="quote-canvas"
+            />
+          </div>
+          <button
+            onClick={downloadImage}
+            disabled={generating}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+            data-testid="button-download-image"
+          >
+            <Download className="w-4 h-4" />
+            Download Image
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: EpisodeQuoteData; podcastName: string; episodeTitle: string; index: number }) {
+  const [showImageModal, setShowImageModal] = useState(false);
+  const colors = QUOTE_TYPE_COLORS[quote.quoteType] || QUOTE_TYPE_COLORS["Tweetable"];
+  const isHero = quote.quoteType === "Hero Quote";
+
+  return (
+    <>
+      <div
+        className={`relative bg-white dark:bg-white/[0.03] border ${isHero ? "border-amber-500/20 ring-1 ring-amber-500/10" : "border-black/[0.06] dark:border-white/[0.08]"} rounded-2xl overflow-hidden shadow-sm`}
+        data-testid={`quote-card-${index}`}
+      >
+        <div className="px-6 py-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${colors.bg} ${colors.text} ${colors.border} border`} data-testid={`quote-type-${index}`}>
+              {quote.quoteType}
+            </span>
+            <span className="text-[13px] text-muted-foreground italic" data-testid={`quote-context-${index}`}>{quote.context}</span>
+          </div>
+
+          <blockquote className={`text-[17px] sm:text-[19px] leading-[1.7] font-medium text-foreground mb-5 ${isHero ? "text-[19px] sm:text-[21px]" : ""}`} data-testid={`quote-text-${index}`}>
+            <span className="text-primary/40 text-2xl mr-1">{"\u201C"}</span>
+            {quote.quoteText}
+            <span className="text-primary/40 text-2xl ml-1">{"\u201D"}</span>
+          </blockquote>
+
+          <div className="flex items-center gap-3 mb-4" data-testid={`quote-speaker-${index}`}>
+            <div className="w-9 h-9 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-primary">{quote.speakerName.charAt(0)}</span>
+            </div>
+            <div>
+              <p className="text-[15px] font-bold text-foreground">{quote.speakerName}</p>
+              {quote.speakerRole && <p className="text-[13px] text-muted-foreground">{quote.speakerRole}</p>}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-black/[0.04] dark:border-white/[0.04]">
+            <QuoteShareBar quote={quote} podcastName={podcastName} episodeTitle={episodeTitle} />
+            <button
+              onClick={() => setShowImageModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/[0.08] hover:bg-primary/[0.15] text-primary text-[13px] font-semibold transition-colors ml-auto"
+              data-testid={`button-make-image-${index}`}
+            >
+              <Image className="w-3.5 h-3.5" />
+              Make Image
+            </button>
+          </div>
+        </div>
+      </div>
+      <QuoteImageModal
+        quote={quote}
+        podcastName={podcastName}
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+      />
+    </>
+  );
+}
+
 export default function EpisodeRecapPage() {
   const params = useParams<{ podcastSlug: string; episodeSlug: string }>();
   const podcastSlug = params.podcastSlug || "";
@@ -207,6 +497,18 @@ export default function EpisodeRecapPage() {
     },
     enabled: !!podcastSlug,
   });
+
+  const { data: quotesData } = useQuery<{ quotes: EpisodeQuoteData[] }>({
+    queryKey: ["/api/podcasts", podcastSlug, episodeSlug, "quotes"],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/${podcastSlug}/${episodeSlug}/quotes`);
+      if (!res.ok) return { quotes: [] };
+      return res.json();
+    },
+    enabled: !!podcastSlug && !!episodeSlug,
+  });
+
+  const episodeQuotes = quotesData?.quotes || [];
 
   interface Guest {
     name: string;
@@ -368,12 +670,12 @@ export default function EpisodeRecapPage() {
   useEffect(() => {
     const sectionIds = [
       "section-key-insights",
+      "section-quotes",
       "section-what-happened",
       "section-guests",
       "section-notable-mentions",
       "section-key-topics",
       "section-books",
-      // "section-sponsors", // disabled — enable when podcaster promotion tools go public
       "section-top-questions",
       "section-ask-episode",
     ];
@@ -486,6 +788,7 @@ export default function EpisodeRecapPage() {
   const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
   const hasSponsors = sponsors.length > 0;
+  const hasQuotes = episodeQuotes.length > 0;
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -520,6 +823,15 @@ export default function EpisodeRecapPage() {
               data-testid="nav-key-insights"
             >
               Takeaways
+            </button>
+          )}
+          {hasQuotes && (
+            <button
+              onClick={() => scrollTo("section-quotes")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-quotes"
+            >
+              Quotes
             </button>
           )}
           <button
@@ -630,6 +942,29 @@ export default function EpisodeRecapPage() {
                   </span>
                   <p className="text-base leading-[1.8] text-muted-foreground">{insight}</p>
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {hasQuotes && (
+          <section id="section-quotes" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-quotes">
+            <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Quote className="w-4 h-4 text-violet-500" />
+                <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Notable Quotes</span>
+              </div>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">The most shareable lines from this episode of {episode.podcastName}.</p>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {episodeQuotes.map((q, i) => (
+                <QuoteCard
+                  key={q.id}
+                  quote={q}
+                  podcastName={episode.podcastName}
+                  episodeTitle={episode.episodeTitle}
+                  index={i}
+                />
               ))}
             </div>
           </section>

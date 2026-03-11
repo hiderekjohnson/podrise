@@ -458,3 +458,101 @@ RULES:
     return [];
   }
 }
+
+export interface ExtractedQuote {
+  speakerName: string;
+  speakerRole: string;
+  quoteText: string;
+  context: string;
+  quoteType: "Hero Quote" | "Hot Take" | "Prediction" | "Spicy" | "Tweetable";
+}
+
+export async function extractQuotesFromTranscript(
+  transcript: string,
+  podcastName: string,
+  episodeTitle: string,
+  hosts?: string | null,
+  guests?: string | null,
+): Promise<ExtractedQuote[]> {
+  const hostsInfo = hosts ? `\nKnown hosts: ${hosts}` : "";
+  let guestInfo = "";
+  if (guests) {
+    try {
+      const parsed = JSON.parse(guests);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        guestInfo = "\nKnown guests: " + parsed.map((g: any) => `${g.name}${g.title ? ` (${g.title})` : ""}`).join(", ");
+      }
+    } catch {}
+  }
+
+  const prompt = `You are an editorial quote curator for PodCap, a podcast intelligence platform. Your audience cares about AI, startups, money, and the future of work. Extract the most shareable, culturally relevant quotes from this transcript.
+
+Podcast: ${podcastName}
+Episode: "${episodeTitle}"${hostsInfo}${guestInfo}
+
+Transcript:
+${transcript}
+
+EXTRACTION RULES:
+- Always prefer quotes from GUESTS over the host. Include host quotes only if genuinely exceptional.
+- A quote is worth extracting if someone would screenshot it and send it to a friend.
+- Prioritize: contrarian or spicy takes, tweetable self-contained lines, hot topic relevance (AI, future of work, money, startups), specific opinions and predictions over general wisdom, memorable phrasing.
+- Skip: personal travel or family stories, generic motivational filler, factual statements with no opinion, rambling passages that need editing to land, host filler and transitions.
+- Pull 3 to 5 quotes. One MUST be the clear hero quote. At least one must be a hot take or prediction. Include a bonus exchange-style quote if there is a memorable back-and-forth.
+- Quotes MUST be verbatim from the transcript. Do NOT clean up, edit, or rephrase.
+
+Respond ONLY with a valid JSON object (no markdown, no code fences):
+
+{
+  "quotes": [
+    {
+      "speakerName": "Full Name",
+      "speakerRole": "Their title or role (e.g. CEO of Acme, Investor, Host of Pod)",
+      "quoteText": "The verbatim quote from the transcript",
+      "context": "One-line context setter (e.g. On why he thinks most startup advice is wrong)",
+      "quoteType": "Hero Quote"
+    }
+  ]
+}
+
+QUOTE TYPES (use exactly one per quote):
+- "Hero Quote" - The single best, most powerful line from the episode
+- "Hot Take" - A contrarian or provocative opinion
+- "Prediction" - A forward-looking claim about what will happen
+- "Spicy" - An edgy or surprising statement
+- "Tweetable" - A clean, self-contained line perfect for sharing
+
+RULES:
+- Return 3-5 quotes total
+- Exactly ONE must be "Hero Quote"
+- At least ONE must be "Hot Take" or "Prediction"
+- quoteText must be VERBATIM from transcript - do not clean up grammar or rephrase
+- context must be a short phrase starting with "On..." (e.g. "On why AI will replace managers")
+- speakerRole should be specific (not just "Guest" - use their actual title)
+- Do NOT use em dashes in any output - use hyphens, commas, or rephrase instead`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 4096,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return [];
+
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith("```")) {
+      jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+    }
+
+    const parsed = JSON.parse(jsonContent);
+    const quotes = Array.isArray(parsed.quotes) ? parsed.quotes : [];
+    return quotes.filter((q: any) => q.speakerName && q.quoteText && q.context && q.quoteType);
+  } catch (err) {
+    console.error(`[QuoteExtractor] Failed for "${episodeTitle}":`, err);
+    return [];
+  }
+}

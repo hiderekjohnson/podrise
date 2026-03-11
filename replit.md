@@ -43,7 +43,13 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **`framer-motion`**: For frontend animations.
 
 ## Episode Recap Page Sections (in order)
-About this Episode (SEO intro paragraph), Key Takeaways, Full Recap, Guests (sky-500), Notable Mentions (orange-500, matches PEOPLE_DIRECTORY/COMPANIES_DIRECTORY, links to /people and /companies), Key Topics (emerald-500, chips link to /topics/{slug}), Books Mentioned (amber-500, Amazon affiliate links with tag podcap-20), Sponsors (teal-500, coupon codes with copy button), Hosts (indigo-500, from /api/podcasts/:slug/hosts), Questions Answered in This Episode (violet-500, expanded H3s), Podcast Chat (violet-500, AI sparkle badge). Navigation chips at top scroll to each section. Podcaster Byline banner appears above content when podcast has a verified claim with byline text.
+About this Episode (SEO intro paragraph), Key Takeaways, Notable Quotes (violet-500, quote cards with share bars and Make Image modal), Full Recap, Guests (sky-500), Notable Mentions (orange-500, matches PEOPLE_DIRECTORY/COMPANIES_DIRECTORY, links to /people and /companies), Key Topics (emerald-500, chips link to /topics/{slug}), Books Mentioned (amber-500, Amazon affiliate links with tag podcap-20), Sponsors (teal-500, coupon codes with copy button), Hosts (indigo-500, from /api/podcasts/:slug/hosts), Questions Answered in This Episode (violet-500, expanded H3s), Podcast Chat (violet-500, AI sparkle badge). Navigation chips at top scroll to each section. Podcaster Byline banner appears above content when podcast has a verified claim with byline text.
+
+## Episode Quotes System
+**Table**: `episode_quotes` stores extracted quotes with speakerName, speakerRole, quoteText, context, quoteType (Hero Quote, Hot Take, Prediction, Spicy, Tweetable), sortOrder.
+**Extraction**: `extractQuotesFromTranscript()` in `server/recapGenerator.ts` uses GPT-4o to extract 3-5 editorial quotes per episode. Prefers guest quotes over host. Requires at least one Hero Quote and one Hot Take/Prediction.
+**API**: `GET /api/podcasts/:slug/:episodeSlug/quotes` fetches, `POST /api/podcasts/:slug/:episodeSlug/quotes/generate` extracts (admin auth required).
+**UI**: Quote cards with type badges, share bars (X, Threads, Bluesky, LinkedIn, Facebook, Instagram copy-to-clipboard), and Make Image modal (canvas-based, square 1:1 or story 9:16 format).
 
 ## Podcaster System
 **Podcaster Claims**: `podcaster_claims` table stores podcast ownership claims. Podcasters claim their show at `/podcaster/claim`, admin verifies via `/api/admin/podcaster-claims/:id/verify`. Verified claims unlock the dashboard.

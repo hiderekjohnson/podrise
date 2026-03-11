@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -68,6 +68,9 @@ export interface IStorage {
   getHostsByPodcastSlug(podcastSlug: string): Promise<PodcastHost[]>;
   upsertHost(data: InsertPodcastHost & { id?: number }): Promise<PodcastHost>;
   deleteHost(id: number): Promise<void>;
+  getEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<EpisodeQuote[]>;
+  saveEpisodeQuotes(quotes: InsertEpisodeQuote[]): Promise<EpisodeQuote[]>;
+  deleteEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -645,6 +648,24 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHost(id: number): Promise<void> {
     await db.delete(podcastHosts).where(eq(podcastHosts.id, id));
+  }
+
+  async getEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<EpisodeQuote[]> {
+    return db.select().from(episodeQuotes)
+      .where(and(eq(episodeQuotes.podcastSlug, podcastSlug), eq(episodeQuotes.episodeSlug, episodeSlug)))
+      .orderBy(asc(episodeQuotes.sortOrder));
+  }
+
+  async saveEpisodeQuotes(quotes: InsertEpisodeQuote[]): Promise<EpisodeQuote[]> {
+    if (quotes.length === 0) return [];
+    const result = await db.insert(episodeQuotes).values(quotes).returning();
+    return result;
+  }
+
+  async deleteEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<void> {
+    await db.delete(episodeQuotes).where(
+      and(eq(episodeQuotes.podcastSlug, podcastSlug), eq(episodeQuotes.episodeSlug, episodeSlug))
+    );
   }
 }
 
