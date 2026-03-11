@@ -11,7 +11,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 
-export type PodcastTab = "episodes" | "ask" | "about" | "discover" | "books";
+export type PodcastTab = "episodes" | "about" | "discover" | "books";
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
@@ -97,7 +97,6 @@ export function PodcastPageLayout({
     { id: "episodes", label: "Episode Recaps", icon: Mic },
     { id: "discover", label: "Discover", icon: Compass },
     { id: "books", label: "Recommended Reading", icon: BookOpen },
-    { id: "ask", label: "Ask About This Podcast", icon: Sparkles },
   ];
 
   return (
@@ -256,9 +255,6 @@ export function PodcastPageLayout({
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
-                {tab.id === "ask" && (
-                  <span className="ml-1 px-2 py-0.5 text-[12px] font-bold uppercase tracking-wider rounded bg-violet-500/10 text-violet-500 leading-none" data-testid="badge-ask-ai">AI</span>
-                )}
               </button>
             ))}
           </nav>
