@@ -1168,7 +1168,8 @@ export async function registerRoutes(
     "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
     "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
     "The Information", "The Economist",
-    "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
+    "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway",
+    "Cursor", "Box", "Circle"
   ]);
 
   function termMatchesInText(text: string, term: string): boolean {
@@ -1753,7 +1754,8 @@ export async function registerRoutes(
         "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
         "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
         "The Information", "The Economist",
-        "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
+        "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway",
+        "Cursor", "Box", "Circle"
       ]);
 
       const matchedCompanySlugs = ENTITY_COMPANIES.filter(c => {

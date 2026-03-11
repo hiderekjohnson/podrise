@@ -156,7 +156,8 @@ export default function EpisodeRecapPage() {
       "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
       "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
       "The Information", "The Economist",
-      "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway"
+      "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway",
+      "Cursor", "Box", "Circle"
     ]);
     const originalText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
     return COMPANIES_DIRECTORY.filter(c => {
