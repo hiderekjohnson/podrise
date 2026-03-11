@@ -71,7 +71,7 @@ export default function CompanyDetailPage() {
   const hasRelatedPeople = !!(companyData?.relatedPeople && companyData.relatedPeople.length > 0);
   const hasSimilarCompanies = !!(companyData?.similarCompanies && companyData.similarCompanies.length > 0);
   const hasAssociatedTerms = !!(companyData?.associatedTerms && companyData.associatedTerms.length > 0);
-  const hasAboutContent = !!(details || companyData?.background || hasRelatedPeople || hasSimilarCompanies || hasAssociatedTerms);
+  const hasAboutContent = !!(details || companyData?.background || hasAssociatedTerms);
   const hasEpisodes = !!(company && company.mentions.length > 0);
 
   const navSections = useMemo(() => {
@@ -79,8 +79,10 @@ export default function CompanyDetailPage() {
     const sections: { id: string; label: string }[] = [];
     if (hasAboutContent) sections.push({ id: "section-about", label: "About" });
     if (hasEpisodes) sections.push({ id: "section-episodes", label: "Episodes" });
+    if (hasRelatedPeople) sections.push({ id: "section-related-people", label: "People" });
+    if (hasSimilarCompanies) sections.push({ id: "section-similar-companies", label: "Similar" });
     return sections;
-  }, [company, hasAboutContent, hasEpisodes]);
+  }, [company, hasAboutContent, hasEpisodes, hasRelatedPeople, hasSimilarCompanies]);
 
   useEffect(() => {
     if (navSections.length === 0) return;
@@ -136,8 +138,8 @@ export default function CompanyDetailPage() {
             </div>
           ) : company ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <div id="section-about" className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-0">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
+              <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-0">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                   <div className="flex-shrink-0">
                     <img
                       src={companyData?.logoUrl || `/people/default-avatar.png`}
@@ -161,132 +163,6 @@ export default function CompanyDetailPage() {
                     </div>
                   </div>
                 </div>
-
-                {companyData?.background && (
-                  <p className="text-base text-muted-foreground/80 leading-relaxed mb-6" data-testid="text-company-background">
-                    {companyData.background}
-                  </p>
-                )}
-
-                {details && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" data-testid="section-company-details">
-                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                      <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Headquarters</p>
-                        <p className="text-base font-medium text-foreground">{details.headquarters}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                      <Clock className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founded</p>
-                        <p className="text-base font-medium text-foreground">{details.founded}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                      <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Employees</p>
-                        <p className="text-base font-medium text-foreground">{details.employees}</p>
-                      </div>
-                    </div>
-                    {details.marketCap && (
-                      <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                        <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Market Cap</p>
-                          <p className="text-base font-medium text-foreground">{details.marketCap}</p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                      <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">CEO</p>
-                        <p className="text-base font-medium text-foreground">{details.ceo}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                      <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Industry</p>
-                        <p className="text-base font-medium text-foreground">{details.industry}</p>
-                      </div>
-                    </div>
-                    {details.website && (
-                      <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2 sm:col-span-3">
-                        <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Website</p>
-                          <a href={details.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
-                            {details.website.replace("https://", "")}
-                            <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {companyData?.associatedTerms && companyData.associatedTerms.length > 0 && (
-                  <div className="mt-6 pt-4 border-t border-border" data-testid="section-associated-terms">
-                    <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
-                    <div className="flex flex-wrap gap-2">
-                      {companyData.associatedTerms.map((term) => (
-                        <span key={term} className="px-3 py-1.5 bg-primary/10 text-primary text-base font-medium rounded-full" data-testid={`badge-term-${term.toLowerCase().replace(/\s+/g, '-')}`}>
-                          {term}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {companyData?.relatedPeople && companyData.relatedPeople.length > 0 && (
-                  <div className="mt-6 pt-4 border-t border-border" data-testid="section-related-people">
-                    <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related People</p>
-                    <div className="flex flex-wrap gap-2">
-                      {companyData.relatedPeople.map((personSlug) => {
-                        const p = getPersonData(personSlug);
-                        if (!p) return null;
-                        return (
-                          <a
-                            key={personSlug}
-                            href={`/people/${personSlug}`}
-                            className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group"
-                            data-testid={`chip-person-${personSlug}`}
-                          >
-                            <img src={p.imageUrl || `/people/default-avatar.png`} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
-                            <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {companyData?.similarCompanies && companyData.similarCompanies.length > 0 && (
-                  <div className={`mt-4 ${companyData?.relatedPeople?.length ? '' : 'pt-4 border-t border-border'}`} data-testid="section-similar-companies">
-                    <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar Companies</p>
-                    <div className="flex flex-wrap gap-2">
-                      {companyData.similarCompanies.map((companySlug) => {
-                        const c = COMPANIES_DIRECTORY.find(x => x.slug === companySlug);
-                        if (!c) return null;
-                        return (
-                          <a
-                            key={companySlug}
-                            href={`/companies/${companySlug}`}
-                            className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group"
-                            data-testid={`chip-company-${companySlug}`}
-                          >
-                            <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
-                            <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {navSections.length > 1 && (
@@ -302,6 +178,96 @@ export default function CompanyDetailPage() {
                     </button>
                   ))}
                 </nav>
+              )}
+
+              {hasAboutContent && (
+                <section id="section-about" className="mb-8">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-about">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    About {company.name}
+                  </h2>
+                  <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
+                    {companyData?.background && (
+                      <p className="text-base text-muted-foreground/80 leading-relaxed mb-5" data-testid="text-company-background">
+                        {companyData.background}
+                      </p>
+                    )}
+
+                    {details && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" data-testid="section-company-details">
+                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                          <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Headquarters</p>
+                            <p className="text-base font-medium text-foreground">{details.headquarters}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                          <Clock className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founded</p>
+                            <p className="text-base font-medium text-foreground">{details.founded}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                          <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Employees</p>
+                            <p className="text-base font-medium text-foreground">{details.employees}</p>
+                          </div>
+                        </div>
+                        {details.marketCap && (
+                          <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                            <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Market Cap</p>
+                              <p className="text-base font-medium text-foreground">{details.marketCap}</p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                          <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">CEO</p>
+                            <p className="text-base font-medium text-foreground">{details.ceo}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                          <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Industry</p>
+                            <p className="text-base font-medium text-foreground">{details.industry}</p>
+                          </div>
+                        </div>
+                        {details.website && (
+                          <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2 sm:col-span-3">
+                            <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Website</p>
+                              <a href={details.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
+                                {details.website.replace("https://", "")}
+                                <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {companyData?.associatedTerms && companyData.associatedTerms.length > 0 && (
+                      <div className="mt-5 pt-4 border-t border-border" data-testid="section-associated-terms">
+                        <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
+                        <div className="flex flex-wrap gap-2">
+                          {companyData.associatedTerms.map((term) => (
+                            <span key={term} className="px-3 py-1.5 bg-primary/10 text-primary text-base font-medium rounded-full" data-testid={`badge-term-${term.toLowerCase().replace(/\s+/g, '-')}`}>
+                              {term}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
               )}
 
               {company.mentions.length > 0 ? (
@@ -363,6 +329,58 @@ export default function CompanyDetailPage() {
                   <p className="text-lg">No episodes found for {company.name} yet.</p>
                   <p className="text-sm mt-1">Check back soon as we add more podcast recaps.</p>
                 </div>
+              )}
+
+              {hasRelatedPeople && (
+                <section id="section-related-people" className="mb-8">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-related-people">
+                    <Users className="w-5 h-5 text-primary" />
+                    Related People
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {companyData!.relatedPeople!.map((personSlug) => {
+                      const p = getPersonData(personSlug);
+                      if (!p) return null;
+                      return (
+                        <a
+                          key={personSlug}
+                          href={`/people/${personSlug}`}
+                          className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group"
+                          data-testid={`chip-person-${personSlug}`}
+                        >
+                          <img src={p.imageUrl || `/people/default-avatar.png`} alt={p.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
+                          <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{p.name}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {hasSimilarCompanies && (
+                <section id="section-similar-companies" className="mb-8">
+                  <h2 className="text-lg font-display font-bold text-foreground mb-4 flex items-center gap-2" data-testid="heading-similar-companies">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    Similar Companies
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {companyData!.similarCompanies!.map((companySlug) => {
+                      const c = COMPANIES_DIRECTORY.find(x => x.slug === companySlug);
+                      if (!c) return null;
+                      return (
+                        <a
+                          key={companySlug}
+                          href={`/companies/${companySlug}`}
+                          className="flex items-center gap-2 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group"
+                          data-testid={`chip-company-${companySlug}`}
+                        >
+                          <img src={c.logoUrl} alt={c.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).src = `/people/default-avatar.png`; }} />
+                          <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{c.name}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </section>
               )}
 
             </motion.div>
