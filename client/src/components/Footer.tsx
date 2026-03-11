@@ -36,7 +36,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/get-started" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-get-started">
-                  Build Your Recap
+                  Create Account
                 </Link>
               </li>
             </ul>
