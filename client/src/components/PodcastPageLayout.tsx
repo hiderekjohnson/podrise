@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PodCapHeader } from "@/components/PodCapHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
+import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
 
 export type PodcastTab = "episodes" | "search" | "ask" | "about" | "discover";
 
@@ -37,6 +38,7 @@ export function PodcastPageLayout({
 
   const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description } = config;
   const twitterHandle = config.twitterHandle;
+  const categoryInfo = getPodcastCategoryInfo(config);
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
@@ -144,6 +146,26 @@ export function PodcastPageLayout({
               <p className="text-base sm:text-lg text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
                 {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
               </p>
+
+              {categoryInfo.category && (
+                <div className="flex flex-wrap items-center gap-1.5 text-[14px] text-muted-foreground justify-center sm:justify-start" data-testid="podcast-category-labels">
+                  <Link href={`/podcasts/${categoryInfo.category.slug}`}>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
+                      {categoryInfo.category.name}
+                    </span>
+                  </Link>
+                  {categoryInfo.topics.map((topic) => (
+                    <span key={topic.slug} className="inline-flex items-center gap-1">
+                      <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
+                      <Link href={`/podcasts/${categoryInfo.category!.slug}/${topic.slug}`}>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
+                          {topic.name}
+                        </span>
+                      </Link>
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 mt-1">
                 {hosts && (

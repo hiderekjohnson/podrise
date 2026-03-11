@@ -265,3 +265,19 @@ export function getTopicsPageSlug(topicSlug: string): string | null {
 }
 
 export const ALL_CATEGORY_SLUGS = PODCAST_CATEGORIES.map(c => c.slug);
+
+export function getPodcastCategoryInfo(podcast: PodcastLandingConfig): {
+  category: { slug: string; name: string } | null;
+  topics: { slug: string; name: string }[];
+} {
+  const categorySlugs = getCategoryForPodcast(podcast);
+  if (categorySlugs.length === 0) return { category: null, topics: [] };
+  const primarySlug = categorySlugs[0];
+  const cat = getCategoryBySlug(primarySlug);
+  if (!cat) return { category: null, topics: [] };
+  const topicSlugs = getTopicsForPodcast(podcast, primarySlug);
+  const topics = topicSlugs
+    .map(ts => cat.topics.find(t => t.slug === ts))
+    .filter(Boolean) as { slug: string; name: string }[];
+  return { category: { slug: cat.slug, name: cat.name }, topics };
+}

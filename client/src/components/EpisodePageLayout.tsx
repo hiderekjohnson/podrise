@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Users, ListChecks, ExternalLink } from "lucide-react";
+import { Calendar, Clock, Headphones, FileText, ArrowRight, Mail, X, Users, ListChecks, ExternalLink, ChevronRight } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
+import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
 
 interface EpisodePageLayoutProps {
   episode: {
@@ -48,6 +49,7 @@ export function EpisodePageLayout({
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
   const register = useRegister();
+  const categoryInfo = podcastConfig ? getPodcastCategoryInfo(podcastConfig) : { category: null, topics: [] };
 
   const publishDate = new Date(episode.publishDate + "T00:00:00");
   const formattedDate = publishDate.toLocaleDateString("en-US", {
@@ -173,11 +175,33 @@ export function EpisodePageLayout({
                 {episode.episodeTitle}
               </h1>
 
-              <Link href={`/podcasts/${podcastSlug}`}>
-                <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-md hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
-                  {episode.podcastName}
-                </p>
-              </Link>
+              <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                <Link href={`/podcasts/${podcastSlug}`}>
+                  <span className="text-[15px] sm:text-base text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
+                    {episode.podcastName}
+                  </span>
+                </Link>
+                {categoryInfo.category && (
+                  <>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+                    <Link href={`/podcasts/${categoryInfo.category.slug}`}>
+                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
+                        {categoryInfo.category.name}
+                      </span>
+                    </Link>
+                    {categoryInfo.topics.map((topic) => (
+                      <span key={topic.slug} className="inline-flex items-center gap-1">
+                        <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
+                        <Link href={`/podcasts/${categoryInfo.category!.slug}/${topic.slug}`}>
+                          <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
+                            {topic.name}
+                          </span>
+                        </Link>
+                      </span>
+                    ))}
+                  </>
+                )}
+              </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
                 <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-date">

@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, Link } from "wouter";
-import { Search, ChevronDown, Loader2, ArrowUpDown, Users, Tag, X } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
+import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { PodCapHeader } from "@/components/PodCapHeader";
 import { Footer } from "@/components/Footer";
@@ -257,6 +258,29 @@ export default function EpisodeArchivePage() {
                   {config.name} Episodes Archive
                 </h1>
               </Link>
+              {podcastConfig && (() => {
+                const catInfo = getPodcastCategoryInfo(podcastConfig);
+                if (!catInfo.category) return null;
+                return (
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5" data-testid="archive-category-labels">
+                    <Link href={`/podcasts/${catInfo.category.slug}`}>
+                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${catInfo.category.slug}`}>
+                        {catInfo.category.name}
+                      </span>
+                    </Link>
+                    {catInfo.topics.map((topic) => (
+                      <span key={topic.slug} className="inline-flex items-center gap-1">
+                        <ChevronRight className="w-3 h-3 text-muted-foreground/40" />
+                        <Link href={`/podcasts/${catInfo.category!.slug}/${topic.slug}`}>
+                          <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
+                            {topic.name}
+                          </span>
+                        </Link>
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
               <p className="text-base text-muted-foreground mt-1" data-testid="text-episode-count">
                 {isLoading ? "Loading..." : `${filteredEpisodes.length} episode ${filteredEpisodes.length === 1 ? "recap" : "recaps"}${hasActiveFilters ? " matching filters" : ""}`}
               </p>
