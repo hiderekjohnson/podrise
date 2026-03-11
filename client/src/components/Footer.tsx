@@ -34,21 +34,11 @@ export function Footer() {
                   Topics
                 </Link>
               </li>
-              <li>
-                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-daily-drop">
-                  The Daily Drop
-                </Link>
-              </li>
-              <li>
-                <Link href="/get-started" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-get-started">
-                  Create Account
-                </Link>
-              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Podcasts</h3>
+            <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Categories</h3>
             <ul className="space-y-3.5">
               {categoryLinks.map((cat) => (
                 <li key={cat.slug}>
@@ -66,6 +56,11 @@ export function Footer() {
               <li>
                 <Link href="/about" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-about">
                   About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-daily-drop">
+                  The Daily Drop
                 </Link>
               </li>
               <li>
@@ -89,6 +84,16 @@ export function Footer() {
           <div>
             <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Support</h3>
             <ul className="space-y-3.5">
+              <li>
+                <Link href="/get-started" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-get-started">
+                  Create Account
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-login">
+                  Log In
+                </Link>
+              </li>
               <li>
                 <Link href="/support" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-support">
                   Help & Support
