@@ -2296,7 +2296,7 @@ export async function registerRoutes(
         ? `https://www.amazon.com/dp/${finalAsin}?tag=podcap-20`
         : `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap-20`;
 
-      const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}`;
+      const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap0b-20`;
 
       res.json({
         name: enrichment.book_title,
