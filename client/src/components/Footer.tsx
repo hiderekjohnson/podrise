@@ -35,6 +35,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-daily-drop">
+                  The Daily Drop
+                </Link>
+              </li>
+              <li>
                 <Link href="/get-started" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-get-started">
                   Create Account
                 </Link>
