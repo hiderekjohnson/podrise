@@ -1,9 +1,19 @@
-import { pool } from "./db";
+import pg from "pg";
 import { storage } from "./storage";
 
 const TADDY_API_URL = "https://api.taddy.org";
 const DELAY_MS = 400;
 const EPISODES_PER_PAGE = 25;
+const BATCH_SIZE = parseInt(process.env.BACKFILL_BATCH_SIZE || "20", 10);
+const BATCH_PAUSE_MS = 5000;
+
+const backfillPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 3,
+  min: 1,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 15000,
+});
 
 async function taddyRequest(query: string): Promise<any> {
   const res = await fetch(TADDY_API_URL, {
@@ -33,7 +43,7 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string)
   console.log(`Processing: ${name}`);
   console.log(`${"=".repeat(60)}`);
 
-  const client = await pool.connect();
+  const client = await backfillPool.connect();
   const { rows: existingRows } = await client.query(
     `SELECT episode_guid, episode_title FROM episode_transcripts WHERE podcast_id = $1`, [itunesId]
   );
@@ -119,7 +129,7 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string)
 
   console.log(`  Results: ${newDownloads} new, ${metadataUpdates} metadata updated, ${skippedNoTranscript} not transcribed on Taddy, ${failed} failed`);
 
-  const c = await pool.connect();
+  const c = await backfillPool.connect();
   const { rows } = await c.query("SELECT COUNT(*)::int as cnt FROM episode_transcripts WHERE podcast_id = $1", [itunesId]);
   c.release();
   console.log(`  Final transcript count: ${rows[0].cnt}`);
@@ -128,7 +138,7 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string)
 async function main() {
   const TARGET_MIN = 100;
 
-  const client = await pool.connect();
+  const client = await backfillPool.connect();
   const { rows } = await client.query(`
     SELECT pd.name, pd.itunes_id::text as itunes_id, pd.taddy_uuid, pd.slug,
            COUNT(et.id)::int as transcript_count
@@ -149,7 +159,8 @@ async function main() {
     currentCount: r.transcript_count,
   }));
 
-  console.log(`Found ${podcasts.length} podcasts with fewer than ${TARGET_MIN} transcripts\n`);
+  console.log(`Found ${podcasts.length} podcasts with fewer than ${TARGET_MIN} transcripts`);
+  console.log(`Processing in batches of ${BATCH_SIZE} with ${BATCH_PAUSE_MS / 1000}s pause between batches\n`);
   for (const p of podcasts) {
     console.log(`  ${String(p.currentCount).padStart(4)} transcripts | ${p.slug}`);
   }
@@ -158,12 +169,17 @@ async function main() {
     const p = podcasts[i];
     console.log(`\n[${i + 1}/${podcasts.length}] ${p.slug} (currently ${p.currentCount} transcripts)`);
     await processPodcast(p.name, p.itunesId, p.taddyUuid);
+
+    if ((i + 1) % BATCH_SIZE === 0 && i + 1 < podcasts.length) {
+      console.log(`\n--- Batch of ${BATCH_SIZE} complete. Pausing ${BATCH_PAUSE_MS / 1000}s to reduce DB load... ---\n`);
+      await new Promise(r => setTimeout(r, BATCH_PAUSE_MS));
+    }
   }
 
   console.log(`\n${"=".repeat(60)}`);
   console.log("ALL DONE!");
   console.log(`${"=".repeat(60)}`);
-  await pool.end();
+  await backfillPool.end();
 }
 
 main().catch(err => { console.error("Fatal:", err); process.exit(1); });

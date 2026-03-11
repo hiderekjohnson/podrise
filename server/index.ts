@@ -175,36 +175,42 @@ process.on("uncaughtException", (err) => {
     () => {
       log(`serving on port ${port}`);
 
-      // Run DB migrations in background (non-blocking)
       (async () => {
+        const { pool, withRetry } = await import("./db");
         try {
-          const { pool } = await import("./db");
-          await pool.query(`
-            CREATE TABLE IF NOT EXISTS podcast_hosts (
-              id SERIAL PRIMARY KEY,
-              podcast_slug TEXT NOT NULL,
-              name TEXT NOT NULL,
-              bio TEXT,
-              photo_url TEXT,
-              twitter_handle TEXT,
-              linkedin_url TEXT,
-              instagram_handle TEXT,
-              website_url TEXT,
-              sort_order INTEGER DEFAULT 0
-            )
-          `);
+          await withRetry(
+            () =>
+              pool.query(`
+              CREATE TABLE IF NOT EXISTS podcast_hosts (
+                id SERIAL PRIMARY KEY,
+                podcast_slug TEXT NOT NULL,
+                name TEXT NOT NULL,
+                bio TEXT,
+                photo_url TEXT,
+                twitter_handle TEXT,
+                linkedin_url TEXT,
+                instagram_handle TEXT,
+                website_url TEXT,
+                sort_order INTEGER DEFAULT 0
+              )
+            `),
+            "podcast_hosts migration",
+          );
           console.log("podcast_hosts table ready");
         } catch (err) {
           console.warn("podcast_hosts table migration skipped:", err);
         }
 
         try {
-          const { pool } = await import("./db");
-          await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_transcript_segments_fts
-            ON transcript_segments
-            USING GIN (to_tsvector('english', text))
-          `);
+          await withRetry(
+            () =>
+              pool.query(`
+              CREATE INDEX IF NOT EXISTS idx_transcript_segments_fts
+              ON transcript_segments
+              USING GIN (to_tsvector('english', text))
+            `),
+            "FTS index migration",
+          );
           console.log("FTS index ready");
         } catch (err) {
           console.warn("FTS index migration skipped:", err);

@@ -10,6 +10,8 @@ import { activeEpGenItunesIds } from "./epGenState";
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
 const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
 const recentlyGenerated = new Set<string>();
+let schedulerConsecutiveFailures = 0;
+const MAX_SCHEDULER_BACKOFF_MS = 10 * 60 * 1000;
 
 async function sendAdminNotification(userEmail: string, subject: string) {
   const { client, fromEmail } = await getUncachableResendClient();
@@ -236,8 +238,17 @@ async function processSchedulerTick() {
   let users: any[];
   try {
     users = await storage.getAllUsers();
-  } catch (err) {
-    console.error("[EmailScheduler] Failed to fetch users:", err);
+    schedulerConsecutiveFailures = 0;
+  } catch (err: any) {
+    schedulerConsecutiveFailures++;
+    const backoff = Math.min(
+      SCHEDULER_INTERVAL_MS * Math.pow(2, schedulerConsecutiveFailures),
+      MAX_SCHEDULER_BACKOFF_MS,
+    );
+    console.error(
+      `[EmailScheduler] Failed to fetch users (failure #${schedulerConsecutiveFailures}, next retry in ${Math.round(backoff / 1000)}s):`,
+      err.message,
+    );
     return;
   }
 
@@ -705,12 +716,15 @@ export async function bulkDownloadTranscripts() {
       .filter((p: any) => (recapCounts[p.slug] || 0) < TARGET)
       .sort((a: any, b: any) => (recapCounts[a.slug] || 0) - (recapCounts[b.slug] || 0));
 
-    console.log(`[TranscriptDL] Starting transcript download for ${podcastsNeedingWork.length} podcasts (${existingGuids.size} transcripts already stored)`);
+    const DL_BATCH_SIZE = 20;
+    console.log(`[TranscriptDL] Starting transcript download for ${podcastsNeedingWork.length} podcasts (${existingGuids.size} transcripts already stored, batches of ${DL_BATCH_SIZE})`);
 
     let totalDownloaded = 0;
     let totalSkipped = 0;
+    let podcastIndex = 0;
 
     for (const podcast of podcastsNeedingWork) {
+      podcastIndex++;
       try {
         const numId = parseInt(podcast.itunesId, 10);
         if (isNaN(numId)) continue;
@@ -825,6 +839,11 @@ export async function bulkDownloadTranscripts() {
         }
       }
       await new Promise(r => setTimeout(r, 500));
+
+      if (podcastIndex % DL_BATCH_SIZE === 0 && podcastIndex < podcastsNeedingWork.length) {
+        console.log(`[TranscriptDL] Batch pause after ${podcastIndex}/${podcastsNeedingWork.length} podcasts (${totalDownloaded} downloaded so far). Waiting 5s...`);
+        await new Promise(r => setTimeout(r, 5000));
+      }
     }
 
     console.log(`[TranscriptDL] Complete: ${totalDownloaded} new transcripts downloaded, ${totalSkipped} podcasts not on Taddy`);
@@ -1303,8 +1322,19 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
 
 export function startEmailScheduler() {
   console.log(`[EmailScheduler] Starting email scheduler (per-user generation at delivery time, emails held for review)...`);
-  setInterval(processSchedulerTick, SCHEDULER_INTERVAL_MS);
-  setTimeout(processSchedulerTick, 5000);
+
+  async function schedulerLoop() {
+    await processSchedulerTick();
+    const delay =
+      schedulerConsecutiveFailures > 0
+        ? Math.min(
+            SCHEDULER_INTERVAL_MS * Math.pow(2, schedulerConsecutiveFailures),
+            MAX_SCHEDULER_BACKOFF_MS,
+          )
+        : SCHEDULER_INTERVAL_MS;
+    setTimeout(schedulerLoop, delay);
+  }
+  setTimeout(schedulerLoop, 5000);
 
   setInterval(() => {
     const now = new Date();
