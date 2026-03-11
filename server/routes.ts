@@ -239,6 +239,10 @@ export async function registerRoutes(
     res.sendFile("Podcap_logo_1772731738179.png", { root: "attached_assets", maxAge: "30d" });
   });
 
+  app.get("/podcap-logo.svg", (_req, res) => {
+    res.sendFile("podcap-logo.svg", { root: "client/public", maxAge: "30d" });
+  });
+
   app.get("/sitemap.xml", async (_req, res) => {
     res.set("Content-Type", "application/xml");
     res.set("Cache-Control", "public, max-age=3600");

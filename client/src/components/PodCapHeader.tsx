@@ -6,16 +6,19 @@ interface PodCapHeaderProps {
 
 function PodCapIcon({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="11" fill="url(#headerGrad)" />
-      <rect x="6" y="20" width="5" height="9" rx="2.5" fill="white" opacity="0.5" />
-      <rect x="13" y="14" width="5" height="20" rx="2.5" fill="white" opacity="0.75" />
-      <rect x="20" y="8" width="5" height="29" rx="2.5" fill="white" />
-      <rect x="27" y="15" width="5" height="17" rx="2.5" fill="white" opacity="0.85" />
-      <rect x="34" y="10" width="5" height="25" rx="2.5" fill="white" opacity="0.6" />
-      <circle cx="37" cy="5" r="3.5" fill="white" />
+    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="56" height="56" rx="16" fill="url(#headerGrad)" />
+      <g transform="translate(28, 28)" fill="white">
+        <rect x="-20" y="-6" width="4" height="12" rx="2" opacity="0.5" />
+        <rect x="-13" y="-12" width="4" height="24" rx="2" opacity="0.7" />
+        <rect x="-6" y="-16" width="4" height="32" rx="2" opacity="1" />
+        <rect x="1" y="-11" width="4" height="22" rx="2" opacity="0.9" />
+        <rect x="8" y="-14" width="4" height="28" rx="2" opacity="1" />
+        <rect x="15" y="-8" width="4" height="16" rx="2" opacity="0.6" />
+      </g>
+      <circle cx="46" cy="10" r="4" fill="white" opacity="0.9" />
       <defs>
-        <linearGradient id="headerGrad" x1="0" y1="0" x2="40" y2="40">
+        <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#6366F1" />
           <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
