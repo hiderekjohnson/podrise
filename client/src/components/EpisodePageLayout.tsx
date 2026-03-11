@@ -363,53 +363,31 @@ export function EpisodePageLayout({
             className="w-full max-w-4xl pb-16 mt-2"
             data-testid="section-more-episodes"
           >
-            <div className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]">
-              <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
-                <div className="flex items-center gap-2.5">
-                  <ListChecks className="w-4 h-4 text-primary" />
-                  <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
-                </div>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Catch up on other recent episodes from {episode.podcastName}.</p>
-              </div>
-              <div className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
-              {previousEpisodes.map((ep: any) => {
-                const date = new Date(ep.publishDate + "T00:00:00");
-                const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                return (
-                  <Link key={ep.episodeSlug} href={`/podcasts/${podcastSlug}/${ep.episodeSlug}`} className="block">
-                    <div
-                      className="px-6 py-5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors cursor-pointer group"
-                      data-testid={`card-more-episode-${ep.episodeSlug}`}
-                    >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-muted-foreground/40" />
-                        <span className="text-base font-semibold text-muted-foreground/60">{formatted}</span>
-                        {ep.duration && (
-                          <>
-                            <span className="w-0.5 h-0.5 rounded-full bg-black/[0.12]" />
-                            <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/50">{ep.duration}</span>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{ep.episodeTitle}</p>
-                      {ep.tldl && <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5 leading-relaxed line-clamp-2">{ep.tldl}</p>}
-                      <span className="inline-flex items-center gap-1.5 text-base font-medium text-primary/50 group-hover:text-primary transition-colors mt-2.5">
-                        See full episode recap
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-              </div>
-              <div className="flex justify-center px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.06]">
-                <Link href={`/podcasts/${podcastSlug}`}>
-                  <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
-                    View all {episode.podcastName} episodes
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                </Link>
-              </div>
+            <div className="flex items-center gap-2.5 mb-4">
+              <ListChecks className="w-4 h-4 text-primary" />
+              <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+            </div>
+            <div className="space-y-3">
+              {previousEpisodes.map((ep: any) => (
+                <EpisodeCard
+                  key={ep.episodeSlug}
+                  episodeSlug={ep.episodeSlug}
+                  podcastSlug={podcastSlug}
+                  publishDate={ep.publishDate}
+                  episodeTitle={ep.episodeTitle}
+                  tldl={ep.tldl}
+                  duration={ep.duration}
+                  testIdPrefix="card-more-episode"
+                />
+              ))}
+            </div>
+            <div className="flex justify-center mt-6">
+              <Link href={`/podcasts/${podcastSlug}`}>
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                  View all {episode.podcastName} episodes
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
             </div>
           </motion.section>
         )}
