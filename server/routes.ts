@@ -380,11 +380,38 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/daily-drop", async (_req, res) => {
+  app.get("/api/daily-drop/editions", async (_req, res) => {
     try {
-      const recaps = await storage.getRecentRecapsForRss(null, 50);
-      const now = new Date();
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const recaps = await storage.getRecentRecapsForRss(null, 200);
+
+      const editionMap = new Map<string, { date: string; count: number; hero: typeof recaps[0] | null; }>();
+      for (const r of recaps) {
+        if (!r.publishDate) continue;
+        const d = new Date(r.publishDate);
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const existing = editionMap.get(dateKey);
+        if (existing) {
+          existing.count++;
+        } else {
+          editionMap.set(dateKey, { date: dateKey, count: 1, hero: r });
+        }
+      }
+
+      const editions = Array.from(editionMap.values())
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 30);
+
+      res.json({ editions });
+    } catch (err) {
+      console.error("Daily drop editions error:", err);
+      res.status(500).json({ message: "Failed to load editions" });
+    }
+  });
+
+  app.get("/api/daily-drop/:date", async (req, res) => {
+    try {
+      const dateParam = req.params.date;
+      const recaps = await storage.getRecentRecapsForRss(null, 200);
 
       const sortedByPublishDate = [...recaps].sort((a, b) => {
         const da = a.publishDate ? new Date(a.publishDate).getTime() : 0;
@@ -392,24 +419,46 @@ export async function registerRoutes(
         return db - da;
       });
 
-      const dailyEpisodes = sortedByPublishDate.filter(r => {
-        if (!r.publishDate) return false;
-        return new Date(r.publishDate) >= oneDayAgo;
-      });
+      let episodes;
+      if (dateParam === "latest") {
+        const grouped = new Map<string, typeof recaps>();
+        for (const r of sortedByPublishDate) {
+          if (!r.publishDate) continue;
+          const d = new Date(r.publishDate);
+          const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          if (!grouped.has(dateKey)) grouped.set(dateKey, []);
+          grouped.get(dateKey)!.push(r);
+        }
+        const latestKey = Array.from(grouped.keys()).sort().reverse()[0];
+        episodes = latestKey ? grouped.get(latestKey)! : sortedByPublishDate.slice(0, 10);
+      } else {
+        episodes = sortedByPublishDate.filter(r => {
+          if (!r.publishDate) return false;
+          const d = new Date(r.publishDate);
+          const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          return dateKey === dateParam;
+        });
+      }
 
-      const displayEpisodes = dailyEpisodes.length >= 3 ? dailyEpisodes : sortedByPublishDate.slice(0, 10);
-      const dailyEpisodeCount = dailyEpisodes.length;
+      if (episodes.length === 0) {
+        return res.status(404).json({ message: "No episodes found for this date" });
+      }
 
-      const hero = displayEpisodes[0] || null;
-      const todaysDrops = displayEpisodes.slice(1, 5);
-      const quoteEpisode = displayEpisodes.find(e => e.quote && e.quoteAttribution) || null;
+      const hero = episodes[0] || null;
+      const todaysDrops = episodes.slice(1, 5);
+      const allDrops = episodes.slice(1);
+      const quoteEpisode = episodes.find(e => e.quote && e.quoteAttribution) || null;
+
+      const resolvedDate = dateParam === "latest"
+        ? (() => { const d = new Date(episodes[0].publishDate); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })()
+        : dateParam;
 
       res.json({
-        date: now.toISOString(),
-        episodeCount: dailyEpisodeCount,
-        displayCount: displayEpisodes.length,
+        date: resolvedDate,
+        episodeCount: episodes.length,
         hero,
         todaysDrops,
+        allDrops,
         quoteEpisode,
       });
     } catch (err) {

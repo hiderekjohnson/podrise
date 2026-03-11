@@ -33,6 +33,7 @@ const Enterprise = lazy(() => import("./pages/Enterprise"));
 const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
 const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
 const DailyDrop = lazy(() => import("./pages/DailyDrop"));
+const DailyDropEdition = lazy(() => import("./pages/DailyDropEdition"));
 
 function PageLoader() {
   return (
@@ -72,6 +73,7 @@ function Router() {
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/topics/:slug" component={TopicDetailPage} />
         <Route path="/topics" component={TopicsDirectory} />
+        <Route path="/daily-drop/:date" component={DailyDropEdition} />
         <Route path="/daily-drop" component={DailyDrop} />
         <Route component={NotFound} />
       </Switch>
