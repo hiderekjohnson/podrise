@@ -1684,6 +1684,101 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/podcasts/:slug/archive-filters", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const allRecaps = await storage.getLandingPageRecaps(slug, 1000, 0);
+
+      const guestSet = new Map<string, number>();
+      const topicSet = new Map<string, number>();
+
+      for (const recap of allRecaps) {
+        if (recap.guests) {
+          try {
+            const guests = typeof recap.guests === "string" ? JSON.parse(recap.guests) : recap.guests;
+            if (Array.isArray(guests)) {
+              for (const g of guests) {
+                if (g.name) {
+                  const name = g.name.trim();
+                  guestSet.set(name, (guestSet.get(name) || 0) + 1);
+                }
+              }
+            }
+          } catch {}
+        }
+        if (recap.keyTopics && Array.isArray(recap.keyTopics)) {
+          for (const t of recap.keyTopics) {
+            const normalized = t.trim();
+            if (normalized) topicSet.set(normalized, (topicSet.get(normalized) || 0) + 1);
+          }
+        }
+      }
+
+      const guests = [...guestSet.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({ name, count }));
+
+      const topics = [...topicSet.entries()]
+        .filter(([, count]) => count >= 2)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 50)
+        .map(([topic, count]) => ({ topic, count }));
+
+      res.json({ guests, topics });
+    } catch {
+      res.status(500).json({ error: "Failed to fetch archive filters" });
+    }
+  });
+
+  app.get("/api/podcasts/:slug/archive", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const limit = Math.min(parseInt(req.query.limit as string) || 25, 100);
+      const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
+      const search = (req.query.search as string || "").trim().toLowerCase();
+      const guest = (req.query.guest as string || "").trim();
+      const topic = (req.query.topic as string || "").trim().toLowerCase();
+      const sort = (req.query.sort as string) || "newest";
+
+      let allRecaps = await storage.getLandingPageRecaps(slug, 1000, 0);
+
+      if (search) {
+        allRecaps = allRecaps.filter(r =>
+          (r.episodeTitle || "").toLowerCase().includes(search) ||
+          (r.tldl || "").toLowerCase().includes(search) ||
+          (r.keyTopics || []).some(t => t.toLowerCase().includes(search))
+        );
+      }
+
+      if (guest) {
+        allRecaps = allRecaps.filter(r => {
+          if (!r.guests) return false;
+          try {
+            const guests = typeof r.guests === "string" ? JSON.parse(r.guests) : r.guests;
+            return Array.isArray(guests) && guests.some((g: any) => g.name === guest);
+          } catch { return false; }
+        });
+      }
+
+      if (topic) {
+        allRecaps = allRecaps.filter(r =>
+          (r.keyTopics || []).some(t => t.toLowerCase().includes(topic))
+        );
+      }
+
+      if (sort === "oldest") {
+        allRecaps.sort((a, b) => (a.publishDate || "").localeCompare(b.publishDate || ""));
+      }
+
+      const total = allRecaps.length;
+      const paged = allRecaps.slice(offset, offset + limit);
+
+      res.json({ recaps: paged, total, limit, offset });
+    } catch {
+      res.status(500).json({ error: "Failed to fetch archive" });
+    }
+  });
+
   app.get("/api/podcasts/:slug/entity-links", async (req, res) => {
     try {
       const { slug } = req.params;
