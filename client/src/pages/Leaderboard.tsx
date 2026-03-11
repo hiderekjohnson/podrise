@@ -215,7 +215,7 @@ export default function Leaderboard() {
                 </span>
               </div>
               <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
-                {filtered.length} podcast{filtered.length !== 1 ? "s" : ""}
+                Podcasts
               </span>
             </div>
 
@@ -270,7 +270,7 @@ export default function Leaderboard() {
                       className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary/[0.06] hover:bg-primary/[0.12] text-primary text-[15px] font-bold transition-colors"
                       data-testid="button-show-all-podcasts"
                     >
-                      Show all {filtered.length} podcasts
+                      Show all podcasts
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -324,7 +324,7 @@ export default function Leaderboard() {
                           {topic.description}
                         </p>
                         <p className="text-[13px] text-muted-foreground/70 mt-2 font-medium">
-                          {topic.count} podcasts
+                          Browse podcasts
                         </p>
                       </a>
                     ))}
