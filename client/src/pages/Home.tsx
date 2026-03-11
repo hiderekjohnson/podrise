@@ -171,28 +171,6 @@ export default function Home() {
           </motion.div>
         </section>
 
-        <section className="w-full bg-card/50 border-y border-border py-16 sm:py-20" data-testid="section-coverage">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <p className="text-3xl sm:text-4xl font-display font-extrabold text-foreground" data-testid="stat-podcasts">{totalPodcasts}+</p>
-                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 font-medium">Podcasts tracked</p>
-              </div>
-              <div>
-                <p className="text-3xl sm:text-4xl font-display font-extrabold text-foreground" data-testid="stat-people">{totalPeople}+</p>
-                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 font-medium">People profiled</p>
-              </div>
-              <div>
-                <p className="text-3xl sm:text-4xl font-display font-extrabold text-foreground" data-testid="stat-episodes">1,000+</p>
-                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 font-medium">Episodes analyzed</p>
-              </div>
-              <div>
-                <p className="text-3xl sm:text-4xl font-display font-extrabold text-foreground" data-testid="stat-topics">30+</p>
-                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 font-medium">Topics covered</p>
-              </div>
-            </motion.div>
-          </div>
-        </section>
 
         <section className="w-full py-16 sm:py-20" data-testid="section-nav-grid">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
