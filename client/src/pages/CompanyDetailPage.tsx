@@ -31,6 +31,12 @@ export default function CompanyDetailPage() {
   const slug = params?.slug || "";
   const companyData = getCompanyBySlug(slug);
   const [activeSection, setActiveSection] = useState("");
+  const [showAllEpisodes, setShowAllEpisodes] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setShowAllEpisodes(false);
+  }, [slug]);
 
   const { data: company, isLoading } = useQuery<CompanyDetail>({
     queryKey: ["/api/entities/companies", slug],
@@ -305,7 +311,7 @@ export default function CompanyDetailPage() {
                     Episodes Mentioning {company.name}
                   </h2>
                   <div className="space-y-2">
-                    {company.mentions.map((ep) => (
+                    {(showAllEpisodes ? company.mentions : company.mentions.slice(0, 8)).map((ep) => (
                       <div
                         key={`${ep.slug}/${ep.episode_slug}`}
                         className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
@@ -342,6 +348,15 @@ export default function CompanyDetailPage() {
                       </div>
                     ))}
                   </div>
+                  {!showAllEpisodes && company.mentions.length > 8 && (
+                    <button
+                      onClick={() => setShowAllEpisodes(true)}
+                      className="mt-4 w-full py-3 text-base font-semibold text-primary hover:text-primary/80 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl transition-all"
+                      data-testid="button-show-all-episodes"
+                    >
+                      See All {company.mentions.length} Episodes
+                    </button>
+                  )}
                 </section>
               ) : (
                 <div className="text-center py-16 text-muted-foreground">

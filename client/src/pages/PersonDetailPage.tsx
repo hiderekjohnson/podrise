@@ -185,6 +185,8 @@ export default function PersonDetailPage() {
   const [sortOrder, setSortOrder] = useState<"relevance" | "newest" | "oldest">("relevance");
   const [filterText, setFilterText] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "guests" | "mentions">("all");
+  const [showAllEpisodes, setShowAllEpisodes] = useState(false);
+  const [showAllPodcasts, setShowAllPodcasts] = useState(false);
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({});
   const [activeSection, setActiveSection] = useState("");
 
@@ -200,6 +202,11 @@ export default function PersonDetailPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    setShowAllEpisodes(false);
+    setShowAllPodcasts(false);
+    setFilterText("");
+    setActiveTab("all");
+    setSortOrder("relevance");
   }, [slug]);
 
   const hasGuestAppearances = (person?.guestCount || 0) > 0;
@@ -832,13 +839,22 @@ export default function PersonDetailPage() {
                 </div>
                 <div className="flex flex-col gap-4">
                   {filteredEpisodes.length > 0 ? (
-                    filteredEpisodes.map((ep) => (
+                    (showAllEpisodes ? filteredEpisodes : filteredEpisodes.slice(0, 8)).map((ep) => (
                       <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} showType />
                     ))
                   ) : (
                     <p className="text-center py-8 text-muted-foreground text-sm">No episodes match your filters.</p>
                   )}
                 </div>
+                {!showAllEpisodes && filteredEpisodes.length > 8 && (
+                  <button
+                    onClick={() => setShowAllEpisodes(true)}
+                    className="mt-4 w-full py-3 text-base font-semibold text-primary hover:text-primary/80 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl transition-all"
+                    data-testid="button-show-all-episodes"
+                  >
+                    See All {filteredEpisodes.length} Episodes
+                  </button>
+                )}
               </section>
 
               {/* 6. Podcasts Featuring This Person */}
@@ -849,7 +865,7 @@ export default function PersonDetailPage() {
                     Podcasts Featuring {person.name}
                   </h2>
                   <div className="grid gap-3">
-                    {person.podcastsFeaturingPerson.map((podcast, i) => {
+                    {(showAllPodcasts ? person.podcastsFeaturingPerson : person.podcastsFeaturingPerson.slice(0, 6)).map((podcast, i) => {
                       const latestDate = podcast.latestDate ? new Date(podcast.latestDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
                       return (
                         <Link key={i} href={`/podcasts/${podcast.podcastSlug}`} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/30 hover:shadow-sm transition-all group" data-testid={`podcast-featuring-${i}`}>
@@ -871,6 +887,15 @@ export default function PersonDetailPage() {
                       );
                     })}
                   </div>
+                  {!showAllPodcasts && person.podcastsFeaturingPerson.length > 6 && (
+                    <button
+                      onClick={() => setShowAllPodcasts(true)}
+                      className="mt-4 w-full py-3 text-base font-semibold text-primary hover:text-primary/80 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl transition-all"
+                      data-testid="button-show-all-podcasts"
+                    >
+                      See All {person.podcastsFeaturingPerson.length} Podcasts
+                    </button>
+                  )}
                 </section>
               )}
 
