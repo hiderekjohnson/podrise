@@ -191,8 +191,9 @@ export default function CompanyDetailPage() {
                         <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Website</p>
-                          <a href={details.website} target="_blank" rel="noopener noreferrer" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
+                          <a href={details.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
                             {details.website.replace("https://", "")}
+                            <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                           </a>
                         </div>
                       </div>

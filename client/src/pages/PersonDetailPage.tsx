@@ -460,21 +460,25 @@ export default function PersonDetailPage() {
                       {socialLinks?.twitter && (
                         <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
                           <SiX className="w-3.5 h-3.5" /> X / Twitter
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                       {socialLinks?.linkedin && (
                         <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
                           <SiLinkedin className="w-3.5 h-3.5" /> LinkedIn
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                       {socialLinks?.instagram && (
                         <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
                           <SiInstagram className="w-3.5 h-3.5" /> Instagram
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                       {socialLinks?.website && (
                         <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
                           <Globe className="w-3.5 h-3.5" /> Website
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                     </div>

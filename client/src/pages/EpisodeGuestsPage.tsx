@@ -238,6 +238,7 @@ export default function EpisodeGuestsPage() {
                             >
                               <SiX className="w-3.5 h-3.5" />
                               {guest.twitter!.startsWith("http") ? "X / Twitter" : guest.twitter}
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           );
                         })()}
@@ -251,6 +252,7 @@ export default function EpisodeGuestsPage() {
                           >
                             <SiLinkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
                             LinkedIn
+                            <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                           </a>
                         )}
                         {guest.instagram && (() => {
@@ -267,6 +269,7 @@ export default function EpisodeGuestsPage() {
                             >
                               <SiInstagram className="w-3.5 h-3.5 text-[#E4405F]" />
                               {guest.instagram!.startsWith("http") ? "Instagram" : guest.instagram}
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           );
                         })()}

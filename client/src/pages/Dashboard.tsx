@@ -1340,7 +1340,7 @@ export default function Dashboard() {
                   <ReactMarkdown
                     components={{
                       a: ({ href, children, ...props }) => (
-                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" {...props}>{children}</a>
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline" {...props}>{children}<ExternalLink className="w-3 h-3 text-muted-foreground/40 inline" /></a>
                       ),
                     }}
                   >{fixMarkdownLinks(viewingRecap.summary)}</ReactMarkdown>

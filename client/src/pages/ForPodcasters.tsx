@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Search, TrendingUp, ArrowRight, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Library, Sparkles, BookOpen, Layers } from "lucide-react";
+import { Search, TrendingUp, ArrowRight, Mic, Globe, ChevronRight, BarChart3, UserCheck, Clock, Zap, Send, CheckCircle2, Loader2, Library, Sparkles, BookOpen, Layers, ExternalLink } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -313,7 +313,7 @@ export default function ForPodcasters() {
               <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
                 <p className="text-[15px] leading-[1.7] text-muted-foreground">
                   We also promote standout episodes daily on{" "}
-                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold hover:text-primary transition-colors">@podcap_io</a>,
+                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podcap_io<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,
                   helping new listeners discover your show.
                 </p>
               </div>

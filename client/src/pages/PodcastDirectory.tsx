@@ -318,8 +318,9 @@ export default function PodcastDirectory() {
                     {entry.hosts && <span>{entry.hosts}</span>}
                     {entry.category && <span className="hidden sm:inline">· {entry.category}</span>}
                     {entry.twitterHandle && (
-                      <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline hidden sm:inline">
+                      <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline hidden sm:inline">
                         {entry.twitterHandle}
+                        <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                   </div>
@@ -416,7 +417,7 @@ export default function PodcastDirectory() {
                     )}
                     {entry.slug && entry.hasLandingPage && (
                       <a href={`/podcasts/${entry.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
-                        <Globe className="w-3 h-3" /> Landing page
+                        <Globe className="w-3 h-3" /> Landing page <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                   </div>

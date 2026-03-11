@@ -160,7 +160,7 @@ function TranscriptSearch({ slug, podcastName }: { slug: string; podcastName: st
                             <span className="flex-1 text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">{highlightMatch(hit.text, data.query)}</span>
                             <span className="shrink-0 flex items-center gap-1 text-[15px] font-semibold text-primary/50 group-hover:text-primary mt-0.5 transition-colors whitespace-nowrap">
                               View in transcript
-                              <ArrowRight className="w-3 h-3" />
+                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </span>
                           </a>
                         ))}
