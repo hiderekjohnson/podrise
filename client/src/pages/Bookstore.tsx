@@ -328,11 +328,15 @@ export default function Bookstore() {
                 <BookOpen className="w-6 h-6 text-amber-600" />
               </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight leading-tight" data-testid="heading-bookstore">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight leading-tight flex items-center gap-3 flex-wrap justify-center" data-testid="heading-bookstore">
               The Podcast Bookstore
+              <span className="text-xs font-bold uppercase tracking-widest bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">Beta</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-bookstore-subtitle">
               Every book recommended, discussed, and debated across the top podcasts. Ranked by how often they come up in conversation, not by sales data.
+            </p>
+            <p className="text-sm text-muted-foreground/70 max-w-xl" data-testid="text-beta-notice">
+              This is a beta tool. We're actively improving it. <Link href="/contact" className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium">Contact us</Link> with any feedback.
             </p>
           </motion.div>
         </section>
