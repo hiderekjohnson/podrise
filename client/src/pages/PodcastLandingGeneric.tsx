@@ -695,6 +695,8 @@ export default function PodcastLandingGeneric() {
     hostBios: (() => { try { return typeof dbEntry.hostBios === "string" ? JSON.parse(dbEntry.hostBios) : Array.isArray(dbEntry.hostBios) ? dbEntry.hostBios : undefined; } catch { return undefined; } })(),
     relatedSlugs: dbEntry.relatedSlugs,
     aboutPodcast: dbEntry.aboutPodcast,
+    appleRating: (dbEntry as any).appleRating,
+    appleRatingCount: (dbEntry as any).appleRatingCount,
     twitterHandle: dbEntry.twitterHandle,
     instagramUrl: (dbEntry as any).instagramUrl,
     tiktokUrl: (dbEntry as any).tiktokUrl,
@@ -787,7 +789,7 @@ export default function PodcastLandingGeneric() {
     );
   }
 
-  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast, description } = config;
+  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast, description, appleRating, appleRatingCount } = config;
   const twitterHandle = (config as any).twitterHandle as string | null | undefined;
   const instagramUrl = (config as any).instagramUrl as string | null | undefined;
   const tiktokUrl = (config as any).tiktokUrl as string | null | undefined;
@@ -830,8 +832,14 @@ export default function PodcastLandingGeneric() {
     staleTime: 1000 * 60 * 30,
   });
 
+  const formatRatingCount = (count: number) => {
+    if (count >= 1000) return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1)}K`;
+    return count.toLocaleString();
+  };
+
   const snapshotItems = [
-    category ? { icon: Star, label: "Category", value: category } : null,
+    appleRating ? { icon: Star, label: "Apple Rating", value: `${appleRating} stars${appleRatingCount ? ` (${formatRatingCount(appleRatingCount)})` : ''}` } : null,
+    category ? { icon: Compass, label: "Category", value: category } : null,
     avgEpisodeLength ? { icon: Clock, label: "Avg. Episode", value: `${avgEpisodeLength} min` } : null,
     frequency ? { icon: Calendar, label: "Frequency", value: frequency } : null,
     totalEpisodes ? { icon: Mic, label: "Episodes", value: `${totalEpisodes.toLocaleString()}+` } : null,

@@ -33,6 +33,12 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 **RSS Feeds**: Public and custom RSS feeds are available for all recaps or specific content, designed for bot consumption.
 **Design System**: Full WCAG AA accessibility pass applied — 18px base body text, 17px buttons/inputs/nav links, 52px minimum button/input heights, 44px minimum tap targets, 4.5:1+ contrast ratios. Text colors: body #18181B, headings #09090B, muted #3F3F46, placeholder #71717A. All shadcn components (button, card, input, select, textarea, label, tooltip, dialog, tabs, toast) updated for accessibility. Navbar height 68px min, logo 36px, avatars 72px mobile / 96px desktop. All pages SEO-optimized with dynamic meta tags, OG tags, canonical URLs, and JSON-LD schema. Typography uses DM Sans for all text.
 
+## Apple Podcast Ratings
+**Table columns**: `apple_rating` (text, e.g. "4.8") and `apple_rating_count` (integer, e.g. 27184) on `podcast_directory`.
+**Data source**: Scraped from Apple Podcasts web pages (structured data `ratingValue` and `reviewCount` fields). 243 of 244 podcasts have ratings populated.
+**Backfill**: `POST /api/admin/backfill-apple-ratings` (admin auth required) scrapes all podcasts with iTunes IDs. Rate-limited with 1s delay per 5 podcasts.
+**Display**: Hero section (PodcastPageLayout) shows filled star icon + rating + formatted count. Podcast Snapshot stat cards (PodcastLandingGeneric) show "Apple Rating" card. Count formatted as K for 1000+.
+
 ## External Dependencies
 - **Stripe**: For payment processing and subscription management.
 - **OpenAI**: For AI-driven podcast recap generation and content extraction.

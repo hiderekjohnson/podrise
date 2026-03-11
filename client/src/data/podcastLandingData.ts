@@ -24,6 +24,8 @@ export interface PodcastLandingConfig {
   hostBios?: HostBio[];
   relatedSlugs?: string[];
   aboutPodcast?: string;
+  appleRating?: string | null;
+  appleRatingCount?: number | null;
 }
 
 export const PODCAST_LANDINGS: PodcastLandingConfig[] = [

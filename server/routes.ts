@@ -4472,6 +4472,61 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
     }
   });
 
+  app.post("/api/admin/backfill-apple-ratings", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const allPodcasts = await storage.getPodcastDirectory();
+      const withItunesId = allPodcasts.filter(p => p.itunesId);
+      let updated = 0;
+      let failed = 0;
+      const results: { name: string; rating: string | null; count: number | null }[] = [];
+
+      for (let i = 0; i < withItunesId.length; i++) {
+        const podcast = withItunesId[i];
+        try {
+          const url = `https://podcasts.apple.com/us/podcast/id${podcast.itunesId}`;
+          const response = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' }
+          });
+          if (!response.ok) {
+            failed++;
+            continue;
+          }
+          const html = await response.text();
+          const ratingMatch = html.match(/"ratingValue"[:\s]*"?([0-9.]+)/);
+          const reviewMatch = html.match(/"reviewCount"[:\s]*"?([0-9,]+)/);
+
+          const rating = ratingMatch ? ratingMatch[1] : null;
+          const reviewCount = reviewMatch ? parseInt(reviewMatch[1].replace(/,/g, '')) : null;
+
+          if (rating || reviewCount) {
+            const client = await pool.connect();
+            try {
+              await client.query(
+                `UPDATE podcast_directory SET apple_rating = $1, apple_rating_count = $2, updated_at = NOW() WHERE itunes_id = $3`,
+                [rating, reviewCount, podcast.itunesId]
+              );
+            } finally { client.release(); }
+            updated++;
+            results.push({ name: podcast.name, rating, count: reviewCount });
+          }
+
+          if (i % 5 === 4) await new Promise(r => setTimeout(r, 1000));
+        } catch (err) {
+          failed++;
+          console.error(`[AppleRatings] Failed for ${podcast.name}:`, err);
+        }
+      }
+
+      res.json({ updated, failed, total: withItunesId.length, results });
+    } catch (err) {
+      console.error("[AppleRatings] Error:", err);
+      res.status(500).json({ error: "Failed to backfill ratings" });
+    }
+  });
+
   app.post("/api/admin/bulk-generate-recaps", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

@@ -228,6 +228,8 @@ export const podcastDirectory = pgTable("podcast_directory", {
   relatedSlugs: text("related_slugs").array(),
   aboutPodcast: text("about_podcast"),
   taddyUuid: text("taddy_uuid"),
+  appleRating: text("apple_rating"),
+  appleRatingCount: integer("apple_rating_count"),
   hasLandingPage: boolean("has_landing_page").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

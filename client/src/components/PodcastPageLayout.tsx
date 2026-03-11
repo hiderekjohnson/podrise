@@ -36,7 +36,7 @@ export function PodcastPageLayout({
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
-  const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description } = config;
+  const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description, appleRating, appleRatingCount } = config;
   const twitterHandle = config.twitterHandle;
   const categoryInfo = getPodcastCategoryInfo(config);
 
@@ -185,6 +185,15 @@ export function PodcastPageLayout({
                   <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-since">
                     <Calendar className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
                     Since {yearStarted}
+                  </span>
+                )}
+                {appleRating && (
+                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-apple-rating">
+                    <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                    <span className="font-medium text-foreground/80">{appleRating}</span>
+                    {appleRatingCount && (
+                      <span className="text-muted-foreground/70">({appleRatingCount >= 1000 ? `${(appleRatingCount / 1000).toFixed(appleRatingCount >= 10000 ? 0 : 1)}K` : appleRatingCount.toLocaleString()} ratings)</span>
+                    )}
                   </span>
                 )}
               </div>
