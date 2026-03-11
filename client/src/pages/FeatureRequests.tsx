@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Send, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, Sparkles, Zap } from "lucide-react";
+import { Send, ArrowRight, Lightbulb, LifeBuoy, CheckCircle2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { apiRequest } from "@/lib/queryClient";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface ChangelogEntry {
   title: string;
@@ -226,24 +225,7 @@ export default function FeatureRequests() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="sticky top-0 z-50 w-full border-b border-black/[0.04] bg-white/80 backdrop-blur-md" data-testid="nav-bar">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
-          <a href="/" className="flex items-center" data-testid="link-home">
-            <PodCapWordmark />
-          </a>
-          <div className="flex items-center gap-4">
-            <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </div>
-            </Link>
-            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-login">
-              Log In
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
 

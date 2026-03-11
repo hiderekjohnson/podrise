@@ -4,13 +4,12 @@ import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles } from "lucide-react";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
-import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPICS } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface EpisodeEntry {
   slug: string;
@@ -135,7 +134,6 @@ export default function PersonDetailPage() {
   const [, navigate] = useLocation();
   const [match, params] = useRoute("/people/:slug");
   const slug = params?.slug || "";
-  const { data: user } = useAuth();
   const personData = getPersonBySlug(slug);
 
   const [sortOrder, setSortOrder] = useState<"relevance" | "newest" | "oldest">("relevance");
@@ -386,24 +384,7 @@ export default function PersonDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </Link>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <Link href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</Link>
-          ) : (
-            <>
-              <Link href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </Link>
-              <Link href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</Link>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-3xl">

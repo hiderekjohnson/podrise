@@ -1,11 +1,11 @@
 import { useLocation, Link } from "wouter";
 import { ArrowRight, Search, Sparkles, Library, Users, TrendingUp, BarChart3, Globe, Building2, Mic, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
+import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { useAuth } from "@/hooks/use-auth";
 
 const FEATURED_PODCAST_SLUGS = [
   "joerogan", "melrobbins", "hubermanlab", "myfirstmillion",
@@ -67,41 +67,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead />
 
-      <header className="w-full px-6 min-h-[68px] flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </a>
-        <div className="flex items-center gap-2">
-          <button
-            data-testid="link-browse-nav"
-            onClick={() => navigate("/podcasts")}
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:block"
-          >
-            Browse
-          </button>
-          <button
-            data-testid="link-topics-nav"
-            onClick={() => navigate("/topics")}
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:block"
-          >
-            Topics
-          </button>
-          <button
-            data-testid="link-login-nav"
-            onClick={() => navigate("/login")}
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3"
-          >
-            Log in
-          </button>
-          <button
-            data-testid="link-create-account-nav"
-            onClick={() => navigate("/get-started")}
-            className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-lg text-[15px] font-semibold hover:bg-foreground/90 transition-colors min-h-[44px]"
-          >
-            Create Account
-          </button>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
 

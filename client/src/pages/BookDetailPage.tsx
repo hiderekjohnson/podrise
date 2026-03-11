@@ -5,8 +5,7 @@ import { motion } from "framer-motion";
 import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, Headphones, User } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
-import { useAuth } from "@/hooks/use-auth";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Zap } from "lucide-react";
 
 const AMAZON_AFFILIATE_TAG = "podcap-20";
@@ -413,8 +412,6 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
 export default function BookDetailPage() {
   const [, params] = useRoute("/bookstore/:bookSlug");
   const bookSlug = params?.bookSlug;
-  const { data: user } = useAuth();
-
   const { data: book, isLoading, error } = useQuery<BookDetail>({
     queryKey: ["/api/bookstore", bookSlug],
     enabled: !!bookSlug,
@@ -444,9 +441,7 @@ export default function BookDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-          <a href="/" className="flex items-center" data-testid="link-home"><PodCapWordmark /></a>
-        </header>
+        <SiteHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
@@ -457,9 +452,7 @@ export default function BookDetailPage() {
   if (error || !book) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-          <a href="/" className="flex items-center" data-testid="link-home"><PodCapWordmark /></a>
-        </header>
+        <SiteHeader />
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <BookOpen className="w-12 h-12 text-muted-foreground/30" />
           <h1 className="text-xl font-bold text-foreground">Book not found</h1>
@@ -477,24 +470,7 @@ export default function BookDetailPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead book={book} />
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </a>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
-          ) : (
-            <>
-              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </a>
-              <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-4xl">

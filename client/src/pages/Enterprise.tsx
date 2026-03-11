@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
-import { Search, Globe, BarChart3, Zap, Send, CheckCircle2, Loader2, Database, Layers, TrendingUp, Building2, BookOpen, Shield } from "lucide-react";
+import { Search, Globe, BarChart3, Send, CheckCircle2, Loader2, Database, Layers, TrendingUp, Building2, BookOpen, Shield } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 
 function EnterpriseContactForm() {
   const { toast } = useToast();
@@ -120,24 +119,7 @@ export default function Enterprise() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md" data-testid="nav-bar">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
-          <Link href="/" data-testid="link-home">
-            <PodCapWordmark />
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </div>
-            </Link>
-            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-nav-login">
-              Log In
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="min-h-screen bg-background">
 

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo } from "@/data/podcastCategoryData";
 import { EpisodeCard } from "@/components/EpisodeCard";
-import { PodCapHeader } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
 const PAGE_SIZE = 20;
@@ -370,7 +370,7 @@ export default function EpisodeArchivePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <PodCapHeader />
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-5xl pt-8 sm:pt-12 pb-16">

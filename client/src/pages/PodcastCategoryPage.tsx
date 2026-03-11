@@ -2,9 +2,8 @@ import { useMemo, useEffect } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { Headphones, ChevronRight, ArrowRight, Zap, Globe } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import {
   getCategoryBySlug,
@@ -85,7 +84,6 @@ function SEOHead({ category, podcasts }: { category: PodcastCategory; podcasts: 
 export default function PodcastCategoryPage() {
   const params = useParams<{ slug: string }>();
   const [, navigate] = useLocation();
-  const { data: user } = useAuth();
 
   const categorySlug = params.slug || "";
   const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug]);
@@ -116,40 +114,7 @@ export default function PodcastCategoryPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="w-full px-6 py-5 flex items-center justify-between gap-4 max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </a>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <a
-              href="/dashboard"
-              className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-              data-testid="link-dashboard"
-            >
-              Dashboard
-            </a>
-          ) : (
-            <>
-              <a
-                href="/get-started"
-                className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors"
-                data-testid="link-nav-get-started"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </a>
-              <a
-                href="/login"
-                className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="link-login"
-              >
-                Log in
-              </a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <SEOHead category={category} podcasts={podcasts} />
 

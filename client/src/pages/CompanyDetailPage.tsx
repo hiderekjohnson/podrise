@@ -2,10 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageSquare, Headphones, Calendar, ExternalLink, Building2, Globe, MapPin, Users, DollarSign, Briefcase, Clock, Zap } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { getCompanyBySlug, getPersonBySlug as getPersonData, COMPANIES_DIRECTORY, PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface EpisodeEntry {
   slug: string;
@@ -29,7 +28,6 @@ export default function CompanyDetailPage() {
   const [, navigate] = useLocation();
   const [match, params] = useRoute("/companies/:slug");
   const slug = params?.slug || "";
-  const { data: user } = useAuth();
   const companyData = getCompanyBySlug(slug);
 
   const { data: company, isLoading } = useQuery<CompanyDetail>({
@@ -65,24 +63,7 @@ export default function CompanyDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </a>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
-          ) : (
-            <>
-              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </a>
-              <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-3xl">

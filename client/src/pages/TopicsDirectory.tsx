@@ -2,11 +2,10 @@ import { useState, useMemo } from "react";
 import { useLocation, Link } from "wouter";
 import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Activity, Radio, ChevronRight, Podcast } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { TOPICS } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { matchesKeywords } from "@/data/topicData";
 
 const ICON_MAP: Record<string, any> = {
@@ -50,7 +49,6 @@ function SEOHead() {
 
 export default function TopicsDirectory() {
   const [, navigate] = useLocation();
-  const { data: user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
   const topicMetrics = useMemo(() => {
@@ -82,31 +80,7 @@ export default function TopicsDirectory() {
     <div className="min-h-screen bg-background">
       <SEOHead />
 
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2" data-testid="link-home">
-            <PodCapWordmark />
-          </Link>
-          <div className="flex items-center gap-3">
-            {!user && (
-              <button
-                onClick={() => navigate("/get-started")}
-                className="px-4 py-2 rounded-full text-base font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                data-testid="button-build-recap"
-              >
-                Build Your Recap
-              </button>
-            )}
-            <button
-              onClick={() => navigate(user ? "/dashboard" : "/login")}
-              className="px-4 py-2 rounded-full text-base font-medium bg-foreground text-background hover:opacity-90 transition-opacity"
-              data-testid="button-login"
-            >
-              {user ? "Dashboard" : "Log In"}
-            </button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <div className="border-b border-black/[0.06] dark:border-white/[0.06] bg-muted/30">
         <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">

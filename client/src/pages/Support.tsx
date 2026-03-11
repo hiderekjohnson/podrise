@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
 import { Footer } from "@/components/Footer";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, Send, CheckCircle2, HelpCircle, Mail, Zap } from "lucide-react";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { ChevronDown, Send, CheckCircle2, HelpCircle, Mail } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
@@ -114,24 +113,7 @@ export default function Support() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <nav className="sticky top-0 z-50 w-full border-b border-black/[0.04] bg-white/80 backdrop-blur-md" data-testid="nav-bar">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
-          <a href="/" className="flex items-center" data-testid="link-home">
-            <PodCapWordmark />
-          </a>
-          <div className="flex items-center gap-4">
-            <Link href="/get-started" data-testid="link-nav-get-started">
-              <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </div>
-            </Link>
-            <Link href="/login" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">
-              Log In
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-10">
         <div className="text-center mb-12">

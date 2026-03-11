@@ -3,7 +3,7 @@ import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface DailyDropData {
   date: string;
@@ -118,27 +118,7 @@ export default function DailyDropEdition() {
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead />
 
-      <header className="w-full px-6 min-h-[68px] flex items-center justify-between max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </Link>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/daily-drop"
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 flex items-center"
-            data-testid="link-all-editions"
-          >
-            All Editions
-          </Link>
-          <Link
-            href="/podcasts"
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
-            data-testid="link-browse-nav"
-          >
-            Browse
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         <article className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-16 sm:pb-20">

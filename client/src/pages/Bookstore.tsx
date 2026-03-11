@@ -4,9 +4,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { BookOpen, Search, ExternalLink, Mic, X, Star, Clock, TrendingUp, Sparkles, ChevronRight, Filter } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
-import { useAuth } from "@/hooks/use-auth";
-import { Zap } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface BookstoreBook {
   name: string;
@@ -333,7 +331,6 @@ function CuratedShelf({ title, icon, books }: { title: string; icon: any; books:
 }
 
 export default function Bookstore() {
-  const { data: user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("mentions");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -448,24 +445,7 @@ export default function Bookstore() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead />
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </a>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <a href="/dashboard" className="text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-dashboard">Dashboard</a>
-          ) : (
-            <>
-              <a href="/get-started" className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-[15px] font-semibold text-primary tracking-wide uppercase hover:bg-primary/15 transition-colors" data-testid="link-nav-get-started">
-                <Zap className="w-3.5 h-3.5" />
-                Build Your Recap
-              </a>
-              <a href="/login" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-login">Log in</a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <section className="w-full max-w-5xl pt-8 sm:pt-12 pb-6">

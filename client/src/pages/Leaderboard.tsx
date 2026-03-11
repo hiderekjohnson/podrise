@@ -2,10 +2,9 @@ import { useState, useMemo } from "react";
 import { useLocation, Link } from "wouter";
 import { Headphones, Globe, Search, X, ArrowRight, Tag } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import {
   PODCAST_CATEGORIES,
   getAllCategoryLinks,
@@ -52,7 +51,6 @@ const ALL_GROUPS = [...Object.keys(CATEGORY_MAP), "Other"].sort();
 
 export default function Leaderboard() {
   const [, navigate] = useLocation();
-  const { data: user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -120,39 +118,7 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
-        <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
-        </a>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <a
-              href="/dashboard"
-              className="text-base font-medium text-primary hover:text-primary/80 transition-colors"
-              data-testid="link-dashboard"
-            >
-              Dashboard
-            </a>
-          ) : (
-            <>
-              <a
-                href="/get-started"
-                className="flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-lg text-[15px] font-semibold hover:bg-foreground/90 transition-colors"
-                data-testid="link-nav-get-started"
-              >
-                Create Account
-              </a>
-              <a
-                href="/login"
-                className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="link-login"
-              >
-                Log in
-              </a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-8">
