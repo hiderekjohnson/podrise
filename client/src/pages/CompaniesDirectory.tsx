@@ -19,7 +19,7 @@ const PAGE_SIZE = 24;
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function SEOHead() {
-  const title = "Companies in Podcasts — What's Being Discussed | PodCap";
+  const title = "Companies in Podcasts | PodCap";
   const description = "Explore the most talked-about companies across top podcasts. See which companies get mentioned the most and find every episode they're discussed in.";
 
   if (typeof document !== "undefined") {

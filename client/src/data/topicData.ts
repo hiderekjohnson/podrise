@@ -52,7 +52,7 @@ export const TOPICS: TopicConfig[] = [
   {
     slug: "venture-capital",
     name: "Venture Capital",
-    description: "Inside the world of venture capital — how VCs evaluate deals, build portfolios, and shape the companies that define the future of technology.",
+    description: "Inside the world of venture capital - how VCs evaluate deals, build portfolios, and shape the companies that define the future of technology.",
     icon: "TrendingUp",
     color: "from-emerald-500 to-teal-600",
     podcastKeywords: ["venture capital", "vc", "fundraising", "seed", "series a"],
@@ -102,7 +102,7 @@ export const TOPICS: TopicConfig[] = [
   {
     slug: "sales",
     name: "Sales",
-    description: "Master the art of selling — from cold outreach to enterprise deals. Discover proven sales methodologies, negotiation tactics, and closing strategies.",
+    description: "Master the art of selling - from cold outreach to enterprise deals. Discover proven sales methodologies, negotiation tactics, and closing strategies.",
     icon: "Handshake",
     color: "from-cyan-500 to-blue-500",
     podcastKeywords: ["sales", "selling", "revenue", "b2b", "deal", "pipeline"],
@@ -232,7 +232,7 @@ export const TOPICS: TopicConfig[] = [
   {
     slug: "media-content",
     name: "Media & Content",
-    description: "The evolving media landscape — from legacy news to creator economy. Explore how content is produced, distributed, and monetized in the digital age.",
+    description: "The evolving media landscape - from legacy news to creator economy. Explore how content is produced, distributed, and monetized in the digital age.",
     icon: "Video",
     color: "from-red-500 to-pink-600",
     podcastKeywords: ["media", "journalism", "podcast", "youtube", "streaming"],
@@ -262,7 +262,7 @@ export const TOPICS: TopicConfig[] = [
   {
     slug: "saas",
     name: "SaaS",
-    description: "Software as a Service — the business model powering modern tech. Explore how SaaS companies acquire customers, reduce churn, and scale recurring revenue.",
+    description: "Software as a Service - the business model powering modern tech. Explore how SaaS companies acquire customers, reduce churn, and scale recurring revenue.",
     icon: "Cloud",
     color: "from-sky-500 to-blue-600",
     podcastKeywords: ["saas", "software as a service", "recurring revenue", "churn", "arr", "mrr", "subscription"],

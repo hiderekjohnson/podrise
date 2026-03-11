@@ -83,7 +83,7 @@ function formatDeliveryTime(time: string): string {
 }
 
 function formatDateTime(dateStr: string | null) {
-  if (!dateStr) return "—";
+  if (!dateStr) return "-";
   return new Date(dateStr).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -165,7 +165,7 @@ export default function PendingEmails() {
 
   const tabs = [
     { key: "pending_approval", label: "Pending Approval", count: pendingApprovalEmails.length },
-    { key: "sent", label: "Approved — Sent", count: sentEmails.length },
+    { key: "sent", label: "Approved - Sent", count: sentEmails.length },
     { key: "cancelled_error", label: "Cancelled / Error", count: cancelledErrorEmails.length },
   ];
 
@@ -261,7 +261,7 @@ export default function PendingEmails() {
                               {stats.details.map((d, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
                                   <span className={d.status === "included" ? "text-green-600" : d.status === "no_new_episode" ? "text-gray-400" : "text-red-500"}>
-                                    {d.status === "included" ? "✓" : d.status === "no_new_episode" ? "—" : "✗"}
+                                    {d.status === "included" ? "✓" : d.status === "no_new_episode" ? "-" : "✗"}
                                   </span>
                                   <span className="truncate max-w-[140px]" title={d.podcast}>{d.podcast}</span>
                                   {d.status === "included" && d.episodeCount && <span className="text-green-600">({d.episodeCount} ep)</span>}

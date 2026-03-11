@@ -306,7 +306,7 @@ export async function registerRoutes(
 
       let quoteHtml = "";
       if (recap.quote) {
-        quoteHtml = `<blockquote>"${escapeXml(recap.quote)}"${recap.quoteAttribution ? ` — ${escapeXml(recap.quoteAttribution)}` : ""}</blockquote>`;
+        quoteHtml = `<blockquote>"${escapeXml(recap.quote)}"${recap.quoteAttribution ? ` - ${escapeXml(recap.quoteAttribution)}` : ""}</blockquote>`;
       }
 
       const contentHtml = `<h2>${escapeXml(recap.episodeTitle)}</h2>` +
@@ -321,7 +321,7 @@ export async function registerRoutes(
         (recap.appleEpisodeUrl ? `<p><a href="${escapeXml(recap.appleEpisodeUrl)}">Listen on Apple Podcasts</a></p>` : "");
 
       xml += `  <item>\n`;
-      xml += `    <title>${escapeXml(recap.podcastName + " — " + recap.episodeTitle)}</title>\n`;
+      xml += `    <title>${escapeXml(recap.podcastName + " - " + recap.episodeTitle)}</title>\n`;
       xml += `    <link>${episodeUrl}</link>\n`;
       xml += `    <guid isPermaLink="true">${episodeUrl}</guid>\n`;
       xml += `    <pubDate>${pubDate}</pubDate>\n`;
@@ -345,7 +345,7 @@ export async function registerRoutes(
       const DOMAIN = "https://podcap.io";
       const xml = buildRssXml(
         recaps,
-        "PodCap — All Podcast Recaps",
+        "PodCap - All Podcast Recaps",
         "AI-generated recaps of the latest episodes from top podcasts, delivered daily.",
         `${DOMAIN}/rss/all`
       );
@@ -368,7 +368,7 @@ export async function registerRoutes(
       const DOMAIN = "https://podcap.io";
       const xml = buildRssXml(
         recaps,
-        `PodCap — ${feed.name}`,
+        `PodCap - ${feed.name}`,
         `Custom podcast recap feed: ${feed.name}`,
         `${DOMAIN}/rss/feed/${feed.slugKey}`
       );
@@ -2605,10 +2605,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               content: `You are an SEO expert analyzing the podcast "${podcastName}". Generate exactly 5 questions that people would most likely type into Google when trying to learn about this podcast.
 
 Rules:
-- Questions should reflect common search queries about the podcast — what it covers, who hosts it, notable episodes, key topics, and why people listen
+- Questions should reflect common search queries about the podcast, what it covers, who hosts it, notable episodes, key topics, and why people listen
 - Use natural, search-friendly phrasing. Examples of good questions: "What is the ${podcastName} about?", "Who hosts ${podcastName}?", "What topics are commonly discussed on ${podcastName}?", "What are some popular episodes of ${podcastName}?", "Why do people listen to ${podcastName}?"
 - Include the podcast name in most questions for SEO value
-- Each answer should be 1-2 paragraphs, clear and informative, summarizing across the podcast's episodes — not just one episode
+- Each answer should be 1-2 paragraphs, clear and informative, summarizing across the podcast's episodes. Not just one episode
 - The goal is to help someone who has never heard of this podcast understand what it covers and why it's interesting
 
 Return a JSON array of exactly 5 objects with "question" and "answer" fields. Return ONLY the JSON array, no other text.`
@@ -3021,7 +3021,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       const result = await client.emails.send({
         from: `PodCap Daily <${fromEmail}>`,
         to: user.email,
-        subject: `☕ Your PodCap Daily Recap — ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
+        subject: `☕ Your PodCap Daily Recap - ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
         html: emailHtml,
       });
 
@@ -4834,7 +4834,7 @@ Return a JSON array of exactly 5 objects with "question" and "answer" fields. Re
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     const { template } = req.body;
-    const sampleMarkdown = `My First Million · The All-In Podcast\n\n**2** Podcasts · **5 hours and 32 minutes** Total duration\n\n---\n\n## MY FIRST MILLION\n\n**How This 25-Year-Old Built a $100M Business**\nJake Chen · CEO of CloudStack · 1 hr 12 min\n\n🎧 [Apple Podcasts](https://podcasts.apple.com/example) · [Spotify](https://open.spotify.com/search/example)\n\n**TLDL:** Jake Chen dropped out of college to build CloudStack, a no-code platform that now processes $2B in transactions annually.\n\n**What Happened**\nSam opens by calling Jake "the most impressive founder under 30." Jake walks through the origin story — building internal tools for his university when he realized every small business had the same problem.\n\nHe launched on Product Hunt, got 2,000 users in the first week, and was profitable by month three.\n\n**Key Insights:**\n- CloudStack processes $2B in annual transactions with only 47 employees\n- White-labeling through accounting firms drives 40% of revenue\n- The no-code market is projected to hit $187B by 2030\n\n**Quote**\nJake Chen on turning down $50M:\n> "Everyone told me I was crazy. But I looked at every founder who sold early and asked one question: are you happier? Not one said yes."\n\n---`;
+    const sampleMarkdown = `My First Million · The All-In Podcast\n\n**2** Podcasts · **5 hours and 32 minutes** Total duration\n\n---\n\n## MY FIRST MILLION\n\n**How This 25-Year-Old Built a $100M Business**\nJake Chen · CEO of CloudStack · 1 hr 12 min\n\n🎧 [Apple Podcasts](https://podcasts.apple.com/example) · [Spotify](https://open.spotify.com/search/example)\n\n**TLDL:** Jake Chen dropped out of college to build CloudStack, a no-code platform that now processes $2B in transactions annually.\n\n**What Happened**\nSam opens by calling Jake "the most impressive founder under 30." Jake walks through the origin story, building internal tools for his university when he realized every small business had the same problem.\n\nHe launched on Product Hunt, got 2,000 users in the first week, and was profitable by month three.\n\n**Key Insights:**\n- CloudStack processes $2B in annual transactions with only 47 employees\n- White-labeling through accounting firms drives 40% of revenue\n- The no-code market is projected to hit $187B by 2030\n\n**Quote**\nJake Chen on turning down $50M:\n> "Everyone told me I was crazy. But I looked at every founder who sold early and asked one question: are you happier? Not one said yes."\n\n---`;
     const config: Partial<EmailTemplateConfig> = template || {};
     const html = markdownToEmailHtml(sampleMarkdown, "preview@example.com", config);
     res.json({ html });

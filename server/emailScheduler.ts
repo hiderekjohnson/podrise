@@ -18,7 +18,7 @@ async function sendAdminNotification(userEmail: string, subject: string) {
   await client.emails.send({
     from: `PodCap System <${fromEmail}>`,
     to: ADMIN_NOTIFY_EMAIL,
-    subject: `⚡ New email pending approval — ${userEmail} (${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" })} ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })})`,
+    subject: `⚡ New email pending approval - ${userEmail} (${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" })} ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })})`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
         <h2 style="margin: 0 0 16px; font-size: 18px; color: #1a1a1a;">New Email Pending Approval</h2>
@@ -189,7 +189,7 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     const emailHtml = markdownToEmailHtml(result.summary, user.email, templateSettings);
 
     const deliveryTime = user.deliveryTime || "07:00";
-    const subject = `☕ Your PodCap Daily Recap — ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
+    const subject = `☕ Your PodCap Daily Recap - ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
 
     await storage.createRecap({
       userId: user.id,
@@ -213,7 +213,7 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
       status: "held",
     });
 
-    console.log(`[EmailScheduler] Email generated and held for review — user ${user.id} (${deliveryTime} ${timezone})`);
+    console.log(`[EmailScheduler] Email generated and held for review - user ${user.id} (${deliveryTime} ${timezone})`);
 
     try {
       await updateLandingPageRecaps(user.podcasts, result.parsedEpisodes);
@@ -917,7 +917,7 @@ ${episodeSummaries ? `Recent episode summaries:\n${episodeSummaries}` : ""}
 
 Generate the following as a JSON object:
 {
-  "aboutPodcast": "A 2-3 sentence description of this podcast — what it covers, who hosts it, and who it's for. Write in third person, factual tone.",
+  "aboutPodcast": "A 2-3 sentence description of this podcast - what it covers, who hosts it, and who it's for. Write in third person, factual tone.",
   "knownFor": ["4-6 short phrases this podcast is known for, like 'Long-form tech founder interviews' or 'Deep dives into AI research'. Be specific to this show."],
   "hostBios": [{"name": "Host Name", "bio": "1-2 sentence bio of this host. Include their role/background."}],
   "frequency": "Weekly|Twice weekly|Daily|Biweekly|Monthly",
@@ -931,7 +931,7 @@ RULES:
 - hostBios must be an array of objects with "name" and "bio" keys.
 - frequency should be your best estimate based on the podcast.
 - avgEpisodeLength should be an integer (minutes).
-- Be factual — don't invent details you don't know.
+- Be factual - don't invent details you don't know.
 - Respond ONLY with valid JSON, no markdown.`;
 
       const completion = await openai.chat.completions.create({

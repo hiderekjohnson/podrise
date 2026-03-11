@@ -125,7 +125,7 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "For Podcasters — Amplify Your Sponsors, Add Your Byline, Grow Your Show | PodCap";
+    document.title = "For Podcasters - Amplify Your Sponsors, Add Your Byline, Grow Your Show | PodCap";
     const desc = "PodCap amplifies your podcast sponsors on web and email recaps, lets you add a custom byline to every page, and turns episodes into searchable knowledge assets. Claim your podcast today.";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -133,7 +133,7 @@ export default function ForPodcasters() {
       el.setAttribute("content", content);
     };
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "For Podcasters — Amplify Your Sponsors, Add Your Byline, Grow Your Show");
+    setMeta("property", "og:title", "For Podcasters - Amplify Your Sponsors, Add Your Byline, Grow Your Show");
     setMeta("property", "og:description", desc);
   }, []);
 
@@ -167,7 +167,7 @@ export default function ForPodcasters() {
               For Podcasters
             </div>
             <h1 className="text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.12] mb-6" data-testid="text-hero-title">
-              Your episodes, sponsors, and message — amplified everywhere
+              Your episodes, sponsors, and message - amplified everywhere
             </h1>
             <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8" data-testid="text-hero-subtitle">
               PodCap turns every episode into a searchable knowledge asset, displays your sponsors on web and email recaps, and lets you add a custom byline across every page featuring your show. Claim your podcast and take control.
@@ -211,7 +211,7 @@ export default function ForPodcasters() {
                 You spend hours preparing, recording, and editing each episode. But once it publishes, the ideas inside are only accessible to people who have the time to listen from start to finish. Everyone else moves on.
               </p>
               <p className="text-[15px] leading-[1.75] font-display font-bold text-foreground mt-4">
-                PodCap makes your content findable, skimmable, and shareable — so your best ideas travel further.
+                PodCap makes your content findable, skimmable, and shareable - so your best ideas travel further.
               </p>
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function ForPodcasters() {
                 What PodCap creates for your show
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Every episode on PodCap becomes a rich, structured page of knowledge — automatically.
+                Every episode on PodCap becomes a rich, structured page of knowledge - automatically.
               </p>
             </div>
 
@@ -263,7 +263,7 @@ export default function ForPodcasters() {
                 Sponsor amplification
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps — reaching fans who read but don't always listen.
+                Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps - reaching fans who read but don't always listen.
               </p>
             </div>
 
@@ -271,7 +271,7 @@ export default function ForPodcasters() {
               {[
                 { icon: Globe, title: "Web visibility", description: "Sponsors appear on every episode recap page with their name, description, coupon code, and a direct link. Visible to every visitor, not just listeners.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
                 { icon: Mail, title: "Email reach", description: "Daily recap emails include sponsor details alongside episode summaries. Your sponsors reach subscribers who catch up by reading instead of listening.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-                { icon: Tag, title: "Coupon codes highlighted", description: "Promo codes and special offers are styled prominently so readers can act on them immediately — no need to rewind and re-listen.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
+                { icon: Tag, title: "Coupon codes highlighted", description: "Promo codes and special offers are styled prominently so readers can act on them immediately - no need to rewind and re-listen.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
               ].map((item) => (
                 <div
                   key={item.title}
@@ -289,7 +289,7 @@ export default function ForPodcasters() {
 
             <div className="mt-8 bg-card border border-border rounded-2xl p-6 sm:p-8 text-center">
               <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-lg mx-auto">
-                Most podcast sponsors only get value during the episode itself. With PodCap, their investment keeps delivering impressions on the web and in inboxes — giving you a stronger pitch for renewals and rate increases.
+                Most podcast sponsors only get value during the episode itself. With PodCap, their investment keeps delivering impressions on the web and in inboxes - giving you a stronger pitch for renewals and rate increases.
               </p>
             </div>
           </div>
@@ -311,7 +311,7 @@ export default function ForPodcasters() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: PenLine, title: "Your message, your link", description: "Write a short callout with a custom URL. It appears as a prominent banner on your podcast page and every episode recap — visible to every visitor.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { icon: PenLine, title: "Your message, your link", description: "Write a short callout with a custom URL. It appears as a prominent banner on your podcast page and every episode recap - visible to every visitor.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
                 { icon: ShieldCheck, title: "Verified podcast owner", description: "Claiming your podcast gives you a verified badge and access to a dashboard where you can update your byline and review sponsor data at any time.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
               ].map((item) => (
                 <div
@@ -374,7 +374,7 @@ export default function ForPodcasters() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: Globe, title: "Discoverability beyond the feed", description: "Every recap is a Google-indexed page. People searching for topics you've covered find your show organically — even years after the episode aired.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: Globe, title: "Discoverability beyond the feed", description: "Every recap is a Google-indexed page. People searching for topics you've covered find your show organically - even years after the episode aired.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
                 { icon: UserCheck, title: "Deeper audience connection", description: "Fans who read recaps stay engaged with your show even when they can't listen. They never lose touch, and they come back for the episodes that matter most.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
                 { icon: TrendingUp, title: "Stronger engagement metrics", description: "Listeners who preview a recap before pressing play are more intentional. They're more likely to finish episodes, which sends the signals platforms reward.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: BarChart3, title: "Long-tail value from every episode", description: "Your back catalog keeps generating new listeners. Old episodes become permanent, searchable assets instead of disappearing into the archive.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
@@ -405,10 +405,10 @@ export default function ForPodcasters() {
             </h2>
             <div className="text-[15px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
-                Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio — unsearchable, unskimmable, and invisible to the web.
+                Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio - unsearchable, unskimmable, and invisible to the web.
               </p>
               <p>
-                PodCap is building the infrastructure to change that. We're turning every episode into structured, searchable knowledge — connecting ideas across shows, guests, and topics. When someone searches for an idea your podcast discussed, they should find it.
+                PodCap is building the infrastructure to change that. We're turning every episode into structured, searchable knowledge - connecting ideas across shows, guests, and topics. When someone searches for an idea your podcast discussed, they should find it.
               </p>
               <p className="text-white/80 font-display font-bold">
                 We believe great podcast content deserves to be as discoverable as any article on the internet.
@@ -422,7 +422,7 @@ export default function ForPodcasters() {
             <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
               <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
-                There's no cost, no contract, and no catch. PodCap creates episode recaps, searchable transcripts, and discovery pages for your show automatically. Our goal is to make your content more valuable — not to gatekeep it.
+                There's no cost, no contract, and no catch. PodCap creates episode recaps, searchable transcripts, and discovery pages for your show automatically. Our goal is to make your content more valuable - not to gatekeep it.
               </p>
               <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
                 <p className="text-[15px] leading-[1.7] text-muted-foreground">

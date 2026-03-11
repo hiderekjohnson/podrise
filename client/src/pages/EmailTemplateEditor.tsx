@@ -154,7 +154,7 @@ export default function EmailTemplateEditor() {
                   <Copy className="w-3 h-3 text-blue-400" />
                   <span className="text-blue-700 dark:text-blue-300">{mt.tag}</span>
                   <span className="hidden group-hover:block absolute bottom-full left-0 mb-1 px-2 py-1 text-xs bg-gray-900 text-white rounded whitespace-nowrap z-10">
-                    {mt.description} — e.g. "{mt.example}"
+                    {mt.description} - e.g. "{mt.example}"
                   </span>
                 </button>
               ))}

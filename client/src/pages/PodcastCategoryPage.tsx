@@ -19,7 +19,7 @@ import {
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 
 function SEOHead({ category, podcasts }: { category: PodcastCategory; podcasts: PodcastLandingConfig[] }) {
-  const title = `Best ${category.name} Podcasts (2026) — PodCap`;
+  const title = `Best ${category.name} Podcasts (2026) | PodCap`;
   const top3 = podcasts.slice(0, 3).map(p => p.name).join(", ");
   const desc = `Discover the best ${category.name.toLowerCase()} podcasts including ${top3}. AI-powered recaps and summaries delivered daily.`;
   const canonical = `https://podcap.io/podcasts/${category.slug}`;

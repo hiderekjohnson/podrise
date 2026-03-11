@@ -118,7 +118,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                     className="w-full min-h-[52px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                   >
                     <Crown className="w-5 h-5" />
-                    Upgrade to Pro — $9.99/month
+                    Upgrade to Pro - $9.99/month
                   </button>
                   <button
                     data-testid="button-dismiss-upgrade"

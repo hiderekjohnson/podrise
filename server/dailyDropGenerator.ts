@@ -51,14 +51,14 @@ export async function generateDailyDropEdition(dateStr: string): Promise<Generat
 
   const episodeBriefs = bestEpisodes.map((ep, i) => {
     const guestInfo = ep.guests ? ` | Guests: ${tryParseGuestNames(ep.guests)}` : "";
-    return `[${i + 1}] "${ep.episodeTitle}" — ${ep.podcastName} (${ep.hosts || "Unknown host"})${guestInfo}
+    return `[${i + 1}] "${ep.episodeTitle}" - ${ep.podcastName} (${ep.hosts || "Unknown host"})${guestInfo}
 Summary: ${ep.tldl}
 Key insight: ${ep.keyInsights[0] || "N/A"}
-${ep.quote ? `Quote: "${ep.quote}" — ${ep.quoteAttribution || ep.hosts}` : ""}
+${ep.quote ? `Quote: "${ep.quote}" - ${ep.quoteAttribution || ep.hosts}` : ""}
 Full recap link slug: /podcasts/${ep.slug}/${ep.episodeSlug}`;
   }).join("\n\n");
 
-  const prompt = `You are the editor of "The Daily Drop" — PodCap's daily newsletter. Write today's edition for ${formatDateForPrompt(dateStr)}.
+  const prompt = `You are the editor of "The Daily Drop" - PodCap's daily newsletter. Write today's edition for ${formatDateForPrompt(dateStr)}.
 
 Your voice: Smart, conversational, occasionally witty. Think Morning Brew meets podcast culture. You're catching up a busy professional on the most interesting conversations that happened yesterday across the podcast world. Never clinical or listy. Always flowing, always interesting.
 
@@ -68,19 +68,19 @@ ${episodeBriefs}
 
 Write a newsletter-style article. Rules:
 
-1. HEADLINE: A catchy, specific headline that captures the day's most compelling theme or story. Not generic — something that makes you want to read. Like a newsletter subject line.
+1. HEADLINE: A catchy, specific headline that captures the day's most compelling theme or story. Not generic - something that makes you want to read. Like a newsletter subject line.
 
 2. SUBHEADLINE: A one-line teaser that adds context (15-25 words).
 
 3. BODY: Write 4-8 paragraphs of free-flowing narrative. This is NOT a list of episode recaps. This is a story about what happened yesterday in the podcast world. Weave the most interesting ideas, revelations, and quotes together into a cohesive read.
 
 Guidelines for the body:
-- Open with the most compelling story or idea from the day — hook the reader
+- Open with the most compelling story or idea from the day - hook the reader
 - Weave between episodes naturally, like a journalist connecting stories
 - Include 2-3 direct quotes from episodes, embedded naturally in the text
-- For every episode or podcast you reference, include a link in markdown format: [episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / — they are relative paths, NOT full URLs. Example: [Invest Like the Best](/podcasts/investlikethebest/shyam-sankar-celebrating-heretics-invest-like-the-best)
-- Don't just summarize — editorialize lightly. What's interesting? What's the tension? What should the reader care about?
-- End with a strong closer — a thought-provoking takeaway, a question, or a punchy sign-off
+- For every episode or podcast you reference, include a link in markdown format: [episode title](/podcasts/slug/episode-slug). Links MUST start with a forward slash / - they are relative paths, NOT full URLs. Example: [Invest Like the Best](/podcasts/investlikethebest/shyam-sankar-celebrating-heretics-invest-like-the-best)
+- Don't just summarize - editorialize lightly. What's interesting? What's the tension? What should the reader care about?
+- End with a strong closer - a thought-provoking takeaway, a question, or a punchy sign-off
 - Write at a 10th-grade reading level. Short sentences mixed with longer ones. Punchy paragraphs.
 - You don't need to cover every episode. Focus on the 4-8 most interesting ones.
 - NEVER write "X episodes dropped" or "here's what happened" type intros. Start with the story.

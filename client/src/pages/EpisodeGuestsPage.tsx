@@ -80,7 +80,7 @@ export default function EpisodeGuestsPage() {
       document.title = titleParts.join(" | ");
 
       const desc = guestNames
-        ? `Meet the guests on "${episode.episodeTitle}" — ${guestNames}. Full bios, social media links, and topics discussed on ${episode.podcastName}.`
+        ? `Meet the guests on "${episode.episodeTitle}" - ${guestNames}. Full bios, social media links, and topics discussed on ${episode.podcastName}.`
         : `Guest information for "${episode.episodeTitle}" on ${episode.podcastName}. Discover who appeared on this episode.`;
 
       const metaDesc = document.querySelector('meta[name="description"]');
@@ -93,7 +93,7 @@ export default function EpisodeGuestsPage() {
       }
 
       const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute("content", `${episode.episodeTitle} — Guests | ${episode.podcastName}`);
+      if (ogTitle) ogTitle.setAttribute("content", `${episode.episodeTitle} - Guests | ${episode.podcastName}`);
       const ogDesc = document.querySelector('meta[property="og:description"]');
       if (ogDesc) ogDesc.setAttribute("content", desc);
     }

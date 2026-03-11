@@ -626,7 +626,7 @@ export default function PersonDetailPage() {
                               <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-sm text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5" data-testid={`key-idea-ep-${i}-${j}`}>
                                 <Headphones className="w-3 h-3" />
                                 {ep.episode_title}
-                                <span className="text-muted-foreground text-xs">— {ep.podcast_name}</span>
+                                <span className="text-muted-foreground text-xs">on {ep.podcast_name}</span>
                               </Link>
                             ))}
                           </div>

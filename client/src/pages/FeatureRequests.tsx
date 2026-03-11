@@ -43,7 +43,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Redesigned episode recaps",
-    description: "Episode recap pages now organize content into clean, numbered cards — TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI — so you can scan or deep-dive however you prefer.",
+    description: "Episode recap pages now organize content into clean, numbered cards - TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI - so you can scan or deep-dive however you prefer.",
     emoji: "✨",
     date: "Feb 21, 2026",
   },
@@ -67,7 +67,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Pro plan management",
-    description: "Pro subscribers can now view billing history, update their payment method, and manage their subscription directly from the Your Plan tab — no need to dig through emails.",
+    description: "Pro subscribers can now view billing history, update their payment method, and manage their subscription directly from the Your Plan tab - no need to dig through emails.",
     emoji: "💳",
     date: "Feb 6, 2026",
   },
@@ -86,7 +86,7 @@ const changelog: ChangelogEntry[] = [
     date: "Jan 30, 2026",
   },
   {
-    title: "For Podcasters — we're here to help, not hurt",
+    title: "For Podcasters - we're here to help, not hurt",
     description: "There was some confusion from podcasters that PodCap might lower listening. It's far from the truth. We built a dedicated page to explain how PodCap actually helps podcasters by keeping superfans engaged, boosting completion rates, and improving algorithm performance. We love podcasters, and this service is completely free for creators.",
     link: { url: "/we-heart-podcasters", label: "Read our message to podcasters" },
     emoji: "❤️",
@@ -101,20 +101,20 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Dedicated podcast summary pages for individual shows",
-    description: "Podcasters reached out and asked for their own sign-up pages — so we built them. Each page is a hub for that podcast's daily recaps, episode summaries, and show info. If you're a podcaster and want your own page, we'd love to hear from you.",
+    description: "Podcasters reached out and asked for their own sign-up pages - so we built them. Each page is a hub for that podcast's daily recaps, episode summaries, and show info. If you're a podcaster and want your own page, we'd love to hear from you.",
     link: { url: "/podcasts/myfirstmillion", label: "See the My First Million podcast summary page" },
     emoji: "🎙️",
     date: "Jan 20, 2026",
   },
   {
     title: "Help & Support center",
-    description: "Sorry we didn't think of this sooner — you can now reach us anytime with questions, issues, or feedback about your podcast summaries.",
+    description: "Sorry we didn't think of this sooner - you can now reach us anytime with questions, issues, or feedback about your podcast summaries.",
     link: { url: "/support", label: "Visit the PodCap support page" },
     emoji: "💬",
     date: "Jan 17, 2026",
   },
   {
-    title: "PodCap Pro — unlimited podcast summaries",
+    title: "PodCap Pro - unlimited podcast summaries",
     description: "Follow more than 3 podcasts with our Pro plan for $9.99/month. Get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
     emoji: "⭐",
     date: "Jan 14, 2026",
@@ -128,13 +128,13 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "View and re-send past recaps from your dashboard",
-    description: "Your daily podcast recaps aren't just emails anymore. Log in to your PodCap account to browse all your previous episode summaries — and re-send any recap to your inbox if you need it again.",
+    description: "Your daily podcast recaps aren't just emails anymore. Log in to your PodCap account to browse all your previous episode summaries - and re-send any recap to your inbox if you need it again.",
     emoji: "📂",
     date: "Jan 8, 2026",
   },
   {
     title: "No new episodes? No email",
-    description: "We turned off recap emails on days when none of your podcasts dropped a new episode. One less unnecessary email in your inbox — you're welcome.",
+    description: "We turned off recap emails on days when none of your podcasts dropped a new episode. One less unnecessary email in your inbox - you're welcome.",
     emoji: "📭",
     date: "Jan 5, 2026",
   },
@@ -146,7 +146,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Custom delivery time for podcast summaries",
-    description: "Choose exactly when you'd like to receive your daily podcast recap. Early bird or night owl — your AI-powered episode summary arrives on your schedule.",
+    description: "Choose exactly when you'd like to receive your daily podcast recap. Early bird or night owl - your AI-powered episode summary arrives on your schedule.",
     emoji: "⏰",
     date: "Jan 1, 2026",
   },
@@ -161,7 +161,7 @@ export default function FeatureRequests() {
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = "What's New — PodCap Updates, Features & Changelog";
+    document.title = "What's New - PodCap Updates, Features & Changelog";
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -169,10 +169,10 @@ export default function FeatureRequests() {
       el.setAttribute("content", content);
     };
 
-    setMeta("name", "description", "See what we've shipped — AI-powered podcast recaps, searchable transcripts, episode summaries, people and topic pages, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.");
+    setMeta("name", "description", "See what we've shipped - AI-powered podcast recaps, searchable transcripts, episode summaries, people and topic pages, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.");
     setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodCap changelog, searchable transcripts, AI podcast knowledge, episode recap platform");
-    setMeta("property", "og:title", "What's New — PodCap Updates, Features & Changelog");
-    setMeta("property", "og:description", "See what we've shipped — AI-powered podcast recaps, searchable transcripts, episode summaries, and more. Follow PodCap's journey.");
+    setMeta("property", "og:title", "What's New - PodCap Updates, Features & Changelog");
+    setMeta("property", "og:description", "See what we've shipped - AI-powered podcast recaps, searchable transcripts, episode summaries, and more. Follow PodCap's journey.");
     setMeta("property", "og:url", "https://podcap.io/updates");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodCap");
@@ -186,8 +186,8 @@ export default function FeatureRequests() {
     jsonLd.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": "What's New — PodCap Updates, Features & Changelog",
-      "description": "See what we've shipped — AI-powered podcast recaps, searchable transcripts, podcast summaries, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.",
+      "name": "What's New - PodCap Updates, Features & Changelog",
+      "description": "See what we've shipped - AI-powered podcast recaps, searchable transcripts, podcast summaries, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.",
       "url": "https://podcap.io/updates",
       "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
     });
@@ -321,7 +321,7 @@ export default function FeatureRequests() {
               </div>
               <div>
                 <h2 className="text-base font-display font-bold text-foreground">What should we build next?</h2>
-                <p className="text-[15px] text-muted-foreground">We read every suggestion — your ideas shape PodCap.</p>
+                <p className="text-[15px] text-muted-foreground">We read every suggestion - your ideas shape PodCap.</p>
               </div>
             </div>
 

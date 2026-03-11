@@ -484,7 +484,7 @@ export default function Dashboard() {
                   className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                 >
                   <Crown className="w-4 h-4" />
-                  Upgrade to Pro — $9.99/month
+                  Upgrade to Pro - $9.99/month
                 </button>
                 <button
                   data-testid="button-dismiss-upgrade-dashboard"
@@ -1114,7 +1114,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <h2 className="text-base font-display font-bold text-foreground">Pro Plan</h2>
-                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">$9.99/month — unlimited podcasts</p>
+                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">$9.99/month - unlimited podcasts</p>
                         </div>
                       </div>
                       <span className="text-[15px] bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>

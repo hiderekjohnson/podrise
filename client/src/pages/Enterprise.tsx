@@ -103,7 +103,7 @@ function EnterpriseContactForm() {
 
 export default function Enterprise() {
   useEffect(() => {
-    const title = "Enterprise — Podcast Intelligence & Knowledge Infrastructure | PodCap";
+    const title = "Enterprise - Podcast Intelligence & Knowledge Infrastructure | PodCap";
     const desc = "PodCap turns podcast content into structured, searchable knowledge for enterprise teams. Monitor topics, discover insights, and surface important discussions across thousands of podcast conversations.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
@@ -165,7 +165,7 @@ export default function Enterprise() {
                 The knowledge is there. The access isn't.
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Every week, thousands of podcast episodes surface expert analysis, industry signals, and strategic conversations that matter to your business. But that knowledge is locked inside hours of audio — unsearchable, unstructured, and invisible to your team.
+                Every week, thousands of podcast episodes surface expert analysis, industry signals, and strategic conversations that matter to your business. But that knowledge is locked inside hours of audio - unsearchable, unstructured, and invisible to your team.
               </p>
             </div>
 
@@ -192,7 +192,7 @@ export default function Enterprise() {
                 A structured knowledge layer for podcast content
               </h2>
               <p className="text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                PodCap processes podcast episodes into structured, queryable data — turning conversations into searchable knowledge your team can actually use.
+                PodCap processes podcast episodes into structured, queryable data - turning conversations into searchable knowledge your team can actually use.
               </p>
             </div>
 
@@ -203,7 +203,7 @@ export default function Enterprise() {
                 { icon: Layers, title: "Structured knowledge extraction", description: "AI-powered extraction of key insights, quotes, guest appearances, and topic breakdowns from every episode processed.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
                 { icon: Database, title: "API access", description: "Programmatic access to structured podcast data. Integrate podcast intelligence into your existing tools and workflows.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: Globe, title: "Cross-show intelligence", description: "Connect ideas, guests, and topics across different podcasts. Surface patterns and emerging themes your competitors might miss.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
-                { icon: BookOpen, title: "Knowledge summaries", description: "Concise, accurate episode recaps with key takeaways, notable quotes, and structured chapter analysis — generated automatically.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
+                { icon: BookOpen, title: "Knowledge summaries", description: "Concise, accurate episode recaps with key takeaways, notable quotes, and structured chapter analysis - generated automatically.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
               ].map((item) => (
                 <div
                   key={item.title}

@@ -134,7 +134,7 @@ export async function generateRecap(
   }
 
   if (!hasAnyEpisodes) {
-    console.log(`[Recap] No recent episodes found for user ${user.id} — no recap generated`);
+    console.log(`[Recap] No recent episodes found for user ${user.id} - no recap generated`);
     return null;
   }
 
@@ -261,12 +261,12 @@ export async function generateRecap(
         quoteAttribution: quoteAttribution || undefined,
       });
     } else {
-      console.log(`[Recap] No stored recap for "${epTitle}" — skipping from email`);
+      console.log(`[Recap] No stored recap for "${epTitle}" - skipping from email`);
     }
   }
 
   if (recapEpisodes.length === 0) {
-    console.log(`[Recap] No stored recaps found for any discovered episodes — no email generated`);
+    console.log(`[Recap] No stored recaps found for any discovered episodes - no email generated`);
     return null;
   }
 
@@ -308,7 +308,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "podcastName": "${podcastName}",
   "episodeTitle": "${episodeTitle}",
   "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "A flowing 2-minute read narrative summary (6-10 short paragraphs). Write it like a well-crafted article recap — not bullet points or chapter headings. Each paragraph should be 2-4 sentences. Cover the full arc of the episode from opening to conclusion. Separate paragraphs with \\n\\n.",
+  "whatHappened": "A flowing 2-minute read narrative summary (6-10 short paragraphs). Write it like a well-crafted article recap - not bullet points or chapter headings. Each paragraph should be 2-4 sentences. Cover the full arc of the episode from opening to conclusion. Separate paragraphs with \\n\\n.",
   "keyInsights": ["Insight 1", "Insight 2", "Insight 3", "Insight 4"],
   "quote": "A memorable line from the transcript",
   "quoteAttribution": "Speaker Name on topic",
@@ -336,12 +336,12 @@ RULES:
 - Write like a sharp friend catching you up
 - Be specific and concrete
 - Quotes MUST be from the transcript
-- whatHappened must be a flowing 2-minute read narrative (6-10 short paragraphs, 2-4 sentences each). Write like a well-crafted article recap — NOT chapter headings or bullet summaries. Cover the full arc: what opened the episode, the key discussions, turning points, and how it concluded. Use \\n\\n between paragraphs
-- keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific — never generic
-- topQuestions: 5 SEO-optimized questions phrased like real Google searches someone would type. Each question MUST contain the specific entity, person, concept, or framework name (e.g. "What is the regret minimization framework?" not "What framework was discussed?"). Each answer should be 2-4 sentences that naturally repeat the key entity/concept name at least once. Answers must read naturally — not keyword-stuffed. Draw all content from the transcript
+- whatHappened must be a flowing 2-minute read narrative (6-10 short paragraphs, 2-4 sentences each). Write like a well-crafted article recap - NOT chapter headings or bullet summaries. Cover the full arc: what opened the episode, the key discussions, turning points, and how it concluded. Use \\n\\n between paragraphs
+- keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing", "Global appeal of motorsport". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition", "Economics of F1 teams", "Global growth of Formula 1". Always be specific - never generic
+- topQuestions: 5 SEO-optimized questions phrased like real Google searches someone would type. Each question MUST contain the specific entity, person, concept, or framework name (e.g. "What is the regret minimization framework?" not "What framework was discussed?"). Each answer should be 2-4 sentences that naturally repeat the key entity/concept name at least once. Answers must read naturally - not keyword-stuffed. Draw all content from the transcript
 - sponsors: Extract ALL sponsors/advertisers mentioned in the transcript (ad reads, promo codes, sponsored segments). Include coupon codes and URLs when mentioned. Return empty array [] if no sponsors are mentioned
-- guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Use their FULL NAME (first and last). Include their professional title/position at their company. Write a 2-3 sentence bio based on how they are introduced. Include social media handles if mentioned in the transcript or commonly known (twitter, linkedin, instagram, website). Do NOT include photoUrl — set it to null. Return empty array [] if no guests (solo host episodes or host-only conversations)
-- resources: Extract ALL books mentioned, recommended, quoted, referenced, or discussed — even briefly. Also include physical products or tools that someone could actually BUY on Amazon. For books: include the full title, author name, and a 1-2 sentence "context" explaining how/why the book came up in conversation. For URLs, use https://www.amazon.com/dp/ASIN if you know the ASIN, or https://www.amazon.com/s?k=Book+Title+Author for search fallback. Do NOT include abstract concepts, philosophies, anecdotes, websites, newsletters, services, SaaS products, or the podcast itself. Do NOT include sponsors here either. If no purchasable items or books are mentioned, return empty array []`;
+- guests: Extract ALL guests who appear on the episode (NOT the regular hosts). Use their FULL NAME (first and last). Include their professional title/position at their company. Write a 2-3 sentence bio based on how they are introduced. Include social media handles if mentioned in the transcript or commonly known (twitter, linkedin, instagram, website). Do NOT include photoUrl - set it to null. Return empty array [] if no guests (solo host episodes or host-only conversations)
+- resources: Extract ALL books mentioned, recommended, quoted, referenced, or discussed - even briefly. Also include physical products or tools that someone could actually BUY on Amazon. For books: include the full title, author name, and a 1-2 sentence "context" explaining how/why the book came up in conversation. For URLs, use https://www.amazon.com/dp/ASIN if you know the ASIN, or https://www.amazon.com/s?k=Book+Title+Author for search fallback. Do NOT include abstract concepts, philosophies, anecdotes, websites, newsletters, services, SaaS products, or the podcast itself. Do NOT include sponsors here either. If no purchasable items or books are mentioned, return empty array []`;
 
   const maxAttempts = 2;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -411,13 +411,13 @@ Find ALL books mentioned in any context:
 - Books quoted or referenced ("as [author] wrote in [book]...")
 - Books discussed at length or briefly
 - Books mentioned in passing ("that reminds me of [book]...")
-- Textbooks, memoirs, novels, business books, self-help — any published book
+- Textbooks, memoirs, novels, business books, self-help - any published book
 
 For each book, provide:
 - name: The exact book title
 - author: The author's full name (look it up if you know it, even if the transcript only gives a last name)
 - description: A 1-sentence description of what the book is about
-- context: 1-2 sentences explaining exactly what was said about this book in the episode — why it was mentioned, what point it supported, or why it was recommended. This should feel like transcript context, not a generic description.
+- context: 1-2 sentences explaining exactly what was said about this book in the episode - why it was mentioned, what point it supported, or why it was recommended. This should feel like transcript context, not a generic description.
 - url: An Amazon direct product URL in format https://www.amazon.com/dp/ASIN if you know the ASIN, otherwise https://www.amazon.com/s?k=Book+Title+Author+Name
 
 Respond ONLY with a valid JSON object:

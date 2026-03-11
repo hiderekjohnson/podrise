@@ -11,15 +11,15 @@ interface PageMeta {
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/contact": {
-    title: "Contact Us — PodCap | Daily Podcast Summaries",
-    description: "Get in touch with the PodCap team. Questions, feedback, or just want to say hello — we'd love to hear from you.",
+    title: "Contact Us - PodCap | Daily Podcast Summaries",
+    description: "Get in touch with the PodCap team. Questions, feedback, or just want to say hello - we'd love to hear from you.",
     image: "https://podcap.io/favicon.png",
     url: "https://podcap.io/contact",
     twitterCard: "summary",
     replaceFavicon: false,
   },
   "/about": {
-    title: "About PodCap — The Story Behind Your Daily Podcast Summaries",
+    title: "About PodCap - The Story Behind Your Daily Podcast Summaries",
     description: "PodCap was built by Derek Johnson after 15 years running Tatango.com. Even semi-retired, he couldn't keep up with his favorite podcasts. So he built an AI-powered daily podcast summary service.",
     image: "https://podcap.io/favicon.png",
     url: "https://podcap.io/about",
@@ -27,7 +27,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     replaceFavicon: false,
   },
   "/leaderboard": {
-    title: "PodCap Leaderboard — Most Popular Podcasts",
+    title: "PodCap Leaderboard - Most Popular Podcasts",
     description: "See which podcasts are trending on PodCap. Discover the most popular shows and create your own free daily AI-powered recap.",
     image: "https://podcap.io/favicon.png",
     url: "https://podcap.io/leaderboard",
@@ -35,7 +35,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     replaceFavicon: false,
   },
   "/podcasts": {
-    title: "All Podcasts — Browse 87+ Shows with Free Daily Recaps | PodCap",
+    title: "All Podcasts - Browse 87+ Shows with Free Daily Recaps | PodCap",
     description: "Browse the full PodCap podcast directory. Get free AI-powered daily recaps for 87+ top podcasts including Joe Rogan, Lex Fridman, All-In, Huberman Lab, and more.",
     image: "https://podcap.io/favicon.png",
     url: "https://podcap.io/podcasts",
@@ -54,7 +54,7 @@ function buildPodcastDirectoryHtml(): string {
       return `<li><a href="/podcasts/${escapeAttr(p.slug)}">${label}</a></li>`;
     })
     .join("");
-  return `<div id="ssr-podcast-directory" style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>All Podcasts — Free Daily Recaps</h1><p>Browse ${PODCAST_SEO.length}+ podcasts with free AI-powered daily recaps delivered to your inbox.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul></div>`;
+  return `<div id="ssr-podcast-directory" style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>All Podcasts - Free Daily Recaps</h1><p>Browse ${PODCAST_SEO.length}+ podcasts with free AI-powered daily recaps delivered to your inbox.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul></div>`;
 }
 
 function injectDirectoryHtml(html: string): string {
@@ -191,7 +191,7 @@ export function injectPodcastMeta(html: string, url: string): string {
     if (episode) {
       const desc = episode.tldl.length > 155 ? episode.tldl.slice(0, 155) + "..." : episode.tldl;
       return replaceMetaTags(html, {
-        title: `${episode.episodeTitle} — ${episode.podcastName} Recap | PodCap`,
+        title: `${episode.episodeTitle} - ${episode.podcastName} Recap | PodCap`,
         description: desc,
         image: episode.artworkUrl,
         url: `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}`,
@@ -205,9 +205,9 @@ export function injectPodcastMeta(html: string, url: string): string {
     const slug = podcastMatch[1].toLowerCase();
     const podcast = PODCAST_SEO.find(p => p.slug === slug);
     if (podcast) {
-      const desc = `Get free daily ${podcast.name} podcast summaries and episode recaps. ${podcast.description.charAt(0).toUpperCase() + podcast.description.slice(1)} by ${podcast.hosts} — delivered to your inbox.`;
+      const desc = `Get free daily ${podcast.name} podcast summaries and episode recaps. ${podcast.description.charAt(0).toUpperCase() + podcast.description.slice(1)} by ${podcast.hosts} - delivered to your inbox.`;
       return replaceMetaTags(html, {
-        title: `${podcast.name} Podcast Summary — Free Daily Recap | PodCap`,
+        title: `${podcast.name} Podcast Summary - Free Daily Recap | PodCap`,
         description: desc,
         image: podcast.artworkUrl,
         url: `https://podcap.io/podcasts/${podcast.slug}`,

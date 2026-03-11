@@ -319,7 +319,7 @@ export default function EpisodeRecapPage() {
       return;
     }
 
-    const pageTitle = `${episode.episodeTitle} — ${episode.podcastName} Recap | PodCap`;
+    const pageTitle = `${episode.episodeTitle} | ${episode.podcastName} Recap | PodCap`;
     const pageDescription = episode.tldl.slice(0, 155) + (episode.tldl.length > 155 ? "..." : "");
     const canonicalUrl = `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}`;
 

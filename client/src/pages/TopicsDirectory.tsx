@@ -26,8 +26,8 @@ function getTopicSourceCount(topic: typeof TOPICS[0]): number {
 const FEATURED_SLUGS = ["ai", "venture-capital", "entrepreneurship", "investing", "leadership", "saas"];
 
 function SEOHead() {
-  const title = "Podcast Intelligence — Real-Time Topic Monitoring Across 244+ Sources | PodCap";
-  const description = "Enterprise-grade podcast intelligence. We monitor, analyze, and synthesize insights from 244+ podcasts across 37 critical topics — so your team never misses what's being said. Built for analysts, strategists, and decision-makers.";
+  const title = "Podcast Intelligence - Real-Time Topic Monitoring Across 244+ Sources | PodCap";
+  const description = "Enterprise-grade podcast intelligence. We monitor, analyze, and synthesize insights from 244+ podcasts across 37 critical topics - so your team never misses what's being said. Built for analysts, strategists, and decision-makers.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -147,7 +147,7 @@ export default function TopicsDirectory() {
             Topic Intelligence Dashboard
           </h1>
           <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-3xl leading-relaxed" data-testid="text-page-description">
-            We monitor {totalSources}+ podcast sources and synthesize what's being said across {TOPICS.length} critical topics — delivering structured intelligence for analysts, strategists, and decision-makers who can't afford to miss what matters.
+            We monitor {totalSources}+ podcast sources and synthesize what's being said across {TOPICS.length} critical topics - delivering structured intelligence for analysts, strategists, and decision-makers who can't afford to miss what matters.
           </p>
         </motion.div>
 
@@ -293,7 +293,7 @@ export default function TopicsDirectory() {
                     Custom intelligence for your organization
                   </h3>
                   <p className="text-[15px] text-white/60 leading-relaxed max-w-xl">
-                    We build custom monitoring dashboards for enterprise teams — structured data, automated synthesis, and real-time alerts on the topics your organization tracks. Used by research teams, strategy groups, and competitive intelligence units.
+                    We build custom monitoring dashboards for enterprise teams - structured data, automated synthesis, and real-time alerts on the topics your organization tracks. Used by research teams, strategy groups, and competitive intelligence units.
                   </p>
                 </div>
                 <Link href="/enterprise" data-testid="link-enterprise-cta">

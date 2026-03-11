@@ -446,7 +446,7 @@ export default function EpisodePagesTracker() {
                         ) : (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <AlertCircle className="w-3.5 h-3.5" />
-                            No episode pages generated yet — {p.transcriptCount} transcripts ready for processing
+                            No episode pages generated yet - {p.transcriptCount} transcripts ready for processing
                           </div>
                         )}
                       </td>
@@ -487,7 +487,7 @@ export default function EpisodePagesTracker() {
       </div>
 
       <p className="text-xs text-muted-foreground mt-3 text-center">
-        Click any row to see recap quality breakdown — status refreshes every 10 seconds
+        Click any row to see recap quality breakdown - status refreshes every 10 seconds
       </p>
     </div>
   );

@@ -64,7 +64,7 @@ function BatchExpansionPanel() {
   const [polling, setPolling] = useState(false);
 
   const startExpansion = async () => {
-    if (!confirm("This will expand all podcasts to 50 episodes each. This process fetches transcripts from Taddy and generates AI recaps — it may take a while. Continue?")) return;
+    if (!confirm("This will expand all podcasts to 50 episodes each. This process fetches transcripts from Taddy and generates AI recaps - it may take a while. Continue?")) return;
     try {
       setIsRunning(true);
       const res = await fetch("/api/admin/batch-expand", {
@@ -140,7 +140,7 @@ function BatchExpansionPanel() {
           <div className="flex items-center gap-2">
             <span className={`inline-block w-2 h-2 rounded-full ${progress.status === "running" ? "bg-emerald-500 animate-pulse" : progress.status === "completed" ? "bg-blue-500" : "bg-red-500"}`} />
             <span className="text-xs font-semibold text-foreground capitalize">{progress.status}</span>
-            {progress.currentPodcast && <span className="text-xs text-muted-foreground">— {progress.currentPodcast}</span>}
+            {progress.currentPodcast && <span className="text-xs text-muted-foreground">- {progress.currentPodcast}</span>}
           </div>
 
           {progress.podcastsTotal > 0 && (
@@ -305,7 +305,7 @@ function TaskCard({
         <span className={`inline-block w-2 h-2 rounded-full ${statusColor} ${status === "running" ? "animate-pulse" : ""}`} />
         <span className="text-xs font-semibold text-foreground">{statusLabel}</span>
         {status === "running" && currentItem && (
-          <span className="text-xs text-muted-foreground truncate max-w-[200px]">— {currentItem}</span>
+          <span className="text-xs text-muted-foreground truncate max-w-[200px]">- {currentItem}</span>
         )}
       </div>
 

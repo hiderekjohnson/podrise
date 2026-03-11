@@ -43,18 +43,18 @@ async function main() {
         if (trackCount === 0) {
           badIdCount++;
           podcastResults[p.name] = { name: p.name, totalEpisodes: 0, error: `iTunes ID ${p.itunes_id} not found on Apple` };
-          console.log(`[${num}/${podcasts.length}] ${p.name} — BAD ID (${p.itunes_id} not found on Apple)`);
+          console.log(`[${num}/${podcasts.length}] ${p.name} - BAD ID (${p.itunes_id} not found on Apple)`);
         } else {
           podcastResults[p.name] = { name: p.name, totalEpisodes: trackCount };
           await client.query(
             `UPDATE podcast_directory SET total_episodes = $1 WHERE itunes_id = $2`,
             [trackCount, p.itunes_id]
           );
-          console.log(`[${num}/${podcasts.length}] ${p.name} — ${trackCount} episodes, ${transcripts} transcripts`);
+          console.log(`[${num}/${podcasts.length}] ${p.name} - ${trackCount} episodes, ${transcripts} transcripts`);
         }
       } catch (err: any) {
         podcastResults[p.name] = { name: p.name, totalEpisodes: 0, error: err.message?.slice(0, 200) };
-        console.log(`[${num}/${podcasts.length}] ${p.name} — ERROR: ${err.message?.slice(0, 100)}`);
+        console.log(`[${num}/${podcasts.length}] ${p.name} - ERROR: ${err.message?.slice(0, 100)}`);
       }
 
       processedNames.push(p.name);

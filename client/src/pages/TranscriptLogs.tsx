@@ -64,7 +64,7 @@ function statusBadge(status: string) {
 }
 
 function formatTime(dateStr: string | null) {
-  if (!dateStr) return "—";
+  if (!dateStr) return "-";
   const d = new Date(dateStr);
   return d.toLocaleString("en-US", {
     month: "short",
@@ -139,7 +139,7 @@ export default function TranscriptLogs() {
         <div className="text-center py-16">
           <Clock className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">
-            {activeTab === "successful" ? "No successful transcripts yet." : "No errors — looking good!"}
+            {activeTab === "successful" ? "No successful transcripts yet." : "No errors - looking good!"}
           </p>
           <p className="text-xs text-muted-foreground/60 mt-1">
             {activeTab === "successful" ? "Transcripts will appear here when recaps are generated." : "All transcript fetches have succeeded."}
@@ -187,7 +187,7 @@ export default function TranscriptLogs() {
                   <td className={`px-4 py-3 ${activeTab === "successful" ? "text-right" : "text-left"} text-xs text-muted-foreground`}>
                     {activeTab === "successful" ? (
                       <span className="tabular-nums">
-                        {log.transcriptLength ? `${(log.transcriptLength / 1000).toFixed(1)}K` : "—"}
+                        {log.transcriptLength ? `${(log.transcriptLength / 1000).toFixed(1)}K` : "-"}
                       </span>
                     ) : (
                       <p className="max-w-[250px] truncate text-red-500" title={log.errorMessage || undefined}>

@@ -5075,7 +5075,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     slug: "google",
     name: "Google",
     description: "Technology company and search engine giant",
-    background: "Google LLC, a subsidiary of Alphabet Inc., is the world's leading search engine and a major player in advertising, cloud computing, and artificial intelligence. Google developed the Transformer architecture that underpins modern AI, and its AI lab DeepMind created AlphaGo and Gemini. Google's products — Search, YouTube, Android, Chrome, Gmail — are used by billions worldwide.",
+    background: "Google LLC, a subsidiary of Alphabet Inc., is the world's leading search engine and a major player in advertising, cloud computing, and artificial intelligence. Google developed the Transformer architecture that underpins modern AI, and its AI lab DeepMind created AlphaGo and Gemini. Google's products - Search, YouTube, Android, Chrome, Gmail - are used by billions worldwide.",
     logoUrl: "/logos/google.png",
     searchTerms: ["Google", "Alphabet", "DeepMind"],
     associatedTerms: ["Gemini", "Google Search", "Android", "Chrome"],
@@ -7394,7 +7394,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     slug: "zapier",
     name: "Zapier",
     description: "No-code automation platform connecting thousands of apps and workflows.",
-    background: "Zapier is a no-code automation platform founded in 2011 that connects over 6,000 apps to automate workflows. The company is notably bootstrapped, fully remote, and profitable — a rarity among tech companies of its scale. Zapier is frequently discussed in entrepreneurship and productivity podcasts as both a powerful business tool and an exemplary case of bootstrapped growth.",
+    background: "Zapier is a no-code automation platform founded in 2011 that connects over 6,000 apps to automate workflows. The company is notably bootstrapped, fully remote, and profitable - a rarity among tech companies of its scale. Zapier is frequently discussed in entrepreneurship and productivity podcasts as both a powerful business tool and an exemplary case of bootstrapped growth.",
     logoUrl: "/logos/zapier.png",
     searchTerms: ["Zapier"],
     details: {
@@ -7527,7 +7527,7 @@ export const COMPANIES_DIRECTORY: CompanyEntry[] = [
     slug: "wework",
     name: "WeWork",
     description: "Flexible workspace and coworking company that became a cautionary tale of startup excess.",
-    background: "WeWork was founded in 2010 by Adam Neumann and Miguel McKelvey as a coworking space provider. Once valued at $47 billion, WeWork's spectacular fall from grace — driven by corporate governance failures, an aborted IPO, and Neumann's ouster — became one of the most discussed business stories of the decade. WeWork filed for bankruptcy in 2023 and has since restructured.",
+    background: "WeWork was founded in 2010 by Adam Neumann and Miguel McKelvey as a coworking space provider. Once valued at $47 billion, WeWork's spectacular fall from grace - driven by corporate governance failures, an aborted IPO, and Neumann's ouster - became one of the most discussed business stories of the decade. WeWork filed for bankruptcy in 2023 and has since restructured.",
     logoUrl: "/logos/wework.png",
     searchTerms: ["WeWork"],
     details: {

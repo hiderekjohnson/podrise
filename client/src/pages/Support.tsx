@@ -60,7 +60,7 @@ export default function Support() {
     },
     {
       question: "What happens if none of my podcasts released a new episode yesterday?",
-      answer: "If none of your selected podcasts published a new episode, PodCap simply skips that day — no email is sent. We don't clutter your inbox with empty podcast summaries. You'll only receive a daily podcast digest when there's new content to catch up on.",
+      answer: "If none of your selected podcasts published a new episode, PodCap simply skips that day - no email is sent. We don't clutter your inbox with empty podcast summaries. You'll only receive a daily podcast digest when there's new content to catch up on.",
     },
     {
       question: "When will I receive my daily podcast summary?",
@@ -68,7 +68,7 @@ export default function Support() {
     },
     {
       question: "Can I change which podcasts are included in my recap?",
-      answer: "Yes! You can update your podcast selections anytime from your dashboard. Search for new shows and add or remove them with one click. Changes take effect starting with your next daily podcast digest — no waiting required.",
+      answer: "Yes! You can update your podcast selections anytime from your dashboard. Search for new shows and add or remove them with one click. Changes take effect starting with your next daily podcast digest - no waiting required.",
     },
     {
       question: "How many podcasts can I follow with PodCap?",
@@ -80,35 +80,35 @@ export default function Support() {
     },
     {
       question: "How do I cancel my Pro subscription?",
-      answer: "You can manage your subscription from your dashboard. Click the \"Manage Subscription\" button to access Stripe's customer portal where you can cancel anytime. Your Pro benefits — including unlimited podcast summaries — continue until the end of your billing period.",
+      answer: "You can manage your subscription from your dashboard. Click the \"Manage Subscription\" button to access Stripe's customer portal where you can cancel anytime. Your Pro benefits - including unlimited podcast summaries - continue until the end of your billing period.",
     },
     {
       question: "How does PodCap create such accurate podcast recaps?",
-      answer: "PodCap uses advanced AI to analyze real podcast transcripts and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode transcript — nothing is fabricated or guessed. This makes PodCap one of the most reliable podcast summary services available.",
+      answer: "PodCap uses advanced AI to analyze real podcast transcripts and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode transcript - nothing is fabricated or guessed. This makes PodCap one of the most reliable podcast summary services available.",
     },
     {
       question: "I'm not receiving my daily podcast recap emails. What should I do?",
-      answer: "First, check your spam or junk folder — sometimes podcast summary emails end up there. If you find them, mark them as \"not spam\" so future podcast digests go to your inbox. Also verify the email address on your dashboard is correct. If you're still not receiving your daily podcast recaps, reach out using the contact form below and we'll help troubleshoot.",
+      answer: "First, check your spam or junk folder - sometimes podcast summary emails end up there. If you find them, mark them as \"not spam\" so future podcast digests go to your inbox. Also verify the email address on your dashboard is correct. If you're still not receiving your daily podcast recaps, reach out using the contact form below and we'll help troubleshoot.",
     },
     {
       question: "Is my data safe with PodCap?",
-      answer: "Absolutely. We only collect your email address and podcast preferences — the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone. Payment processing is handled securely by Stripe, so we never see or store your credit card details.",
+      answer: "Absolutely. We only collect your email address and podcast preferences - the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone. Payment processing is handled securely by Stripe, so we never see or store your credit card details.",
     },
     {
       question: "Can I delete my account?",
-      answer: "Yes, you can delete your account at any time from your dashboard. Please note that this is permanent — deleting your account removes all your data, including your saved podcast selections, previous podcast recaps and episode summaries, delivery preferences, and subscription details. This action cannot be undone, so make sure you no longer need access to your recap history before proceeding.",
+      answer: "Yes, you can delete your account at any time from your dashboard. Please note that this is permanent - deleting your account removes all your data, including your saved podcast selections, previous podcast recaps and episode summaries, delivery preferences, and subscription details. This action cannot be undone, so make sure you no longer need access to your recap history before proceeding.",
     },
   ];
 
   useEffect(() => {
-    document.title = "Help & Support — PodCap | Podcast Recaps, Summaries & Transcripts";
+    document.title = "Help & Support - PodCap | Podcast Recaps, Summaries & Transcripts";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
     setMeta("name", "description", "Find answers about PodCap's AI-powered podcast recaps, episode summaries, searchable transcripts, delivery settings, Pro plan features, and more. Get help or contact our team.");
-    setMeta("property", "og:title", "Help & Support — PodCap | Podcast Recaps, Summaries & Transcripts");
+    setMeta("property", "og:title", "Help & Support - PodCap | Podcast Recaps, Summaries & Transcripts");
     setMeta("property", "og:description", "Get answers about podcast recaps, episode summaries, searchable transcripts, delivery timing, and your subscription. Contact the PodCap support team.");
   }, []);
 

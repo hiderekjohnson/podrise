@@ -20,7 +20,7 @@ function SEOHead({ topicName, categoryName, categorySlug, topicSlug, podcastName
   topicSlug: string;
   podcastNames: string[];
 }) {
-  const title = `Best ${topicName} Podcasts (2026) — PodCap`;
+  const title = `Best ${topicName} Podcasts (2026) | PodCap`;
   const top3 = podcastNames.slice(0, 3).join(", ");
   const description = `Discover the best ${topicName.toLowerCase()} podcasts in 2026, including ${top3}. Free AI-powered recaps delivered to your inbox.`;
   const canonicalUrl = `https://podcap.io/podcasts/${categorySlug}/${topicSlug}`;

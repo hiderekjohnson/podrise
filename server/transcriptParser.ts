@@ -13,7 +13,7 @@ function cleanText(text: string): string {
   t = t.replace(/[\u2018\u2019\u201A\u201B]/g, "'");
   t = t.replace(/[\u201C\u201D\u201E\u201F]/g, '"');
   t = t.replace(/\u2026/g, "...");
-  t = t.replace(/\u2013|\u2014/g, "—");
+  t = t.replace(/\u2013|\u2014/g, "-");
   t = t.replace(/\s{2,}/g, " ");
   t = t.replace(/(\b\w+\b)(\s+\1){2,}/gi, "$1");
   t = t.replace(/\b(I|i)\s+\1\s+\1\b/g, "$1");

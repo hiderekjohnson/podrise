@@ -86,7 +86,7 @@ export default function BackfillTracker() {
             <span className="text-sm font-bold text-blue-700">Backfill Running</span>
             {data.backfillCurrentName && (
               <span className="text-sm text-blue-600 ml-2">
-                — Currently processing: <strong>{data.backfillCurrentName}</strong> ({data.backfillCurrentIndex}/{data.totalPodcasts})
+                - Currently processing: <strong>{data.backfillCurrentName}</strong> ({data.backfillCurrentIndex}/{data.totalPodcasts})
               </span>
             )}
           </div>
@@ -264,7 +264,7 @@ export default function BackfillTracker() {
       </div>
 
       <p className="text-xs text-muted-foreground mt-3 text-center">
-        Auto-refreshes every 10 seconds — click any error row to see details
+        Auto-refreshes every 10 seconds - click any error row to see details
       </p>
     </div>
   );

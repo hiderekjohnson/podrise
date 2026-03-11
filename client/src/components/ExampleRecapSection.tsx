@@ -51,7 +51,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             Example {podcastName} Recap
           </h2>
           <p className="text-base text-muted-foreground text-center mb-8 max-w-xl mx-auto leading-relaxed">
-            Here's what you'll receive in your inbox — a real PodCap summary.
+            Here's what you'll receive in your inbox - a real PodCap summary.
           </p>
         </>
       )}

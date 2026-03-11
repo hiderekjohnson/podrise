@@ -293,7 +293,7 @@ export default function EpisodeArchivePage() {
       document.title = "Podcast Not Found | PodCap";
       return;
     }
-    const pageTitle = `${config.name} — Episode Archive | PodCap`;
+    const pageTitle = `${config.name} Episode Archive | PodCap`;
     const pageDescription = `Browse every ${config.name} episode on PodCap. Search by keyword, filter by guest, topic, year, or episode length to find your next listen.`;
     const canonicalUrl = `https://podcap.io/podcasts/${slug}/episodes`;
 

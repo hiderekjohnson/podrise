@@ -24,7 +24,7 @@ function hiResArtwork(url: string) {
 }
 
 function SEOHead() {
-  const title = "PodCap — Podcast Intelligence for Decision-Makers";
+  const title = "PodCap - Podcast Intelligence for Decision-Makers";
   const description = "PodCap tracks, analyzes, and synthesizes the world's most influential podcasts. Search transcripts, discover insights by topic, company, or person, and get analyst-grade briefings delivered to your inbox.";
 
   if (typeof document !== "undefined") {
@@ -117,7 +117,7 @@ export default function Home() {
               The world's searchable library of podcast knowledge
             </h1>
             <p className="text-lg sm:text-xl text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
-              We track, analyze, and synthesize everything being said across the world's most influential podcasts. Search transcripts, discover insights by topic, and get analyst-grade briefings — without listening to every episode.
+              We track, analyze, and synthesize everything being said across the world's most influential podcasts. Search transcripts, discover insights by topic, and get analyst-grade briefings - without listening to every episode.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <button
@@ -252,7 +252,7 @@ export default function Home() {
                 Podcasts we cover
               </h2>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
-                From business strategy to science, culture, and technology — we analyze the world's most influential podcast conversations.
+                From business strategy to science, culture, and technology - we analyze the world's most influential podcast conversations.
               </p>
             </motion.div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
@@ -367,10 +367,10 @@ export default function Home() {
                 Podcast intelligence for the information age
               </h2>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                Millions of hours of conversations happen across podcasts every year — the sharpest analysis, the most candid insights, the earliest signals on emerging trends. Most of this intelligence is locked inside audio files that decision-makers will never have time to hear.
+                Millions of hours of conversations happen across podcasts every year - the sharpest analysis, the most candid insights, the earliest signals on emerging trends. Most of this intelligence is locked inside audio files that decision-makers will never have time to hear.
               </p>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                PodCap is building the infrastructure to make this knowledge searchable, structured, and actionable — turning podcast conversations into a competitive advantage.
+                PodCap is building the infrastructure to make this knowledge searchable, structured, and actionable - turning podcast conversations into a competitive advantage.
               </p>
               <a
                 href="/about"
@@ -394,7 +394,7 @@ export default function Home() {
                 Get podcast intelligence delivered
               </h2>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg">
-                Choose the podcasts you follow. We'll analyze every new episode and deliver structured briefings to your inbox — key insights, notable quotes, and the takeaways that matter.
+                Choose the podcasts you follow. We'll analyze every new episode and deliver structured briefings to your inbox - key insights, notable quotes, and the takeaways that matter.
               </p>
               <button
                 data-testid="button-bottom-cta"

@@ -25,7 +25,7 @@ function formatDateShort(dateStr: string) {
 }
 
 function SEOHead() {
-  const title = "The Daily Drop — PodCap";
+  const title = "The Daily Drop | PodCap";
   const description = "A free-flowing daily briefing on the most interesting conversations happening across the podcast world. Smart, sharp, and built for discovery.";
   if (typeof document !== "undefined") {
     document.title = title;
@@ -97,7 +97,7 @@ export default function DailyDrop() {
               The Daily Drop
             </h1>
             <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg leading-relaxed font-medium">
-              What happened yesterday in the podcast world — the stories, the quotes, and the ideas worth knowing about.
+              What happened yesterday in the podcast world. The stories, the quotes, and the ideas worth knowing about.
             </p>
           </motion.div>
         </section>

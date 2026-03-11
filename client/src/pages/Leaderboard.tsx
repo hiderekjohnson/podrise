@@ -172,7 +172,7 @@ export default function Leaderboard() {
               Get free AI-powered recaps for any of the top podcasts delivered to your inbox.
             </p>
             <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
-              Can't find your favorite podcast? No problem —{" "}
+              Can't find your favorite podcast? No problem.{" "}
               <Link href="/" className="text-primary font-medium hover:underline" data-testid="link-search-all">
                 click here to search all podcasts
               </Link>.

@@ -105,8 +105,8 @@ export default function DailyDropEdition() {
 
   function SEOHead() {
     const title = data
-      ? `${data.headline} — The Daily Drop — PodCap`
-      : "The Daily Drop — PodCap";
+      ? `${data.headline} - The Daily Drop - PodCap`
+      : "The Daily Drop - PodCap";
     const description = data?.subheadline || "Your daily podcast briefing from PodCap.";
     if (typeof document !== "undefined") {
       document.title = title;

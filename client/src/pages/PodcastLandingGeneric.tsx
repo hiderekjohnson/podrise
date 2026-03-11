@@ -233,7 +233,7 @@ function AskPodcast({ slug, podcastName }: { slug: string; podcastName: string }
     <div data-testid="section-ask-podcast">
       <div className="mb-8">
         <p className="text-[15px] leading-relaxed text-muted-foreground">
-          Ask anything about {podcastName} — its themes, topics, hosts, and past episodes. Explore common questions below or ask your own.
+          Ask anything about {podcastName} - its themes, topics, hosts, and past episodes. Explore common questions below or ask your own.
         </p>
       </div>
 
@@ -450,7 +450,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
         <h2 className="text-[17px] font-display font-bold text-foreground">Recommended Reading</h2>
       </div>
       <p className="text-[15px] text-muted-foreground mb-6">
-        Books mentioned across {podcastName} episodes — sorted by how often they come up in conversation.
+        Books mentioned across {podcastName} episodes - sorted by how often they come up in conversation.
       </p>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
@@ -718,10 +718,10 @@ export default function PodcastLandingGeneric() {
       el.setAttribute("content", content);
     };
 
-    setMeta("name", "description", `Get free daily ${name} podcast summaries and episode recaps. ${name} podcast recap of every new episode by ${hosts} — ${description} delivered to your inbox.`);
+    setMeta("name", "description", `Get free daily ${name} podcast summaries and episode recaps. ${name} podcast recap of every new episode by ${hosts} - ${description} delivered to your inbox.`);
     setMeta("name", "keywords", `${name} podcast summary, ${name} episode summary, ${name} podcast recap, ${name} recap, ${keywords}, podcast summary, daily podcast recap`);
     setMeta("property", "og:title", `${name} Podcast Summary, Latest Episode Recap | PodCap`);
-    setMeta("property", "og:description", `Daily ${name} podcast summaries and episode recaps. ${description.charAt(0).toUpperCase() + description.slice(1)} — delivered free to your inbox.`);
+    setMeta("property", "og:description", `Daily ${name} podcast summaries and episode recaps. ${description.charAt(0).toUpperCase() + description.slice(1)} - delivered free to your inbox.`);
     setMeta("property", "og:url", url);
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodCap");
@@ -849,7 +849,7 @@ export default function PodcastLandingGeneric() {
           {episodeRecaps.length > 0 ? (
             <>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-                Quick summaries of the latest episodes — key takeaways in minutes, not hours.
+                Quick summaries of the latest episodes - key takeaways in minutes, not hours.
               </p>
               <div className="flex flex-col gap-5">
                 {episodeRecaps.slice(0, 10).map((ep: any) => (

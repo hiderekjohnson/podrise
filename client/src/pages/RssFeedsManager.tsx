@@ -526,14 +526,14 @@ export default function RssFeedsManager() {
           Each item in the feed contains everything your bot needs to create a Twitter post:
         </p>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <div><span className="font-semibold text-foreground">title</span> <span className="text-muted-foreground">— Podcast Name + Episode Title</span></div>
-          <div><span className="font-semibold text-foreground">description</span> <span className="text-muted-foreground">— Short TL;DL summary (tweetable)</span></div>
-          <div><span className="font-semibold text-foreground">content:encoded</span> <span className="text-muted-foreground">— Full recap with insights, quotes</span></div>
-          <div><span className="font-semibold text-foreground">link</span> <span className="text-muted-foreground">— Direct URL to recap on PodCap</span></div>
-          <div><span className="font-semibold text-foreground">dc:creator</span> <span className="text-muted-foreground">— Podcast name</span></div>
-          <div><span className="font-semibold text-foreground">category</span> <span className="text-muted-foreground">— Podcast name</span></div>
-          <div><span className="font-semibold text-foreground">pubDate</span> <span className="text-muted-foreground">— Episode publish date</span></div>
-          <div><span className="font-semibold text-foreground">enclosure</span> <span className="text-muted-foreground">— Podcast artwork image URL</span></div>
+          <div><span className="font-semibold text-foreground">title</span> <span className="text-muted-foreground">- Podcast Name + Episode Title</span></div>
+          <div><span className="font-semibold text-foreground">description</span> <span className="text-muted-foreground">- Short TL;DL summary (tweetable)</span></div>
+          <div><span className="font-semibold text-foreground">content:encoded</span> <span className="text-muted-foreground">- Full recap with insights, quotes</span></div>
+          <div><span className="font-semibold text-foreground">link</span> <span className="text-muted-foreground">- Direct URL to recap on PodCap</span></div>
+          <div><span className="font-semibold text-foreground">dc:creator</span> <span className="text-muted-foreground">- Podcast name</span></div>
+          <div><span className="font-semibold text-foreground">category</span> <span className="text-muted-foreground">- Podcast name</span></div>
+          <div><span className="font-semibold text-foreground">pubDate</span> <span className="text-muted-foreground">- Episode publish date</span></div>
+          <div><span className="font-semibold text-foreground">enclosure</span> <span className="text-muted-foreground">- Podcast artwork image URL</span></div>
         </div>
       </div>
     </div>

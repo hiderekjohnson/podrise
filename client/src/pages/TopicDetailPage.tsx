@@ -44,7 +44,7 @@ interface TopicEpisode {
 }
 
 function SEOHead({ name, description }: { name: string; description: string }) {
-  const title = `${name} Intelligence Brief — Podcast Signal Monitoring | PodCap`;
+  const title = `${name} Intelligence Brief - Podcast Signal Monitoring | PodCap`;
   const desc = `${name} intelligence brief: synthesized insights, key signals, and trend analysis from ${PODCAST_LANDINGS.length}+ monitored podcast sources. Built for analysts, strategists, and enterprise decision-makers.`;
 
   if (typeof document !== "undefined") {
@@ -318,10 +318,10 @@ export default function TopicDetailPage() {
               <span className="uppercase font-semibold text-emerald-600 dark:text-emerald-400">Monitoring</span>
             </span>
             <span className="hidden sm:inline" data-testid="metric-episodes-analyzed">
-              <span className="text-foreground font-semibold">{topicEpisodes?.length || "—"}</span> episodes analyzed
+              <span className="text-foreground font-semibold">{topicEpisodes?.length || "-"}</span> episodes analyzed
             </span>
             <span className="hidden sm:inline" data-testid="metric-sources-active">
-              <span className="text-foreground font-semibold">{uniquePodcastSources || "—"}</span> active sources
+              <span className="text-foreground font-semibold">{uniquePodcastSources || "-"}</span> active sources
             </span>
           </div>
           {latestEpisodeDate && (
@@ -368,19 +368,19 @@ export default function TopicDetailPage() {
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-episodes">
               <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Episodes Analyzed</p>
               <p className="text-2xl font-display font-bold text-foreground">
-                {episodesLoading ? "—" : topicEpisodes?.length || 0}
+                {episodesLoading ? "-" : topicEpisodes?.length || 0}
               </p>
             </div>
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-sources">
               <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Sources Monitored</p>
               <p className="text-2xl font-display font-bold text-foreground">
-                {relatedPodcasts.length || uniquePodcastSources || "—"}
+                {relatedPodcasts.length || uniquePodcastSources || "-"}
               </p>
             </div>
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-voices">
               <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Key Stakeholders</p>
               <p className="text-2xl font-display font-bold text-foreground">
-                {relatedPeople.length || "—"}
+                {relatedPeople.length || "-"}
               </p>
             </div>
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-coverage">
@@ -836,7 +836,7 @@ export default function TopicDetailPage() {
                     Need {topicDisplayName.toLowerCase()} intelligence at scale?
                   </h3>
                   <p className="text-[14px] text-white/60 leading-relaxed max-w-xl">
-                    We build custom monitoring and synthesis pipelines for enterprise teams. Get structured data, automated alerts, and analyst-ready briefs on {topicDisplayName.toLowerCase()} — tailored to your organization's specific intelligence requirements.
+                    We build custom monitoring and synthesis pipelines for enterprise teams. Get structured data, automated alerts, and analyst-ready briefs on {topicDisplayName.toLowerCase()} - tailored to your organization's specific intelligence requirements.
                   </p>
                 </div>
                 <Link href="/enterprise" data-testid="link-enterprise-cta">

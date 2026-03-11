@@ -20,7 +20,7 @@ export const PODCAST_CATEGORIES: PodcastCategory[] = [
     description: "The best business podcasts covering entrepreneurship, leadership, marketing, strategy, and more.",
     topics: [
       { slug: "entrepreneurship", name: "Entrepreneurship", description: "Stories and strategies from founders building companies from scratch." },
-      { slug: "startups", name: "Startups", description: "From idea to scale — fundraising, product-market fit, and growth." },
+      { slug: "startups", name: "Startups", description: "From idea to scale - fundraising, product-market fit, and growth." },
       { slug: "leadership", name: "Leadership", description: "Frameworks and insights for leading teams and organizations." },
       { slug: "marketing", name: "Marketing", description: "Brand building, growth hacking, and modern marketing strategies." },
       { slug: "saas", name: "SaaS", description: "Software-as-a-service business models, metrics, and scaling." },
@@ -69,7 +69,7 @@ export const PODCAST_CATEGORIES: PodcastCategory[] = [
   {
     slug: "self-improvement",
     name: "Self-Improvement",
-    description: "Podcasts for personal growth — productivity, mindfulness, motivation, and career development.",
+    description: "Podcasts for personal growth - productivity, mindfulness, motivation, and career development.",
     topics: [
       { slug: "productivity", name: "Productivity", description: "Systems, habits, and tools for getting more done." },
       { slug: "mindfulness", name: "Mindfulness", description: "Meditation, presence, and mental clarity practices." },

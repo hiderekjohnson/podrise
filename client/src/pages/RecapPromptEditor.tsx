@@ -65,7 +65,7 @@ export default function RecapPromptEditor() {
             AI Recap Prompt
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            This prompt controls how the AI generates episode recaps. The system automatically provides episode data, podcast names, and stats — this controls the format and tone instructions.
+            This prompt controls how the AI generates episode recaps. The system automatically provides episode data, podcast names, and stats - this controls the format and tone instructions.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export default function RecapPromptEditor() {
         <div className="text-sm text-blue-900 space-y-2">
           <p className="font-medium">How this works</p>
           <p>
-            The system automatically prepends a header with episode data, transcript excerpts, podcast names, and duration stats. Your prompt below controls the <strong>format instructions and tone guidelines</strong> — how the AI should structure each episode recap.
+            The system automatically prepends a header with episode data, transcript excerpts, podcast names, and duration stats. Your prompt below controls the <strong>format instructions and tone guidelines</strong> - how the AI should structure each episode recap.
           </p>
           <p>
             The AI sees: system intro → episode data → stats header → <strong>your prompt below</strong>

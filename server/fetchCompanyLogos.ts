@@ -91,7 +91,7 @@ async function main() {
 
   for (const company of missing) {
     if (!company.domain) {
-      console.log(`  ✗ ${company.name} (${company.slug}) — no website URL`);
+      console.log(`  ✗ ${company.name} (${company.slug}) - no website URL`);
       noDomain++;
       continue;
     }
