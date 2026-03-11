@@ -1,5 +1,4 @@
 import { Link } from "wouter";
-import { ExternalLink } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { PodCapWordmark } from "./PodCapHeader";
 import { TOPICS } from "@/data/topicData";
@@ -147,7 +146,6 @@ export function Footer() {
               aria-label="Follow PodCap on X"
             >
               <SiX className="w-[22px] h-[22px]" />
-              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
             </a>
             <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
           </div>
