@@ -6,7 +6,8 @@ import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, Chevron
 import { SiX } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { Zap } from "lucide-react";
+import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 
 const AMAZON_AFFILIATE_TAG = "podcap-20";
 
@@ -438,6 +439,35 @@ export default function BookDetailPage() {
   const hostRecommenders = recommenders.filter(r => r.role === "host");
   const guestRecommenders = recommenders.filter(r => r.role === "guest");
 
+  const podcastArtworkMap = useMemo(() => {
+    const map = new Map<string, { slug: string; name: string; artworkUrl: string }>();
+    for (const p of PODCAST_LANDINGS) {
+      map.set(p.slug, { slug: p.slug, name: p.name, artworkUrl: p.artworkUrl });
+    }
+    return map;
+  }, []);
+
+  const featuredPodcasts = useMemo(() => {
+    if (!book) return [];
+    const seen = new Set<string>();
+    const result: { slug: string; name: string; artworkUrl: string }[] = [];
+    for (const ep of book.episodes) {
+      if (seen.has(ep.podcastSlug)) continue;
+      seen.add(ep.podcastSlug);
+      const info = podcastArtworkMap.get(ep.podcastSlug);
+      if (info) result.push(info);
+    }
+    return result.slice(0, 6);
+  }, [book, podcastArtworkMap]);
+
+  const peopleMap = useMemo(() => {
+    const map = new Map<string, { slug: string; name: string; imageUrl: string }>();
+    for (const p of PEOPLE_DIRECTORY) {
+      map.set(p.name.toLowerCase(), { slug: p.slug, name: p.name, imageUrl: p.imageUrl });
+    }
+    return map;
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -464,8 +494,6 @@ export default function BookDetailPage() {
   }
 
   const featuredQuote = book.episodes.find(e => e.context && e.context.length > 30);
-  const topHostsWithMultiple = (book.topHosts || []).filter(h => h.count >= 2);
-  const notableHosts = (book.topHosts || []).slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -576,26 +604,42 @@ export default function BookDetailPage() {
             </div>
           </motion.section>
 
-          {notableHosts.length > 0 && (
-            <motion.div
+          {featuredPodcasts.length > 0 && (
+            <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.08 }}
-              className="mt-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
-              data-testid="notable-hosts"
+              className="mt-8"
+              data-testid="section-featured-podcasts"
             >
-              <span>Featured on</span>
-              {notableHosts.map((h, i) => (
-                <span key={h.name}>
-                  <span className="font-semibold text-foreground">{h.name}</span>
-                  {h.count >= 2 && <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">({h.count}x)</span>}
-                  {i < notableHosts.length - 1 && <span className="text-muted-foreground">, </span>}
-                </span>
-              ))}
-              {book.podcastCount > 3 && (
-                <span>and {book.podcastCount - 3} more {book.podcastCount - 3 === 1 ? "podcast" : "podcasts"}</span>
-              )}
-            </motion.div>
+              <p className="text-sm font-semibold text-muted-foreground mb-3">
+                Featured on top podcasts like
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {featuredPodcasts.map((p) => (
+                  <Link
+                    key={p.slug}
+                    href={`/podcasts/${p.slug}`}
+                    className="flex items-center gap-2.5 px-3 py-2 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl hover:bg-amber-500/[0.04] transition-colors group"
+                    data-testid={`featured-podcast-${p.slug}`}
+                  >
+                    <img
+                      src={p.artworkUrl}
+                      alt={p.name}
+                      className="w-8 h-8 rounded-lg object-cover shrink-0 shadow-sm"
+                    />
+                    <span className="text-sm font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                      {p.name}
+                    </span>
+                  </Link>
+                ))}
+                {book.podcastCount > featuredPodcasts.length && (
+                  <span className="flex items-center px-3 py-2 text-sm text-muted-foreground">
+                    +{book.podcastCount - featuredPodcasts.length} more
+                  </span>
+                )}
+              </div>
+            </motion.section>
           )}
 
           {featuredQuote && (
@@ -646,7 +690,7 @@ export default function BookDetailPage() {
               className="mt-8"
               data-testid="section-who-recommends"
             >
-              <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-who-recommends">Who Recommends This Book</h2>
+              <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-who-recommends">Recommended By</h2>
               {hasAuthorAppearance && (
                 <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-violet-500/[0.04] border border-violet-500/[0.12] rounded-xl" data-testid="author-appearance-note">
                   <User className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
@@ -656,28 +700,44 @@ export default function BookDetailPage() {
                 </div>
               )}
               <div className="flex flex-wrap gap-3">
-                {hostRecommenders.slice(0, 8).map(r => (
-                  <div key={r.name} className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl">
-                    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Host</span>
-                    <span className="text-sm font-semibold text-foreground">{r.name}</span>
-                    {r.count >= 2 && (
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/[0.1] px-2 py-0.5 rounded-full">
-                        {r.count}x
-                      </span>
-                    )}
-                  </div>
-                ))}
-                {guestRecommenders.slice(0, 6).map(r => (
-                  <div key={r.name} className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl">
-                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Guest</span>
-                    <span className="text-sm font-semibold text-foreground">{r.name}</span>
-                    {r.count >= 2 && (
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/[0.1] px-2 py-0.5 rounded-full">
-                        {r.count}x
-                      </span>
-                    )}
-                  </div>
-                ))}
+                {[...hostRecommenders.slice(0, 8), ...guestRecommenders.slice(0, 6)].map(r => {
+                  const person = peopleMap.get(r.name.toLowerCase());
+                  const roleColor = r.role === "guest"
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-amber-600 dark:text-amber-400";
+                  const content = (
+                    <div className="flex items-center gap-2.5 px-3 py-2 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl hover:bg-amber-500/[0.04] transition-colors group">
+                      {person ? (
+                        <img
+                          src={person.imageUrl}
+                          alt={r.name}
+                          className="w-8 h-8 rounded-full object-cover shrink-0 shadow-sm border border-black/[0.06]"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors leading-tight">{r.name}</span>
+                        <span className={`text-[11px] font-medium ${roleColor} leading-tight`}>
+                          {r.role === "guest" ? "Guest" : "Host"}
+                          {r.count >= 2 && ` · ${r.count}x`}
+                        </span>
+                      </div>
+                    </div>
+                  );
+
+                  return person ? (
+                    <Link key={r.name} href={`/people/${person.slug}`} className="block" data-testid={`recommender-${r.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <div key={r.name} data-testid={`recommender-${r.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {content}
+                    </div>
+                  );
+                })}
               </div>
             </motion.section>
           )}
@@ -706,7 +766,7 @@ export default function BookDetailPage() {
               data-testid="section-related"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-foreground" data-testid="heading-related">Frequently Mentioned Alongside</h2>
+                <h2 className="text-lg font-bold text-foreground" data-testid="heading-related">Podcast Listeners Also Read</h2>
                 {book.topics.length > 0 && (
                   <Link
                     href="/bookstore"
