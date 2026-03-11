@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, Search, ExternalLink, Mic, X, Star, Clock, TrendingUp, Sparkles, ChevronRight, Filter } from "lucide-react";
+import { BookOpen, Search, ExternalLink, Mic, X, Star, Clock, TrendingUp, Sparkles, ChevronRight, Filter, Feather, Users } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -359,8 +359,28 @@ export default function Bookstore() {
     return TOPIC_FILTERS.filter(t => (counts.get(t) || 0) >= 2);
   }, [data]);
 
+  const WOMEN_AUTHORS = new Set([
+    "alison gopnik", "alison roman", "allegra goodman", "amanda han", "amy purdy",
+    "amy shaw", "angela duckworth", "anne-laure le cunff", "annie duke", "annie jacobsen",
+    "barbara kingsolver", "bethany joy lenz", "bronnie ware", "byron katie",
+    "carole hooven", "hilary allen", "ina park", "iva layla",
+    "j.d. robb", "jane ann krentz", "jenna fischer", "jessie inchauspé",
+    "julia boyd", "julia shaw", "julie fenster", "juliet macur",
+    "kathryn paige harden", "laura vanderkam", "leslie john", "linda hill",
+    "maya shankar", "mel robbins", "nicole mcnichols", "rachel e. gross",
+    "rachel wilson", "rebecca solnit", "sarah adams", "sarah gray",
+    "sarah j. maas", "sarah paine", "sasha hamdani", "tanya janca",
+    "tayari jones", "thais gibson", "tish rabe", "vivian tu",
+  ]);
+
+  const BLACK_AUTHORS = new Set([
+    "amiri baraka", "charlamagne tha god", "ralph ellison",
+    "tayari jones", "jalen hurts",
+    "w. johnson roundtree", "yohuru williams",
+  ]);
+
   const curatedShelves = useMemo(() => {
-    if (!data?.books) return { trending: [], highRated: [], quickReads: [], newReleases: [] };
+    if (!data?.books) return { trending: [], highRated: [], quickReads: [], newReleases: [], byWomen: [], byBlackAuthors: [] };
 
     const withSlug = data.books.filter(b => b.slug);
     const currentYear = new Date().getFullYear();
@@ -385,7 +405,25 @@ export default function Bookstore() {
       .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0))
       .slice(0, 8);
 
-    return { trending, highRated, quickReads, newReleases };
+    const matchesAuthorSet = (author: string | null, authorSet: Set<string>) => {
+      if (!author || author === "null") return false;
+      const lower = author.toLowerCase().trim();
+      if (authorSet.has(lower)) return true;
+      const parts = lower.split(/,\s*| and /);
+      return parts.some(p => authorSet.has(p.trim()));
+    };
+
+    const byWomen = [...withSlug]
+      .filter(b => matchesAuthorSet(b.author, WOMEN_AUTHORS))
+      .sort((a, b) => b.podcastCount - a.podcastCount)
+      .slice(0, 8);
+
+    const byBlackAuthors = [...withSlug]
+      .filter(b => matchesAuthorSet(b.author, BLACK_AUTHORS))
+      .sort((a, b) => b.podcastCount - a.podcastCount)
+      .slice(0, 8);
+
+    return { trending, highRated, quickReads, newReleases, byWomen, byBlackAuthors };
   }, [data]);
 
   const filteredBooks = useMemo(() => {
@@ -469,6 +507,12 @@ export default function Bookstore() {
           <section className="w-full max-w-5xl" data-testid="section-curated">
             <CuratedShelf title="Trending on Podcasts" icon={TrendingUp} books={curatedShelves.trending} />
             <CuratedShelf title="Highest Rated" icon={Star} books={curatedShelves.highRated} />
+            {curatedShelves.byWomen.length > 0 && (
+              <CuratedShelf title="Written by Women" icon={Feather} books={curatedShelves.byWomen} />
+            )}
+            {curatedShelves.byBlackAuthors.length > 0 && (
+              <CuratedShelf title="Black Authors" icon={Users} books={curatedShelves.byBlackAuthors} />
+            )}
             <CuratedShelf title="Quick Reads" icon={Clock} books={curatedShelves.quickReads} />
             <CuratedShelf title="Recently Published" icon={Sparkles} books={curatedShelves.newReleases} />
           </section>
