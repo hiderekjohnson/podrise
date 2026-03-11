@@ -8,15 +8,15 @@ import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { PodCapWordmark } from "@/components/PodCapHeader";
 
 const FEATURED_PODCAST_SLUGS = [
-  "joerogan", "lexfridman", "hubermanlab", "myfirstmillion", "allin",
-  "acquired", "shawnryanshow", "onpurpose", "smartless",
-  "diaryofaceo", "timferriss", "pivot",
+  "joerogan", "melrobbins", "hubermanlab", "myfirstmillion",
+  "callherdaddy", "acquired", "pivot", "goal-digger",
+  "allin", "smartless", "daretolead", "diaryofaceo",
 ];
 
 const FEATURED_PEOPLE_SLUGS = [
-  "elon-musk", "sam-altman", "andrew-huberman", "alex-hormozi",
-  "codie-sanchez", "naval-ravikant", "lex-fridman", "scott-galloway",
-  "brene-brown", "tim-ferriss", "mark-cuban", "gary-vaynerchuk",
+  "elon-musk", "mel-robbins", "andrew-huberman", "kara-swisher",
+  "alex-hormozi", "brene-brown", "sam-altman", "codie-sanchez",
+  "scott-galloway", "hala-taha", "tim-ferriss", "alex-cooper",
 ];
 
 function hiResArtwork(url: string) {
