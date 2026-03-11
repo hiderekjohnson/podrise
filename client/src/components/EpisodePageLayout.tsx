@@ -175,17 +175,16 @@ export function EpisodePageLayout({
                 {episode.episodeTitle}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+              <div className="flex flex-col gap-1.5 justify-center sm:justify-start">
                 <Link href={`/podcasts/${podcastSlug}`}>
                   <span className="text-[15px] sm:text-base text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
                     {episode.podcastName}
                   </span>
                 </Link>
                 {categoryInfo.category && (
-                  <>
-                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  <div className="flex flex-wrap items-center gap-1.5 justify-center sm:justify-start">
                     <Link href={`/podcasts/${categoryInfo.category.slug}`}>
-                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-primary/[0.06] text-primary font-semibold hover:bg-primary/[0.12] transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
+                      <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-category-${categoryInfo.category.slug}`}>
                         {categoryInfo.category.name}
                       </span>
                     </Link>
@@ -199,7 +198,7 @@ export function EpisodePageLayout({
                         </Link>
                       </span>
                     ))}
-                  </>
+                  </div>
                 )}
               </div>
 
