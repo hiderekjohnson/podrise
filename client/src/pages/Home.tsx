@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { ArrowRight, Search, Sparkles, Library, Users, TrendingUp, BarChart3, Globe, Building2, Mic, BookOpen, Headphones } from "lucide-react";
+import { ArrowRight, Search, Sparkles, Library, Users, TrendingUp, BarChart3, Globe, Building2, Mic, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -174,7 +174,7 @@ export default function Home() {
               <Link href="/podcasts" className="block">
                 <div className="group bg-card border border-border rounded-xl p-6 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer h-full" data-testid="nav-card-podcasts">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                    <Headphones className="w-5 h-5 text-primary" />
+                    <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
                   <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover trending shows, see what just dropped, and search any podcast in our network.</p>

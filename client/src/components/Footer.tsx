@@ -20,6 +20,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/trends" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-trends">
+                  Trends
+                </Link>
+              </li>
+              <li>
                 <Link href="/insights" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-insights">
                   Insights
                 </Link>

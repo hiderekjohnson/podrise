@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Building2, ArrowRight, MessageSquare, Zap, Search } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Minus, Flame, BarChart3 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -12,14 +12,14 @@ interface CompanySummary {
   name: string;
   description: string;
   mentionCount: number;
+  recentMentions: number;
+  trend: "rising" | "stable" | "falling";
+  changePercent: number;
 }
 
-const PAGE_SIZE = 24;
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
 function SEOHead() {
-  const title = "Companies in Podcasts | PodCap";
-  const description = "Explore the most talked-about companies across top podcasts. See which companies get mentioned the most and find every episode they're discussed in.";
+  const title = "Company Intelligence - What's Trending in Podcasts | PodCap";
+  const description = "Track which companies are trending across the world's top podcasts. See mention trends, rising brands, and explore every episode where companies are discussed.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -40,22 +40,80 @@ function SEOHead() {
   return null;
 }
 
-export default function CompaniesDirectory() {
-  const [, navigate] = useLocation();
+function TrendBadge({ trend, changePercent }: { trend: string; changePercent: number }) {
+  if (trend === "rising") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[12px] font-mono text-emerald-600 dark:text-emerald-400">
+        <TrendingUp className="w-3 h-3" />
+        +{Math.abs(changePercent)}%
+      </span>
+    );
+  }
+  if (trend === "falling") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[12px] font-mono text-red-500 dark:text-red-400">
+        <TrendingDown className="w-3 h-3" />
+        {changePercent}%
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[12px] font-mono text-muted-foreground/60">
+      <Minus className="w-3 h-3" />
+      Stable
+    </span>
+  );
+}
 
+function MentionBar({ count, maxCount }: { count: number; maxCount: number }) {
+  const pct = maxCount > 0 ? Math.max(4, (count / maxCount) * 100) : 4;
+  return (
+    <div className="w-full max-w-[120px] bg-muted/40 rounded-full h-[6px] overflow-hidden">
+      <div
+        className="h-full bg-primary/60 rounded-full transition-all"
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+const PAGE_SIZE = 20;
+
+export default function CompaniesDirectory() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [letterFilter, setLetterFilter] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [sortBy, setSortBy] = useState<"total" | "trending">("total");
 
   const { data: companies, isLoading } = useQuery<CompanySummary[]>({
     queryKey: ["/api/entities/companies"],
   });
 
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   const getCompanyData = (slug: string) => COMPANIES_DIRECTORY.find(c => c.slug === slug);
+
+  const trendingCompanies = useMemo(() => {
+    if (!companies) return [];
+    return [...companies]
+      .filter(c => c.recentMentions > 0)
+      .sort((a, b) => b.recentMentions - a.recentMentions)
+      .slice(0, 6);
+  }, [companies]);
+
+  const risingCompanies = useMemo(() => {
+    if (!companies) return [];
+    return [...companies]
+      .filter(c => c.trend === "rising" && c.recentMentions > 0)
+      .sort((a, b) => b.changePercent - a.changePercent)
+      .slice(0, 6);
+  }, [companies]);
+
+  const maxMentions = useMemo(() => {
+    if (!companies) return 1;
+    return Math.max(...companies.map(c => c.mentionCount), 1);
+  }, [companies]);
 
   const filteredCompanies = useMemo(() => {
     if (!companies) return [];
-    setVisibleCount(PAGE_SIZE);
 
     let result = [...companies];
 
@@ -66,171 +124,278 @@ export default function CompaniesDirectory() {
       );
     }
 
-    if (letterFilter) {
-      result = result.filter(c => c.name.charAt(0).toUpperCase() === letterFilter);
+    if (sortBy === "trending") {
+      result.sort((a, b) => b.recentMentions - a.recentMentions);
+    } else {
+      result.sort((a, b) => b.mentionCount - a.mentionCount);
     }
 
     return result;
-  }, [companies, searchQuery, letterFilter]);
+  }, [companies, searchQuery, sortBy]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, sortBy]);
 
   const visibleCompanies = filteredCompanies.slice(0, visibleCount);
   const hasMore = visibleCount < filteredCompanies.length;
+  const isSearching = searchQuery.trim().length > 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen bg-background">
       <SEOHead />
       <SiteHeader />
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <section className="w-full max-w-4xl pt-10 sm:pt-16 pb-8">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center text-center gap-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="heading-companies">
-              Companies
+      <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
+        <div className="max-w-5xl mx-auto px-6 pt-12 pb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="heading-companies">
+              Company Intelligence
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
-              The most influential companies driving conversation across the world's top podcasts. See how often they come up, in what context, and explore every episode where they're discussed.
-            </p>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3">
-              Looking for notable people?{" "}
-              <a href="/people" className="text-primary font-medium hover:text-primary/80 transition-colors" data-testid="link-people-directory">
-                Explore People →
-              </a>
+            <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+              Track which companies are driving conversation across the world's top podcasts. See trending mentions and explore every episode.
             </p>
           </motion.div>
-        </section>
 
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-          className="w-full max-w-3xl mb-6"
-        >
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground/50" />
-            <input
-              type="text"
-              placeholder="Search companies..."
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setLetterFilter(null); }}
-              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-[17px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-              data-testid="input-search-companies"
-            />
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40" />
+              <input
+                type="text"
+                placeholder="Search companies..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3.5 text-[17px] bg-card border border-black/[0.1] dark:border-white/[0.1] rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all shadow-sm"
+                data-testid="input-search-companies"
+              />
+              {searchQuery && (
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] font-mono text-muted-foreground/60">
+                  {filteredCompanies.length} result{filteredCompanies.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
-          <div className="flex flex-wrap gap-1 mb-4" data-testid="alphabet-filter">
-            <button
-              onClick={() => setLetterFilter(null)}
-              className={`px-3 py-2 rounded-lg text-[15px] min-h-[44px] min-w-[44px] font-semibold transition-all ${!letterFilter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-              data-testid="letter-all"
-            >
-              All
-            </button>
-            {ALPHABET.map(letter => (
-              <button
-                key={letter}
-                onClick={() => { setLetterFilter(letter === letterFilter ? null : letter); setSearchQuery(""); }}
-                className={`px-3 py-2 rounded-lg text-[15px] min-h-[44px] min-w-[44px] font-semibold transition-all ${letterFilter === letter ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-                data-testid={`letter-${letter}`}
+      <main className="max-w-7xl mx-auto px-6 pb-20">
+        {!isSearching && !isLoading && (
+          <>
+            {trendingCompanies.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+                className="mb-12"
               >
-                {letter}
+                <div className="flex items-center gap-2 mb-5">
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-trending-companies">Most Mentioned (Last 30 Days)</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {trendingCompanies.map((company, i) => {
+                    const companyData = getCompanyData(company.slug);
+                    return (
+                      <motion.div
+                        key={company.slug}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.04 }}
+                      >
+                        <Link href={`/companies/${company.slug}`} data-testid={`card-trending-${company.slug}`}>
+                          <div className="group relative bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl p-5 hover:border-orange-500/30 hover:shadow-md transition-all cursor-pointer">
+                            <div className="flex items-start gap-3">
+                              <span className="text-[20px] font-mono font-bold text-muted-foreground/30 leading-none mt-0.5">{i + 1}</span>
+                              <img
+                                src={companyData?.logoUrl || '/people/default-avatar.png'}
+                                alt={company.name}
+                                className="w-10 h-10 rounded-lg object-contain bg-white border border-border p-1 flex-shrink-0"
+                                onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                                  {company.name}
+                                </h3>
+                                <p className="text-[13px] text-muted-foreground/70 truncate">{company.description}</p>
+                                <div className="flex items-center gap-3 mt-2">
+                                  <span className="text-[13px] font-mono text-foreground font-semibold">{company.recentMentions} mentions</span>
+                                  <TrendBadge trend={company.trend} changePercent={company.changePercent} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.section>
+            )}
+
+            {risingCompanies.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="mb-12"
+              >
+                <div className="flex items-center gap-2 mb-5">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" />
+                  <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-rising-companies">Rising</h2>
+                </div>
+                <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
+                  <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[12px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                    <span>#</span>
+                    <span>Company</span>
+                    <span>Mentions</span>
+                    <span>Change</span>
+                  </div>
+                  {risingCompanies.map((company, i) => {
+                    const companyData = getCompanyData(company.slug);
+                    return (
+                      <Link key={company.slug} href={`/companies/${company.slug}`} data-testid={`row-rising-${company.slug}`}>
+                        <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-4 items-center px-5 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0">
+                          <span className="text-[15px] font-mono text-muted-foreground/40 w-6">{i + 1}</span>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={companyData?.logoUrl || '/people/default-avatar.png'}
+                              alt={company.name}
+                              className="w-8 h-8 rounded-lg object-contain bg-white border border-border p-0.5 flex-shrink-0"
+                              onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
+                            />
+                            <div className="min-w-0">
+                              <span className="text-[15px] font-semibold text-foreground block truncate">{company.name}</span>
+                              <span className="text-[12px] text-muted-foreground/60 truncate block">{company.description}</span>
+                            </div>
+                          </div>
+                          <MentionBar count={company.mentionCount} maxCount={maxMentions} />
+                          <TrendBadge trend={company.trend} changePercent={company.changePercent} />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </motion.section>
+            )}
+          </>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3 mb-5">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-primary" />
+            <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-companies">
+              {isSearching ? "Search Results" : "All Companies"}
+            </h2>
+            <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
+              {filteredCompanies.length}
+            </span>
+          </div>
+          <div className="flex-1" />
+          <div className="flex items-center bg-card border border-border rounded-lg overflow-hidden" data-testid="sort-control">
+            {([["total", "Top"], ["trending", "Trending"]] as const).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setSortBy(val)}
+                className={`px-3 py-1.5 text-[13px] font-medium transition-all ${sortBy === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                data-testid={`sort-${val}`}
+              >
+                {label}
               </button>
             ))}
           </div>
-
-        </motion.section>
+        </div>
 
         {isLoading ? (
-          <div className="w-full max-w-3xl space-y-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-6 animate-pulse">
+          <div className="space-y-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-muted" />
+                  <div className="w-10 h-10 rounded-lg bg-muted" />
                   <div className="flex-1">
-                    <div className="h-6 bg-muted rounded w-48 mb-3" />
-                    <div className="h-4 bg-muted rounded w-64" />
+                    <div className="h-5 bg-muted rounded w-40 mb-2" />
+                    <div className="h-4 bg-muted rounded w-56" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        ) : filteredCompanies.length === 0 ? (
-          <div className="w-full max-w-3xl text-center py-16">
-            <p className="text-muted-foreground text-lg" data-testid="text-no-results">No companies found matching your filters.</p>
-            <button
-              onClick={() => { setSearchQuery(""); setLetterFilter(null); }}
-              className="mt-3 text-primary text-base font-medium hover:text-primary/80 transition-colors"
-              data-testid="button-clear-filters"
-            >
-              Clear all filters
-            </button>
-          </div>
         ) : (
-          <div className="w-full max-w-3xl space-y-3">
+          <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
+            <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[12px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+              <span className="w-6">#</span>
+              <span>Company</span>
+              <span>Mentions</span>
+              <span>Podcast Interest</span>
+              <span>Trend</span>
+            </div>
             {visibleCompanies.map((company, index) => {
               const companyData = getCompanyData(company.slug);
               return (
                 <motion.div
                   key={company.slug}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: Math.min(index * 0.015, 0.3) }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2, delay: Math.min(index * 0.01, 0.3) }}
                 >
-                  <div
-                    className="bg-card border border-border rounded-xl p-5 sm:p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
-                    onClick={() => navigate(`/companies/${company.slug}`)}
-                    data-testid={`card-company-${company.slug}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0">
+                  <Link href={`/companies/${company.slug}`} data-testid={`card-company-${company.slug}`}>
+                    <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 items-center px-5 py-4 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group">
+                      <span className="text-[14px] font-mono text-muted-foreground/40 w-6">{index + 1}</span>
+                      <div className="flex items-center gap-3 min-w-0">
                         <img
-                          src={companyData?.logoUrl || `/people/default-avatar.png`}
+                          src={companyData?.logoUrl || '/people/default-avatar.png'}
                           alt={company.name}
-                          className="w-12 h-12 rounded-lg object-contain bg-white border border-border p-1.5"
+                          className="w-9 h-9 rounded-lg object-contain bg-white border border-border p-1 flex-shrink-0"
                           loading="lazy"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = `/people/default-avatar.png`;
-                          }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
                         />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-lg sm:text-xl font-display font-bold text-foreground group-hover:text-primary transition-colors mb-0.5" data-testid={`text-company-name-${company.slug}`}>
-                          {company.name}
-                        </h2>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-2">{company.description}</p>
-                        <div className="flex flex-wrap gap-3">
-                          <div className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Mentioned in <span className="font-semibold text-foreground">{company.mentionCount}</span> episodes</span>
-                          </div>
+                        <div className="min-w-0">
+                          <span className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate" data-testid={`text-company-name-${company.slug}`}>
+                            {company.name}
+                          </span>
+                          <span className="text-[13px] text-muted-foreground/60 truncate block">{company.description}</span>
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
-                        <div className="w-9 h-9 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                          <ArrowRight className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
-                        </div>
+                      <span className="text-[14px] font-mono text-foreground font-medium">{company.mentionCount}</span>
+                      <div className="hidden sm:block">
+                        <MentionBar count={company.mentionCount} maxCount={maxMentions} />
+                      </div>
+                      <div className="hidden sm:block">
+                        <TrendBadge trend={company.trend} changePercent={company.changePercent} />
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </motion.div>
               );
             })}
+          </div>
+        )}
 
-            {hasMore && (
-              <div className="flex flex-col items-center gap-2 pt-4 pb-2">
-                <button
-                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                  className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-base font-semibold text-primary hover:bg-primary/15 transition-colors"
-                  data-testid="button-show-more"
-                >
-                  Show More
-                </button>
-              </div>
-            )}
+        {filteredCompanies.length === 0 && !isLoading && (
+          <div className="text-center py-20">
+            <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground" data-testid="text-no-results">No companies match your search</p>
+          </div>
+        )}
+
+        {hasMore && (
+          <div className="flex justify-center pt-6">
+            <button
+              onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+              className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-[15px] font-semibold text-primary hover:bg-primary/15 transition-colors"
+              data-testid="button-show-more"
+            >
+              Show More
+            </button>
           </div>
         )}
       </main>

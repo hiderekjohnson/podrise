@@ -113,6 +113,7 @@ const DOMAIN = "https://podcap.io";
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/podcasts", priority: "0.9", changefreq: "daily" },
+  { path: "/trends", priority: "0.9", changefreq: "daily" },
   { path: "/insights", priority: "0.9", changefreq: "daily" },
   { path: "/login", priority: "0.5", changefreq: "monthly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
@@ -1345,12 +1346,29 @@ export async function registerRoutes(
   let peopleCacheTime = 0;
   const PEOPLE_CACHE_TTL = 5 * 60 * 1000;
 
+  function computeTrendDirection(recentCount: number, olderCount: number): { direction: "rising" | "stable" | "falling"; changePercent: number } {
+    if (olderCount === 0 && recentCount > 0) return { direction: "rising", changePercent: 100 };
+    if (olderCount === 0 && recentCount === 0) return { direction: "stable", changePercent: 0 };
+    const change = ((recentCount - olderCount) / olderCount) * 100;
+    if (change > 15) return { direction: "rising", changePercent: Math.round(change) };
+    if (change < -15) return { direction: "falling", changePercent: Math.round(change) };
+    return { direction: "stable", changePercent: Math.round(change) };
+  }
+
+  function isRecent(publishDate: string | null): boolean {
+    if (!publishDate) return false;
+    const d = new Date(publishDate + "T00:00:00");
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    return d >= cutoff;
+  }
+
   async function computePeopleData() {
     const { pool: dbPool } = await import("./db");
     const client = await dbPool.connect();
     try {
       const { rows: allRecaps } = await client.query(
-        `SELECT slug, episode_slug, guests, episode_title, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps`
+        `SELECT slug, episode_slug, guests, episode_title, what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps`
       );
 
       const results = [];
@@ -1376,6 +1394,11 @@ export async function registerRoutes(
           );
         });
 
+        const allRows = [...guestRows, ...mentionRows];
+        const recentCount = allRows.filter(r => isRecent(r.publish_date)).length;
+        const olderCount = allRows.length - recentCount;
+        const trend = computeTrendDirection(recentCount, olderCount);
+
         results.push({
           slug: person.slug,
           name: person.name,
@@ -1384,6 +1407,9 @@ export async function registerRoutes(
           category: person.category,
           mentionCount: mentionRows.length,
           guestCount: guestRows.length,
+          recentMentions: recentCount,
+          trend: trend.direction,
+          changePercent: trend.changePercent,
         });
       }
 
@@ -1733,21 +1759,36 @@ export async function registerRoutes(
     const client = await dbPool.connect();
     try {
       const { rows: allRecaps } = await client.query(
-        `SELECT what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps`
+        `SELECT what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps`
       );
 
       const results = [];
       for (const company of ENTITY_COMPANIES) {
         let mentionCount = 0;
+        let recentCount = 0;
+        let olderCount = 0;
         for (const row of allRecaps) {
           const texts = [row.what_happened, row.tldl, row.key_insights_text].filter(Boolean);
           const allTerms = [...company.searchTerms, ...((company as any).associatedTerms || [])];
           const matched = allTerms.some(term =>
             texts.some(t => termMatchesInText(t, term))
           );
-          if (matched) mentionCount++;
+          if (matched) {
+            mentionCount++;
+            if (isRecent(row.publish_date)) recentCount++;
+            else olderCount++;
+          }
         }
-        results.push({ slug: company.slug, name: company.name, description: company.description, mentionCount });
+        const trend = computeTrendDirection(recentCount, olderCount);
+        results.push({
+          slug: company.slug,
+          name: company.name,
+          description: company.description,
+          mentionCount,
+          recentMentions: recentCount,
+          trend: trend.direction,
+          changePercent: trend.changePercent,
+        });
       }
       results.sort((a, b) => b.mentionCount - a.mentionCount);
       return results;
