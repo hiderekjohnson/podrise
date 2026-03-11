@@ -26,8 +26,8 @@ function getTopicSourceCount(topic: typeof TOPICS[0]): number {
 const FEATURED_SLUGS = ["ai", "venture-capital", "entrepreneurship", "investing", "leadership", "saas"];
 
 function SEOHead() {
-  const title = "Podcast Intelligence - Real-Time Topic Monitoring Across 244+ Sources | PodCap";
-  const description = "Enterprise-grade podcast intelligence. We monitor, analyze, and synthesize insights from 244+ podcasts across 37 critical topics - so your team never misses what's being said. Built for analysts, strategists, and decision-makers.";
+  const title = "Podcast Intelligence - Real-Time Topic Monitoring | PodCap";
+  const description = "Enterprise-grade podcast intelligence. We monitor, analyze, and synthesize insights from top podcasts across critical topics - so your team never misses what's being said. Built for analysts, strategists, and decision-makers.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -61,7 +61,6 @@ export default function TopicsDirectory() {
     return map;
   }, []);
 
-  const totalSources = PODCAST_LANDINGS.length;
 
   const filteredTopics = useMemo(() => {
     if (!searchQuery.trim()) return TOPICS;
@@ -116,13 +115,7 @@ export default function TopicsDirectory() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="uppercase font-semibold text-emerald-600 dark:text-emerald-400">Live</span>
             </span>
-            <span className="hidden sm:inline" data-testid="metric-topics-tracked">
-              <span className="text-foreground font-semibold">{TOPICS.length}</span> topics tracked
-            </span>
             <span className="hidden sm:inline" data-testid="metric-sources">
-              <span className="text-foreground font-semibold">{totalSources}</span> sources monitored
-            </span>
-            <span className="hidden md:inline">
               Continuous monitoring
             </span>
           </div>
@@ -147,7 +140,7 @@ export default function TopicsDirectory() {
             Topic Intelligence Dashboard
           </h1>
           <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-3xl leading-relaxed" data-testid="text-page-description">
-            We monitor {totalSources}+ podcast sources and synthesize what's being said across {TOPICS.length} critical topics - delivering structured intelligence for analysts, strategists, and decision-makers who can't afford to miss what matters.
+            We monitor podcast sources and synthesize what's being said across critical topics - delivering structured intelligence for analysts, strategists, and decision-makers who can't afford to miss what matters.
           </p>
         </motion.div>
 
@@ -189,13 +182,9 @@ export default function TopicsDirectory() {
                       </div>
                       <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-3">{topic.description}</p>
                       <div className="flex items-center gap-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                        <span className="text-[12px] font-mono text-muted-foreground flex items-center gap-1">
-                          <Radio className="w-3 h-3" />
-                          {sourceCount} sources
-                        </span>
                         <span className="text-[12px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3" />
-                          Active
+                          <Radio className="w-3 h-3" />
+                          Monitoring
                         </span>
                       </div>
                     </div>
@@ -219,7 +208,7 @@ export default function TopicsDirectory() {
             />
           </div>
           <span className="text-[13px] font-mono text-muted-foreground hidden sm:inline">
-            {filteredTopics.length} of {TOPICS.length} topics
+            {searchQuery ? `${filteredTopics.length} results` : "All topics"}
           </span>
         </div>
 

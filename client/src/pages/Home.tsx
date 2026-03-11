@@ -62,8 +62,6 @@ export default function Home() {
     .map(slug => PEOPLE_DIRECTORY.find(p => p.slug === slug))
     .filter(Boolean);
 
-  const totalPodcasts = PODCAST_LANDINGS.length;
-  const totalPeople = PEOPLE_DIRECTORY.length;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -189,7 +187,7 @@ export default function Home() {
                     <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse {totalPodcasts}+ shows with episode recaps, transcripts, and AI-powered analysis.</p>
+                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse shows with episode recaps, transcripts, and AI-powered analysis.</p>
                 </div>
               </Link>
               <Link href="/topics" className="block">
@@ -207,7 +205,7 @@ export default function Home() {
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">People</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover {totalPeople}+ founders, investors, and leaders across the podcast ecosystem.</p>
+                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover founders, investors, and leaders across the podcast ecosystem.</p>
                 </div>
               </Link>
               <Link href="/companies" className="block">
@@ -271,7 +269,7 @@ export default function Home() {
                 onClick={() => navigate("/podcasts")}
                 className="inline-flex items-center gap-2 px-7 py-4 rounded-[10px] bg-card border-2 border-border text-[17px] font-bold text-foreground hover:bg-muted/60 transition-colors min-h-[52px]"
               >
-                View all {totalPodcasts}+ podcasts
+                View all podcasts
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>

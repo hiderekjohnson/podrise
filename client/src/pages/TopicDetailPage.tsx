@@ -45,7 +45,7 @@ interface TopicEpisode {
 
 function SEOHead({ name, description }: { name: string; description: string }) {
   const title = `${name} Intelligence Brief - Podcast Signal Monitoring | PodCap`;
-  const desc = `${name} intelligence brief: synthesized insights, key signals, and trend analysis from ${PODCAST_LANDINGS.length}+ monitored podcast sources. Built for analysts, strategists, and enterprise decision-makers.`;
+  const desc = `${name} intelligence brief: synthesized insights, key signals, and trend analysis from monitored podcast sources. Built for analysts, strategists, and enterprise decision-makers.`;
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -317,11 +317,8 @@ export default function TopicDetailPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="uppercase font-semibold text-emerald-600 dark:text-emerald-400">Monitoring</span>
             </span>
-            <span className="hidden sm:inline" data-testid="metric-episodes-analyzed">
-              <span className="text-foreground font-semibold">{topicEpisodes?.length || "-"}</span> episodes analyzed
-            </span>
-            <span className="hidden sm:inline" data-testid="metric-sources-active">
-              <span className="text-foreground font-semibold">{uniquePodcastSources || "-"}</span> active sources
+            <span className="hidden sm:inline" data-testid="metric-status">
+              Continuous monitoring
             </span>
           </div>
           {latestEpisodeDate && (
@@ -364,25 +361,7 @@ export default function TopicDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-episodes">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Episodes Analyzed</p>
-              <p className="text-2xl font-display font-bold text-foreground">
-                {episodesLoading ? "-" : topicEpisodes?.length || 0}
-              </p>
-            </div>
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-sources">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Sources Monitored</p>
-              <p className="text-2xl font-display font-bold text-foreground">
-                {relatedPodcasts.length || uniquePodcastSources || "-"}
-              </p>
-            </div>
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-voices">
-              <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Key Stakeholders</p>
-              <p className="text-2xl font-display font-bold text-foreground">
-                {relatedPeople.length || "-"}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-coverage">
               <p className="text-[12px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Coverage Status</p>
               <p className="text-lg font-display font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
@@ -546,18 +525,6 @@ export default function TopicDetailPage() {
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Active
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA]">Monitored sources</span>
-                    <span className="text-[14px] font-mono font-semibold text-foreground">{relatedPodcasts.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA]">Key stakeholders</span>
-                    <span className="text-[14px] font-mono font-semibold text-foreground">{relatedPeople.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA]">Companies tracked</span>
-                    <span className="text-[14px] font-mono font-semibold text-foreground">{relatedCompanies.length}</span>
                   </div>
                   {latestEpisodeDate && (
                     <>
