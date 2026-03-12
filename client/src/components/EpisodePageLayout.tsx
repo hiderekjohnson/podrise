@@ -185,12 +185,7 @@ export function EpisodePageLayout({
 
               <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
                 <Link href={`/podcasts/${podcastSlug}`}>
-                  <span className="inline-flex items-center gap-2 text-[16px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
-                    <img
-                      src={episode.artworkUrl}
-                      alt=""
-                      className="w-5 h-5 rounded-[4px] ring-1 ring-black/[0.06]"
-                    />
+                  <span className="text-[16px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
                     {episode.podcastName}
                   </span>
                 </Link>
