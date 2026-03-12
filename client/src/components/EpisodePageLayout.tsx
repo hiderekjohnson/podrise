@@ -10,7 +10,6 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 
 interface EpisodePageLayoutProps {
   episode: {
@@ -48,7 +47,6 @@ export function EpisodePageLayout({
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
   const register = useRegister();
-  const categoryInfo = podcastConfig ? getPodcastCategoryInfo(podcastConfig) : { category: null, topics: [] };
 
   const publishDate = new Date(episode.publishDate + "T00:00:00");
   const formattedDate = publishDate.toLocaleDateString("en-US", {
@@ -177,21 +175,6 @@ export function EpisodePageLayout({
                     {episode.podcastName}
                   </span>
                 </Link>
-                {categoryInfo.category && categoryInfo.topics.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 justify-center sm:justify-start">
-                    {categoryInfo.topics.map((topic) => {
-                      const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
-                      if (!insightsSlug) return null;
-                      return (
-                        <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
-                          <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
-                            {topic.name}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
@@ -261,7 +244,7 @@ export function EpisodePageLayout({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="w-full max-w-4xl"
+          className="w-full max-w-5xl"
         >
           {children}
         </motion.div>
@@ -271,7 +254,7 @@ export function EpisodePageLayout({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-4xl pb-16 mt-10"
+          className="w-full max-w-5xl pb-16 mt-10"
         >
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">

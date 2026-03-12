@@ -1,23 +1,13 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Tag, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
-import { TOPICS } from "../data/topicData";
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
-
-const TOPIC_ICON_MAP: Record<string, LucideIcon> = {
-  Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone,
-  Handshake, Zap, GitFork, Cpu, LineChart, Building2, Heart, Flame,
-  ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, UserPlus,
-  Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Sparkles,
-  Hammer, Briefcase, Tag,
-};
 
 interface TopQuestion {
   question: string;
@@ -460,9 +450,18 @@ function QuoteShareBar({ quote, podcastName, episodeTitle }: { quote: EpisodeQuo
 }
 
 function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: EpisodeQuoteData; podcastName: string; episodeTitle: string; index: number }) {
+  const personMatch = useMemo(() => {
+    const name = quote.speakerName?.toLowerCase().trim();
+    if (!name) return null;
+    return PEOPLE_DIRECTORY.find(p =>
+      p.name.toLowerCase().trim() === name ||
+      p.searchTerms.some(t => t.toLowerCase().trim() === name)
+    );
+  }, [quote.speakerName]);
+
   return (
     <div
-      className="relative bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm"
+      className="relative w-full max-w-[85%] bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm"
       data-testid={`quote-card-${index}`}
     >
       <div className="px-6 py-5">
@@ -474,9 +473,18 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3" data-testid={`quote-speaker-${index}`}>
-            <div className="w-8 h-8 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-bold text-primary">{quote.speakerName.charAt(0)}</span>
-            </div>
+            {personMatch ? (
+              <img
+                src={personMatch.imageUrl}
+                alt={quote.speakerName}
+                className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-muted"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-bold text-primary">{quote.speakerName.charAt(0)}</span>
+              </div>
+            )}
             <div>
               <p className="text-[15px] font-bold text-foreground">{quote.speakerName}</p>
               {quote.speakerRole && <p className="text-[13px] text-muted-foreground">{quote.speakerRole}</p>}
@@ -636,7 +644,6 @@ export default function EpisodeRecapPage() {
   }, [episode]);
 
   const entityContexts: Record<string, string> = (episode as any)?.entityContexts || {};
-  const hasNotableMentions = notablePeople.length > 0 || notableCompanies.length > 0;
   const hasHosts = (podcastHosts && podcastHosts.length > 0) || false;
 
   useEffect(() => {
@@ -698,13 +705,13 @@ export default function EpisodeRecapPage() {
   useEffect(() => {
     const sectionIds = [
       "section-key-insights",
-      "section-quotes",
       "section-what-happened",
       "section-guests",
-      "section-notable-mentions",
-      "section-key-topics",
+      "section-people-mentioned",
+      "section-companies-mentioned",
       "section-books",
       "section-top-questions",
+      "section-quotes",
     ];
 
     const handleScroll = () => {
@@ -750,30 +757,6 @@ export default function EpisodeRecapPage() {
   }
 
   const whatHappenedParagraphs = episode.whatHappened.split("\n\n").filter(Boolean);
-  const matchedTopics = (() => {
-    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""} ${(episode.keyTopics || []).join(" ")}`.toLowerCase();
-    const titleText = (episode.episodeTitle || "").toLowerCase();
-    const keyTopicText = ((episode.keyTopics || []).join(" ")).toLowerCase();
-    const scored = TOPICS.map(t => {
-      let score = 0;
-      const allKeywords = [...t.podcastKeywords];
-      for (const kw of allKeywords) {
-        const kwLower = kw.toLowerCase();
-        const regex = new RegExp(`\\b${kwLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
-        const bodyMatches = (searchText.match(regex) || []).length;
-        if (bodyMatches === 0) continue;
-        score += bodyMatches;
-        if (regex.test(titleText)) score += 10;
-        if (regex.test(keyTopicText)) score += 5;
-      }
-      return { topic: t, score };
-    })
-      .filter(s => s.score >= 3)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-      .map(s => s.topic);
-    return scored;
-  })();
   let topQuestions: TopQuestion[] = [];
   try {
     topQuestions = episode.topQuestions ? (typeof episode.topQuestions === "string" ? JSON.parse(episode.topQuestions) : episode.topQuestions) : [];
@@ -795,14 +778,6 @@ export default function EpisodeRecapPage() {
     }
   } catch { sponsors = []; }
 
-  const parsedTopicContexts: Record<string, string> = (() => {
-    try {
-      const raw = (episode as any).topicContexts;
-      if (!raw) return {};
-      return typeof raw === "string" ? JSON.parse(raw) : raw;
-    } catch { return {}; }
-  })();
-  const hasKeyTopics = matchedTopics.length > 0;
   const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
   const hasSponsors = sponsors.length > 0;
@@ -843,15 +818,6 @@ export default function EpisodeRecapPage() {
               Takeaways
             </button>
           )}
-          {hasQuotes && (
-            <button
-              onClick={() => scrollTo("section-quotes")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-quotes"
-            >
-              Quotes
-            </button>
-          )}
           <button
             onClick={() => scrollTo("section-what-happened")}
             className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
@@ -868,22 +834,22 @@ export default function EpisodeRecapPage() {
               Participants
             </button>
           )}
-          {hasNotableMentions && (
+          {notablePeople.length > 0 && (
             <button
-              onClick={() => scrollTo("section-notable-mentions")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-notable-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-notable-mentions"
+              onClick={() => scrollTo("section-people-mentioned")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-people-mentioned" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-people-mentioned"
             >
-              Mentions
+              People
             </button>
           )}
-          {hasKeyTopics && (
+          {notableCompanies.length > 0 && (
             <button
-              onClick={() => scrollTo("section-key-topics")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-topics" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-key-topics"
+              onClick={() => scrollTo("section-companies-mentioned")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-companies-mentioned" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-companies-mentioned"
             >
-              Topics
+              Companies
             </button>
           )}
           {hasBooks && (
@@ -903,6 +869,15 @@ export default function EpisodeRecapPage() {
               data-testid="nav-top-questions"
             >
               Q&A
+            </button>
+          )}
+          {hasQuotes && (
+            <button
+              onClick={() => scrollTo("section-quotes")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-quotes"
+            >
+              Quotes
             </button>
           )}
         </nav>
@@ -963,29 +938,6 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {hasQuotes && (
-          <section id="section-quotes" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-quotes">
-            <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <Quote className="w-4 h-4 text-violet-500" />
-                <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Notable Quotes</span>
-              </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">The most shareable lines from this episode of {episode.podcastName}.</p>
-            </div>
-            <div className="px-6 py-5 space-y-4">
-              {episodeQuotes.map((q, i) => (
-                <QuoteCard
-                  key={q.id}
-                  quote={q}
-                  podcastName={episode.podcastName}
-                  episodeTitle={episode.episodeTitle}
-                  index={i}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
           <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
             <div className="flex items-center gap-2.5">
@@ -997,8 +949,7 @@ export default function EpisodeRecapPage() {
           <div className="px-6 py-5 space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
               <p key={i} className="text-[17px] leading-[1.85] text-muted-foreground">
-                {i === 0 && <span className="text-foreground font-semibold">{paragraph.split(" ").slice(0, 3).join(" ")} </span>}
-                {i === 0 ? paragraph.split(" ").slice(3).join(" ") : paragraph}
+                {paragraph}
               </p>
             ))}
           </div>
@@ -1152,124 +1103,86 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {hasNotableMentions && (
-          <section id="section-notable-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-notable-mentions">
+        {notablePeople.length > 0 && (
+          <section id="section-people-mentioned" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-people-mentioned">
             <div className="px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4 text-orange-500" />
-                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">Notable Mentions</span>
+                <Users className="w-4 h-4 text-orange-500" />
+                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">People Mentioned</span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Key people and companies discussed in this episode of {episode.podcastName}{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Key people discussed in this episode of {episode.podcastName}.</p>
             </div>
-            <div className="px-6 py-5 space-y-6">
-              {notablePeople.length > 0 && (
-                <div data-testid="section-notable-people">
-                  <h3 className="text-base font-bold text-foreground uppercase tracking-wider mb-4">People Mentioned</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {notablePeople.map((person, i) => (
-                      <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
-                        <Link href={`/people/${person.slug}`}>
-                          <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
-                            <img
-                              src={person.imageUrl}
-                              alt={person.name}
-                              className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
-                              loading="lazy"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
-                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="px-4 pb-3.5">
-                          {entityContexts[person.slug] && (
-                            <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
-                          )}
-                          <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} podcastName={episode?.podcastName} />
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {notablePeople.map((person, i) => (
+                  <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
+                    <Link href={`/people/${person.slug}`}>
+                      <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
+                        <img
+                          src={person.imageUrl}
+                          alt={person.name}
+                          className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
+                          loading="lazy"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
+                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
                         </div>
                       </div>
-                    ))}
+                    </Link>
+                    <div className="px-4 pb-3.5">
+                      {entityContexts[person.slug] && (
+                        <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
+                      )}
+                      <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} podcastName={episode?.podcastName} />
+                    </div>
                   </div>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/70 mt-5 italic" data-testid="notable-people-footnote">Only the most notable mentions are included.</p>
-                </div>
-              )}
-              {notableCompanies.length > 0 && (
-                <div data-testid="section-notable-companies">
-                  <h3 className="text-base font-bold text-foreground uppercase tracking-wider mb-4">Companies Mentioned</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {notableCompanies.map((company, i) => (
-                      <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
-                        <Link href={`/companies/${company.slug}`}>
-                          <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
-                            <img
-                              src={company.logoUrl}
-                              alt={company.name}
-                              className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-lg object-contain flex-shrink-0 bg-muted p-2 ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
-                              loading="lazy"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{company.name}</p>
-                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="px-4 pb-3.5">
-                          {entityContexts[company.slug] && (
-                            <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
-                          )}
-                          <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} podcastName={episode?.podcastName} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/70 mt-5 italic" data-testid="notable-companies-footnote">Only the most notable mentions are included.</p>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </section>
         )}
 
-        {hasKeyTopics && (
-          <section id="section-key-topics" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-topics">
-            <div className="px-6 py-4 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
+        {notableCompanies.length > 0 && (
+          <section id="section-companies-mentioned" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-companies-mentioned">
+            <div className="px-6 py-4 bg-blue-500/[0.04] border-b border-blue-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <Tag className="w-4 h-4 text-emerald-500" />
-                <span className="text-base font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Key Topics in This {episode.podcastName} Episode</span>
+                <Building2 className="w-4 h-4 text-blue-500" />
+                <span className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">Companies Mentioned</span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Main themes discussed in this episode{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Key companies discussed in this episode of {episode.podcastName}.</p>
             </div>
             <div className="px-6 py-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {matchedTopics.map((topic, i) => {
-                  const IconComponent = TOPIC_ICON_MAP[topic.icon] || Tag;
-                  const contextDesc = parsedTopicContexts[topic.slug];
-                  const displayDesc = contextDesc || `${topic.description.split(".")[0]}.`;
-                  return (
-                    <div
-                      key={topic.slug}
-                      className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-emerald-500/[0.03] transition-all"
-                      data-testid={`topic-link-${i}`}
-                    >
-                      <Link href={`/insights/${topic.slug}`} className="group/topic flex gap-3.5 p-4 pb-2">
-                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center shrink-0`}>
-                          <IconComponent className="w-5 h-5 text-white" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {notableCompanies.map((company, i) => (
+                  <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-blue-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-blue-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
+                    <Link href={`/companies/${company.slug}`}>
+                      <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
+                        <img
+                          src={company.logoUrl}
+                          alt={company.name}
+                          className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-lg object-contain flex-shrink-0 bg-muted p-2 ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
+                          loading="lazy"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-bold text-foreground group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors truncate">{company.name}</p>
+                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-[15px] font-bold text-foreground group-hover/topic:text-emerald-600 dark:group-hover/topic:text-emerald-400 transition-colors">{topic.name}</h4>
-                          <p className="text-base leading-snug text-muted-foreground mt-0.5">{displayDesc.length > 120 ? displayDesc.slice(0, 120).replace(/\s+\S*$/, "") + "." : displayDesc}</p>
-                        </div>
-                      </Link>
-                      <div className="px-4 pb-3">
-                        <DeepDiveButton entityName={topic.name} entityType="topic" chatRef={chatRef} />
                       </div>
+                    </Link>
+                    <div className="px-4 pb-3.5">
+                      {entityContexts[company.slug] && (
+                        <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
+                      )}
+                      <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} podcastName={episode?.podcastName} />
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           </section>
         )}
+
 
 
         {hasBooks && (
@@ -1344,29 +1257,8 @@ export default function EpisodeRecapPage() {
                         </p>
                       )}
 
-                      <div className="mt-auto pt-3 flex items-center justify-between">
+                      <div className="mt-auto pt-3">
                         <DeepDiveButton label="What did they say?" entityName={book.name} entityType="book" chatRef={chatRef} />
-                        {bookSlug ? (
-                          <Link
-                            href={`/bookstore/${bookSlug}`}
-                            className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-                            data-testid={`book-view-${i}`}
-                          >
-                            View
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </Link>
-                        ) : (
-                          <a
-                            href={blinkistUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-                            data-testid={`book-buy-${i}`}
-                          >
-                            Summary
-                            <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
-                          </a>
-                        )}
                       </div>
                     </div>
                   );
@@ -1443,6 +1335,31 @@ export default function EpisodeRecapPage() {
               }}
             />
           </>
+        )}
+
+        {hasQuotes && (
+          <section id="section-quotes" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-quotes">
+            <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <Quote className="w-4 h-4 text-violet-500" />
+                <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Notable Quotes</span>
+              </div>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">The most shareable lines from this episode of {episode.podcastName}.</p>
+            </div>
+            <div className="px-6 py-5">
+              <div className="flex flex-col items-end space-y-4">
+                {episodeQuotes.slice(0, 3).map((q, i) => (
+                  <QuoteCard
+                    key={q.id}
+                    quote={q}
+                    podcastName={episode.podcastName}
+                    episodeTitle={episode.episodeTitle}
+                    index={i}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
         )}
 
       </motion.article>
