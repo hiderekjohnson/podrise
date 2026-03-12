@@ -1216,7 +1216,7 @@ export default function EpisodeRecapPage() {
                   const asin = enrichment?.asin || extractAsin(book.url || "");
                   const blinkistUrl = getBlinkistUrl(book);
                   const displayAuthor = enrichment?.author || book.author;
-                  const displayDescription = enrichment?.description || book.context;
+                  const displayDescription = book.context || enrichment?.description;
 
                   return (
                     <div
