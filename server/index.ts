@@ -241,6 +241,13 @@ process.on("uncaughtException", (err) => {
         } catch (err) {
           console.warn("Podcast hosts seed skipped:", err);
         }
+
+        try {
+          await pool.query(`DELETE FROM admin_settings WHERE key = 'admin_password_hash'`);
+          console.log("[Migration] Admin password reset to env var");
+        } catch (err) {
+          console.warn("Admin password reset skipped:", err);
+        }
       })();
 
       initStripe().catch((err) => {
