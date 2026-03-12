@@ -783,6 +783,15 @@ export default function EpisodeRecapPage() {
   const hasSponsors = sponsors.length > 0;
   const hasQuotes = episodeQuotes.length > 0;
 
+  const guestNames = (() => {
+    if (guests.length === 0) return null;
+    if (guests.length === 1) return guests[0].name;
+    if (guests.length === 2) return `${guests[0].name} and ${guests[1].name}`;
+    return `${guests[0].name}, ${guests[1].name}, and More`;
+  })();
+  const guestLabel = guestNames ? `${guestNames} on ${episode.podcastName}` : null;
+  const seoSubject = guestLabel || `This ${episode.podcastName} Episode`;
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -888,7 +897,6 @@ export default function EpisodeRecapPage() {
               <BookOpen className="w-4 h-4 text-slate-500" />
               <span className="text-base font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">About This Episode</span>
             </div>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">A quick summary of what this {episode.podcastName} episode covers.</p>
           </div>
           <div className="px-6 py-5">
             <p className="text-base leading-[1.85] text-muted-foreground">
@@ -913,9 +921,7 @@ export default function EpisodeRecapPage() {
               <div className="flex items-center gap-2.5">
                 <Lightbulb className="w-4 h-4 text-amber-500" />
                 <span className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
-                  {guests.length > 0 && guests[0]?.name
-                    ? `Key Takeaways from ${guests[0].name} on ${episode.podcastName}`
-                    : `Key Takeaways from This Episode of ${episode.podcastName}`}
+                  {`Key Takeaways from ${seoSubject}`}
                 </span>
               </div>
             </div>
@@ -945,9 +951,8 @@ export default function EpisodeRecapPage() {
           <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
             <div className="flex items-center gap-2.5">
               <BookOpen className="w-4 h-4 text-primary" />
-              <span className="text-base font-bold text-primary uppercase tracking-wider">Full Recap</span>
+              <span className="text-base font-bold text-primary uppercase tracking-wider">{`Full Episode Recap: ${seoSubject}`}</span>
             </div>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">A detailed breakdown of everything discussed in this episode.</p>
           </div>
           <div className="px-6 py-5 space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
@@ -963,9 +968,8 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-sky-500/[0.04] border-b border-sky-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Users className="w-4 h-4 text-sky-500" />
-                <span className="text-base font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">Participants in This Episode</span>
+                <span className="text-base font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">{`Who's in This Episode of ${episode.podcastName}`}</span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5" data-testid="participants-intro">The {guests.length > 0 ? "guest" + (guests.length > 1 ? "s" : "") + " and " : ""}hosts featured in this episode of the {episode.podcastName} podcast.</p>
             </div>
             <div className="px-6 py-5">
 
@@ -1111,9 +1115,8 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Users className="w-4 h-4 text-orange-500" />
-                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">People Mentioned</span>
+                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">{`People Mentioned in This ${episode.podcastName} Episode`}</span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Key people discussed in this episode of {episode.podcastName}.</p>
             </div>
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1151,9 +1154,8 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-blue-500/[0.04] border-b border-blue-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Building2 className="w-4 h-4 text-blue-500" />
-                <span className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">Companies Mentioned</span>
+                <span className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">{`Companies Mentioned in This ${episode.podcastName} Episode`}</span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Key companies discussed in this episode of {episode.podcastName}.</p>
             </div>
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1279,9 +1281,8 @@ export default function EpisodeRecapPage() {
               <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
                 <div className="flex items-center gap-2.5">
                   <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-                  <h2 className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">Key Questions Discussed in This {episode.podcastName} Podcast Episode</h2>
+                  <h2 className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">{guestLabel ? `Questions Answered in This Episode with ${guestLabel}` : `Questions Answered in ${seoSubject}`}</h2>
                 </div>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5" data-testid="questions-intro">The most important questions explored in this episode{episode.hosts ? ` with ${episode.hosts.replace(/&amp;/g, "&")}` : ""}.</p>
               </div>
               <div className="px-6 py-5">
                 <div className="space-y-0 divide-y divide-border">
@@ -1345,9 +1346,8 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Quote className="w-4 h-4 text-violet-500" />
-                <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">Notable Quotes</span>
+                <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">{guestNames ? `Best ${guestNames} Quotes from ${episode.podcastName}` : `Best Quotes from ${seoSubject}`}</span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">The most shareable lines from this episode of {episode.podcastName}.</p>
             </div>
             <div className="px-6 py-5">
               <div className="flex flex-col items-end space-y-4">
