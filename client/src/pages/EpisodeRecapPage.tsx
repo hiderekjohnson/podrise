@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -726,7 +726,6 @@ export default function EpisodeRecapPage() {
       "section-guests",
       "section-mentions",
       "section-books",
-      "section-top-questions",
       "section-quotes",
     ];
 
@@ -890,15 +889,6 @@ export default function EpisodeRecapPage() {
             </button>
           )}
           {/* Sponsors nav chip — disabled for now, enable when podcaster promotion tools go public */}
-          {hasTopQuestions && (
-            <button
-              onClick={() => scrollTo("section-top-questions")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-top-questions"
-            >
-              Q&A
-            </button>
-          )}
           {hasQuotes && (
             <button
               onClick={() => scrollTo("section-quotes")}
@@ -1293,69 +1283,23 @@ export default function EpisodeRecapPage() {
         {/* Sponsors section — disabled for now, enable when podcaster promotion tools go public */}
 
         {hasTopQuestions && (
-          <>
-            <section id="section-top-questions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-top-questions">
-              <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
-                <div className="flex items-center gap-2.5">
-                  <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-                  <h2 className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">{guestNames ? `Key Questions Answered in This Episode with ${guestNames}` : `Key Questions Answered in This ${episode.podcastName} Episode`}</h2>
-                </div>
-              </div>
-              <div className="px-6 py-5">
-                <div className="space-y-0 divide-y divide-border">
-                {topQuestions.slice(0, 6).map((item, i) => {
-                  const anchorSlug = item.question
-                    .toLowerCase()
-                    .replace(/[?''""!.,;:]/g, '')
-                    .replace(/\s+/g, '-')
-                    .replace(/-+/g, '-')
-                    .replace(/^-|-$/g, '')
-                    .slice(0, 60);
-                  return (
-                    <details key={i} id={anchorSlug} className="group scroll-mt-24" data-testid={`question-item-${i}`}>
-                      <summary className="flex items-center justify-between gap-3 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden" data-testid={`question-heading-${i}`}>
-                        <h3 className="text-[17px] font-semibold text-foreground leading-snug">{item.question}</h3>
-                        <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform group-open:rotate-180" />
-                      </summary>
-                      <div className="pb-4 pt-1">
-                        {item.answer.split("\n\n").filter(Boolean).map((p, j) => (
-                          <p key={j} className="text-base leading-[1.85] text-muted-foreground mb-2 last:mb-0">{p}</p>
-                        ))}
-                      </div>
-                    </details>
-                  );
-                })}
-                </div>
-                <div className="px-0 pt-3 pb-1 border-t border-black/[0.04] dark:border-white/[0.06] mt-2">
-                  <button
-                    onClick={() => chatRef.current?.open()}
-                    className="inline-flex items-center gap-1.5 text-[16px] font-medium text-primary/80 hover:text-primary transition-colors"
-                    data-testid="ask-custom-question"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Have a different question? Ask AI
-                  </button>
-                </div>
-              </div>
-            </section>
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "FAQPage",
-                  "mainEntity": topQuestions.slice(0, 6).map(item => ({
-                    "@type": "Question",
-                    "name": item.question,
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": item.answer,
-                    },
-                  })),
-                }),
-              }}
-            />
-          </>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": topQuestions.slice(0, 3).map(item => ({
+                  "@type": "Question",
+                  "name": item.question,
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": item.answer,
+                  },
+                })),
+              }),
+            }}
+          />
         )}
 
         {hasQuotes && (
