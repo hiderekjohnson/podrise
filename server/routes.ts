@@ -6517,5 +6517,20 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  setTimeout(async () => {
+    try {
+      console.log("[Cache] Pre-warming directory caches on startup...");
+      const [peopleData, companiesData] = await Promise.all([
+        computePeopleData(),
+        computeCompaniesData(),
+      ]);
+      directoryCache.people.set(peopleData);
+      directoryCache.companies.set(companiesData);
+      console.log(`[Cache] Pre-warmed people (${peopleData.length}) and companies (${companiesData.length}) caches`);
+    } catch (err) {
+      console.error("[Cache] Pre-warm failed:", err);
+    }
+  }, 5000);
+
   return httpServer;
 }
