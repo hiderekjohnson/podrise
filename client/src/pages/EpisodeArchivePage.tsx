@@ -4,6 +4,7 @@ import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X,
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
+import { TOPICS } from "@/data/topicData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
@@ -135,19 +136,22 @@ export default function EpisodeArchivePage() {
 
   const topicList = useMemo(() => {
     if (!allEpisodes) return [];
-    const counts = new Map<string, number>();
-    for (const ep of allEpisodes) {
-      if (!ep.keyTopics || !Array.isArray(ep.keyTopics)) continue;
-      for (const t of ep.keyTopics) {
-        const normalized = t.trim();
-        if (normalized) counts.set(normalized, (counts.get(normalized) || 0) + 1);
+    const results: { topic: string; slug: string; count: number }[] = [];
+    for (const t of TOPICS) {
+      const keywords = t.podcastKeywords.map(k => k.toLowerCase());
+      let count = 0;
+      for (const ep of allEpisodes) {
+        const texts = [
+          ep.episodeTitle,
+          ep.tldl,
+          ep.whatHappened,
+          ...(ep.keyTopics || []),
+        ].filter(Boolean).join(" ").toLowerCase();
+        if (keywords.some(kw => texts.includes(kw))) count++;
       }
+      if (count > 0) results.push({ topic: t.name, slug: t.slug, count });
     }
-    return [...counts.entries()]
-      .filter(([, c]) => c >= 2)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 50)
-      .map(([topic, count]) => ({ topic, count }));
+    return results.sort((a, b) => b.count - a.count);
   }, [allEpisodes]);
 
   const yearList = useMemo(() => {
@@ -195,10 +199,19 @@ export default function EpisodeArchivePage() {
     }
 
     if (selectedTopic) {
-      const topicLower = selectedTopic.toLowerCase();
-      result = result.filter(ep =>
-        (ep.keyTopics || []).some((t: string) => t.toLowerCase().includes(topicLower))
-      );
+      const matchedTopic = TOPICS.find(t => t.name === selectedTopic);
+      if (matchedTopic) {
+        const keywords = matchedTopic.podcastKeywords.map(k => k.toLowerCase());
+        result = result.filter(ep => {
+          const texts = [
+            ep.episodeTitle,
+            ep.tldl,
+            ep.whatHappened,
+            ...(ep.keyTopics || []),
+          ].filter(Boolean).join(" ").toLowerCase();
+          return keywords.some(kw => texts.includes(kw));
+        });
+      }
     }
 
     if (selectedYear) {
