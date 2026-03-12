@@ -128,15 +128,33 @@ interface ChatContextRef {
   open: (entityName?: string, entityType?: string, initialQuestion?: string) => void;
 }
 
-function DeepDiveButton({ label, entityName, entityType, chatRef }: {
+function getAutoQuestion(entityName: string, entityType: string, podcastName?: string): string {
+  const show = podcastName || "this episode";
+  switch (entityType) {
+    case "person": return `How was ${entityName} mentioned in this episode of ${show}?`;
+    case "company": return `How was ${entityName} discussed in this episode of ${show}?`;
+    case "topic": return `How was ${entityName} discussed in this episode?`;
+    case "book": return `How was "${entityName}" referenced in this episode?`;
+    case "insight": return `Can you expand on this takeaway: "${entityName}"?`;
+    default: return `Tell me more about ${entityName} in this episode.`;
+  }
+}
+
+function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName }: {
   label?: string;
   entityName: string;
   entityType: string;
   chatRef: React.RefObject<ChatContextRef | null>;
+  podcastName?: string;
 }) {
   return (
     <button
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); chatRef.current?.open(entityName, entityType); }}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const q = getAutoQuestion(entityName, entityType, podcastName);
+        chatRef.current?.open(entityName, entityType, q);
+      }}
       className="inline-flex items-center gap-1 text-[13px] font-medium text-primary/70 hover:text-primary transition-colors group/ai"
       data-testid={`deep-dive-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
     >
@@ -173,22 +191,24 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
   const openChat = (entityName?: string, entityType?: string, initialQuestion?: string) => {
     const newEntity = entityName && entityType ? { name: entityName, type: entityType } : null;
     const entityChanged = newEntity && (!currentEntity || currentEntity.name !== newEntity.name || currentEntity.type !== newEntity.type);
-    if (entityChanged) {
+    if (entityChanged || initialQuestion || !entityName) {
       setMessages([]);
       setInput("");
     }
     if (newEntity) {
       setCurrentEntity(newEntity);
+    } else if (!entityName) {
+      setCurrentEntity(null);
     }
     setIsOpen(true);
     if (initialQuestion) {
-      setTimeout(() => sendMessage(initialQuestion, entityName, entityType), 100);
+      setTimeout(() => sendMessage(initialQuestion, entityName, entityType, true), 150);
     }
   };
 
   React.useImperativeHandle(ref, () => ({ open: openChat }));
 
-  const sendMessage = async (text?: string, overrideEntityName?: string, overrideEntityType?: string) => {
+  const sendMessage = async (text?: string, overrideEntityName?: string, overrideEntityType?: string, freshConversation?: boolean) => {
     const q = text || input.trim();
     if (!q || loading) return;
     setInput("");
@@ -209,7 +229,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
           entityName: eName || undefined,
           entityType: eType || undefined,
           question: q,
-          conversationHistory: messages,
+          conversationHistory: freshConversation ? [] : messages,
         }),
       });
       const data = await resp.json();
@@ -246,12 +266,12 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
   if (!isOpen) {
     return (
       <button
-        onClick={() => { setCurrentEntity(null); setIsOpen(true); }}
+        onClick={() => { setCurrentEntity(null); setMessages([]); setInput(""); setIsOpen(true); }}
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all"
         data-testid="open-ai-chat-fab"
       >
         <Sparkles className="w-4 h-4" />
-        <span className="text-[14px] font-semibold">Ask AI</span>
+        <span className="text-[14px] font-semibold">Ask AI about this episode</span>
       </button>
     );
   }
@@ -1166,7 +1186,7 @@ export default function EpisodeRecapPage() {
                           {entityContexts[person.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
                           )}
-                          <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} />
+                          <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} podcastName={episode?.podcastName} />
                         </div>
                       </div>
                     ))}
@@ -1198,7 +1218,7 @@ export default function EpisodeRecapPage() {
                           {entityContexts[company.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
                           )}
-                          <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} />
+                          <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} podcastName={episode?.podcastName} />
                         </div>
                       </div>
                     ))}
@@ -1392,6 +1412,16 @@ export default function EpisodeRecapPage() {
                     </details>
                   );
                 })}
+                </div>
+                <div className="px-0 pt-3 pb-1 border-t border-black/[0.04] dark:border-white/[0.06] mt-2">
+                  <button
+                    onClick={() => chatRef.current?.open()}
+                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary/80 hover:text-primary transition-colors"
+                    data-testid="ask-custom-question"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Have a different question? Ask AI
+                  </button>
                 </div>
               </div>
             </section>

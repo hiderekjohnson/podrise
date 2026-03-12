@@ -344,54 +344,7 @@ export function EpisodePageLayout({
 
       <Footer />
 
-      <AnimatePresence>
-        {showStickyBar && !stickyDismissed && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
-            data-testid="sticky-signup-bar"
-          >
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                  <Mail className="w-4 h-4 text-primary" />
-                </div>
-                <p className="text-base font-semibold text-foreground whitespace-nowrap">
-                  Never miss a <span className="text-primary">{episode.podcastName}</span> recap
-                </p>
-              </div>
-              <form onSubmit={handleStickySubmit} className="flex flex-1 gap-2 w-full sm:w-auto" data-testid="form-sticky-signup">
-                <input
-                  data-testid="input-email-sticky"
-                  type="email"
-                  value={stickyEmail}
-                  onChange={(e) => setStickyEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-lg text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/40"
-                />
-                <button
-                  data-testid="button-sticky-signup"
-                  type="submit"
-                  className="h-9 px-4 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  Subscribe free
-                </button>
-              </form>
-              <button
-                onClick={() => setStickyDismissed(true)}
-                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-1.5 rounded-md text-muted-foreground/40 hover:text-muted-foreground hover:bg-black/[0.04] transition-colors shrink-0"
-                data-testid="button-dismiss-sticky"
-                aria-label="Dismiss"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Sticky subscribe bar removed to avoid overlapping with AI chat panel */}
 
       <GetRecapsModal
         open={showRecapsModal}
