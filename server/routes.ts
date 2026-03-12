@@ -2710,7 +2710,19 @@ export async function registerRoutes(
                 model: "gpt-4o-mini",
                 messages: [{
                   role: "user",
-                  content: `For each person/company below, write ONE concise sentence (max 20 words) summarizing WHY they were mentioned in this podcast episode. Focus on the discussion context, not a bio. Write in past tense, starting with a verb like "Discussed as...", "Referenced for...", "Mentioned as...", "Cited as...".
+                  content: `For each person/company below, write ONE sentence describing the specific claim, argument, or story from this episode about them. Do NOT describe who they are or what their company does generically. Write what was said about them in this episode specifically. If you cannot find something specific from the excerpts, write the most specific contextual claim possible.
+
+Since transcripts are not speaker-tagged, do NOT attribute claims to specific hosts or guests by name. Instead use passive or general terms: "was cited," "was highlighted," "was referenced," "was discussed," "was held up as."
+
+Good examples:
+- "Mark Zuckerberg was cited as an example of how radically different paths -- dropping out, building in a dorm -- can lead to the same outcome as more conventional routes taken by Gates or Bezos."
+- "OpenAI was highlighted as one of the best companies to join as an early employee in 2026, with significant stock option upside for the right roles."
+- "Angela Duckworth's research on grit was referenced to argue that perseverance combined with genuine passion outperforms raw talent in predicting long-term success."
+
+Bad examples (too generic, describes who they ARE not what was SAID):
+- "Discussed as an example of varied paths to success."
+- "Referenced for his unique approach to angel investing."
+- "Mentioned for its significance in chip technology."
 
 Podcast: ${recap.podcastName}
 Episode: "${recap.episodeTitle}"
@@ -2721,7 +2733,7 @@ ${entityDescriptions}
 Respond with JSON: { "slug": "summary sentence", ... }
 Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                 }],
-                max_tokens: 1000,
+                max_tokens: 2000,
                 temperature: 0.3,
                 response_format: { type: "json_object" },
               });
