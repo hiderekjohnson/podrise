@@ -25,6 +25,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 **People Image Pipeline**: A system resolves profile photos for directory entries, prioritizing existing local images, then Wikipedia/Wikimedia Commons, then X/Twitter via unavatar.io, with a fallback placeholder.
 **RSS Feeds**: Public and custom RSS feeds are available for content consumption.
 **Design System**: Adheres to WCAG AA accessibility standards, with specific typography, color contrasts, and component sizing. All pages are SEO-optimized with dynamic meta tags and JSON-LD schema.
+**SEO/SSR Pipeline**: `server/podcastMeta.ts` provides async DB-backed meta tag injection for all page types. `injectPodcastMeta(html, url)` is awaited in both `server/vite.ts` (dev) and `server/static.ts` (production). Covers: static pages, podcast landing/archive pages, episode recaps (DB-backed with JSON-LD PodcastEpisode schema + SSR article HTML), person/company entity pages (registered from routes.ts via `registerEntityPeople`/`registerEntityCompanies`), book pages, and the /podcasts directory (SSR links). JSON-LD output is sanitized via `escapeJsonLd()` to prevent script injection.
 **Style Guide & Font Readability Rules** (apply to ALL new and existing public-facing pages):
   - Body text minimum: `text-[15px]` (never `text-sm`/`text-xs` for readable content on public pages)
   - Metadata/labels minimum: `text-[13px]` (never `text-[11px]`/`text-[12px]`)

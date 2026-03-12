@@ -1272,6 +1272,10 @@ export async function registerRoutes(
     { slug: "runway-ml", name: "Runway", description: "AI-powered creative tools for video generation and editing", searchTerms: ["Runway"] },
   ];
 
+  const { registerEntityPeople, registerEntityCompanies } = await import("./podcastMeta");
+  registerEntityPeople(ENTITY_PEOPLE.map(p => ({ slug: p.slug, name: p.name, title: p.title })));
+  registerEntityCompanies(ENTITY_COMPANIES.map(c => ({ slug: c.slug, name: c.name, description: c.description })));
+
   const AMBIGUOUS_TERMS = new Set([
     "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
     "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",

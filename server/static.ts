@@ -18,15 +18,20 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  app.use("/{*path}", (req, res) => {
+  app.use("/{*path}", async (req, res) => {
     const indexPath = path.resolve(distPath, "index.html");
     const url = req.originalUrl;
 
-    let html = fs.readFileSync(indexPath, "utf-8");
-    const injected = injectPodcastMeta(html, url);
-    if (injected !== html) {
-      res.status(200).set({ "Content-Type": "text/html" }).end(injected);
-    } else {
+    try {
+      let html = fs.readFileSync(indexPath, "utf-8");
+      const injected = await injectPodcastMeta(html, url);
+      if (injected !== html) {
+        res.status(200).set({ "Content-Type": "text/html" }).end(injected);
+      } else {
+        res.sendFile(indexPath);
+      }
+    } catch (err) {
+      console.error("[Static] Meta injection error:", err);
       res.sendFile(indexPath);
     }
   });
