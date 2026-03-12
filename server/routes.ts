@@ -5998,6 +5998,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     episodesPerSecond: 0,
     startedAt: null as number | null,
     completedPodcasts: [] as string[],
+    autoQueueLimit: null as number | null,
   };
 
   app.get("/api/admin/episode-pages-generate/status", async (req, res) => {
@@ -6317,7 +6318,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const genBefore = epGenState.generated;
-      await generatePagesForPodcast(nextItunesId);
+      await generatePagesForPodcast(nextItunesId, false, epGenState.autoQueueLimit || undefined);
       if (epGenState.generated === genBefore && epGenState.totalEpisodes === 0) {
         skippedIds.add(nextItunesId);
         console.log(`[EpGen] Skipping ${nextItunesId} - no unmatched episodes found (count mismatch)`);
@@ -6402,10 +6403,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
     if (epGenState.running) return res.status(409).json({ message: "Generation already in progress" });
 
+    const limitPerPodcast = req.body?.limitPerPodcast ? parseInt(req.body.limitPerPodcast, 10) : null;
+    const concurrency = req.body?.concurrency ? Math.min(parseInt(req.body.concurrency, 10), 10) : 3;
     epGenState.running = true;
     epGenState.autoQueue = true;
     epGenState.completedPodcasts = [];
-    res.json({ started: true, autoQueue: true });
+    epGenState.autoQueueLimit = limitPerPodcast;
+    epGenState.concurrency = concurrency;
+    res.json({ started: true, autoQueue: true, limitPerPodcast: limitPerPodcast || "all", concurrency });
 
     runAutoQueue().catch(err => {
       console.error(`[EpGen] Auto-queue fatal error:`, err);
