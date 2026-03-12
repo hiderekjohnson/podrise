@@ -1,4 +1,5 @@
 import { PODCAST_SEO } from "@shared/podcastSeoData";
+import { TOPICS } from "../client/src/data/topicData";
 import { pool } from "./db";
 
 interface PageMeta {
@@ -12,7 +13,20 @@ interface PageMeta {
   ssrHtml?: string;
 }
 
-const STATIC_PAGES: Record<string, PageMeta> = {
+const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
+  "/": () => {
+    const topPodcasts = PODCAST_SEO.slice(0, 30);
+    const podcastLinks = topPodcasts.map(p => `<li><a href="/podcasts/${escapeAttr(p.slug)}">${escapeAttr(p.name)}</a></li>`).join("");
+    return {
+      title: "PodCap - AI-Powered Podcast Intelligence Platform",
+      description: "Get free AI-powered daily recaps for 240+ top podcasts. Episode summaries, key insights, notable quotes, and trending topics delivered to your inbox.",
+      image: "https://podcap.io/favicon.png",
+      url: "https://podcap.io",
+      twitterCard: "summary",
+      replaceFavicon: false,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/bookstore">Bookstore</a></li><li><a href="/trends">Trends</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
+    };
+  },
   "/contact": {
     title: "Contact Us - PodCap | Daily Podcast Summaries",
     description: "Get in touch with the PodCap team. Questions, feedback, or just want to say hello - we'd love to hear from you.",
@@ -20,6 +34,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     url: "https://podcap.io/contact",
     twitterCard: "summary",
     replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Contact PodCap</h1><p>Have questions, feedback, or just want to say hello? We'd love to hear from you.</p><p>Email: <a href="mailto:hello@podcap.io">hello@podcap.io</a></p><a href="/">Back to Home</a></div>`,
   },
   "/about": {
     title: "About PodCap - The Story Behind Your Daily Podcast Summaries",
@@ -28,14 +43,19 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     url: "https://podcap.io/about",
     twitterCard: "summary",
     replaceFavicon: false,
+    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>About PodCap</h1><p>PodCap was built by Derek Johnson after 15 years running Tatango.com. Even semi-retired, he couldn't keep up with his favorite podcasts. So he built an AI-powered daily podcast summary service.</p><p>PodCap provides AI-powered recaps for 240+ top podcasts, delivering key insights, notable quotes, and actionable takeaways to your inbox every morning.</p><a href="/">Back to Home</a></article>`,
   },
-  "/leaderboard": {
-    title: "PodCap Leaderboard - Most Popular Podcasts",
-    description: "See which podcasts are trending on PodCap. Discover the most popular shows and create your own free daily AI-powered recap.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/leaderboard",
-    twitterCard: "summary",
-    replaceFavicon: false,
+  "/leaderboard": () => {
+    const podcastLinks = PODCAST_SEO.slice(0, 50).map((p, i) => `<li>${i + 1}. <a href="/podcasts/${escapeAttr(p.slug)}">${escapeAttr(p.name)}</a></li>`).join("");
+    return {
+      title: "PodCap Leaderboard - Most Popular Podcasts",
+      description: "See which podcasts are trending on PodCap. Discover the most popular shows and create your own free daily AI-powered recap.",
+      image: "https://podcap.io/favicon.png",
+      url: "https://podcap.io/leaderboard",
+      twitterCard: "summary",
+      replaceFavicon: false,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Leaderboard - Most Popular Podcasts</h1><p>See which podcasts are trending on PodCap.</p><ol style="padding-left:20px;">${podcastLinks}</ol><a href="/podcasts">Browse All Podcasts</a></div>`,
+    };
   },
   "/podcasts": {
     title: "All Podcasts - Browse 240+ Shows with Free Daily Recaps | PodCap",
@@ -45,29 +65,124 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     twitterCard: "summary",
     replaceFavicon: false,
   },
-  "/people": {
-    title: "People in Podcasts - Notable Figures & Podcast Appearances | PodCap",
-    description: "Discover notable people mentioned across top podcasts. See which episodes discuss Elon Musk, Sam Altman, Warren Buffett, and other influential figures.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/people",
-    twitterCard: "summary",
-    replaceFavicon: false,
+  "/people": () => {
+    const entries = Object.entries(ENTITY_PEOPLE_META).slice(0, 100);
+    const links = entries.map(([slug, p]) => `<li><a href="/people/${escapeAttr(slug)}">${escapeAttr(p.name)}</a> - ${escapeAttr(p.title)}</li>`).join("");
+    return {
+      title: "People in Podcasts - Notable Figures & Podcast Appearances | PodCap",
+      description: "Discover notable people mentioned across top podcasts. See which episodes discuss Elon Musk, Sam Altman, Warren Buffett, and other influential figures.",
+      image: "https://podcap.io/favicon.png",
+      url: "https://podcap.io/people",
+      twitterCard: "summary",
+      replaceFavicon: false,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>People in Podcasts</h1><p>Notable figures mentioned across ${PODCAST_SEO.length}+ top podcasts. Discover who's being talked about and what's being said.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul><a href="/">Back to Home</a></div>`,
+    };
   },
-  "/companies": {
-    title: "Companies in Podcasts - Brands & Organizations Discussed | PodCap",
-    description: "Discover companies discussed across top podcasts. See which episodes mention OpenAI, Tesla, NVIDIA, and other notable companies.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/companies",
-    twitterCard: "summary",
-    replaceFavicon: false,
+  "/companies": () => {
+    const entries = Object.entries(ENTITY_COMPANIES_META).slice(0, 100);
+    const links = entries.map(([slug, c]) => `<li><a href="/companies/${escapeAttr(slug)}">${escapeAttr(c.name)}</a></li>`).join("");
+    return {
+      title: "Companies in Podcasts - Brands & Organizations Discussed | PodCap",
+      description: "Discover companies discussed across top podcasts. See which episodes mention OpenAI, Tesla, NVIDIA, and other notable companies.",
+      image: "https://podcap.io/favicon.png",
+      url: "https://podcap.io/companies",
+      twitterCard: "summary",
+      replaceFavicon: false,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Companies in Podcasts</h1><p>Notable companies and brands discussed across ${PODCAST_SEO.length}+ top podcasts.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul><a href="/">Back to Home</a></div>`,
+    };
   },
-  "/bookstore": {
-    title: "Podcast Bookstore - Books Recommended on Top Podcasts | PodCap",
-    description: "Browse books recommended, discussed, and mentioned across the world's top podcasts. Find your next read from trusted podcast hosts and guests.",
+  "/insights": () => {
+    const topicLinks = TOPICS.map(t => `<li><a href="/insights/${escapeAttr(t.slug)}">${escapeAttr(t.name)}</a> - ${escapeAttr(t.description.slice(0, 100))}</li>`).join("");
+    return {
+      title: "Podcast Insights - Trending Topics Across Top Podcasts | PodCap",
+      description: "Explore trending topics across 240+ top podcasts. From AI and startups to health and investing, see what the smartest people are talking about.",
+      image: "https://podcap.io/favicon.png",
+      url: "https://podcap.io/insights",
+      twitterCard: "summary",
+      replaceFavicon: false,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Insights - Trending Topics</h1><p>Explore what the world's top podcasts are talking about. Trending topics, emerging themes, and key narratives across ${PODCAST_SEO.length}+ shows.</p><ul style="list-style:none;padding:0;">${topicLinks}</ul><a href="/">Back to Home</a></div>`,
+    };
+  },
+  "/daily-drop": {
+    title: "Signal - AI-Generated Daily Podcast Briefing | PodCap",
+    description: "Signal is PodCap's daily AI-generated briefing. Get the most important stories, insights, and trends from across the podcast ecosystem in one concise read.",
     image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/bookstore",
+    url: "https://podcap.io/daily-drop",
     twitterCard: "summary",
     replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Signal - Daily Podcast Intelligence Briefing</h1><p>The most important stories, insights, and trends from across the podcast ecosystem, delivered daily. AI-powered analysis of what's happening across ${PODCAST_SEO.length}+ top podcasts.</p><a href="/">Back to Home</a></div>`,
+  },
+  "/trends": {
+    title: "The Pulse - Podcast Trends & Trending Topics | PodCap",
+    description: "See what's trending across the podcast world. Track people, companies, and topics gaining momentum across 240+ top podcasts.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/trends",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>The Pulse - Podcast Trends</h1><p>Track what's trending across the podcast world. See which people, companies, and topics are gaining momentum across ${PODCAST_SEO.length}+ top podcasts.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Topics</a></li></ul></nav><a href="/">Back to Home</a></div>`,
+  },
+  "/enterprise": {
+    title: "PodCap Enterprise - Podcast Intelligence for Teams",
+    description: "Podcast intelligence for teams. Monitor industry trends, track competitors, and discover insights from hundreds of top podcasts.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/enterprise",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Enterprise</h1><p>Podcast intelligence for teams. Monitor industry trends, track competitors, and discover insights from hundreds of top podcasts.</p><a href="/">Back to Home</a></div>`,
+  },
+  "/support": {
+    title: "Support - PodCap Help Center",
+    description: "Get help with PodCap. Find answers to common questions and get support for your podcast intelligence needs.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/support",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Support</h1><p>Need help? Contact us at <a href="mailto:hello@podcap.io">hello@podcap.io</a>.</p><a href="/">Back to Home</a></div>`,
+  },
+  "/privacy": {
+    title: "Privacy Policy - PodCap",
+    description: "PodCap's privacy policy. Learn how we collect, use, and protect your personal information.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/privacy",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Privacy Policy</h1><p>PodCap respects your privacy. This policy explains how we collect, use, and protect your personal information when you use our podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
+  },
+  "/terms": {
+    title: "Terms of Service - PodCap",
+    description: "PodCap's terms of service. Read our terms and conditions for using the podcast intelligence platform.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/terms",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Terms of Service</h1><p>These terms govern your use of PodCap, an AI-powered podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
+  },
+  "/we-heart-podcasters": {
+    title: "We Heart Podcasters - PodCap for Podcast Creators",
+    description: "PodCap loves podcasters. Learn how we support podcast creators with tools, visibility, and audience growth.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/we-heart-podcasters",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>We Heart Podcasters</h1><p>PodCap is built for podcast lovers and creators. We help podcasters reach new audiences by making their best content discoverable through AI-powered recaps, insights, and entity tracking.</p><p><a href="/podcaster/claim">Claim Your Podcast</a></p><a href="/">Back to Home</a></div>`,
+  },
+  "/updates": {
+    title: "Product Updates - PodCap",
+    description: "See the latest product updates and feature releases from PodCap.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/updates",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Product Updates</h1><p>See the latest features and improvements to the PodCap podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
+  },
+  "/get-started": {
+    title: "Get Started - Create Your Free PodCap Account",
+    description: "Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from 240+ top podcasts.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/get-started",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Get Started with PodCap</h1><p>Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from ${PODCAST_SEO.length}+ top podcasts.</p><a href="/podcasts">Browse Podcasts</a></div>`,
   },
 };
 
@@ -218,7 +333,7 @@ function buildEpisodeSsrHtml(ep: any, podcast: any): string {
   html += `<nav aria-label="Breadcrumb" style="font-size:14px;margin-bottom:16px;"><a href="/">Home</a> &gt; <a href="/podcasts">Podcasts</a> &gt; <a href="/podcasts/${escapeAttr(ep.slug)}">${escapeAttr(ep.podcast_name)}</a> &gt; <span>${escapeAttr(decodeHtmlEntities(ep.episode_title))}</span></nav>`;
   html += `<h1>${escapeAttr(decodeHtmlEntities(ep.episode_title))} - ${escapeAttr(ep.podcast_name)} Recap</h1>`;
   html += `<p><strong>Podcast:</strong> ${escapeAttr(ep.podcast_name)}</p>`;
-  if (ep.publish_date) html += `<p><strong>Published:</strong> ${ep.publish_date}</p>`;
+  if (ep.publish_date) html += `<p><strong>Published:</strong> ${escapeAttr(String(ep.publish_date))}</p>`;
   if (ep.duration) html += `<p><strong>Duration:</strong> ${escapeAttr(ep.duration)}</p>`;
   if (guests.length > 0) {
     html += `<p><strong>Guests:</strong> ${guests.map((g: any) => escapeAttr(g.name)).join(", ")}</p>`;
@@ -400,8 +515,37 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     cleanUrl = cleanUrl.slice(0, -1);
   }
 
-  const staticPage = STATIC_PAGES[cleanUrl];
-  if (staticPage) {
+  if (cleanUrl === "/bookstore") {
+    let ssrHtml = "";
+    try {
+      const { rows: books } = await pool.query(
+        `SELECT slug, book_title, author FROM book_enrichments WHERE slug IS NOT NULL ORDER BY book_title LIMIT 200`
+      );
+      if (books.length > 0) {
+        const bookLinks = books.map(b => `<li><a href="/bookstore/${escapeAttr(b.slug)}">${escapeAttr(b.book_title)}</a>${b.author ? ` by ${escapeAttr(b.author)}` : ""}</li>`).join("");
+        ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Bookstore</h1><p>Books recommended, discussed, and mentioned across the world's top podcasts.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${bookLinks}</ul><a href="/">Back to Home</a></div>`;
+      }
+    } catch (err) { console.error("[SSR] bookstore listing error:", err); }
+    return replaceMetaTags(html, {
+      title: "Podcast Bookstore - Books Recommended on Top Podcasts | PodCap",
+      description: "Browse books recommended, discussed, and mentioned across the world's top podcasts. Find your next read from trusted podcast hosts and guests.",
+      image: "https://podcap.io/favicon.png",
+      url: "https://podcap.io/bookstore",
+      twitterCard: "summary",
+      replaceFavicon: false,
+      ssrHtml,
+    });
+  }
+
+  const staticEntry = STATIC_PAGES[cleanUrl];
+  if (staticEntry) {
+    let staticPage: PageMeta;
+    try {
+      staticPage = typeof staticEntry === "function" ? staticEntry() : staticEntry;
+    } catch (err) {
+      console.error("[SSR] static page error for", cleanUrl, err);
+      return html;
+    }
     let result = replaceMetaTags(html, staticPage);
     if (cleanUrl === "/podcasts") {
       result = injectDirectoryHtml(result);
@@ -415,12 +559,24 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const podcast = PODCAST_SEO.find(p => p.slug === slug);
     if (podcast) {
       const desc = `Browse all ${podcast.name} episode recaps on PodCap. Every episode summarized with key insights and takeaways by ${podcast.hosts}.`;
+      let ssrHtml = "";
+      try {
+        const { rows: eps } = await pool.query(
+          `SELECT episode_title, episode_slug, publish_date, tldl FROM landing_page_recaps WHERE slug = $1 ORDER BY publish_date DESC LIMIT 100`,
+          [slug]
+        );
+        if (eps.length > 0) {
+          const epLinks = eps.map(e => `<li><a href="/podcasts/${escapeAttr(slug)}/${escapeAttr(e.episode_slug)}">${escapeAttr(decodeHtmlEntities(e.episode_title))}</a>${e.publish_date ? ` <small>(${escapeAttr(String(e.publish_date))})</small>` : ""}</li>`).join("");
+          ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>All ${escapeAttr(podcast.name)} Episode Recaps</h1><p>Browse all episode recaps for ${escapeAttr(podcast.name)} hosted by ${escapeAttr(podcast.hosts)}.</p><ul style="list-style:none;padding:0;">${epLinks}</ul><a href="/podcasts/${escapeAttr(slug)}">Back to ${escapeAttr(podcast.name)}</a></div>`;
+        }
+      } catch (err) { console.error("[SSR] archive page error:", err); }
       return replaceMetaTags(html, {
         title: `All ${podcast.name} Episode Recaps | PodCap`,
         description: desc,
         image: podcast.artworkUrl.startsWith("/") ? `https://podcap.io${podcast.artworkUrl}` : podcast.artworkUrl,
         url: `https://podcap.io/podcasts/${podcast.slug}/episodes`,
         twitterCard: "summary_large_image",
+        ssrHtml,
       });
     }
   }
@@ -441,12 +597,28 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const podcast = PODCAST_SEO.find(p => p.slug === slug);
     if (podcast) {
       const desc = `Get free daily ${podcast.name} podcast summaries and episode recaps. ${podcast.description.charAt(0).toUpperCase() + podcast.description.slice(1)} by ${podcast.hosts} - delivered to your inbox.`;
+      let ssrHtml = "";
+      try {
+        const { rows: eps } = await pool.query(
+          `SELECT episode_title, episode_slug, publish_date, tldl FROM landing_page_recaps WHERE slug = $1 ORDER BY publish_date DESC LIMIT 20`,
+          [slug]
+        );
+        if (eps.length > 0) {
+          const epLinks = eps.map(e => {
+            const title = escapeAttr(decodeHtmlEntities(e.episode_title));
+            const summary = e.tldl ? `<p>${escapeAttr(truncateAtWord(decodeHtmlEntities(e.tldl), 150))}</p>` : "";
+            return `<li style="margin-bottom:16px;"><a href="/podcasts/${escapeAttr(slug)}/${escapeAttr(e.episode_slug)}">${title}</a>${e.publish_date ? ` <small>(${escapeAttr(String(e.publish_date))})</small>` : ""}${summary}</li>`;
+          }).join("");
+          ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(podcast.name)} - Podcast Recaps</h1><p>${escapeAttr(podcast.description)}. Hosted by ${escapeAttr(podcast.hosts)}.</p><h2>Latest Episodes</h2><ul style="list-style:none;padding:0;">${epLinks}</ul><a href="/podcasts/${escapeAttr(slug)}/episodes">View All Episodes</a> | <a href="/podcasts">Browse All Podcasts</a></div>`;
+        }
+      } catch (err) { console.error("[SSR] podcast page error:", err); }
       return replaceMetaTags(html, {
         title: `${podcast.name} Podcast Summary - Free Daily Recap | PodCap`,
         description: desc,
         image: podcast.artworkUrl.startsWith("/") ? `https://podcap.io${podcast.artworkUrl}` : podcast.artworkUrl,
         url: `https://podcap.io/podcasts/${podcast.slug}`,
         twitterCard: "summary_large_image",
+        ssrHtml,
       });
     }
   }
@@ -490,23 +662,84 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const bookSlug = bookMatch[1].toLowerCase();
     try {
       const { rows } = await pool.query(
-        `SELECT title, author, description FROM book_enrichments WHERE slug = $1 LIMIT 1`,
+        `SELECT book_title, author, description FROM book_enrichments WHERE slug = $1 LIMIT 1`,
         [bookSlug]
       );
       if (rows.length > 0) {
         const book = rows[0];
+        let ssrHtml = `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(book.book_title)}</h1>`;
+        if (book.author) ssrHtml += `<p><strong>Author:</strong> ${escapeAttr(book.author)}</p>`;
+        if (book.description) ssrHtml += `<p>${escapeAttr(book.description)}</p>`;
+        try {
+          const { rows: mentions } = await pool.query(
+            `SELECT r.episode_title, r.episode_slug, r.slug, r.podcast_name
+             FROM landing_page_recaps r
+             WHERE r.resources::text ILIKE $1
+             ORDER BY r.publish_date DESC LIMIT 20`,
+            [`%${book.book_title.replace(/'/g, "''")}%`]
+          );
+          if (mentions.length > 0) {
+            ssrHtml += `<h2>Episodes Mentioning This Book</h2><ul>`;
+            for (const m of mentions) {
+              ssrHtml += `<li><a href="/podcasts/${escapeAttr(m.slug)}/${escapeAttr(m.episode_slug)}">${escapeAttr(decodeHtmlEntities(m.episode_title))}</a> - ${escapeAttr(m.podcast_name)}</li>`;
+            }
+            ssrHtml += `</ul>`;
+          }
+        } catch (err) { console.error("[SSR] book mentions error:", err); }
+        ssrHtml += `<a href="/bookstore">Browse All Books</a></article>`;
         return replaceMetaTags(html, {
-          title: `${book.title} by ${book.author || "Unknown"} - Podcast Book Recommendation | PodCap`,
+          title: `${book.book_title} by ${book.author || "Unknown"} - Podcast Book Recommendation | PodCap`,
           description: book.description
             ? truncateAtWord(book.description, 150)
-            : `${book.title} was recommended on podcasts. See which episodes mention this book and what hosts said about it.`,
+            : `${book.book_title} was recommended on podcasts. See which episodes mention this book and what hosts said about it.`,
           image: "https://podcap.io/favicon.png",
           url: `https://podcap.io/bookstore/${bookSlug}`,
           twitterCard: "summary",
           replaceFavicon: false,
+          ssrHtml,
         });
       }
-    } catch {}
+    } catch (err) { console.error("[SSR] book detail error:", err); }
+  }
+
+  const insightMatch = cleanUrl.match(/^\/insights\/([a-zA-Z0-9_-]+)$/);
+  if (insightMatch) {
+    const topicSlug = insightMatch[1].toLowerCase();
+    const topic = TOPICS.find(t => t.slug === topicSlug);
+    if (topic) {
+      return replaceMetaTags(html, {
+        title: `${topic.name} - Podcast Insights & Analysis | PodCap`,
+        description: truncateAtWord(topic.description, 150),
+        image: "https://podcap.io/favicon.png",
+        url: `https://podcap.io/insights/${topicSlug}`,
+        twitterCard: "summary",
+        replaceFavicon: false,
+        ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(topic.name)} - Podcast Insights</h1><p>${escapeAttr(topic.description)}</p><a href="/insights">Browse All Topics</a> | <a href="/">Back to Home</a></article>`,
+      });
+    }
+  }
+
+  const dailyDropDateMatch = cleanUrl.match(/^\/daily-drop\/(\d{4}-\d{2}-\d{2})$/);
+  if (dailyDropDateMatch) {
+    const date = dailyDropDateMatch[1];
+    try {
+      const { rows } = await pool.query(
+        `SELECT title, summary FROM daily_drop_editions WHERE date = $1 LIMIT 1`,
+        [date]
+      );
+      if (rows.length > 0) {
+        const edition = rows[0];
+        return replaceMetaTags(html, {
+          title: `${edition.title || `Signal - ${date}`} | PodCap`,
+          description: edition.summary ? truncateAtWord(edition.summary, 150) : `Signal daily podcast briefing for ${date}.`,
+          image: "https://podcap.io/favicon.png",
+          url: `https://podcap.io/daily-drop/${date}`,
+          twitterCard: "summary",
+          replaceFavicon: false,
+          ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(edition.title || `Signal - ${date}`)}</h1>${edition.summary ? `<p>${escapeAttr(edition.summary)}</p>` : ""}<a href="/daily-drop">All Editions</a></article>`,
+        });
+      }
+    } catch (err) { console.error("[SSR] daily-drop date error:", err); }
   }
 
   if (!html.includes('rel="canonical"')) {
