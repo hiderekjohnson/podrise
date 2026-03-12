@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";

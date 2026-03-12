@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Headphones, ArrowRight, Mail, X, Users, ListChecks, ExternalLink, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Calendar, Clock, ArrowRight, Users, ListChecks, ExternalLink } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
