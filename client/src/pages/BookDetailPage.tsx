@@ -50,6 +50,7 @@ interface RelatedBook {
   slug: string;
   mentionCount: number;
   asin: string | null;
+  googleBooksId: string | null;
   topics: string[];
 }
 
@@ -65,6 +66,7 @@ interface BookDetail {
   podcastBuzz: string | null;
   slug: string;
   asin: string | null;
+  googleBooksId: string | null;
   amazonUrl: string;
   audibleUrl: string;
   blinkistUrl: string | null;
@@ -84,10 +86,12 @@ interface BookDetail {
   relatedBooks: RelatedBook[];
 }
 
-function BookCover({ title, slug, size = "lg" }: { title: string; asin?: string | null; slug?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [slug]);
-  const localUrl = slug ? `/books/${slug}.jpg` : null;
+function BookCover({ title, slug, googleBooksId, size = "lg" }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
+  const [srcIndex, setSrcIndex] = useState(0);
+  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
+  const sources: string[] = [];
+  if (slug) sources.push(`/books/${slug}.jpg`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
 
   const sizeClasses: Record<string, string> = {
     sm: "w-12 h-[72px]",
@@ -98,8 +102,8 @@ function BookCover({ title, slug, size = "lg" }: { title: string; asin?: string 
 
   const imgCls = `${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`;
 
-  if (localUrl && !failed) {
-    return <img src={localUrl} alt={title} className={imgCls} onError={() => setFailed(true)} />;
+  if (srcIndex < sources.length) {
+    return <img src={sources[srcIndex]} alt={title} className={imgCls} onError={() => setSrcIndex(s => s + 1)} />;
   }
   return (
     <div className={`${sizeClasses[size]} rounded-xl bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
@@ -108,14 +112,16 @@ function BookCover({ title, slug, size = "lg" }: { title: string; asin?: string 
   );
 }
 
-function SmallBookCover({ title, slug }: { title: string; asin?: string | null; slug?: string | null }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [slug]);
-  const localUrl = slug ? `/books/${slug}.jpg` : null;
+function SmallBookCover({ title, slug, googleBooksId }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null }) {
+  const [srcIndex, setSrcIndex] = useState(0);
+  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
+  const sources: string[] = [];
+  if (slug) sources.push(`/books/${slug}.jpg`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
   const cls = "w-16 h-24 rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]";
 
-  if (localUrl && !failed) {
-    return <img src={localUrl} alt={title} className={cls} onError={() => setFailed(true)} loading="lazy" />;
+  if (srcIndex < sources.length) {
+    return <img src={sources[srcIndex]} alt={title} className={cls} onError={() => setSrcIndex(s => s + 1)} loading="lazy" />;
   }
   return (
     <div className="w-16 h-24 rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10">
@@ -481,7 +487,7 @@ export default function BookDetailPage() {
             className="flex flex-col sm:flex-row gap-8 items-start"
             data-testid="section-hero"
           >
-            <BookCover title={book.name} asin={book.asin} slug={book.slug} size="xl" />
+            <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight" data-testid="heading-book-title">
                 {book.name}
@@ -747,7 +753,7 @@ export default function BookDetailPage() {
                     data-testid={`related-book-${rb.slug}`}
                   >
                     <div className="flex justify-center mb-2">
-                      <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} />
+                      <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} googleBooksId={rb.googleBooksId} />
                     </div>
                     <p className="text-xs font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
                       {rb.name}

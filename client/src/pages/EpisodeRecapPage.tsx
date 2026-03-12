@@ -68,15 +68,17 @@ function getBlinkistUrl(book: BookResource): string {
   return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
-function BookCover({ title, slug, testId }: { title: string; asin?: string | null; slug?: string | null; author?: string | null; testId: string }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [slug]);
-  const localUrl = slug ? `/books/${slug}.jpg` : null;
+function BookCover({ title, slug, googleBooksId, testId }: { title: string; asin?: string | null; slug?: string | null; author?: string | null; googleBooksId?: string | null; testId: string }) {
+  const [srcIndex, setSrcIndex] = useState(0);
+  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
+  const sources: string[] = [];
+  if (slug) sources.push(`/books/${slug}.jpg`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
   const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
 
-  if (localUrl && !failed) {
+  if (srcIndex < sources.length) {
     return (
-      <img src={localUrl} alt={title} className={imgCls} data-testid={testId} onError={() => setFailed(true)} loading="lazy" />
+      <img src={sources[srcIndex]} alt={title} className={imgCls} data-testid={testId} onError={() => setSrcIndex(s => s + 1)} loading="lazy" />
     );
   }
 
@@ -536,7 +538,7 @@ export default function EpisodeRecapPage() {
 
   const episodeQuotes = quotesData?.quotes || [];
 
-  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null }>>({
+  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null; googleBooksId: string | null }>>({
     queryKey: ["/api/book-slugs"],
     queryFn: async () => {
       const res = await fetch("/api/book-slugs");
@@ -1218,10 +1220,10 @@ export default function EpisodeRecapPage() {
                       <div className="flex gap-4">
                         {bookSlug ? (
                           <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
-                            <BookCover title={book.name} asin={asin} slug={bookSlug} testId={`book-cover-${i}`} />
+                            <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} testId={`book-cover-${i}`} />
                           </Link>
                         ) : (
-                          <BookCover title={book.name} asin={asin} slug={bookSlug} testId={`book-cover-${i}`} />
+                          <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} testId={`book-cover-${i}`} />
                         )}
                         <div className="flex-1 min-w-0">
                           {bookSlug ? (

@@ -1677,12 +1677,12 @@ export async function registerRoutes(
           }
         }
 
-        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; context: string; mentionCount: number; podcastCount: number }[] = [];
+        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; googleBooksId: string | null; context: string; mentionCount: number; podcastCount: number }[] = [];
         if (bookMentionMap.size > 0) {
           const bookKeys = Array.from(bookMentionMap.keys());
           const placeholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
           const { rows: enrichRows } = await client.query(
-            `SELECT book_key, slug, author, asin, amazon_url FROM book_enrichments WHERE book_key IN (${placeholders})`,
+            `SELECT book_key, slug, author, asin, amazon_url, google_books_id FROM book_enrichments WHERE book_key IN (${placeholders})`,
             bookKeys
           );
           const enrichByKey = new Map(enrichRows.map((e: any) => [e.book_key, e]));
@@ -1700,6 +1700,7 @@ export async function registerRoutes(
                 slug: enrich?.slug || null,
                 amazonUrl,
                 asin,
+                googleBooksId: enrich?.google_books_id || null,
                 context: b.context,
                 mentionCount: b.mentionCount,
                 podcastCount: b.podcastSlugs.size,
@@ -2025,6 +2026,7 @@ export async function registerRoutes(
             pageCount: enrichment?.page_count || null,
             publishYear: enrichment?.publish_year || null,
             rating: enrichment?.rating ? parseFloat(enrichment.rating) : null,
+            googleBooksId: enrichment?.google_books_id || null,
           };
         })
         .sort((a, b) => b.mentionCount - a.mentionCount);
@@ -2053,7 +2055,7 @@ export async function registerRoutes(
   app.get("/api/book-slugs", async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT book_key, slug, rating, page_count, publish_year, asin, description, author FROM book_enrichments`
+        `SELECT book_key, slug, rating, page_count, publish_year, asin, description, author, google_books_id FROM book_enrichments`
       );
       const map: Record<string, any> = {};
       for (const r of rows) {
@@ -2065,6 +2067,7 @@ export async function registerRoutes(
           asin: r.asin || null,
           description: r.description || null,
           author: r.author || null,
+          googleBooksId: r.google_books_id || null,
         };
       }
       res.setHeader("Cache-Control", "public, max-age=3600");
@@ -2162,6 +2165,7 @@ export async function registerRoutes(
             amazonUrl,
             asin: finalAsin,
             slug: enrichment?.slug || null,
+            googleBooksId: enrichment?.google_books_id || null,
             topics: enrichment?.topics || [],
             pageCount: enrichment?.page_count || null,
             publishYear: enrichment?.publish_year || null,
@@ -2361,7 +2365,7 @@ export async function registerRoutes(
       ));
       const podcastScore = mentionTotal >= 2 ? Math.round(rawScore * 10) / 10 : null;
 
-      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null; topics: string[] }[] = [];
+      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null; googleBooksId: string | null; topics: string[] }[] = [];
       if (relatedBookCounts.size > 0) {
         const sortedRelKeys = Array.from(relatedBookCounts.entries())
           .sort((a, b) => b[1] - a[1])
@@ -2369,7 +2373,7 @@ export async function registerRoutes(
           .map(([k]) => k);
         const placeholders = sortedRelKeys.map((_, i) => `$${i + 1}`).join(",");
         const { rows: relRows } = await pool.query(
-          `SELECT book_key, book_title, author, slug, asin, topics FROM book_enrichments WHERE book_key IN (${placeholders})`,
+          `SELECT book_key, book_title, author, slug, asin, topics, google_books_id FROM book_enrichments WHERE book_key IN (${placeholders})`,
           sortedRelKeys
         );
         const relMap = new Map(relRows.map((r: any) => [r.book_key, r]));
@@ -2385,6 +2389,7 @@ export async function registerRoutes(
                 slug: rel.slug,
                 mentionCount: relatedBookCounts.get(rk) || 1,
                 asin: rel.asin,
+                googleBooksId: rel.google_books_id || null,
                 topics: rel.topics || [],
               });
             }
@@ -2422,6 +2427,7 @@ export async function registerRoutes(
         podcastBuzz: enrichment.podcast_buzz,
         slug: enrichment.slug,
         asin: finalAsin,
+        googleBooksId: enrichment.google_books_id || null,
         amazonUrl,
         audibleUrl,
         blinkistUrl,

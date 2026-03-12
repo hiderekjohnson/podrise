@@ -15,6 +15,7 @@ interface BookstoreBook {
   amazonUrl: string;
   asin: string | null;
   slug: string | null;
+  googleBooksId: string | null;
   topics: string[];
   pageCount: number | null;
   publishYear: number | null;
@@ -30,10 +31,12 @@ interface BookstoreData {
   total: number;
 }
 
-function BookCover({ title, slug, size = "md" }: { title: string; asin?: string | null; slug?: string | null; size?: "sm" | "md" | "lg" }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [slug]);
-  const localUrl = slug ? `/books/${slug}.jpg` : null;
+function BookCover({ title, slug, googleBooksId, size = "md" }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null; size?: "sm" | "md" | "lg" }) {
+  const [srcIndex, setSrcIndex] = useState(0);
+  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
+  const sources: string[] = [];
+  if (slug) sources.push(`/books/${slug}.jpg`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
 
   const sizeClasses = {
     sm: "w-12 h-[72px]",
@@ -43,8 +46,8 @@ function BookCover({ title, slug, size = "md" }: { title: string; asin?: string 
 
   const imgCls = `${sizeClasses[size]} rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]`;
 
-  if (localUrl && !failed) {
-    return <img src={localUrl} alt={title} className={imgCls} onError={() => setFailed(true)} loading="lazy" />;
+  if (srcIndex < sources.length) {
+    return <img src={sources[srcIndex]} alt={title} className={imgCls} onError={() => setSrcIndex(s => s + 1)} loading="lazy" />;
   }
   return (
     <div className={`${sizeClasses[size]} rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
@@ -158,7 +161,7 @@ function StarRating({ rating }: { rating: number }) {
 function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
   const hasPage = !!book.slug;
 
-  const coverEl = <BookCover title={book.name} asin={book.asin} slug={book.slug} size="md" />;
+  const coverEl = <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="md" />;
   const titleEl = (
     <h3 className="text-[15px] font-bold text-foreground leading-snug group-hover/title:text-amber-700 dark:group-hover/title:text-amber-400 transition-colors" data-testid={`book-title-${index}`}>
       {book.name}
@@ -287,7 +290,7 @@ function CuratedShelf({ title, icon, books }: { title: string; icon: any; books:
           const inner = (
             <div className="w-[140px] shrink-0 group/shelf" key={`${book.name}-${i}`}>
               <div className="mb-2">
-                <BookCover title={book.name} asin={book.asin} slug={book.slug} size="lg" />
+                <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="lg" />
               </div>
               <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 group-hover/shelf:text-amber-700 dark:group-hover/shelf:text-amber-400 transition-colors">
                 {book.name}

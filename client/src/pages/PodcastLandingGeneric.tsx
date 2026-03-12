@@ -28,18 +28,20 @@ function extractAsin(url: string): string | null {
   return null;
 }
 
-function PodcastBookCover({ title, slug }: { title: string; asin?: string | null; slug?: string | null }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [slug]);
-  const localUrl = slug ? `/books/${slug}.jpg` : null;
+function PodcastBookCover({ title, slug, googleBooksId }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null }) {
+  const [srcIndex, setSrcIndex] = useState(0);
+  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
+  const sources: string[] = [];
+  if (slug) sources.push(`/books/${slug}.jpg`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
 
-  if (localUrl && !failed) {
+  if (srcIndex < sources.length) {
     return (
       <img
-        src={localUrl}
+        src={sources[srcIndex]}
         alt={title}
         className="w-full h-full object-cover rounded-lg"
-        onError={() => setFailed(true)}
+        onError={() => setSrcIndex(s => s + 1)}
       />
     );
   }
@@ -60,6 +62,7 @@ interface PodcastBook {
   pageCount: number | null;
   publishYear: number | null;
   rating: number | null;
+  googleBooksId: string | null;
 }
 
 function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: string }) {
@@ -154,11 +157,11 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                   <div className="flex gap-4">
                     {bookSlug ? (
                       <Link href={`/bookstore/${bookSlug}`} className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} />
+                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={book.googleBooksId} />
                       </Link>
                     ) : (
                       <div className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} />
+                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={book.googleBooksId} />
                       </div>
                     )}
 

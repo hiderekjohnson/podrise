@@ -57,6 +57,7 @@ interface RecommendedBook {
   slug: string | null;
   amazonUrl: string;
   asin: string | null;
+  googleBooksId: string | null;
   context: string;
   mentionCount: number;
   podcastCount: number;
@@ -82,13 +83,15 @@ const EXISTING_COMPANY_SLUGS = new Set(COMPANIES_DIRECTORY.map(c => c.slug));
 const EXISTING_PEOPLE_SLUGS = new Set(PEOPLE_DIRECTORY.map(p => p.slug));
 
 
-function PersonBookCover({ name, slug }: { name: string; asin?: string | null; slug: string | null }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [slug]);
-  const localUrl = slug ? `/books/${slug}.jpg` : null;
+function PersonBookCover({ name, slug, googleBooksId }: { name: string; asin?: string | null; slug: string | null; googleBooksId?: string | null }) {
+  const [srcIndex, setSrcIndex] = useState(0);
+  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
+  const sources: string[] = [];
+  if (slug) sources.push(`/books/${slug}.jpg`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
 
-  if (localUrl && !failed) {
-    return <img src={localUrl} alt={name} className="w-full h-full object-contain" onError={() => setFailed(true)} />;
+  if (srcIndex < sources.length) {
+    return <img src={sources[srcIndex]} alt={name} className="w-full h-full object-contain" onError={() => setSrcIndex(s => s + 1)} />;
   }
   return <BookOpen className="w-8 h-8 text-amber-400/60" />;
 }
@@ -961,7 +964,7 @@ export default function PersonDetailPage() {
                       >
                         <div className="bg-card border border-border rounded-xl p-3 hover:border-primary/30 hover:shadow-sm transition-all h-full flex flex-col">
                           <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
-                            <PersonBookCover name={book.name} asin={book.asin} slug={book.slug} />
+                            <PersonBookCover name={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} />
                           </div>
                           <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
                             {book.name}
