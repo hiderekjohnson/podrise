@@ -511,6 +511,9 @@ export default function EpisodeRecapPage() {
   const podcastSlug = params.podcastSlug || "";
   const episodeSlug = params.episodeSlug || "";
   const [activeSection, setActiveSection] = useState("section-key-insights");
+  const [showAllPeople, setShowAllPeople] = useState(false);
+  const [showAllCompanies, setShowAllCompanies] = useState(false);
+  const [showAllBooks, setShowAllBooks] = useState(false);
   const chatRef = useRef<ChatContextRef | null>(null);
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
@@ -789,6 +792,7 @@ export default function EpisodeRecapPage() {
 
   const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
+  const INITIAL_SHOW = 6;
   const hasSponsors = sponsors.length > 0;
   const hasQuotes = episodeQuotes.length > 0;
 
@@ -1124,12 +1128,12 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Users className="w-4 h-4 text-orange-500" />
-                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">{`People Mentioned in This ${episode.podcastName} Episode`}</span>
+                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">{`Top People Mentioned in This ${episode.podcastName} Episode`}</span>
               </div>
             </div>
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {notablePeople.map((person, i) => (
+                {(showAllPeople ? notablePeople : notablePeople.slice(0, INITIAL_SHOW)).map((person, i) => (
                   <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
                     <Link href={`/people/${person.slug}`}>
                       <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
@@ -1154,6 +1158,11 @@ export default function EpisodeRecapPage() {
                   </div>
                 ))}
               </div>
+              {notablePeople.length > INITIAL_SHOW && (
+                <button onClick={() => setShowAllPeople(p => !p)} className="mt-4 text-[15px] font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors" data-testid="show-more-people">
+                  {showAllPeople ? "Show Less" : `Show ${notablePeople.length - INITIAL_SHOW} More`}
+                </button>
+              )}
             </div>
           </section>
         )}
@@ -1163,12 +1172,12 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-blue-500/[0.04] border-b border-blue-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Building2 className="w-4 h-4 text-blue-500" />
-                <span className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">{`Companies Mentioned in This ${episode.podcastName} Episode`}</span>
+                <span className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">{`Top Companies Mentioned in This ${episode.podcastName} Episode`}</span>
               </div>
             </div>
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {notableCompanies.map((company, i) => (
+                {(showAllCompanies ? notableCompanies : notableCompanies.slice(0, INITIAL_SHOW)).map((company, i) => (
                   <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-blue-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-blue-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
                     <Link href={`/companies/${company.slug}`}>
                       <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
@@ -1193,6 +1202,11 @@ export default function EpisodeRecapPage() {
                   </div>
                 ))}
               </div>
+              {notableCompanies.length > INITIAL_SHOW && (
+                <button onClick={() => setShowAllCompanies(c => !c)} className="mt-4 text-[15px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" data-testid="show-more-companies">
+                  {showAllCompanies ? "Show Less" : `Show ${notableCompanies.length - INITIAL_SHOW} More`}
+                </button>
+              )}
             </div>
           </section>
         )}
@@ -1209,7 +1223,7 @@ export default function EpisodeRecapPage() {
             </div>
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {books.map((book, i) => {
+                {(showAllBooks ? books : books.slice(0, INITIAL_SHOW)).map((book, i) => {
                   const bookKey = book.name.toLowerCase().trim();
                   const enrichment = bookSlugMap[bookKey];
                   const bookSlug = enrichment?.slug;
@@ -1277,6 +1291,11 @@ export default function EpisodeRecapPage() {
                   );
                 })}
               </div>
+              {books.length > INITIAL_SHOW && (
+                <button onClick={() => setShowAllBooks(b => !b)} className="mt-4 text-[15px] font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" data-testid="show-more-books">
+                  {showAllBooks ? "Show Less" : `Show ${books.length - INITIAL_SHOW} More`}
+                </button>
+              )}
             </div>
           </section>
         )}
