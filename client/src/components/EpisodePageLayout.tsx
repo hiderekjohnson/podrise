@@ -11,6 +11,11 @@ import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 
+interface EpisodeGuest {
+  name: string;
+  title?: string;
+}
+
 interface EpisodePageLayoutProps {
   episode: {
     podcastName: string;
@@ -27,6 +32,7 @@ interface EpisodePageLayoutProps {
   podcastConfig: PodcastLandingConfig;
   activeTab?: "recap" | "guests";
   allRecaps?: any[];
+  guests?: EpisodeGuest[];
   children: React.ReactNode;
 }
 
@@ -36,6 +42,7 @@ export function EpisodePageLayout({
   episodeSlug,
   podcastConfig,
   allRecaps = [],
+  guests = [],
   children,
 }: EpisodePageLayoutProps) {
   const [, navigate] = useLocation();
@@ -195,6 +202,21 @@ export function EpisodePageLayout({
                   </span>
                 )}
               </div>
+
+              {guests.length > 0 && (
+                <div className="mt-2" data-testid="header-guests-block">
+                  <span className="text-base font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">
+                    {guests.length === 1 ? "Guest" : "Guests"}
+                  </span>
+                  <div className="mt-1 space-y-0.5">
+                    {guests.map((g, i) => (
+                      <p key={i} className="text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid={`header-guest-${i}`}>
+                        {g.name}{g.title ? ` - ${g.title}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2.5 mt-2 justify-center sm:justify-start" data-testid="listen-buttons">
                 <a

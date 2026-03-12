@@ -827,6 +827,7 @@ export default function EpisodeRecapPage() {
       podcastConfig={podcastConfig}
       activeTab="recap"
       allRecaps={allRecaps}
+      guests={guests}
     >
       <motion.article
         initial={{ opacity: 0, y: 16 }}
@@ -909,30 +910,6 @@ export default function EpisodeRecapPage() {
           )}
         </nav>
 
-        <section className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-about-episode">
-          <div className="px-6 py-4 bg-slate-500/[0.04] border-b border-slate-500/[0.08]">
-            <div className="flex items-center gap-2.5">
-              <BookOpen className="w-4 h-4 text-slate-500" />
-              <span className="text-base font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">About This Episode</span>
-            </div>
-          </div>
-          <div className="px-6 py-5">
-            <p className="text-base leading-[1.85] text-muted-foreground">
-              {episode.tldl}
-              {guests.length > 0 && (
-                <>{" "}Featuring {guests.map((g, i) => {
-                  const parts = [];
-                  parts.push(g.name);
-                  if (g.title) parts[0] += `, ${g.title}`;
-                  return parts[0];
-                }).join(", ")}.
-                </>
-              )}
-              {episode.hosts && <>{" "}Hosted by {episode.hosts.replace(/&amp;/g, "&")}.</>}
-            </p>
-          </div>
-        </section>
-
         {episode.keyInsights?.length > 0 && (
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
             <div className="px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
@@ -969,7 +946,7 @@ export default function EpisodeRecapPage() {
           <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
             <div className="flex items-center gap-2.5">
               <BookOpen className="w-4 h-4 text-primary" />
-              <span className="text-base font-bold text-primary uppercase tracking-wider">{`Full Episode Recap: ${seoSubject}`}</span>
+              <span className="text-base font-bold text-primary uppercase tracking-wider">{`Episode Recap: ${seoSubject}`}</span>
             </div>
           </div>
           <div className="px-6 py-5 space-y-5">
