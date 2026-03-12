@@ -959,25 +959,86 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-5">
               <div className={`grid gap-8 ${guests.length > 0 && hasHosts && podcastHosts ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
 
+              {hasHosts && podcastHosts && (
+                <div className={guests.length > 0 ? "order-2 md:order-1" : ""}>
+                  <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-hosts-label">Hosts</h3>
+                  <div className="space-y-5">
+                    {podcastHosts.map((host: any, i: number) => {
+                      const hostPersonSlug = getPersonSlug(host.name);
+                      return (
+                      <div key={i} className="flex items-start gap-4" data-testid={`host-card-${i}`}>
+                        {hostPersonSlug ? (
+                          <Link href={`/people/${hostPersonSlug}`} className="flex-shrink-0">
+                            <GuestPhoto name={host.name} photoUrl={host.photoUrl} testId={`host-photo-${i}`} />
+                          </Link>
+                        ) : (
+                          <div className="flex-shrink-0">
+                            <GuestPhoto name={host.name} photoUrl={host.photoUrl} testId={`host-photo-${i}`} />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[17px] font-bold text-foreground" data-testid={`host-name-${i}`}>
+                            {hostPersonSlug ? (
+                              <Link href={`/people/${hostPersonSlug}`} className="hover:text-primary transition-colors" data-testid={`host-link-${i}`}>
+                                {host.name}
+                              </Link>
+                            ) : host.name}
+                          </h4>
+                          {host.bio && (
+                            <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
+                          )}
+                          {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
+                            <div className="flex items-center gap-3 mt-2.5">
+                              {host.twitterHandle && (
+                                <a href={host.twitterHandle.startsWith("http") ? host.twitterHandle : `https://x.com/${host.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-twitter-${i}`}>
+                                  <SiX className="w-4 h-4" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
+                                </a>
+                              )}
+                              {host.linkedinUrl && (
+                                <a href={host.linkedinUrl.startsWith("http") ? host.linkedinUrl : `https://linkedin.com/in/${host.linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-linkedin-${i}`}>
+                                  <SiLinkedin className="w-4 h-4" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
+                                </a>
+                              )}
+                              {host.instagramHandle && (
+                                <a href={host.instagramHandle.startsWith("http") ? host.instagramHandle : `https://instagram.com/${host.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-instagram-${i}`}>
+                                  <SiInstagram className="w-4 h-4" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
+                                </a>
+                              )}
+                              {host.websiteUrl && (
+                                <a href={host.websiteUrl.startsWith("http") ? host.websiteUrl : `https://${host.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-website-${i}`}>
+                                  <Globe className="w-4 h-4" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {guests.length > 0 && (
-                <div>
+                <div className={hasHosts && podcastHosts ? "order-1 md:order-2" : ""}>
                   <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-guest-label">{guests.length > 1 ? "Guests" : "Guest"}</h3>
                   <div className="space-y-5">
                     {guests.map((guest, i) => {
                       const personSlug = getPersonSlug(guest.name);
-                      const guestPhoto = guest.photoUrl ? (
-                        <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
-                      ) : (
-                        <GuestPhoto name={guest.name} testId={`guest-photo-${i}`} />
-                      );
                       return (
                       <div key={i} className="flex items-start gap-4" data-testid={`guest-card-${i}`}>
                         {personSlug ? (
                           <Link href={`/people/${personSlug}`} className="flex-shrink-0">
-                            {guestPhoto}
+                            <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
                           </Link>
                         ) : (
-                          <div className="flex-shrink-0">{guestPhoto}</div>
+                          <div className="flex-shrink-0">
+                            <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                          </div>
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
@@ -1014,78 +1075,6 @@ export default function EpisodeRecapPage() {
                               )}
                               {guest.website && (
                                 <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-website-${i}`} title="Website">
-                                  <Globe className="w-4 h-4" />
-                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
-                                </a>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {hasHosts && podcastHosts && (
-                <div>
-                  <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-hosts-label">Hosts</h3>
-                  <div className="space-y-5">
-                    {podcastHosts.map((host: any, i: number) => {
-                      const hostPersonSlug = getPersonSlug(host.name);
-                      const hostPhoto = host.photoUrl ? (
-                        <img
-                          src={host.photoUrl}
-                          alt={host.name}
-                          className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted border border-black/[0.06] dark:border-white/[0.08]"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-bold text-primary">{host.name.charAt(0)}</span>
-                        </div>
-                      );
-                      return (
-                      <div key={i} className="flex items-start gap-4" data-testid={`host-card-${i}`}>
-                        {hostPersonSlug ? (
-                          <Link href={`/people/${hostPersonSlug}`} className="flex-shrink-0">
-                            {hostPhoto}
-                          </Link>
-                        ) : <div className="flex-shrink-0">{hostPhoto}</div>}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-[17px] font-bold text-foreground" data-testid={`host-name-${i}`}>
-                            {hostPersonSlug ? (
-                              <Link href={`/people/${hostPersonSlug}`} className="hover:text-primary transition-colors" data-testid={`host-link-${i}`}>
-                                {host.name}
-                              </Link>
-                            ) : host.name}
-                          </h4>
-                          {host.bio && (
-                            <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
-                          )}
-                          {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
-                            <div className="flex items-center gap-3 mt-2.5">
-                              {host.twitterHandle && (
-                                <a href={host.twitterHandle.startsWith("http") ? host.twitterHandle : `https://x.com/${host.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-twitter-${i}`}>
-                                  <SiX className="w-4 h-4" />
-                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
-                                </a>
-                              )}
-                              {host.linkedinUrl && (
-                                <a href={host.linkedinUrl.startsWith("http") ? host.linkedinUrl : `https://linkedin.com/in/${host.linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-linkedin-${i}`}>
-                                  <SiLinkedin className="w-4 h-4" />
-                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
-                                </a>
-                              )}
-                              {host.instagramHandle && (
-                                <a href={host.instagramHandle.startsWith("http") ? host.instagramHandle : `https://instagram.com/${host.instagramHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-instagram-${i}`}>
-                                  <SiInstagram className="w-4 h-4" />
-                                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
-                                </a>
-                              )}
-                              {host.websiteUrl && (
-                                <a href={host.websiteUrl.startsWith("http") ? host.websiteUrl : `https://${host.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`host-website-${i}`}>
                                   <Globe className="w-4 h-4" />
                                   <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
                                 </a>
