@@ -184,11 +184,9 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
   "topicContexts": {"slug": "Episode-specific description..."},
   "topQuestions": [
-    {"question": "SEO question with named entity?", "answer": "2-4 sentence answer."},
+    {"question": "SEO question with named entity?", "answer": "2-3 sentence answer with specific facts."},
     {"question": "Q2?", "answer": "A2."},
-    {"question": "Q3?", "answer": "A3."},
-    {"question": "Q4?", "answer": "A4."},
-    {"question": "Q5?", "answer": "A5."}
+    {"question": "Q3?", "answer": "A3."}
   ],
   "sponsors": [{"name": "Name", "description": "Desc", "couponCode": null, "url": null, "howToRedeem": null}],
   "guests": [{"name": "Full Name", "title": "Title", "bio": "Bio.", "twitter": null, "linkedin": null, "instagram": null, "website": null, "topicsDiscussed": ["T1"]}],
@@ -208,11 +206,11 @@ RULES FOR whatHappened (THE RECAP):
 - GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
 
 OTHER RULES:
-- All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5), resources
+- All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 3), resources
 - keyTopics: 4-6 specific search-query-style phrases with named entities
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
 - quote: Find the single most SHAREABLE line from the transcript - surprising, counterintuitive, provocative, funny, or profound. Must be verbatim. Avoid generic motivational statements. quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
-- topQuestions: 5 SEO questions with named entities. Answers 2-3 sentences max that deliver the ACTUAL answer with specific facts. No speaker attribution patterns in answers ("Person emphasizes/highlights..."), just the substance. BAD answer: "Bill Gurley emphasizes the importance of frameworks." GOOD answer: "The regret minimization framework asks you to imagine your 80-year-old self looking back - Jeff Bezos used this exact thought experiment to decide to leave his hedge fund and start Amazon."
+- topQuestions: exactly 3 questions with named entities. Answers 2-3 sentences max that deliver the ACTUAL answer with specific facts. No speaker attribution patterns in answers ("Person emphasizes/highlights..."), just the substance. BAD answer: "Bill Gurley emphasizes the importance of frameworks." GOOD answer: "The regret minimization framework asks you to imagine your 80-year-old self looking back - Jeff Bezos used this exact thought experiment to decide to leave his hedge fund and start Amazon."
 - guests: Extract guests only (NOT hosts). Use FULL NAME. Empty array if none
 - BOOKS ARE CRITICAL: Scan the FULL transcript for ANY book mention. Missing a book is a serious error
 - resources: Books and purchasable items only. "context" must answer why this book was mentioned and what argument it supported. Do NOT describe generically. Empty array ONLY if truly none
