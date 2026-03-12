@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Mic, ArrowUpRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone } from "lucide-react";
+import { Search, Mic, ArrowUpRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
@@ -70,11 +70,6 @@ function SEOHead() {
   return null;
 }
 
-function getPodcastArtwork(slug: string): string {
-  const landing = PODCAST_LANDINGS.find(p => p.slug === slug);
-  return landing?.artworkUrl || "";
-}
-
 const STAFF_PICKS_SLUGS = [
   "allin",
   "lexfridman",
@@ -96,6 +91,19 @@ export default function PodcastsExplorer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
   const [showAllPodcasts, setShowAllPodcasts] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-68px 0px 0px 0px" }
+    );
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
 
   const { data: discoveryData, isLoading } = useQuery<DiscoveryData>({
     queryKey: ["/api/podcasts-discovery"],
@@ -108,9 +116,11 @@ export default function PodcastsExplorer() {
   }, []);
 
   const filteredPodcasts = useMemo(() => {
+    let results = PODCAST_LANDINGS;
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      return PODCAST_LANDINGS.filter(p =>
+      results = results.filter(p =>
         p.name.toLowerCase().includes(q) ||
         p.hosts.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
@@ -119,12 +129,31 @@ export default function PodcastsExplorer() {
       );
     }
 
-    if (activeCategory === "all") return PODCAST_LANDINGS;
+    if (activeCategory !== "all") {
+      results = results.filter(p => categoryBucket(p.category) === activeCategory);
+    }
 
-    return PODCAST_LANDINGS.filter(p => categoryBucket(p.category) === activeCategory);
+    return results;
   }, [searchQuery, activeCategory]);
 
   const isSearching = searchQuery.trim().length > 0;
+  const isFiltering = activeCategory !== "all";
+  const showCurated = !isSearching && !isFiltering;
+
+  const handleCategoryClick = (key: CategoryKey) => {
+    if (key === "all") {
+      setActiveCategory("all");
+    } else {
+      setActiveCategory(prev => prev === key ? "all" : key);
+    }
+    setShowAllPodcasts(false);
+    setSearchQuery("");
+    const el = document.getElementById("podcasts-grid");
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 68 - 52 - 16;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,7 +161,7 @@ export default function PodcastsExplorer() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-5xl mx-auto px-6 pt-12 pb-10">
+        <div className="max-w-5xl mx-auto px-6 pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -159,7 +188,7 @@ export default function PodcastsExplorer() {
                 type="text"
                 placeholder="Search by podcast name, host, or topic..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={e => { setSearchQuery(e.target.value); if (e.target.value) setActiveCategory("all"); }}
                 className="w-full pl-12 pr-4 py-3.5 text-[17px] bg-card border border-black/[0.1] dark:border-white/[0.1] rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all shadow-sm"
                 data-testid="input-search-podcasts"
               />
@@ -173,131 +202,132 @@ export default function PodcastsExplorer() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 pb-20">
-        {!isSearching && (
-          <>
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className="mb-12"
-            >
-              <div className="flex items-center gap-2 mb-5">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-staff-picks">Editor's Picks</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                {staffPicks.map((podcast, i) => (
-                  <motion.div
-                    key={podcast.slug}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: i * 0.03 }}
-                  >
-                    <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-pick-${podcast.slug}`}>
-                      <div className="group relative bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl p-4 hover:border-amber-500/30 hover:shadow-md transition-all cursor-pointer text-center h-full flex flex-col items-center">
-                        {podcast.artworkUrl && (
-                          <img
-                            src={podcast.artworkUrl}
-                            alt={podcast.name}
-                            className="w-16 h-16 rounded-xl object-cover mb-3 shadow-sm group-hover:shadow-md transition-shadow"
-                          />
-                        )}
-                        <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-1">
-                          {podcast.name}
-                        </h3>
-                        <p className="text-[13px] text-muted-foreground/60 truncate w-full">{podcast.hosts}</p>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.section>
-          </>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="mb-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Mic className="w-4 h-4 text-primary" />
-            <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
-              {isSearching ? "Search Results" : "Browse by Topic"}
-            </h2>
-          </div>
-
-          {!isSearching && (
-            <div className="flex flex-wrap gap-2 mb-5" data-testid="category-filters">
-              {DISCOVER_CATEGORIES.map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => { setActiveCategory(key); setShowAllPodcasts(false); }}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all border ${
-                    activeCategory === key
-                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                      : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
-                  }`}
-                  data-testid={`filter-${key}`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-          {(isSearching || showAllPodcasts ? filteredPodcasts : filteredPodcasts.slice(0, INITIAL_PODCAST_COUNT)).map((podcast, i) => {
-            const stat = discoveryData?.podcastStats.find(s => s.slug === podcast.slug);
-
-            return (
-              <motion.div
-                key={podcast.slug}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: Math.min(i * 0.015, 0.4) }}
+      <div ref={navRef} className="h-0" />
+      <div className={`sticky top-[68px] z-30 bg-background/95 backdrop-blur-sm border-b transition-shadow ${isSticky ? "border-black/[0.06] dark:border-white/[0.06] shadow-sm" : "border-transparent"}`}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide" data-testid="category-nav">
+            {DISCOVER_CATEGORIES.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => handleCategoryClick(key)}
+                className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                  activeCategory === key
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+                }`}
+                data-testid={`category-${key}`}
               >
-                <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
-                  <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full">
-                    <div className="flex items-center gap-3 mb-2.5">
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-6 pb-20 pt-6">
+        {showCurated && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="mb-12"
+          >
+            <div className="flex items-center gap-2 mb-5">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-staff-picks">Editor's Picks</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+              {staffPicks.map((podcast, i) => (
+                <motion.div
+                  key={podcast.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: i * 0.03 }}
+                >
+                  <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-pick-${podcast.slug}`}>
+                    <div className="group relative bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl p-4 hover:border-amber-500/30 hover:shadow-md transition-all cursor-pointer text-center h-full flex flex-col items-center">
                       {podcast.artworkUrl && (
                         <img
                           src={podcast.artworkUrl}
                           alt={podcast.name}
-                          className="w-10 h-10 rounded-lg flex-shrink-0 object-cover"
+                          className="w-16 h-16 rounded-xl object-cover mb-3 shadow-sm group-hover:shadow-md transition-shadow"
                         />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate" data-testid={`text-podcast-name-${podcast.slug}`}>
-                          {podcast.name}
-                        </h3>
-                        <p className="text-[13px] text-muted-foreground/70 truncate">{podcast.hosts}</p>
+                      <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-1">
+                        {podcast.name}
+                      </h3>
+                      <p className="text-[13px] text-muted-foreground/60 truncate w-full">{podcast.hosts}</p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        <div id="podcasts-grid">
+          <div className="flex items-center gap-2 mb-5">
+            <Mic className="w-4 h-4 text-primary" />
+            <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
+              {isSearching ? "Search Results" : isFiltering ? DISCOVER_CATEGORIES.find(c => c.key === activeCategory)?.label || "Podcasts" : "All Podcasts"}
+            </h2>
+            {(isSearching || isFiltering) && (
+              <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
+                {filteredPodcasts.length} podcast{filteredPodcasts.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+            {(isSearching || isFiltering || showAllPodcasts ? filteredPodcasts : filteredPodcasts.slice(0, INITIAL_PODCAST_COUNT)).map((podcast, i) => {
+              const stat = discoveryData?.podcastStats.find(s => s.slug === podcast.slug);
+
+              return (
+                <motion.div
+                  key={podcast.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: Math.min(i * 0.015, 0.4) }}
+                >
+                  <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
+                    <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full">
+                      <div className="flex items-center gap-3 mb-2.5">
+                        {podcast.artworkUrl && (
+                          <img
+                            src={podcast.artworkUrl}
+                            alt={podcast.name}
+                            className="w-10 h-10 rounded-lg flex-shrink-0 object-cover"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate" data-testid={`text-podcast-name-${podcast.slug}`}>
+                            {podcast.name}
+                          </h3>
+                          <p className="text-[13px] text-muted-foreground/70 truncate">{podcast.hosts}</p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors flex-shrink-0" />
+                      </div>
+                      <p className="text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed capitalize">
+                        {podcast.description}
+                      </p>
+                      <div className="flex items-center gap-3 text-[13px] font-mono text-muted-foreground/70">
+                        {stat && (
+                          <span className="flex items-center gap-1">
+                            <Mic className="w-3 h-3" />
+                            {stat.episodeCount} ep{stat.episodeCount !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        <span className="text-muted-foreground/50 truncate">{podcast.category}</span>
                       </div>
                     </div>
-                    <p className="text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed capitalize">
-                      {podcast.description}
-                    </p>
-                    <div className="flex items-center gap-3 text-[13px] font-mono text-muted-foreground/70">
-                      {stat && (
-                        <span className="flex items-center gap-1">
-                          <Mic className="w-3 h-3" />
-                          {stat.episodeCount} ep{stat.episodeCount !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                      <span className="text-muted-foreground/50 truncate">{podcast.category}</span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
-        {!isSearching && !showAllPodcasts && filteredPodcasts.length > INITIAL_PODCAST_COUNT && (
+        {showCurated && !showAllPodcasts && filteredPodcasts.length > INITIAL_PODCAST_COUNT && (
           <div className="text-center py-8">
             <button
               onClick={() => setShowAllPodcasts(true)}

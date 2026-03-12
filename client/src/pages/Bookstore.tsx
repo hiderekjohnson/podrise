@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, Search, ExternalLink, Mic, X, Star, Clock, TrendingUp, Sparkles, ChevronRight, Filter, Feather, Users } from "lucide-react";
+import { BookOpen, Search, ExternalLink, Mic, X, Star, Clock, TrendingUp, Sparkles, ChevronRight, Feather, Users } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
@@ -103,9 +103,9 @@ const TOPIC_FILTERS = [
 ];
 
 const LENGTH_FILTERS = [
-  { value: "short", label: "Short", desc: "Under 200 pages", max: 199 },
-  { value: "medium", label: "Medium", desc: "200-399 pages", min: 200, max: 399 },
-  { value: "long", label: "Long", desc: "400+ pages", min: 400 },
+  { value: "short", label: "Under 200 pages", max: 199 },
+  { value: "medium", label: "200-399 pages", min: 200, max: 399 },
+  { value: "long", label: "400+ pages", min: 400 },
 ] as const;
 
 type LengthFilter = typeof LENGTH_FILTERS[number]["value"] | null;
@@ -323,8 +323,20 @@ export default function Bookstore() {
   const [sortBy, setSortBy] = useState<SortOption>("mentions");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedLength, setSelectedLength] = useState<LengthFilter>(null);
-  const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const navRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-68px 0px 0px 0px" }
+    );
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
 
   const { data, isLoading } = useQuery<BookstoreData>({
     queryKey: ["/api/bookstore"],
@@ -468,13 +480,25 @@ export default function Bookstore() {
   const hasMore = visibleCount < filteredBooks.length;
   const showShelves = !hasActiveFilters && sortBy === "mentions";
 
+  const handleTopicClick = (topic: string) => {
+    setSelectedTopic(selectedTopic === topic ? null : topic);
+    setSearchQuery("");
+    setSelectedLength(null);
+    setVisibleCount(PAGE_SIZE);
+    const el = document.getElementById("books-grid");
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 68 - 52 - 16;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead />
       <SiteHeader />
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <section className="w-full max-w-5xl pt-8 sm:pt-12 pb-6">
+      <div className="bg-gradient-to-b from-amber-500/[0.03] via-background to-background">
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center text-center gap-4">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-12 h-12 rounded-2xl bg-amber-500/[0.08] flex items-center justify-center">
@@ -489,8 +513,71 @@ export default function Bookstore() {
               Find your next great read based on what the smartest podcast hosts are recommending. Not bestseller lists. Real conversations.
             </p>
           </motion.div>
-        </section>
 
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="max-w-2xl mx-auto mt-6"
+          >
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40" />
+              <input
+                type="text"
+                placeholder="Search by title, author, or topic..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); if (e.target.value) { setSelectedTopic(null); setSelectedLength(null); } }}
+                className="w-full pl-12 pr-10 py-3.5 text-[17px] bg-card border border-black/[0.1] dark:border-white/[0.1] rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all shadow-sm"
+                data-testid="input-search"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                  data-testid="button-clear-search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </section>
+      </div>
+
+      <div ref={navRef} className="h-0" />
+      <div className={`sticky top-[68px] z-30 bg-background/95 backdrop-blur-sm border-b transition-shadow ${isSticky ? "border-black/[0.06] dark:border-white/[0.06] shadow-sm" : "border-transparent"}`}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide" data-testid="category-nav">
+            <button
+              onClick={() => { setSelectedTopic(null); setSelectedLength(null); setSearchQuery(""); setSortBy("mentions"); }}
+              className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                !selectedTopic && !selectedLength && !searchQuery
+                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+              }`}
+              data-testid="category-all"
+            >
+              All Books
+            </button>
+            {availableTopics.map(topic => (
+              <button
+                key={topic}
+                onClick={() => handleTopicClick(topic)}
+                className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                  selectedTopic === topic
+                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                    : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+                }`}
+                data-testid={`category-${topic.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                {topic}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20 pt-6">
         {!isLoading && showShelves && (
           <section className="w-full max-w-5xl" data-testid="section-curated">
             <CuratedShelf title="Trending on Podcasts" icon={TrendingUp} books={curatedShelves.trending} />
@@ -506,123 +593,69 @@ export default function Bookstore() {
           </section>
         )}
 
-        <section className="w-full max-w-5xl" data-testid="section-browse">
-          {showShelves && (
-            <h2 className="text-xl font-bold text-foreground mb-6" data-testid="heading-browse">Browse All Books</h2>
-          )}
-
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="space-y-4 mb-6"
-          >
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-                <input
-                  type="text"
-                  placeholder="Search by title, author, or topic..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-                  data-testid="input-search"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-                    data-testid="button-clear-search"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`sm:hidden px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors ${
-                  showFilters || hasActiveFilters
-                    ? "bg-amber-500/[0.12] text-amber-700 border border-amber-500/20"
-                    : "bg-black/[0.04] text-muted-foreground border border-transparent"
-                }`}
-                data-testid="button-toggle-filters"
-              >
-                <Filter className="w-4 h-4" />
-                Filters
-                {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-amber-500" />}
-              </button>
-            </div>
-
-            <div className={`${showFilters ? 'block' : 'hidden'} sm:block space-y-3`}>
-              {availableTopics.length > 0 && (
-                <div className="flex flex-wrap gap-2" data-testid="filter-topics">
-                  {availableTopics.map(topic => (
-                    <button
-                      key={topic}
-                      onClick={() => setSelectedTopic(selectedTopic === topic ? null : topic)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
-                        selectedTopic === topic
-                          ? "bg-amber-500/[0.15] text-amber-700 dark:text-amber-400 border border-amber-500/25"
-                          : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
-                      }`}
-                      data-testid={`filter-topic-${topic.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      {topic}
-                    </button>
-                  ))}
-                </div>
+        <section className="w-full max-w-5xl" data-testid="section-browse" id="books-grid">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-amber-600" />
+              <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
+                {searchQuery ? "Search Results" : selectedTopic ? selectedTopic : "Browse All Books"}
+              </h2>
+              {(searchQuery || selectedTopic || selectedLength) && (
+                <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
+                  {filteredBooks.length} book{filteredBooks.length !== 1 ? "s" : ""}
+                </span>
               )}
+            </div>
+          </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2 mr-2">
-                  {LENGTH_FILTERS.map(len => (
-                    <button
-                      key={len.value}
-                      onClick={() => setSelectedLength(selectedLength === len.value ? null : len.value)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
-                        selectedLength === len.value
-                          ? "bg-amber-500/[0.15] text-amber-700 dark:text-amber-400 border border-amber-500/25"
-                          : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
-                      }`}
-                      title={len.desc}
-                      data-testid={`filter-length-${len.value}`}
-                    >
-                      {len.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="h-5 w-px bg-black/[0.08] dark:bg-white/[0.08] hidden sm:block" />
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {SORT_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setSortBy(opt.value)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
-                        sortBy === opt.value
-                          ? "bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 border border-amber-500/20"
-                          : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
-                      }`}
-                      data-testid={`button-sort-${opt.value}`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            <div className="flex flex-wrap items-center gap-2">
+              {LENGTH_FILTERS.map(len => (
                 <button
-                  onClick={() => { setSelectedTopic(null); setSelectedLength(null); setSearchQuery(""); setSortBy("mentions"); }}
-                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-                  data-testid="button-clear-filters"
+                  key={len.value}
+                  onClick={() => setSelectedLength(selectedLength === len.value ? null : len.value)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
+                    selectedLength === len.value
+                      ? "bg-amber-500/[0.15] text-amber-700 dark:text-amber-400 border border-amber-500/25"
+                      : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
+                  }`}
+                  title={len.label}
+                  data-testid={`filter-length-${len.value}`}
                 >
-                  Clear all filters
+                  {len.label}
                 </button>
-              )}
+              ))}
             </div>
-          </motion.div>
+
+            <div className="h-5 w-px bg-black/[0.08] dark:bg-white/[0.08] hidden sm:block" />
+
+            <div className="flex flex-wrap items-center gap-2">
+              {SORT_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSortBy(opt.value)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
+                    sortBy === opt.value
+                      ? "bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 border border-amber-500/20"
+                      : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
+                  }`}
+                  data-testid={`button-sort-${opt.value}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                onClick={() => { setSelectedTopic(null); setSelectedLength(null); setSearchQuery(""); setSortBy("mentions"); }}
+                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                data-testid="button-clear-filters"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -647,16 +680,6 @@ export default function Bookstore() {
             </div>
           ) : (
             <>
-              {(searchQuery || selectedTopic || selectedLength) && (
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[15px] text-muted-foreground" data-testid="text-result-count">
-                    {searchQuery
-                      ? `${filteredBooks.length} ${filteredBooks.length === 1 ? "book" : "books"} matching "${searchQuery}"`
-                      : `Books${selectedTopic ? ` in ${selectedTopic}` : ""}${selectedLength ? ` (${LENGTH_FILTERS.find(l => l.value === selectedLength)?.desc})` : ""}`}
-                  </p>
-                </div>
-              )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="grid-books">
                 {visibleBooks.map((book, i) => (
                   <BookCard key={`${book.name}-${i}`} book={book} index={i} />
