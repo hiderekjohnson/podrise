@@ -218,10 +218,6 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
               Show more books ({sorted.length - visibleCount} remaining)
             </button>
           )}
-
-          <p className="text-[11px] text-muted-foreground/40 mt-5 text-center">
-            Blinkist links open summaries of recommended books.
-          </p>
         </>
       )}
     </section>

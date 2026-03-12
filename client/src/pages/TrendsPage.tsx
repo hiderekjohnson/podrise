@@ -365,7 +365,7 @@ export default function TrendsPage() {
 
       <main className="max-w-6xl mx-auto px-6 pb-20">
         {isLoading ? (
-          <div className="space-y-4 max-w-4xl mx-auto">
+          <div className="space-y-4 max-w-6xl mx-auto">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse">
                 <div className="flex items-center gap-4">

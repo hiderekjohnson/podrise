@@ -163,7 +163,7 @@ export default function PodcastTopicPage() {
       <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <section className="w-full max-w-4xl pt-6 pb-8">
+        <section className="w-full max-w-5xl pt-6 pb-8">
           <nav className="flex items-center gap-1.5 text-[15px] text-muted-foreground mb-6 flex-wrap" data-testid="breadcrumbs">
             <a href="/podcasts" className="hover:text-foreground transition-colors" data-testid="breadcrumb-podcasts">
               Podcasts
@@ -204,7 +204,7 @@ export default function PodcastTopicPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-4xl"
+          className="w-full max-w-5xl"
         >
           <div className="bg-white dark:bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden shadow-sm">
             <div className="px-6 sm:px-8 py-4 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
