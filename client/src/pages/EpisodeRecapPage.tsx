@@ -939,7 +939,7 @@ export default function EpisodeRecapPage() {
                     {i + 1}
                   </span>
                   <div className="flex-1">
-                    <p className="text-base leading-[1.8] text-muted-foreground">{insight}</p>
+                    <p className="text-base leading-[1.8] text-muted-foreground">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
                     <div className="mt-1 opacity-60 group-hover/insight:opacity-100 transition-opacity">
                       <DeepDiveButton label="Expand on this" entityName={insight.slice(0, 80)} entityType="insight" chatRef={chatRef} />
                     </div>

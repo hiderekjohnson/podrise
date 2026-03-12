@@ -128,7 +128,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 {
   "tldl": "2-3 sentence summary of the core thesis.",
   "whatHappened": "A flowing 2-minute read narrative summary (6-10 short paragraphs, 2-4 sentences each). Separate paragraphs with \\n\\n.",
-  "keyInsights": ["[Speaker] argues [specific claim], pointing to [named example]", "Insight 2", "Insight 3", "Insight 4"],
+  "keyInsights": ["Speaker Name argues specific claim, pointing to named example", "Insight 2", "Insight 3", "Insight 4"],
   "quote": "A memorable verbatim line from the transcript",
   "quoteAttribution": "Speaker Name on topic",
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
@@ -146,7 +146,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 }
 
 RULES:
-- keyInsights (exactly 4): Every takeaway MUST name the speaker, include a specific claim, and reference a named person/company/book/story. NEVER generic lessons. Test: could you identify which episode this is from without the title?
+- keyInsights (exactly 4): Every takeaway MUST name the speaker, include a specific claim, and reference a named person/company/book/story. NEVER generic lessons. NEVER use square brackets around names. Test: could you identify which episode this is from without the title?
 - whatHappened: 6-10 short paragraphs, flowing narrative, not bullet points
 - keyTopics: 4-6 specific search-query-style phrases with named entities
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
