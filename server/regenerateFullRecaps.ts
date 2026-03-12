@@ -179,8 +179,8 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 {
   "tldl": "2-3 sentence summary of the core thesis.",
   "whatHappened": "The episode recap. 6-8 paragraphs, each 2-4 sentences. Separate paragraphs with \\n\\n.",
-  "quote": "A memorable verbatim line from the transcript",
-  "quoteAttribution": "Speaker Name on topic",
+  "quote": "The single most surprising, counterintuitive, or shareable line from the transcript.",
+  "quoteAttribution": "Speaker Name",
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
   "topicContexts": {"slug": "Episode-specific description..."},
   "topQuestions": [
@@ -211,12 +211,12 @@ OTHER RULES:
 - All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5), resources
 - keyTopics: 4-6 specific search-query-style phrases with named entities
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
-- topQuestions: 5 SEO questions with named entities. Answers 2-3 sentences max
+- quote: Find the single most SHAREABLE line from the transcript - surprising, counterintuitive, provocative, funny, or profound. Must be verbatim. Avoid generic motivational statements. quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
+- topQuestions: 5 SEO questions with named entities. Answers 2-3 sentences max that deliver the ACTUAL answer with specific facts. No speaker attribution patterns in answers ("Person emphasizes/highlights..."), just the substance. BAD answer: "Bill Gurley emphasizes the importance of frameworks." GOOD answer: "The regret minimization framework asks you to imagine your 80-year-old self looking back - Jeff Bezos used this exact thought experiment to decide to leave his hedge fund and start Amazon."
 - guests: Extract guests only (NOT hosts). Use FULL NAME. Empty array if none
 - BOOKS ARE CRITICAL: Scan the FULL transcript for ANY book mention. Missing a book is a serious error
 - resources: Books and purchasable items only. "context" must answer why this book was mentioned and what argument it supported. Do NOT describe generically. Empty array ONLY if truly none
-- sponsors: All sponsors/advertisers. Empty array if none
-- Quotes MUST be verbatim from transcript`;
+- sponsors: All sponsors/advertisers. Empty array if none`;
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
