@@ -4591,8 +4591,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { ITUNES_ID_TO_SLUG, SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
       const { getEpisodeTranscript } = await import("./taddyClient");
 
-      const TARGET = 25;
-      const { slugFilter } = req.body || {};
+      const { slugFilter, target: customTarget } = req.body || {};
+      const TARGET = (customTarget && Number(customTarget) > 0) ? Number(customTarget) : 25;
 
       const taddyUserId = process.env.TADDY_USER_ID;
       const taddyApiKey = process.env.TADDY_API_KEY;
