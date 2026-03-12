@@ -33,12 +33,13 @@ function PodcastBookCover({ title, slug, googleBooksId }: { title: string; asin?
   useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
   const sources: string[] = [];
   if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
 
   const advance = () => setSrcIndex(s => s + 1);
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
+    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
   };
 
   if (srcIndex < sources.length) {

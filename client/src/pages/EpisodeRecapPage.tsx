@@ -73,13 +73,14 @@ function BookCover({ title, slug, googleBooksId, testId }: { title: string; asin
   useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
   const sources: string[] = [];
   if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
+  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
   const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
 
   const advance = () => setSrcIndex(s => s + 1);
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
+    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
   };
 
   if (srcIndex < sources.length) {
