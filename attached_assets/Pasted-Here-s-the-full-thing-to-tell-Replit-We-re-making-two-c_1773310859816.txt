@@ -1,0 +1,29 @@
+Here's the full thing to tell Replit:
+
+We're making two changes to the episode recap page to improve SEO. The goal is to make every section title specific enough that Google can understand what's on the page, rather than generic labels that could apply to any podcast episode on the internet.
+Change 1 — Remove the subtitle under About This Episode
+Delete the line that currently reads "A quick summary of what this [podcast] episode covers." on every episode page. Nothing replaces it. The heading goes straight into the body text. The reason: this line is generic boilerplate that adds no SEO value and tells Google nothing specific about the episode.
+Change 2 — Make all section titles dynamic using guest data
+Right now every episode has the same static section titles regardless of who's on the episode — "Key Takeaways," "Full Recap," "Notable Quotes" etc. These are invisible to Google because they're identical across thousands of pages. We need them to include the guest name and podcast name so Google can index each page as unique.
+The guest data already exists in the Participants section of each episode so no new data is needed — just pull from there and apply this logic:
+if no guest:
+  use "This [Podcast Name] Episode" or "[Episode Title] — [Podcast Name]"
+
+if one guest:
+  use "[Guest Name] on [Podcast Name]"
+
+if two guests:
+  use "[Guest 1] and [Guest 2] on [Podcast Name]"
+
+if three or more guests:
+  use "[Guest 1], [Guest 2], and More on [Podcast Name]"
+Apply that logic to these section titles:
+Key Takeaways  →  "Key Takeaways from {guest} on {podcast}"
+Full Recap     →  "Full Episode Recap: {guest} on {podcast}"
+Quotes         →  "Best {guest} Quotes from {podcast}"
+Q&A            →  "Questions Answered in This Episode with {guest}"
+Participants   →  "Who's in This Episode of {podcast}"
+People         →  "People Mentioned in This {podcast} Episode"
+Companies      →  "Companies Mentioned in This {podcast} Episode"
+Do not change About This Episode or Books Mentioned — those stay the same on every episode.
+The reason this matters: section titles render as heading tags in HTML which Google weighs heavily when deciding what a page is about and what searches it should appear for. "Key Takeaways from Bill Gurley on My First Million" will surface in searches for Bill Gurley, My First Million, and related topics. "Key Takeaways" surfaces for nothing.
