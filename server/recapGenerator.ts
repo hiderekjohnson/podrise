@@ -337,7 +337,8 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 }
 
 RULES:
-- All core fields required: tldl, whatHappened (6-10 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5)
+- All core fields required: tldl, whatHappened (6-10 paragraphs), keyInsights (exactly 4), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5), resources (search the ENTIRE transcript for every book mentioned)
+- BOOKS ARE CRITICAL: Before writing resources, scan the FULL transcript word by word for ANY book title, author name, or phrase like "this book", "read this", "his book", "her book", "the book called", "a book by", "I read", "have you read", "recommended reading". Even if a book is mentioned once in passing, include it. Missing a book is a serious error
 - Write like a sharp friend catching you up
 - Be specific and concrete
 - keyInsights: Every takeaway MUST contain a named person (the speaker or subject) and a specific, concrete claim with a named reference (person, company, book, or story from the episode). NEVER write generic lessons like "Curiosity is important" or "Financial discipline matters." The test: if you removed the episode title, could you tell which episode this takeaway came from? If not, rewrite it. NEVER use square brackets around names. Format: "Speaker Name argues/reveals/credits specific claim, pointing to / citing / referencing named example." Example: "Bill Gurley argues that obsession and curiosity - not talent - are what separate top performers, pointing to Burt Beveridge who started Tito's Vodka at 40 after a self-reflection exercise."
