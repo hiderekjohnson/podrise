@@ -1,12 +1,10 @@
-import { useState, useMemo } from "react";
-import { useLocation, Link } from "wouter";
-import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Activity, Radio, ChevronRight, Podcast, ArrowUpRight } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Link } from "wouter";
+import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Activity, ChevronRight, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { TOPICS } from "@/data/topicData";
-import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
-import { matchesKeywords } from "@/data/topicData";
 
 const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users,
@@ -15,15 +13,15 @@ const ICON_MAP: Record<string, any> = {
   UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase,
 };
 
-function getTopicSourceCount(topic: typeof TOPICS[0]): number {
-  return PODCAST_LANDINGS.filter(p => {
-    const text = `${p.category} ${p.keywords} ${p.description}`;
-    return matchesKeywords(text, topic.podcastKeywords);
-  }).length;
-}
-
-const TRENDING_SLUGS = ["ai", "venture-capital", "crypto-web3", "defense-tech", "robotics", "climate-energy"];
-const FEATURED_SLUGS = ["entrepreneurship", "investing", "leadership", "saas", "personal-finance", "marketing"];
+const CATEGORIES: { key: string; label: string; slugs: string[] }[] = [
+  { key: "tech", label: "Tech & AI", slugs: ["ai", "technology", "robotics", "automation", "open-source", "defense-tech"] },
+  { key: "business", label: "Business", slugs: ["entrepreneurship", "startups", "saas", "product-management", "product-market-fit", "bootstrapping", "side-hustles", "creator-economy"] },
+  { key: "finance", label: "Finance & Investing", slugs: ["venture-capital", "investing", "personal-finance", "crypto-web3", "economics"] },
+  { key: "leadership", label: "Leadership & Growth", slugs: ["leadership", "career-growth", "peak-performance", "productivity", "decision-making", "negotiation", "self-improvement"] },
+  { key: "marketing", label: "Marketing & Sales", slugs: ["marketing", "sales"] },
+  { key: "science", label: "Science & Health", slugs: ["health-longevity", "psychology", "climate-energy"] },
+  { key: "culture", label: "Culture & Society", slugs: ["media-content", "geopolitics", "creativity", "future-of-work", "women-in-business", "young-entrepreneurs"] },
+];
 
 function SEOHead() {
   const title = "Insights - Podcast Intelligence by Topic | PodCap";
@@ -86,27 +84,43 @@ function MiniTrendLine({ seed, rising }: { seed: number; rising: boolean }) {
   );
 }
 
-export default function TopicsDirectory() {
-  const [, navigate] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
+const TRENDING_SLUGS = ["ai", "venture-capital", "crypto-web3", "defense-tech", "robotics", "climate-energy"];
 
-  const topicMetrics = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const t of TOPICS) {
-      map.set(t.slug, getTopicSourceCount(t));
-    }
-    return map;
+export default function TopicsDirectory() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-68px 0px 0px 0px" }
+    );
+    observer.observe(nav);
+    return () => observer.disconnect();
   }, []);
 
   const filteredTopics = useMemo(() => {
-    if (!searchQuery.trim()) return TOPICS;
-    const q = searchQuery.toLowerCase().trim();
-    return TOPICS.filter(t =>
-      t.name.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q) ||
-      t.podcastKeywords.some(kw => kw.toLowerCase().includes(q))
-    );
-  }, [searchQuery]);
+    let topics = TOPICS;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      topics = topics.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.podcastKeywords.some(kw => kw.toLowerCase().includes(q))
+      );
+    }
+    if (activeCategory) {
+      const cat = CATEGORIES.find(c => c.key === activeCategory);
+      if (cat) {
+        topics = topics.filter(t => cat.slugs.includes(t.slug));
+      }
+    }
+    return topics;
+  }, [searchQuery, activeCategory]);
 
   const trendingTopics = useMemo(() => {
     return TRENDING_SLUGS
@@ -114,13 +128,19 @@ export default function TopicsDirectory() {
       .filter(Boolean) as typeof TOPICS;
   }, []);
 
-  const featuredTopics = useMemo(() => {
-    return FEATURED_SLUGS
-      .map(slug => TOPICS.find(t => t.slug === slug))
-      .filter(Boolean) as typeof TOPICS;
-  }, []);
-
   const isSearching = searchQuery.trim().length > 0;
+  const isFiltering = activeCategory !== null;
+  const showCurated = !isSearching && !isFiltering;
+
+  const handleCategoryClick = (key: string) => {
+    setActiveCategory(prev => prev === key ? null : key);
+    setSearchQuery("");
+    const el = document.getElementById("topics-grid");
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 68 - 52 - 16;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,7 +148,7 @@ export default function TopicsDirectory() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-5xl mx-auto px-6 pt-12 pb-10">
+        <div className="max-w-5xl mx-auto px-6 pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -155,7 +175,7 @@ export default function TopicsDirectory() {
                 type="text"
                 placeholder="Search a topic or keyword..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={e => { setSearchQuery(e.target.value); if (e.target.value) setActiveCategory(null); }}
                 className="w-full pl-12 pr-4 py-3.5 text-[17px] bg-card border border-black/[0.1] dark:border-white/[0.1] rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all shadow-sm"
                 data-testid="input-search-topics"
               />
@@ -169,8 +189,41 @@ export default function TopicsDirectory() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 pb-20">
-        {!isSearching && (
+      <div ref={navRef} className="h-0" />
+      <div className={`sticky top-[68px] z-30 bg-background/95 backdrop-blur-sm border-b transition-shadow ${isSticky ? "border-black/[0.06] dark:border-white/[0.06] shadow-sm" : "border-transparent"}`}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide" data-testid="category-nav">
+            <button
+              onClick={() => { setActiveCategory(null); setSearchQuery(""); }}
+              className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                !activeCategory
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+              }`}
+              data-testid="category-all"
+            >
+              All Topics
+            </button>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat.key}
+                onClick={() => handleCategoryClick(cat.key)}
+                className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                  activeCategory === cat.key
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+                }`}
+                data-testid={`category-${cat.key}`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-6 pb-20 pt-6">
+        {showCurated && (
           <>
             <motion.section
               initial={{ opacity: 0, y: 16 }}
@@ -185,7 +238,6 @@ export default function TopicsDirectory() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {trendingTopics.map((topic, i) => {
                   const Icon = ICON_MAP[topic.icon] || Sparkles;
-                  const sourceCount = topicMetrics.get(topic.slug) || 0;
                   return (
                     <motion.div
                       key={topic.slug}
@@ -227,97 +279,55 @@ export default function TopicsDirectory() {
                 })}
               </div>
             </motion.section>
-
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="mb-12"
-            >
-              <div className="flex items-center gap-2 mb-5">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-featured">Popular Topics</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {featuredTopics.map((topic, i) => {
-                  const Icon = ICON_MAP[topic.icon] || Sparkles;
-                  const sourceCount = topicMetrics.get(topic.slug) || 0;
-                  return (
-                    <motion.div
-                      key={topic.slug}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: i * 0.04 }}
-                    >
-                      <Link href={`/insights/${topic.slug}`} data-testid={`card-featured-${topic.slug}`}>
-                        <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-5 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
-                                <Icon className="w-4.5 h-4.5 text-white" />
-                              </div>
-                              <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors">
-                                {topic.name}
-                              </h3>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                          </div>
-                          <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-3 leading-relaxed">{topic.description}</p>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.section>
           </>
         )}
 
-        <div className="flex items-center gap-2 mb-5">
-          <Activity className="w-4 h-4 text-primary" />
-          <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-topics">
-            {isSearching ? "Search Results" : "All Topics"}
-          </h2>
-        </div>
+        <div id="topics-grid">
+          <div className="flex items-center gap-2 mb-5">
+            <Activity className="w-4 h-4 text-primary" />
+            <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-topics">
+              {isSearching ? "Search Results" : isFiltering ? CATEGORIES.find(c => c.key === activeCategory)?.label || "Topics" : "All Topics"}
+            </h2>
+            {(isSearching || isFiltering) && (
+              <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
+                {filteredTopics.length} topic{filteredTopics.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-          {filteredTopics.map((topic, i) => {
-            const Icon = ICON_MAP[topic.icon] || Sparkles;
-            const sourceCount = topicMetrics.get(topic.slug) || 0;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+            {filteredTopics.map((topic, i) => {
+              const Icon = ICON_MAP[topic.icon] || Sparkles;
 
-            return (
-              <motion.div
-                key={topic.slug}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.4) }}
-              >
-                <Link href={`/insights/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
-                  <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full">
-                    <div className="flex items-center gap-2.5 mb-2">
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className="w-4 h-4 text-white" />
+              return (
+                <motion.div
+                  key={topic.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.4) }}
+                >
+                  <Link href={`/insights/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
+                    <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center flex-shrink-0`}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate" data-testid={`text-topic-name-${topic.slug}`}>
+                            {topic.name}
+                          </h3>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors flex-shrink-0" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate" data-testid={`text-topic-name-${topic.slug}`}>
-                          {topic.name}
-                        </h3>
-                      </div>
+                      <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">
+                        {topic.description}
+                      </p>
                     </div>
-                    <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed">
-                      {topic.description}
-                    </p>
-                    <div className="flex items-center gap-3 text-[13px] font-mono text-muted-foreground/70">
-                      <span className="flex items-center gap-1">
-                        <Podcast className="w-3 h-3" />
-                        {sourceCount}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
         {filteredTopics.length === 0 && (
