@@ -90,8 +90,14 @@ function PersonBookCover({ name, slug, googleBooksId }: { name: string; asin?: s
   if (slug) sources.push(`/books/${slug}.jpg`);
   if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
 
+  const advance = () => setSrcIndex(s => s + 1);
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+  };
+
   if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={name} className="w-full h-full object-contain" onError={() => setSrcIndex(s => s + 1)} />;
+    return <img src={sources[srcIndex]} alt={name} className="w-full h-full object-contain" onError={advance} onLoad={handleLoad} />;
   }
   return <BookOpen className="w-8 h-8 text-amber-400/60" />;
 }

@@ -76,9 +76,15 @@ function BookCover({ title, slug, googleBooksId, testId }: { title: string; asin
   if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
   const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
 
+  const advance = () => setSrcIndex(s => s + 1);
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+  };
+
   if (srcIndex < sources.length) {
     return (
-      <img src={sources[srcIndex]} alt={title} className={imgCls} data-testid={testId} onError={() => setSrcIndex(s => s + 1)} loading="lazy" />
+      <img src={sources[srcIndex]} alt={title} className={imgCls} data-testid={testId} onError={advance} onLoad={handleLoad} loading="lazy" />
     );
   }
 

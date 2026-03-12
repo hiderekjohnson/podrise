@@ -35,13 +35,20 @@ function PodcastBookCover({ title, slug, googleBooksId }: { title: string; asin?
   if (slug) sources.push(`/books/${slug}.jpg`);
   if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
 
+  const advance = () => setSrcIndex(s => s + 1);
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+  };
+
   if (srcIndex < sources.length) {
     return (
       <img
         src={sources[srcIndex]}
         alt={title}
         className="w-full h-full object-cover rounded-lg"
-        onError={() => setSrcIndex(s => s + 1)}
+        onError={advance}
+        onLoad={handleLoad}
       />
     );
   }

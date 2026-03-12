@@ -100,10 +100,16 @@ function BookCover({ title, slug, googleBooksId, size = "lg" }: { title: string;
     xl: "w-36 h-[216px] sm:w-44 sm:h-[264px]",
   };
 
+  const advance = () => setSrcIndex(s => s + 1);
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+  };
+
   const imgCls = `${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`;
 
   if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={title} className={imgCls} onError={() => setSrcIndex(s => s + 1)} />;
+    return <img src={sources[srcIndex]} alt={title} className={imgCls} onError={advance} onLoad={handleLoad} />;
   }
   return (
     <div className={`${sizeClasses[size]} rounded-xl bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
@@ -120,8 +126,14 @@ function SmallBookCover({ title, slug, googleBooksId }: { title: string; asin?: 
   if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=1&source=gbs_api`);
   const cls = "w-16 h-24 rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]";
 
+  const advance = () => setSrcIndex(s => s + 1);
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth < 150 && img.naturalHeight < 220) advance();
+  };
+
   if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={title} className={cls} onError={() => setSrcIndex(s => s + 1)} loading="lazy" />;
+    return <img src={sources[srcIndex]} alt={title} className={cls} onError={advance} onLoad={handleLoad} loading="lazy" />;
   }
   return (
     <div className="w-16 h-24 rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10">
