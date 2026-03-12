@@ -1,5 +1,6 @@
 import { pool } from "./db";
 import { openai } from "./replit_integrations/image/client";
+import { extractBooksFromTranscript, mergeExtractedBooks } from "./recapGenerator";
 import { TOPICS } from "../client/src/data/topicData";
 import https from "https";
 import http from "http";
@@ -169,6 +170,18 @@ RULES:
   if (!content) return null;
 
   const parsed = JSON.parse(content.trim());
+  let resources: any[] = Array.isArray(parsed.resources) ? parsed.resources : [];
+
+  try {
+    resources = mergeExtractedBooks(
+      resources,
+      await extractBooksFromTranscript(transcript, podcastName, episodeTitle),
+      "[RegenerateRecaps]"
+    );
+  } catch (err) {
+    console.warn(`[RegenerateRecaps] Book post-processing failed for "${episodeTitle}":`, err);
+  }
+
   return {
     tldl: parsed.tldl || "",
     whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
@@ -180,7 +193,7 @@ RULES:
     topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
     sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
     guests: Array.isArray(parsed.guests) ? parsed.guests : [],
-    resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+    resources,
   };
 }
 

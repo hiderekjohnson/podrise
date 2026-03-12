@@ -290,6 +290,38 @@ export async function generateRecap(
   return { summary, dateStr, episodeStats: stats, parsedEpisodes: recapEpisodes, recappedPodcasts };
 }
 
+function normalizeBookTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function mergeExtractedBooks(
+  existingResources: any[],
+  extractedBooks: { name: string; type: string; description: string; url: string; author: string | null; context: string }[],
+  logPrefix: string = "[BookMerge]"
+): any[] {
+  const seen = new Set(
+    existingResources
+      .filter(r => r.type === "book" && typeof r.name === "string" && r.name.trim())
+      .map(r => normalizeBookTitle(r.name))
+  );
+
+  const merged = [...existingResources];
+  for (const book of extractedBooks) {
+    if (typeof book.name !== "string" || !book.name.trim()) continue;
+    const key = normalizeBookTitle(book.name);
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(book);
+      console.log(`${logPrefix} Book post-processor caught missed book: "${book.name}" by ${book.author}`);
+    }
+  }
+  return merged;
+}
+
 export async function generateRecapFromTranscript(
   transcript: string,
   podcastName: string,
@@ -375,6 +407,18 @@ RULES:
       }
 
       const parsed = JSON.parse(jsonContent);
+      let resources: any[] = Array.isArray(parsed.resources) ? parsed.resources : [];
+
+      try {
+        resources = mergeExtractedBooks(
+          resources,
+          await extractBooksFromTranscript(transcript, podcastName, episodeTitle),
+          "[RecapGenerator]"
+        );
+      } catch (err) {
+        console.warn(`[RecapGenerator] Book post-processing failed for "${episodeTitle}":`, err);
+      }
+
       return {
         podcastName: parsed.podcastName || podcastName,
         episodeTitle: parsed.episodeTitle || episodeTitle,
@@ -388,7 +432,7 @@ RULES:
         topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
         sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
         guests: Array.isArray(parsed.guests) ? parsed.guests : [],
-        resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+        resources,
       };
     } catch (err) {
       if (attempt < maxAttempts) {
