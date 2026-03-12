@@ -6327,6 +6327,55 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     epGenState.running = false;
   }
 
+  app.post("/api/admin/bulk-sync-recaps", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
+    const { recaps, quotes } = req.body;
+    if (!recaps || !Array.isArray(recaps)) return res.status(400).json({ message: "recaps array required" });
+
+    const client = await pool.connect();
+    let inserted = 0, skipped = 0, quotesInserted = 0;
+    try {
+      for (const r of recaps) {
+        try {
+          await client.query(
+            `INSERT INTO landing_page_recaps
+             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+             ON CONFLICT (slug, episode_slug) DO UPDATE SET
+               tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
+               quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
+               topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
+               sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
+            [r.slug, r.itunes_id, r.podcast_name, r.episode_title, r.episode_slug, r.publish_date,
+             r.duration, r.artwork_url, r.hosts, r.tldl, r.what_happened, r.key_insights,
+             r.quote, r.quote_attribution, r.key_topics, r.topic_contexts, r.top_questions,
+             r.audio_url, r.sponsors, r.guests, r.resources]
+          );
+          inserted++;
+        } catch (err) {
+          skipped++;
+        }
+      }
+
+      if (quotes && Array.isArray(quotes)) {
+        for (const q of quotes) {
+          try {
+            await client.query(
+              `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+               ON CONFLICT DO NOTHING`,
+              [q.podcast_slug, q.episode_slug, q.speaker_name, q.speaker_role, q.quote_text, q.context, q.quote_type, q.sort_order]
+            );
+            quotesInserted++;
+          } catch { skipped++; }
+        }
+      }
+    } finally {
+      client.release();
+    }
+    res.json({ inserted, skipped, quotesInserted });
+  });
+
   app.post("/api/admin/episode-pages-generate/:itunesId", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
     if (epGenState.running) return res.status(409).json({ message: "Generation already in progress" });
