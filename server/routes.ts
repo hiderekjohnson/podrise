@@ -6076,16 +6076,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const books = resources.filter((r: any) => r.type === "book" && r.name);
         for (const book of books) {
           const { rows: existing } = await pool.query(
-            `SELECT id FROM book_enrichments WHERE lower(title) = lower($1) LIMIT 1`,
+            `SELECT id FROM book_enrichments WHERE lower(book_title) = lower($1) LIMIT 1`,
             [book.name]
           );
           if (existing.length === 0) {
             const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
+            const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
             await pool.query(
-              `INSERT INTO book_enrichments (title, author, slug, amazon_url, description)
-               VALUES ($1, $2, $3, $4, $5)
+              `INSERT INTO book_enrichments (book_key, book_title, author, slug, amazon_url, description)
+               VALUES ($1, $2, $3, $4, $5, $6)
                ON CONFLICT (slug) DO NOTHING`,
-              [book.name, book.author || null, slug, book.url || null, book.description || book.context || null]
+              [bookKey, book.name, book.author || null, slug, book.url || null, book.description || book.context || null]
             );
             console.log(`[PostProcess] Enriched book: "${book.name}"`);
           }
