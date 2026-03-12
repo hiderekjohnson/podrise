@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowRight, Users, ListChecks, ExternalLink } from "lucide-react";
+import { Calendar, Clock, ArrowRight, ListChecks, ExternalLink } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,11 @@ import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 interface EpisodeGuest {
   name: string;
   title?: string;
+}
+
+interface PodcastHost {
+  name: string;
+  photo_url?: string;
 }
 
 interface EpisodePageLayoutProps {
@@ -33,6 +38,7 @@ interface EpisodePageLayoutProps {
   activeTab?: "recap" | "guests";
   allRecaps?: any[];
   guests?: EpisodeGuest[];
+  podcastHosts?: PodcastHost[];
   children: React.ReactNode;
 }
 
@@ -43,6 +49,7 @@ export function EpisodePageLayout({
   podcastConfig,
   allRecaps = [],
   guests = [],
+  podcastHosts = [],
   children,
 }: EpisodePageLayoutProps) {
   const [, navigate] = useLocation();
@@ -176,12 +183,25 @@ export function EpisodePageLayout({
                 {episode.episodeTitle}
               </h1>
 
-              <div className="flex flex-col gap-1.5 justify-center sm:justify-start">
+              <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
                 <Link href={`/podcasts/${podcastSlug}`}>
-                  <span className="text-[16px] sm:text-base text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
+                  <span className="inline-flex items-center gap-2 text-[16px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
+                    <img
+                      src={episode.artworkUrl}
+                      alt=""
+                      className="w-5 h-5 rounded-[4px] ring-1 ring-black/[0.06]"
+                    />
                     {episode.podcastName}
                   </span>
                 </Link>
+                {podcastHosts.length > 0 && (
+                  <>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span className="text-[16px] text-muted-foreground" data-testid="text-hosts">
+                      {podcastHosts.map(h => h.name).join(" and ")}
+                    </span>
+                  </>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
@@ -195,27 +215,18 @@ export function EpisodePageLayout({
                     {episode.duration}
                   </span>
                 )}
-                {episode.hosts && (
-                  <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-hosts">
-                    <Users className="w-3.5 h-3.5 text-[#52525B]" />
-                    <span className="font-medium text-[#3F3F46]">{episode.hosts}</span>
-                  </span>
-                )}
               </div>
 
               {guests.length > 0 && (
-                <div className="mt-2" data-testid="header-guests-block">
-                  <span className="text-base font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">
-                    {guests.length === 1 ? "Guest" : "Guests"}
-                  </span>
-                  <div className="mt-1 space-y-0.5">
-                    {guests.map((g, i) => (
-                      <p key={i} className="text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid={`header-guest-${i}`}>
-                        {g.name}{g.title ? ` - ${g.title}` : ""}
-                      </p>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1" data-testid="header-guests-block">
+                  <span className="font-semibold text-foreground">{guests.length === 1 ? "Guest" : "Guests"}:</span>{" "}
+                  {guests.map((g, i) => (
+                    <span key={i} data-testid={`header-guest-${i}`}>
+                      {i > 0 && ", "}
+                      {g.name}{g.title ? `, ${g.title}` : ""}
+                    </span>
+                  ))}
+                </p>
               )}
 
               <div className="flex items-center gap-2.5 mt-2 justify-center sm:justify-start" data-testid="listen-buttons">

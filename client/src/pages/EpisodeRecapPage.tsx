@@ -827,6 +827,7 @@ export default function EpisodeRecapPage() {
       activeTab="recap"
       allRecaps={allRecaps}
       guests={guests}
+      podcastHosts={podcastHosts || []}
     >
       <motion.article
         initial={{ opacity: 0, y: 16 }}
