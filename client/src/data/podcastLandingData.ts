@@ -898,7 +898,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "the unconscious patterns that drive human behavior, choices, and relationships",
     keywords: "Hidden Brain, Shankar Vedantam, psychology, behavior, neuroscience, decision-making, unconscious",
     faqTopics: "behavioral psychology, unconscious bias, decision-making science, social psychology, cognitive science, and fascinating research into why humans think, feel, and act the way they do",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/d9/97/f0/d997f0f5-284b-b90c-16f6-e2e675b831b3/mza_3280114077256997969.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/d9/97/f0/d997f0f5-284b-b90c-16f6-e2e675b831b3/mza_3280114077256997969.jpg/1200x1200bb.jpg",
     youtubeUrl: "https://www.youtube.com/@hiddenbrain",
     avgEpisodeLength: 45,
     frequency: "Weekly",
@@ -3553,7 +3553,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "startups insights, expert analysis, and in-depth discussions",
     keywords: "Startup School by Y Combinator, Y Combinator, Business, Startups",
     faqTopics: "startups trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/98/43/87/9843878b-8cdd-c3a5-6ea4-b689593e9e96/mza_1445891654925813559.png/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/98/43/87/9843878b-8cdd-c3a5-6ea4-b689593e9e96/mza_1445891654925813559.png/1200x1200bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Seasonal",
@@ -3943,7 +3943,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "online marketing insights, expert analysis, and in-depth discussions",
     keywords: "Online Marketing Made Easy, Amy Porterfield, Business, Online Marketing",
     faqTopics: "online marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/06/15/3f/06153f96-84a0-05ef-c984-5da91ab63258/mza_2049480743958825504.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/06/15/3f/06153f96-84a0-05ef-c984-5da91ab63258/mza_2049480743958825504.jpg/1200x1200bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
@@ -3969,7 +3969,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "marketing insights, expert analysis, and in-depth discussions",
     keywords: "The Influencer Podcast, Julie Solomon, Business, Marketing",
     faqTopics: "marketing trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/14/e5/b1/14e5b11a-73f9-bc39-4b4f-833cf3e38684/mza_4742681345217212186.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/14/e5/b1/14e5b11a-73f9-bc39-4b4f-833cf3e38684/mza_4742681345217212186.jpg/1200x1200bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -4515,7 +4515,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "weekly insights, expert analysis, and in-depth discussions",
     keywords: "ABC World News This Week, ABC News, News, Weekly",
     faqTopics: "weekly trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/7a/cd/30/7acd302c-3cdc-81ce-3aac-9508eed39389/mza_11406176241027266192.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/7a/cd/30/7acd302c-3cdc-81ce-3aac-9508eed39389/mza_11406176241027266192.jpg/1200x1200bb.jpg",
     avgEpisodeLength: 30,
 
     frequency: "Weekly",
@@ -4697,7 +4697,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "business insights, expert analysis, and in-depth discussions",
     keywords: "Puck's The Powers That Be, Puck, News, Business",
     faqTopics: "business trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d0/21/db/d021db2f-fae2-258f-8611-109869dabfc8/mza_17627203276313263089.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/d0/21/db/d021db2f-fae2-258f-8611-109869dabfc8/mza_17627203276313263089.jpg/1200x1200bb.jpg",
     avgEpisodeLength: 50,
 
     frequency: "Weekly",
@@ -5425,7 +5425,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "debates insights, expert analysis, and in-depth discussions",
     keywords: "Intelligence Squared U.S. Debates, John Donvan, Education, Debates",
     faqTopics: "debates trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/f9/83/4e/f9834ead-50e0-ea9a-17b3-b09d92b72b7d/mza_10063775191851559716.jpg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/f9/83/4e/f9834ead-50e0-ea9a-17b3-b09d92b72b7d/mza_10063775191851559716.jpg/1200x1200bb.jpg",
     avgEpisodeLength: 60,
 
     frequency: "Monthly",
@@ -5581,7 +5581,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     description: "leadership insights, expert analysis, and in-depth discussions",
     keywords: "No Bullshit Leadership, Martin G. Moore, Business, Leadership",
     faqTopics: "leadership trends, expert interviews, industry analysis, and actionable insights",
-    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/1a/5b/9f/1a5b9f1f-10ef-875c-bbc4-419803b3a0ea/mza_2530549572785949191.jpeg/600x600bb.jpg",
+    artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/1a/5b/9f/1a5b9f1f-10ef-875c-bbc4-419803b3a0ea/mza_2530549572785949191.jpeg/1200x1200bb.jpg",
     avgEpisodeLength: 40,
 
     frequency: "Weekly",
