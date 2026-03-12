@@ -6606,11 +6606,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  const chatRateLimit = new Map<string, number[]>();
   app.post("/api/episode-chat", async (req, res) => {
     try {
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      const now = Date.now();
+      const windowMs = 60_000;
+      const maxReqs = 15;
+      const timestamps = (chatRateLimit.get(ip) || []).filter(t => t > now - windowMs);
+      if (timestamps.length >= maxReqs) {
+        return res.status(429).json({ error: "Too many requests. Please wait a moment." });
+      }
+      timestamps.push(now);
+      chatRateLimit.set(ip, timestamps);
+
       const { podcastSlug, episodeSlug, entityName, entityType, question, conversationHistory } = req.body;
       if (!podcastSlug || !episodeSlug || !question) {
         return res.status(400).json({ error: "Missing required fields" });
+      }
+      if (typeof question !== "string" || question.length > 500) {
+        return res.status(400).json({ error: "Question too long (max 500 characters)" });
       }
 
       const recap = await storage.getLandingPageRecapBySlug(podcastSlug, episodeSlug);

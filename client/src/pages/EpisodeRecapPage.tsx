@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Lightbulb, Tag, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -124,17 +124,39 @@ interface ChatMessage {
   content: string;
 }
 
-function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentColor = "orange" }: {
+interface ChatContextRef {
+  open: (entityName?: string, entityType?: string, initialQuestion?: string) => void;
+}
+
+function DeepDiveButton({ label, entityName, entityType, chatRef }: {
+  label?: string;
   entityName: string;
-  entityType: "person" | "company" | "topic";
+  entityType: string;
+  chatRef: React.RefObject<ChatContextRef | null>;
+}) {
+  return (
+    <button
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); chatRef.current?.open(entityName, entityType); }}
+      className="inline-flex items-center gap-1 text-[13px] font-medium text-primary/70 hover:text-primary transition-colors group/ai"
+      data-testid={`deep-dive-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+      <Sparkles className="w-3 h-3 group-hover/ai:scale-110 transition-transform" />
+      {label || "Deep dive"}
+    </button>
+  );
+}
+
+function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName }: {
   podcastSlug: string;
   episodeSlug: string;
-  accentColor?: string;
-}) {
-  const [open, setOpen] = useState(false);
+  episodeTitle: string;
+  podcastName: string;
+}, ref: React.Ref<ChatContextRef>) {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentEntity, setCurrentEntity] = useState<{ name: string; type: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -143,18 +165,39 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
   }, [messages]);
 
   useEffect(() => {
-    if (open && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 150);
     }
-  }, [open]);
+  }, [isOpen]);
 
-  const sendMessage = async (text?: string) => {
+  const openChat = (entityName?: string, entityType?: string, initialQuestion?: string) => {
+    const newEntity = entityName && entityType ? { name: entityName, type: entityType } : null;
+    const entityChanged = newEntity && (!currentEntity || currentEntity.name !== newEntity.name || currentEntity.type !== newEntity.type);
+    if (entityChanged) {
+      setMessages([]);
+      setInput("");
+    }
+    if (newEntity) {
+      setCurrentEntity(newEntity);
+    }
+    setIsOpen(true);
+    if (initialQuestion) {
+      setTimeout(() => sendMessage(initialQuestion, entityName, entityType), 100);
+    }
+  };
+
+  React.useImperativeHandle(ref, () => ({ open: openChat }));
+
+  const sendMessage = async (text?: string, overrideEntityName?: string, overrideEntityType?: string) => {
     const q = text || input.trim();
     if (!q || loading) return;
     setInput("");
     const userMsg: ChatMessage = { role: "user", content: q };
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
+
+    const eName = overrideEntityName || currentEntity?.name;
+    const eType = overrideEntityType || currentEntity?.type;
 
     try {
       const resp = await fetch("/api/episode-chat", {
@@ -163,8 +206,8 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
         body: JSON.stringify({
           podcastSlug,
           episodeSlug,
-          entityName,
-          entityType,
+          entityName: eName || undefined,
+          entityType: eType || undefined,
           question: q,
           conversationHistory: messages,
         }),
@@ -178,56 +221,72 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
     }
   };
 
-  const colorMap: Record<string, { btn: string; bg: string; border: string; text: string; bubble: string }> = {
-    orange: { btn: "bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400", bg: "bg-orange-50/50 dark:bg-orange-950/20", border: "border-orange-500/20", text: "text-orange-600 dark:text-orange-400", bubble: "bg-orange-500/[0.07]" },
-    emerald: { btn: "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20", border: "border-emerald-500/20", text: "text-emerald-600 dark:text-emerald-400", bubble: "bg-emerald-500/[0.07]" },
+  const defaultSuggestions = [
+    `What's the main thesis of this episode?`,
+    `What was the most surprising insight?`,
+    `Summarize the key takeaways in simple terms`,
+  ];
+
+  const entitySuggestions = currentEntity
+    ? currentEntity.type === "person"
+      ? [`What did they say about ${currentEntity.name}?`, `Why was ${currentEntity.name} mentioned?`]
+      : currentEntity.type === "company"
+      ? [`What was said about ${currentEntity.name}?`, `Why was ${currentEntity.name} discussed?`]
+      : currentEntity.type === "book"
+      ? [`What did they say about "${currentEntity.name}"?`, `Why was this book recommended?`]
+      : currentEntity.type === "insight"
+      ? [`Expand on this takeaway`, `What evidence supports this insight?`]
+      : [`Tell me more about ${currentEntity.name}`, `Why is ${currentEntity.name} relevant?`]
+    : defaultSuggestions;
+
+  const clearEntity = () => {
+    setCurrentEntity(null);
   };
-  const colors = colorMap[accentColor] || colorMap.orange;
 
-  const suggestedQuestions = entityType === "person"
-    ? [`What did they say about ${entityName}?`, `Why was ${entityName} mentioned?`, `What's ${entityName}'s role in this discussion?`]
-    : entityType === "company"
-    ? [`What was said about ${entityName}?`, `Why was ${entityName} discussed?`, `How does ${entityName} relate to the episode?`]
-    : [`Tell me more about ${entityName} in this episode`, `What perspectives were shared on ${entityName}?`, `Why is ${entityName} relevant here?`];
-
-  if (!open) {
+  if (!isOpen) {
     return (
       <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all ${colors.btn}`}
-        data-testid={`ask-ai-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
+        onClick={() => { setCurrentEntity(null); setIsOpen(true); }}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all"
+        data-testid="open-ai-chat-fab"
       >
-        <Sparkles className="w-3.5 h-3.5" />
-        Ask AI
+        <Sparkles className="w-4 h-4" />
+        <span className="text-[14px] font-semibold">Ask AI</span>
       </button>
     );
   }
 
   return (
-    <div
-      className={`mt-3 rounded-xl border ${colors.border} ${colors.bg} overflow-hidden`}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-      data-testid={`ai-chat-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
-    >
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
-        <div className="flex items-center gap-2">
-          <Sparkles className={`w-3.5 h-3.5 ${colors.text}`} />
-          <span className={`text-[13px] font-semibold ${colors.text}`}>Ask about {entityName}</span>
+    <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-background shadow-2xl shadow-black/[0.12] flex flex-col overflow-hidden" data-testid="ai-chat-panel">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06] dark:border-white/[0.08] bg-primary/[0.03]">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[14px] font-semibold text-foreground truncate">Ask about this episode</p>
+            {currentEntity && (
+              <div className="flex items-center gap-1.5">
+                <p className="text-[12px] text-primary truncate">Focused on: {currentEntity.name}</p>
+                <button onClick={clearEntity} className="text-muted-foreground/50 hover:text-muted-foreground shrink-0"><X className="w-3 h-3" /></button>
+              </div>
+            )}
+          </div>
         </div>
-        <button onClick={() => { setOpen(false); setMessages([]); }} className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors" data-testid="close-ai-chat">
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
+        <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors shrink-0" data-testid="close-ai-chat">
+          <X className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
 
-      <div className="max-h-[280px] overflow-y-auto px-4 py-3 space-y-3">
+      <div className="flex-1 max-h-[360px] overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-2">
-            <p className="text-[13px] text-muted-foreground">Try asking:</p>
-            {suggestedQuestions.map((q, i) => (
+            <p className="text-[13px] text-muted-foreground">{currentEntity ? `Ask anything about ${currentEntity.name}:` : "What would you like to know?"}</p>
+            {entitySuggestions.map((q, i) => (
               <button
                 key={i}
                 onClick={() => sendMessage(q)}
-                className="block w-full text-left text-[14px] px-3 py-2 rounded-lg border border-black/[0.04] dark:border-white/[0.06] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] text-foreground transition-colors"
+                className="block w-full text-left text-[14px] px-3 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:bg-primary/[0.04] hover:border-primary/20 text-foreground transition-all"
                 data-testid={`suggested-question-${i}`}
               >
                 {q}
@@ -237,10 +296,10 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
         )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-[14px] leading-relaxed ${
+            <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed ${
               msg.role === "user"
-                ? "bg-foreground text-background"
-                : `${colors.bubble} text-foreground`
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted/50 text-foreground"
             }`}>
               {msg.content}
             </div>
@@ -248,7 +307,7 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className={`rounded-xl px-3.5 py-2.5 ${colors.bubble}`}>
+            <div className="rounded-2xl px-3.5 py-3 bg-muted/50">
               <div className="flex gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
                 <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -260,21 +319,21 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-3 py-2.5 border-t border-black/[0.04] dark:border-white/[0.06]">
-        <div className="flex items-center gap-2">
+      <div className="px-3 py-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex items-center gap-2 bg-muted/30 rounded-xl px-3 py-2">
           <input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
-            placeholder={`Ask about ${entityName}...`}
+            placeholder="Ask anything about this episode..."
             className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/50 outline-none"
             data-testid="ai-chat-input"
           />
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || loading}
-            className={`p-1.5 rounded-lg transition-colors ${input.trim() && !loading ? `${colors.text} hover:bg-black/5 dark:hover:bg-white/10` : "text-muted-foreground/30"}`}
+            className={`p-1.5 rounded-lg transition-all ${input.trim() && !loading ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-muted-foreground/30"}`}
             data-testid="ai-chat-send"
           >
             <ArrowUp className="w-4 h-4" />
@@ -284,6 +343,8 @@ function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentC
     </div>
   );
 }
+
+const EpisodeChatPanelWithRef = React.forwardRef(EpisodeChatPanel);
 
 function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
   const [copied, setCopied] = useState(false);
@@ -413,6 +474,7 @@ export default function EpisodeRecapPage() {
   const podcastSlug = params.podcastSlug || "";
   const episodeSlug = params.episodeSlug || "";
   const [activeSection, setActiveSection] = useState("section-key-insights");
+  const chatRef = useRef<ChatContextRef | null>(null);
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
     queryKey: ["/api/podcasts", podcastSlug, "recaps", episodeSlug],
@@ -863,13 +925,18 @@ export default function EpisodeRecapPage() {
               {episode.keyInsights.map((insight: string, i: number) => (
                 <div
                   key={i}
-                  className="flex gap-3.5 items-start"
+                  className="flex gap-3.5 items-start group/insight"
                   data-testid={`insight-${i}`}
                 >
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 text-[15px] font-bold">
                     {i + 1}
                   </span>
-                  <p className="text-base leading-[1.8] text-muted-foreground">{insight}</p>
+                  <div className="flex-1">
+                    <p className="text-base leading-[1.8] text-muted-foreground">{insight}</p>
+                    <div className="mt-1 opacity-60 group-hover/insight:opacity-100 transition-opacity">
+                      <DeepDiveButton label="Expand on this" entityName={insight.slice(0, 80)} entityType="insight" chatRef={chatRef} />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1099,7 +1166,7 @@ export default function EpisodeRecapPage() {
                           {entityContexts[person.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
                           )}
-                          <AskAIButton entityName={person.name} entityType="person" podcastSlug={podcastSlug!} episodeSlug={episodeSlug!} accentColor="orange" />
+                          <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} />
                         </div>
                       </div>
                     ))}
@@ -1131,7 +1198,7 @@ export default function EpisodeRecapPage() {
                           {entityContexts[company.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
                           )}
-                          <AskAIButton entityName={company.name} entityType="company" podcastSlug={podcastSlug!} episodeSlug={episodeSlug!} accentColor="orange" />
+                          <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} />
                         </div>
                       </div>
                     ))}
@@ -1174,7 +1241,7 @@ export default function EpisodeRecapPage() {
                         </div>
                       </Link>
                       <div className="px-4 pb-3">
-                        <AskAIButton entityName={topic.name} entityType="topic" podcastSlug={podcastSlug!} episodeSlug={episodeSlug!} accentColor="emerald" />
+                        <DeepDiveButton entityName={topic.name} entityType="topic" chatRef={chatRef} />
                       </div>
                     </div>
                   );
@@ -1257,7 +1324,8 @@ export default function EpisodeRecapPage() {
                         </p>
                       )}
 
-                      <div className="mt-auto pt-3 flex items-center justify-end">
+                      <div className="mt-auto pt-3 flex items-center justify-between">
+                        <DeepDiveButton label="What did they say?" entityName={book.name} entityType="book" chatRef={chatRef} />
                         {bookSlug ? (
                           <Link
                             href={`/bookstore/${bookSlug}`}
@@ -1348,6 +1416,14 @@ export default function EpisodeRecapPage() {
         )}
 
       </motion.article>
+
+      <EpisodeChatPanelWithRef
+        ref={chatRef}
+        podcastSlug={podcastSlug}
+        episodeSlug={episodeSlug}
+        episodeTitle={episode?.episodeTitle || ""}
+        podcastName={episode?.podcastName || ""}
+      />
     </EpisodePageLayout>
   );
 }
