@@ -1,7 +1,7 @@
 import { pool } from "./server/db";
 import { generateRecapFromTranscript } from "./server/recapGenerator";
 
-const IDS = [3553, 3458, 3462];
+const IDS = [3410, 3210, 3134];
 
 async function main() {
   for (const id of IDS) {
@@ -19,7 +19,7 @@ async function main() {
       continue;
     }
 
-    console.log(`Regenerating: ${recap.episode_title} (${recap.slug})`);
+    console.log(`Regenerating: ${recap.episode_title}`);
     const result = await generateRecapFromTranscript(
       tRows[0].transcript, recap.podcast_name, recap.episode_title
     );
