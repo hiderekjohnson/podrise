@@ -432,6 +432,7 @@ RULES FOR whatHappened (THE RECAP):
 - 6-8 paragraphs, each 2-4 sentences, flowing naturally from one idea to the next
 - BANNED PHRASES: "In this episode...", "The conversation explores/shifts/turns to...", "The hosts discuss/touch on/delve into...", "The discussion shifts to...", "They also highlight/emphasize/underscore...", "The episode wraps up with...", "Ultimately, the episode...", "The duo reflects on...", "Later, the group...", "A memorable segment explores...", "[Person] shares/reveals/explains that...", "broader themes like...", "actionable insights on..."
 - BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, underscores, delves, touches on, reflects on, recounts, acknowledges, showcases, illustrates, demonstrates, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
+- BANNED CHARACTERS: Never use em dashes (\u2014). Use regular dashes (-) instead. Never use curly/smart quotes (\u2018 \u2019 \u201C \u201D). Use straight quotes (' ") instead
 - BAD PARAGRAPH: "The conversation shifts to AI, where the guest maps out the landscape. He identifies key players like OpenAI, Anthropic, and Google, analyzing their strategies."
 - GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
 
@@ -497,7 +498,27 @@ OTHER RULES:
 
       console.log(`[RecapGenerator] Two-pass generation complete for "${episodeTitle}"`);
 
-      return {
+      function sanitizeText(text: string): string {
+        if (!text) return text;
+        return text
+          .replace(/\u2014/g, " - ")
+          .replace(/\u2013/g, "-")
+          .replace(/[\u2018\u2019]/g, "'")
+          .replace(/[\u201C\u201D]/g, '"');
+      }
+
+      function sanitizeDeep(obj: any): any {
+        if (typeof obj === "string") return sanitizeText(obj);
+        if (Array.isArray(obj)) return obj.map(sanitizeDeep);
+        if (obj && typeof obj === "object") {
+          const out: any = {};
+          for (const [k, v] of Object.entries(obj)) out[k] = sanitizeDeep(v);
+          return out;
+        }
+        return obj;
+      }
+
+      return sanitizeDeep({
         podcastName: parsed.podcastName || podcastName,
         episodeTitle: parsed.episodeTitle || episodeTitle,
         tldl: parsed.tldl || "",
@@ -511,7 +532,7 @@ OTHER RULES:
         sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
         guests: Array.isArray(parsed.guests) ? parsed.guests : [],
         resources,
-      };
+      });
     } catch (err) {
       if (attempt < maxAttempts) {
         console.warn(`[RecapGenerator] Attempt ${attempt} failed for "${episodeTitle}", retrying with concise prompt...`);
