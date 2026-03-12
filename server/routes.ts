@@ -6609,19 +6609,217 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
     const limitPerPodcast = req.body?.limitPerPodcast ? parseInt(req.body.limitPerPodcast, 10) : null;
     const concurrency = req.body?.concurrency ? Math.min(parseInt(req.body.concurrency, 10), 10) : 3;
+    const forceRegenerate = req.body?.forceRegenerate === true;
+    const regenCutoffDate = req.body?.regenBefore || null;
     epGenState.running = true;
     epGenState.autoQueue = true;
     epGenState.completedPodcasts = [];
     epGenState.autoQueueLimit = limitPerPodcast;
     epGenState.concurrency = concurrency;
-    res.json({ started: true, autoQueue: true, limitPerPodcast: limitPerPodcast || "all", concurrency });
+    res.json({ started: true, autoQueue: true, limitPerPodcast: limitPerPodcast || "all", concurrency, forceRegenerate, regenCutoffDate });
 
-    runAutoQueue().catch(err => {
+    const queueFn = forceRegenerate ? () => runRegenQueue(regenCutoffDate) : runAutoQueue;
+    queueFn().catch(err => {
       console.error(`[EpGen] Auto-queue fatal error:`, err);
       epGenState.running = false;
       epGenState.autoQueue = false;
     });
   });
+
+  async function runRegenQueue(cutoffDate?: string | null) {
+    const cutoff = cutoffDate || new Date().toISOString().split("T")[0];
+    console.log(`[EpGen] Starting regeneration queue - regenerating recaps created before ${cutoff}`);
+    console.log(`[EpGen] Prioritizing podcasts with the most old recaps first`);
+
+    const { generateRecapFromTranscript } = await import("./recapGenerator");
+
+    while (epGenState.autoQueue && epGenState.running) {
+      const client = await pool.connect();
+      try {
+        const excludeIds = epGenState.completedPodcasts;
+        const excludePlaceholders = excludeIds.length > 0
+          ? `AND lpr.itunes_id NOT IN (${excludeIds.map((_, i) => `$${i + 2}`).join(",")})`
+          : "";
+
+        const { rows: podcastsToRegen } = await client.query(
+          `SELECT lpr.itunes_id, lpr.podcast_name, lpr.slug,
+                  COUNT(*)::int as old_recap_count
+           FROM landing_page_recaps lpr
+           WHERE lpr.created_at < $1::date
+           ${excludePlaceholders}
+           GROUP BY lpr.itunes_id, lpr.podcast_name, lpr.slug
+           HAVING COUNT(*) > 0
+           ORDER BY COUNT(*) DESC
+           LIMIT 1`,
+          [cutoff, ...excludeIds]
+        );
+
+        if (podcastsToRegen.length === 0) {
+          console.log(`[EpGen] Regeneration queue complete - all old recaps regenerated`);
+          break;
+        }
+
+        const podcast = podcastsToRegen[0];
+        const limit = epGenState.autoQueueLimit || 999;
+
+        const { rows: oldRecaps } = await client.query(
+          `SELECT lpr.id, lpr.itunes_id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.hosts
+           FROM landing_page_recaps lpr
+           WHERE lpr.itunes_id = $1 AND lpr.created_at < $2::date
+           ORDER BY lpr.publish_date DESC NULLS LAST
+           LIMIT $3`,
+          [podcast.itunes_id, cutoff, limit]
+        );
+
+        if (oldRecaps.length === 0) {
+          epGenState.completedPodcasts.push(podcast.itunes_id);
+          continue;
+        }
+
+        epGenState.currentPodcastName = `Regen: ${podcast.podcast_name}`;
+        epGenState.currentItunesId = podcast.itunes_id;
+        epGenState.totalEpisodes = oldRecaps.length;
+        epGenState.currentEpisode = 0;
+        epGenState.generated = 0;
+        epGenState.failed = 0;
+        epGenState.skipped = 0;
+        epGenState.startedAt = Date.now();
+
+        console.log(`[EpGen] Regenerating ${oldRecaps.length} old recaps for ${podcast.podcast_name}`);
+
+        const workers = Array.from({ length: epGenState.concurrency }, (_, i) => i);
+        let episodeIndex = 0;
+
+        await Promise.all(workers.map(async (workerId) => {
+          while (episodeIndex < oldRecaps.length && epGenState.running) {
+            const idx = episodeIndex++;
+            if (idx >= oldRecaps.length) break;
+            const row = oldRecaps[idx];
+            epGenState.currentEpisode = idx + 1;
+
+            const innerClient = await pool.connect();
+            try {
+              const { rows: transcriptRows } = await innerClient.query(
+                `SELECT transcript FROM episode_transcripts
+                 WHERE podcast_id = $1
+                   AND transcript IS NOT NULL AND transcript != ''
+                   AND (
+                     lower(trim(episode_title)) = lower(trim($2))
+                     OR lower(regexp_replace(trim(episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $3
+                   )
+                 LIMIT 1`,
+                [row.itunes_id, row.episode_title, row.episode_slug]
+              );
+
+              if (transcriptRows.length === 0) {
+                console.log(`[EpGen][W${workerId + 1}] Skip (no transcript): ${row.episode_title.slice(0, 60)}`);
+                epGenState.skipped++;
+                continue;
+              }
+
+              const transcript = transcriptRows[0].transcript;
+              const hosts = row.hosts || "";
+
+              const result = await generateRecapFromTranscript(
+                transcript, row.episode_title, row.podcast_name, hosts
+              );
+
+              if (result) {
+                await innerClient.query(
+                  `UPDATE landing_page_recaps SET
+                    tldl = $1, what_happened = $2, key_insights = $3, quote = $4, quote_attribution = $5,
+                    key_topics = $6, topic_contexts = $7, top_questions = $8, sponsors = $9, guests = $10,
+                    resources = $11, created_at = NOW()
+                  WHERE id = $12`,
+                  [
+                    result.tldl, result.whatHappened, result.keyInsights, result.quote,
+                    result.quoteAttribution, result.keyTopics, result.topicContexts,
+                    typeof result.topQuestions === "string" ? result.topQuestions : JSON.stringify(result.topQuestions),
+                    result.sponsors || null, result.guests || null, result.resources || null,
+                    row.id
+                  ]
+                );
+
+                await innerClient.query(
+                  `DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
+                  [row.slug, row.episode_slug]
+                );
+
+                epGenState.generated++;
+                console.log(`[EpGen][W${workerId + 1}] Regen OK: ${row.episode_title.slice(0, 60)} (${epGenState.generated}/${oldRecaps.length})`);
+              } else {
+                epGenState.failed++;
+                console.log(`[EpGen][W${workerId + 1}] Regen FAIL: ${row.episode_title.slice(0, 60)}`);
+              }
+            } catch (err: any) {
+              epGenState.failed++;
+              console.error(`[EpGen][W${workerId + 1}] Regen error: ${row.episode_title.slice(0, 60)} - ${err.message}`);
+            } finally {
+              innerClient.release();
+            }
+          }
+        }));
+
+        epGenState.completedPodcasts.push(podcast.itunes_id);
+        console.log(`[EpGen] Finished regen for ${podcast.podcast_name}: ${epGenState.generated} regenerated, ${epGenState.failed} failed, ${epGenState.skipped} skipped`);
+
+        if (epGenState.generated > 0) {
+          console.log(`[EpGen] Backfilling quotes for regenerated ${podcast.podcast_name} recaps...`);
+          const { rows: needQuotes } = await client.query(
+            `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.podcast_name, lpr.hosts
+             FROM landing_page_recaps lpr
+             WHERE lpr.itunes_id = $1
+               AND NOT EXISTS (SELECT 1 FROM episode_quotes eq WHERE eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug)
+             ORDER BY lpr.publish_date DESC NULLS LAST
+             LIMIT 50`,
+            [podcast.itunes_id]
+          );
+
+          for (const nq of needQuotes) {
+            if (!epGenState.running) break;
+            try {
+              const { rows: tRows } = await client.query(
+                `SELECT transcript FROM episode_transcripts
+                 WHERE podcast_id = $1
+                   AND transcript IS NOT NULL AND transcript != ''
+                   AND (
+                     lower(trim(episode_title)) = lower(trim($2))
+                     OR lower(regexp_replace(trim(episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $3
+                   )
+                 LIMIT 1`,
+                [podcast.itunes_id, nq.episode_title, nq.episode_slug]
+              );
+              if (tRows.length > 0) {
+                const { extractQuotesFromTranscript } = await import("./recapGenerator");
+                const quotes = await extractQuotesFromTranscript(
+                  tRows[0].transcript, nq.episode_title, nq.podcast_name, nq.hosts || ""
+                );
+                if (quotes && quotes.length > 0) {
+                  for (let qi = 0; qi < quotes.length; qi++) {
+                    const q = quotes[qi];
+                    await client.query(
+                      `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
+                       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING`,
+                      [nq.slug, nq.episode_slug, q.speakerName, q.speakerRole, q.quoteText, q.context, q.quoteType || "insight", qi]
+                    );
+                  }
+                  console.log(`[EpGen] Backfilled ${quotes.length} quotes for "${nq.episode_title.slice(0, 50)}..."`);
+                }
+              }
+            } catch (err: any) {
+              console.error(`[EpGen] Quote backfill error: ${nq.episode_title.slice(0, 50)} - ${err.message}`);
+            }
+          }
+        }
+      } finally {
+        client.release();
+      }
+    }
+
+    epGenState.running = false;
+    epGenState.autoQueue = false;
+    console.log(`[EpGen] Regeneration queue finished. Completed podcasts: ${epGenState.completedPodcasts.length}`);
+  }
 
   async function reprocessIncompletePages() {
     const { generateRecapFromTranscript } = await import("./recapGenerator");
