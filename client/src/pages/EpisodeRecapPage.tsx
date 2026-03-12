@@ -719,8 +719,7 @@ export default function EpisodeRecapPage() {
       "section-key-insights",
       "section-what-happened",
       "section-guests",
-      "section-people-mentioned",
-      "section-companies-mentioned",
+      "section-mentions",
       "section-books",
       "section-top-questions",
       "section-quotes",
@@ -856,22 +855,13 @@ export default function EpisodeRecapPage() {
               Participants
             </button>
           )}
-          {notablePeople.length > 0 && (
+          {(notablePeople.length > 0 || notableCompanies.length > 0) && (
             <button
-              onClick={() => scrollTo("section-people-mentioned")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-people-mentioned" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-people-mentioned"
+              onClick={() => scrollTo("section-mentions")}
+              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-mentions"
             >
-              People
-            </button>
-          )}
-          {notableCompanies.length > 0 && (
-            <button
-              onClick={() => scrollTo("section-companies-mentioned")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-companies-mentioned" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-companies-mentioned"
-            >
-              Companies
+              Mentions
             </button>
           )}
           {hasBooks && (
@@ -1123,89 +1113,97 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {notablePeople.length > 0 && (
-          <section id="section-people-mentioned" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-people-mentioned">
+        {(notablePeople.length > 0 || notableCompanies.length > 0) && (
+          <section id="section-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-mentions">
             <div className="px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Users className="w-4 h-4 text-orange-500" />
-                <span className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">{`Top People Mentioned in This ${episode.podcastName} Episode`}</span>
+                <h2 className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">{`Top Mentions in This ${episode.podcastName} Episode`}</h2>
               </div>
             </div>
-            <div className="px-6 py-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(showAllPeople ? notablePeople : notablePeople.slice(0, INITIAL_SHOW)).map((person, i) => (
-                  <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
-                    <Link href={`/people/${person.slug}`}>
-                      <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
-                        <img
-                          src={person.imageUrl}
-                          alt={person.name}
-                          className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
-                          loading="lazy"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
-                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
+            <div className="px-6 py-5 space-y-8">
+              {notablePeople.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users className="w-3.5 h-3.5 text-orange-500" />
+                    <h3 className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">People</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {(showAllPeople ? notablePeople : notablePeople.slice(0, INITIAL_SHOW)).map((person, i) => (
+                      <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
+                        <Link href={`/people/${person.slug}`}>
+                          <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
+                            <img
+                              src={person.imageUrl}
+                              alt={person.name}
+                              className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
+                              loading="lazy"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
+                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
+                            </div>
+                          </div>
+                        </Link>
+                        <div className="px-4 pb-3.5">
+                          {entityContexts[person.slug] && (
+                            <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
+                          )}
+                          <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} podcastName={episode?.podcastName} />
                         </div>
                       </div>
-                    </Link>
-                    <div className="px-4 pb-3.5">
-                      {entityContexts[person.slug] && (
-                        <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
-                      )}
-                      <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} podcastName={episode?.podcastName} />
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {notablePeople.length > INITIAL_SHOW && (
-                <button onClick={() => setShowAllPeople(p => !p)} className="mt-4 text-[15px] font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors" data-testid="show-more-people">
-                  {showAllPeople ? "Show Less" : `Show ${notablePeople.length - INITIAL_SHOW} More`}
-                </button>
+                  {notablePeople.length > INITIAL_SHOW && (
+                    <button onClick={() => setShowAllPeople(p => !p)} className="mt-4 text-[15px] font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors" data-testid="show-more-people">
+                      {showAllPeople ? "Show Less" : `Show ${notablePeople.length - INITIAL_SHOW} More`}
+                    </button>
+                  )}
+                </div>
               )}
-            </div>
-          </section>
-        )}
 
-        {notableCompanies.length > 0 && (
-          <section id="section-companies-mentioned" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-companies-mentioned">
-            <div className="px-6 py-4 bg-blue-500/[0.04] border-b border-blue-500/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <Building2 className="w-4 h-4 text-blue-500" />
-                <span className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">{`Top Companies Mentioned in This ${episode.podcastName} Episode`}</span>
-              </div>
-            </div>
-            <div className="px-6 py-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(showAllCompanies ? notableCompanies : notableCompanies.slice(0, INITIAL_SHOW)).map((company, i) => (
-                  <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-blue-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-blue-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
-                    <Link href={`/companies/${company.slug}`}>
-                      <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
-                        <img
-                          src={company.logoUrl}
-                          alt={company.name}
-                          className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-lg object-contain flex-shrink-0 bg-muted p-2 ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
-                          loading="lazy"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-base font-bold text-foreground group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors truncate">{company.name}</p>
-                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
+              {notablePeople.length > 0 && notableCompanies.length > 0 && (
+                <hr className="border-black/[0.06] dark:border-white/[0.08]" />
+              )}
+
+              {notableCompanies.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Building2 className="w-3.5 h-3.5 text-blue-500" />
+                    <h3 className="text-sm font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider m-0">Companies</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {(showAllCompanies ? notableCompanies : notableCompanies.slice(0, INITIAL_SHOW)).map((company, i) => (
+                      <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-blue-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-blue-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
+                        <Link href={`/companies/${company.slug}`}>
+                          <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
+                            <img
+                              src={company.logoUrl}
+                              alt={company.name}
+                              className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-lg object-contain flex-shrink-0 bg-muted p-2 ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
+                              loading="lazy"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-base font-bold text-foreground group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors truncate">{company.name}</p>
+                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
+                            </div>
+                          </div>
+                        </Link>
+                        <div className="px-4 pb-3.5">
+                          {entityContexts[company.slug] && (
+                            <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
+                          )}
+                          <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} podcastName={episode?.podcastName} />
                         </div>
                       </div>
-                    </Link>
-                    <div className="px-4 pb-3.5">
-                      {entityContexts[company.slug] && (
-                        <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
-                      )}
-                      <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} podcastName={episode?.podcastName} />
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {notableCompanies.length > INITIAL_SHOW && (
-                <button onClick={() => setShowAllCompanies(c => !c)} className="mt-4 text-[15px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" data-testid="show-more-companies">
-                  {showAllCompanies ? "Show Less" : `Show ${notableCompanies.length - INITIAL_SHOW} More`}
-                </button>
+                  {notableCompanies.length > INITIAL_SHOW && (
+                    <button onClick={() => setShowAllCompanies(c => !c)} className="mt-4 text-[15px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" data-testid="show-more-companies">
+                      {showAllCompanies ? "Show Less" : `Show ${notableCompanies.length - INITIAL_SHOW} More`}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </section>
