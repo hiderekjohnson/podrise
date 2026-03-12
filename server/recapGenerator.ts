@@ -291,7 +291,8 @@ export async function generateRecap(
 }
 
 function normalizeBookTitle(title: string): string {
-  return title
+  const base = title.split(/[:\-–]/)[0];
+  return base
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, "")
     .replace(/\s+/g, " ")
