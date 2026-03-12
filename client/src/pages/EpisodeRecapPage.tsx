@@ -158,7 +158,7 @@ function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName }:
       data-testid={`deep-dive-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
     >
       <Sparkles className="w-3 h-3 group-hover/ai:scale-110 transition-transform" />
-      {label || "Deep dive"}
+      {label || "Tell me more"}
     </button>
   );
 }
@@ -941,7 +941,7 @@ export default function EpisodeRecapPage() {
                   <div className="flex-1">
                     <p className="text-base leading-[1.8] text-muted-foreground">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
                     <div className="mt-1 opacity-60 group-hover/insight:opacity-100 transition-opacity">
-                      <DeepDiveButton label="Expand on this" entityName={insight.slice(0, 80)} entityType="insight" chatRef={chatRef} />
+                      <DeepDiveButton entityName={insight.slice(0, 80)} entityType="insight" chatRef={chatRef} />
                     </div>
                   </div>
                 </div>
@@ -1283,7 +1283,7 @@ export default function EpisodeRecapPage() {
                       )}
 
                       <div className="mt-auto pt-3">
-                        <DeepDiveButton label="What did they say?" entityName={book.name} entityType="book" chatRef={chatRef} />
+                        <DeepDiveButton entityName={book.name} entityType="book" chatRef={chatRef} />
                       </div>
                     </div>
                   );
