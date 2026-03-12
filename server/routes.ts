@@ -6009,6 +6009,85 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ stopped: true });
   });
 
+  async function postProcessRecap(opts: {
+    transcript: string;
+    podcastSlug: string;
+    episodeSlug: string;
+    podcastName: string;
+    episodeTitle: string;
+    itunesId: string;
+    hosts: string | null;
+    guests: any[] | null;
+    resources: any[] | null;
+    recapId?: number;
+  }) {
+    const { transcript, podcastSlug, episodeSlug, podcastName, episodeTitle, itunesId, hosts, guests, resources } = opts;
+
+    try {
+      const episodeGuid = `${itunesId}_${episodeSlug}`;
+      const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
+      if (!hasSegs) {
+        const { parseTranscriptToSegments } = await import("./transcriptParser");
+        const segments = parseTranscriptToSegments(transcript, podcastSlug, episodeSlug, episodeGuid);
+        if (segments.length > 0) {
+          await storage.saveTranscriptSegments(segments);
+        }
+      }
+    } catch (err) {
+      console.warn(`[PostProcess] Segment save failed for "${episodeTitle}":`, err);
+    }
+
+    try {
+      const existingQuotes = await storage.getEpisodeQuotes(podcastSlug, episodeSlug);
+      if (existingQuotes.length === 0) {
+        const { extractQuotesFromTranscript } = await import("./recapGenerator");
+        const extractedQuotes = await extractQuotesFromTranscript(
+          transcript, podcastName, episodeTitle, hosts,
+          guests ? JSON.stringify(guests) : null
+        );
+        if (extractedQuotes.length > 0) {
+          const quotesToSave = extractedQuotes.map((q) => ({
+            podcastSlug,
+            episodeSlug,
+            speakerName: q.speakerName,
+            speakerRole: q.speakerRole || null,
+            quoteText: q.quoteText,
+            context: q.context,
+            quoteType: q.quoteType,
+          }));
+          await storage.saveEpisodeQuotes(quotesToSave);
+          console.log(`[PostProcess] Extracted ${extractedQuotes.length} quotes for "${episodeTitle}"`);
+        }
+      }
+    } catch (err) {
+      console.warn(`[PostProcess] Quote extraction failed for "${episodeTitle}":`, err);
+    }
+
+    if (resources && resources.length > 0) {
+      try {
+        const books = resources.filter((r: any) => r.type === "book" && r.name);
+        for (const book of books) {
+          const { rows: existing } = await pool.query(
+            `SELECT id FROM book_enrichments WHERE lower(title) = lower($1) LIMIT 1`,
+            [book.name]
+          );
+          if (existing.length === 0) {
+            const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
+            await pool.query(
+              `INSERT INTO book_enrichments (title, author, slug, amazon_url, description)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (slug) DO NOTHING`,
+              [book.name, book.author || null, slug, book.url || null, book.description || book.context || null]
+            );
+            console.log(`[PostProcess] Enriched book: "${book.name}"`);
+          }
+        }
+      } catch (err) {
+        console.warn(`[PostProcess] Book enrichment failed for "${episodeTitle}":`, err);
+      }
+    }
+  }
+
   async function generatePagesForPodcast(itunesId: string, forceRegenerate = false) {
     const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
     const { generateRecapFromTranscript } = await import("./recapGenerator");
@@ -6135,45 +6214,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             ]
           );
 
-          try {
-            const episodeGuid = `${itunesId}_${epSlug}`;
-            const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
-            if (!hasSegs) {
-              const { parseTranscriptToSegments } = await import("./transcriptParser");
-              const segments = parseTranscriptToSegments(t.transcript, podcastSlug, epSlug, episodeGuid);
-              if (segments.length > 0) {
-                await storage.saveTranscriptSegments(segments);
-              }
-            }
-          } catch (segErr) {
-            console.warn(`[EpGen] Segment save failed for "${epTitle}":`, segErr);
-          }
-
-          try {
-            const existingQuotes = await storage.getEpisodeQuotes(podcastSlug, epSlug);
-            if (existingQuotes.length === 0) {
-              const { extractQuotesFromTranscript } = await import("./recapGenerator");
-              const extractedQuotes = await extractQuotesFromTranscript(
-                t.transcript, podcastName, epTitle, hosts,
-                recap.guests ? JSON.stringify(recap.guests) : null
-              );
-              if (extractedQuotes.length > 0) {
-                const quotesToSave = extractedQuotes.map((q, i) => ({
-                  podcastSlug,
-                  episodeSlug: epSlug,
-                  speakerName: q.speakerName,
-                  speakerRole: q.speakerRole || null,
-                  quoteText: q.quoteText,
-                  context: q.context,
-                  quoteType: q.quoteType,
-                }));
-                await storage.saveEpisodeQuotes(quotesToSave);
-                console.log(`[EpGen] Extracted ${extractedQuotes.length} quotes for "${epTitle}"`);
-              }
-            }
-          } catch (quoteErr) {
-            console.warn(`[EpGen] Quote extraction failed for "${epTitle}":`, quoteErr);
-          }
+          await postProcessRecap({
+            transcript: t.transcript,
+            podcastSlug, episodeSlug: epSlug, podcastName, episodeTitle: epTitle,
+            itunesId, hosts,
+            guests: recap.guests || null,
+            resources: recap.resources || null,
+          });
 
           epGenState.generated++;
           if (epGenState.currentEpisode % 5 === 0) {
@@ -6283,7 +6330,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const client = await pool.connect();
       try {
         const { rows: incomplete } = await client.query(
-          `SELECT lpr.id, lpr.itunes_id, lpr.podcast_name, lpr.episode_title, lpr.episode_slug
+          `SELECT lpr.id, lpr.itunes_id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.hosts
            FROM landing_page_recaps lpr
            WHERE (
              lpr.guests IS NULL OR lpr.guests = '' OR lpr.guests = '[]'
@@ -6374,6 +6421,15 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                 row.id,
               ]
             );
+
+            await postProcessRecap({
+              transcript: transcriptRows[0].transcript,
+              podcastSlug: row.slug, episodeSlug: row.episode_slug,
+              podcastName: row.podcast_name, episodeTitle: row.episode_title,
+              itunesId: row.itunes_id, hosts: row.hosts || null,
+              guests: recap.guests || null,
+              resources: recap.resources || null,
+            });
 
             epGenState.generated++;
             if (epGenState.currentEpisode % 5 === 0) {
