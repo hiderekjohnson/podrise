@@ -611,6 +611,72 @@ RULES:
   }
 }
 
+export interface RecapQAIssue {
+  field: string;
+  severity: "critical" | "warning";
+  message: string;
+}
+
+export function validateRecap(
+  recap: Partial<ParsedEpisode>,
+  episodeTitle: string,
+  quoteCount: number,
+): { passed: boolean; issues: RecapQAIssue[] } {
+  const issues: RecapQAIssue[] = [];
+
+  if (!recap.tldl || recap.tldl.length < 50) {
+    issues.push({ field: "tldl", severity: "critical", message: `tldl too short (${recap.tldl?.length || 0} chars, need 50+)` });
+  }
+
+  if (!recap.whatHappened || recap.whatHappened.length < 200) {
+    issues.push({ field: "whatHappened", severity: "critical", message: `whatHappened too short (${recap.whatHappened?.length || 0} chars, need 200+)` });
+  }
+
+  if (!recap.keyInsights || recap.keyInsights.length < 3) {
+    issues.push({ field: "keyInsights", severity: "critical", message: `Only ${recap.keyInsights?.length || 0} key insights (need 3+)` });
+  }
+
+  if (!recap.quote || recap.quote.length < 10) {
+    issues.push({ field: "quote", severity: "critical", message: "Missing or too short hero quote" });
+  }
+
+  if (!recap.quoteAttribution || recap.quoteAttribution.length < 3) {
+    issues.push({ field: "quoteAttribution", severity: "critical", message: "Missing quote attribution" });
+  }
+
+  if (recap.quoteAttribution && /^speaker\s*\d/i.test(recap.quoteAttribution)) {
+    issues.push({ field: "quoteAttribution", severity: "critical", message: `Generic speaker attribution: "${recap.quoteAttribution}"` });
+  }
+
+  if (!recap.keyTopics || recap.keyTopics.length < 3) {
+    issues.push({ field: "keyTopics", severity: "warning", message: `Only ${recap.keyTopics?.length || 0} key topics (want 3+)` });
+  }
+
+  if (!recap.topQuestions || recap.topQuestions.length < 2) {
+    issues.push({ field: "topQuestions", severity: "warning", message: `Only ${recap.topQuestions?.length || 0} top questions (want 2+)` });
+  }
+
+  if (quoteCount < 3) {
+    issues.push({ field: "quotes", severity: "critical", message: `Only ${quoteCount} episode quotes (need 3+)` });
+  }
+
+  const guestPattern = /\|\s*([A-Z][a-z]+ [A-Z][a-z]+)|ft\.?\s+([A-Z][a-z]+ [A-Z])|[-:]\s*([A-Z][a-z]+ [A-Z][a-z]+)\s*$/;
+  if (guestPattern.test(episodeTitle) && (!recap.guests || recap.guests.length === 0)) {
+    issues.push({ field: "guests", severity: "warning", message: `Episode title suggests guest but none extracted: "${episodeTitle}"` });
+  }
+
+  const allText = JSON.stringify(recap);
+  if (/\u2014/.test(allText)) {
+    issues.push({ field: "sanitization", severity: "warning", message: "Em dashes found in content" });
+  }
+  if (/[\u2018\u2019\u201C\u201D]/.test(allText)) {
+    issues.push({ field: "sanitization", severity: "warning", message: "Smart quotes found in content" });
+  }
+
+  const criticalCount = issues.filter(i => i.severity === "critical").length;
+  return { passed: criticalCount === 0, issues };
+}
+
 export interface ExtractedQuote {
   speakerName: string;
   speakerRole: string;
