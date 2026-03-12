@@ -8,7 +8,7 @@ interface PageMeta {
   url: string;
   twitterCard?: string;
   replaceFavicon?: boolean;
-  jsonLd?: object;
+  jsonLd?: object | object[];
   ssrHtml?: string;
 }
 
@@ -100,11 +100,31 @@ function escapeJsonLd(str: string): string {
   return str.replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026");
 }
 
+function truncateAtWord(str: string, maxLen: number): string {
+  if (str.length <= maxLen) return str;
+  const truncated = str.slice(0, maxLen);
+  const lastSpace = truncated.lastIndexOf(" ");
+  if (lastSpace < maxLen * 0.6) return truncated + "...";
+  return truncated.slice(0, lastSpace) + "...";
+}
+
 function replaceMetaTags(html: string, meta: PageMeta): string {
   html = html.replace(
     /<title>[^<]*<\/title>/,
     `<title>${escapeAttr(meta.title)}</title>`
   );
+
+  html = html.replace(/<title>\s*<\/title>/g, "");
+
+  const canonicalTag = `<link rel="canonical" href="${escapeAttr(meta.url)}" />`;
+  if (!html.includes('rel="canonical"')) {
+    html = html.replace("</head>", `${canonicalTag}\n</head>`);
+  } else {
+    html = html.replace(
+      /<link rel="canonical" href="[^"]*"\s*\/?>/,
+      canonicalTag
+    );
+  }
 
   html = html.replace(
     /<meta name="description" content="[^"]*"\s*\/?>/,
@@ -164,8 +184,11 @@ function replaceMetaTags(html: string, meta: PageMeta): string {
   }
 
   if (meta.jsonLd) {
-    const jsonLdScript = `<script type="application/ld+json">${escapeJsonLd(JSON.stringify(meta.jsonLd))}</script>`;
-    html = html.replace("</head>", `${jsonLdScript}\n</head>`);
+    const blocks = Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd];
+    const jsonLdScripts = blocks
+      .map(b => `<script type="application/ld+json">${escapeJsonLd(JSON.stringify(b))}</script>`)
+      .join("\n");
+    html = html.replace("</head>", `${jsonLdScripts}\n</head>`);
   }
 
   if (meta.ssrHtml) {
@@ -192,6 +215,7 @@ function buildEpisodeSsrHtml(ep: any, podcast: any): string {
   })();
 
   let html = `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;">`;
+  html += `<nav aria-label="Breadcrumb" style="font-size:14px;margin-bottom:16px;"><a href="/">Home</a> &gt; <a href="/podcasts">Podcasts</a> &gt; <a href="/podcasts/${escapeAttr(ep.slug)}">${escapeAttr(ep.podcast_name)}</a> &gt; <span>${escapeAttr(decodeHtmlEntities(ep.episode_title))}</span></nav>`;
   html += `<h1>${escapeAttr(decodeHtmlEntities(ep.episode_title))} - ${escapeAttr(ep.podcast_name)} Recap</h1>`;
   html += `<p><strong>Podcast:</strong> ${escapeAttr(ep.podcast_name)}</p>`;
   if (ep.publish_date) html += `<p><strong>Published:</strong> ${ep.publish_date}</p>`;
@@ -291,6 +315,19 @@ function buildEpisodeJsonLd(ep: any, podcast: any): object {
   return jsonLd;
 }
 
+function buildBreadcrumbJsonLd(items: { name: string; url: string }[]): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": items.map((item, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": item.name,
+      "item": item.url,
+    })),
+  };
+}
+
 function buildPersonSsrHtml(name: string, title: string, slug: string): string {
   return `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(name)} - Podcast Episodes &amp; Appearances</h1><p>${escapeAttr(title)}</p><p>Discover all podcast episodes where ${escapeAttr(name)} is mentioned. Get AI-powered recaps and key insights from each appearance.</p><a href="/people">Browse All People</a></article>`;
 }
@@ -315,11 +352,18 @@ async function getEpisodeMeta(podcastSlug: string, episodeSlug: string): Promise
     const podcast = PODCAST_SEO.find(p => p.slug === podcastSlug);
     const title = `${decodeHtmlEntities(ep.episode_title)} - ${ep.podcast_name} Recap | PodCap`;
     const desc = ep.tldl
-      ? (decodeHtmlEntities(ep.tldl).length > 155 ? decodeHtmlEntities(ep.tldl).slice(0, 155) + "..." : decodeHtmlEntities(ep.tldl))
+      ? truncateAtWord(decodeHtmlEntities(ep.tldl), 150)
       : `Listen to the recap of ${decodeHtmlEntities(ep.episode_title)} from ${ep.podcast_name} on PodCap.`;
     const image = ep.artwork_url?.startsWith("/")
       ? `https://podcap.io${ep.artwork_url}`
       : (ep.artwork_url || (podcast?.artworkUrl?.startsWith("/") ? `https://podcap.io${podcast.artworkUrl}` : podcast?.artworkUrl) || "https://podcap.io/favicon.png");
+
+    const breadcrumbs = buildBreadcrumbJsonLd([
+      { name: "Home", url: "https://podcap.io/" },
+      { name: "Podcasts", url: "https://podcap.io/podcasts" },
+      { name: ep.podcast_name, url: `https://podcap.io/podcasts/${podcastSlug}` },
+      { name: decodeHtmlEntities(ep.episode_title), url: `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}` },
+    ]);
 
     return {
       title,
@@ -327,7 +371,7 @@ async function getEpisodeMeta(podcastSlug: string, episodeSlug: string): Promise
       image,
       url: `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}`,
       twitterCard: "summary_large_image",
-      jsonLd: buildEpisodeJsonLd(ep, podcast),
+      jsonLd: [buildEpisodeJsonLd(ep, podcast), breadcrumbs],
       ssrHtml: buildEpisodeSsrHtml(ep, podcast),
     };
   } catch (err) {
@@ -454,7 +498,7 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         return replaceMetaTags(html, {
           title: `${book.title} by ${book.author || "Unknown"} - Podcast Book Recommendation | PodCap`,
           description: book.description
-            ? (book.description.length > 155 ? book.description.slice(0, 155) + "..." : book.description)
+            ? truncateAtWord(book.description, 150)
             : `${book.title} was recommended on podcasts. See which episodes mention this book and what hosts said about it.`,
           image: "https://podcap.io/favicon.png",
           url: `https://podcap.io/bookstore/${bookSlug}`,
@@ -464,6 +508,13 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
       }
     } catch {}
   }
+
+  if (!html.includes('rel="canonical"')) {
+    const fallbackUrl = `https://podcap.io${cleanUrl === "/" ? "" : cleanUrl}`;
+    html = html.replace("</head>", `<link rel="canonical" href="${escapeAttr(fallbackUrl)}" />\n</head>`);
+  }
+
+  html = html.replace(/<title>\s*<\/title>/g, "");
 
   return html;
 }

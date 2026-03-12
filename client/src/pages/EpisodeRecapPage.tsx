@@ -669,7 +669,13 @@ export default function EpisodeRecapPage() {
     }
 
     const pageTitle = `${episode.episodeTitle} | ${episode.podcastName} Recap | PodCap`;
-    const pageDescription = episode.tldl.slice(0, 155) + (episode.tldl.length > 155 ? "..." : "");
+    const truncateAtWord = (s: string, max: number) => {
+      if (s.length <= max) return s;
+      const t = s.slice(0, max);
+      const sp = t.lastIndexOf(" ");
+      return (sp < max * 0.6 ? t : t.slice(0, sp)) + "...";
+    };
+    const pageDescription = truncateAtWord(episode.tldl, 150);
     const canonicalUrl = `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}`;
 
     document.title = pageTitle;
@@ -710,7 +716,6 @@ export default function EpisodeRecapPage() {
 
     return () => {
       document.title = "PodCap | Daily Podcast Recaps from Your Favorite Shows";
-      if (canonical) canonical.remove();
     };
   }, [episode, podcastSlug, episodeSlug]);
 
@@ -829,6 +834,16 @@ export default function EpisodeRecapPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="space-y-8"
       >
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[13px] text-muted-foreground" data-testid="breadcrumb-nav">
+          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <ChevronRight className="w-3 h-3" />
+          <Link href="/podcasts" className="hover:text-foreground transition-colors">Podcasts</Link>
+          <ChevronRight className="w-3 h-3" />
+          <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors">{episode.podcastName}</Link>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-foreground font-medium truncate max-w-[200px]">{episode.episodeTitle}</span>
+        </nav>
+
         <nav className="sticky top-[56px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
           {episode.keyInsights?.length > 0 && (
             <button
