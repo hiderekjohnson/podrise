@@ -113,8 +113,58 @@ async function enrichBook(client: any, bookName: string, author: string | null, 
   return slug;
 }
 
+async function generateKeyInsightsFromRecap(recap: string, podcastName: string, episodeTitle: string): Promise<string[]> {
+  console.log(`  Pass 2: Generating key takeaways from recap...`);
+  const prompt = `You extract the 4 best standalone insights from a podcast episode recap.
+
+Your goal: a reader who never listens to the episode walks away having actually learned something from each takeaway.
+
+Here is the recap for "${episodeTitle}" from ${podcastName}:
+
+${recap}
+
+Write exactly 4 key takeaways. Each must:
+- Teach the reader something specific they did not know
+- Be 2-3 tight sentences that could be read completely out of context and still be worth reading
+- Include concrete details (a name, a number, a company, a mechanism) woven into the insight naturally
+- Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong"
+- Be specific to THIS episode - if you swapped in a different episode title it should not make sense
+
+BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
+BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X", "[Company] is [verb]ing [industry] by [marketing speak]"
+
+LITMUS TEST: "If I texted this to a smart friend with zero context, would they find it interesting?" If not, rewrite.
+
+BAD: "Bill Gurley discusses the transformative impact of AI on the workplace."
+GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice."
+
+Respond ONLY with a JSON object: {"keyInsights": ["insight1", "insight2", "insight3", "insight4"]}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 2000,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    });
+    const content = completion.choices[0]?.message?.content;
+    if (content) {
+      const parsed = JSON.parse(content.trim());
+      if (Array.isArray(parsed.keyInsights) && parsed.keyInsights.length === 4) {
+        console.log(`  Pass 2 complete: 4 key takeaways generated from recap`);
+        return parsed.keyInsights;
+      }
+    }
+  } catch (err) {
+    console.warn(`  Pass 2 failed, falling back to Pass 1 insights:`, err);
+  }
+  return [];
+}
+
 async function generateRecap(transcript: string, podcastName: string, episodeTitle: string, showNotes?: string | null) {
   const showNotesSection = showNotes ? `\nShow Notes:\n${showNotes}\n` : "";
+  console.log(`  Pass 1: Generating recap + structured data...`);
   const prompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
 
 All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content.
@@ -128,8 +178,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 
 {
   "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "A flowing 2-minute read narrative summary (6-10 short paragraphs, 2-4 sentences each). Separate paragraphs with \\n\\n.",
-  "keyInsights": ["A specific, non-obvious insight from this episode. 2-3 tight sentences that teach the reader something concrete they did not know. Include names, numbers, or mechanisms naturally.", "Insight 2", "Insight 3", "Insight 4"],
+  "whatHappened": "The episode recap. 6-8 paragraphs, each 2-4 sentences. Separate paragraphs with \\n\\n.",
   "quote": "A memorable verbatim line from the transcript",
   "quoteAttribution": "Speaker Name on topic",
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
@@ -146,15 +195,26 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   "resources": [{"name": "Name", "type": "book", "description": "Desc", "url": "URL", "author": "Author", "context": "Context"}]
 }
 
-RULES:
-- keyInsights (exactly 4): Each takeaway must teach the reader something specific they did not know. 2-3 tight sentences per takeaway. Include concrete details (names, numbers, companies, mechanisms) woven into the insight naturally. Each should have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong." Must be specific to THIS episode. BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing. BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X", "[Company] is [verb]ing [industry] by [marketing speak]". LITMUS TEST: "If I texted this to a smart friend with zero context, would they find it interesting?" BAD: "Bill Gurley discusses AI impact." BAD: "ZuruTech is revolutionizing home construction." GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap is going to widen quickly, and which side you land on is largely a choice." GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads."
-- whatHappened: 6-10 short paragraphs, flowing narrative, not bullet points
+RULES FOR whatHappened (THE RECAP):
+- The recap has one job: give the reader the actual knowledge from the episode without them needing to listen
+- Write like a well-informed friend walking you through the best parts of the conversation
+- Every paragraph must contain at least one specific idea, fact, number, or insight
+- If a paragraph only describes what was talked about without saying what was actually said, delete it and rewrite with the real content
+- Start with the most interesting idea, NOT with "In this episode of [show name]..."
+- 6-8 paragraphs, each 2-4 sentences, flowing naturally from one idea to the next
+- BANNED PHRASES: "In this episode...", "The conversation explores/shifts/turns to...", "The hosts discuss/touch on/delve into...", "They also highlight/emphasize/underscore...", "The episode wraps up with...", "Ultimately, the episode...", "[Person] shares/reveals/explains that...", "broader themes like...", "actionable insights on..."
+- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, underscores, delves, touches on, reflects on, recounts, acknowledges, showcases, illustrates, demonstrates, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
+- BAD PARAGRAPH: "The conversation shifts to AI, where the guest maps out the landscape. He identifies key players like OpenAI, Anthropic, and Google, analyzing their strategies."
+- GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
+
+OTHER RULES:
+- All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), topQuestions (exactly 5), resources
 - keyTopics: 4-6 specific search-query-style phrases with named entities
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
-- topQuestions: 5 SEO questions. Each question MUST contain at least one of: the podcast name, a guest name, or a specific named entity (person, company, framework, book). NEVER generic questions. BAD: "What is the best way to find your passion?" GOOD: "What does Bill Gurley say about finding your passion on My First Million?" Answers must be 2-3 sentences maximum (Google truncates longer answers in People Also Ask)
-- guests: Extract guests only (NOT hosts). CRITICAL: Use FULL NAME (first AND last). Search the entire transcript for the last name - it is almost always mentioned at least once (introduction, mid-conversation, etc.). If the transcript says "Sheil" throughout but mentions "Sheil Monga" once, use "Sheil Monga". Empty array if none
-- BOOKS ARE CRITICAL: Before writing resources, scan the FULL transcript for ANY book title, author name, or phrase like "this book", "read this", "his book", "her book", "the book called", "a book by". Even if a book is mentioned once in passing, include it. Missing a book is a serious error
-- resources: Books and purchasable items only. The "context" field must answer why this book was recommended or mentioned in this episode and what specific argument it supported. Do NOT describe the book generically. Do NOT attribute to a named speaker. Empty array ONLY if truly no books mentioned
+- topQuestions: 5 SEO questions with named entities. Answers 2-3 sentences max
+- guests: Extract guests only (NOT hosts). Use FULL NAME. Empty array if none
+- BOOKS ARE CRITICAL: Scan the FULL transcript for ANY book mention. Missing a book is a serious error
+- resources: Books and purchasable items only. "context" must answer why this book was mentioned and what argument it supported. Do NOT describe generically. Empty array ONLY if truly none
 - sponsors: All sponsors/advertisers. Empty array if none
 - Quotes MUST be verbatim from transcript`;
 
@@ -182,10 +242,21 @@ RULES:
     console.warn(`[RegenerateRecaps] Book post-processing failed for "${episodeTitle}":`, err);
   }
 
+  const whatHappened = (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n");
+
+  let keyInsights: string[] = [];
+  const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
+  if (pass2Insights.length === 4) {
+    keyInsights = pass2Insights;
+  } else if (Array.isArray(parsed.keyInsights)) {
+    keyInsights = parsed.keyInsights;
+    console.warn(`  Using Pass 1 fallback insights`);
+  }
+
   return {
     tldl: parsed.tldl || "",
-    whatHappened: (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n"),
-    keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
+    whatHappened,
+    keyInsights,
     quote: parsed.quote,
     quoteAttribution: parsed.quoteAttribution,
     keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
