@@ -470,17 +470,17 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
 
   return (
     <div
-      className="relative w-full max-w-[85%] bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm"
+      className="relative w-full bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm flex flex-col"
       data-testid={`quote-card-${index}`}
     >
-      <div className="px-6 py-5">
-        <blockquote className="text-[16px] leading-[1.8] font-medium text-foreground mb-4" data-testid={`quote-text-${index}`}>
+      <div className="px-5 py-5 flex flex-col flex-1">
+        <blockquote className="text-[16px] leading-[1.8] font-medium text-foreground mb-4 flex-1" data-testid={`quote-text-${index}`}>
           <span className="text-primary/40 text-2xl mr-1">{"\u201C"}</span>
           {quote.quoteText}
           <span className="text-primary/40 text-2xl ml-1">{"\u201D"}</span>
         </blockquote>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
           <div className="flex items-center gap-3" data-testid={`quote-speaker-${index}`}>
             {personMatch ? (
               <img
@@ -496,7 +496,7 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
             )}
             <div>
               <p className="text-[16px] font-bold text-foreground">{quote.speakerName}</p>
-              {quote.speakerRole && <p className="text-[16px] text-muted-foreground">{quote.speakerRole}</p>}
+              {quote.speakerRole && <p className="text-[14px] text-muted-foreground">{quote.speakerRole}</p>}
             </div>
           </div>
           <QuoteShareBar quote={quote} podcastName={podcastName} episodeTitle={episodeTitle} />
@@ -957,21 +957,27 @@ export default function EpisodeRecapPage() {
               </div>
             </div>
             <div className="px-6 py-5">
+              <div className={`grid gap-8 ${guests.length > 0 && hasHosts && podcastHosts ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
 
               {guests.length > 0 && (
-                <div className="mb-6">
+                <div>
                   <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-guest-label">{guests.length > 1 ? "Guests" : "Guest"}</h3>
                   <div className="space-y-5">
                     {guests.map((guest, i) => {
                       const personSlug = getPersonSlug(guest.name);
+                      const guestPhoto = guest.photoUrl ? (
+                        <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                      ) : (
+                        <GuestPhoto name={guest.name} testId={`guest-photo-${i}`} />
+                      );
                       return (
                       <div key={i} className="flex items-start gap-4" data-testid={`guest-card-${i}`}>
                         {personSlug ? (
                           <Link href={`/people/${personSlug}`} className="flex-shrink-0">
-                            <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                            {guestPhoto}
                           </Link>
                         ) : (
-                          <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                          <div className="flex-shrink-0">{guestPhoto}</div>
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
@@ -981,9 +987,11 @@ export default function EpisodeRecapPage() {
                               </Link>
                             ) : guest.name}
                           </h4>
-                          <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">
-                            {guest.title ? guest.title + ". " : ""}{guest.bio || ""}
-                          </p>
+                          {(guest.title || guest.bio) && (
+                            <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">
+                              {guest.title ? guest.title + ". " : ""}{guest.bio || ""}
+                            </p>
+                          )}
                           {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
                             <div className="flex items-center gap-3 mt-2.5">
                               {guest.twitter && (
@@ -1005,7 +1013,7 @@ export default function EpisodeRecapPage() {
                                 </a>
                               )}
                               {guest.website && (
-                                <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`guest-website-${i}`} title="Website">
+                                <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors" data-testid={`guest-website-${i}`} title="Website">
                                   <Globe className="w-4 h-4" />
                                   <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/40" />
                                 </a>
@@ -1044,7 +1052,7 @@ export default function EpisodeRecapPage() {
                           <Link href={`/people/${hostPersonSlug}`} className="flex-shrink-0">
                             {hostPhoto}
                           </Link>
-                        ) : hostPhoto}
+                        ) : <div className="flex-shrink-0">{hostPhoto}</div>}
                         <div className="flex-1 min-w-0">
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`host-name-${i}`}>
                             {hostPersonSlug ? (
@@ -1091,6 +1099,7 @@ export default function EpisodeRecapPage() {
                   </div>
                 </div>
               )}
+              </div>
             </div>
           </section>
         )}
@@ -1311,8 +1320,8 @@ export default function EpisodeRecapPage() {
               </div>
             </div>
             <div className="px-6 py-5">
-              <div className="flex flex-col items-end space-y-4">
-                {episodeQuotes.slice(0, 3).map((q, i) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {episodeQuotes.slice(0, 4).map((q, i) => (
                   <QuoteCard
                     key={q.id}
                     quote={q}
