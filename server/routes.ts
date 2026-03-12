@@ -6816,9 +6816,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
     }
 
-    epGenState.running = false;
-    epGenState.autoQueue = false;
     console.log(`[EpGen] Regeneration queue finished. Completed podcasts: ${epGenState.completedPodcasts.length}`);
+    console.log(`[EpGen] Now continuing with normal auto-queue to generate new episodes for remaining podcasts...`);
+    epGenState.completedPodcasts = [];
+    epGenState.autoQueueLimit = epGenState.autoQueueLimit || 10;
+    await runAutoQueue();
   }
 
   async function reprocessIncompletePages() {
