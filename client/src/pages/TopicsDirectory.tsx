@@ -216,10 +216,6 @@ export default function TopicsDirectory() {
                             <MiniTrendLine seed={i * 7 + 3} rising={true} />
                           </div>
                           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                            <span className="text-[13px] font-mono text-muted-foreground/70 flex items-center gap-1">
-                              <Podcast className="w-3 h-3" />
-                              {sourceCount} sources
-                            </span>
                             <span className="ml-auto text-[13px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                               Explore <ArrowUpRight className="w-3 h-3" />
                             </span>
@@ -267,12 +263,6 @@ export default function TopicsDirectory() {
                             <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                           </div>
                           <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-3 leading-relaxed">{topic.description}</p>
-                          <div className="flex items-center gap-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                            <span className="text-[13px] font-mono text-muted-foreground/70 flex items-center gap-1">
-                              <Podcast className="w-3 h-3" />
-                              {sourceCount} sources
-                            </span>
-                          </div>
                         </div>
                       </Link>
                     </motion.div>
