@@ -129,7 +129,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 {
   "tldl": "2-3 sentence summary of the core thesis.",
   "whatHappened": "A flowing 2-minute read narrative summary (6-10 short paragraphs, 2-4 sentences each). Separate paragraphs with \\n\\n.",
-  "keyInsights": ["Speaker Name argues specific claim, pointing to named example", "Insight 2", "Insight 3", "Insight 4"],
+  "keyInsights": ["A complete standalone insight that delivers genuine value. Two to three sentences that could be read out of context and still be worth reading.", "Insight 2 - a specific, useful idea", "Insight 3 - a specific, useful idea", "Insight 4 - a specific, useful idea"],
   "quote": "A memorable verbatim line from the transcript",
   "quoteAttribution": "Speaker Name on topic",
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
@@ -147,7 +147,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
 }
 
 RULES:
-- keyInsights (exactly 4): Every takeaway MUST name the speaker, include a specific claim, and reference a named person/company/book/story. NEVER generic lessons. NEVER use square brackets around names. Test: could you identify which episode this is from without the title?
+- keyInsights (exactly 4): Each takeaway must be a complete standalone idea that delivers genuine value. The test: if someone read only this bullet and never listened to the episode, would they have learned something specific and useful? If not, rewrite it. Each should be 2-3 sentences readable out of context. NEVER use "discusses", "explores", "highlights", "shares", "emphasizes", "explains", "points out", "praises", "recounts", "acknowledges", "underscores", or "reveals". NEVER write "[Person] [verb] [topic]". Write the actual insight itself. Include specific names/companies/numbers as part of the insight, not as attribution. BAD: "Bill Gurley discusses AI impact." GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones."
 - whatHappened: 6-10 short paragraphs, flowing narrative, not bullet points
 - keyTopics: 4-6 specific search-query-style phrases with named entities
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
