@@ -50,6 +50,7 @@ class DataCache<T> {
 const directoryCache = {
   people: new DataCache<any[]>("people"),
   companies: new DataCache<any[]>("companies"),
+  topics: new DataCache<any[]>("topics"),
   bookstore: new DataCache<any>("bookstore"),
   podcastsDiscovery: new DataCache<any>("podcastsDiscovery"),
   podcastsDirectory: new DataCache<any[]>("podcastsDirectory"),
@@ -1785,6 +1786,89 @@ export async function registerRoutes(
     }
   });
 
+  const TRENDING_TOPIC_KEYWORDS: Record<string, { name: string; primary: string[]; secondary: string[]; minScore: number }> = {
+    "ai": { name: "Artificial Intelligence", primary: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model"], secondary: ["GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI"], minScore: 4 },
+    "startups": { name: "Startups", primary: ["startup", "startups", "product-market fit", "seed round", "series A"], secondary: ["early-stage", "pivot", "launch", "incubator", "accelerator", "Y Combinator"], minScore: 3 },
+    "venture-capital": { name: "Venture Capital", primary: ["venture capital", "venture capitalist", "VC firm", "fundraising round"], secondary: ["VC", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"], minScore: 3 },
+    "investing": { name: "Investing", primary: ["investing", "investment strategy", "stock market", "portfolio management"], secondary: ["stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns"], minScore: 3 },
+    "entrepreneurship": { name: "Entrepreneurship", primary: ["entrepreneurship", "entrepreneur", "founded", "co-founded"], secondary: ["founder", "startup", "bootstrap", "bootstrapped", "side hustle", "building a business"], minScore: 3 },
+    "leadership": { name: "Leadership", primary: ["leadership", "leading teams", "executive leadership"], secondary: ["CEO", "executive", "leader", "vision", "organizational culture", "management"], minScore: 3 },
+    "marketing": { name: "Marketing", primary: ["marketing strategy", "digital marketing", "brand strategy"], secondary: ["marketing", "brand", "growth hacking", "advertising", "SEO", "content marketing"], minScore: 3 },
+    "crypto-web3": { name: "Crypto & Web3", primary: ["cryptocurrency", "bitcoin", "blockchain", "web3"], secondary: ["crypto", "ethereum", "DeFi", "NFT", "token", "decentralized"], minScore: 3 },
+    "health-longevity": { name: "Health & Longevity", primary: ["longevity", "healthspan", "lifespan"], secondary: ["nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking", "metabolic health"], minScore: 3 },
+    "technology": { name: "Technology", primary: ["technology", "software engineering", "tech industry"], secondary: ["software", "engineering", "computing", "cloud", "infrastructure", "developer"], minScore: 3 },
+    "economics": { name: "Economics", primary: ["economics", "economic policy", "macroeconomics"], secondary: ["economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve"], minScore: 3 },
+    "climate-energy": { name: "Climate & Energy", primary: ["climate change", "clean energy", "renewable energy"], secondary: ["climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle"], minScore: 3 },
+    "defense-tech": { name: "Defense Tech", primary: ["defense tech", "defense technology", "military technology"], secondary: ["defense", "military", "cybersecurity", "national security", "pentagon"], minScore: 3 },
+    "robotics": { name: "Robotics", primary: ["robotics", "robot", "autonomous vehicle"], secondary: ["humanoid", "drone", "manufacturing automation", "self-driving", "autonomous"], minScore: 3 },
+    "psychology": { name: "Psychology", primary: ["psychology", "psychological", "neuroscience"], secondary: ["behavior", "mental health", "cognitive", "therapy", "emotional intelligence"], minScore: 3 },
+    "geopolitics": { name: "Geopolitics", primary: ["geopolitics", "geopolitical", "foreign policy", "international relations"], secondary: ["diplomacy", "international", "sanctions", "trade war", "national security"], minScore: 3 },
+    "saas": { name: "SaaS", primary: ["saas", "software as a service", "recurring revenue"], secondary: ["churn", "ARR", "MRR", "subscription", "B2B software"], minScore: 3 },
+    "creator-economy": { name: "Creator Economy", primary: ["creator economy", "content creator", "creator"], secondary: ["influencer", "newsletter", "monetize", "audience building", "personal brand"], minScore: 3 },
+    "automation": { name: "Automation", primary: ["automation", "workflow automation", "process automation"], secondary: ["automate", "automated", "RPA", "no-code", "low-code", "Zapier"], minScore: 3 },
+    "personal-finance": { name: "Personal Finance", primary: ["personal finance", "financial independence", "wealth building"], secondary: ["budgeting", "saving", "retirement", "debt", "credit score", "FIRE"], minScore: 3 },
+  };
+
+  async function computeTopicsData() {
+    const { pool: dbPool } = await import("./db");
+    const client = await dbPool.connect();
+    try {
+      const { rows: allRecaps } = await client.query(
+        `SELECT what_happened, tldl, key_insights::text as key_insights_text, episode_title, publish_date FROM landing_page_recaps`
+      );
+
+      const results = [];
+      for (const [slug, config] of Object.entries(TRENDING_TOPIC_KEYWORDS)) {
+        const allKeywords = [...config.primary, ...config.secondary];
+        let mentionCount = 0;
+        let recentCount = 0;
+        let olderCount = 0;
+
+        for (const row of allRecaps) {
+          const texts = [row.what_happened, row.tldl, row.key_insights_text, row.episode_title].filter(Boolean);
+          let score = 0;
+          for (const kw of config.primary) {
+            if (texts.some(t => t.toLowerCase().includes(kw.toLowerCase()))) score += 3;
+          }
+          for (const kw of config.secondary) {
+            if (texts.some(t => t.toLowerCase().includes(kw.toLowerCase()))) score += 1;
+          }
+          if (score >= config.minScore) {
+            mentionCount++;
+            if (isRecent(row.publish_date)) recentCount++;
+            else olderCount++;
+          }
+        }
+
+        const trend = computeTrendDirection(recentCount, olderCount);
+        results.push({
+          slug,
+          name: config.name,
+          mentionCount,
+          recentMentions: recentCount,
+          trend: trend.direction,
+          changePercent: trend.changePercent,
+        });
+      }
+      results.sort((a, b) => b.mentionCount - a.mentionCount);
+      return results;
+    } finally {
+      client.release();
+    }
+  }
+
+  app.get("/api/entities/topics", async (_req, res) => {
+    try {
+      const cached = directoryCache.topics.get();
+      if (cached) return res.json(cached);
+      const results = await computeTopicsData();
+      directoryCache.topics.set(results);
+      res.json(results);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch topics" });
+    }
+  });
+
   app.get("/api/entities/companies/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
@@ -3361,6 +3445,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const data = await computeCompaniesData();
         directoryCache.companies.set(data);
         refreshed.push("companies");
+      }
+      if (toRefresh.includes("topics")) {
+        const data = await computeTopicsData();
+        directoryCache.topics.set(data);
+        refreshed.push("topics");
       }
     } catch (err: any) {
       console.error("[Cache Refresh] Error:", err);
@@ -6520,13 +6609,15 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   setTimeout(async () => {
     try {
       console.log("[Cache] Pre-warming directory caches on startup...");
-      const [peopleData, companiesData] = await Promise.all([
+      const [peopleData, companiesData, topicsData] = await Promise.all([
         computePeopleData(),
         computeCompaniesData(),
+        computeTopicsData(),
       ]);
       directoryCache.people.set(peopleData);
       directoryCache.companies.set(companiesData);
-      console.log(`[Cache] Pre-warmed people (${peopleData.length}) and companies (${companiesData.length}) caches`);
+      directoryCache.topics.set(topicsData);
+      console.log(`[Cache] Pre-warmed people (${peopleData.length}), companies (${companiesData.length}), topics (${topicsData.length}) caches`);
     } catch (err) {
       console.error("[Cache] Pre-warm failed:", err);
     }
