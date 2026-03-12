@@ -6606,6 +6606,66 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/episode-chat", async (req, res) => {
+    try {
+      const { podcastSlug, episodeSlug, entityName, entityType, question, conversationHistory } = req.body;
+      if (!podcastSlug || !episodeSlug || !question) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const recap = await storage.getLandingPageRecapBySlug(podcastSlug, episodeSlug);
+      if (!recap) {
+        return res.status(404).json({ error: "Episode not found" });
+      }
+
+      const recapContext = [
+        `Podcast: ${recap.podcastName}`,
+        `Episode: "${recap.episodeTitle}"`,
+        recap.tldl ? `Summary: ${recap.tldl}` : "",
+        recap.whatHappened ? `Full Recap:\n${recap.whatHappened}` : "",
+        recap.keyInsights ? `Key Insights: ${JSON.stringify(recap.keyInsights)}` : "",
+        recap.keyTopics ? `Topics: ${JSON.stringify(recap.keyTopics)}` : "",
+      ].filter(Boolean).join("\n\n");
+
+      let entityFocus = "";
+      if (entityName && entityType) {
+        entityFocus = `\n\nThe user is specifically asking about ${entityType === "person" ? "the person" : entityType === "company" ? "the company" : "the topic"} "${entityName}" in the context of this episode.`;
+      }
+
+      const systemPrompt = `You are PodCap's AI assistant. You help users understand podcast episodes better. You have access to a detailed recap of this episode. Answer questions based on what was discussed in the episode. Be conversational, specific, and reference actual points from the episode. Keep answers concise (2-4 sentences for simple questions, up to a short paragraph for complex ones). If the answer isn't covered in the recap, say so honestly.${entityFocus}
+
+Episode context:
+${recapContext}`;
+
+      const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+        { role: "system", content: systemPrompt },
+      ];
+
+      if (conversationHistory && Array.isArray(conversationHistory)) {
+        for (const msg of conversationHistory.slice(-6)) {
+          const role = msg.role === "assistant" ? "assistant" : "user";
+          const content = typeof msg.content === "string" ? msg.content.slice(0, 2000) : "";
+          if (content) messages.push({ role, content });
+        }
+      }
+      messages.push({ role: "user", content: question });
+
+      const { openai } = await import("./replit_integrations/image/client");
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+      const answer = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
+      res.json({ answer });
+    } catch (err) {
+      console.error("[EpisodeChat] Error:", err);
+      res.status(500).json({ error: "Failed to generate response" });
+    }
+  });
+
   setTimeout(async () => {
     try {
       console.log("[Cache] Pre-warming directory caches on startup...");

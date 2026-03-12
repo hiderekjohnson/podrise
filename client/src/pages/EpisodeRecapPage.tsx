@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Tag, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star } from "lucide-react";
+import { Lightbulb, Tag, Loader2, Sparkles, BookOpen, MessageCircleQuestion, Globe, Users, Building2, Mic, ChevronDown, ChevronRight, Brain, Rocket, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, ExternalLink, Ticket, Copy, Check, Quote, Share2, X, Star, MessageCircle, Send, ArrowUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
@@ -115,6 +115,172 @@ function GuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: strin
   return (
     <div className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0" data-testid={testId}>
       <span className="text-lg font-bold text-primary">{name.charAt(0)}</span>
+    </div>
+  );
+}
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+function AskAIButton({ entityName, entityType, podcastSlug, episodeSlug, accentColor = "orange" }: {
+  entityName: string;
+  entityType: "person" | "company" | "topic";
+  podcastSlug: string;
+  episodeSlug: string;
+  accentColor?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (open && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [open]);
+
+  const sendMessage = async (text?: string) => {
+    const q = text || input.trim();
+    if (!q || loading) return;
+    setInput("");
+    const userMsg: ChatMessage = { role: "user", content: q };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+
+    try {
+      const resp = await fetch("/api/episode-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          podcastSlug,
+          episodeSlug,
+          entityName,
+          entityType,
+          question: q,
+          conversationHistory: messages,
+        }),
+      });
+      const data = await resp.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.answer || "Sorry, I couldn't respond." }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const colorMap: Record<string, { btn: string; bg: string; border: string; text: string; bubble: string }> = {
+    orange: { btn: "bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400", bg: "bg-orange-50/50 dark:bg-orange-950/20", border: "border-orange-500/20", text: "text-orange-600 dark:text-orange-400", bubble: "bg-orange-500/[0.07]" },
+    emerald: { btn: "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20", border: "border-emerald-500/20", text: "text-emerald-600 dark:text-emerald-400", bubble: "bg-emerald-500/[0.07]" },
+  };
+  const colors = colorMap[accentColor] || colorMap.orange;
+
+  const suggestedQuestions = entityType === "person"
+    ? [`What did they say about ${entityName}?`, `Why was ${entityName} mentioned?`, `What's ${entityName}'s role in this discussion?`]
+    : entityType === "company"
+    ? [`What was said about ${entityName}?`, `Why was ${entityName} discussed?`, `How does ${entityName} relate to the episode?`]
+    : [`Tell me more about ${entityName} in this episode`, `What perspectives were shared on ${entityName}?`, `Why is ${entityName} relevant here?`];
+
+  if (!open) {
+    return (
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all ${colors.btn}`}
+        data-testid={`ask-ai-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
+      >
+        <Sparkles className="w-3.5 h-3.5" />
+        Ask AI
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`mt-3 rounded-xl border ${colors.border} ${colors.bg} overflow-hidden`}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      data-testid={`ai-chat-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <Sparkles className={`w-3.5 h-3.5 ${colors.text}`} />
+          <span className={`text-[13px] font-semibold ${colors.text}`}>Ask about {entityName}</span>
+        </div>
+        <button onClick={() => { setOpen(false); setMessages([]); }} className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors" data-testid="close-ai-chat">
+          <X className="w-3.5 h-3.5 text-muted-foreground" />
+        </button>
+      </div>
+
+      <div className="max-h-[280px] overflow-y-auto px-4 py-3 space-y-3">
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <p className="text-[13px] text-muted-foreground">Try asking:</p>
+            {suggestedQuestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(q)}
+                className="block w-full text-left text-[14px] px-3 py-2 rounded-lg border border-black/[0.04] dark:border-white/[0.06] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] text-foreground transition-colors"
+                data-testid={`suggested-question-${i}`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-[14px] leading-relaxed ${
+              msg.role === "user"
+                ? "bg-foreground text-background"
+                : `${colors.bubble} text-foreground`
+            }`}>
+              {msg.content}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className={`rounded-xl px-3.5 py-2.5 ${colors.bubble}`}>
+              <div className="flex gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="px-3 py-2.5 border-t border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+            placeholder={`Ask about ${entityName}...`}
+            className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/50 outline-none"
+            data-testid="ai-chat-input"
+          />
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || loading}
+            className={`p-1.5 rounded-lg transition-colors ${input.trim() && !loading ? `${colors.text} hover:bg-black/5 dark:hover:bg-white/10` : "text-muted-foreground/30"}`}
+            data-testid="ai-chat-send"
+          >
+            <ArrowUp className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -933,6 +1099,7 @@ export default function EpisodeRecapPage() {
                           {entityContexts[person.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
                           )}
+                          <AskAIButton entityName={person.name} entityType="person" podcastSlug={podcastSlug!} episodeSlug={episodeSlug!} accentColor="orange" />
                         </div>
                       </div>
                     ))}
@@ -964,6 +1131,7 @@ export default function EpisodeRecapPage() {
                           {entityContexts[company.slug] && (
                             <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
                           )}
+                          <AskAIButton entityName={company.name} entityType="company" podcastSlug={podcastSlug!} episodeSlug={episodeSlug!} accentColor="orange" />
                         </div>
                       </div>
                     ))}
@@ -991,20 +1159,24 @@ export default function EpisodeRecapPage() {
                   const contextDesc = parsedTopicContexts[topic.slug];
                   const displayDesc = contextDesc || `${topic.description.split(".")[0]}.`;
                   return (
-                    <Link
+                    <div
                       key={topic.slug}
-                      href={`/insights/${topic.slug}`}
-                      className="group/topic flex gap-3.5 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-emerald-500/[0.03] transition-all"
+                      className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-emerald-500/[0.03] transition-all"
                       data-testid={`topic-link-${i}`}
                     >
-                      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center shrink-0`}>
-                        <IconComponent className="w-5 h-5 text-white" />
+                      <Link href={`/insights/${topic.slug}`} className="group/topic flex gap-3.5 p-4 pb-2">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center shrink-0`}>
+                          <IconComponent className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-[15px] font-bold text-foreground group-hover/topic:text-emerald-600 dark:group-hover/topic:text-emerald-400 transition-colors">{topic.name}</h4>
+                          <p className="text-base leading-snug text-muted-foreground mt-0.5">{displayDesc.length > 120 ? displayDesc.slice(0, 120).replace(/\s+\S*$/, "") + "." : displayDesc}</p>
+                        </div>
+                      </Link>
+                      <div className="px-4 pb-3">
+                        <AskAIButton entityName={topic.name} entityType="topic" podcastSlug={podcastSlug!} episodeSlug={episodeSlug!} accentColor="emerald" />
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-[15px] font-bold text-foreground group-hover/topic:text-emerald-600 dark:group-hover/topic:text-emerald-400 transition-colors">{topic.name}</h4>
-                        <p className="text-base leading-snug text-muted-foreground mt-0.5">{displayDesc.length > 120 ? displayDesc.slice(0, 120).replace(/\s+\S*$/, "") + "." : displayDesc}</p>
-                      </div>
-                    </Link>
+                    </div>
                   );
                 })}
               </div>
