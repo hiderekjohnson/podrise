@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, X, Compass, Headphones, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen, ChevronRight } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, X, Compass, Headphones, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -15,17 +15,6 @@ import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { PodCapWordmark } from "@/components/PodCapHeader";
 
-function highlightMatch(text: string, query: string) {
-  if (!query) return text;
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
-  const parts = text.split(regex);
-  return parts.map((part, i) =>
-    regex.test(part) ? <mark key={i} className="bg-primary/20 text-foreground rounded px-0.5">{part}</mark> : part
-  );
-}
-
-
-
 function extractAsin(url: string): string | null {
   const patterns = [
     /\/dp\/([A-Za-z0-9]{10})/,
@@ -37,16 +26,6 @@ function extractAsin(url: string): string | null {
     if (match) return match[1].toUpperCase();
   }
   return null;
-}
-
-function getBlinkistBookUrl(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
 function PodcastBookCover({ title, slug }: { title: string; asin?: string | null; slug?: string | null }) {
@@ -84,26 +63,16 @@ interface PodcastBook {
 }
 
 function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: string }) {
-  const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"mentions" | "alpha">("mentions");
   const [visibleCount, setVisibleCount] = useState(20);
-  const [expandedBook, setExpandedBook] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useQuery<{ books: PodcastBook[]; total: number }>({
     queryKey: ["/api/podcasts", slug, "books"],
   });
 
   const books = data?.books || [];
-  const query = searchQuery.toLowerCase().trim();
 
-  const filtered = books.filter(b => {
-    if (!query) return true;
-    return b.name.toLowerCase().includes(query) ||
-      (b.author || "").toLowerCase().includes(query) ||
-      b.description.toLowerCase().includes(query);
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
+  const sorted = [...books].sort((a, b) => {
     if (sortBy === "alpha") return a.name.localeCompare(b.name);
     return b.mentionCount - a.mentionCount;
   });
@@ -121,39 +90,21 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
         Books mentioned across {podcastName} episodes - sorted by how often they come up in conversation.
       </p>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-          <input
-            type="text"
-            placeholder="Search books, authors..."
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(20); }}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-zinc-900 text-[15px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-            data-testid="input-books-search"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2" data-testid="button-books-clear-search">
-              <X className="w-4 h-4 text-muted-foreground/40 hover:text-foreground" />
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSortBy("mentions")}
-            className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
-            data-testid="button-sort-mentions"
-          >
-            Most mentioned
-          </button>
-          <button
-            onClick={() => setSortBy("alpha")}
-            className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
-            data-testid="button-sort-alpha"
-          >
-            A–Z
-          </button>
-        </div>
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => setSortBy("mentions")}
+          className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+          data-testid="button-sort-mentions"
+        >
+          Most mentioned
+        </button>
+        <button
+          onClick={() => setSortBy("alpha")}
+          className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+          data-testid="button-sort-alpha"
+        >
+          A-Z
+        </button>
       </div>
 
       {isLoading ? (
@@ -180,23 +131,18 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
       ) : sorted.length === 0 ? (
         <div className="text-center py-12">
           <BookOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-          <p className="text-[15px] font-semibold text-foreground mb-1">
-            {searchQuery ? "No books match your search" : "No books found yet"}
-          </p>
-          <p className="text-[15px] text-muted-foreground">
-            {searchQuery ? "Try a different search term." : "Book data is still being extracted for this podcast."}
-          </p>
+          <p className="text-[15px] font-semibold text-foreground mb-1">No books found yet</p>
+          <p className="text-[15px] text-muted-foreground">Book data is still being extracted for this podcast.</p>
         </div>
       ) : (
         <>
           <p className="text-[13px] text-muted-foreground/50 mb-4" data-testid="text-books-count">
-            {sorted.length} book{sorted.length !== 1 ? "s" : ""}{searchQuery ? ` matching "${searchQuery}"` : ""}
+            {sorted.length} book{sorted.length !== 1 ? "s" : ""}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {visible.map((book, i) => {
               const asin = book.asin || extractAsin(book.url || "");
-              const blinkistUrl = getBlinkistBookUrl(book.name);
               const bookSlug = book.slug;
 
               return (
@@ -243,10 +189,10 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                           </span>
                         )}
                         {book.pageCount && (
-                          <span className="text-xs text-muted-foreground">{book.pageCount}p</span>
+                          <span className="text-xs text-muted-foreground">{book.pageCount} pages</span>
                         )}
                         {book.publishYear && (
-                          <span className="text-xs text-muted-foreground">{book.publishYear}</span>
+                          <span className="text-xs text-muted-foreground">Published {book.publishYear}</span>
                         )}
                       </div>
                     </div>
@@ -258,29 +204,6 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                     </p>
                   )}
 
-                  <div className="mt-auto pt-3 flex items-center justify-end">
-                    {bookSlug ? (
-                      <Link
-                        href={`/bookstore/${bookSlug}`}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-                        data-testid={`book-view-${i}`}
-                      >
-                        View
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </Link>
-                    ) : (
-                      <a
-                        href={blinkistUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
-                        data-testid={`book-buy-${i}`}
-                      >
-                        Summary
-                        <ExternalLink className="w-3 h-3 text-amber-700/40 dark:text-amber-400/40" />
-                      </a>
-                    )}
-                  </div>
                 </div>
               );
             })}
@@ -967,11 +890,13 @@ export default function PodcastLandingGeneric() {
                 <h3 className="text-[17px] font-display font-bold text-foreground">Top Topics Discussed</h3>
               </div>
               <div className="flex flex-wrap gap-2.5">
-                {entityLinks.topics.map((t, i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[15px] font-medium text-foreground capitalize" data-testid={`tag-topic-${i}`}>
-                    {t.topic}
-                    <span className="text-muted-foreground/40 text-[13px] font-bold">({t.count})</span>
-                  </span>
+                {entityLinks.topics.map((t: any, i: number) => (
+                  <Link key={i} href={`/insights/${t.slug || t.topic}`}>
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[15px] font-medium text-foreground hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer" data-testid={`tag-topic-${i}`}>
+                      {t.topic}
+                      <span className="text-muted-foreground/40 text-[13px] font-bold">({t.count})</span>
+                    </span>
+                  </Link>
                 ))}
               </div>
             </div>

@@ -2450,6 +2450,7 @@ export async function registerRoutes(
   app.get("/api/podcasts/:slug/entity-links", async (req, res) => {
     try {
       const { slug } = req.params;
+      const { TOPICS: CURATED_TOPICS_LIST } = await import("../client/src/data/topicData");
       const allRecaps = await storage.getLandingPageRecaps(slug, 200, 0);
       if (!allRecaps.length) return res.json({ companies: [], people: [], topics: [], guests: [] });
 
@@ -2505,9 +2506,16 @@ export async function registerRoutes(
         }
 
         if (recap.keyTopics) {
-          for (const topic of recap.keyTopics) {
-            const normalized = topic.toLowerCase().trim();
-            if (normalized) topicCounts[normalized] = (topicCounts[normalized] || 0) + 1;
+          const topicText = recap.keyTopics.join(" ").toLowerCase();
+          for (const curatedTopic of CURATED_TOPICS_LIST) {
+            for (const kw of curatedTopic.podcastKeywords) {
+              const kwLower = kw.toLowerCase();
+              const regex = new RegExp(`\\b${kwLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+              if (regex.test(topicText)) {
+                topicCounts[curatedTopic.slug] = (topicCounts[curatedTopic.slug] || 0) + 1;
+                break;
+              }
+            }
           }
         }
       }
@@ -2533,7 +2541,11 @@ export async function registerRoutes(
       const topTopics = Object.entries(topicCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([topic, count]) => ({ topic, count }));
+        .map(([topicSlug, count]) => {
+          const t = CURATED_TOPICS_LIST.find((ct: any) => ct.slug === topicSlug);
+          return t ? { topic: t.name, slug: t.slug, count } : null;
+        })
+        .filter(Boolean);
 
       const recentGuests: Array<{ name: string; title?: string; episodeTitle: string; episodeSlug: string; publishDate: string }> = [];
       const seenGuestNames = new Set<string>();

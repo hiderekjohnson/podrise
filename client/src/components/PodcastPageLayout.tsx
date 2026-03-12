@@ -9,7 +9,6 @@ import { Footer } from "@/components/Footer";
 import { PodCapHeader } from "@/components/PodCapHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
-import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 
 export type PodcastTab = "episodes" | "about" | "discover" | "books";
 
@@ -38,7 +37,6 @@ export function PodcastPageLayout({
 
   const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description, appleRating, appleRatingCount } = config;
   const twitterHandle = config.twitterHandle;
-  const categoryInfo = getPodcastCategoryInfo(config);
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
@@ -145,21 +143,6 @@ export function PodcastPageLayout({
                 {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
               </p>
 
-              {categoryInfo.category && categoryInfo.topics.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-[14px] text-muted-foreground justify-center sm:justify-start" data-testid="podcast-category-labels">
-                  {categoryInfo.topics.map((topic) => {
-                    const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
-                    if (!insightsSlug) return null;
-                    return (
-                      <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
-                          {topic.name}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 mt-1">
                 {hosts && (
