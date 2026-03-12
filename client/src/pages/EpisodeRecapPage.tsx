@@ -1289,7 +1289,7 @@ export default function EpisodeRecapPage() {
               <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
                 <div className="flex items-center gap-2.5">
                   <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
-                  <h2 className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">{guestLabel ? `Questions Answered in This Episode with ${guestLabel}` : `Questions Answered in ${seoSubject}`}</h2>
+                  <h2 className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider m-0">{guestNames ? `Key Questions Answered in This Episode with ${guestNames}` : `Key Questions Answered in This ${episode.podcastName} Episode`}</h2>
                 </div>
               </div>
               <div className="px-6 py-5">

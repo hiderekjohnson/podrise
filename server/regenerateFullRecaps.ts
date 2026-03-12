@@ -150,9 +150,9 @@ RULES:
 - whatHappened: 6-10 short paragraphs, flowing narrative, not bullet points
 - keyTopics: 4-6 specific search-query-style phrases with named entities
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
-- topQuestions: 5 SEO questions with specific entity names. 2-4 sentence answers
+- topQuestions: 5 SEO questions. Each question MUST contain at least one of: the podcast name, a guest name, or a specific named entity (person, company, framework, book). NEVER generic questions. BAD: "What is the best way to find your passion?" GOOD: "What does Bill Gurley say about finding your passion on My First Million?" Answers must be 2-3 sentences maximum (Google truncates longer answers in People Also Ask)
 - guests: Extract guests only (NOT hosts). Empty array if none
-- resources: Books and purchasable items only. Empty array if none
+- resources: Books and purchasable items only. The "context" field must answer why this book was recommended or mentioned in this episode and what specific argument it supported. Do NOT describe the book generically. Do NOT attribute to a named speaker. Empty array if none
 - sponsors: All sponsors/advertisers. Empty array if none
 - Quotes MUST be verbatim from transcript`;
 
