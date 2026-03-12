@@ -5694,10 +5694,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             let error: string | undefined;
             const result = podcastResults[p.name];
 
+            const TARGET = 100;
             const closeEnough = p.total_episodes > 0 && p.transcript_count > 0 && p.transcript_count >= p.total_episodes * 0.9;
             if (closeEnough && p.complete_count > 0 && p.complete_count >= p.transcript_count * 0.9) {
               status = "complete_record";
-            } else if (p.transcript_count >= 25) {
+            } else if (p.transcript_count >= TARGET) {
               status = "done";
             } else if (!p.taddy_uuid) {
               status = "no_taddy";
@@ -5710,8 +5711,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               status = "error";
               error = result.error;
             } else if (processedSet.has(p.name)) {
-              status = "error";
-              error = `Only ${p.transcript_count} of 25 transcripts available on Taddy`;
+              status = p.transcript_count > 0 ? "partial" : "error";
+              error = p.transcript_count > 0 ? undefined : `Only ${p.transcript_count} of ${TARGET} transcripts available on Taddy`;
             } else {
               status = "in_queue";
             }
@@ -5724,15 +5725,15 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               transcriptCount: p.transcript_count,
               completeCount: p.complete_count,
               totalEpisodes,
-              target: 25,
-              remaining: Math.max(0, totalEpisodes - p.transcript_count),
+              target: TARGET,
+              remaining: Math.max(0, TARGET - p.transcript_count),
               status,
               error,
             };
           }),
           totalTranscripts: podcasts.reduce((sum, p) => sum + (p.transcript_count || 0), 0),
           totalPodcasts: podcasts.length,
-          podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= 25).length,
+          podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= TARGET).length,
           backfillRunning: isBackfillRunning,
           backfillCurrentName: backfillStatus?.currentName || null,
           backfillCurrentIndex: backfillStatus?.currentIndex || null,
