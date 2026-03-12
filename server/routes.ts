@@ -5733,7 +5733,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           }),
           totalTranscripts: podcasts.reduce((sum, p) => sum + (p.transcript_count || 0), 0),
           totalPodcasts: podcasts.length,
-          podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= TARGET).length,
+          podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= 100).length,
           backfillRunning: isBackfillRunning,
           backfillCurrentName: backfillStatus?.currentName || null,
           backfillCurrentIndex: backfillStatus?.currentIndex || null,
