@@ -2609,8 +2609,7 @@ export async function registerRoutes(
         sponsorNames = sponsors.map((s: any) => (s.name || "").toLowerCase()).filter(Boolean);
       } catch {}
 
-      const cutoff = Math.floor(transcriptText.length * 0.7);
-      const mainContent = transcriptText.slice(0, cutoff);
+      const mainContent = transcriptText;
 
       const podcastHosts = await storage.getHostsByPodcastSlug(req.params.slug);
       const hostNameSet = new Set(podcastHosts.map(h => h.name.toLowerCase().trim()));
