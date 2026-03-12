@@ -386,7 +386,7 @@ export default function EpisodeArchivePage() {
       <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-5xl pt-8 sm:pt-12 pb-16">
+        <div className="w-full max-w-7xl pt-8 sm:pt-12 pb-16">
 
           <div className="flex items-start gap-5 mb-8">
             {config.artworkUrl && (

@@ -146,7 +146,7 @@ export default function EpisodeGuestsPage() {
         />
       )}
 
-      <div className="max-w-5xl mx-auto" data-testid="guests-content">
+      <div className="max-w-6xl mx-auto" data-testid="guests-content">
         {guestsLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4" data-testid="guests-loading">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />

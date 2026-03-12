@@ -498,7 +498,7 @@ export default function Bookstore() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-amber-500/[0.03] via-background to-background">
-        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center text-center gap-4">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-12 h-12 rounded-2xl bg-amber-500/[0.08] flex items-center justify-center">
@@ -546,7 +546,7 @@ export default function Bookstore() {
 
       <div ref={navRef} className="h-0" />
       <div className={`sticky top-[68px] z-30 bg-background/95 backdrop-blur-sm border-b transition-shadow ${isSticky ? "border-black/[0.06] dark:border-white/[0.06] shadow-sm" : "border-transparent"}`}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide" data-testid="category-nav">
             <button
               onClick={() => { setSelectedTopic(null); setSelectedLength(null); setSearchQuery(""); setSortBy("mentions"); }}
@@ -579,7 +579,7 @@ export default function Bookstore() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20 pt-6">
         {!isLoading && showShelves && (
-          <section className="w-full max-w-5xl" data-testid="section-curated">
+          <section className="w-full max-w-7xl" data-testid="section-curated">
             <CuratedShelf title="Trending on Podcasts" icon={TrendingUp} books={curatedShelves.trending} />
             <CuratedShelf title="Highest Rated" icon={Star} books={curatedShelves.highRated} />
             {curatedShelves.byWomen.length > 0 && (
@@ -593,7 +593,7 @@ export default function Bookstore() {
           </section>
         )}
 
-        <section className="w-full max-w-5xl" data-testid="section-browse" id="books-grid">
+        <section className="w-full max-w-7xl" data-testid="section-browse" id="books-grid">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-600" />
@@ -701,7 +701,7 @@ export default function Bookstore() {
           )}
         </section>
 
-        <div className="w-full max-w-5xl mt-12">
+        <div className="w-full max-w-7xl mt-12">
           <p className="text-xs text-muted-foreground/50 text-center" data-testid="text-affiliate-disclosure">
             Links to Amazon are affiliate links. PodCap may earn a small commission on purchases at no extra cost to you.
           </p>

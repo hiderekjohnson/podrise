@@ -450,7 +450,7 @@ export default function PersonDetailPage() {
       <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-6xl">
           <nav className="flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-6 mt-2" data-testid="breadcrumb">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>

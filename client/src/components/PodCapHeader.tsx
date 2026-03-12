@@ -44,7 +44,7 @@ function PodCapWordmark({ variant = "light" }: { variant?: "light" | "dark" | "c
 export function PodCapHeader({ rightContent }: PodCapHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 min-h-[68px] flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-[68px] flex items-center justify-between">
         <Link href="/">
           <span data-testid="link-home-logo">
             <PodCapWordmark />

@@ -468,7 +468,7 @@ export default function BookDetailPage() {
       <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-6xl">
           <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-[15px] text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
             <ArrowLeft className="w-4 h-4" />
             Back to Bookstore

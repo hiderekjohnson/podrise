@@ -267,7 +267,7 @@ export default function PeopleDirectory() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-5xl mx-auto px-6 pt-12 pb-6">
+        <div className="max-w-7xl mx-auto px-6 pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -346,7 +346,7 @@ export default function TrendsPage() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-5xl mx-auto px-6 pt-12 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pt-12 pb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -363,9 +363,9 @@ export default function TrendsPage() {
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-6 pb-20">
+      <main className="max-w-7xl mx-auto px-6 pb-20">
         {isLoading ? (
-          <div className="space-y-4 max-w-6xl mx-auto">
+          <div className="space-y-4 max-w-7xl mx-auto">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse">
                 <div className="flex items-center gap-4">

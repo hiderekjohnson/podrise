@@ -103,7 +103,7 @@ export default function Home() {
           </motion.div>
         </section>
 
-        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -136,7 +136,7 @@ export default function Home() {
         </section>
 
         <section className="w-full py-14 sm:py-16 border-y border-border bg-card/30" data-testid="section-scale">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <p className="text-center text-[15px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-8" data-testid="text-scale-label">
                 The scale of what you've been missing
@@ -161,7 +161,7 @@ export default function Home() {
 
 
         <section className="w-full py-16 sm:py-20" data-testid="section-nav-grid">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-10">
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-explore-heading">
                 Explore the intelligence layer
@@ -212,7 +212,7 @@ export default function Home() {
         </section>
 
         <section className="w-full bg-card/50 border-y border-border py-16 sm:py-20" data-testid="section-featured-podcasts">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-10">
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-podcasts-heading">
                 Podcasts we cover
@@ -267,7 +267,7 @@ export default function Home() {
         </section>
 
         <section className="w-full py-16 sm:py-20" data-testid="section-featured-people">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-10">
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-people-heading">
                 Voices shaping the conversation

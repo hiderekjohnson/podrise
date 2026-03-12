@@ -142,7 +142,7 @@ export function EpisodePageLayout({
       />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <section className="w-full max-w-6xl pt-8 sm:pt-12 pb-8 sm:pb-10">
+        <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -244,7 +244,7 @@ export function EpisodePageLayout({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="w-full max-w-6xl"
+          className="w-full max-w-7xl"
         >
           {children}
         </motion.div>
@@ -254,7 +254,7 @@ export function EpisodePageLayout({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-6xl pb-16 mt-10"
+          className="w-full max-w-7xl pb-16 mt-10"
         >
           <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
@@ -292,7 +292,7 @@ export function EpisodePageLayout({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full max-w-6xl pb-16 mt-2"
+            className="w-full max-w-7xl pb-16 mt-2"
             data-testid="section-more-episodes"
           >
             <div className="flex items-center gap-2.5 mb-4">

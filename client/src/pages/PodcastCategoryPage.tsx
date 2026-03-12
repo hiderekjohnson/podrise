@@ -119,7 +119,7 @@ export default function PodcastCategoryPage() {
       <SEOHead category={category} podcasts={podcasts} />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-6xl">
           <nav className="flex items-center gap-1.5 text-base text-muted-foreground mb-6 pt-6 flex-wrap" data-testid="breadcrumbs">
             <Link href="/podcasts" className="hover:text-foreground transition-colors" data-testid="breadcrumb-podcasts">
               Podcasts
