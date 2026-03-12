@@ -1197,7 +1197,6 @@ export default function EpisodeRecapPage() {
                 <BookOpen className="w-4 h-4 text-amber-600" />
                 <h2 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned in This Episode</h2>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">Books recommended or discussed in this {episode.podcastName} episode.</p>
             </div>
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
