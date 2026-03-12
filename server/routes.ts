@@ -779,7 +779,7 @@ export async function registerRoutes(
         id: String(item.collectionId),
         name: item.collectionName,
         artistName: item.artistName,
-        artworkUrl: item.artworkUrl100,
+        artworkUrl: (item.artworkUrl600 || item.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb"),
       }));
       res.json({ results });
     } catch {
@@ -3160,7 +3160,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             artist: r.artistName || "",
             genres: (r.genres || []).filter((g: string) => g !== "Podcasts"),
             episodeCount: r.trackCount || 0,
-            artworkUrl600: r.artworkUrl600 || "",
+            artworkUrl600: (r.artworkUrl600 || "").replace(/\d+x\d+bb/, "1200x1200bb"),
           };
         }
       } catch (e) {

@@ -215,6 +215,32 @@ process.on("uncaughtException", (err) => {
         } catch (err) {
           console.warn("FTS index migration skipped:", err);
         }
+
+        try {
+          const artworkFix1 = await pool.query(`UPDATE landing_page_recaps SET artwork_url = REPLACE(artwork_url, '100x100bb', '1200x1200bb') WHERE artwork_url LIKE '%100x100bb%'`);
+          const artworkFix2 = await pool.query(`UPDATE landing_page_recaps SET artwork_url = REPLACE(artwork_url, '600x600bb', '1200x1200bb') WHERE artwork_url LIKE '%600x600bb%'`);
+          const artworkFix3 = await pool.query(`UPDATE podcast_directory SET artwork_url = REPLACE(artwork_url, '100x100bb', '1200x1200bb') WHERE artwork_url LIKE '%100x100bb%'`);
+          const artworkFix4 = await pool.query(`UPDATE podcast_directory SET artwork_url = REPLACE(artwork_url, '600x600bb', '1200x1200bb') WHERE artwork_url LIKE '%600x600bb%'`);
+          const totalFixed = (artworkFix1.rowCount || 0) + (artworkFix2.rowCount || 0) + (artworkFix3.rowCount || 0) + (artworkFix4.rowCount || 0);
+          if (totalFixed > 0) console.log(`[Migration] Upgraded ${totalFixed} artwork URLs to 1200x1200`);
+        } catch (err) {
+          console.warn("Artwork URL migration skipped:", err);
+        }
+
+        try {
+          const existingHosts = await pool.query(`SELECT COUNT(*) FROM podcast_hosts WHERE podcast_slug = 'myfirstmillion'`);
+          if (parseInt(existingHosts.rows[0].count) === 0) {
+            await pool.query(`
+              INSERT INTO podcast_hosts (podcast_slug, name, bio, photo_url, twitter_handle, linkedin_url, sort_order)
+              VALUES 
+              ('myfirstmillion', 'Sam Parr', 'Entrepreneur, investor, and media operator best known as the co-founder of The Hustle, a business newsletter acquired by HubSpot. Sam Parr focuses on identifying emerging business opportunities, analyzing startup trends, and sharing practical lessons from founders and operators.', '/hosts/myfirstmillion_1.png', 'theSamParr', 'https://www.linkedin.com/in/theSamParr/', 0),
+              ('myfirstmillion', 'Shaan Puri', 'Startup founder, investor, and entrepreneur known for building and investing in technology startups. Shaan Puri previously founded the e-commerce platform Blab and later became a venture partner at Founders Fund.', '/hosts/myfirstmillion_2.png', 'ShaanVP', 'https://www.linkedin.com/in/shaanpuri/', 1)
+            `);
+            console.log("[Migration] Seeded MFM podcast hosts");
+          }
+        } catch (err) {
+          console.warn("Podcast hosts seed skipped:", err);
+        }
       })();
 
       initStripe().catch((err) => {

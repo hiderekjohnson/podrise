@@ -581,7 +581,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           episodeSlug: epSlug,
           publishDate: releaseDate,
           duration: durationStr,
-          artworkUrl: podcast.artworkUrl || ep.artworkUrl600 || null,
+          artworkUrl: (podcast.artworkUrl || ep.artworkUrl600 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null,
           hosts: podcast.hosts || null,
           tldl: recap.tldl,
           whatHappened: recap.whatHappened,
@@ -906,7 +906,7 @@ export async function enrichPodcastMetadata(singleItunesId?: string) {
       const itunesTrackCount = itunesData?.trackCount;
       const itunesGenre = itunesData?.primaryGenreName || "";
       const releaseDate = itunesData?.releaseDate;
-      const artworkUrl = itunesData?.artworkUrl600 || itunesData?.artworkUrl100 || podcast.artworkUrl;
+      const artworkUrl = (itunesData?.artworkUrl600 || itunesData?.artworkUrl100 || podcast.artworkUrl || "").replace(/\d+x\d+bb/, "1200x1200bb");
 
       const prompt = `You are generating metadata for a podcast page on PodCap.io. Be factual and concise.
 
@@ -1269,7 +1269,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               episodeSlug: epSlug,
               publishDate: releaseDate,
               duration: durationStr,
-              artworkUrl: podcast.artworkUrl || ep.artworkUrl600 || null,
+              artworkUrl: (podcast.artworkUrl || ep.artworkUrl600 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null,
               hosts: podcast.hosts || null,
               tldl: recap.tldl,
               whatHappened: recap.whatHappened,
@@ -1389,7 +1389,7 @@ async function ensureLandingPageDirectoryEntries() {
           itunesId,
           slug,
           name: info?.collectionName || slug,
-          artworkUrl: info?.artworkUrl600 || info?.artworkUrl100 || null,
+          artworkUrl: (info?.artworkUrl600 || info?.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null,
           hasLandingPage: true,
         });
         updated++;
