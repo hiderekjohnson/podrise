@@ -5983,7 +5983,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
-  // Episode pages generation - one podcast at a time
+  // Episode pages generation - concurrent processing
   let epGenState = {
     running: false,
     autoQueue: false,
@@ -5994,12 +5994,20 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     generated: 0,
     failed: 0,
     skipped: 0,
+    concurrency: 3,
+    episodesPerSecond: 0,
+    startedAt: null as number | null,
     completedPodcasts: [] as string[],
   };
 
   app.get("/api/admin/episode-pages-generate/status", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated" });
-    res.json(epGenState);
+    const elapsed = epGenState.startedAt ? (Date.now() - epGenState.startedAt) / 1000 : 0;
+    const done = epGenState.generated + epGenState.failed + epGenState.skipped;
+    const eps = elapsed > 0 ? done / elapsed : 0;
+    const remaining = epGenState.totalEpisodes - done;
+    const etaMinutes = eps > 0 ? Math.round(remaining / eps / 60) : null;
+    res.json({ ...epGenState, episodesPerSecond: Math.round(eps * 100) / 100, etaMinutes });
   });
 
   app.post("/api/admin/episode-pages-generate/stop", async (req, res) => {
@@ -6088,7 +6096,86 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   }
 
-  async function generatePagesForPodcast(itunesId: string, forceRegenerate = false) {
+  async function processOneEpisode(
+    t: any,
+    podcastSlug: string,
+    itunesId: string,
+    podcastName: string,
+    hosts: string,
+    podcastArtwork: string,
+    forceRegenerate: boolean,
+    generateRecapFn: typeof import("./recapGenerator").generateRecapFromTranscript,
+  ) {
+    const epTitle = t.episode_title || "Untitled";
+    const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+
+    const client = await pool.connect();
+    try {
+      if (!forceRegenerate) {
+        const { rows: existing } = await client.query(
+          `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND episode_slug = $2 LIMIT 1`,
+          [itunesId, epSlug]
+        );
+        if (existing.length > 0) {
+          return "skipped";
+        }
+      }
+
+      const recap = await generateRecapFn(t.transcript, podcastName, epTitle, t.description || null);
+      if (!recap) {
+        console.log(`[EpGen] Failed to generate recap for "${epTitle}"`);
+        return "failed";
+      }
+
+      const publishDate = t.date_published
+        ? new Date(t.date_published * 1000).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
+
+      const durationSec = t.duration || 0;
+      const durationMin = Math.round(durationSec / 60);
+      const durationStr = durationMin >= 60
+        ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+        : `${durationMin} minutes`;
+
+      await client.query(
+        `INSERT INTO landing_page_recaps
+         (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+         ON CONFLICT (slug, episode_slug) DO UPDATE SET
+           tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
+           quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
+           topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
+           sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
+        [
+          podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
+          durationStr, t.image_url || podcastArtwork, hosts,
+          recap.tldl, recap.whatHappened,
+          recap.keyInsights, recap.quote, recap.quoteAttribution,
+          recap.keyTopics,
+          recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+          recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+          t.audio_url || "",
+          recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+          recap.guests ? JSON.stringify(recap.guests) : "[]",
+          recap.resources ? JSON.stringify(recap.resources) : "[]",
+        ]
+      );
+
+      await postProcessRecap({
+        transcript: t.transcript,
+        podcastSlug, episodeSlug: epSlug, podcastName, episodeTitle: epTitle,
+        itunesId, hosts,
+        guests: recap.guests || null,
+        resources: recap.resources || null,
+      });
+
+      return "generated";
+    } finally {
+      client.release();
+    }
+  }
+
+  async function generatePagesForPodcast(itunesId: string, forceRegenerate = false, limit?: number) {
     const { ITUNES_ID_TO_SLUG } = await import("./podcastLandingMap");
     const { generateRecapFromTranscript } = await import("./recapGenerator");
 
@@ -6114,129 +6201,80 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       const query = forceRegenerate
         ? `SELECT et.* FROM episode_transcripts et
-           WHERE et.podcast_id = $1
-             AND et.transcript IS NOT NULL
-             AND et.transcript != ''
+           WHERE et.podcast_id = $1 AND et.transcript IS NOT NULL AND et.transcript != ''
            ORDER BY et.date_published DESC NULLS LAST`
         : `SELECT et.* FROM episode_transcripts et
-           WHERE et.podcast_id = $1
-             AND et.transcript IS NOT NULL
-             AND et.transcript != ''
+           WHERE et.podcast_id = $1 AND et.transcript IS NOT NULL AND et.transcript != ''
              AND NOT EXISTS (
                SELECT 1 FROM landing_page_recaps lpr
                WHERE lpr.itunes_id = $1
-                 AND (
-                   lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-                   OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g'))
-                 )
+                 AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+                   OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
              )
            ORDER BY et.date_published DESC NULLS LAST`;
 
-      const { rows: transcripts } = await client.query(query, [itunesId]);
+      let { rows: transcripts } = await client.query(query, [itunesId]);
+      client.release();
+
+      if (limit && limit > 0) {
+        transcripts = transcripts.slice(0, limit);
+      }
 
       epGenState.totalEpisodes = transcripts.length;
       epGenState.currentEpisode = 0;
       epGenState.generated = 0;
       epGenState.failed = 0;
       epGenState.skipped = 0;
+      epGenState.startedAt = Date.now();
 
-      console.log(`[EpGen] Starting ${podcastName}: ${transcripts.length} episodes to process`);
+      const concurrency = epGenState.concurrency;
+      console.log(`[EpGen] Starting ${podcastName}: ${transcripts.length} episodes, concurrency=${concurrency}`);
 
-      for (const t of transcripts) {
-        if (!epGenState.running) {
-          console.log(`[EpGen] Stopped by user`);
-          break;
-        }
+      let idx = 0;
+      async function runWorker(workerId: number) {
+        while (epGenState.running) {
+          const myIdx = idx++;
+          if (myIdx >= transcripts.length) break;
 
-        epGenState.currentEpisode++;
-
-        try {
+          const t = transcripts[myIdx];
           const epTitle = t.episode_title || "Untitled";
-          const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
-          if (!forceRegenerate) {
-            const { rows: existing } = await client.query(
-              `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND episode_slug = $2 LIMIT 1`,
-              [itunesId, epSlug]
+          try {
+            const result = await processOneEpisode(
+              t, podcastSlug, itunesId, podcastName, hosts, podcastArtwork,
+              forceRegenerate, generateRecapFromTranscript
             );
-            if (existing.length > 0) {
+
+            epGenState.currentEpisode++;
+            if (result === "skipped") {
               epGenState.skipped++;
-              continue;
+            } else if (result === "generated") {
+              epGenState.generated++;
+              console.log(`[EpGen][W${workerId}] ✓ ${epTitle} (${epGenState.generated + epGenState.failed}/${transcripts.length})`);
+            } else {
+              epGenState.failed++;
             }
-          }
-
-          const recap = await generateRecapFromTranscript(t.transcript, podcastName, epTitle, t.description || null);
-          if (!recap) {
+          } catch (err) {
+            epGenState.currentEpisode++;
             epGenState.failed++;
-            console.log(`[EpGen] Failed to generate recap for "${epTitle}"`);
-            continue;
+            console.error(`[EpGen][W${workerId}] ✗ ${epTitle}:`, (err as Error).message);
           }
-
-          const publishDate = t.date_published
-            ? new Date(t.date_published * 1000).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0];
-
-          const durationSec = t.duration || 0;
-          const durationMin = Math.round(durationSec / 60);
-          const durationStr = durationMin >= 60
-            ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
-            : `${durationMin} minutes`;
-
-          await client.query(
-            `INSERT INTO landing_page_recaps 
-             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
-             ON CONFLICT (slug, episode_slug) DO UPDATE SET
-               tldl = EXCLUDED.tldl,
-               what_happened = EXCLUDED.what_happened,
-               key_insights = EXCLUDED.key_insights,
-               quote = EXCLUDED.quote,
-               quote_attribution = EXCLUDED.quote_attribution,
-               key_topics = EXCLUDED.key_topics,
-               topic_contexts = EXCLUDED.topic_contexts,
-               top_questions = EXCLUDED.top_questions,
-               audio_url = EXCLUDED.audio_url,
-               sponsors = EXCLUDED.sponsors,
-               guests = EXCLUDED.guests,
-               resources = EXCLUDED.resources`,
-            [
-              podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
-              durationStr, t.image_url || podcastArtwork, hosts,
-              recap.tldl, recap.whatHappened,
-              recap.keyInsights, recap.quote, recap.quoteAttribution,
-              recap.keyTopics,
-              recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
-              recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
-              t.audio_url || "",
-              recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
-              recap.guests ? JSON.stringify(recap.guests) : "[]",
-              recap.resources ? JSON.stringify(recap.resources) : "[]",
-            ]
-          );
-
-          await postProcessRecap({
-            transcript: t.transcript,
-            podcastSlug, episodeSlug: epSlug, podcastName, episodeTitle: epTitle,
-            itunesId, hosts,
-            guests: recap.guests || null,
-            resources: recap.resources || null,
-          });
-
-          epGenState.generated++;
-          if (epGenState.currentEpisode % 5 === 0) {
-            console.log(`[EpGen] ${podcastName}: ${epGenState.currentEpisode}/${epGenState.totalEpisodes} (${epGenState.generated} generated, ${epGenState.failed} failed)`);
-          }
-        } catch (err) {
-          epGenState.failed++;
-          console.error(`[EpGen] Error processing episode:`, err);
         }
       }
 
+      const workers = [];
+      for (let w = 0; w < concurrency; w++) {
+        workers.push(runWorker(w + 1));
+      }
+      await Promise.all(workers);
+
       epGenState.completedPodcasts.push(itunesId);
-      console.log(`[EpGen] Finished ${podcastName}: ${epGenState.generated} generated, ${epGenState.failed} failed, ${epGenState.skipped} skipped`);
+      const elapsed = Math.round((Date.now() - (epGenState.startedAt || Date.now())) / 1000);
+      console.log(`[EpGen] Finished ${podcastName}: ${epGenState.generated} generated, ${epGenState.failed} failed, ${epGenState.skipped} skipped in ${elapsed}s`);
+    } catch (err) {
+      console.error(`[EpGen] Fatal error for ${itunesId}:`, err);
     } finally {
       activeEpGenItunesIds.delete(itunesId);
-      client.release();
     }
   }
 
@@ -6294,12 +6332,15 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
     const { itunesId } = req.params;
     const forceRegenerate = req.body?.forceRegenerate === true;
+    const limit = req.body?.limit ? parseInt(req.body.limit, 10) : undefined;
+    const concurrency = req.body?.concurrency ? Math.min(parseInt(req.body.concurrency, 10), 10) : 3;
     epGenState.running = true;
     epGenState.autoQueue = false;
+    epGenState.concurrency = concurrency;
     epGenState.completedPodcasts = [];
-    res.json({ started: true, itunesId, forceRegenerate });
+    res.json({ started: true, itunesId, forceRegenerate, limit: limit || "all", concurrency });
 
-    generatePagesForPodcast(itunesId, forceRegenerate).then(() => {
+    generatePagesForPodcast(itunesId, forceRegenerate, limit).then(() => {
       epGenState.running = false;
     }).catch(err => {
       console.error(`[EpGen] Fatal error:`, err);
