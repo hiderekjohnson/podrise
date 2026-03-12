@@ -912,9 +912,12 @@ export default function EpisodeRecapPage() {
             <div className="px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
               <div className="flex items-center gap-2.5">
                 <Lightbulb className="w-4 h-4 text-amber-500" />
-                <span className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Key Takeaways</span>
+                <span className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                  {guests.length > 0 && guests[0]?.name
+                    ? `Key Takeaways from ${guests[0].name} on ${episode.podcastName}`
+                    : `Key Takeaways from This Episode of ${episode.podcastName}`}
+                </span>
               </div>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1.5">The biggest insights from this episode of {episode.podcastName}.</p>
             </div>
             <div className="px-6 py-5 space-y-3">
               {episode.keyInsights.map((insight: string, i: number) => (

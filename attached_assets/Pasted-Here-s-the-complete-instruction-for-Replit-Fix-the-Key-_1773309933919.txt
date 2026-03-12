@@ -1,0 +1,22 @@
+Here's the complete instruction for Replit:
+
+Fix the Key Takeaways section — two changes:
+Change 1 — Section heading
+Make the heading dynamic using this logic:
+
+If the episode has a guest: Key Takeaways from [Guest Name] on [Podcast Name]
+If the episode has no guest: Key Takeaways from This Episode of [Podcast Name]
+
+Change 2 — Rewrite the takeaway copy format
+Every takeaway must contain a named person and a specific claim. No generic lessons. The current takeaways are too vague to rank in search — "curiosity and passion are essential" could describe a thousand podcasts.
+The rule: if you removed the episode title from the page, could you tell which episode this takeaway came from? If not, rewrite it.
+Apply this to the current episode as an example of the correct format:
+Before: "Curiosity and passion are essential for differentiating yourself in life and business."
+After: "Bill Gurley argues that obsession and curiosity — not talent — are what separate top performers, pointing to Burt Beveridge who started Tito's Vodka at 40 after a self-reflection exercise."
+Before: "Peer groups provide powerful support and learning opportunities, especially in early career stages."
+After: "Bill Gurley and Sam Parr both credit peer groups as career accelerators — Sam built the Anti-MBA group in San Francisco during a difficult period and credits it as a turning point."
+Before: "Continuous learning and adaptability are critical to staying relevant in the age of AI."
+After: "Bill Gurley: 'The people most at threat by AI are the ones that aren't continuously learning' — he sees AI as a jetpack for high-agency individuals, not a job replacement threat."
+Before: "Financial discipline creates flexibility and freedom to pursue meaningful career paths."
+After: "Bill Gurley warns against lifestyle creep, citing Wall Street colleagues who earned millions but had zero freedom — Sam Parr shares his own budgeting strategy that gave him the runway to take risks."
+This means the AI prompt that generates takeaways needs to be updated to follow this format for every episode going forward. The prompt should instruct the model to always include the speaker's name, a specific named reference (person, company, book, or story), and a concrete claim — never a generic lesson.
