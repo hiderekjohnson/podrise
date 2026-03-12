@@ -36,7 +36,7 @@ export function Footer() {
               <li>
                 <Link href="/bookstore" className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-bookstore">
                   Bookstore
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
+                  <span className="text-[14px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-full leading-none">Beta</span>
                 </Link>
               </li>
             </ul>

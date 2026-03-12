@@ -154,7 +154,7 @@ function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName }:
         const q = getAutoQuestion(entityName, entityType, podcastName);
         chatRef.current?.open(entityName, entityType, q);
       }}
-      className="inline-flex items-center gap-1 text-[13px] font-medium text-primary/70 hover:text-primary transition-colors group/ai"
+      className="inline-flex items-center gap-1 text-[16px] font-medium text-primary/70 hover:text-primary transition-colors group/ai"
       data-testid={`deep-dive-${entityType}-${entityName.toLowerCase().replace(/\s+/g, "-")}`}
     >
       <Sparkles className="w-3 h-3 group-hover/ai:scale-110 transition-transform" />
@@ -270,7 +270,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
         data-testid="open-ai-chat-fab"
       >
         <Sparkles className="w-4 h-4" />
-        <span className="text-[14px] font-semibold">Ask AI about this episode</span>
+        <span className="text-[16px] font-semibold">Ask AI about this episode</span>
       </button>
     );
   }
@@ -283,11 +283,11 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-[14px] font-semibold text-foreground truncate">Ask about this episode</p>
+            <p className="text-[16px] font-semibold text-foreground truncate">Ask about this episode</p>
             {currentEntity && (
               <div className="flex items-center gap-1.5">
-                <p className="text-[12px] text-primary truncate">Focused on: {currentEntity.name}</p>
-                <button onClick={clearEntity} className="text-muted-foreground/50 hover:text-muted-foreground shrink-0"><X className="w-3 h-3" /></button>
+                <p className="text-[16px] text-primary truncate">Focused on: {currentEntity.name}</p>
+                <button onClick={clearEntity} className="text-[#52525B] hover:text-muted-foreground shrink-0"><X className="w-3 h-3" /></button>
               </div>
             )}
           </div>
@@ -300,12 +300,12 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
       <div className="flex-1 max-h-[360px] overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-2">
-            <p className="text-[13px] text-muted-foreground">{currentEntity ? `Ask anything about ${currentEntity.name}:` : "What would you like to know?"}</p>
+            <p className="text-[16px] text-muted-foreground">{currentEntity ? `Ask anything about ${currentEntity.name}:` : "What would you like to know?"}</p>
             {entitySuggestions.map((q, i) => (
               <button
                 key={i}
                 onClick={() => sendMessage(q)}
-                className="block w-full text-left text-[14px] px-3 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:bg-primary/[0.04] hover:border-primary/20 text-foreground transition-all"
+                className="block w-full text-left text-[16px] px-3 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:bg-primary/[0.04] hover:border-primary/20 text-foreground transition-all"
                 data-testid={`suggested-question-${i}`}
               >
                 {q}
@@ -315,7 +315,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
         )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed ${
+            <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[16px] leading-relaxed ${
               msg.role === "user"
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted/50 text-foreground"
@@ -346,7 +346,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
             placeholder="Ask anything about this episode..."
-            className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/50 outline-none"
+            className="flex-1 bg-transparent text-[16px] text-foreground placeholder:text-[#52525B] outline-none"
             data-testid="ai-chat-input"
           />
           <button
@@ -395,7 +395,7 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
                 href={sponsor.url.startsWith("http") ? sponsor.url : `https://${sponsor.url}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+                className="inline-flex items-center gap-1 text-[16px] font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
                 data-testid={`sponsor-url-${index}`}
               >
                 Visit
@@ -412,11 +412,11 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
             <div className="mt-3 flex items-center gap-2 flex-wrap" data-testid={`sponsor-coupon-${index}`}>
               <div className="inline-flex items-center gap-2 bg-teal-500/[0.06] border border-teal-500/[0.15] rounded-lg px-3 py-1.5">
                 <Ticket className="w-4 h-4 text-teal-500 shrink-0" />
-                <span className="text-sm font-bold text-teal-700 dark:text-teal-300 tracking-wide font-mono">{sponsor.couponCode}</span>
+                <span className="text-[16px] font-bold text-teal-700 dark:text-teal-300 tracking-wide font-mono">{sponsor.couponCode}</span>
               </div>
               <button
                 onClick={handleCopy}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground transition-colors"
                 data-testid={`sponsor-copy-${index}`}
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-teal-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -425,7 +425,7 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
             </div>
           )}
           {sponsor.howToRedeem && (
-            <p className="text-[15px] text-muted-foreground/80 mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
+            <p className="text-[16px] text-[#3F3F46] mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
               {sponsor.howToRedeem}
             </p>
           )}
@@ -447,7 +447,7 @@ function QuoteShareBar({ quote, podcastName, episodeTitle }: { quote: EpisodeQuo
         href={`https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors text-[13px] font-medium text-muted-foreground"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors text-[16px] font-medium text-muted-foreground"
         title="Share on X"
         data-testid={`share-x-${quote.id}`}
       >
@@ -474,7 +474,7 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
       data-testid={`quote-card-${index}`}
     >
       <div className="px-6 py-5">
-        <blockquote className="text-[15px] leading-[1.8] font-medium text-foreground mb-4" data-testid={`quote-text-${index}`}>
+        <blockquote className="text-[16px] leading-[1.8] font-medium text-foreground mb-4" data-testid={`quote-text-${index}`}>
           <span className="text-primary/40 text-2xl mr-1">{"\u201C"}</span>
           {quote.quoteText}
           <span className="text-primary/40 text-2xl ml-1">{"\u201D"}</span>
@@ -491,12 +491,12 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary">{quote.speakerName.charAt(0)}</span>
+                <span className="text-[16px] font-bold text-primary">{quote.speakerName.charAt(0)}</span>
               </div>
             )}
             <div>
-              <p className="text-[15px] font-bold text-foreground">{quote.speakerName}</p>
-              {quote.speakerRole && <p className="text-[13px] text-muted-foreground">{quote.speakerRole}</p>}
+              <p className="text-[16px] font-bold text-foreground">{quote.speakerName}</p>
+              {quote.speakerRole && <p className="text-[16px] text-muted-foreground">{quote.speakerRole}</p>}
             </div>
           </div>
           <QuoteShareBar quote={quote} podcastName={podcastName} episodeTitle={episodeTitle} />
@@ -834,7 +834,7 @@ export default function EpisodeRecapPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="space-y-8"
       >
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[13px] text-muted-foreground" data-testid="breadcrumb-nav">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground" data-testid="breadcrumb-nav">
           <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
           <ChevronRight className="w-3 h-3" />
           <Link href="/podcasts" className="hover:text-foreground transition-colors">Podcasts</Link>
@@ -848,7 +848,7 @@ export default function EpisodeRecapPage() {
           {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-key-insights"
             >
               Takeaways
@@ -856,7 +856,7 @@ export default function EpisodeRecapPage() {
           )}
           <button
             onClick={() => scrollTo("section-what-happened")}
-            className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+            className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
             data-testid="nav-what-happened"
           >
             Recap
@@ -864,7 +864,7 @@ export default function EpisodeRecapPage() {
           {(guests.length > 0 || hasHosts) && (
             <button
               onClick={() => scrollTo("section-guests")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-people"
             >
               Participants
@@ -873,7 +873,7 @@ export default function EpisodeRecapPage() {
           {(notablePeople.length > 0 || notableCompanies.length > 0) && (
             <button
               onClick={() => scrollTo("section-mentions")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-mentions"
             >
               Mentions
@@ -882,7 +882,7 @@ export default function EpisodeRecapPage() {
           {hasBooks && (
             <button
               onClick={() => scrollTo("section-books")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-books" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-books" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-books"
             >
               Books
@@ -892,7 +892,7 @@ export default function EpisodeRecapPage() {
           {hasTopQuestions && (
             <button
               onClick={() => scrollTo("section-top-questions")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-top-questions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-top-questions"
             >
               Q&A
@@ -901,7 +901,7 @@ export default function EpisodeRecapPage() {
           {hasQuotes && (
             <button
               onClick={() => scrollTo("section-quotes")}
-              className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-quotes"
             >
               Quotes
@@ -950,7 +950,7 @@ export default function EpisodeRecapPage() {
                   className="flex gap-3.5 items-start group/insight"
                   data-testid={`insight-${i}`}
                 >
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 text-[15px] font-bold">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 text-[16px] font-bold">
                     {i + 1}
                   </span>
                   <div className="flex-1">
@@ -1014,7 +1014,7 @@ export default function EpisodeRecapPage() {
                               </Link>
                             ) : guest.name}
                           </h4>
-                          <p className="text-[15px] leading-[1.8] text-muted-foreground mt-1">
+                          <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">
                             {guest.title ? guest.title + ". " : ""}{guest.bio || ""}
                           </p>
                           {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
@@ -1087,7 +1087,7 @@ export default function EpisodeRecapPage() {
                             ) : host.name}
                           </h4>
                           {host.bio && (
-                            <p className="text-[15px] leading-[1.8] text-muted-foreground mt-1">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
+                            <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
                           )}
                           {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
                             <div className="flex items-center gap-3 mt-2.5">
@@ -1141,7 +1141,7 @@ export default function EpisodeRecapPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Users className="w-3.5 h-3.5 text-orange-500" />
-                    <h3 className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">People</h3>
+                    <h3 className="text-[16px] font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">People</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {(showAllPeople ? notablePeople : notablePeople.slice(0, INITIAL_SHOW)).map((person, i) => (
@@ -1170,7 +1170,7 @@ export default function EpisodeRecapPage() {
                     ))}
                   </div>
                   {notablePeople.length > INITIAL_SHOW && (
-                    <button onClick={() => setShowAllPeople(p => !p)} className="mt-4 text-[15px] font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors" data-testid="show-more-people">
+                    <button onClick={() => setShowAllPeople(p => !p)} className="mt-4 text-[16px] font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors" data-testid="show-more-people">
                       {showAllPeople ? "Show Less" : `Show ${notablePeople.length - INITIAL_SHOW} More`}
                     </button>
                   )}
@@ -1185,7 +1185,7 @@ export default function EpisodeRecapPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Building2 className="w-3.5 h-3.5 text-blue-500" />
-                    <h3 className="text-sm font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider m-0">Companies</h3>
+                    <h3 className="text-[16px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider m-0">Companies</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {(showAllCompanies ? notableCompanies : notableCompanies.slice(0, INITIAL_SHOW)).map((company, i) => (
@@ -1214,7 +1214,7 @@ export default function EpisodeRecapPage() {
                     ))}
                   </div>
                   {notableCompanies.length > INITIAL_SHOW && (
-                    <button onClick={() => setShowAllCompanies(c => !c)} className="mt-4 text-[15px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" data-testid="show-more-companies">
+                    <button onClick={() => setShowAllCompanies(c => !c)} className="mt-4 text-[16px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" data-testid="show-more-companies">
                       {showAllCompanies ? "Show Less" : `Show ${notableCompanies.length - INITIAL_SHOW} More`}
                     </button>
                   )}
@@ -1261,38 +1261,38 @@ export default function EpisodeRecapPage() {
                         )}
                         <div className="flex-1 min-w-0">
                           {bookSlug ? (
-                            <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                            <Link href={`/bookstore/${bookSlug}`} className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
                               {book.name}
                             </Link>
                           ) : (
-                            <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                            <h3 className="text-[16px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
                               {book.name}
                             </h3>
                           )}
                           {displayAuthor && displayAuthor !== "null" && (
-                            <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
+                            <p className="text-[16px] text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
                               by {displayAuthor}
                             </p>
                           )}
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             {enrichment?.rating && (
-                              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                              <span className="inline-flex items-center gap-0.5 text-[16px] font-semibold text-amber-600 dark:text-amber-400">
                                 <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                                 {enrichment.rating.toFixed(1)}
                               </span>
                             )}
                             {enrichment?.pageCount && (
-                              <span className="text-xs text-muted-foreground">{enrichment.pageCount}p</span>
+                              <span className="text-[16px] text-muted-foreground">{enrichment.pageCount}p</span>
                             )}
                             {enrichment?.publishYear && (
-                              <span className="text-xs text-muted-foreground">{enrichment.publishYear}</span>
+                              <span className="text-[16px] text-muted-foreground">{enrichment.publishYear}</span>
                             )}
                           </div>
                         </div>
                       </div>
 
                       {displayDescription && (
-                        <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
+                        <p className="text-[16px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
                           {displayDescription.length > 180 ? displayDescription.slice(0, 180).replace(/\s+\S*$/, "") + "." : displayDescription}
                         </p>
                       )}
@@ -1305,7 +1305,7 @@ export default function EpisodeRecapPage() {
                 })}
               </div>
               {books.length > INITIAL_SHOW && (
-                <button onClick={() => setShowAllBooks(b => !b)} className="mt-4 text-[15px] font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" data-testid="show-more-books">
+                <button onClick={() => setShowAllBooks(b => !b)} className="mt-4 text-[16px] font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" data-testid="show-more-books">
                   {showAllBooks ? "Show Less" : `Show ${books.length - INITIAL_SHOW} More`}
                 </button>
               )}
@@ -1352,7 +1352,7 @@ export default function EpisodeRecapPage() {
                 <div className="px-0 pt-3 pb-1 border-t border-black/[0.04] dark:border-white/[0.06] mt-2">
                   <button
                     onClick={() => chatRef.current?.open()}
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary/80 hover:text-primary transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[16px] font-medium text-primary/80 hover:text-primary transition-colors"
                     data-testid="ask-custom-question"
                   >
                     <Sparkles className="w-3.5 h-3.5" />

@@ -418,7 +418,7 @@ export default function EpisodeArchivePage() {
                       if (!insightsSlug) return null;
                       return (
                         <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
-                          <span className="text-[13px] px-2 py-0.5 rounded-md bg-muted/60 text-foreground/70 font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
+                          <span className="text-[16px] px-2 py-0.5 rounded-md bg-muted/60 text-[#3F3F46] font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                             {topic.name}
                           </span>
                         </Link>
@@ -439,7 +439,7 @@ export default function EpisodeArchivePage() {
                 placeholder={`Search episodes by title, topic, or keyword...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-12 pl-12 pr-4 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all placeholder:text-muted-foreground/40"
+                className="w-full h-12 pl-12 pr-4 bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-xl text-[16px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all placeholder:text-muted-foreground/40"
               />
               {searchTerm && (
                 <button
@@ -457,10 +457,10 @@ export default function EpisodeArchivePage() {
                 <div className="relative" data-dropdown="year">
                   <button
                     onClick={() => { const next = !yearDropdownOpen; closeAllDropdowns(); setYearDropdownOpen(next); }}
-                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       selectedYear
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-year"
                   >
@@ -484,7 +484,7 @@ export default function EpisodeArchivePage() {
                           <button
                             key={y.year}
                             onClick={() => { setSelectedYear(y.year); setYearDropdownOpen(false); }}
-                            className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
+                            className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
                               selectedYear === y.year ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
                             }`}
                             data-testid={`option-year-${y.year}`}
@@ -502,10 +502,10 @@ export default function EpisodeArchivePage() {
                 <div className="relative" data-dropdown="topic">
                   <button
                     onClick={() => { const next = !topicDropdownOpen; closeAllDropdowns(); setTopicDropdownOpen(next); }}
-                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       selectedTopic
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-topic"
                   >
@@ -530,7 +530,7 @@ export default function EpisodeArchivePage() {
                           placeholder="Search topics..."
                           value={topicSearch}
                           onChange={(e) => setTopicSearch(e.target.value)}
-                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-[15px] text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-[16px] text-foreground focus:outline-none placeholder:text-muted-foreground/40"
                           data-testid="input-search-topic"
                           autoFocus
                         />
@@ -540,7 +540,7 @@ export default function EpisodeArchivePage() {
                           <button
                             key={t.topic}
                             onClick={() => { setSelectedTopic(t.topic); setTopicDropdownOpen(false); setTopicSearch(""); }}
-                            className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
+                            className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
                               selectedTopic === t.topic ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
                             }`}
                             data-testid={`option-topic-${t.topic}`}
@@ -549,7 +549,7 @@ export default function EpisodeArchivePage() {
                           </button>
                         ))}
                         {filteredTopics.length === 0 && (
-                          <p className="px-4 py-3 text-[15px] text-muted-foreground/50">No topics found</p>
+                          <p className="px-4 py-3 text-[16px] text-[#52525B]">No topics found</p>
                         )}
                       </div>
                     </div>
@@ -561,10 +561,10 @@ export default function EpisodeArchivePage() {
                 <div className="relative" data-dropdown="guest">
                   <button
                     onClick={() => { const next = !guestDropdownOpen; closeAllDropdowns(); setGuestDropdownOpen(next); }}
-                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       selectedGuest
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-guest"
                   >
@@ -589,7 +589,7 @@ export default function EpisodeArchivePage() {
                           placeholder="Search guests..."
                           value={guestSearch}
                           onChange={(e) => setGuestSearch(e.target.value)}
-                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-[15px] text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                          className="w-full h-9 px-3 bg-black/[0.03] dark:bg-white/[0.06] rounded-lg text-[16px] text-foreground focus:outline-none placeholder:text-muted-foreground/40"
                           data-testid="input-search-guest"
                           autoFocus
                         />
@@ -599,7 +599,7 @@ export default function EpisodeArchivePage() {
                           <button
                             key={g.name}
                             onClick={() => { setSelectedGuest(g.name); setGuestDropdownOpen(false); setGuestSearch(""); }}
-                            className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
+                            className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-primary/[0.06] transition-colors flex items-center justify-between ${
                               selectedGuest === g.name ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
                             }`}
                             data-testid={`option-guest-${g.name}`}
@@ -608,7 +608,7 @@ export default function EpisodeArchivePage() {
                           </button>
                         ))}
                         {filteredGuests.length === 0 && (
-                          <p className="px-4 py-3 text-[15px] text-muted-foreground/50">No guests found</p>
+                          <p className="px-4 py-3 text-[16px] text-[#52525B]">No guests found</p>
                         )}
                       </div>
                     </div>
@@ -619,10 +619,10 @@ export default function EpisodeArchivePage() {
               {guestList.length > 0 && (
                 <button
                   onClick={() => setGuestPresence(guestPresence === "all" ? "with" : guestPresence === "with" ? "without" : "all")}
-                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                     guestPresence !== "all"
                       ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
                   }`}
                   data-testid="button-filter-guest-presence"
                 >
@@ -643,10 +643,10 @@ export default function EpisodeArchivePage() {
                 <div className="relative" data-dropdown="duration">
                   <button
                     onClick={() => { const next = !durationDropdownOpen; closeAllDropdowns(); setDurationDropdownOpen(next); }}
-                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                    className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       durationRange !== "all"
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-duration"
                   >
@@ -669,7 +669,7 @@ export default function EpisodeArchivePage() {
                         <button
                           key={range}
                           onClick={() => { setDurationRange(range); setDurationDropdownOpen(false); }}
-                          className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors ${
+                          className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-primary/[0.06] transition-colors ${
                             durationRange === range ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
                           }`}
                           data-testid={`option-duration-${range}`}
@@ -685,10 +685,10 @@ export default function EpisodeArchivePage() {
               <div className="relative ml-auto" data-dropdown="sort">
                 <button
                   onClick={() => { const next = !sortDropdownOpen; closeAllDropdowns(); setSortDropdownOpen(next); }}
-                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[15px] font-medium border transition-all ${
+                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                     sort !== "newest"
                       ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-foreground/70 hover:border-primary/[0.15]"
+                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
                   }`}
                   data-testid="button-sort"
                 >
@@ -702,7 +702,7 @@ export default function EpisodeArchivePage() {
                       <button
                         key={opt}
                         onClick={() => { setSort(opt); setSortDropdownOpen(false); }}
-                        className={`w-full text-left px-4 py-2.5 text-[15px] hover:bg-primary/[0.06] transition-colors ${
+                        className={`w-full text-left px-4 py-2.5 text-[16px] hover:bg-primary/[0.06] transition-colors ${
                           sort === opt ? "bg-primary/[0.08] text-primary font-semibold" : "text-foreground"
                         }`}
                         data-testid={`option-sort-${opt}`}
@@ -718,44 +718,44 @@ export default function EpisodeArchivePage() {
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 {debouncedSearch && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full max-w-[200px]">
                     <Search className="w-3 h-3 flex-shrink-0" />
                     <span className="truncate">"{debouncedSearch}"</span>
                     <button onClick={() => { setSearchTerm(""); setDebouncedSearch(""); }} className="p-0.5 rounded hover:bg-primary/20 flex-shrink-0"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {selectedYear && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full">
                     {selectedYear}
                     <button onClick={() => setSelectedYear("")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {selectedTopic && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full max-w-[200px]">
                     <span className="truncate">{selectedTopic}</span>
                     <button onClick={() => setSelectedTopic("")} className="p-0.5 rounded hover:bg-primary/20 flex-shrink-0"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {selectedGuest && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full max-w-[200px]">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full max-w-[200px]">
                     <span className="truncate">{selectedGuest}</span>
                     <button onClick={() => setSelectedGuest("")} className="p-0.5 rounded hover:bg-primary/20 flex-shrink-0"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {guestPresence !== "all" && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full">
                     {guestPresence === "with" ? "With guests" : "Hosts only"}
                     <button onClick={() => setGuestPresence("all")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {durationRange !== "all" && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full">
                     {DURATION_LABELS[durationRange].split(" (")[0]}
                     <button onClick={() => setDurationRange("all")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {sort !== "newest" && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[13px] font-semibold rounded-full">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/[0.06] text-primary text-[16px] font-semibold rounded-full">
                     {sortLabels[sort]}
                     <button onClick={() => setSort("newest")} className="p-0.5 rounded hover:bg-primary/20"><X className="w-3 h-3" /></button>
                   </span>
@@ -763,7 +763,7 @@ export default function EpisodeArchivePage() {
                 {(activeFilterCount + (sort !== "newest" ? 1 : 0)) > 1 && (
                   <button
                     onClick={clearAllFilters}
-                    className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors ml-1"
+                    className="text-[16px] font-medium text-muted-foreground hover:text-foreground transition-colors ml-1"
                     data-testid="button-clear-all"
                   >
                     Clear all
@@ -812,7 +812,7 @@ export default function EpisodeArchivePage() {
                 <div className="flex justify-center mt-8">
                   <button
                     onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[15px] font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[16px] font-semibold text-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors"
                     data-testid="button-show-more"
                   >
                     <ChevronDown className="w-4 h-4" />

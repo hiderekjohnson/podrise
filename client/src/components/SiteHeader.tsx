@@ -15,21 +15,21 @@ export function SiteHeader() {
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
             href="/podcasts"
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
+            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
             data-testid="nav-podcasts"
           >
             Podcasts
           </Link>
           <Link
             href="/trends"
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
+            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
             data-testid="nav-trends"
           >
             Trends
           </Link>
           <Link
             href="/insights"
-            className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
+            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
             data-testid="nav-insights"
           >
             Insights
@@ -37,7 +37,7 @@ export function SiteHeader() {
           {user ? (
             <Link
               href="/dashboard"
-              className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 flex items-center"
+              className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
               data-testid="nav-dashboard"
             >
               Dashboard
@@ -46,14 +46,14 @@ export function SiteHeader() {
             <>
               <button
                 onClick={() => navigate("/login")}
-                className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors min-h-[44px] px-3 flex items-center"
+                className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
                 data-testid="nav-login"
               >
                 Log in
               </button>
               <button
                 onClick={() => navigate("/get-started")}
-                className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-lg text-[15px] font-semibold hover:bg-foreground/90 transition-colors min-h-[44px]"
+                className="flex items-center gap-2 px-7 py-3 bg-[#6366F1] text-white rounded-[10px] text-[17px] font-semibold hover:bg-[#4F46E5] hover:shadow-[0_6px_20px_rgba(99,102,241,0.35)] transition-all min-h-[44px]"
                 data-testid="nav-create-account"
               >
                 Create Account

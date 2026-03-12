@@ -1,0 +1,149 @@
+PodCap — Apply Brand Style Guide + Full Accessibility Fix
+
+Please go through the entire codebase and apply every rule below. This affects every component, every page, every screen size. Do not leave any element untouched if it violates these rules.
+
+FONTS
+
+Load this in the head if not already there: https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap
+
+Apply DM Sans as the font family for all elements across the entire site. Apply DM Mono to code, pre, and any monospace elements like URLs.
+
+COLORS
+
+Replace every color in the codebase with these exact values:
+
+Primary indigo: #6366F1
+Violet accent: #8B5CF6
+Indigo light: #A5B4FC
+Dark background: #08080F
+Dark surface: #0D0D1F
+Dark border: #27272A
+Light background: #F7F7FC
+Light surface: #F4F4F5
+Light border: #E4E4E7
+Heading text: #09090B
+Body text: #09090B
+Muted text: #3F3F46
+Subtle text: #52525B
+Placeholder text: #71717A
+Dark mode body text: #F4F4F5
+Dark mode muted text: #A1A1AA
+Brand gradient: linear-gradient(145deg, #6366F1, #8B5CF6)
+Icon tint background: #EEF2FF
+
+TEXT SIZES
+
+Apply these to every single element on the site with no exceptions:
+
+Body and paragraph text: 18px, weight 400, line-height 1.65, color #09090B
+Captions, tags, meta, dates, labels: 16px minimum. Nothing smaller than 16px anywhere on the site, ever, including small print, timestamps, and helper text
+Person names and card titles: 20px, weight 700
+Subtitles and roles under names: 16px, weight 400, color #3F3F46
+Section subheadings like descriptive lines under headings: 24px, weight 500, color #3F3F46
+Section headings: 36px, weight 700, color #09090B
+Hero headings: 56px minimum, weight 700, color #09090B
+Navigation links: 17px, weight 500
+All buttons: 17px, weight 600
+All inputs and placeholders: 17px
+Badges and pills: 14px minimum, weight 500
+Footer text: 16px
+Breadcrumbs: 16px
+
+The rule: if any text anywhere on the site is below 16px, make it 16px. No exceptions whatsoever.
+
+BUTTONS
+
+Minimum height: 52px
+Padding: 14px top and bottom, 28px left and right
+Font size: 17px, weight 600
+Font family: DM Sans
+Border radius: 10px
+Primary button: background #6366F1, white text, no border. Hover: background #4F46E5, add box-shadow 0 6px 20px rgba(99,102,241,0.35)
+Secondary button: transparent background, 2px solid #18181B border, #18181B text. Hover: background #F4F4F5
+Ghost button: no background, no border, color #6366F1, weight 600
+All buttons must have a focus ring: outline 3px solid #6366F1, outline-offset 3px
+Button text must never be cut off or truncated
+
+NAVIGATION
+
+Navbar height: 68px minimum
+Logo height in navbar: 36px minimum, must be clearly readable at all times
+Nav link font size: 17px, weight 500, color #3F3F46
+Active nav link: color #6366F1, weight 600
+Mobile menu tap targets: 48px tall minimum rows
+
+CARDS
+
+Padding: 24px minimum on all sides, never less than this
+Title: 20px, weight 700, color #09090B
+Body text: 16px, line-height 1.6, color #3F3F46
+Metadata like category, date, tags: 15px, color #3F3F46
+Border: 1px solid #E4E4E7
+Hover state: box-shadow 0 4px 16px rgba(0,0,0,0.08) and a subtle upward translate
+CTA and view all links on cards: 16px, weight 600, color #6366F1
+
+IMAGES AND AVATARS
+
+Person avatar circles: 96px on desktop, 72px on mobile. This is the minimum, go bigger if space allows. Do not let these shrink under any circumstance
+Podcast cover art cards: 200px minimum width on desktop, 140px minimum on mobile
+All img tags must have alt attributes
+
+ICONS
+
+Standalone icons used in buttons or navigation: 24px minimum
+Icons placed next to text: 20px, vertically centered with the text
+All icon colors must visually contrast against their background
+
+FORMS AND SEARCH
+
+Input height: 52px minimum
+Search bar height: 52px minimum
+Font size inside all inputs: 17px
+Label above each input: 16px, weight 600, color #09090B
+Input border: 1.5px solid #D4D4D8
+Input focus state: border changes to 2px solid #6366F1, add box-shadow 0 0 0 3px rgba(99,102,241,0.15)
+Search icon inside search bar: 20px
+Placeholder color: #71717A
+
+BADGES AND TAGS
+
+Minimum font size: 14px, weight 500
+Minimum padding: 6px top and bottom, 12px left and right
+Minimum height: 28px
+Text must never overflow or be cut off
+
+SPACING
+
+Section vertical padding: 80px on desktop, 48px on mobile
+Gap between cards in any grid: 24px minimum
+Gap between a section heading and its content: 32px
+Gap between heading and subheading: 16px
+Maximum paragraph and body text column width: 680px. Never let reading text span the full page width
+Breadcrumb margin bottom: 24px
+
+MOBILE
+
+Minimum font size on any screen at any breakpoint: 16px
+Buttons on mobile: full width, 52px tall
+All clickable and tappable elements: 44x44px minimum touch target
+Avatar circles on mobile: 72px
+Card padding on mobile: 20px
+All grid layouts must collapse to a single column below 640px screen width
+
+SPECIFIC THINGS I CAN SEE THAT NEED FIXING RIGHT NOW
+
+Person cards in the Notable Voices section: the avatar images are too small, bring them to 96px. The person names need to be 20px bold. The role descriptions below the names need to be 16px in color #3F3F46.
+
+Podcast cover artwork in the Explore Top Podcasts section: the artwork must be at least 200px wide. The podcast title below the artwork should be 18px bold. The category text should be 15px in color #3F3F46.
+
+Section subheadings like the line that reads "The most influential founders, investors, and thinkers who shape the conversations across the podcast ecosystem" are currently too small and too light in color. Make them 24px and color #3F3F46.
+
+The View all people button needs to match the primary button style: 52px tall, 17px font weight 600, background #6366F1, white text, border radius 10px.
+
+Breadcrumbs on episode pages are currently too small. Bring them to 16px.
+
+Any text that uses opacity to appear lighter than its base color should be replaced with the actual darker hex color values listed above instead of using opacity.
+
+THE OVERALL RULE
+
+Go through every single component file. If you find any font size below 16px, any color lighter than #52525B on a white or light background, any button shorter than 52px, any person avatar smaller than 72px, any podcast artwork smaller than 140px, or any card padding less than 20px, fix it immediately. A 65 year old should be able to read and tap everything on this site comfortably on a phone in sunlight. When in doubt, make it bigger, darker, and more readable.

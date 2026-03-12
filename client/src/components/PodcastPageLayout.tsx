@@ -103,7 +103,7 @@ export function PodcastPageLayout({
         rightContent={
           <button
             onClick={() => setShowRecapsModal(true)}
-            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[16px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
             data-testid="button-get-recaps"
           >
             Get {name} Recaps
@@ -148,7 +148,7 @@ export function PodcastPageLayout({
                 {hosts && (
                   <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-hosts">
                     <Users className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
-                    <span className="font-medium text-foreground/80">{hosts}</span>
+                    <span className="font-medium text-[#3F3F46]">{hosts}</span>
                   </span>
                 )}
                 {totalEpisodes && (
@@ -166,9 +166,9 @@ export function PodcastPageLayout({
                 {appleRating && (
                   <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-apple-rating">
                     <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                    <span className="font-medium text-foreground/80">{appleRating}</span>
+                    <span className="font-medium text-[#3F3F46]">{appleRating}</span>
                     {appleRatingCount && (
-                      <span className="text-muted-foreground/70">({appleRatingCount >= 1000 ? `${(appleRatingCount / 1000).toFixed(appleRatingCount >= 10000 ? 0 : 1)}K` : appleRatingCount.toLocaleString()} ratings)</span>
+                      <span className="text-[#3F3F46]">({appleRatingCount >= 1000 ? `${(appleRatingCount / 1000).toFixed(appleRatingCount >= 10000 ? 0 : 1)}K` : appleRatingCount.toLocaleString()} ratings)</span>
                     )}
                   </span>
                 )}
@@ -179,7 +179,7 @@ export function PodcastPageLayout({
                   href={appleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors min-h-[44px]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px]"
                   data-testid="hero-link-apple"
                   title="Listen on Apple Podcasts"
                 >
@@ -191,7 +191,7 @@ export function PodcastPageLayout({
                   href={effectiveSpotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors min-h-[44px]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px]"
                   data-testid="hero-link-spotify"
                   title="Listen on Spotify"
                 >
@@ -204,7 +204,7 @@ export function PodcastPageLayout({
                     href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors min-h-[44px]"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px]"
                     data-testid="hero-link-youtube"
                     title="Watch on YouTube"
                   >
@@ -229,7 +229,7 @@ export function PodcastPageLayout({
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3.5 text-[15px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[48px] ${
+                className={`flex items-center gap-2 px-4 py-3.5 text-[16px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[48px] ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:border-black/[0.08]"

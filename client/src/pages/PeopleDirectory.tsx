@@ -83,7 +83,7 @@ function SEOHead() {
 function TrendBadge({ trend, changePercent }: { trend: string; changePercent: number }) {
   if (trend === "rising") {
     return (
-      <span className="inline-flex items-center gap-1 text-[13px] font-mono text-emerald-600 dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 text-[16px] font-mono text-emerald-600 dark:text-emerald-400">
         <TrendingUp className="w-3 h-3" />
         +{Math.abs(changePercent)}%
       </span>
@@ -91,14 +91,14 @@ function TrendBadge({ trend, changePercent }: { trend: string; changePercent: nu
   }
   if (trend === "falling") {
     return (
-      <span className="inline-flex items-center gap-1 text-[13px] font-mono text-red-500 dark:text-red-400">
+      <span className="inline-flex items-center gap-1 text-[16px] font-mono text-red-500 dark:text-red-400">
         <TrendingDown className="w-3 h-3" />
         {changePercent}%
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[13px] font-mono text-muted-foreground/60">
+    <span className="inline-flex items-center gap-1 text-[16px] font-mono text-[#52525B]">
       <Minus className="w-3 h-3" />
       Stable
     </span>
@@ -120,7 +120,7 @@ function MentionBar({ count, maxCount }: { count: number; maxCount: number }) {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-sm">
+    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-[16px]">
       <p className="font-semibold text-foreground truncate max-w-[200px]">{label}</p>
       <p className="text-muted-foreground">{payload[0].value} total mentions</p>
     </div>
@@ -130,7 +130,7 @@ function CustomTooltip({ active, payload, label }: any) {
 function PieTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-sm">
+    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-[16px]">
       <p className="font-semibold text-foreground">{payload[0].name}</p>
       <p className="text-muted-foreground">{payload[0].value} people</p>
     </div>
@@ -299,7 +299,7 @@ export default function PeopleDirectory() {
                 data-testid="input-search-people"
               />
               {searchQuery && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] font-mono text-muted-foreground/60">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[16px] font-mono text-[#52525B]">
                   {filteredPeople.length} result{filteredPeople.length !== 1 ? "s" : ""}
                 </span>
               )}
@@ -318,7 +318,7 @@ export default function PeopleDirectory() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-[14px] font-medium rounded-lg whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 text-[16px] font-medium rounded-lg whitespace-nowrap transition-all ${
                     isActive
                       ? "bg-primary/[0.12] text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -361,7 +361,7 @@ export default function PeopleDirectory() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                   <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-6">
-                    <h3 className="text-[15px] font-semibold text-foreground mb-4" data-testid="chart-heading-top-mentioned">Top Mentioned People</h3>
+                    <h3 className="text-[16px] font-semibold text-foreground mb-4" data-testid="chart-heading-top-mentioned">Top Mentioned People</h3>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={topBarChartData} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
@@ -376,7 +376,7 @@ export default function PeopleDirectory() {
 
                   <div className="grid grid-cols-1 gap-6">
                     <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-6">
-                      <h3 className="text-[15px] font-semibold text-foreground mb-4" data-testid="chart-heading-categories">By Category</h3>
+                      <h3 className="text-[16px] font-semibold text-foreground mb-4" data-testid="chart-heading-categories">By Category</h3>
                       <div className="flex items-center gap-4">
                         <div className="w-[140px] h-[140px] flex-shrink-0">
                           <ResponsiveContainer width="100%" height="100%">
@@ -400,7 +400,7 @@ export default function PeopleDirectory() {
                         </div>
                         <div className="flex-1 space-y-1.5 max-h-[140px] overflow-y-auto">
                           {categoryDistribution.map((cat, i) => (
-                            <div key={cat.name} className="flex items-center gap-2 text-[13px]">
+                            <div key={cat.name} className="flex items-center gap-2 text-[16px]">
                               <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                               <span className="text-muted-foreground truncate flex-1">{cat.name}</span>
                               <span className="font-mono text-foreground font-medium">{cat.value}</span>
@@ -411,7 +411,7 @@ export default function PeopleDirectory() {
                     </div>
 
                     <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-6">
-                      <h3 className="text-[15px] font-semibold text-foreground mb-4" data-testid="chart-heading-trends">Trend Distribution</h3>
+                      <h3 className="text-[16px] font-semibold text-foreground mb-4" data-testid="chart-heading-trends">Trend Distribution</h3>
                       <div className="flex items-center gap-6">
                         <div className="w-[100px] h-[100px] flex-shrink-0">
                           <ResponsiveContainer width="100%" height="100%">
@@ -437,8 +437,8 @@ export default function PeopleDirectory() {
                           {trendDistribution.map(d => (
                             <div key={d.name} className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                              <span className="text-[13px] text-muted-foreground flex-1">{d.name}</span>
-                              <span className="text-[15px] font-mono font-semibold text-foreground">{d.value}</span>
+                              <span className="text-[16px] text-muted-foreground flex-1">{d.name}</span>
+                              <span className="text-[16px] font-mono font-semibold text-foreground">{d.value}</span>
                             </div>
                           ))}
                         </div>
@@ -449,8 +449,8 @@ export default function PeopleDirectory() {
 
                 <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-[15px] font-semibold text-foreground">Quick Movers</h3>
-                    <button onClick={() => setActiveTab("rising")} className="text-[13px] font-medium text-primary hover:text-primary/80 flex items-center gap-1 transition-colors" data-testid="link-see-all-rising">
+                    <h3 className="text-[16px] font-semibold text-foreground">Quick Movers</h3>
+                    <button onClick={() => setActiveTab("rising")} className="text-[16px] font-medium text-primary hover:text-primary/80 flex items-center gap-1 transition-colors" data-testid="link-see-all-rising">
                       See all <ArrowUpRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -467,8 +467,8 @@ export default function PeopleDirectory() {
                               onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
                             />
                             <div className="flex-1 min-w-0">
-                              <span className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate">{person.name}</span>
-                              <span className="text-[12px] text-muted-foreground/60 truncate block">{person.title}</span>
+                              <span className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate">{person.name}</span>
+                              <span className="text-[16px] text-[#52525B] truncate block">{person.title}</span>
                             </div>
                             <TrendBadge trend={person.trend} changePercent={person.changePercent} />
                           </div>
@@ -515,9 +515,9 @@ export default function PeopleDirectory() {
                                 <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors truncate">
                                   {person.name}
                                 </h3>
-                                <p className="text-[13px] text-muted-foreground/70 truncate">{person.title}</p>
+                                <p className="text-[16px] text-[#3F3F46] truncate">{person.title}</p>
                                 <div className="flex items-center gap-3 mt-2">
-                                  <span className="text-[13px] font-mono text-foreground font-semibold">{person.recentMentions} mentions</span>
+                                  <span className="text-[16px] font-mono text-foreground font-semibold">{person.recentMentions} mentions</span>
                                   <TrendBadge trend={person.trend} changePercent={person.changePercent} />
                                 </div>
                               </div>
@@ -541,10 +541,10 @@ export default function PeopleDirectory() {
                 <div className="flex items-center gap-2 mb-6">
                   <TrendingUp className="w-5 h-5 text-emerald-500" />
                   <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-rising-people">Rising</h2>
-                  <span className="text-[13px] text-muted-foreground/60 ml-1">Biggest increase in mentions</span>
+                  <span className="text-[16px] text-[#52525B] ml-1">Biggest increase in mentions</span>
                 </div>
                 <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[16px] font-mono text-[#52525B] uppercase tracking-wider">
                     <span className="w-6">#</span>
                     <span>Person</span>
                     <span>Recent</span>
@@ -556,7 +556,7 @@ export default function PeopleDirectory() {
                     return (
                       <Link key={person.slug} href={`/people/${person.slug}`} data-testid={`row-rising-${person.slug}`}>
                         <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 items-center px-5 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0">
-                          <span className="text-[15px] font-mono text-muted-foreground/40 w-6">{i + 1}</span>
+                          <span className="text-[16px] font-mono text-muted-foreground/40 w-6">{i + 1}</span>
                           <div className="flex items-center gap-3 min-w-0">
                             <img
                               src={personData?.imageUrl || '/people/default-avatar.png'}
@@ -565,12 +565,12 @@ export default function PeopleDirectory() {
                               onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
                             />
                             <div className="min-w-0">
-                              <span className="text-[15px] font-semibold text-foreground block truncate">{person.name}</span>
-                              <span className="text-[12px] text-muted-foreground/60 truncate block">{person.title}</span>
+                              <span className="text-[16px] font-semibold text-foreground block truncate">{person.name}</span>
+                              <span className="text-[16px] text-[#52525B] truncate block">{person.title}</span>
                             </div>
                           </div>
-                          <span className="text-[14px] font-mono text-foreground font-medium">{person.recentMentions}</span>
-                          <span className="hidden sm:block text-[14px] font-mono text-muted-foreground">{person.mentionCount + person.guestCount}</span>
+                          <span className="text-[16px] font-mono text-foreground font-medium">{person.recentMentions}</span>
+                          <span className="hidden sm:block text-[16px] font-mono text-muted-foreground">{person.mentionCount + person.guestCount}</span>
                           <TrendBadge trend={person.trend} changePercent={person.changePercent} />
                         </div>
                       </Link>
@@ -590,7 +590,7 @@ export default function PeopleDirectory() {
                 <div className="flex flex-wrap items-center gap-3 mb-5">
                   <div className="flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-primary" />
-                    <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-people">
+                    <h2 className="text-[16px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-people">
                       {isSearching ? "Search Results" : "All People"}
                     </h2>
                   </div>
@@ -600,7 +600,7 @@ export default function PeopleDirectory() {
                       <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-7 py-1.5 bg-card border border-border rounded-lg text-[14px] text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="appearance-none pl-3 pr-7 py-1.5 bg-card border border-border rounded-lg text-[16px] text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         data-testid="select-category-filter"
                       >
                         {CATEGORIES.map(cat => (
@@ -614,7 +614,7 @@ export default function PeopleDirectory() {
                         <button
                           key={val}
                           onClick={() => setSortBy(val)}
-                          className={`px-3 py-1.5 text-[13px] font-medium transition-all ${sortBy === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                          className={`px-3 py-1.5 text-[16px] font-medium transition-all ${sortBy === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
                           data-testid={`sort-${val}`}
                         >
                           {label}
@@ -625,7 +625,7 @@ export default function PeopleDirectory() {
                 </div>
 
                 <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden">
-                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[13px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+                  <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.04] text-[16px] font-mono text-[#52525B] uppercase tracking-wider">
                     <span className="w-6">#</span>
                     <span>Person</span>
                     <span>Mentions</span>
@@ -644,7 +644,7 @@ export default function PeopleDirectory() {
                       >
                         <Link href={`/people/${person.slug}`} data-testid={`card-person-${person.slug}`}>
                           <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] gap-x-4 items-center px-5 py-4 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group">
-                            <span className="text-[14px] font-mono text-muted-foreground/40 w-6">{index + 1}</span>
+                            <span className="text-[16px] font-mono text-muted-foreground/40 w-6">{index + 1}</span>
                             <div className="flex items-center gap-3 min-w-0">
                               <img
                                 src={personData?.imageUrl || '/people/default-avatar.png'}
@@ -654,13 +654,13 @@ export default function PeopleDirectory() {
                                 onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
                               />
                               <div className="min-w-0">
-                                <span className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate" data-testid={`text-person-name-${person.slug}`}>
+                                <span className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate" data-testid={`text-person-name-${person.slug}`}>
                                   {person.name}
                                 </span>
-                                <span className="text-[13px] text-muted-foreground/60 truncate block">{person.title}</span>
+                                <span className="text-[16px] text-[#52525B] truncate block">{person.title}</span>
                               </div>
                             </div>
-                            <span className="text-[14px] font-mono text-foreground font-medium">{totalActivity}</span>
+                            <span className="text-[16px] font-mono text-foreground font-medium">{totalActivity}</span>
                             <div className="hidden sm:block">
                               <MentionBar count={totalActivity} maxCount={maxMentions} />
                             </div>
@@ -685,7 +685,7 @@ export default function PeopleDirectory() {
                   <div className="flex justify-center pt-6">
                     <button
                       onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                      className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-[15px] font-semibold text-primary hover:bg-primary/15 transition-colors"
+                      className="px-6 py-2.5 bg-primary/10 border border-primary/20 rounded-xl text-[16px] font-semibold text-primary hover:bg-primary/15 transition-colors"
                       data-testid="button-show-more"
                     >
                       Show More

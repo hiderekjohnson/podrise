@@ -128,7 +128,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                     Not now
                   </button>
                 </div>
-                <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA]">Cancel anytime. No questions asked.</p>
+                <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA]">Cancel anytime. No questions asked.</p>
               </motion.div>
             </motion.div>
           )}
@@ -176,7 +176,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                 </div>
               ) : filteredResults.length > 0 ? (
                 <div className="py-2">
-                  <p className="px-5 pt-3 pb-2 text-[15px] font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">
+                  <p className="px-5 pt-3 pb-2 text-[16px] font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">
                     Results
                   </p>
                   {filteredResults.map((podcast) => (
@@ -201,7 +201,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                           <p className="font-semibold text-foreground text-base truncate">
                             {podcast.name}
                           </p>
-                          <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] truncate mt-0.5">
+                          <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] truncate mt-0.5">
                             {podcast.artistName}
                           </p>
                         </div>
@@ -212,7 +212,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
               ) : (
                 <div className="px-6 py-10 text-center">
                   <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">No podcasts found</p>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Try a different search term</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Try a different search term</p>
                 </div>
               )}
             </motion.div>

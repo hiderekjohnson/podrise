@@ -66,25 +66,25 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
               <span className="w-3 h-3 rounded-full bg-green-400/70" />
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              <Inbox className="w-4 h-4 text-muted-foreground/50" />
-              <span className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Inbox</span>
+              <Inbox className="w-4 h-4 text-[#52525B]" />
+              <span className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Inbox</span>
             </div>
           </div>
           <div className="space-y-1.5 text-base">
             <div className="flex items-center gap-3">
-              <span className="text-muted-foreground/60 w-12 shrink-0">From:</span>
+              <span className="text-[#52525B] w-12 shrink-0">From:</span>
               <div className="flex items-center gap-2">
                 <PodCapWordmark />
                 <span className="text-foreground font-medium">PodCap Daily Recap</span>
-                <span className="text-muted-foreground/50">&lt;digest@podcap.io&gt;</span>
+                <span className="text-[#52525B]">&lt;digest@podcap.io&gt;</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-muted-foreground/60 w-12 shrink-0">To:</span>
-              <span className="text-foreground/70">you@email.com</span>
+              <span className="text-[#52525B] w-12 shrink-0">To:</span>
+              <span className="text-[#3F3F46]">you@email.com</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-muted-foreground/60 w-12 shrink-0">Subject:</span>
+              <span className="text-[#52525B] w-12 shrink-0">Subject:</span>
               <span className="text-foreground font-medium">{recap.episodeTitle}</span>
             </div>
           </div>
@@ -178,7 +178,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             <div className="flex items-center gap-2">
               <PodCapWordmark />
             </div>
-            <span className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA]">podcap.io</span>
+            <span className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA]">podcap.io</span>
           </div>
         </div>
       </div>

@@ -14,7 +14,7 @@ export function LinkedHosts({ hosts, className }: { hosts: string; className?: s
         <Link
           key={i}
           href={`/people/${slug}`}
-          className="text-foreground/70 hover:text-primary transition-colors"
+          className="text-[#3F3F46] hover:text-primary transition-colors"
           onClick={(e) => e.stopPropagation()}
           data-testid={`link-host-${slug}`}
         >

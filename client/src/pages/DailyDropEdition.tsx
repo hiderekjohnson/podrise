@@ -140,7 +140,7 @@ export default function DailyDropEdition() {
               <Newspaper className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-lg font-display font-bold text-foreground mb-1">Edition not found</p>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">We couldn't find a Signal edition for this date.</p>
-              <Link href="/daily-drop" className="text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors">
+              <Link href="/daily-drop" className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
                 Browse all editions →
               </Link>
             </div>
@@ -154,14 +154,14 @@ export default function DailyDropEdition() {
               >
                 <Link
                   href="/daily-drop"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-5"
+                  className="inline-flex items-center gap-1.5 text-[16px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-5"
                   data-testid="link-back-editions"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   All Editions
                 </Link>
 
-                <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-primary mb-4">
+                <div className="flex items-center gap-2 text-[16px] font-semibold uppercase tracking-wider text-primary mb-4">
                   <Newspaper className="w-3.5 h-3.5" />
                   Signal
                   <span className="text-muted-foreground/40 mx-1">·</span>
@@ -200,7 +200,7 @@ export default function DailyDropEdition() {
                 {data.prevDate ? (
                   <Link
                     href={`/daily-drop/${data.prevDate}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors"
                     data-testid="link-prev-edition"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -210,7 +210,7 @@ export default function DailyDropEdition() {
                 {data.nextDate ? (
                   <Link
                     href={`/daily-drop/${data.nextDate}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors"
                     data-testid="link-next-edition"
                   >
                     Next

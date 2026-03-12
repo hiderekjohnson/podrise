@@ -166,7 +166,7 @@ export default function Leaderboard() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search podcasts by name, category, or host..."
-                className="w-full h-12 pl-11 pr-10 bg-white border border-black/[0.08] rounded-xl text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50 shadow-sm"
+                className="w-full h-12 pl-11 pr-10 bg-white border border-black/[0.08] rounded-xl text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-[#52525B] shadow-sm"
                 data-testid="input-podcast-search"
               />
               {searchTerm && (
@@ -183,7 +183,7 @@ export default function Leaderboard() {
             <div className="flex flex-wrap gap-2" data-testid="category-filters">
               <button
                 onClick={() => setSelectedCategory(null)}
-                className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${!selectedCategory ? "bg-primary text-white shadow-sm" : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"}`}
+                className={`px-3.5 py-1.5 rounded-full text-[16px] font-bold transition-all ${!selectedCategory ? "bg-primary text-white shadow-sm" : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"}`}
                 data-testid="filter-all"
               >
                 All
@@ -196,7 +196,7 @@ export default function Leaderboard() {
                   <button
                     key={group}
                     onClick={() => setSelectedCategory(isActive ? null : group)}
-                    className={`px-3.5 py-1.5 rounded-full text-[15px] font-bold transition-all ${isActive ? "bg-primary text-white shadow-sm" : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"}`}
+                    className={`px-3.5 py-1.5 rounded-full text-[16px] font-bold transition-all ${isActive ? "bg-primary text-white shadow-sm" : "bg-black/[0.04] text-muted-foreground hover:bg-black/[0.08] hover:text-foreground"}`}
                     data-testid={`filter-${group.toLowerCase().replace(/[^a-z]/g, "-")}`}
                   >
                     {group}
@@ -223,7 +223,7 @@ export default function Leaderboard() {
               <div className="px-8 py-16 text-center">
                 <Headphones className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-base font-medium text-muted-foreground mb-1">No podcasts found</p>
-                <p className="text-[15px] text-muted-foreground/70">
+                <p className="text-[16px] text-[#3F3F46]">
                   Try a different search or{" "}
                   <button onClick={() => { setSearchTerm(""); setSelectedCategory(null); }} className="text-primary hover:underline" data-testid="button-clear-filters">
                     clear all filters
@@ -253,7 +253,7 @@ export default function Leaderboard() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
+                        <p className="text-[16px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
                           {podcast.name}
                         </p>
                         <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
@@ -267,7 +267,7 @@ export default function Leaderboard() {
                   <div className="px-6 sm:px-8 py-5 border-t border-black/[0.06] text-center">
                     <button
                       onClick={() => setShowAll(true)}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary/[0.06] hover:bg-primary/[0.12] text-primary text-[15px] font-bold transition-colors"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary/[0.06] hover:bg-primary/[0.12] text-primary text-[16px] font-bold transition-colors"
                       data-testid="button-show-all-podcasts"
                     >
                       Show all podcasts
@@ -302,7 +302,7 @@ export default function Leaderboard() {
                     <h3 className="text-base font-bold text-foreground">{categoryName}</h3>
                     <a
                       href={`/podcasts/${categorySlug}`}
-                      className="text-[15px] font-medium text-primary hover:underline flex items-center gap-1"
+                      className="text-[16px] font-medium text-primary hover:underline flex items-center gap-1"
                       data-testid={`link-category-${categorySlug}`}
                     >
                       View all
@@ -317,13 +317,13 @@ export default function Leaderboard() {
                         className="bg-white border border-black/[0.06] rounded-xl p-4 transition-colors hover:bg-black/[0.015] group"
                         data-testid={`topic-card-${categorySlug}-${topic.slug}`}
                       >
-                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">
+                        <p className="text-[16px] font-bold text-foreground group-hover:text-primary transition-colors">
                           {topic.name}
                         </p>
-                        <p className="text-[13px] text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-[16px] text-muted-foreground mt-1 line-clamp-2">
                           {topic.description}
                         </p>
-                        <p className="text-[13px] text-muted-foreground/70 mt-2 font-medium">
+                        <p className="text-[16px] text-[#3F3F46] mt-2 font-medium">
                           Browse podcasts
                         </p>
                       </a>

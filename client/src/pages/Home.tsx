@@ -73,7 +73,7 @@ export default function Home() {
 
         <section className="w-full max-w-4xl mx-auto text-center px-4 sm:px-6 pt-16 sm:pt-24 pb-16 sm:pb-20">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex flex-col items-center gap-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-[13px] font-semibold uppercase tracking-wider" data-testid="badge-tagline">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-[16px] font-semibold uppercase tracking-wider" data-testid="badge-tagline">
               <BarChart3 className="w-3.5 h-3.5" />
               Podcast Intelligence Platform
             </div>
@@ -138,7 +138,7 @@ export default function Home() {
         <section className="w-full py-14 sm:py-16 border-y border-border bg-card/30" data-testid="section-scale">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <p className="text-center text-[15px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-8" data-testid="text-scale-label">
+              <p className="text-center text-[16px] font-display font-bold uppercase tracking-[0.2em] text-[#52525B] mb-8" data-testid="text-scale-label">
                 The scale of what you've been missing
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
@@ -150,8 +150,8 @@ export default function Home() {
                 ].map((stat) => (
                   <div key={stat.label} className="text-center py-4">
                     <p className="text-[2rem] sm:text-[2.5rem] font-display font-extrabold tracking-tight leading-none text-foreground" data-testid={`stat-${stat.label.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`}>{stat.value}</p>
-                    <p className="text-[14px] font-semibold text-foreground/70 mt-1.5">{stat.label}</p>
-                    <p className="text-[13px] text-muted-foreground/50">{stat.sub}</p>
+                    <p className="text-[16px] font-semibold text-[#3F3F46] mt-1.5">{stat.label}</p>
+                    <p className="text-[16px] text-[#52525B]">{stat.sub}</p>
                   </div>
                 ))}
               </div>
@@ -177,7 +177,7 @@ export default function Home() {
                     <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by topic, explore our picks, or search for exactly the podcast you're looking for.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by topic, explore our picks, or search for exactly the podcast you're looking for.</p>
                 </div>
               </Link>
               <Link href="/insights" className="block">
@@ -186,7 +186,7 @@ export default function Home() {
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Insights</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what's being said across podcasts on AI, crypto, leadership, markets, and more.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what's being said across podcasts on AI, crypto, leadership, markets, and more.</p>
                 </div>
               </Link>
               <Link href="/people" className="block">
@@ -195,7 +195,7 @@ export default function Home() {
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">People</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover founders, investors, and leaders across the podcast ecosystem.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover founders, investors, and leaders across the podcast ecosystem.</p>
                 </div>
               </Link>
               <Link href="/companies" className="block">
@@ -204,7 +204,7 @@ export default function Home() {
                     <Building2 className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Companies</h3>
-                  <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">See what's being said about the companies shaping technology, business, and culture.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">See what's being said about the companies shaping technology, business, and culture.</p>
                 </div>
               </Link>
             </div>
@@ -242,13 +242,13 @@ export default function Home() {
                         className="w-full aspect-square object-cover group-hover:scale-[1.03] transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
-                        <span className="text-white text-[15px] font-bold">View Intelligence →</span>
+                        <span className="text-white text-[16px] font-bold">View Intelligence →</span>
                       </div>
                     </div>
                     <p className="mt-2.5 text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                       {podcast.name}
                     </p>
-                    <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-1">{podcast.category}</p>
+                    <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-1">{podcast.category}</p>
                   </div>
                 </motion.div>
               ))}
@@ -303,7 +303,7 @@ export default function Home() {
                     <p className="mt-3 text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
                       {person.name}
                     </p>
-                    <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2 leading-relaxed">
                       {person.title}
                     </p>
                   </div>
@@ -370,7 +370,7 @@ export default function Home() {
                 Create Your Free Account
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <p className="text-[13px] text-muted-foreground">Free forever. No credit card required.</p>
+              <p className="text-[16px] text-muted-foreground">Free forever. No credit card required.</p>
             </motion.div>
           </div>
         </section>

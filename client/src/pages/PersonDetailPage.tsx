@@ -115,11 +115,11 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}`} className="text-[15px] font-semibold text-foreground hover:text-primary transition-colors leading-snug" data-testid={`link-episode-${episode.slug}-${episode.episode_slug}`}>
+            <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}`} className="text-[16px] font-semibold text-foreground hover:text-primary transition-colors leading-snug" data-testid={`link-episode-${episode.slug}-${episode.episode_slug}`}>
               {episode.episode_title}
             </Link>
             {showType && (
-              <span className={`text-[15px] px-2.5 py-0.5 rounded-full font-medium flex-shrink-0 mt-0.5 ${isGuest ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              <span className={`text-[16px] px-2.5 py-0.5 rounded-full font-medium flex-shrink-0 mt-0.5 ${isGuest ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                 {isGuest ? "Guest" : "Mentioned"}
               </span>
             )}
@@ -144,7 +144,7 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
               &ldquo;{episode.context}&rdquo;
             </p>
           )}
-          <div className="mt-2 flex items-center gap-3 text-[13px]">
+          <div className="mt-2 flex items-center gap-3 text-[16px]">
             <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}`} className="text-primary hover:text-primary/80 font-medium transition-colors" data-testid={`link-recap-${episode.slug}-${episode.episode_slug}`}>
               Read Recap
             </Link>
@@ -503,7 +503,7 @@ export default function PersonDetailPage() {
                     </h1>
                     <p className="text-base text-muted-foreground mb-3">{person.title}</p>
 
-                    <p className="text-[15px] text-muted-foreground/80 leading-relaxed mb-4" data-testid="text-person-intro">
+                    <p className="text-[16px] text-[#3F3F46] leading-relaxed mb-4" data-testid="text-person-intro">
                       {personData?.bio
                         ? personData.bio
                         : hasGuestAppearances
@@ -555,7 +555,7 @@ export default function PersonDetailPage() {
 
                     {personData?.relatedCompanies && personData.relatedCompanies.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border" data-testid="section-related-companies">
-                        <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related Companies</p>
+                        <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Related Companies</p>
                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                           {personData.relatedCompanies.map((companySlug) => {
                             if (!EXISTING_COMPANY_SLUGS.has(companySlug)) return null;
@@ -574,7 +574,7 @@ export default function PersonDetailPage() {
 
                     {personData?.similarPeople && personData.similarPeople.length > 0 && (
                       <div className={`mt-4 ${personData?.relatedCompanies?.length ? "" : "pt-4 border-t border-border"}`} data-testid="section-similar-people">
-                        <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar People</p>
+                        <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Similar People</p>
                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                           {personData.similarPeople.map((personSlug) => {
                             if (!EXISTING_PEOPLE_SLUGS.has(personSlug)) return null;
@@ -600,7 +600,7 @@ export default function PersonDetailPage() {
                     <button
                       key={s.id}
                       onClick={() => scrollToNav(s.id)}
-                      className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                      className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
                       data-testid={`nav-${s.id}`}
                     >
                       {s.label}
@@ -634,8 +634,8 @@ export default function PersonDetailPage() {
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors">{podcast.name}</p>
-                            <p className="text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2">{podcast.description}</p>
-                            <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
+                            <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2">{podcast.description}</p>
+                            <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
                               {podcast.yearStarted && (
                                 <span className="inline-flex items-center gap-1">
                                   <Calendar className="w-3.5 h-3.5" />
@@ -655,7 +655,7 @@ export default function PersonDetailPage() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-[15px] text-primary font-semibold mt-2.5 flex items-center gap-1">
+                            <p className="text-[16px] text-primary font-semibold mt-2.5 flex items-center gap-1">
                               View Podcast
                               <ArrowRight className="w-3.5 h-3.5" />
                             </p>
@@ -679,8 +679,8 @@ export default function PersonDetailPage() {
                       <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`key-idea-${i}`}>
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
-                          <span className="text-[15px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
-                          <Link href={`/insights/${idea.topicPageSlug}`} className="text-[15px] text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
+                          <span className="text-[16px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
+                          <Link href={`/insights/${idea.topicPageSlug}`} className="text-[16px] text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
                             Explore Topic &rarr;
                           </Link>
                         </div>
@@ -692,10 +692,10 @@ export default function PersonDetailPage() {
                         {idea.relatedEps.length > 0 && (
                           <div className="flex flex-col gap-1.5">
                             {idea.relatedEps.map((ep, j) => (
-                              <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[15px] text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5" data-testid={`key-idea-ep-${i}-${j}`}>
+                              <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[16px] text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5" data-testid={`key-idea-ep-${i}-${j}`}>
                                 <Headphones className="w-3 h-3" />
                                 {ep.episode_title}
-                                <span className="text-muted-foreground text-[13px]">on {ep.podcast_name}</span>
+                                <span className="text-muted-foreground text-[16px]">on {ep.podcast_name}</span>
                               </Link>
                             ))}
                           </div>
@@ -719,7 +719,7 @@ export default function PersonDetailPage() {
                       return (
                         <Link key={i} href={`/podcasts/${quote.slug}/${quote.episodeSlug}`} className="block">
                           <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 hover:shadow-sm transition-all group" data-testid={`quote-${i}`}>
-                            <p className="text-[15px] text-foreground leading-relaxed mb-3">
+                            <p className="text-[16px] text-foreground leading-relaxed mb-3">
                               {quote.text}
                             </p>
                             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -728,11 +728,11 @@ export default function PersonDetailPage() {
                                 <span>{quote.podcastName}</span>
                                 {date && <><span>&middot;</span><span>{date}</span></>}
                               </div>
-                              <span className="text-[13px] text-primary font-medium group-hover:text-primary/80 transition-colors" data-testid={`link-quote-recap-${i}`}>
+                              <span className="text-[16px] text-primary font-medium group-hover:text-primary/80 transition-colors" data-testid={`link-quote-recap-${i}`}>
                                 Read Recap →
                               </span>
                             </div>
-                            <p className="text-[15px] text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
+                            <p className="text-[16px] text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
                           </div>
                         </Link>
                       );
@@ -755,7 +755,7 @@ export default function PersonDetailPage() {
                           className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
                           data-testid={`faq-toggle-${i}`}
                         >
-                          <span className="text-[15px] font-semibold text-foreground pr-4">{item.q}</span>
+                          <span className="text-[16px] font-semibold text-foreground pr-4">{item.q}</span>
                           {faqOpen[i] ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
                         </button>
                         {faqOpen[i] && (
@@ -787,7 +787,7 @@ export default function PersonDetailPage() {
                           data-testid={`tab-${tab}`}
                         >
                           {tab === "all" ? "All" : tab === "guests" ? "Guest" : "Mentions"}
-                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[15px] font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[16px] font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                             {tab === "all" ? totalEpisodes : tab === "guests" ? person.guestCount : person.mentionCount}
                           </span>
                         </button>
@@ -822,7 +822,7 @@ export default function PersonDetailPage() {
                       <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} showType />
                     ))
                   ) : (
-                    <p className="text-center py-8 text-muted-foreground text-[15px]">No episodes match your filters.</p>
+                    <p className="text-center py-8 text-muted-foreground text-[16px]">No episodes match your filters.</p>
                   )}
                 </div>
                 {!showAllEpisodes && filteredEpisodes.length > 8 && (
@@ -852,13 +852,13 @@ export default function PersonDetailPage() {
                             <img src={podcast.artwork_url} alt={podcast.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>
+                            <p className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>
                               {podcast.name}
                             </p>
                             <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
                               {podcast.count} episode{podcast.count !== 1 ? "s" : ""} {latestDate && <>&middot; Latest: {latestDate}</>}
                             </p>
-                            <p className="text-[15px] text-muted-foreground/70 mt-1 truncate">
+                            <p className="text-[16px] text-[#3F3F46] mt-1 truncate">
                               {podcast.latestTitle}
                             </p>
                           </div>
@@ -894,7 +894,7 @@ export default function PersonDetailPage() {
                           <img src={p.imageUrl || '/people/default-avatar.png'} alt={p.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
                           <div className="min-w-0">
                             <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{p.name}</p>
-                            <p className="text-[15px] text-muted-foreground truncate">{p.title}</p>
+                            <p className="text-[16px] text-muted-foreground truncate">{p.title}</p>
                           </div>
                         </Link>
                       );
@@ -927,7 +927,7 @@ export default function PersonDetailPage() {
                                     <Link href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-base font-medium text-foreground hover:text-primary transition-colors">
                                       {ep.episode_title}
                                     </Link>
-                                    <p className="text-[15px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                    <p className="text-[16px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
                                       <Link href={`/podcasts/${ep.slug}`} className="hover:text-foreground transition-colors">{ep.podcast_name}</Link>
                                       {date && <><span>&middot;</span><span>{date}</span></>}
                                       <span>&middot;</span>
@@ -955,7 +955,7 @@ export default function PersonDetailPage() {
                     </h2>
                     <Link
                       href="/bookstore"
-                      className="text-[13px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
+                      className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
                       data-testid="link-browse-bookstore"
                     >
                       Browse Bookstore <ArrowRight className="w-3 h-3" />
@@ -973,14 +973,14 @@ export default function PersonDetailPage() {
                           <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
                             <PersonBookCover name={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} />
                           </div>
-                          <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
+                          <h3 className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
                             {book.name}
                           </h3>
                           {book.author && (
-                            <p className="text-[13px] text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
+                            <p className="text-[16px] text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
                           )}
                           {book.mentionCount >= 2 && (
-                            <p className="text-[13px] text-amber-600 dark:text-amber-400 font-medium mt-1">
+                            <p className="text-[16px] text-amber-600 dark:text-amber-400 font-medium mt-1">
                               {book.mentionCount} mentions
                             </p>
                           )}
@@ -1002,7 +1002,7 @@ export default function PersonDetailPage() {
                     {broadTopics.slice(0, 5).map((topic, i) => (
                       <Link key={i} href={`/insights/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
                         <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
-                        <span className="text-[15px] text-muted-foreground">{topic.count}</span>
+                        <span className="text-[16px] text-muted-foreground">{topic.count}</span>
                       </Link>
                     ))}
                   </div>

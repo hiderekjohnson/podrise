@@ -212,7 +212,7 @@ function PodcastScoreBadge({ score }: { score: number }) {
     "text-muted-foreground bg-black/[0.04] border-black/[0.06]";
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-bold ${color}`} data-testid="badge-podcast-score" title="Based on mention frequency, podcast diversity, and repeat recommendations">
+    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[16px] font-bold ${color}`} data-testid="badge-podcast-score" title="Based on mention frequency, podcast diversity, and repeat recommendations">
       <Mic className="w-3.5 h-3.5" />
       {score.toFixed(1)} Podcast Score
     </div>
@@ -308,13 +308,13 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
         return (
           <div key={group.podcastSlug} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl overflow-hidden" data-testid={`podcast-group-${gi}`}>
             <div className="flex items-center justify-between px-4 pt-3 pb-1">
-              <Link href={`/podcasts/${group.podcastSlug}`} className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider hover:underline underline-offset-2" data-testid={`podcast-link-${gi}`}>
+              <Link href={`/podcasts/${group.podcastSlug}`} className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider hover:underline underline-offset-2" data-testid={`podcast-link-${gi}`}>
                 {group.podcastName}
               </Link>
               {isMulti && (
                 <button
                   onClick={() => togglePodcast(group.podcastSlug)}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-[16px] text-muted-foreground hover:text-foreground transition-colors"
                   data-testid={`toggle-group-${gi}`}
                 >
                   {group.episodes.length} mentions
@@ -333,12 +333,12 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                 <div className="px-4 py-3 hover:bg-amber-500/[0.03] transition-colors">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[15px] font-bold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2">
+                      <h3 className="text-[16px] font-bold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2">
                         {ep.episodeTitle}
                       </h3>
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
                         {ep.recommendedBy && (
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                          <span className={`inline-flex items-center gap-1 text-[16px] font-medium px-2 py-0.5 rounded-full ${
                             ep.recommenderRole === "author"
                               ? "bg-violet-500/[0.08] text-violet-700 dark:text-violet-400"
                               : ep.recommenderRole === "guest"
@@ -351,14 +351,14 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                           </span>
                         )}
                         {ep.publishedAt && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="text-[16px] text-muted-foreground flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {formatDate(ep.publishedAt)}
                           </span>
                         )}
                       </div>
                       {ep.context && (
-                        <p className="text-[15px] text-muted-foreground/80 leading-relaxed mt-2">
+                        <p className="text-[16px] text-[#3F3F46] leading-relaxed mt-2">
                           {ep.context.length > 150 ? ep.context.slice(0, 150).replace(/\s+\S*$/, "") + "." : ep.context}
                         </p>
                       )}
@@ -372,7 +372,7 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
             {isMulti && !isExpanded && (
               <button
                 onClick={() => togglePodcast(group.podcastSlug)}
-                className="w-full px-4 py-2 text-xs text-amber-700 dark:text-amber-400 font-medium hover:bg-amber-500/[0.04] transition-colors border-t border-black/[0.04] dark:border-white/[0.04]"
+                className="w-full px-4 py-2 text-[16px] text-amber-700 dark:text-amber-400 font-medium hover:bg-amber-500/[0.04] transition-colors border-t border-black/[0.04] dark:border-white/[0.04]"
                 data-testid={`show-more-${gi}`}
               >
                 Show {group.episodes.length - 1} more {group.episodes.length - 1 === 1 ? "episode" : "episodes"} from {group.podcastName}
@@ -386,7 +386,7 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
         <div className="flex justify-center mt-4">
           <button
             onClick={() => setShowAll(true)}
-            className="px-6 py-2.5 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-sm rounded-xl transition-colors border border-amber-500/10"
+            className="px-6 py-2.5 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-[16px] rounded-xl transition-colors border border-amber-500/10"
             data-testid="button-show-all-groups"
           >
             Show all podcasts
@@ -489,7 +489,7 @@ export default function BookDetailPage() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-6xl">
-          <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-[15px] text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
+          <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-[16px] text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
             <ArrowLeft className="w-4 h-4" />
             Back to Bookstore
           </Link>
@@ -514,21 +514,21 @@ export default function BookDetailPage() {
 
               <div className="flex flex-wrap items-center gap-2.5 mt-4">
                 {book.podcastScore && <PodcastScoreBadge score={book.podcastScore} />}
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-3 py-1.5 rounded-full" data-testid="stat-mentions">
+                <span className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-3 py-1.5 rounded-full" data-testid="stat-mentions">
                   <Mic className="w-3.5 h-3.5" />
                   {book.mentionCount} {book.mentionCount === 1 ? "mention" : "mentions"}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] px-3 py-1.5 rounded-full" data-testid="stat-podcasts">
+                <span className="inline-flex items-center gap-1.5 text-[16px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] px-3 py-1.5 rounded-full" data-testid="stat-podcasts">
                   {book.podcastCount} {book.podcastCount === 1 ? "podcast" : "podcasts"}
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-[15px] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3 mt-3 text-[16px] text-muted-foreground">
                 {book.rating && (
                   <span className="inline-flex items-center gap-1" data-testid="stat-rating">
                     <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                     {book.rating.toFixed(1)}
-                    {book.ratingCount && <span className="text-xs">({book.ratingCount.toLocaleString()} ratings)</span>}
+                    {book.ratingCount && <span className="text-[16px]">({book.ratingCount.toLocaleString()} ratings)</span>}
                   </span>
                 )}
                 {book.pageCount && (
@@ -545,7 +545,7 @@ export default function BookDetailPage() {
                     <Link
                       key={t}
                       href={`/bookstore`}
-                      className="text-xs font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] px-2.5 py-1 rounded-full transition-colors"
+                      className="text-[16px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] px-2.5 py-1 rounded-full transition-colors"
                       data-testid={`topic-${t.toLowerCase().replace(/\s+/g, '-')}`}
                     >
                       {t}
@@ -555,7 +555,7 @@ export default function BookDetailPage() {
               )}
 
               {(book.firstMentioned || book.lastMentioned) && (
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground/70">
+                <div className="flex flex-wrap items-center gap-4 mt-3 text-[16px] text-[#3F3F46]">
                   {book.firstMentioned && (
                     <span data-testid="stat-first-mentioned">First mentioned {formatDate(book.firstMentioned)}</span>
                   )}
@@ -571,7 +571,7 @@ export default function BookDetailPage() {
                     href={book.blinkistUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
                     data-testid="button-blinkist"
                   >
                     <FileText className="w-4 h-4" />
@@ -592,7 +592,7 @@ export default function BookDetailPage() {
               className="mt-8"
               data-testid="section-featured-podcasts"
             >
-              <p className="text-sm font-semibold text-muted-foreground mb-3">
+              <p className="text-[16px] font-semibold text-muted-foreground mb-3">
                 Featured on top podcasts like
               </p>
               <div className="flex flex-wrap gap-3">
@@ -608,13 +608,13 @@ export default function BookDetailPage() {
                       alt={p.name}
                       className="w-8 h-8 rounded-lg object-cover shrink-0 shadow-sm"
                     />
-                    <span className="text-sm font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                    <span className="text-[16px] font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                       {p.name}
                     </span>
                   </Link>
                 ))}
                 {book.podcastCount > featuredPodcasts.length && (
-                  <span className="flex items-center px-3 py-2 text-[15px] text-muted-foreground">
+                  <span className="flex items-center px-3 py-2 text-[16px] text-muted-foreground">
                     +{book.podcastCount - featuredPodcasts.length} more
                   </span>
                 )}
@@ -631,11 +631,11 @@ export default function BookDetailPage() {
               data-testid="section-featured-quote"
             >
               <div className="px-6 py-5 bg-amber-500/[0.04] border-l-4 border-amber-500 rounded-r-xl">
-                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">How It Was Mentioned</p>
-                <p className="text-[15px] text-foreground leading-relaxed" data-testid="text-featured-quote">
+                <p className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">How It Was Mentioned</p>
+                <p className="text-[16px] text-foreground leading-relaxed" data-testid="text-featured-quote">
                   {featuredQuote.context}
                 </p>
-                <p className="mt-3 text-[15px] text-muted-foreground">
+                <p className="mt-3 text-[16px] text-muted-foreground">
                   {featuredQuote.hosts && <span className="font-semibold text-foreground">{featuredQuote.hosts}</span>}
                   {featuredQuote.hosts && " on "}
                   <Link href={`/podcasts/${featuredQuote.podcastSlug}`} className="font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2">
@@ -657,7 +657,7 @@ export default function BookDetailPage() {
               <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-about">
                 What Is {book.name} About
               </h2>
-              <p className="text-[15px] text-muted-foreground leading-relaxed" data-testid="text-description">
+              <p className="text-[16px] text-muted-foreground leading-relaxed" data-testid="text-description">
                 {book.description}
               </p>
             </motion.section>
@@ -675,7 +675,7 @@ export default function BookDetailPage() {
               {hasAuthorAppearance && (
                 <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-violet-500/[0.04] border border-violet-500/[0.12] rounded-xl" data-testid="author-appearance-note">
                   <User className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
-                  <span className="text-[15px] text-muted-foreground">
+                  <span className="text-[16px] text-muted-foreground">
                     <span className="font-semibold text-violet-700 dark:text-violet-400">{book.author}</span> appeared as a guest to discuss this book
                   </span>
                 </div>
@@ -700,8 +700,8 @@ export default function BookDetailPage() {
                         </div>
                       )}
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors leading-tight">{r.name}</span>
-                        <span className={`text-[11px] font-medium ${roleColor} leading-tight`}>
+                        <span className="text-[16px] font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors leading-tight">{r.name}</span>
+                        <span className={`text-[16px] font-medium ${roleColor} leading-tight`}>
                           {r.role === "guest" ? "Guest" : "Host"}
                           {r.count >= 2 && ` · ${r.count}x`}
                         </span>
@@ -751,7 +751,7 @@ export default function BookDetailPage() {
                 {book.topics.length > 0 && (
                   <Link
                     href="/bookstore"
-                    className="text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2"
+                    className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2"
                     data-testid="link-browse-topic"
                   >
                     Browse all {book.topics[0]} books
@@ -769,15 +769,15 @@ export default function BookDetailPage() {
                     <div className="flex justify-center mb-2">
                       <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} googleBooksId={rb.googleBooksId} />
                     </div>
-                    <p className="text-xs font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
+                    <p className="text-[16px] font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
                       {rb.name}
                     </p>
                     {rb.author && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1 text-center">
+                      <p className="text-[16px] text-muted-foreground mt-0.5 line-clamp-1 text-center">
                         {rb.author}
                       </p>
                     )}
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1 text-center">
+                    <p className="text-[16px] text-amber-600 dark:text-amber-400 font-medium mt-1 text-center">
                       {rb.mentionCount > 1 ? `Mentioned ${rb.mentionCount}x together` : "Mentioned together"}
                     </p>
                   </Link>
@@ -792,7 +792,7 @@ export default function BookDetailPage() {
                 href={book.blinkistUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
                 data-testid="button-blinkist-bottom"
               >
                 <FileText className="w-4 h-4" />
@@ -810,7 +810,7 @@ export default function BookDetailPage() {
             href={book.blinkistUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
             data-testid="button-blinkist-sticky"
           >
             <FileText className="w-4 h-4" />

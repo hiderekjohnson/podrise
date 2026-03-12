@@ -109,7 +109,7 @@ export default function PodcastDirectory() {
     );
   }
 
-  const inputCls = "w-full px-3 py-2 border border-border rounded-lg text-sm";
+  const inputCls = "w-full px-3 py-2 border border-border rounded-lg text-[16px]";
 
   return (
     <div className="space-y-6" data-testid="podcast-directory-tab">
@@ -129,7 +129,7 @@ export default function PodcastDirectory() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
-              className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm"
+              className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-[16px]"
             />
           </div>
           <button
@@ -150,7 +150,7 @@ export default function PodcastDirectory() {
           </h4>
 
           <div className="space-y-1">
-            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Required</p>
+            <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider">Required</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-base font-medium text-foreground mb-1">iTunes ID *</label>
@@ -168,7 +168,7 @@ export default function PodcastDirectory() {
           </div>
 
           <div className="space-y-1">
-            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Details</p>
+            <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider">Details</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-base font-medium text-foreground mb-1">Hosts</label>
@@ -194,7 +194,7 @@ export default function PodcastDirectory() {
           </div>
 
           <div className="space-y-1">
-            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Links & Social</p>
+            <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider">Links & Social</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-base font-medium text-foreground mb-1">Apple Podcasts URL</label>
@@ -248,7 +248,7 @@ export default function PodcastDirectory() {
           </div>
 
           <div className="space-y-1">
-            <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider">Stats</p>
+            <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider">Stats</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-base font-medium text-foreground mb-1">Avg. Episode (min)</label>
@@ -301,20 +301,20 @@ export default function PodcastDirectory() {
                   <img src={entry.artworkUrl} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
-                    <Image className="w-4 h-4 text-muted-foreground/50" />
+                    <Image className="w-4 h-4 text-[#52525B]" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-foreground text-base truncate">{entry.name}</span>
                     {entry.hasLandingPage && (
-                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[15px] font-bold rounded-md uppercase flex-shrink-0">Landing</span>
+                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[16px] font-bold rounded-md uppercase flex-shrink-0">Landing</span>
                     )}
                     {entry.slug && (
-                      <span className="text-[15px] text-muted-foreground/60 hidden sm:inline">/{entry.slug}</span>
+                      <span className="text-[16px] text-[#52525B] hidden sm:inline">/{entry.slug}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-[15px] text-muted-foreground mt-0.5">
+                  <div className="flex items-center gap-3 text-[16px] text-muted-foreground mt-0.5">
                     {entry.hosts && <span>{entry.hosts}</span>}
                     {entry.category && <span className="hidden sm:inline">· {entry.category}</span>}
                     {entry.twitterHandle && (
@@ -357,7 +357,7 @@ export default function PodcastDirectory() {
               </div>
               {expandedId === entry.id && (
                 <div className="px-4 pb-4 pt-1 border-t border-border/50 bg-muted/10">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-[16px]">
                     <div><span className="text-muted-foreground">iTunes ID:</span> <span className="font-medium">{entry.itunesId}</span></div>
                     {entry.yearStarted && <div><span className="text-muted-foreground">Since:</span> <span className="font-medium">{entry.yearStarted}</span></div>}
                     {entry.totalEpisodes && <div><span className="text-muted-foreground">Episodes:</span> <span className="font-medium">{entry.totalEpisodes.toLocaleString()}</span></div>}
@@ -365,58 +365,58 @@ export default function PodcastDirectory() {
                     {entry.frequency && <div><span className="text-muted-foreground">Frequency:</span> <span className="font-medium">{entry.frequency}</span></div>}
                     {entry.followers && <div><span className="text-muted-foreground">Followers:</span> <span className="font-medium">{entry.followers.toLocaleString()}</span></div>}
                   </div>
-                  {entry.description && <p className="text-[15px] text-muted-foreground mt-2">{entry.description}</p>}
+                  {entry.description && <p className="text-[16px] text-muted-foreground mt-2">{entry.description}</p>}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <a href={`https://podcasts.apple.com/podcast/id${entry.itunesId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                    <a href={`https://podcasts.apple.com/podcast/id${entry.itunesId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                       Apple <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                     </a>
                     {entry.spotifyUrl && (
-                      <a href={entry.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={entry.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         Spotify <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {entry.youtubeUrl && (
-                      <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         YouTube <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {entry.twitterHandle && (
-                      <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={`https://x.com/${entry.twitterHandle.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         <Twitter className="w-3 h-3" /> {entry.twitterHandle} <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).instagramUrl && (
-                      <a href={(entry as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={(entry as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         Instagram <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).tiktokUrl && (
-                      <a href={(entry as any).tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={(entry as any).tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         TikTok <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).facebookUrl && (
-                      <a href={(entry as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={(entry as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         Facebook <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).discordUrl && (
-                      <a href={(entry as any).discordUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={(entry as any).discordUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         Discord <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).websiteUrl && (
-                      <a href={(entry as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={(entry as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         <Globe className="w-3 h-3" /> Website <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {(entry as any).storeUrl && (
-                      <a href={(entry as any).storeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={(entry as any).storeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         Store <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}
                     {entry.slug && entry.hasLandingPage && (
-                      <a href={`/podcasts/${entry.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline">
+                      <a href={`/podcasts/${entry.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[16px] text-primary hover:underline">
                         <Globe className="w-3 h-3" /> Landing page <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                       </a>
                     )}

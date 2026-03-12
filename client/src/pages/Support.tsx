@@ -15,7 +15,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-black/[0.01] transition-colors"
         data-testid="button-faq-toggle"
       >
-        <span className="text-sm font-semibold text-foreground pr-4">{question}</span>
+        <span className="text-[16px] font-semibold text-foreground pr-4">{question}</span>
         <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (

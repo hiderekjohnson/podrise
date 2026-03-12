@@ -171,7 +171,7 @@ export default function CompanyDetailPage() {
                     <button
                       key={s.id}
                       onClick={() => scrollToNav(s.id)}
-                      className={`px-4 py-2.5 text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                      className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
                       data-testid={`nav-${s.id}`}
                     >
                       {s.label}
@@ -188,7 +188,7 @@ export default function CompanyDetailPage() {
                   </h2>
                   <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
                     {companyData?.background && (
-                      <p className="text-base text-muted-foreground/80 leading-relaxed mb-5" data-testid="text-company-background">
+                      <p className="text-base text-[#3F3F46] leading-relaxed mb-5" data-testid="text-company-background">
                         {companyData.background}
                       </p>
                     )}
@@ -256,7 +256,7 @@ export default function CompanyDetailPage() {
 
                     {companyData?.associatedTerms && companyData.associatedTerms.length > 0 && (
                       <div className="mt-5 pt-4 border-t border-border" data-testid="section-associated-terms">
-                        <p className="text-[15px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
+                        <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associated Terms</p>
                         <div className="flex flex-wrap gap-2">
                           {companyData.associatedTerms.map((term) => (
                             <span key={term} className="px-3 py-1.5 bg-primary/10 text-primary text-base font-medium rounded-full" data-testid={`badge-term-${term.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -304,7 +304,7 @@ export default function CompanyDetailPage() {
                               )}
                             </p>
                           </div>
-                          <ExternalLink className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0" />
+                          <ExternalLink className="w-4 h-4 text-[#52525B] group-hover:text-primary transition-colors flex-shrink-0" />
                         </div>
                         {ep.context && (
                           <p className="mt-3 text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 leading-relaxed pl-16 italic">
@@ -327,7 +327,7 @@ export default function CompanyDetailPage() {
               ) : (
                 <div className="text-center py-16 text-muted-foreground">
                   <p className="text-lg">No episodes found for {company.name} yet.</p>
-                  <p className="text-[15px] mt-1">Check back soon as we add more podcast recaps.</p>
+                  <p className="text-[16px] mt-1">Check back soon as we add more podcast recaps.</p>
                 </div>
               )}
 

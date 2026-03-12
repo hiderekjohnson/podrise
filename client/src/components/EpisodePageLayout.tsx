@@ -133,7 +133,7 @@ export function EpisodePageLayout({
         rightContent={
           <button
             onClick={() => setShowRecapsModal(true)}
-            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[16px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
             data-testid="button-get-recaps"
           >
             Get {episode.podcastName} Recaps
@@ -171,7 +171,7 @@ export function EpisodePageLayout({
 
               <div className="flex flex-col gap-1.5 justify-center sm:justify-start">
                 <Link href={`/podcasts/${podcastSlug}`}>
-                  <span className="text-[15px] sm:text-base text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
+                  <span className="text-[16px] sm:text-base text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-podcast-name">
                     {episode.podcastName}
                   </span>
                 </Link>
@@ -179,19 +179,19 @@ export function EpisodePageLayout({
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
                 <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-date">
-                  <Calendar className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  <Calendar className="w-3.5 h-3.5 text-[#52525B]" />
                   {formattedDate}
                 </span>
                 {episode.duration && (
                   <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-duration">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    <Clock className="w-3.5 h-3.5 text-[#52525B]" />
                     {episode.duration}
                   </span>
                 )}
                 {episode.hosts && (
                   <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-hosts">
-                    <Users className="w-3.5 h-3.5 text-muted-foreground/50" />
-                    <span className="font-medium text-foreground/80">{episode.hosts}</span>
+                    <Users className="w-3.5 h-3.5 text-[#52525B]" />
+                    <span className="font-medium text-[#3F3F46]">{episode.hosts}</span>
                   </span>
                 )}
               </div>
@@ -201,7 +201,7 @@ export function EpisodePageLayout({
                   href={appleLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors"
                   data-testid="link-apple-podcasts"
                   title="Listen on Apple Podcasts"
                 >
@@ -213,7 +213,7 @@ export function EpisodePageLayout({
                   href={spotifyLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors"
                   data-testid="link-spotify"
                   title="Listen on Spotify"
                 >
@@ -226,7 +226,7 @@ export function EpisodePageLayout({
                     href={effectiveYoutubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors"
                     data-testid="link-youtube"
                     title="Watch on YouTube"
                   >
@@ -262,7 +262,7 @@ export function EpisodePageLayout({
                 <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
                   Get {episode.podcastName} recaps in your inbox
                 </h2>
-                <p className="text-[15px] text-muted-foreground">
+                <p className="text-[16px] text-muted-foreground">
                   We'll send a recap whenever a new episode drops.
                 </p>
               </div>

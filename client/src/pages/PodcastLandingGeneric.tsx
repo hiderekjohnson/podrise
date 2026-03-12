@@ -97,21 +97,21 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
         <BookOpen className="w-5 h-5 text-amber-600" />
         <h2 className="text-[17px] font-display font-bold text-foreground">Recommended Reading</h2>
       </div>
-      <p className="text-[15px] text-muted-foreground mb-6">
+      <p className="text-[16px] text-muted-foreground mb-6">
         Books mentioned across {podcastName} episodes - sorted by how often they come up in conversation.
       </p>
 
       <div className="flex items-center gap-2 mb-6">
         <button
           onClick={() => setSortBy("mentions")}
-          className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
           data-testid="button-sort-mentions"
         >
           Most mentioned
         </button>
         <button
           onClick={() => setSortBy("alpha")}
-          className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
           data-testid="button-sort-alpha"
         >
           A-Z
@@ -136,18 +136,18 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
       ) : isError ? (
         <div className="text-center py-12">
           <BookOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-          <p className="text-[15px] font-semibold text-foreground mb-1">Couldn't load books</p>
-          <p className="text-[15px] text-muted-foreground">Something went wrong. Try refreshing the page.</p>
+          <p className="text-[16px] font-semibold text-foreground mb-1">Couldn't load books</p>
+          <p className="text-[16px] text-muted-foreground">Something went wrong. Try refreshing the page.</p>
         </div>
       ) : sorted.length === 0 ? (
         <div className="text-center py-12">
           <BookOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-          <p className="text-[15px] font-semibold text-foreground mb-1">No books found yet</p>
-          <p className="text-[15px] text-muted-foreground">Book data is still being extracted for this podcast.</p>
+          <p className="text-[16px] font-semibold text-foreground mb-1">No books found yet</p>
+          <p className="text-[16px] text-muted-foreground">Book data is still being extracted for this podcast.</p>
         </div>
       ) : (
         <>
-          <p className="text-[13px] text-muted-foreground/50 mb-4" data-testid="text-books-count">
+          <p className="text-[16px] text-[#52525B] mb-4" data-testid="text-books-count">
             {sorted.length} book{sorted.length !== 1 ? "s" : ""}
           </p>
 
@@ -175,42 +175,42 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
 
                     <div className="flex-1 min-w-0">
                       {bookSlug ? (
-                        <Link href={`/bookstore/${bookSlug}`} className="text-[15px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                        <Link href={`/bookstore/${bookSlug}`} className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
                           {book.name}
                         </Link>
                       ) : (
-                        <h3 className="text-[15px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
+                        <h3 className="text-[16px] font-bold text-foreground leading-snug" data-testid={`book-title-${i}`}>
                           {book.name}
                         </h3>
                       )}
                       {book.author && book.author !== "null" && (
-                        <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
+                        <p className="text-[16px] text-muted-foreground mt-0.5" data-testid={`book-author-${i}`}>
                           by {book.author}
                         </p>
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`book-mentions-${i}`}>
+                        <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`book-mentions-${i}`}>
                           <Mic className="w-3 h-3" />
                           {book.mentionCount} {book.mentionCount === 1 ? "mention" : "mentions"}
                         </span>
                         {book.rating && (
-                          <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                          <span className="inline-flex items-center gap-0.5 text-[16px] font-semibold text-amber-600 dark:text-amber-400">
                             <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                             {book.rating.toFixed(1)}
                           </span>
                         )}
                         {book.pageCount && (
-                          <span className="text-xs text-muted-foreground">{book.pageCount} pages</span>
+                          <span className="text-[16px] text-muted-foreground">{book.pageCount} pages</span>
                         )}
                         {book.publishYear && (
-                          <span className="text-xs text-muted-foreground">Published {book.publishYear}</span>
+                          <span className="text-[16px] text-muted-foreground">Published {book.publishYear}</span>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {book.description && (
-                    <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${i}`}>
+                    <p className="text-[16px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${i}`}>
                       {book.description.length > 180 ? book.description.slice(0, 180).replace(/\s+\S*$/, "") + "." : book.description}
                     </p>
                   )}
@@ -223,7 +223,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
           {hasMore && (
             <button
               onClick={() => setVisibleCount(prev => prev + 20)}
-              className="w-full mt-6 py-3 rounded-xl border border-black/[0.06] dark:border-white/[0.08] text-[15px] font-semibold text-primary hover:bg-primary/[0.04] transition-colors"
+              className="w-full mt-6 py-3 rounded-xl border border-black/[0.06] dark:border-white/[0.08] text-[16px] font-semibold text-primary hover:bg-primary/[0.04] transition-colors"
               data-testid="button-load-more-books"
             >
               Show more books ({sorted.length - visibleCount} remaining)
@@ -491,17 +491,17 @@ export default function PodcastLandingGeneric() {
         <section className="pb-16" data-testid="section-about-podcast">
           {aboutPodcast && (
             <div className="bg-white border border-black/[0.06] rounded-xl p-6 mb-6" data-testid="text-about-podcast">
-              <p className="text-[15px] leading-[1.85] text-foreground/75">{aboutPodcast}</p>
+              <p className="text-[16px] leading-[1.85] text-foreground/75">{aboutPodcast}</p>
             </div>
           )}
 
           {snapshotItems.length > 0 && (
             <div className="mb-6" data-testid="section-snapshot">
-              <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">At a Glance</h3>
+              <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">At a Glance</h3>
               <div className={`grid gap-3 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
                 {snapshotItems.map((item, i) => (
                   <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-4 py-4" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
-                    <p className="text-[15px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1">{item.label}</p>
+                    <p className="text-[16px] font-semibold text-[#52525B] uppercase tracking-wider mb-1">{item.label}</p>
                     <p className="text-base font-bold text-foreground">{item.value}</p>
                   </div>
                 ))}
@@ -511,7 +511,7 @@ export default function PodcastLandingGeneric() {
 
           {knownFor && knownFor.length > 0 && (
             <div className="mb-6" data-testid="section-known-for">
-              <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Known For</h3>
+              <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Known For</h3>
               <div className="bg-white border border-black/[0.06] rounded-xl p-5">
                 <ul className="space-y-3">
                   {knownFor.map((item, i) => (
@@ -532,7 +532,7 @@ export default function PodcastLandingGeneric() {
             if (!displayHosts || displayHosts.length === 0) return null;
             return (
               <div className="mb-6" data-testid="section-host-bios">
-                <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
                   {displayHosts.length === 1 ? "Host" : "Hosts"}
                 </h3>
                 <div className={`grid gap-3 ${displayHosts.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
@@ -550,15 +550,15 @@ export default function PodcastLandingGeneric() {
                           const personEntry = PEOPLE_DIRECTORY.find((p) => p.name === host.name);
                           return personEntry ? (
                             <div>
-                              <Link href={`/people/${personEntry.slug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-host-profile-${i}`}>
+                              <Link href={`/people/${personEntry.slug}`} className="text-[16px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-host-profile-${i}`}>
                                 {host.name}
                               </Link>
-                              <Link href={`/people/${personEntry.slug}`} className="block text-xs text-muted-foreground hover:text-primary/80 transition-colors mt-0.5" data-testid={`link-host-profile-cta-${i}`}>
+                              <Link href={`/people/${personEntry.slug}`} className="block text-[16px] text-muted-foreground hover:text-primary/80 transition-colors mt-0.5" data-testid={`link-host-profile-cta-${i}`}>
                                 View full profile →
                               </Link>
                             </div>
                           ) : (
-                            <h4 className="text-[15px] font-bold text-foreground">{host.name}</h4>
+                            <h4 className="text-[16px] font-bold text-foreground">{host.name}</h4>
                           );
                         })()}
                       </div>
@@ -574,7 +574,7 @@ export default function PodcastLandingGeneric() {
                                   <ul key={pi} className="space-y-1 pl-1">
                                     {bulletLines.map((line: string, li: number) => (
                                       <li key={li} className="flex items-start gap-2">
-                                        <span className="text-primary/50 mt-[3px] text-xs">●</span>
+                                        <span className="text-primary/50 mt-[3px] text-[16px]">●</span>
                                         <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                       </li>
                                     ))}
@@ -593,7 +593,7 @@ export default function PodcastLandingGeneric() {
                                       <ul className="space-y-1 pl-1">
                                         {items.map((item: string, li: number) => (
                                           <li key={li} className="flex items-start gap-2">
-                                            <span className="text-primary/50 mt-[3px] text-xs">●</span>
+                                            <span className="text-primary/50 mt-[3px] text-[16px]">●</span>
                                             <span>{item.trim()}</span>
                                           </li>
                                         ))}
@@ -610,28 +610,28 @@ export default function PodcastLandingGeneric() {
                       {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
                         <div className="flex items-center gap-2 flex-wrap">
                           {host.twitterHandle && (
-                            <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
+                            <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
                               <SiX className="w-3 h-3" />
                               {host.twitterHandle.startsWith('@') ? host.twitterHandle : `@${host.twitterHandle}`}
                               <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                           {host.linkedinUrl && (
-                            <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
+                            <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
                               <SiLinkedin className="w-3 h-3" />
                               LinkedIn
                               <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                           {host.instagramHandle && (
-                            <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
+                            <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
                               <SiInstagram className="w-3 h-3" />
                               {host.instagramHandle.startsWith('@') ? host.instagramHandle : `@${host.instagramHandle}`}
                               <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                             </a>
                           )}
                           {host.websiteUrl && (
-                            <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
+                            <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
                               <Globe className="w-3 h-3" />
                               Website
                               <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
@@ -647,7 +647,7 @@ export default function PodcastLandingGeneric() {
           })()}
 
           <div className="mb-6" data-testid="section-listen">
-            <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>
+            <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>
             <div className="flex flex-wrap gap-2.5">
               <a
                 href={appleUrl}
@@ -689,7 +689,7 @@ export default function PodcastLandingGeneric() {
 
           {(twitterHandle || instagramUrl || tiktokUrl || facebookUrl || discordUrl || websiteUrl || storeUrl) && (
             <div className="mb-6" data-testid="section-follow">
-              <h3 className="text-[15px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Follow</h3>
+              <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Follow</h3>
               <div className="flex flex-wrap gap-2.5">
                 {twitterHandle && (
                   <a
@@ -786,7 +786,7 @@ export default function PodcastLandingGeneric() {
             </div>
           )}
 
-          <p className="text-[15px] text-muted-foreground/40 mt-8">
+          <p className="text-[16px] text-muted-foreground/40 mt-8">
             PodCap is not affiliated with, endorsed by, or sponsored by {name}, {hosts}, or any podcast listed on this site.
           </p>
         </section>
@@ -813,16 +813,16 @@ export default function PodcastLandingGeneric() {
                     <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex flex-col gap-1.5" data-testid={`card-guest-${i}`}>
                       <div className="flex items-center justify-between gap-2">
                         {personSlug ? (
-                          <Link href={`/people/${personSlug}`} className="text-[15px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-guest-person-${i}`}>{guest.name}</Link>
+                          <Link href={`/people/${personSlug}`} className="text-[16px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-guest-person-${i}`}>{guest.name}</Link>
                         ) : (
-                          <span className="text-[15px] font-bold text-foreground">{guest.name}</span>
+                          <span className="text-[16px] font-bold text-foreground">{guest.name}</span>
                         )}
                       </div>
-                      {guest.title && <p className="text-[15px] text-muted-foreground/60 leading-snug">{guest.title}</p>}
-                      <Link href={`/podcasts/${slug}/${guest.episodeSlug}`} className="text-[15px] text-primary/70 hover:text-primary transition-colors line-clamp-1 mt-0.5" data-testid={`link-guest-episode-${i}`}>
+                      {guest.title && <p className="text-[16px] text-[#52525B] leading-snug">{guest.title}</p>}
+                      <Link href={`/podcasts/${slug}/${guest.episodeSlug}`} className="text-[16px] text-primary/70 hover:text-primary transition-colors line-clamp-1 mt-0.5" data-testid={`link-guest-episode-${i}`}>
                         {guest.episodeTitle}
                       </Link>
-                      <span className="text-[15px] text-muted-foreground/40">{formatted}</span>
+                      <span className="text-[16px] text-muted-foreground/40">{formatted}</span>
                     </div>
                   );
                 })}
@@ -847,10 +847,10 @@ export default function PodcastLandingGeneric() {
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</p>
-                        <p className="text-[15px] text-muted-foreground/60 mt-0.5 line-clamp-1">{company.description}</p>
+                        <p className="text-[16px] font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</p>
+                        <p className="text-[16px] text-[#52525B] mt-0.5 line-clamp-1">{company.description}</p>
                       </div>
-                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[13px] font-bold bg-primary/[0.08] text-primary">{company.count} ep{company.count !== 1 ? "s" : ""}</span>
+                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[16px] font-bold bg-primary/[0.08] text-primary">{company.count} ep{company.count !== 1 ? "s" : ""}</span>
                     </div>
                   </Link>
                 ))}
@@ -879,10 +879,10 @@ export default function PodcastLandingGeneric() {
                         }}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">{person.name}</p>
-                        {person.title && <p className="text-[15px] text-muted-foreground/60 mt-0.5 line-clamp-1">{person.title}</p>}
+                        <p className="text-[16px] font-bold text-foreground group-hover:text-primary transition-colors">{person.name}</p>
+                        {person.title && <p className="text-[16px] text-[#52525B] mt-0.5 line-clamp-1">{person.title}</p>}
                       </div>
-                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[13px] font-bold bg-primary/[0.08] text-primary">{person.count} ep{person.count !== 1 ? "s" : ""}</span>
+                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[16px] font-bold bg-primary/[0.08] text-primary">{person.count} ep{person.count !== 1 ? "s" : ""}</span>
                     </div>
                   </Link>
                 ))}
@@ -899,9 +899,9 @@ export default function PodcastLandingGeneric() {
               <div className="flex flex-wrap gap-2.5">
                 {entityLinks.topics.map((t: any, i: number) => (
                   <Link key={i} href={`/insights/${t.slug || t.topic}`}>
-                    <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[15px] font-medium text-foreground hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer" data-testid={`tag-topic-${i}`}>
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[16px] font-medium text-foreground hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer" data-testid={`tag-topic-${i}`}>
                       {t.topic}
-                      <span className="text-muted-foreground/40 text-[13px] font-bold">({t.count})</span>
+                      <span className="text-muted-foreground/40 text-[16px] font-bold">({t.count})</span>
                     </span>
                   </Link>
                 ))}
@@ -931,8 +931,8 @@ export default function PodcastLandingGeneric() {
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
-                      <p className="text-[15px] text-muted-foreground/60 mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
+                      <p className="text-[16px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
+                      <p className="text-[16px] text-[#52525B] mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
                     </div>
                     <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
                   </a>

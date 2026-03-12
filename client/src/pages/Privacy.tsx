@@ -17,7 +17,7 @@ export default function Privacy() {
           <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Last updated: January 1, 2026</p>
         </div>
 
-        <div className="prose prose-sm max-w-none space-y-6 text-foreground/80">
+        <div className="prose prose-sm max-w-none space-y-6 text-[#3F3F46]">
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">1. Introduction</h2>
             <p>PodCap ("we," "our," or "us") operates the website podcap.io (the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our Service. By using the Service, you agree to the collection and use of information in accordance with this policy.</p>

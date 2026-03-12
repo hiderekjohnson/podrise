@@ -158,7 +158,7 @@ function SEOHead() {
 
 function StarRating({ rating }: { rating: number }) {
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+    <span className="inline-flex items-center gap-0.5 text-[16px] font-semibold text-amber-600 dark:text-amber-400">
       <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
       {rating.toFixed(1)}
     </span>
@@ -170,7 +170,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
 
   const coverEl = <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="md" />;
   const titleEl = (
-    <h3 className="text-[15px] font-bold text-foreground leading-snug group-hover/title:text-amber-700 dark:group-hover/title:text-amber-400 transition-colors" data-testid={`book-title-${index}`}>
+    <h3 className="text-[16px] font-bold text-foreground leading-snug group-hover/title:text-amber-700 dark:group-hover/title:text-amber-400 transition-colors" data-testid={`book-title-${index}`}>
       {book.name}
     </h3>
   );
@@ -205,23 +205,23 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
               </a>
             )}
             {book.author && book.author !== "null" && (
-              <p className="text-[15px] text-muted-foreground mt-0.5" data-testid={`book-author-${index}`}>
+              <p className="text-[16px] text-muted-foreground mt-0.5" data-testid={`book-author-${index}`}>
                 by <AuthorWithLinks author={book.author} />
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`book-mentions-${index}`}>
+              <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`book-mentions-${index}`}>
                 <Mic className="w-3 h-3" />
                 {book.mentionCount} {book.mentionCount === 1 ? "mention" : "mentions"}
               </span>
               {book.rating && <StarRating rating={book.rating} />}
               {book.pageCount && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[16px] text-muted-foreground">
                   {book.pageCount} pages
                 </span>
               )}
               {book.publishYear && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[16px] text-muted-foreground">
                   Published {book.publishYear}
                 </span>
               )}
@@ -230,7 +230,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
         </div>
 
         {book.description && (
-          <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${index}`}>
+          <p className="text-[16px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-description-${index}`}>
             {book.description}
           </p>
         )}
@@ -238,7 +238,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
         {book.topics && book.topics.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {book.topics.slice(0, 2).map(t => (
-              <span key={t} className="text-[11px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 rounded-full">
+              <span key={t} className="text-[16px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 rounded-full">
                 {t}
               </span>
             ))}
@@ -247,7 +247,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
 
         <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04] flex items-center justify-between">
           {book.podcastCount > 1 && (
-            <span className="text-xs text-muted-foreground" data-testid={`book-podcasts-${index}`}>
+            <span className="text-[16px] text-muted-foreground" data-testid={`book-podcasts-${index}`}>
               {book.podcastCount} podcasts
             </span>
           )}
@@ -255,7 +255,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
             {hasPage ? (
               <Link
                 href={`/bookstore/${book.slug}`}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                className="inline-flex items-center gap-1 text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
                 data-testid={`book-view-${index}`}
               >
                 View
@@ -266,7 +266,7 @@ function BookCard({ book, index }: { book: BookstoreBook; index: number }) {
                 href={book.amazonUrl}
                 target="_blank"
                 rel="sponsored noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
                 data-testid={`book-buy-${index}`}
               >
                 Amazon
@@ -299,15 +299,15 @@ function CuratedShelf({ title, icon, books }: { title: string; icon: any; books:
               <div className="mb-2">
                 <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="lg" />
               </div>
-              <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 group-hover/shelf:text-amber-700 dark:group-hover/shelf:text-amber-400 transition-colors">
+              <p className="text-[16px] font-semibold text-foreground leading-snug line-clamp-2 group-hover/shelf:text-amber-700 dark:group-hover/shelf:text-amber-400 transition-colors">
                 {book.name}
               </p>
               {book.author && book.author !== "null" && (
-                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{book.author}</p>
+                <p className="text-[16px] text-muted-foreground mt-0.5 line-clamp-1">{book.author}</p>
               )}
               <div className="flex items-center gap-1.5 mt-1">
                 {book.rating && <StarRating rating={book.rating} />}
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[16px] text-muted-foreground">
                   {book.mentionCount} mentions
                 </span>
               </div>
@@ -517,7 +517,7 @@ export default function Bookstore() {
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight leading-tight flex items-center gap-3 flex-wrap justify-center" data-testid="heading-bookstore">
               The Podcast Bookstore
-              <span className="text-xs font-bold uppercase tracking-widest bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">Beta</span>
+              <span className="text-[16px] font-bold uppercase tracking-widest bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">Beta</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-bookstore-subtitle">
               Find your next great read based on what the smartest podcast hosts are recommending. Not bestseller lists. Real conversations.
@@ -543,7 +543,7 @@ export default function Bookstore() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-0.5 text-[#52525B] hover:text-muted-foreground transition-colors"
                   data-testid="button-clear-search"
                 >
                   <X className="w-4 h-4" />
@@ -560,7 +560,7 @@ export default function Bookstore() {
           <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide" data-testid="category-nav">
             <button
               onClick={() => { setSelectedTopic(null); setSelectedLength(null); setSearchQuery(""); setSortBy("mentions"); }}
-              className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-2 rounded-lg text-[16px] font-semibold whitespace-nowrap transition-all ${
                 !selectedTopic && !selectedLength && !searchQuery
                   ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                   : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
@@ -573,7 +573,7 @@ export default function Bookstore() {
               <button
                 key={topic}
                 onClick={() => handleTopicClick(topic)}
-                className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2 rounded-lg text-[16px] font-semibold whitespace-nowrap transition-all ${
                   selectedTopic === topic
                     ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                     : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
@@ -607,11 +607,11 @@ export default function Bookstore() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-600" />
-              <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
+              <h2 className="text-[16px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
                 {searchQuery ? "Search Results" : selectedTopic ? selectedTopic : "Browse All Books"}
               </h2>
               {(searchQuery || selectedTopic || selectedLength) && (
-                <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
+                <span className="text-[16px] font-mono text-[#52525B] ml-1">
                   {filteredBooks.length} book{filteredBooks.length !== 1 ? "s" : ""}
                 </span>
               )}
@@ -624,7 +624,7 @@ export default function Bookstore() {
                 <button
                   key={len.value}
                   onClick={() => setSelectedLength(selectedLength === len.value ? null : len.value)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 text-[16px] font-semibold rounded-full whitespace-nowrap transition-colors ${
                     selectedLength === len.value
                       ? "bg-amber-500/[0.15] text-amber-700 dark:text-amber-400 border border-amber-500/25"
                       : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
@@ -644,7 +644,7 @@ export default function Bookstore() {
                 <button
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 text-[16px] font-semibold rounded-full whitespace-nowrap transition-colors ${
                     sortBy === opt.value
                       ? "bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 border border-amber-500/20"
                       : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
@@ -659,7 +659,7 @@ export default function Bookstore() {
             {hasActiveFilters && (
               <button
                 onClick={() => { setSelectedTopic(null); setSelectedLength(null); setSearchQuery(""); setSortBy("mentions"); }}
-                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                className="text-[16px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
                 data-testid="button-clear-filters"
               >
                 Clear all
@@ -686,7 +686,7 @@ export default function Bookstore() {
             <div className="text-center py-16">
               <BookOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
               <p className="text-lg font-medium text-muted-foreground" data-testid="text-no-results">No books found</p>
-              <p className="text-[15px] text-muted-foreground/60 mt-1">Try adjusting your filters or search</p>
+              <p className="text-[16px] text-[#52525B] mt-1">Try adjusting your filters or search</p>
             </div>
           ) : (
             <>
@@ -700,7 +700,7 @@ export default function Bookstore() {
                 <div className="flex justify-center mt-8">
                   <button
                     onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                    className="px-8 py-3 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-sm rounded-xl transition-colors border border-amber-500/10"
+                    className="px-8 py-3 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-[16px] rounded-xl transition-colors border border-amber-500/10"
                     data-testid="button-load-more"
                   >
                     Show more books
@@ -712,7 +712,7 @@ export default function Bookstore() {
         </section>
 
         <div className="w-full max-w-7xl mt-12">
-          <p className="text-xs text-muted-foreground/50 text-center" data-testid="text-affiliate-disclosure">
+          <p className="text-[16px] text-[#52525B] text-center" data-testid="text-affiliate-disclosure">
             Links to Amazon are affiliate links. PodCap may earn a small commission on purchases at no extra cost to you.
           </p>
         </div>

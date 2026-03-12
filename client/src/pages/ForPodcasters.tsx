@@ -53,7 +53,7 @@ function ContactSection() {
           <h2 className="text-xl sm:text-2xl font-display font-bold mb-3" data-testid="text-contact-title">
             Get your podcast on PodCap
           </h2>
-          <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed">
+          <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed">
             We're building the most comprehensive podcast knowledge platform on the internet. If you host a podcast, we'd love to include your show.
           </p>
         </div>
@@ -62,7 +62,7 @@ function ContactSection() {
           <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="contact-success">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
             <h3 className="text-lg font-display font-bold mb-2">Message sent</h3>
-            <p className="text-[15px] text-muted-foreground">We'll get back to you as soon as possible.</p>
+            <p className="text-[16px] text-muted-foreground">We'll get back to you as soon as possible.</p>
             <button
               onClick={() => setSent(false)}
               className="mt-4 text-base text-primary font-display font-bold hover:underline"
@@ -84,7 +84,7 @@ function ContactSection() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@yourpodcast.com"
-                className="w-full h-10 px-3.5 rounded-xl border border-border bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                className="w-full h-10 px-3.5 rounded-xl border border-border bg-background text-[16px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                 data-testid="input-email"
               />
             </div>
@@ -99,14 +99,14 @@ function ContactSection() {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Share your podcast name, what it's about, or any questions you have..."
                 rows={4}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[16px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
                 data-testid="input-message"
               />
             </div>
             <Button
               type="submit"
               disabled={submitMutation.isPending || !email.trim() || !message.trim()}
-              className="w-full rounded-xl font-display font-bold text-[14px] h-10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+              className="w-full rounded-xl font-display font-bold text-[16px] h-10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
               data-testid="button-submit"
             >
               {submitMutation.isPending ? (
@@ -156,7 +156,7 @@ export default function ForPodcasters() {
               You spend hours recording conversations worth hearing. But once they publish, the ideas inside are only accessible to people with time to listen start to finish. PodCap makes every episode searchable, skimmable, and shareable - so your content keeps working long after it drops.
             </p>
             <Link href="/podcaster/claim" data-testid="link-hero-claim">
-              <Button className="rounded-xl font-display font-bold text-[15px] px-6 shadow-sm">
+              <Button className="rounded-xl font-display font-bold text-[16px] px-6 shadow-sm">
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Claim Your Podcast
               </Button>
@@ -170,7 +170,7 @@ export default function ForPodcasters() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-problem-title">
                 Your content's biggest enemy isn't competition. It's invisibility.
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 Audio is a black box to search engines. The moment an episode publishes, the ideas inside become invisible to anyone who wasn't already listening.
               </p>
             </div>
@@ -183,17 +183,17 @@ export default function ForPodcasters() {
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
-                  <p className="text-sm font-display font-semibold text-foreground/70 mb-1">{stat.label}</p>
-                  <p className="text-[15px] text-muted-foreground/50 leading-snug">{stat.detail}</p>
+                  <p className="text-[16px] font-display font-semibold text-[#3F3F46] mb-1">{stat.label}</p>
+                  <p className="text-[16px] text-[#52525B] leading-snug">{stat.detail}</p>
                 </div>
               ))}
             </div>
 
             <div className="max-w-xl mx-auto text-center">
-              <p className="text-[15px] leading-[1.75] text-muted-foreground">
+              <p className="text-[16px] leading-[1.75] text-muted-foreground">
                 You put everything into each episode. But once it publishes, the ideas inside are only accessible to people who listen start to finish. Everyone else moves on. The best insight you've ever shared might already be out there, buried in an episode most people will never find.
               </p>
-              <p className="text-[15px] leading-[1.75] font-display font-bold text-foreground mt-4">
+              <p className="text-[16px] leading-[1.75] font-display font-bold text-foreground mt-4">
                 PodCap makes your content findable, skimmable, and shareable - so your best ideas travel further.
               </p>
             </div>
@@ -206,7 +206,7 @@ export default function ForPodcasters() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
                 What PodCap creates for your show
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 Every episode on PodCap becomes a rich, structured page of knowledge - automatically.
               </p>
             </div>
@@ -228,8 +228,8 @@ export default function ForPodcasters() {
                   <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
                     <item.icon className="w-[18px] h-[18px]" />
                   </div>
-                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
-                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                  <h3 className="text-[16px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[16px] leading-[1.65] text-muted-foreground">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -245,7 +245,7 @@ export default function ForPodcasters() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-sponsor-title">
                 Sponsor amplification
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps - reaching fans who read but don't always listen.
               </p>
             </div>
@@ -264,14 +264,14 @@ export default function ForPodcasters() {
                   <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
                     <item.icon className="w-[18px] h-[18px]" />
                   </div>
-                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
-                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                  <h3 className="text-[16px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[16px] leading-[1.65] text-muted-foreground">{item.description}</p>
                 </div>
               ))}
             </div>
 
             <div className="mt-8 bg-card border border-border rounded-2xl p-6 sm:p-8 text-center">
-              <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-lg mx-auto">
+              <p className="text-[16px] leading-[1.7] text-muted-foreground max-w-lg mx-auto">
                 Most podcast sponsors only get value during the episode itself. With PodCap, their investment keeps delivering impressions on the web and in inboxes - giving you a stronger pitch for renewals and rate increases.
               </p>
             </div>
@@ -287,7 +287,7 @@ export default function ForPodcasters() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-byline-title">
                 Custom byline on every page
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 Claim your podcast and add a custom byline that appears on your podcast page and every episode recap. Promote your merch store, newsletter, Patreon, live tour, or anything you want your audience to see.
               </p>
             </div>
@@ -305,8 +305,8 @@ export default function ForPodcasters() {
                   <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
                     <item.icon className="w-[18px] h-[18px]" />
                   </div>
-                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
-                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                  <h3 className="text-[16px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[16px] leading-[1.65] text-muted-foreground">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -317,8 +317,8 @@ export default function ForPodcasters() {
                   <Mic className="w-[18px] h-[18px] text-primary" />
                 </div>
                 <div>
-                  <p className="text-[14px] font-display font-bold mb-0.5">Example byline</p>
-                  <p className="text-[14px] leading-[1.6] text-muted-foreground">
+                  <p className="text-[16px] font-display font-bold mb-0.5">Example byline</p>
+                  <p className="text-[16px] leading-[1.6] text-muted-foreground">
                     "From the host: New merch drop! Visit our store for limited-edition gear <span className="text-primary font-semibold">yourpodcast.com/merch</span>"
                   </p>
                 </div>
@@ -332,11 +332,11 @@ export default function ForPodcasters() {
             <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-claim-title">
               Ready to take control of your podcast on PodCap?
             </h2>
-            <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
+            <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
               Claim your podcast in under a minute. Add your custom byline, review your sponsor visibility, and make sure your show is represented exactly the way you want.
             </p>
             <Link href="/podcaster/claim" data-testid="link-claim-cta">
-              <Button className="rounded-xl font-display font-bold text-[15px] px-8 shadow-sm">
+              <Button className="rounded-xl font-display font-bold text-[16px] px-8 shadow-sm">
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Claim Your Podcast
               </Button>
@@ -350,7 +350,7 @@ export default function ForPodcasters() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-benefits-title">
                 How this helps your podcast grow
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 PodCap creates durable value from every episode you publish.
               </p>
             </div>
@@ -370,8 +370,8 @@ export default function ForPodcasters() {
                   <div className={`w-10 h-10 rounded-xl ${b.color} flex items-center justify-center mb-3`}>
                     <b.icon className="w-[18px] h-[18px]" />
                   </div>
-                  <h3 className="text-[15px] font-display font-bold mb-1">{b.title}</h3>
-                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{b.description}</p>
+                  <h3 className="text-[16px] font-display font-bold mb-1">{b.title}</h3>
+                  <p className="text-[16px] leading-[1.65] text-muted-foreground">{b.description}</p>
                 </div>
               ))}
             </div>
@@ -386,7 +386,7 @@ export default function ForPodcasters() {
             <h2 className="text-xl sm:text-2xl font-display font-bold mb-5">
               We're building podcast infrastructure
             </h2>
-            <div className="text-[15px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
+            <div className="text-[16px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
                 Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio - unsearchable, unskimmable, and invisible to the web.
               </p>
@@ -404,11 +404,11 @@ export default function ForPodcasters() {
           <div className="max-w-2xl mx-auto px-6">
             <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
-              <p className="text-[15px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
+              <p className="text-[16px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
                 There's no cost, no contract, and no catch. PodCap creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable - not to gatekeep it.
               </p>
               <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
-                <p className="text-[15px] leading-[1.7] text-muted-foreground">
+                <p className="text-[16px] leading-[1.7] text-muted-foreground">
                   We also promote standout episodes daily on{" "}
                   <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podcap_io<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,
                   helping new listeners discover your show.
@@ -424,7 +424,7 @@ export default function ForPodcasters() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-pages-title">
                 Thousands of podcasts on the platform
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
                 From indie shows to the world's most popular podcasts, we're building the most comprehensive library of podcast knowledge on the internet.
               </p>
             </div>
@@ -434,8 +434,8 @@ export default function ForPodcasters() {
                   <div className="bg-card border border-border rounded-2xl p-3.5 hover:border-primary/30 hover:shadow-md transition-all h-full flex flex-col">
                     <img src={podcast.artworkUrl} alt={podcast.name} className="w-full aspect-square rounded-xl object-cover mb-3 group-hover:scale-[1.02] transition-transform" loading="lazy" />
                     <h3 className="font-display font-bold text-base mb-0.5 leading-tight group-hover:text-primary transition-colors">{podcast.name}</h3>
-                    <p className="text-[15px] text-muted-foreground leading-snug flex-1 line-clamp-2">{podcast.description}</p>
-                    <span className="flex items-center text-primary text-[15px] font-display font-bold mt-2">
+                    <p className="text-[16px] text-muted-foreground leading-snug flex-1 line-clamp-2">{podcast.description}</p>
+                    <span className="flex items-center text-primary text-[16px] font-display font-bold mt-2">
                       View Page <ChevronRight className="w-3 h-3 ml-0.5" />
                     </span>
                   </div>

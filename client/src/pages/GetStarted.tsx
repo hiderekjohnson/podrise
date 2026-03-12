@@ -130,7 +130,7 @@ export default function GetStarted() {
           <div className="glass-panel p-6 sm:p-10 flex flex-col gap-10">
             <section className="flex flex-col gap-5">
               <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-[15px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">Choose podcasts to recap</h2>
                   <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
@@ -148,7 +148,7 @@ export default function GetStarted() {
                           <button
                             data-testid={`button-remove-selected-${podcast.id}`}
                             onClick={() => handleRemove(podcast.id)}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[16px]"
                           >
                             ×
                           </button>
@@ -172,7 +172,7 @@ export default function GetStarted() {
 
             <section ref={emailSectionRef} className="flex flex-col gap-4">
               <div className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full text-[15px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">2</span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">2</span>
                 <div>
                   <h2 className="text-lg font-display font-bold text-foreground">Where should we send your recap?</h2>
                   <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">All your podcast recaps in one daily email.</p>
@@ -186,7 +186,7 @@ export default function GetStarted() {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
+                  className="w-full h-12 px-4 bg-white border border-black/[0.08] rounded-xl text-[16px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium shadow-sm shadow-black/[0.03]"
                 />
               </div>
             </section>
@@ -196,7 +196,7 @@ export default function GetStarted() {
                 data-testid="button-finish"
                 onClick={handleSubmit}
                 disabled={isPending || selectedPodcasts.length === 0 || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
-                className="w-auto px-8 h-11 flex items-center justify-center gap-2 rounded-lg font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
+                className="w-auto px-8 h-11 flex items-center justify-center gap-2 rounded-lg font-display font-bold text-[16px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100 transition-all active:scale-[0.98]"
               >
                 {isPending ? (
                   <>

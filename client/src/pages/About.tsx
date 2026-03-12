@@ -93,8 +93,8 @@ export default function About() {
                 data-testid={`stat-card-${i}`}
               >
                 <p className="text-2xl sm:text-3xl font-display font-extrabold text-primary tracking-tight mb-1">{stat.value}</p>
-                <p className="text-[13px] sm:text-[14px] font-semibold text-foreground leading-snug">{stat.label}</p>
-                <p className="text-[12px] sm:text-[13px] text-muted-foreground/70 leading-snug mt-0.5">{stat.sublabel}</p>
+                <p className="text-[16px] font-semibold text-foreground leading-snug">{stat.label}</p>
+                <p className="text-[16px] text-[#3F3F46] leading-snug mt-0.5">{stat.sublabel}</p>
               </div>
             ))}
           </div>
@@ -109,7 +109,7 @@ export default function About() {
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-black/[0.06] dark:to-white/[0.06]" />
-            <h2 className="text-[15px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">The Problem</h2>
+            <h2 className="text-[16px] font-bold uppercase tracking-[0.2em] text-[#52525B]">The Problem</h2>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-black/[0.06] dark:to-white/[0.06]" />
           </div>
           <div className="space-y-5 text-[17px] leading-[1.85] text-muted-foreground max-w-2xl mx-auto">
@@ -144,14 +144,14 @@ export default function About() {
               <BarChart3 className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-display font-bold text-foreground">The Scale Problem, Visualized</h3>
             </div>
-            <p className="text-[15px] text-muted-foreground mb-6">
+            <p className="text-[16px] text-muted-foreground mb-6">
               Netflix spent decades building a 50,000-hour library. Podcasters create that much content every 12 hours.
             </p>
             <div className="space-y-5">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-semibold text-foreground">Netflix</span>
-                  <span className="text-[13px] text-muted-foreground font-medium">~50,000 hours</span>
+                  <span className="text-[16px] font-semibold text-foreground">Netflix</span>
+                  <span className="text-[16px] text-muted-foreground font-medium">~50,000 hours</span>
                 </div>
                 <div className="h-5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] overflow-hidden">
                   <motion.div
@@ -161,12 +161,12 @@ export default function About() {
                     transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-[12px] text-muted-foreground/60 mt-1">Built over 25+ years</p>
+                <p className="text-[16px] text-[#52525B] mt-1">Built over 25+ years</p>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-semibold text-foreground">Podcasts</span>
-                  <span className="text-[13px] text-muted-foreground font-medium">~150,000,000 hours</span>
+                  <span className="text-[16px] font-semibold text-foreground">Podcasts</span>
+                  <span className="text-[16px] text-muted-foreground font-medium">~150,000,000 hours</span>
                 </div>
                 <div className="h-5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] overflow-hidden">
                   <motion.div
@@ -176,10 +176,10 @@ export default function About() {
                     transition={{ duration: 1.8, delay: 0.9, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-[12px] text-muted-foreground/60 mt-1">2,000x more content - and growing by 80,000+ hours every day</p>
+                <p className="text-[16px] text-[#52525B] mt-1">2,000x more content - and growing by 80,000+ hours every day</p>
               </div>
             </div>
-            <p className="text-[15px] text-foreground font-semibold mt-6 text-center">
+            <p className="text-[16px] text-foreground font-semibold mt-6 text-center">
               A trillion dollars of business insight, locked in audio files nobody can search.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function About() {
             <div className="flex items-center gap-4">
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
               <div>
-                <p className="text-[15px] font-bold text-foreground">Derek Johnson</p>
+                <p className="text-[16px] font-bold text-foreground">Derek Johnson</p>
                 <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founder, PodCap</p>
               </div>
             </div>
@@ -229,7 +229,7 @@ export default function About() {
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4`}>
                   <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                 </div>
-                <p className="text-[15px] font-bold text-foreground mb-1.5">{item.title}</p>
+                <p className="text-[16px] font-bold text-foreground mb-1.5">{item.title}</p>
                 <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
               </div>
             ))}
@@ -262,7 +262,7 @@ export default function About() {
                   <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4`}>
                     <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                   </div>
-                  <p className="text-[15px] font-bold text-foreground mb-1.5">{item.title}</p>
+                  <p className="text-[16px] font-bold text-foreground mb-1.5">{item.title}</p>
                   <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
                 </div>
               ))}
@@ -303,7 +303,7 @@ export default function About() {
                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <p className="text-[15px] text-foreground leading-relaxed">{item}</p>
+                <p className="text-[16px] text-foreground leading-relaxed">{item}</p>
               </div>
             ))}
           </div>

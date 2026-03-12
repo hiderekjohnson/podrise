@@ -39,7 +39,7 @@ function EnterpriseContactForm() {
       <div className="bg-card border border-border rounded-2xl p-8 text-center max-w-lg mx-auto" data-testid="enterprise-contact-success">
         <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
         <h3 className="text-lg font-display font-bold mb-2">We'll be in touch</h3>
-        <p className="text-[15px] text-muted-foreground">A member of our team will follow up within one business day.</p>
+        <p className="text-[16px] text-muted-foreground">A member of our team will follow up within one business day.</p>
         <button
           onClick={() => setSent(false)}
           className="mt-4 text-base text-primary font-display font-bold hover:underline"
@@ -64,7 +64,7 @@ function EnterpriseContactForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
-          className="w-full h-10 px-3.5 rounded-xl border border-border bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+          className="w-full h-10 px-3.5 rounded-xl border border-border bg-background text-[16px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
           data-testid="input-enterprise-email"
         />
       </div>
@@ -79,14 +79,14 @@ function EnterpriseContactForm() {
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Tell us about your organization and what you're looking for..."
           rows={4}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[14px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[16px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
           data-testid="input-enterprise-message"
         />
       </div>
       <Button
         type="submit"
         disabled={submitMutation.isPending || !email.trim() || !message.trim()}
-        className="w-full rounded-xl font-display font-bold text-[14px] h-10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+        className="w-full rounded-xl font-display font-bold text-[16px] h-10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
         data-testid="button-enterprise-submit"
       >
         {submitMutation.isPending ? (
@@ -143,7 +143,7 @@ export default function Enterprise() {
                 "Find every founder interview about pricing strategy",
                 "Track competitor mentions across the podcast ecosystem",
               ].map((q) => (
-                <span key={q} className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-[13px] text-primary/80 font-medium">
+                <span key={q} className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-[16px] text-primary/80 font-medium">
                   {q}
                 </span>
               ))}
@@ -157,7 +157,7 @@ export default function Enterprise() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-problem-title">
                 The knowledge is there. The access isn't.
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 Every week, thousands of podcast episodes surface expert analysis, industry signals, and strategic conversations that matter to your business. But that knowledge disappears into a black box the moment it's published. No search, no index, no way to know what was said or where. Your team is flying blind.
               </p>
             </div>
@@ -170,8 +170,8 @@ export default function Enterprise() {
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
-                  <p className="text-sm font-display font-semibold text-foreground/70 mb-1">{stat.label}</p>
-                  <p className="text-[15px] text-muted-foreground/50 leading-snug">{stat.detail}</p>
+                  <p className="text-[16px] font-display font-semibold text-[#3F3F46] mb-1">{stat.label}</p>
+                  <p className="text-[16px] text-[#52525B] leading-snug">{stat.detail}</p>
                 </div>
               ))}
             </div>
@@ -184,7 +184,7 @@ export default function Enterprise() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
                 A structured knowledge layer for podcast content
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 PodCap processes podcast episodes into structured, queryable data - turning conversations into searchable knowledge your team can actually use.
               </p>
             </div>
@@ -206,8 +206,8 @@ export default function Enterprise() {
                   <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center mb-3`}>
                     <item.icon className="w-[18px] h-[18px]" />
                   </div>
-                  <h3 className="text-[15px] font-display font-bold mb-1">{item.title}</h3>
-                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{item.description}</p>
+                  <h3 className="text-[16px] font-display font-bold mb-1">{item.title}</h3>
+                  <p className="text-[16px] leading-[1.65] text-muted-foreground">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -220,7 +220,7 @@ export default function Enterprise() {
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
                 Built for teams that move on information
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 Podcast intelligence is relevant anywhere expert conversations, market signals, and emerging ideas matter.
               </p>
             </div>
@@ -240,8 +240,8 @@ export default function Enterprise() {
                   <div className={`w-10 h-10 rounded-xl ${uc.color} flex items-center justify-center mb-3`}>
                     <uc.icon className="w-[18px] h-[18px]" />
                   </div>
-                  <h3 className="text-[15px] font-display font-bold mb-1">{uc.title}</h3>
-                  <p className="text-[14px] leading-[1.65] text-muted-foreground">{uc.description}</p>
+                  <h3 className="text-[16px] font-display font-bold mb-1">{uc.title}</h3>
+                  <p className="text-[16px] leading-[1.65] text-muted-foreground">{uc.description}</p>
                 </div>
               ))}
             </div>
@@ -256,7 +256,7 @@ export default function Enterprise() {
             <h2 className="text-xl sm:text-2xl font-display font-bold mb-5">
               The infrastructure layer for podcast knowledge
             </h2>
-            <div className="text-[15px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
+            <div className="text-[16px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
                 PodCap is building the structured data layer that makes podcast content accessible to machines and teams alike. We process episodes into structured recaps, extract entities and topics, link ideas across shows, and create knowledge graphs from conversations.
               </p>
@@ -276,7 +276,7 @@ export default function Enterprise() {
               <h2 className="text-xl sm:text-2xl font-display font-bold mb-3" data-testid="text-cta-title">
                 Explore what podcast intelligence can do for your team
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed">
+              <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed">
                 We're working with a select group of organizations to shape the enterprise product. If podcast content matters to your work, we'd like to hear from you.
               </p>
             </div>
