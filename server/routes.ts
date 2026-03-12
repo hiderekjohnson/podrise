@@ -6633,24 +6633,54 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return res.status(404).json({ error: "Episode not found" });
       }
 
+      let transcript = "";
+      try {
+        const tRes = await pool.query(
+          `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title = $2 LIMIT 1`,
+          [recap.itunesId, recap.episodeTitle]
+        );
+        if (tRes.rows[0]?.transcript) {
+          transcript = tRes.rows[0].transcript;
+        }
+      } catch (e) {
+        console.log("[EpisodeChat] Transcript lookup failed, using recap only");
+      }
+
+      let entityContextsStr = "";
+      try {
+        const ecRes = await pool.query(
+          `SELECT entity_contexts_cache FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
+          [podcastSlug, episodeSlug]
+        );
+        if (ecRes.rows[0]?.entity_contexts_cache) {
+          const raw = ecRes.rows[0].entity_contexts_cache;
+          const ec = typeof raw === "string" ? JSON.parse(raw) : raw;
+          entityContextsStr = Object.entries(ec)
+            .map(([slug, desc]) => `- ${slug}: ${desc}`)
+            .join("\n");
+        }
+      } catch (e) {}
+
       const recapContext = [
         `Podcast: ${recap.podcastName}`,
         `Episode: "${recap.episodeTitle}"`,
         recap.tldl ? `Summary: ${recap.tldl}` : "",
-        recap.whatHappened ? `Full Recap:\n${recap.whatHappened}` : "",
         recap.keyInsights ? `Key Insights: ${JSON.stringify(recap.keyInsights)}` : "",
         recap.keyTopics ? `Topics: ${JSON.stringify(recap.keyTopics)}` : "",
+        entityContextsStr ? `People & Companies Mentioned:\n${entityContextsStr}` : "",
+        recap.whatHappened ? `Full Recap:\n${recap.whatHappened}` : "",
       ].filter(Boolean).join("\n\n");
 
       let entityFocus = "";
       if (entityName && entityType) {
-        entityFocus = `\n\nThe user is specifically asking about ${entityType === "person" ? "the person" : entityType === "company" ? "the company" : "the topic"} "${entityName}" in the context of this episode.`;
+        entityFocus = `\n\nThe user is specifically asking about ${entityType === "person" ? "the person" : entityType === "company" ? "the company" : entityType === "book" ? "the book" : "the topic"} "${entityName}" in the context of this episode.`;
       }
 
-      const systemPrompt = `You are PodCap's AI assistant. You help users understand podcast episodes better. You have access to a detailed recap of this episode. Answer questions based on what was discussed in the episode. Be conversational, specific, and reference actual points from the episode. Keep answers concise (2-4 sentences for simple questions, up to a short paragraph for complex ones). If the answer isn't covered in the recap, say so honestly.${entityFocus}
+      const hasTranscript = transcript.length > 0;
+      const systemPrompt = `You are PodCap's AI assistant. You help users understand podcast episodes better. You have access to ${hasTranscript ? "the full transcript and a detailed recap" : "a detailed recap"} of this episode. Answer questions based on what was actually discussed in the episode. Be conversational, specific, and reference actual points from the episode. Keep answers concise (2-4 sentences for simple questions, up to a short paragraph for complex ones).${entityFocus}
 
 Episode context:
-${recapContext}`;
+${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` : ""}`;
 
       const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
         { role: "system", content: systemPrompt },
