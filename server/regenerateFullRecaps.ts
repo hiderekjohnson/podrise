@@ -1,6 +1,6 @@
 import { pool } from "./db";
 import { openai } from "./replit_integrations/image/client";
-import { extractBooksFromTranscript, mergeExtractedBooks } from "./recapGenerator";
+import { extractBooksFromTranscript, mergeExtractedBooks, extractQuotesFromTranscript } from "./recapGenerator";
 import { TOPICS } from "../client/src/data/topicData";
 import https from "https";
 import http from "http";
@@ -208,7 +208,7 @@ async function run() {
   try {
     for (const id of targetIds) {
       const { rows } = await client.query(`
-        SELECT r.id, r.slug, r.episode_title, r.podcast_name, r.itunes_id, r.show_notes, r.resources
+        SELECT r.id, r.slug, r.episode_slug, r.episode_title, r.podcast_name, r.itunes_id, r.show_notes, r.resources, r.hosts
         FROM landing_page_recaps r WHERE r.id = $1
       `, [id]);
       
@@ -263,6 +263,28 @@ async function run() {
         JSON.stringify(recap.sponsors), JSON.stringify(recap.guests), JSON.stringify(recap.resources), id
       ]);
       console.log("  ✓ Saved");
+
+      try {
+        await client.query(`DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [row.slug, row.episode_slug]);
+        const extractedQuotes = await extractQuotesFromTranscript(
+          tRes.rows[0].transcript, row.podcast_name, row.episode_title,
+          row.hosts || null,
+          recap.guests ? JSON.stringify(recap.guests) : null
+        );
+        if (extractedQuotes.length > 0) {
+          for (let i = 0; i < extractedQuotes.length; i++) {
+            const q = extractedQuotes[i];
+            await client.query(
+              `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+              [row.slug, row.episode_slug, q.speakerName, q.speakerRole || null, q.quoteText, q.context, q.quoteType, i + 1]
+            );
+          }
+          console.log(`  ✓ ${extractedQuotes.length} quotes extracted`);
+        }
+      } catch (quoteErr) {
+        console.warn(`  Quote extraction failed:`, quoteErr);
+      }
     }
   } finally { client.release(); }
 }

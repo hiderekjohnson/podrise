@@ -6149,6 +6149,32 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             console.warn(`[EpGen] Segment save failed for "${epTitle}":`, segErr);
           }
 
+          try {
+            const existingQuotes = await storage.getEpisodeQuotes(podcastSlug, epSlug);
+            if (existingQuotes.length === 0) {
+              const { extractQuotesFromTranscript } = await import("./recapGenerator");
+              const extractedQuotes = await extractQuotesFromTranscript(
+                t.transcript, podcastName, epTitle, hosts,
+                recap.guests ? JSON.stringify(recap.guests) : null
+              );
+              if (extractedQuotes.length > 0) {
+                const quotesToSave = extractedQuotes.map((q, i) => ({
+                  podcastSlug,
+                  episodeSlug: epSlug,
+                  speakerName: q.speakerName,
+                  speakerRole: q.speakerRole || null,
+                  quoteText: q.quoteText,
+                  context: q.context,
+                  quoteType: q.quoteType,
+                }));
+                await storage.saveEpisodeQuotes(quotesToSave);
+                console.log(`[EpGen] Extracted ${extractedQuotes.length} quotes for "${epTitle}"`);
+              }
+            }
+          } catch (quoteErr) {
+            console.warn(`[EpGen] Quote extraction failed for "${epTitle}":`, quoteErr);
+          }
+
           epGenState.generated++;
           if (epGenState.currentEpisode % 5 === 0) {
             console.log(`[EpGen] ${podcastName}: ${epGenState.currentEpisode}/${epGenState.totalEpisodes} (${epGenState.generated} generated, ${epGenState.failed} failed)`);
