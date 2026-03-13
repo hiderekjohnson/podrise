@@ -84,14 +84,35 @@ export default function Home() {
               PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's most influential shows and deliver structured briefings so you stay current on what matters -- without listening to everything.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
-              <button
-                data-testid="button-hero-explore"
-                onClick={() => navigate("/podcasts")}
-                className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
-              >
-                Explore Podcasts
-                <ArrowRight className="w-5 h-5" />
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  data-testid="button-hero-industries"
+                  onClick={() => navigate("/industries")}
+                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
+                >
+                  <Building2 className="w-5 h-5" />
+                  Industries
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  data-testid="button-hero-interests"
+                  onClick={() => navigate("/interests")}
+                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Interests
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  data-testid="button-hero-roles"
+                  onClick={() => navigate("/roles")}
+                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
+                >
+                  <Users className="w-5 h-5" />
+                  Roles
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </motion.div>
         </section>
