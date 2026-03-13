@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar, Tag } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { StickyEmailBar } from "@/components/StickyEmailBar";
+import { InlineEmailCTA } from "@/components/InlineEmailCTA";
 import { TOPICS, getCategoryPath } from "@/data/topicData";
 
 interface TopicPulse {
@@ -221,6 +223,7 @@ function AsHeardOn({ sourceEpisodes }: { sourceEpisodes: TopicPulse["sourceEpiso
 function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: string; basePath: string }) {
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
+  const categoryType: "industry" | "interest" | "role" = basePath === "/industries" ? "industry" : basePath === "/roles" ? "role" : "interest";
 
   const { data: pulse, isLoading, isError } = useQuery<TopicPulse>({
     queryKey: ["/api/topics", topicSlug, "pulse", date],
@@ -373,6 +376,14 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
               )}
 
               <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
+
+              <InlineEmailCTA
+                type={categoryType}
+                slug={topicSlug}
+                name={topicName}
+                variant="gradient"
+                className="mt-6"
+              />
             </motion.header>
 
             <div className="w-full h-px bg-border mb-8 sm:mb-10" />
@@ -384,7 +395,24 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
               className="space-y-5 sm:space-y-6"
               data-testid="section-pulse-body"
             >
-              {renderMarkdownBody(pulse.body)}
+              {(() => {
+                const elements = renderMarkdownBody(pulse.body);
+                const midpoint = Math.floor(elements.length / 2);
+                const before = elements.slice(0, midpoint);
+                const after = elements.slice(midpoint);
+                return (
+                  <>
+                    {before}
+                    <InlineEmailCTA
+                      type={categoryType}
+                      slug={topicSlug}
+                      name={topicName}
+                      variant="card"
+                    />
+                    {after}
+                  </>
+                );
+              })()}
             </motion.div>
 
             {pulse.keyThemes && pulse.keyThemes.length > 0 && (
@@ -405,6 +433,14 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
                 })}
               </div>
             )}
+
+            <InlineEmailCTA
+              type={categoryType}
+              slug={topicSlug}
+              name={topicName}
+              variant="gradient"
+              className="mt-10"
+            />
 
             <div className="w-full h-px bg-border mt-10 mb-8" />
 
@@ -573,6 +609,9 @@ export default function TopicPulsePage() {
   else if (matchRolesArchive || matchRolesDate) basePath = "/roles";
   else if (topic) basePath = getCategoryPath(topic.category);
 
+  const categoryType: "industry" | "interest" | "role" = basePath === "/industries" ? "industry" : basePath === "/roles" ? "role" : "interest";
+  const topicName = topic?.name || topicSlug;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
@@ -584,6 +623,12 @@ export default function TopicPulsePage() {
         )}
       </main>
       <Footer />
+      <StickyEmailBar
+        type={categoryType}
+        slug={topicSlug}
+        name={topicName}
+        scrollThreshold={400}
+      />
     </div>
   );
 }
