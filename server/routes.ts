@@ -1706,9 +1706,7 @@ export async function registerRoutes(
             .map(([key, b]) => {
               const enrich = enrichByKey.get(key) as any;
               const asin = enrich?.asin || extractAsinFromUrl(b.url);
-              const amazonUrl = asin
-                ? `https://www.amazon.com/dp/${asin}?tag=podcap-20`
-                : enrich?.amazon_url || b.url || "";
+              const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrich?.author ? ` ${enrich.author}` : ""} book`)}&tag=podcap-20`;
               return {
                 name: b.name,
                 author: enrich?.author || b.author,
@@ -2168,9 +2166,7 @@ export async function registerRoutes(
           const enrichedAsin = enrichment?.asin || null;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichedAsin || originalAsin;
-          const amazonUrl = finalAsin
-            ? `https://www.amazon.com/dp/${finalAsin}?tag=podcap-20`
-            : enrichment?.amazon_url || b.url || `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${b.author ? ` ${b.author}` : ""}`)}&tag=podcap-20`;
+          const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrichment?.author || b.author ? ` ${enrichment?.author || b.author}` : ""} book`)}&tag=podcap-20`;
 
           return {
             name: b.name,
@@ -2414,9 +2410,8 @@ export async function registerRoutes(
       }
 
       const finalAsin = enrichment.asin || null;
-      const amazonUrl = finalAsin
-        ? `https://www.amazon.com/dp/${finalAsin}?tag=podcap-20`
-        : `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap-20`;
+      const amazonSearchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""} book`)}&tag=podcap-20`;
+      const amazonUrl = amazonSearchUrl;
 
       const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap0b-20`;
 

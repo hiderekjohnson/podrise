@@ -405,6 +405,15 @@ export default function BookDetailPage() {
     enabled: !!bookSlug,
   });
 
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      setShowStickyBar(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const recommenders = useMemo(() => {
     if (!book) return [];
     const map = new Map<string, { name: string; role: "host" | "guest" | "author"; count: number }>();
@@ -832,9 +841,9 @@ export default function BookDetailPage() {
         </div>
       </main>
 
-      {book?.amazonUrl && (
-        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-black/[0.08] dark:border-white/[0.08] px-4 py-3 z-50" data-testid="mobile-sticky-cta">
-          <div className="flex gap-2">
+      {book?.amazonUrl && showStickyBar && (
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50 }} className="bg-background/95 backdrop-blur-sm border-t border-black/[0.08] dark:border-white/[0.08] px-4 py-3" data-testid="sticky-buy-bar">
+          <div className="max-w-2xl mx-auto flex gap-2">
             <a
               href={book.amazonUrl}
               target="_blank"
@@ -843,7 +852,7 @@ export default function BookDetailPage() {
               data-testid="button-amazon-sticky"
             >
               <ShoppingCart className="w-4 h-4" />
-              Amazon
+              Buy on Amazon
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
             {book.blinkistUrl && (
