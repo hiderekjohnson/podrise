@@ -740,7 +740,7 @@ export default function BookDetailPage() {
             </motion.section>
           )}
 
-          {recommendationQuotes.length > 0 && (
+          {allEpsWithContext.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
