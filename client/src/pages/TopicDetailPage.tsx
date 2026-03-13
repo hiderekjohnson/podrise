@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useLocation, Link, useParams } from "wouter";
 import { ArrowLeft, ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock } from "lucide-react";
+import { BookOpen } from "lucide-react"
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Footer } from "@/components/Footer";
@@ -184,6 +185,16 @@ export default function TopicDetailPage() {
        t.podcastKeywords.some(kw => topic.podcastKeywords.some(tk => tk === kw)))
     ).slice(0, 6);
   }, [topic]);
+
+  const { data: topicBooks } = useQuery({
+    queryKey: ["/api/topics", params.slug, "books"],
+    queryFn: async () => {
+      const res = await fetch(`/api/topics/${params.slug}/books`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!params.slug,
+  });
 
   const quotes = useMemo(() => topicEpisodes ? extractQuotes(topicEpisodes) : [], [topicEpisodes]);
   const keyInsights = useMemo(() => topicEpisodes ? extractInsights(topicEpisodes) : [], [topicEpisodes]);
@@ -743,6 +754,55 @@ export default function TopicDetailPage() {
                           <p className="text-[13px] text-muted-foreground/60 truncate">{company.details.industry}</p>
                         </div>
                       </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {topicBooks && topicBooks.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.42 }}
+            className="mb-14"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <BookOpen className="w-4 h-4 text-amber-600" />
+              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-topic-books">
+                Reading List
+              </h2>
+            </div>
+            <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
+              Books most frequently recommended and discussed in {topicDisplayName.toLowerCase()} conversations.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {topicBooks.slice(0, 8).map((book, i) => (
+                <motion.div
+                  key={book.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
+                >
+                  <Link href={`/bookstore/${book.slug}`} data-testid={`card-topic-book-${book.slug}`}>
+                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full flex flex-col">
+                      <div className="w-full aspect-[2/3] bg-muted rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                        <img 
+                          src={book.coverUrl || "/placeholder-book.jpg"} 
+                          alt={book.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <h3 className="text-[13px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
+                        {book.title}
+                      </h3>
+                      <p className="text-[12px] text-muted-foreground/70 mt-1">{book.author || "Unknown"}</p>
+                      {book.mentionCount && (
+                        <p className="text-[12px] text-amber-600 font-mono mt-2">Mentioned {book.mentionCount}x</p>
+                      )}
                     </div>
                   </Link>
                 </motion.div>
