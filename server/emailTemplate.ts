@@ -533,7 +533,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 </head>
 <body style="background:#08080F;margin:0;padding:0;">
 
-<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;color:#08080F;line-height:1px;">${escapeHtml(previewText)} &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204;</div>
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;color:#ffffff;line-height:1px;">${escapeHtml(previewText)} &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204; &#8204;</div>
 
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F7F7FC;">
 <tr><td align="center" class="outer-pad" style="padding:28px 16px;">
@@ -558,10 +558,11 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   </tr></table>
 </td></tr>
 
-<!-- HOOK -->
-${hookText ? `<tr><td style="padding:24px 28px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
-  <p style="font-size:18px;font-weight:400;color:#09090B;line-height:1.5;margin:0;">${escapeHtml(hookText)}</p>
-</td></tr>` : ""}
+<!-- OPENING + HOOK -->
+<tr><td style="padding:24px 28px 24px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
+  <p style="font-size:15px;font-weight:400;color:#A1A1AA;line-height:1.5;margin:0 0 ${hookText ? "12px" : "0"};">Here's what your podcasts were saying yesterday.</p>
+  ${hookText ? `<p style="font-size:18px;font-weight:400;color:#09090B;line-height:1.6;margin:0;">${escapeHtml(hookText)}</p>` : ""}
+</td></tr>
 
 ${episodeCardsHtml}
 

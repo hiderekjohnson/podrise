@@ -1,0 +1,18 @@
+The subject line, preheader text, opening line, and hook sentence must be generated together in a single AI prompt for every email. They are one system, not four separate pieces of copy. They should feel like one continuous thought that gets more specific as the reader moves deeper into the email.
+Here is exactly how each piece works and how they connect:
+1. Subject line — gets the open. The single most surprising or counterintuitive claim from any episode in that day's email. Under 50 characters. No words like "digest", "recap", "daily", or "newsletter." Sounds like a smart friend texting you something they just heard. Creates a question in the reader's mind that can only be answered by opening the email.
+2. Preheader text — confirms the open was worth it and fills the iOS lock screen notification. Exactly 120 characters. Set explicitly as a hidden div at the very top of the email HTML before any other content, with these exact styles: display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; color:#ffffff; line-height:1px. Never let it be pulled automatically from the email body. Written as two connected thoughts separated by an em dash. The first thought is around 60 characters so it works standalone in Gmail desktop. The second thought adds a second hook so the full 120 characters works as a compelling iOS lock screen notification.
+3. Opening line — orients the reader. Sits directly below the logo bar above the hook sentence. Always the same, never generated. Use exactly: "Here's what your podcasts were saying yesterday." Style it at 15px, color #A1A1AA, font-weight 400.
+4. Hook sentence — pulls the reader into the content. Sits directly below the opening line at 18px, color #09090B, font-weight 400, line-height 1.6, padding 0 28px. Generated fresh every day from that day's best episode content. States something surprising and leaves the most interesting part unsaid — the only way to get the rest is to keep scrolling. Never fully resolves the claim it makes. Never uses words like "explore", "discover", "dive into", or "learn." Never starts with "In today's episode." Sounds like a sentence a person wrote, not an AI summarizer.
+A good example of all four working together as one system:
+Subject: She made $1M as employee #3000
+Preheader: One podcast said homes could be 10x cheaper to build — plus the zero-gravity manufacturing play nobody is talking about yet.
+Opening line: Here's what your podcasts were saying yesterday.
+Hook: One of them made the case that homes could be built 10x cheaper — and the guy saying it has done it before in three other industries.
+A bad example — never generate copy like this:
+Subject: Your Daily PodCap Digest — March 13
+Preheader: Plus -- the new space manufacturing model that could change everything.
+Opening line: Welcome to your daily podcast recap.
+Hook: Today's episodes cover entrepreneurship, AI, and geopolitics.
+The bad example fails because the subject is generic, the preheader uses double hyphens instead of an em dash, the opening line sounds like a newsletter, and the hook resolves itself without creating any forward pull.
+After the opening line and hook sentence, show the episode pills linking to anchors below, then go straight into the first episode block. Nothing else between the hook and the content.

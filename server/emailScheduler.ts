@@ -237,7 +237,7 @@ Only include keys where count > 0.`
 
 export async function generateEmailSubjectAndPreview(summary: string): Promise<{ subject: string; previewText: string; hookSentence: string }> {
   const fallbackSubject = `Your podcasts dropped new episodes`;
-  const fallbackPreview = `Here is what you missed today`;
+  const fallbackPreview = `One of your podcasts made a claim yesterday that changes how you think about it`;
   const fallbackHook = `Your podcasts had some interesting things to say yesterday.`;
   try {
     const { openai } = await import("./replit_integrations/image/client");
@@ -245,47 +245,50 @@ export async function generateEmailSubjectAndPreview(summary: string): Promise<{
       model: "gpt-4o-mini",
       messages: [{
         role: "user",
-        content: `You write email copy for a daily podcast recap email. The sender name is "PodCap" so DO NOT include "PodCap" in the subject.
+        content: `You write email copy for a daily podcast recap. The subject line, preheader, and hook sentence are ONE SYSTEM -- they should feel like one continuous thought that gets more specific as the reader moves deeper.
 
-Given today's podcast recap content below, generate three things:
+Generate all three together from the recap content below:
 
-1. A SUBJECT LINE: Pull the single most interesting or surprising thing from any episode and turn it into a subject line under 50 characters. It should read like a smart friend texting you something they just heard -- not a newsletter. Never use words like "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", or "episode". No emojis.
+1. SUBJECT LINE (gets the open)
+- The single most surprising or counterintuitive claim from any episode.
+- Under 50 characters. No emojis.
+- Never use "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", "episode", or "PodCap".
+- Creates a question in the reader's mind that can only be answered by opening.
+- Sounds like a smart friend texting you something they just heard.
 
-2. A PREVIEW TEXT: This is the gray text Gmail shows next to the subject before opening. It should either complete the thought from the subject line or introduce a second hook from a DIFFERENT episode. Never repeat the subject. Keep under 80 characters. Start with "Plus --" or "Also --" if referencing a different episode.
+2. PREHEADER TEXT (confirms the open was worth it)
+- EXACTLY 120 characters (count carefully).
+- Two connected thoughts separated by an em dash (\u2014).
+- First thought is ~60 characters expanding on the subject line with a new detail.
+- Second thought is ~55 characters introducing a different episode's hook.
+- Never repeat the subject line. Never use double hyphens -- always use \u2014.
 
-3. A HOOK SENTENCE: One punchy sentence that sits at the top of the email body. Scan all episodes, find the single most surprising, counterintuitive, or provocative claim made in any of them, and turn it into a statement that ends with a full stop. NOT a question. NOT a headline. A statement that makes the reader need to know more.
+3. HOOK SENTENCE (pulls the reader into the content)
+- One punchy sentence stating something surprising. Ends with a full stop.
+- NOT a question. NOT a headline. A statement that leaves the most interesting part unsaid.
+- Never fully resolves the claim it makes -- the only way to get the rest is to keep scrolling.
+- Never uses "explore", "discover", "dive into", "learn", or "In today's episode."
+- Never sounds like a newsletter introduction.
 
-The hook sentence should feel like a smart friend texting you something they just heard. Never use words like "explore", "discover", "dive into", or "learn." Never start with "In today's episode." Never make it sound like a newsletter introduction.
+GOOD EXAMPLE (all three working as one system):
+Subject: She made $1M as employee #3000
+Preheader: One podcast said homes could be 10x cheaper to build \u2014 plus the zero-gravity manufacturing play nobody sees yet.
+Hook: One of them made the case that homes could be built 10x cheaper \u2014 and the guy saying it has done it before in three other industries.
 
-GOOD hook examples:
-- Someone in your podcasts yesterday said Anthropic is more dangerous than OpenAI right now.
-- One of your podcasts made the case that boring businesses are the best businesses in 2026.
-- Yesterday a guest argued that everything you know about dopamine is probably wrong.
+BAD EXAMPLE:
+Subject: Your Daily PodCap Digest \u2014 March 13
+Preheader: Plus -- the new space manufacturing model that could change everything.
+Hook: Today's episodes cover entrepreneurship, AI, and geopolitics.
 
-BAD hook examples:
-- Today's digest features two fascinating episodes covering AI, entrepreneurship, and more.
-- Your daily PodCap recap is here -- sit back and enjoy today's insights.
-- We have distilled the key moments from your podcasts into one easy read.
-
-GOOD subject examples:
-- She made $1M as employee #3000
-- The simplest way to make $1M in 2026
-- Why boring businesses win right now
-
-BAD subject examples:
-- Your Daily Podcast Digest for Thursday
-- 3 episodes you need to hear today
-
-GOOD preview examples:
-- Plus -- the dopamine mistake you are probably making every morning
-- Also -- why Anthropic was called the most dangerous company in AI right now
+The bad example fails because the subject is generic, the preheader uses double hyphens, and the hook resolves itself.
 
 Recap content:
 ${summary.slice(0, 3000)}
 
-Respond with JSON: { "subject": "...", "previewText": "...", "hookSentence": "..." }`
+Respond with JSON: { "subject": "...", "preheader": "...", "hook": "..." }
+The preheader MUST be exactly 120 characters. Count them.`
       }],
-      max_tokens: 300,
+      max_tokens: 400,
       temperature: 0.9,
       response_format: { type: "json_object" },
     });
@@ -294,8 +297,9 @@ Respond with JSON: { "subject": "...", "previewText": "...", "hookSentence": "..
     if (content) {
       const parsed = JSON.parse(content);
       const subj = String(parsed.subject || "").trim();
-      const prev = String(parsed.previewText || "").trim();
-      const hook = String(parsed.hookSentence || "").trim();
+      let prev = String(parsed.preheader || parsed.previewText || "").trim();
+      const hook = String(parsed.hook || parsed.hookSentence || "").trim();
+      if (prev.length > 130) prev = prev.slice(0, 127) + "...";
       if (subj && subj.length <= 80) {
         return {
           subject: subj,
@@ -305,7 +309,7 @@ Respond with JSON: { "subject": "...", "previewText": "...", "hookSentence": "..
       }
     }
   } catch (err) {
-    console.warn("[EmailScheduler] AI subject/preview/hook generation failed:", err);
+    console.warn("[EmailScheduler] AI subject/preheader/hook generation failed:", err);
   }
   return { subject: fallbackSubject, previewText: fallbackPreview, hookSentence: fallbackHook };
 }
