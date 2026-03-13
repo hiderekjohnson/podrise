@@ -335,7 +335,7 @@ function buildKeyTakeaways(insights: string[], accentColor: string): string {
     const marginBottom = idx < insights.length - 1 ? "margin-bottom:12px;" : "";
     return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="${marginBottom}"><tr>
         <td width="20" valign="top" style="padding-top:8px;"><div style="width:6px;height:6px;background:${accentColor};border-radius:50%;"></div></td>
-        <td style="font-size:17px;color:#3F3F46;line-height:1.7;">${renderInlineMarkdown(escapeHtml(insight))}</td>
+        <td class="takeaway-text" style="font-size:17px;color:#3F3F46;line-height:1.7;">${renderInlineMarkdown(escapeHtml(insight))}</td>
       </tr></table>`;
   }).join("");
 
@@ -352,7 +352,7 @@ function buildRecapText(whatHappened: string): string {
   const paragraphs = whatHappened.split(/\n\n+/).filter(p => p.trim());
   return paragraphs.map((p, idx) => {
     const marginBottom = idx < paragraphs.length - 1 ? "14px" : "20px";
-    return `<p style="font-size:17px;color:#52525B;line-height:1.8;margin:0 0 ${marginBottom};">${renderInlineMarkdown(escapeHtml(p.trim()))}</p>`;
+    return `<p class="body-text" style="font-size:17px;color:#52525B;line-height:1.8;margin:0 0 ${marginBottom};">${renderInlineMarkdown(escapeHtml(p.trim()))}</p>`;
   }).join("");
 }
 
@@ -372,7 +372,7 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
     lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F464;</td>
-        <td style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"}${suffix}</td>
+        <td class="entity-text" style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"}${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
@@ -382,7 +382,7 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
     lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F3E2;</td>
-        <td style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"}${suffix}</td>
+        <td class="entity-text" style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"}${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
@@ -392,7 +392,7 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
     lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F4DA;</td>
-        <td style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"}${suffix}</td>
+        <td class="entity-text" style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"}${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
@@ -400,12 +400,12 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
   const mentionsUrl = `${recapUrl}#mentions`;
 
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:22px 0 18px;">
-    <tr><td style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 22px 22px;">
-      <p style="font-size:12px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 14px;">Mentioned in this episode</p>
+    <tr><td class="entity-box" style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 22px 22px;">
+      <p class="entity-label" style="font-size:12px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 14px;">Mentioned in this episode</p>
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
         ${lines.join("")}
       </table>
-      <p style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:20px 0 0;">Not mentioned anywhere else in this email</p>
+      <p class="entity-label" style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:20px 0 0;">Not mentioned anywhere else in this email</p>
       <p style="margin:12px 0 0;">
         <a href="${escapeHtml(mentionsUrl)}" style="font-size:14px;font-weight:600;color:#6366F1;text-decoration:none;">Find out exactly why they came up &#8594;</a>
       </p>
@@ -439,11 +439,11 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   }
   const artworkHtml = artworkUrl
     ? `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
-        <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="64" height="64" style="width:64px;height:64px;border-radius:12px;display:block;object-fit:cover;" />
+        <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="64" height="64" class="ep-artwork" style="width:64px;height:64px;border-radius:12px;display:block;object-fit:cover;" />
       </a>`
     : `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
         <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-          <td style="width:64px;height:64px;background:linear-gradient(145deg,#0f172a,#312e81);border-radius:12px;text-align:center;vertical-align:middle;">
+          <td class="ep-artwork" style="width:64px;height:64px;background:linear-gradient(145deg,#0f172a,#312e81);border-radius:12px;text-align:center;vertical-align:middle;">
             <span style="font-size:16px;font-weight:700;color:rgba(255,255,255,0.5);">${escapeHtml(slug.slice(0, 3).toUpperCase())}</span>
           </td>
         </tr></table>
@@ -464,10 +464,10 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
     </td>
     <td style="padding-left:12px;" valign="middle">
       <a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;">
-        <p style="font-size:14px;font-weight:700;color:${accentColor};letter-spacing:0.06em;text-transform:uppercase;margin:0 0 3px;">${escapeHtml(episode.podcastName)}</p>
+        <p class="ep-podcast-name" style="font-size:14px;font-weight:700;color:${accentColor};letter-spacing:0.06em;text-transform:uppercase;margin:0 0 3px;">${escapeHtml(episode.podcastName)}</p>
       </a>
-      ${metaInfoStr ? `<p style="font-size:13px;color:#A1A1AA;margin:0 0 ${guestStr ? "2px" : "0"};">${escapeHtml(metaInfoStr)}</p>` : ""}
-      ${guestStr ? `<p style="font-size:13px;color:#71717A;margin:0;">with ${escapeHtml(guestStr)}</p>` : ""}
+      ${metaInfoStr ? `<p class="ep-meta" style="font-size:13px;color:#A1A1AA;margin:0 0 ${guestStr ? "2px" : "0"};">${escapeHtml(metaInfoStr)}</p>` : ""}
+      ${guestStr ? `<p class="ep-guest" style="font-size:13px;color:#71717A;margin:0;">with ${escapeHtml(guestStr)}</p>` : ""}
     </td>
   </tr></table>
 
@@ -528,14 +528,32 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     img{border:0;outline:none;text-decoration:none;display:block;}
     body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F7F7FC;margin:0;padding:0;}
     @media only screen and (max-width:620px){
-      .outer-pad{padding:0!important;}.card{border-radius:0!important;}
-      .topbar{padding:16px 20px!important;}
-      .ep-block{padding:26px 20px!important;}
-      .quiet-block{padding:18px 20px!important;}
-      .hero-block{padding:28px 20px 0!important;}
-      .footer-inner{padding:20px!important;}
-      .ep-title{font-size:18px!important;}
-      .lead-headline{font-size:24px!important;}
+      .outer-pad{padding:0!important;}
+      .card{border-radius:0!important;}
+      .topbar{padding:14px 18px!important;}
+      .topbar-date{font-size:11px!important;}
+      .ep-block{padding:22px 18px 20px!important;}
+      .quiet-block{padding:16px 18px!important;}
+      .hero-block{padding:24px 18px 0!important;}
+      .footer-inner{padding:18px!important;}
+      .lead-headline{font-size:22px!important;padding-top:16px!important;}
+      .supporting-detail{font-size:15px!important;}
+      .coverlines-text{font-size:13px!important;}
+      .ep-title{font-size:17px!important;}
+      .ep-artwork{width:52px!important;height:52px!important;}
+      .ep-podcast-name{font-size:13px!important;}
+      .ep-meta{font-size:12px!important;}
+      .ep-guest{font-size:12px!important;}
+      .body-text{font-size:15px!important;line-height:1.7!important;}
+      .entity-box{padding:14px 16px 16px!important;}
+      .entity-label{font-size:11px!important;}
+      .entity-text{font-size:14px!important;}
+      .episode-bar{padding:12px 16px!important;border-radius:8px!important;}
+      .episode-bar-text{font-size:12px!important;}
+      .signoff-text{font-size:13px!important;}
+      .footer-desc{font-size:12px!important;}
+      .footer-links{font-size:12px!important;}
+      .takeaway-text{font-size:15px!important;}
     }
   </style>
 </head>
@@ -562,7 +580,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
         </tr></table>
       </a>
     </td>
-    <td align="right" valign="middle"><span style="font-size:14px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(dateStr)}</span></td>
+    <td align="right" valign="middle"><span class="topbar-date" style="font-size:14px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(dateStr)}</span></td>
   </tr></table>
 </td></tr>
 
@@ -571,17 +589,17 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   <p style="font-size:13px;font-weight:700;color:#6366F1;letter-spacing:0.12em;text-transform:uppercase;line-height:1.4;margin:0;padding:0;">In your podcasts yesterday</p>
   ${leadHeadline ? `<p class="lead-headline" style="font-size:30px;font-weight:700;color:#09090B;letter-spacing:-0.03em;line-height:1.25;margin:0;padding:20px 0 0;font-family:Georgia,'Times New Roman',Times,serif;">${escapeHtml(leadHeadline)}</p>` : ""}
   <div style="width:32px;height:3px;background:#6366F1;margin:20px 0 0;border-radius:2px;"></div>
-  ${supportingDetail ? `<p style="font-size:17px;font-weight:400;color:#3F3F46;line-height:1.6;margin:0;padding:20px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
-  ${coverlines ? `<p style="font-size:15px;font-weight:400;font-style:italic;color:#A1A1AA;line-height:1.6;margin:0;padding:24px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
+  ${supportingDetail ? `<p class="supporting-detail" style="font-size:17px;font-weight:400;color:#3F3F46;line-height:1.6;margin:0;padding:20px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
+  ${coverlines ? `<p class="coverlines-text" style="font-size:15px;font-weight:400;font-style:italic;color:#A1A1AA;line-height:1.6;margin:0;padding:24px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
 </td></tr>
 
 <!-- EPISODE COUNT BAR -->
 <tr><td style="padding:28px 28px 0;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-    <tr><td style="background:#6366F1;border-radius:10px;padding:14px 20px;">
+    <tr><td class="episode-bar" style="background:#6366F1;border-radius:10px;padding:14px 20px;">
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td valign="middle">
-          <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.1em;text-transform:uppercase;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW</span>
+          <span class="episode-bar-text" style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.1em;text-transform:uppercase;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW</span>
         </td>
         <td align="right" valign="middle">
           <span style="font-size:18px;color:#ffffff;">&#8595;</span>
@@ -598,7 +616,7 @@ ${episodeCardsHtml}
   <div style="height:1px;background:#F0F0F2;margin:0;"></div>
 </td></tr>
 <tr><td style="padding:28px 28px;background:#ffffff;text-align:center;">
-  <p style="font-size:14px;font-weight:400;font-style:italic;color:#A1A1AA;margin:0;">We listened so you didn't have to.</p>
+  <p class="signoff-text" style="font-size:14px;font-weight:400;font-style:italic;color:#A1A1AA;margin:0;">We listened so you didn't have to.</p>
 </td></tr>
 
 <!-- FOOTER -->
@@ -621,12 +639,12 @@ ${episodeCardsHtml}
     </td>
   </tr></table>
 
-  <p style="font-size:13px;color:#A1A1AA;line-height:1.65;margin:0 0 12px;max-width:460px;">Unlocking the world's knowledge trapped inside millions of podcasts - transforming billions of hours of conversation into structured information anyone can instantly learn from.</p>
+  <p class="footer-desc" style="font-size:13px;color:#A1A1AA;line-height:1.65;margin:0 0 12px;max-width:460px;">Unlocking the world's knowledge trapped inside millions of podcasts - transforming billions of hours of conversation into structured information anyone can instantly learn from.</p>
 
   <div style="height:1px;background:#E4E4E7;margin-bottom:12px;"></div>
 
-  <p style="font-size:13px;color:#A1A1AA;margin:0 0 8px;">Sent daily when new episodes drop.</p>
-  <p style="font-size:13px;margin:0;">
+  <p class="footer-links" style="font-size:13px;color:#A1A1AA;margin:0 0 8px;">Sent daily when new episodes drop.</p>
+  <p class="footer-links" style="font-size:13px;margin:0;">
     <a href="https://podcap.io/login" style="color:#6366F1;text-decoration:none;font-weight:500;">Manage podcasts</a>
     &nbsp;&nbsp;&#183;&nbsp;&nbsp;
     <a href="https://podcap.io/login" style="color:#6366F1;text-decoration:none;font-weight:500;">Email preferences</a>
