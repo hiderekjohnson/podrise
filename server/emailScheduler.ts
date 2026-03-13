@@ -153,31 +153,42 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
               model: "gpt-4o-mini",
               messages: [{
                 role: "user",
-                content: `You are writing curiosity-driven email teasers for a podcast recap newsletter. Given the entity data from this episode, write SHORT teaser fragments (the second half of a line) that create specific curiosity without revealing the answer.
+                content: `You write curiosity-driven teasers for a podcast recap email. Given the entity context from this specific episode, write SHORT teaser fragments that complete lines like:
 
-These fragments complete sentences like:
-- "5 people came up -- [YOUR FRAGMENT]"
-- "3 companies mentioned -- [YOUR FRAGMENT]"  
-- "2 books recommended -- [YOUR FRAGMENT]"
+"5 people came up — [YOUR FRAGMENT]"
+"3 companies mentioned — [YOUR FRAGMENT]"
+"2 books recommended — [YOUR FRAGMENT]"
 
-Rules:
-- Each fragment must be specific to this episode's actual content
-- Create curiosity: hint at something surprising, unexpected, or intriguing
-- Do NOT name any specific person, company, or book in the fragment
-- Keep each fragment under 60 characters
-- Do NOT start with "including" -- vary the phrasing
-- Examples of good fragments: "and one prediction caught everyone off guard", "one of them just mass-fired their entire team", "and they said one should be required reading"
+CRITICAL RULES:
+- Be SPECIFIC to what was actually said in this episode. Reference real claims, predictions, or opinions from the context below.
+- Do NOT name any person, company, or book — that is the mystery the reader clicks to solve.
+- Do NOT write generic clickbait like "one has a surprising rivalry" or "one revealed a career pivot" — these feel fake because they could apply to any episode.
+- DO write teasers that reference the actual substance: a specific dollar amount, a specific industry, a specific bold claim, a contrarian opinion.
+- Keep each fragment under 70 characters.
+- Start lowercase (it follows an em dash).
 
-Episode entities:
+GOOD (specific, feels real):
+- "one of them was called the most dangerous company in AI right now"
+- "one just mass-fired their leadership team and nobody is talking about it"
+- "they said one book should be mandatory reading before you start a company"
+- "one was cited as proof that dropping out still beats an MBA"
+
+BAD (generic, could be any episode):
+- "one is rumored to be eyeing a major acquisition"
+- "one of them revealed a surprising career pivot"
+- "and one has a surprising rivalry that is heating up"
+- "one company stands out for its innovative approach"
+
+Episode entities and what was said about them:
 ${contextSummary.join('\n')}
 ${bookContexts.join('\n')}
 
 People count: ${peopleCount}
-Companies count: ${companiesCount}  
+Companies count: ${companiesCount}
 Books count: ${booksCount}
 
-Respond with JSON: { "people": "fragment or empty string", "companies": "fragment or empty string", "books": "fragment or empty string" }
-Only include keys for categories with count > 0.`
+Respond with JSON: { "people": "fragment or empty", "companies": "fragment or empty", "books": "fragment or empty" }
+Only include keys where count > 0.`
               }],
               max_tokens: 300,
               temperature: 0.8,

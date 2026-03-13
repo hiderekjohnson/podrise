@@ -3781,6 +3781,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       res.json({ message: "Email sent successfully" });
     } catch (err: any) {
+      console.error("[SendNow] Error:", err);
       await storage.updatePendingEmailStatus(id, "error", err?.message || String(err)).catch(() => {});
       res.status(500).json({ message: "Failed to send email" });
     }
