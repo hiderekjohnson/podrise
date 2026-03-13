@@ -557,8 +557,6 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     const meta = episodeMeta?.[derivedSlug];
     return buildEpisodeCard(ep, idx, meta);
   }).join("\n");
-  const episodePillsHtml = buildEpisodePills(parsed.episodes, episodeMeta);
-
   const logoUrl = "https://podcap.io/favicon.png";
 
   return `<!DOCTYPE html>
@@ -633,7 +631,6 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     </td>
   </tr></table>
 
-  ${episodePillsHtml}
 
 </td></tr>
 
