@@ -31,6 +31,7 @@ const PersonDetailPage = lazy(() => import("./pages/PersonDetailPage"));
 const CompaniesDirectory = lazy(() => import("./pages/CompaniesDirectory"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const GetStarted = lazy(() => import("./pages/GetStarted"));
+const Register = lazy(() => import("./pages/Register"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
 const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
 const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
@@ -78,6 +79,7 @@ function Router() {
         <Route path="/companies/:slug" component={CompanyDetailPage} />
         <Route path="/companies" component={CompaniesDirectory} />
         <Route path="/get-started" component={GetStarted} />
+        <Route path="/register" component={Register} />
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends" component={TrendsPage} />
         <Route path="/industries/:slug/pulse/:date" component={TopicPulsePage} />

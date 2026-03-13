@@ -175,7 +175,7 @@ export function SiteHeader() {
                 Log in
               </button>
               <button
-                onClick={() => navigate("/get-started")}
+                onClick={() => navigate("/register")}
                 className="flex items-center gap-2 px-6 py-2.5 border-2 border-foreground text-foreground rounded-[10px] text-[15px] font-semibold hover:bg-foreground hover:text-background transition-all min-h-[44px] ml-1"
                 data-testid="nav-get-started"
               >
@@ -237,7 +237,7 @@ export function SiteHeader() {
                 <Link href="/dashboard" className="block text-[17px] font-semibold text-primary py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-dashboard">Dashboard</Link>
               ) : (
                 <div className="space-y-2 px-3 pb-2">
-                  <button onClick={() => { navigate("/get-started"); setMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#6366F1] text-white rounded-[10px] text-[17px] font-semibold hover:bg-[#4F46E5] transition-all min-h-[48px]" data-testid="mobile-nav-create-account">Get started</button>
+                  <button onClick={() => { navigate("/register"); setMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#6366F1] text-white rounded-[10px] text-[17px] font-semibold hover:bg-[#4F46E5] transition-all min-h-[48px]" data-testid="mobile-nav-create-account">Get started</button>
                   <button onClick={() => { navigate("/login"); setMobileMenuOpen(false); }} className="w-full text-center text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] py-3 min-h-[44px]" data-testid="mobile-nav-login">Log in</button>
                 </div>
               )}
