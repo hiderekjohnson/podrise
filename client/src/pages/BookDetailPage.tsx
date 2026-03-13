@@ -568,7 +568,7 @@ export default function BookDetailPage() {
   if (book.lastMentioned && book.lastMentioned !== book.firstMentioned) metaItems.push({ label: "Last mentioned", value: formatDate(book.lastMentioned) });
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
       <SEOHead book={book} />
       <SiteHeader />
 

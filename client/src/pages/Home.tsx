@@ -64,7 +64,7 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
       <SEOHead />
 
       <SiteHeader />
@@ -73,11 +73,11 @@ export default function Home() {
 
         <section className="w-full max-w-4xl mx-auto text-center px-4 sm:px-6 pt-16 sm:pt-24 pb-16 sm:pb-20">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex flex-col items-center gap-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-[16px] font-semibold uppercase tracking-wider" data-testid="badge-tagline">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-[13px] sm:text-[16px] font-semibold uppercase tracking-wider" data-testid="badge-tagline">
               <BarChart3 className="w-3.5 h-3.5" />
               Podcast Intelligence Platform
             </div>
-            <h1 className="text-[2.5rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
+            <h1 className="text-[2rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
               Always know what the smartest people in your industry are saying
             </h1>
             <p className="text-lg sm:text-xl text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">

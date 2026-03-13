@@ -456,7 +456,7 @@ export default function PersonDetailPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
       <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
@@ -600,7 +600,7 @@ export default function PersonDetailPage() {
                     <button
                       key={s.id}
                       onClick={() => scrollToNav(s.id)}
-                      className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                      className={`px-3 sm:px-4 py-2 sm:py-2.5 text-[14px] sm:text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
                       data-testid={`nav-${s.id}`}
                     >
                       {s.label}
@@ -677,10 +677,10 @@ export default function PersonDetailPage() {
                   <div className="space-y-4">
                     {keyIdeas.map((idea, i) => (
                       <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`key-idea-${i}`}>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
-                          <span className="text-[16px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
-                          <Link href={`${getCategoryPath(getTopicBySlug(idea.topicPageSlug)?.category || "interest")}/${idea.topicPageSlug}`} className="text-[16px] text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
+                          <span className="text-[13px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
+                          <Link href={`${getCategoryPath(getTopicBySlug(idea.topicPageSlug)?.category || "interest")}/${idea.topicPageSlug}`} className="text-[13px] text-primary hover:text-primary/80 font-medium transition-colors sm:ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
                             Explore Topic &rarr;
                           </Link>
                         </div>
@@ -692,10 +692,10 @@ export default function PersonDetailPage() {
                         {idea.relatedEps.length > 0 && (
                           <div className="flex flex-col gap-1.5">
                             {idea.relatedEps.map((ep, j) => (
-                              <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[16px] text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5" data-testid={`key-idea-ep-${i}-${j}`}>
-                                <Headphones className="w-3 h-3" />
-                                {ep.episode_title}
-                                <span className="text-muted-foreground text-[16px]">on {ep.podcast_name}</span>
+                              <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[14px] text-primary/80 hover:text-primary transition-colors flex items-start gap-1.5 min-w-0" data-testid={`key-idea-ep-${i}-${j}`}>
+                                <Headphones className="w-3 h-3 mt-0.5 shrink-0" />
+                                <span className="line-clamp-1">{ep.episode_title}</span>
+                                <span className="text-muted-foreground text-[13px] shrink-0 hidden sm:inline">on {ep.podcast_name}</span>
                               </Link>
                             ))}
                           </div>
@@ -783,11 +783,11 @@ export default function PersonDetailPage() {
                         <button
                           key={tab}
                           onClick={() => setActiveTab(tab)}
-                          className={`px-3 py-2 rounded-lg text-base font-semibold transition-all ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                          className={`px-3 py-2 rounded-lg text-[14px] font-semibold transition-all whitespace-nowrap ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                           data-testid={`tab-${tab}`}
                         >
                           {tab === "all" ? "All" : tab === "guests" ? "Guest" : "Mentions"}
-                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[16px] font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[12px] font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                             {tab === "all" ? totalEpisodes : tab === "guests" ? person.guestCount : person.mentionCount}
                           </span>
                         </button>

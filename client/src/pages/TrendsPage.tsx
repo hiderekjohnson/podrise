@@ -485,7 +485,7 @@ export default function TrendsPage() {
   }, [unifiedEntities]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-clip">
       <SEOHead />
       <SiteHeader />
 
@@ -501,11 +501,11 @@ export default function TrendsPage() {
               <Radio className="w-4 h-4 text-primary" />
               <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-primary">Discovery Radar</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-[1.15] mb-3" data-testid="text-page-title">
+            <h1 className="text-[1.75rem] sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-[1.15] mb-3" data-testid="text-page-title">
               What conversations are gaining momentum?
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
-              Spot the people, companies, and ideas generating buzz across the world's top podcasts — then go deeper into the intelligence.
+            <p className="text-[16px] sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+              Spot the people, companies, and ideas generating buzz across the world's top podcasts — then go deeper.
             </p>
           </motion.div>
         </div>
@@ -651,20 +651,20 @@ export default function TrendsPage() {
                   <h2 className="text-[16px] font-bold text-foreground">Full Leaderboard</h2>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="inline-flex items-center bg-card border border-border rounded-xl overflow-hidden" data-testid="entity-filter">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0 max-w-full">
+                  <div className="flex items-center bg-card border border-border rounded-xl overflow-x-auto hide-scrollbar max-w-full min-w-0" data-testid="entity-filter">
                     {filterOptions.map(({ key, label, icon: Icon }) => (
                       <button
                         key={key}
                         onClick={() => setEntityFilter(key)}
-                        className={`flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold transition-all ${
+                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[13px] font-semibold transition-all whitespace-nowrap ${
                           entityFilter === key
                             ? "bg-primary text-primary-foreground"
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                         data-testid={`filter-${key}`}
                       >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-3.5 h-3.5 hidden sm:block" />
                         {label}
                         <span className={`text-[11px] font-mono ml-0.5 ${entityFilter === key ? "text-primary-foreground/70" : "text-muted-foreground/40"}`}>
                           {entityCounts[key]}
@@ -675,7 +675,7 @@ export default function TrendsPage() {
 
                   <button
                     onClick={() => setSortMode(s => s === "volume" ? "momentum" : "volume")}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[13px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors whitespace-nowrap"
                     data-testid="sort-toggle"
                   >
                     <ArrowDownUp className="w-3.5 h-3.5" />
