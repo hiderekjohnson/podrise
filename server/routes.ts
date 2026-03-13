@@ -8,7 +8,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
+import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
@@ -55,6 +55,47 @@ const directoryCache = {
   podcastsDiscovery: new DataCache<any>("podcastsDiscovery"),
   podcastsDirectory: new DataCache<any[]>("podcastsDirectory"),
 };
+
+function podcastNameToSlugForEmail(name: string): string {
+  return name.toLowerCase().replace(/['']/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
+async function buildEpisodeMetaFromSummary(summary: string): Promise<Record<string, EpisodeMetaForEmail>> {
+  const meta: Record<string, EpisodeMetaForEmail> = {};
+  const podcastNames = (summary.match(/^## (.+)$/gm) || []).map((h: string) => h.replace(/^## /, "").trim());
+  if (podcastNames.length === 0) return meta;
+
+  try {
+    const client = await pool.connect();
+    try {
+      for (const name of podcastNames) {
+        const derivedSlug = podcastNameToSlugForEmail(name);
+        const dirRow = await client.query(`SELECT slug, artwork_url FROM podcast_directory WHERE LOWER(name) = LOWER($1) LIMIT 1`, [name]);
+        const canonicalSlug = dirRow.rows[0]?.slug || derivedSlug;
+        const recapRow = await client.query(
+          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug FROM landing_page_recaps WHERE slug = $1 ORDER BY publish_date DESC LIMIT 1`,
+          [canonicalSlug]
+        );
+        if (recapRow.rows.length === 0) { meta[derivedSlug] = { canonicalSlug, artworkUrl: dirRow.rows[0]?.artwork_url || null }; continue; }
+        const row = recapRow.rows[0];
+        const artworkUrl = row.artwork_url || dirRow.rows[0]?.artwork_url || null;
+        let companiesCount = 0;
+        if (row.entity_contexts_cache && typeof row.entity_contexts_cache === "object") companiesCount = Object.keys(row.entity_contexts_cache).length;
+        let booksCount = 0;
+        if (Array.isArray(row.resources)) booksCount = row.resources.filter((r: any) => r.type === "book").length;
+        let quotesCount = 0;
+        if (row.episode_slug) {
+          const qr = await client.query(`SELECT COUNT(*)::int as cnt FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [canonicalSlug, row.episode_slug]);
+          quotesCount = qr.rows[0]?.cnt || 0;
+        }
+        meta[derivedSlug] = { canonicalSlug, artworkUrl, companiesCount, peopleCount: 0, booksCount, quotesCount };
+      }
+    } finally { client.release(); }
+  } catch (err) {
+    console.warn("[Routes] Failed to build episode metadata:", err);
+  }
+  return meta;
+}
 
 function parsePodcastName(raw: string): string {
   try {
@@ -3403,7 +3444,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return res.status(400).json({ message: "This recap has no parseable episode content. It cannot be sent." });
       }
 
-      const emailHtml = markdownToEmailHtml(recap.summary, user.email);
+      const epMeta = await buildEpisodeMetaFromSummary(recap.summary);
+      const emailHtml = markdownToEmailHtml(recap.summary, user.email, epMeta);
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
@@ -3698,7 +3740,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!pending) {
       return res.status(404).json({ message: "Pending email not found" });
     }
-    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail);
+    const epMeta = await buildEpisodeMetaFromSummary(pending.summary);
+    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta);
     res.json({ html: freshHtml });
   });
 
@@ -3737,7 +3780,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
 
     try {
-      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail);
+      const epMeta2 = await buildEpisodeMetaFromSummary(pending.summary);
+      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
@@ -4272,7 +4316,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
         await storage.updatePendingEmailSummary(email.id, summary);
 
-        const newHtml = markdownToEmailHtml(summary, email.recipientEmail);
+        const epMetaBatch = await buildEpisodeMetaFromSummary(summary);
+        const newHtml = markdownToEmailHtml(summary, email.recipientEmail, epMetaBatch);
         await storage.updatePendingEmailHtml(email.id, newHtml);
         updated++;
       }

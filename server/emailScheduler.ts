@@ -1,6 +1,6 @@
 import { storage } from "./storage";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
+import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
 import { searchPodcastByItunesId, searchPodcastByName, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
@@ -12,6 +12,87 @@ const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
 const recentlyGenerated = new Set<string>();
 let schedulerConsecutiveFailures = 0;
 const MAX_SCHEDULER_BACKOFF_MS = 10 * 60 * 1000;
+
+function podcastNameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/['']/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, EpisodeMetaForEmail>> {
+  const meta: Record<string, EpisodeMetaForEmail> = {};
+  if (podcastNames.length === 0) return meta;
+
+  try {
+    const { pool: dbPool } = await import("./db");
+    const client = await dbPool.connect();
+    try {
+      for (const name of podcastNames) {
+        const derivedSlug = podcastNameToSlug(name);
+
+        const dirRow = await client.query(
+          `SELECT slug, artwork_url FROM podcast_directory WHERE LOWER(name) = LOWER($1) LIMIT 1`,
+          [name]
+        );
+        const canonicalSlug = dirRow.rows[0]?.slug || derivedSlug;
+
+        const recapRow = await client.query(
+          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug
+           FROM landing_page_recaps
+           WHERE slug = $1
+           ORDER BY publish_date DESC LIMIT 1`,
+          [canonicalSlug]
+        );
+
+        if (recapRow.rows.length === 0) {
+          meta[derivedSlug] = { canonicalSlug, artworkUrl: dirRow.rows[0]?.artwork_url || null };
+          continue;
+        }
+
+        const row = recapRow.rows[0];
+        const artworkUrl = row.artwork_url || dirRow.rows[0]?.artwork_url || null;
+
+        let companiesCount = 0;
+        if (row.entity_contexts_cache && typeof row.entity_contexts_cache === "object") {
+          companiesCount = Object.keys(row.entity_contexts_cache).length;
+        }
+
+        let booksCount = 0;
+        if (Array.isArray(row.resources)) {
+          booksCount = row.resources.filter((r: any) => r.type === "book").length;
+        }
+
+        let quotesCount = 0;
+        if (row.episode_slug) {
+          const quotesResult = await client.query(
+            `SELECT COUNT(*)::int as cnt FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
+            [canonicalSlug, row.episode_slug]
+          );
+          quotesCount = quotesResult.rows[0]?.cnt || 0;
+        }
+
+        meta[derivedSlug] = {
+          canonicalSlug,
+          artworkUrl,
+          companiesCount,
+          peopleCount: 0,
+          booksCount,
+          quotesCount,
+        };
+      }
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.warn("[EmailScheduler] Failed to build episode metadata:", err);
+  }
+
+  return meta;
+}
 
 async function sendAdminNotification(userEmail: string, subject: string) {
   const { client, fromEmail } = await getUncachableResendClient();
@@ -185,7 +266,9 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
       return "skipped";
     }
 
-    const emailHtml = markdownToEmailHtml(result.summary, user.email);
+    const podcastNames = result.parsedEpisodes.map((ep: any) => ep.podcastName).filter(Boolean);
+    const episodeMeta = await buildEpisodeMeta(podcastNames);
+    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta);
 
     const deliveryTime = user.deliveryTime || "07:00";
     const subject = `☕ Your PodCap Daily Recap - ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
@@ -317,7 +400,9 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
     throw new Error("Email has no episode content");
   }
 
-  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail);
+  const podcastNamesFromSummary = (pending.summary.match(/^## (.+)$/gm) || []).map((h: string) => h.replace(/^## /, "").trim());
+  const episodeMeta = await buildEpisodeMeta(podcastNamesFromSummary);
+  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, episodeMeta);
 
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
