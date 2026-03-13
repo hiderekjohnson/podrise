@@ -15,15 +15,13 @@ export type PodcastTab = "episodes" | "about" | "discover" | "books" | "get-reca
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
-  activeTab: PodcastTab;
-  onTabChange: (tab: PodcastTab) => void;
   children: React.ReactNode;
+  activeTab?: PodcastTab;
+  onTabChange?: (tab: PodcastTab) => void;
 }
 
 export function PodcastPageLayout({
   config,
-  activeTab,
-  onTabChange,
   children,
 }: PodcastPageLayoutProps) {
   const [, navigate] = useLocation();
@@ -34,6 +32,7 @@ export function PodcastPageLayout({
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
   const [showRecapsModal, setShowRecapsModal] = useState(false);
+  const [activeSection, setActiveSection] = useState("section-episodes");
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description, appleRating, appleRatingCount } = config;
@@ -65,6 +64,41 @@ export function PodcastPageLayout({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [stickyDismissed]);
+
+  useEffect(() => {
+    const sectionIds = [
+      "section-episodes",
+      "section-discover",
+      "section-books",
+      "section-get-recaps",
+    ];
+
+    const handleScroll = () => {
+      const offset = 68 + 52 + 40;
+      let current = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= offset) {
+          current = id;
+        }
+      }
+      setActiveSection(current);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerHeight = 68;
+    const navHeight = 52;
+    const offset = headerHeight + navHeight + 16;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   const doRegister = useCallback((emailVal: string) => {
     if (!emailVal.trim() || !/^\S+@\S+\.\S+$/.test(emailVal)) {
@@ -101,11 +135,11 @@ export function PodcastPageLayout({
     doRegister(stickyEmail);
   };
 
-  const tabs: { id: PodcastTab; label: string; icon: typeof Mic; accent?: boolean }[] = [
-    { id: "episodes", label: "Episode Recaps", icon: Mic },
-    { id: "discover", label: "Discover", icon: Compass },
-    { id: "books", label: "Recommended Reading", icon: BookOpen },
-    { id: "get-recaps", label: "Get Recaps", icon: Mail, accent: true },
+  const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean }[] = [
+    { id: "section-episodes", label: "Episode Recaps", icon: Mic },
+    { id: "section-discover", label: "Discover", icon: Compass },
+    { id: "section-books", label: "Reading", icon: BookOpen },
+    { id: "section-get-recaps", label: "Get Recaps", icon: Mail, accent: true },
   ];
 
   return (
@@ -225,22 +259,22 @@ export function PodcastPageLayout({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-7xl"
         >
-          <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-1 overflow-x-auto hide-scrollbar mb-8" data-testid="section-tabs">
-            {tabs.map((tab) => (
+          <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8" data-testid="section-tabs">
+            {navItems.map((item) => (
               <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3.5 text-[16px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[48px] ${
-                  activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : tab.accent
-                      ? "border-transparent text-primary/70 hover:text-primary hover:border-primary/30"
-                      : "border-transparent text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:border-black/[0.08]"
+                key={item.id}
+                onClick={() => scrollTo(item.id)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${
+                  activeSection === item.id
+                    ? "bg-primary/[0.12] text-primary"
+                    : item.accent
+                      ? "text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
+                      : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"
                 }`}
-                data-testid={`tab-${tab.id}`}
+                data-testid={`tab-${item.id.replace("section-", "")}`}
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
+                <item.icon className="w-4 h-4" />
+                {item.label}
               </button>
             ))}
           </nav>

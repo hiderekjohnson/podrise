@@ -1,15 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, X, Compass, Headphones, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen, Mail, CheckCircle2, Lightbulb } from "lucide-react";
-import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
-import { ExternalLink } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Mic, Users, Star, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, CheckCircle2, Lightbulb } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayout";
+import { PodcastPageLayout } from "@/components/PodcastPageLayout";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
@@ -249,15 +247,26 @@ export default function PodcastLandingGeneric() {
   const [recapSubmitting, setRecapSubmitting] = useState(false);
   const [recapSuccess, setRecapSuccess] = useState(false);
 
-  const getTabFromUrl = () => {
-    const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (urlTab === "discover" || urlTab === "episodes" || urlTab === "books" || urlTab === "get-recaps") return urlTab;
-    return "episodes" as PodcastTab;
-  };
-  const [activeTab, setActiveTab] = useState<PodcastTab>(getTabFromUrl);
-
   useEffect(() => {
-    setActiveTab(getTabFromUrl());
+    const urlTab = new URLSearchParams(window.location.search).get("tab");
+    if (urlTab) {
+      const sectionMap: Record<string, string> = {
+        episodes: "section-episodes",
+        discover: "section-discover",
+        books: "section-books",
+        "get-recaps": "section-get-recaps",
+      };
+      const sectionId = sectionMap[urlTab];
+      if (sectionId) {
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) {
+            const top = el.getBoundingClientRect().top + window.scrollY - 136;
+            window.scrollTo({ top, behavior: "smooth" });
+          }
+        }, 500);
+      }
+    }
   }, [slug]);
 
   const { data: dbEntry } = useQuery<any>({
@@ -390,14 +399,7 @@ export default function PodcastLandingGeneric() {
     );
   }
 
-  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, avgEpisodeLength, frequency, totalEpisodes, yearStarted, knownFor, hostBios, relatedSlugs, aboutPodcast, description, appleRating, appleRatingCount } = config;
-  const twitterHandle = (config as any).twitterHandle as string | null | undefined;
-  const instagramUrl = (config as any).instagramUrl as string | null | undefined;
-  const tiktokUrl = (config as any).tiktokUrl as string | null | undefined;
-  const facebookUrl = (config as any).facebookUrl as string | null | undefined;
-  const discordUrl = (config as any).discordUrl as string | null | undefined;
-  const websiteUrl = (config as any).websiteUrl as string | null | undefined;
-  const storeUrl = (config as any).storeUrl as string | null | undefined;
+  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, relatedSlugs, description, appleRating, appleRatingCount } = config;
 
   const handleRecapSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -459,28 +461,11 @@ export default function PodcastLandingGeneric() {
     staleTime: 1000 * 60 * 30,
   });
 
-  const formatRatingCount = (count: number) => {
-    if (count >= 1000) return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1)}K`;
-    return count.toLocaleString();
-  };
-
-  const snapshotItems = [
-    appleRating ? { icon: Star, label: "Apple Rating", value: `${appleRating} stars${appleRatingCount ? ` (${formatRatingCount(appleRatingCount)})` : ''}` } : null,
-    category ? { icon: Compass, label: "Category", value: category } : null,
-    avgEpisodeLength ? { icon: Clock, label: "Avg. Episode", value: `${avgEpisodeLength} min` } : null,
-    frequency ? { icon: Calendar, label: "Frequency", value: frequency } : null,
-    totalEpisodes ? { icon: Mic, label: "Episodes", value: `${totalEpisodes.toLocaleString()}+` } : null,
-    yearStarted ? { icon: Calendar, label: "Since", value: `${yearStarted}` } : null,
-  ].filter(Boolean) as { icon: typeof Star; label: string; value: string }[];
-
   return (
     <PodcastPageLayout
       config={config}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
     >
-      {activeTab === "episodes" && (
-        <section className="pb-16" data-testid="section-episode-list">
+      <section id="section-episodes" className="pb-16" data-testid="section-episode-list">
           {episodeRecaps.length > 0 ? (
             <>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
@@ -518,319 +503,8 @@ export default function PodcastLandingGeneric() {
             </div>
           )}
         </section>
-      )}
 
-      {activeTab === "about" && (
-        <section className="pb-16" data-testid="section-about-podcast">
-          {aboutPodcast && (
-            <div className="bg-white border border-black/[0.06] rounded-xl p-6 mb-6" data-testid="text-about-podcast">
-              <p className="text-[16px] leading-[1.85] text-foreground/75">{aboutPodcast}</p>
-            </div>
-          )}
-
-          {snapshotItems.length > 0 && (
-            <div className="mb-6" data-testid="section-snapshot">
-              <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">At a Glance</h3>
-              <div className={`grid gap-3 grid-cols-2 ${snapshotItems.length <= 2 ? "sm:grid-cols-2" : snapshotItems.length === 3 ? "sm:grid-cols-3" : snapshotItems.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-5"}`}>
-                {snapshotItems.map((item, i) => (
-                  <div key={i} className="bg-white border border-black/[0.06] rounded-xl px-4 py-4" data-testid={`snapshot-${item.label.toLowerCase().replace(/\s/g, "-")}`}>
-                    <p className="text-[16px] font-semibold text-[#52525B] uppercase tracking-wider mb-1">{item.label}</p>
-                    <p className="text-base font-bold text-foreground">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {knownFor && knownFor.length > 0 && (
-            <div className="mb-6" data-testid="section-known-for">
-              <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Known For</h3>
-              <div className="bg-white border border-black/[0.06] rounded-xl p-5">
-                <ul className="space-y-3">
-                  {knownFor.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3" data-testid={`known-for-${i}`}>
-                      <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-primary" />
-                      <span className="text-[17px] text-foreground/75 leading-relaxed">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {(() => {
-            const richHosts = podcastHosts && podcastHosts.length > 0 ? podcastHosts : null;
-            const fallbackHosts = !richHosts && hostBios && hostBios.length > 0 ? hostBios : null;
-            const displayHosts = richHosts || fallbackHosts;
-            if (!displayHosts || displayHosts.length === 0) return null;
-            return (
-              <div className="mb-6" data-testid="section-host-bios">
-                <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                  {displayHosts.length === 1 ? "Host" : "Hosts"}
-                </h3>
-                <div className={`grid gap-3 ${displayHosts.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
-                  {displayHosts.map((host: any, i: number) => (
-                    <div key={host.id || i} className="bg-white border border-black/[0.06] rounded-xl p-5" data-testid={`host-bio-${i}`}>
-                      <div className="flex items-center gap-3 mb-3">
-                        {host.photoUrl ? (
-                          <img src={host.photoUrl} alt={host.name} className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-black/[0.04]" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-primary/[0.08] flex items-center justify-center shrink-0">
-                            <Users className="w-5 h-5 text-primary/60" />
-                          </div>
-                        )}
-                        {(() => {
-                          const personEntry = PEOPLE_DIRECTORY.find((p) => p.name === host.name);
-                          return personEntry ? (
-                            <div>
-                              <Link href={`/people/${personEntry.slug}`} className="text-[16px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-host-profile-${i}`}>
-                                {host.name}
-                              </Link>
-                              <Link href={`/people/${personEntry.slug}`} className="block text-[16px] text-muted-foreground hover:text-primary/80 transition-colors mt-0.5" data-testid={`link-host-profile-cta-${i}`}>
-                                View full profile →
-                              </Link>
-                            </div>
-                          ) : (
-                            <h4 className="text-[16px] font-bold text-foreground">{host.name}</h4>
-                          );
-                        })()}
-                      </div>
-                      {host.bio && (() => {
-                        const paragraphs = host.bio.split(/\n\n+/).filter((p: string) => p.trim());
-                        return (
-                          <div className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-3 space-y-2.5">
-                            {paragraphs.map((para: string, pi: number) => {
-                              const lines = para.split('\n').filter((l: string) => l.trim());
-                              const bulletLines = lines.filter((l: string) => /^[•\-\*]\s/.test(l.trim()));
-                              if (bulletLines.length > 0 && bulletLines.length === lines.length) {
-                                return (
-                                  <ul key={pi} className="space-y-1 pl-1">
-                                    {bulletLines.map((line: string, li: number) => (
-                                      <li key={li} className="flex items-start gap-2">
-                                        <span className="text-primary/50 mt-[3px] text-[16px]">●</span>
-                                        <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                );
-                              }
-                              const hasInlineBullets = para.includes('•') && !para.startsWith('•');
-                              if (hasInlineBullets) {
-                                const parts = para.split(/\s*•\s*/);
-                                const intro = parts[0];
-                                const items = parts.slice(1).filter((s: string) => s.trim());
-                                return (
-                                  <div key={pi}>
-                                    {intro && <p className="mb-1.5">{intro}</p>}
-                                    {items.length > 0 && (
-                                      <ul className="space-y-1 pl-1">
-                                        {items.map((item: string, li: number) => (
-                                          <li key={li} className="flex items-start gap-2">
-                                            <span className="text-primary/50 mt-[3px] text-[16px]">●</span>
-                                            <span>{item.trim()}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    )}
-                                  </div>
-                                );
-                              }
-                              return <p key={pi}>{para}</p>;
-                            })}
-                          </div>
-                        );
-                      })()}
-                      {(host.twitterHandle || host.linkedinUrl || host.instagramHandle || host.websiteUrl) && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {host.twitterHandle && (
-                            <a href={`https://x.com/${host.twitterHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-twitter-${i}`}>
-                              <SiX className="w-3 h-3" />
-                              {host.twitterHandle.startsWith('@') ? host.twitterHandle : `@${host.twitterHandle}`}
-                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                            </a>
-                          )}
-                          {host.linkedinUrl && (
-                            <a href={host.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-linkedin-${i}`}>
-                              <SiLinkedin className="w-3 h-3" />
-                              LinkedIn
-                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                            </a>
-                          )}
-                          {host.instagramHandle && (
-                            <a href={`https://instagram.com/${host.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-instagram-${i}`}>
-                              <SiInstagram className="w-3 h-3" />
-                              {host.instagramHandle.startsWith('@') ? host.instagramHandle : `@${host.instagramHandle}`}
-                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                            </a>
-                          )}
-                          {host.websiteUrl && (
-                            <a href={host.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[16px] font-medium text-muted-foreground hover:text-foreground bg-black/[0.03] hover:bg-black/[0.06] rounded-lg transition-colors" data-testid={`host-website-${i}`}>
-                              <Globe className="w-3 h-3" />
-                              Website
-                              <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-
-          <div className="mb-6" data-testid="section-listen">
-            <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Listen On</h3>
-            <div className="flex flex-wrap gap-2.5">
-              <a
-                href={appleUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                data-testid="link-apple-podcasts"
-              >
-                <SiApplepodcasts className="w-4 h-4 text-[#872EC4]" />
-                Apple Podcasts
-                <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-              </a>
-              <a
-                href={effectiveSpotifyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                data-testid="link-spotify"
-              >
-                <SiSpotify className="w-4 h-4 text-[#1DB954]" />
-                Spotify
-                <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-              </a>
-              {youtubeUrl && (
-                <a
-                  href={youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                  data-testid="link-youtube"
-                >
-                  <SiYoutube className="w-4 h-4 text-[#FF0000]" />
-                  YouTube
-                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                </a>
-              )}
-            </div>
-          </div>
-
-          {(twitterHandle || instagramUrl || tiktokUrl || facebookUrl || discordUrl || websiteUrl || storeUrl) && (
-            <div className="mb-6" data-testid="section-follow">
-              <h3 className="text-[16px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Follow</h3>
-              <div className="flex flex-wrap gap-2.5">
-                {twitterHandle && (
-                  <a
-                    href={`https://x.com/${twitterHandle.replace("@", "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-x-profile"
-                  >
-                    <SiX className="w-3.5 h-3.5" />
-                    {twitterHandle}
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-                {instagramUrl && (
-                  <a
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-instagram"
-                  >
-                    <SiInstagram className="w-4 h-4 text-[#E4405F]" />
-                    Instagram
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-                {tiktokUrl && (
-                  <a
-                    href={tiktokUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-tiktok"
-                  >
-                    <SiTiktok className="w-4 h-4" />
-                    TikTok
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-                {facebookUrl && (
-                  <a
-                    href={facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-facebook"
-                  >
-                    <SiFacebook className="w-4 h-4 text-[#1877F2]" />
-                    Facebook
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-                {discordUrl && (
-                  <a
-                    href={discordUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-discord"
-                  >
-                    <SiDiscord className="w-4 h-4 text-[#5865F2]" />
-                    Discord
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-                {websiteUrl && (
-                  <a
-                    href={websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-website"
-                  >
-                    <Globe className="w-4 h-4 text-muted-foreground" />
-                    Website
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-                {storeUrl && (
-                  <a
-                    href={storeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-black/[0.02] border border-black/[0.06] rounded-xl text-base font-medium text-foreground transition-colors"
-                    data-testid="link-store"
-                  >
-                    <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-                    Store
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-
-          <p className="text-[16px] text-muted-foreground/40 mt-8">
-            PodCap is not affiliated with, endorsed by, or sponsored by {name}, {hosts}, or any podcast listed on this site.
-          </p>
-        </section>
-      )}
-
-      {activeTab === "books" && (
-        <PodcastBooksTab slug={slug} podcastName={config.name} />
-      )}
-
-      {activeTab === "discover" && (
-        <section className="pb-16 space-y-10" data-testid="section-discover">
+        <section id="section-discover" className="pb-16 space-y-10" data-testid="section-discover">
           {entityLinks?.guests && entityLinks.guests.length > 0 && (
             <div data-testid="section-recent-guests">
               <div className="flex items-center gap-2.5 mb-4">
@@ -983,9 +657,12 @@ export default function PodcastLandingGeneric() {
             </div>
           )}
         </section>
-      )}
-      {activeTab === "get-recaps" && (
-        <section className="pb-16" data-testid="section-get-recaps">
+
+        <div id="section-books" data-testid="section-books">
+          <PodcastBooksTab slug={slug} podcastName={config.name} />
+        </div>
+
+        <section id="section-get-recaps" className="pb-16" data-testid="section-get-recaps">
           <div className="max-w-lg mx-auto">
             <div className="text-center mb-8">
               <div className="w-16 h-16 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-5">
@@ -1061,7 +738,6 @@ export default function PodcastLandingGeneric() {
             </div>
           </div>
         </section>
-      )}
     </PodcastPageLayout>
   );
 }
