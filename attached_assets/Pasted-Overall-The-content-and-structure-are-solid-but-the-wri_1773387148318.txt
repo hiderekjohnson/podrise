@@ -1,0 +1,23 @@
+Overall The content and structure are solid but the writing tone needs to change significantly. It currently reads like a consulting report. The target reader is a busy executive who decides in 3 seconds whether to keep reading. Every sentence needs to earn its place.
+Writing & content changes
+	1	Cut the Executive Overview entirely. It repeats the intro and adds nothing. Start directly with the first section.
+	2	Shorten everything by 50%. Each section should be 2-3 sentences max, not paragraphs. The goal is 90 seconds to read the whole thing.
+	3	Lead with the best quote, not a theme summary. Find the single sharpest quote across all episodes and open with it. Build down from there.
+	4	Ban these words and phrases: landscape, navigating, rapidly evolving, key discussions, sustained growth, competitive advantage, undergoing significant changes, it is crucial, delve, transformative, key insights, pillars. If the model uses any of these, regenerate.
+	5	One "Worth Noting" item only, not a bulleted list. The single most surprising or counterintuitive data point from today.
+	7	Write like a smart friend, not a report. The voice should feel like someone who listened to 12 podcasts so you didn't have to, and is texting you the good parts.
+	8	The headline title needs to be specific and datestamped, not generic. Avoid titles that could have been written in 2019. Instead of "Mindset, Scaling, and AI: Core Pillars of Entrepreneurial Success" try something like "What Entrepreneurs Are Talking About This Week — March 6, 2026." The H1 should contain "entrepreneurship podcast" or similar.
+Target length: Fits on one screen without scrolling.
+SEO & internal linking
+	9	Add a full breadcrumb trail with live links at the top of every pulse page: Home → Topics → Entrepreneurship → The Pulse → [Date]. Each level should be a clickable link, not just display text. This passes link equity up through the site hierarchy and tells Google how the page fits into the site structure.
+	11	Add podcast show names to the header as linked text — "As heard on: Entrepreneurs on Fire, The Game with Alex Hormozi…" These are real brand names people search for. Linking them back to their respective podcast pages on PodCap strengthens internal link structure across the whole site.
+	12	Mark up the date properly using a <time datetime="2026-03-06"> HTML element, not just display text. This helps search engines understand content freshness.
+	13	Add a canonical URL tag on each pulse page pointing to itself, so syndicated or shared versions don't dilute the page's search authority.
+Lets remove - 12 episodes analyzed
+These types of chips from the top - Entrepreneurial Mindset
+Business Scaling
+AI in Business
+Women in Entrepreneurship
+Real Estate Investment
+Let’s remove the Episodes Analyzed as we don’t want to give away our secret sauce.
+
