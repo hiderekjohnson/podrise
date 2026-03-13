@@ -343,27 +343,27 @@ export default function PodcastsExplorer() {
     return counts;
   }, []);
 
-  const handleCategoryClick = useCallback((key: CategoryKey) => {
-    setActiveCategory(prev => prev === key && key !== "all" ? "all" : key);
-    setActivePromptIdx(null);
-    setSearchQuery("");
-    const el = document.getElementById("podcasts-grid");
+  const scrollToGrid = useCallback(() => {
+    const el = document.getElementById("podcasts-grid-anchor");
     if (el) {
       const top = el.getBoundingClientRect().top + window.scrollY - 68 - 52 - 16;
       window.scrollTo({ top, behavior: "smooth" });
     }
   }, []);
 
+  const handleCategoryClick = useCallback((key: CategoryKey) => {
+    setActiveCategory(prev => prev === key && key !== "all" ? "all" : key);
+    setActivePromptIdx(null);
+    setSearchQuery("");
+    scrollToGrid();
+  }, [scrollToGrid]);
+
   const handlePromptClick = useCallback((idx: number) => {
     setActivePromptIdx(prev => prev === idx ? null : idx);
     setActiveCategory("all");
     setSearchQuery("");
-    const el = document.getElementById("podcasts-grid");
-    if (el) {
-      const top = el.getBoundingClientRect().top + window.scrollY - 68 - 52 - 16;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
-  }, []);
+    scrollToGrid();
+  }, [scrollToGrid]);
 
   const clearFilters = useCallback(() => {
     setSearchQuery("");
@@ -528,6 +528,7 @@ export default function PodcastsExplorer() {
           </div>
         )}
 
+        <div id="podcasts-grid-anchor" />
         {!isSearching && isFiltering && (
           <div className="mb-2">
             <div className="flex items-center gap-2 mb-4">
