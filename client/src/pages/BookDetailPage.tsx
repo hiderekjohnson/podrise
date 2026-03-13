@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
 import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, User, FileText, ShoppingCart, Quote, MessageCircle, Hash, TrendingUp } from "lucide-react";
+import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { SiX } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -51,6 +52,8 @@ interface RelatedBook {
   mentionCount: number;
   asin: string | null;
   googleBooksId: string | null;
+  isbn: string | null;
+  hasCover: boolean | null;
   topics: string[];
 }
 
@@ -67,6 +70,8 @@ interface BookDetail {
   slug: string;
   asin: string | null;
   googleBooksId: string | null;
+  isbn: string | null;
+  hasCover: boolean | null;
   amazonUrl: string;
   audibleUrl: string;
   blinkistUrl: string | null;
@@ -86,61 +91,37 @@ interface BookDetail {
   relatedBooks: RelatedBook[];
 }
 
-function BookCover({ title, slug, googleBooksId, size = "lg" }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
-  const [srcIndex, setSrcIndex] = useState(0);
-  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
-  const sources: string[] = [];
-  if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
-
+function BookCover({ title, slug, googleBooksId, isbn, hasCover, size = "lg" }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null; isbn?: string | null; hasCover?: boolean | null; size?: "sm" | "md" | "lg" | "xl" }) {
   const sizeClasses: Record<string, string> = {
     sm: "w-12 h-[72px]",
     md: "w-[88px] h-[132px]",
     lg: "w-28 h-[168px]",
     xl: "w-36 h-[216px] sm:w-44 sm:h-[264px]",
   };
-
-  const advance = () => setSrcIndex(s => s + 1);
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
-    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
-  };
-
-  const imgCls = `${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`;
-
-  if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={title} className={imgCls} onError={advance} onLoad={handleLoad} />;
-  }
   return (
-    <div className={`${sizeClasses[size]} rounded-xl bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
-      <BookOpen className="w-8 h-8 text-amber-500/40" />
-    </div>
+    <SharedBookCover
+      title={title}
+      slug={slug}
+      googleBooksId={googleBooksId}
+      isbn={isbn}
+      hasCover={hasCover}
+      size={size}
+      className={`${sizeClasses[size]} rounded-xl object-cover shrink-0 shadow-lg border border-black/[0.06] dark:border-white/[0.08]`}
+    />
   );
 }
 
-function SmallBookCover({ title, slug, googleBooksId }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null }) {
-  const [srcIndex, setSrcIndex] = useState(0);
-  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
-  const sources: string[] = [];
-  if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
-  const cls = "w-16 h-24 rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]";
-
-  const advance = () => setSrcIndex(s => s + 1);
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
-    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
-  };
-
-  if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={title} className={cls} onError={advance} onLoad={handleLoad} loading="lazy" />;
-  }
+function SmallBookCover({ title, slug, googleBooksId, isbn, hasCover }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null; isbn?: string | null; hasCover?: boolean | null }) {
   return (
-    <div className="w-16 h-24 rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10">
-      <BookOpen className="w-4 h-4 text-amber-500/40" />
-    </div>
+    <SharedBookCover
+      title={title}
+      slug={slug}
+      googleBooksId={googleBooksId}
+      isbn={isbn}
+      hasCover={hasCover}
+      size="sm"
+      className="w-16 h-24 rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]"
+    />
   );
 }
 
@@ -586,7 +567,7 @@ export default function BookDetailPage() {
             className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start"
             data-testid="section-hero"
           >
-            <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
+            <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">Podcast Intelligence</span>
@@ -925,7 +906,7 @@ export default function BookDetailPage() {
                     data-testid={`related-book-${rb.slug}`}
                   >
                     <div className="flex justify-center mb-2">
-                      <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} googleBooksId={rb.googleBooksId} />
+                      <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} googleBooksId={rb.googleBooksId} isbn={rb.isbn} hasCover={rb.hasCover} />
                     </div>
                     <p className="text-[14px] font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
                       {rb.name}

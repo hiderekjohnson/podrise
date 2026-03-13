@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen } from "lucide-react";
+import { BookCoverFill } from "@/components/BookCover";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Footer } from "@/components/Footer";
@@ -568,12 +569,7 @@ export default function TopicDetailPage() {
                   <Link href={`/bookstore/${book.slug}`} data-testid={`card-topic-book-${book.slug}`}>
                     <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full flex flex-col">
                       <div className="w-full aspect-[2/3] bg-muted rounded-lg mb-3 overflow-hidden flex items-center justify-center">
-                        <img
-                          src={book.coverUrl || "/placeholder-book.jpg"}
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                        <BookCoverFill title={book.title} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
                       </div>
                       <h4 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
                         {book.title}

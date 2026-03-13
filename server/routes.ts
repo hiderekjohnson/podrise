@@ -1781,12 +1781,12 @@ export async function registerRoutes(
           }
         }
 
-        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; googleBooksId: string | null; context: string; mentionCount: number; podcastCount: number }[] = [];
+        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; googleBooksId: string | null; isbn: string | null; hasCover: boolean | null; context: string; mentionCount: number; podcastCount: number }[] = [];
         if (bookMentionMap.size > 0) {
           const bookKeys = Array.from(bookMentionMap.keys());
           const placeholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
           const { rows: enrichRows } = await client.query(
-            `SELECT book_key, slug, author, asin, amazon_url, google_books_id FROM book_enrichments WHERE book_key IN (${placeholders})`,
+            `SELECT book_key, slug, author, asin, amazon_url, google_books_id, isbn, has_cover FROM book_enrichments WHERE book_key IN (${placeholders})`,
             bookKeys
           );
           const enrichByKey = new Map(enrichRows.map((e: any) => [e.book_key, e]));
@@ -1803,6 +1803,8 @@ export async function registerRoutes(
                 amazonUrl,
                 asin,
                 googleBooksId: enrich?.google_books_id || null,
+                isbn: enrich?.isbn || null,
+                hasCover: enrich?.has_cover ?? null,
                 context: b.context,
                 mentionCount: b.mentionCount,
                 podcastCount: b.podcastSlugs.size,
@@ -2054,6 +2056,57 @@ export async function registerRoutes(
     }
   });
 
+  async function lookupGoogleBooksInfo(title: string, author: string | null): Promise<{id: string; isbn: string | null; hasCover: boolean} | null> {
+    try {
+      let query = title;
+      if (author && author !== "null" && author !== "") query += " " + author;
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=1&fields=items(id,volumeInfo/imageLinks,volumeInfo/industryIdentifiers)`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      const item = data?.items?.[0];
+      if (!item?.id) return null;
+      const isbn = item.volumeInfo?.industryIdentifiers?.find(
+        (id: any) => id.type === "ISBN_13" || id.type === "ISBN_10"
+      )?.identifier || null;
+      const hasCover = !!item.volumeInfo?.imageLinks;
+      return { id: item.id, isbn, hasCover };
+    } catch {
+      return null;
+    }
+  }
+
+  async function enrichMissingGoogleBooksIds(books: Array<{name: string; author: string | null; googleBooksId: string | null; isbn?: string | null; hasCover?: boolean | null}>) {
+    const missing = books.filter(b => !b.googleBooksId);
+    if (missing.length === 0) return;
+
+    const batch = missing.slice(0, 10);
+    for (const book of batch) {
+      const info = await lookupGoogleBooksInfo(book.name, book.author);
+      if (info) {
+        book.googleBooksId = info.id;
+        book.isbn = info.isbn;
+        book.hasCover = info.hasCover;
+        const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+        pool.query(
+          "UPDATE book_enrichments SET google_books_id = $1, isbn = COALESCE(isbn, $2), has_cover = COALESCE(has_cover, $3) WHERE book_key = $4 AND google_books_id IS NULL",
+          [info.id, info.isbn, info.hasCover, bookKey]
+        ).catch(() => {});
+
+        const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
+        pool.query(
+          `INSERT INTO book_enrichments (book_key, book_title, author, slug, google_books_id, isbn, has_cover)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (slug) DO UPDATE SET 
+             google_books_id = COALESCE(book_enrichments.google_books_id, $5),
+             isbn = COALESCE(book_enrichments.isbn, $6),
+             has_cover = COALESCE(book_enrichments.has_cover, $7)`,
+          [bookKey, book.name, book.author, slug, info.id, info.isbn, info.hasCover]
+        ).catch(() => {});
+      }
+    }
+  }
+
   app.get("/api/podcasts/:slug/books", async (req, res) => {
     try {
       const { slug } = req.params;
@@ -2129,9 +2182,13 @@ export async function registerRoutes(
             publishYear: enrichment?.publish_year || null,
             rating: enrichment?.rating ? parseFloat(enrichment.rating) : null,
             googleBooksId: enrichment?.google_books_id || null,
+            isbn: enrichment?.isbn || null,
+            hasCover: enrichment?.has_cover ?? null,
           };
         })
         .sort((a, b) => b.mentionCount - a.mentionCount);
+
+      enrichMissingGoogleBooksIds(books).catch(() => {});
 
       res.json({ books, total: books.length });
     } catch (err) {
@@ -2157,7 +2214,7 @@ export async function registerRoutes(
   app.get("/api/book-slugs", async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT book_key, slug, rating, page_count, publish_year, asin, description, author, google_books_id FROM book_enrichments`
+        `SELECT book_key, slug, rating, page_count, publish_year, asin, description, author, google_books_id, isbn, has_cover FROM book_enrichments`
       );
       const map: Record<string, any> = {};
       for (const r of rows) {
@@ -2170,6 +2227,8 @@ export async function registerRoutes(
           description: r.description || null,
           author: r.author || null,
           googleBooksId: r.google_books_id || null,
+          isbn: r.isbn || null,
+          hasCover: r.has_cover ?? null,
         };
       }
       res.setHeader("Cache-Control", "public, max-age=3600");
@@ -2266,6 +2325,8 @@ export async function registerRoutes(
             asin: finalAsin,
             slug: enrichment?.slug || null,
             googleBooksId: enrichment?.google_books_id || null,
+            isbn: enrichment?.isbn || null,
+            hasCover: enrichment?.has_cover ?? null,
             topics: enrichment?.topics || [],
             pageCount: enrichment?.page_count || null,
             publishYear: enrichment?.publish_year || null,
@@ -2465,7 +2526,7 @@ export async function registerRoutes(
       ));
       const podcastScore = mentionTotal >= 2 ? Math.round(rawScore * 10) / 10 : null;
 
-      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null; googleBooksId: string | null; topics: string[] }[] = [];
+      let relatedBooks: { name: string; author: string | null; slug: string; mentionCount: number; asin: string | null; googleBooksId: string | null; isbn: string | null; hasCover: boolean | null; topics: string[] }[] = [];
       if (relatedBookCounts.size > 0) {
         const sortedRelKeys = Array.from(relatedBookCounts.entries())
           .sort((a, b) => b[1] - a[1])
@@ -2473,7 +2534,7 @@ export async function registerRoutes(
           .map(([k]) => k);
         const placeholders = sortedRelKeys.map((_, i) => `$${i + 1}`).join(",");
         const { rows: relRows } = await pool.query(
-          `SELECT book_key, book_title, author, slug, asin, topics, google_books_id FROM book_enrichments WHERE book_key IN (${placeholders})`,
+          `SELECT book_key, book_title, author, slug, asin, topics, google_books_id, isbn, has_cover FROM book_enrichments WHERE book_key IN (${placeholders})`,
           sortedRelKeys
         );
         const relMap = new Map(relRows.map((r: any) => [r.book_key, r]));
@@ -2490,6 +2551,8 @@ export async function registerRoutes(
                 mentionCount: relatedBookCounts.get(rk) || 1,
                 asin: rel.asin,
                 googleBooksId: rel.google_books_id || null,
+                isbn: rel.isbn || null,
+                hasCover: rel.has_cover ?? null,
                 topics: rel.topics || [],
               });
             }
@@ -2527,6 +2590,8 @@ export async function registerRoutes(
         slug: enrichment.slug,
         asin: finalAsin,
         googleBooksId: enrichment.google_books_id || null,
+        isbn: enrichment.isbn || null,
+        hasCover: enrichment.has_cover ?? null,
         amazonUrl,
         audibleUrl,
         blinkistUrl,
@@ -3214,21 +3279,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       };
       const searchTopics = topicMapping[slug] || [slug];
       const result = await pool.query(
-        `SELECT book_title, author, slug, google_books_id FROM book_enrichments WHERE topics && $1::text[] ORDER BY rating DESC NULLS LAST, rating_count DESC NULLS LAST LIMIT 8`,
+        `SELECT book_title, author, slug, google_books_id, isbn, has_cover FROM book_enrichments WHERE topics && $1::text[] ORDER BY rating DESC NULLS LAST, rating_count DESC NULLS LAST LIMIT 8`,
         [searchTopics]
       );
-      const books = result.rows.map((row: any) => {
-        let coverUrl = "/placeholder-book.jpg";
-        if (row.google_books_id) {
-          coverUrl = `https://books.google.com/books/content?id=${row.google_books_id}&printsec=frontcover&img=1&zoom=1`;
-        }
-        return {
-          title: row.book_title,
-          author: row.author,
-          slug: row.slug,
-          coverUrl,
-        };
-      });
+      const books = result.rows.map((row: any) => ({
+        title: row.book_title,
+        author: row.author,
+        slug: row.slug,
+        googleBooksId: row.google_books_id || null,
+        isbn: row.isbn || null,
+        hasCover: row.has_cover ?? null,
+      }));
       res.json(books);
     } catch (err: any) {
       console.error("[Topics Books] Error:", err);

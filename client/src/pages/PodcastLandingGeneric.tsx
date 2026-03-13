@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { Loader2, ArrowRight, Clock, Mic, Users, Star, Headphones, Building2, Tag, UserCircle, BookOpen, Mail } from "lucide-react";
+import { BookCoverFill } from "@/components/BookCover";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -28,34 +29,6 @@ function extractAsin(url: string): string | null {
   return null;
 }
 
-function PodcastBookCover({ title, slug, googleBooksId }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null }) {
-  const [srcIndex, setSrcIndex] = useState(0);
-  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
-  const sources: string[] = [];
-  if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
-
-  const advance = () => setSrcIndex(s => s + 1);
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
-    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
-  };
-
-  if (srcIndex < sources.length) {
-    return (
-      <img
-        src={sources[srcIndex]}
-        alt={title}
-        className="w-full h-full object-cover rounded-lg"
-        onError={advance}
-        onLoad={handleLoad}
-      />
-    );
-  }
-
-  return <BookOpen className="w-5 h-5 text-amber-400/50" />;
-}
 
 interface PodcastBook {
   name: string;
@@ -71,6 +44,8 @@ interface PodcastBook {
   publishYear: number | null;
   rating: number | null;
   googleBooksId: string | null;
+  isbn: string | null;
+  hasCover: boolean | null;
 }
 
 function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: string }) {
@@ -165,11 +140,11 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                   <div className="flex gap-4">
                     {bookSlug ? (
                       <Link href={`/bookstore/${bookSlug}`} className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={book.googleBooksId} />
+                        <BookCoverFill title={book.name} slug={bookSlug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
                       </Link>
                     ) : (
                       <div className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
-                        <PodcastBookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={book.googleBooksId} />
+                        <BookCoverFill title={book.name} slug={bookSlug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
                       </div>
                     )}
 

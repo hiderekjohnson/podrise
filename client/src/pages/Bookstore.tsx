@@ -8,6 +8,7 @@ import {
   Lightbulb, Brain, Briefcase, Heart, Landmark, FlaskConical,
   DollarSign, Palette, GraduationCap, Dumbbell, Quote
 } from "lucide-react";
+import { BookCover } from "@/components/BookCover";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
@@ -21,6 +22,8 @@ interface BookstoreBook {
   asin: string | null;
   slug: string | null;
   googleBooksId: string | null;
+  isbn: string | null;
+  hasCover: boolean | null;
   topics: string[];
   pageCount: number | null;
   publishYear: number | null;
@@ -36,38 +39,6 @@ interface BookstoreData {
   total: number;
 }
 
-function BookCover({ title, slug, googleBooksId, size = "md" }: { title: string; asin?: string | null; slug?: string | null; googleBooksId?: string | null; size?: "sm" | "md" | "lg" | "xl" }) {
-  const [srcIndex, setSrcIndex] = useState(0);
-  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
-  const sources: string[] = [];
-  if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
-
-  const sizeClasses = {
-    sm: "w-12 h-[72px]",
-    md: "w-[88px] h-[132px]",
-    lg: "w-28 h-[168px]",
-    xl: "w-36 h-[216px]",
-  };
-
-  const advance = () => setSrcIndex(s => s + 1);
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
-    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
-  };
-
-  const imgCls = `${sizeClasses[size]} rounded-lg object-cover shrink-0 shadow-md border border-black/[0.06] dark:border-white/[0.08]`;
-
-  if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={title} className={imgCls} onError={advance} onLoad={handleLoad} loading="lazy" />;
-  }
-  return (
-    <div className={`${sizeClasses[size]} rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10`}>
-      <BookOpen className="w-5 h-5 text-amber-500/40" />
-    </div>
-  );
-}
 
 const PEOPLE_SLUG_MAP: Record<string, string> = {};
 PEOPLE_DIRECTORY.forEach(p => { PEOPLE_SLUG_MAP[p.name.toLowerCase()] = p.slug; });
@@ -207,11 +178,11 @@ function FeaturedBook({ book }: { book: BookstoreBook }) {
         <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
           {hasPage ? (
             <Link href={`/bookstore/${book.slug}`} className="shrink-0 self-start">
-              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
             </Link>
           ) : (
             <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0 self-start">
-              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
             </a>
           )}
           <div className="flex-1 min-w-0">
@@ -307,11 +278,11 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
         <div className="flex gap-4">
           {hasPage ? (
             <Link href={`/bookstore/${book.slug}`} className="shrink-0" data-testid={`book-cover-link-${index}`}>
-              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="lg" />
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="lg" />
             </Link>
           ) : (
             <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0" data-testid={`book-cover-link-${index}`}>
-              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="lg" />
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="lg" />
             </a>
           )}
           <div className="flex-1 min-w-0">
@@ -411,7 +382,7 @@ function DiscoveryShelf({ title, icon, books, description }: { title: string; ic
           const inner = (
             <div className="w-[160px] shrink-0 group/shelf" key={`${book.name}-${i}`}>
               <div className="mb-2.5 relative">
-                <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
+                <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
               </div>
               <p className="text-[15px] font-semibold text-foreground leading-snug line-clamp-2 group-hover/shelf:text-amber-700 dark:group-hover/shelf:text-amber-400 transition-colors">
                 {book.name}
@@ -515,7 +486,7 @@ export default function Bookstore() {
   const featuredBook = useMemo(() => {
     if (!data?.books) return null;
     const candidates = data.books.filter(b =>
-      b.slug && b.podcastBuzz && b.podcastCount >= 3 && b.rating && b.rating >= 3.5
+      b.podcastCount >= 3 && (b.podcastBuzz || b.mentionCount >= 3)
     );
     if (candidates.length === 0) return null;
     const today = new Date();
@@ -526,33 +497,33 @@ export default function Bookstore() {
   const curatedShelves = useMemo(() => {
     if (!data?.books) return { trending: [], highRated: [], quickReads: [], newReleases: [], byWomen: [], byBlackAuthors: [], buzzworthy: [] };
 
-    const withSlug = data.books.filter(b => b.slug);
+    const allBooks = data.books;
     const currentYear = new Date().getFullYear();
-    const featuredSlug = featuredBook?.slug;
+    const featuredKey = featuredBook ? `${featuredBook.name}|||${featuredBook.author || ""}` : null;
 
-    const excludeFeatured = (list: BookstoreBook[]) => list.filter(b => b.slug !== featuredSlug);
+    const excludeFeatured = (list: BookstoreBook[]) => list.filter(b => `${b.name}|||${b.author || ""}` !== featuredKey);
 
-    const trending = excludeFeatured([...withSlug]
+    const trending = excludeFeatured([...allBooks]
       .filter(b => b.mentionCount >= 3 && b.podcastCount >= 2)
       .sort((a, b) => b.podcastCount - a.podcastCount)
       .slice(0, 10));
 
-    const buzzworthy = excludeFeatured([...withSlug]
+    const buzzworthy = excludeFeatured([...allBooks]
       .filter(b => b.podcastBuzz && b.podcastCount >= 2)
       .sort((a, b) => b.podcastCount - a.podcastCount)
       .slice(0, 10));
 
-    const highRated = excludeFeatured([...withSlug]
+    const highRated = excludeFeatured([...allBooks]
       .filter(b => b.rating && b.rating >= 3.8)
       .sort((a, b) => (b.rating || 0) - (a.rating || 0))
       .slice(0, 10));
 
-    const quickReads = excludeFeatured([...withSlug]
+    const quickReads = excludeFeatured([...allBooks]
       .filter(b => b.pageCount && b.pageCount > 0 && b.pageCount <= 250)
       .sort((a, b) => (a.pageCount || 999) - (b.pageCount || 999))
       .slice(0, 10));
 
-    const newReleases = excludeFeatured([...withSlug]
+    const newReleases = excludeFeatured([...allBooks]
       .filter(b => b.publishYear && b.publishYear >= currentYear - 3)
       .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0))
       .slice(0, 10));
@@ -565,12 +536,12 @@ export default function Bookstore() {
       return parts.some(p => authorSet.has(p.trim()));
     };
 
-    const byWomen = excludeFeatured([...withSlug]
+    const byWomen = excludeFeatured([...allBooks]
       .filter(b => matchesAuthorSet(b.author, WOMEN_AUTHORS))
       .sort((a, b) => b.podcastCount - a.podcastCount)
       .slice(0, 10));
 
-    const byBlackAuthors = excludeFeatured([...withSlug]
+    const byBlackAuthors = excludeFeatured([...allBooks]
       .filter(b => matchesAuthorSet(b.author, BLACK_AUTHORS))
       .sort((a, b) => b.podcastCount - a.podcastCount)
       .slice(0, 10));

@@ -1,0 +1,34 @@
+We’re currently having issues reliably loading book cover images, so it might help to step back and consider a few alternative approaches or troubleshooting strategies.
+
+A common way many products handle book covers is by using the Open Library Covers API, which allows you to generate a cover image directly from the ISBN without needing a full metadata request. The URL pattern is very simple:
+
+https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg
+
+If we have the ISBN stored for a book, this is often the fastest and most reliable method because it avoids an API call entirely and simply loads the image from their CDN.
+
+If Open Library does not return a cover, another common fallback is the Google Books API, which can return cover images inside the imageLinks field when searching by ISBN or title.
+
+Some additional tips that may help stabilize things:
+
+• Try fetching covers by ISBN first, since that tends to be the most reliable identifier.
+• If ISBN is missing, fall back to title + author search via Google Books.
+• Add a fallback chain so the system tries multiple sources before giving up.
+• Cache the final image URL once it’s found so we are not repeatedly hitting APIs on every page load.
+• If an API fails or returns no cover, show a placeholder cover so the UI remains consistent.
+• Verify that image URLs are valid and returning a 200 response before saving them.
+
+Another thing to check is whether the issue is coming from:
+
+• missing ISBN data
+• rate limits from an API
+• incorrect parsing of the returned metadata
+• image URLs that require HTTPS or resizing parameters
+
+It might help to test the logic step by step:
+	1.	Try generating a cover from Open Library using a known ISBN.
+	2.	If that fails, test a Google Books query for the same book.
+	3.	Confirm that the returned imageLinks values are usable in the UI.
+
+The goal is simply to make cover loading reliable and predictable, even if it requires a small fallback chain of sources.
+
+Once you’ve tried some of these approaches, please report back with what you found and which method ends up being the most reliable for our dataset.

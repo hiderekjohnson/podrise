@@ -2,6 +2,7 @@ import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp, Mail, Clock } from "lucide-react";
+import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -71,31 +72,18 @@ function getBlinkistUrl(book: BookResource): string {
   return `https://www.blinkist.com/en/books/${slug}-en`;
 }
 
-function BookCover({ title, slug, googleBooksId, testId }: { title: string; asin?: string | null; slug?: string | null; author?: string | null; googleBooksId?: string | null; testId: string }) {
-  const [srcIndex, setSrcIndex] = useState(0);
-  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
-  const sources: string[] = [];
-  if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
-  const imgCls = "w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]";
-
-  const advance = () => setSrcIndex(s => s + 1);
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
-    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
-  };
-
-  if (srcIndex < sources.length) {
-    return (
-      <img src={sources[srcIndex]} alt={title} className={imgCls} data-testid={testId} onError={advance} onLoad={handleLoad} loading="lazy" />
-    );
-  }
-
+function BookCover({ title, slug, googleBooksId, isbn, hasCover, testId }: { title: string; asin?: string | null; slug?: string | null; author?: string | null; googleBooksId?: string | null; isbn?: string | null; hasCover?: boolean | null; testId: string }) {
   return (
-    <div className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg bg-amber-500/[0.06] flex items-center justify-center shrink-0 border border-amber-500/10" data-testid={testId}>
-      <BookOpen className="w-5 h-5 text-amber-500/40" />
-    </div>
+    <SharedBookCover
+      title={title}
+      slug={slug}
+      googleBooksId={googleBooksId}
+      isbn={isbn}
+      hasCover={hasCover}
+      size="sm"
+      className="w-16 h-24 sm:w-20 sm:h-[120px] rounded-lg object-cover shrink-0 shadow-sm border border-black/[0.06]"
+      testId={testId}
+    />
   );
 }
 
@@ -1238,10 +1226,10 @@ export default function EpisodeRecapPage() {
                       <div className="flex gap-4">
                         {bookSlug ? (
                           <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
-                            <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} testId={`book-cover-${i}`} />
+                            <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} isbn={enrichment?.isbn} hasCover={enrichment?.hasCover} testId={`book-cover-${i}`} />
                           </Link>
                         ) : (
-                          <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} testId={`book-cover-${i}`} />
+                          <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} isbn={enrichment?.isbn} hasCover={enrichment?.hasCover} testId={`book-cover-${i}`} />
                         )}
                         <div className="flex-1 min-w-0">
                           {bookSlug ? (

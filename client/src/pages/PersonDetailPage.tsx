@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles, BookOpen } from "lucide-react";
+import { BookCoverFill } from "@/components/BookCover";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
@@ -58,6 +59,8 @@ interface RecommendedBook {
   amazonUrl: string;
   asin: string | null;
   googleBooksId: string | null;
+  isbn: string | null;
+  hasCover: boolean | null;
   context: string;
   mentionCount: number;
   podcastCount: number;
@@ -83,25 +86,6 @@ const EXISTING_COMPANY_SLUGS = new Set(COMPANIES_DIRECTORY.map(c => c.slug));
 const EXISTING_PEOPLE_SLUGS = new Set(PEOPLE_DIRECTORY.map(p => p.slug));
 
 
-function PersonBookCover({ name, slug, googleBooksId }: { name: string; asin?: string | null; slug: string | null; googleBooksId?: string | null }) {
-  const [srcIndex, setSrcIndex] = useState(0);
-  useEffect(() => { setSrcIndex(0); }, [slug, googleBooksId]);
-  const sources: string[] = [];
-  if (slug) sources.push(`/books/${slug}.jpg`);
-  if (googleBooksId) sources.push(`https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`);
-
-  const advance = () => setSrcIndex(s => s + 1);
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const isGoogleBooks = (sources[srcIndex] || "").includes("books.google.com");
-    if (isGoogleBooks && img.naturalWidth < 150 && img.naturalHeight < 220) advance();
-  };
-
-  if (srcIndex < sources.length) {
-    return <img src={sources[srcIndex]} alt={name} className="w-full h-full object-contain" onError={advance} onLoad={handleLoad} />;
-  }
-  return <BookOpen className="w-8 h-8 text-amber-400/60" />;
-}
 
 function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: boolean }) {
   const date = episode.publish_date ? new Date(episode.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
@@ -971,7 +955,7 @@ export default function PersonDetailPage() {
                       >
                         <div className="bg-card border border-border rounded-xl p-3 hover:border-primary/30 hover:shadow-sm transition-all h-full flex flex-col">
                           <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
-                            <PersonBookCover name={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} />
+                            <BookCoverFill title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
                           </div>
                           <h3 className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
                             {book.name}
