@@ -45,15 +45,25 @@ type CategoryKey = typeof DISCOVER_CATEGORIES[number]["key"];
 
 function categoryBucket(category: string): CategoryKey {
   const c = category.toLowerCase();
-  if (c.includes("ai") || c.includes("software") || c.includes("tech") || c.includes("product management") || c.includes("apple") || c.includes("automotive") || c.includes("internet culture") || c.includes("consumer tech")) return "tech";
-  if (c.includes("finance") || c.includes("investing") || c.includes("crypto") || c.includes("markets") || c.includes("wealth") || c.includes("personal finance") || c.includes("economic") || c.includes("money")) return "finance";
-  if (c.includes("news") || c.includes("politic") || c.includes("law") || c.includes("daily")) return "news";
-  if (c.includes("health") || c.includes("science") || c.includes("medicine") || c.includes("longevity") || c.includes("fitness") || c.includes("psychology") || c.includes("wellbeing") || c.includes("mental")) return "health";
-  if (c.includes("self-improvement") || c.includes("personal development") || c.includes("mindfulness") || c.includes("meditation") || c.includes("coaching") || c.includes("motivation") || c.includes("mindset") || c.includes("performance") || c.includes("stoic") || c.includes("philosophy") || c.includes("productivity")) return "self-improvement";
+  const primary = c.split("/")[0].trim();
+
+  if (/\bai\b/.test(primary) || primary.includes("tech") || primary.includes("software") || primary === "vc" || primary === "consumer tech" || primary === "internet culture") return "tech";
+  if (primary.includes("news") || primary.includes("politic")) return "news";
+  if (primary.includes("finance") || primary.includes("investing") || primary.includes("economic") || primary.includes("personal finance") || primary === "investing") return "finance";
+  if (primary.includes("health") || primary.includes("science") || primary.includes("psychology")) return "health";
+  if (primary.includes("self-improvement") || primary.includes("personal development") || primary.includes("mindfulness") || primary.includes("motivation") || primary.includes("productivity") || primary.includes("philosophy")) return "self-improvement";
+  if (primary.includes("marketing")) return "marketing";
+  if (primary.includes("comedy") || primary.includes("entertainment") || primary.includes("education") || primary.includes("history") || primary.includes("interview") || primary.includes("narrative") || primary.includes("design") || primary.includes("arts") || primary.includes("sport") || primary.includes("society") || primary.includes("culture") || primary.includes("human") || primary.includes("tv") || primary.includes("lessons")) return "culture";
+
+  if (/\bai\b/.test(c) || c.includes("software") || c.includes("tech") || c.includes("product management") || c.includes("apple") || c.includes("automotive") || c.includes("internet culture") || c.includes("consumer tech")) return "tech";
+  if (c.includes("finance") || c.includes("investing") || c.includes("crypto") || c.includes("markets") || c.includes("wealth") || c.includes("personal finance") || c.includes("economic") || c.includes("money") || c.includes("funding")) return "finance";
+  if (c.includes("news") || c.includes("politic") || c.includes("law") || c.includes("daily") || c.includes("media") || c.includes("weekly") || c.includes("international")) return "news";
+  if (c.includes("health") || c.includes("science") || c.includes("medicine") || c.includes("longevity") || c.includes("fitness") || c.includes("psychology") || c.includes("wellbeing") || c.includes("mental") || c.includes("behavior") || c.includes("space") || c.includes("fact-check")) return "health";
+  if (c.includes("self-improvement") || c.includes("personal development") || c.includes("mindfulness") || c.includes("meditation") || c.includes("coaching") || c.includes("motivation") || c.includes("mindset") || c.includes("performance") || c.includes("stoic") || c.includes("philosophy") || c.includes("productivity") || c.includes("empowerment") || c.includes("life optimization") || c.includes("lifestyle")) return "self-improvement";
   if (c.includes("marketing") || c.includes("growth") || c.includes("side hustle") || c.includes("online marketing") || c.includes("seo")) return "marketing";
-  if (c.includes("culture") || c.includes("education") || c.includes("history") || c.includes("comedy") || c.includes("entertainment") || c.includes("film") || c.includes("arts") || c.includes("design") || c.includes("narrative") || c.includes("language") || c.includes("stories") || c.includes("sport")) return "culture";
-  if (c.includes("business") || c.includes("entrepreneur") || c.includes("startup") || c.includes("venture") || c.includes("leadership") || c.includes("strategy") || c.includes("saas") || c.includes("management") || c.includes("acquisitions") || c.includes("company")) return "business";
-  return "business";
+  if (c.includes("culture") || c.includes("education") || c.includes("history") || c.includes("comedy") || c.includes("entertainment") || c.includes("film") || c.includes("arts") || c.includes("design") || c.includes("narrative") || c.includes("language") || c.includes("stories") || c.includes("sport") || c.includes("interview") || c.includes("relationship") || c.includes("society") || c.includes("human") || c.includes("big ideas") || c.includes("general knowledge") || c.includes("debate") || c.includes("military")) return "culture";
+  if (c.includes("business") || c.includes("entrepreneur") || c.includes("startup") || c.includes("venture") || c.includes("leadership") || c.includes("strategy") || c.includes("saas") || c.includes("management") || c.includes("acquisitions") || c.includes("company") || c.includes("real estate") || c.includes("organizational")) return "business";
+  return "culture";
 }
 
 function SEOHead() {
