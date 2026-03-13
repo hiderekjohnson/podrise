@@ -332,12 +332,6 @@ export default function TopicDetailPage() {
                 Active
               </p>
             </div>
-            {latestEpisodeDate && (
-              <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-latest">
-                <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Latest</p>
-                <p className="text-base font-display font-bold text-foreground">{formatRelativeDate(latestEpisodeDate)}</p>
-              </div>
-            )}
           </div>
         </motion.div>
 
