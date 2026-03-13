@@ -531,7 +531,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
       .outer-pad{padding:0!important;}
       .card{border-radius:0!important;}
       .topbar{padding:14px 18px!important;}
-      .topbar-date{font-size:11px!important;}
+      .topbar-date{display:none!important;}
       .ep-block{padding:22px 18px 20px!important;}
       .quiet-block{padding:16px 18px!important;}
       .hero-block{padding:24px 18px 0!important;}
@@ -567,7 +567,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 <!-- TOP BAR -->
 <tr><td class="topbar" style="padding:18px 28px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
-    <td valign="middle" style="white-space:nowrap;">
+    <td valign="middle">
       <a href="https://podcap.io" style="text-decoration:none;display:inline-block;">
         <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;"><tr>
           <td valign="middle">
@@ -579,7 +579,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
         </tr></table>
       </a>
     </td>
-    <td align="right" valign="middle"><span class="topbar-date" style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;white-space:nowrap;">${escapeHtml(dateStr)}</span></td>
+    <td class="topbar-date" align="right" valign="middle"><span style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;white-space:nowrap;">${escapeHtml(dateStr)}</span></td>
   </tr></table>
 </td></tr>
 
