@@ -2769,6 +2769,46 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/topics/:slug/pulse", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const pulses = await storage.getTopicPulses(slug, 30);
+      res.json(pulses);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch pulses" });
+    }
+  });
+
+  app.get("/api/topics/:slug/pulse/:date", async (req, res) => {
+    try {
+      const { slug, date } = req.params;
+      const pulse = await storage.getTopicPulseByDate(slug, date);
+      if (!pulse) return res.status(404).json({ error: "Pulse not found" });
+      res.json(pulse);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch pulse" });
+    }
+  });
+
+  app.post("/api/admin/topics/:slug/pulse/generate", async (req, res) => {
+    try {
+      const sess = req.session as any;
+      if (!sess?.adminAuthenticated) return res.status(401).json({ error: "Unauthorized" });
+
+      const { slug } = req.params;
+      const { date, topicName } = req.body;
+      if (!date || !topicName) return res.status(400).json({ error: "date and topicName required" });
+
+      const { generateAndSavePulse } = await import("./pulseGenerator");
+      const pulse = await generateAndSavePulse(slug, date, topicName);
+      if (!pulse) return res.status(404).json({ error: "No relevant episodes found for this topic on this date" });
+      res.json(pulse);
+    } catch (err: any) {
+      console.error("[PulseGenerate] Error:", err);
+      res.status(500).json({ error: err?.message || "Failed to generate pulse" });
+    }
+  });
+
   app.get("/api/topics/:slug/episodes", async (req, res) => {
     try {
       const { slug } = req.params;

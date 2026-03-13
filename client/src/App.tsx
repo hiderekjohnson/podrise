@@ -39,6 +39,7 @@ const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const Bookstore = lazy(() => import("./pages/Bookstore"));
 const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
 const TrendsPage = lazy(() => import("./pages/TrendsPage"));
+const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 
 function PageLoader() {
   return (
@@ -78,6 +79,8 @@ function Router() {
         <Route path="/get-started" component={GetStarted} />
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends" component={TrendsPage} />
+        <Route path="/topics/:slug/pulse/:date" component={TopicPulsePage} />
+        <Route path="/topics/:slug/pulse" component={TopicPulsePage} />
         <Route path="/topics/:slug" component={TopicDetailPage} />
         <Route path="/topics" component={TopicsDirectory} />
         <Route path="/daily-drop/:date" component={DailyDropEdition} />

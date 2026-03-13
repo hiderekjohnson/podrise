@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -71,6 +71,9 @@ export interface IStorage {
   getEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<EpisodeQuote[]>;
   saveEpisodeQuotes(quotes: InsertEpisodeQuote[]): Promise<EpisodeQuote[]>;
   deleteEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<void>;
+  getTopicPulses(topicSlug: string, limit?: number): Promise<TopicPulse[]>;
+  getTopicPulseByDate(topicSlug: string, publishDate: string): Promise<TopicPulse | undefined>;
+  upsertTopicPulse(data: InsertTopicPulse): Promise<TopicPulse>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -666,6 +669,32 @@ export class DatabaseStorage implements IStorage {
     await db.delete(episodeQuotes).where(
       and(eq(episodeQuotes.podcastSlug, podcastSlug), eq(episodeQuotes.episodeSlug, episodeSlug))
     );
+  }
+
+  async getTopicPulses(topicSlug: string, limit: number = 30): Promise<TopicPulse[]> {
+    return db.select().from(topicPulses)
+      .where(eq(topicPulses.topicSlug, topicSlug))
+      .orderBy(desc(topicPulses.publishDate))
+      .limit(limit);
+  }
+
+  async getTopicPulseByDate(topicSlug: string, publishDate: string): Promise<TopicPulse | undefined> {
+    const [pulse] = await db.select().from(topicPulses)
+      .where(and(eq(topicPulses.topicSlug, topicSlug), eq(topicPulses.publishDate, publishDate)));
+    return pulse;
+  }
+
+  async upsertTopicPulse(data: InsertTopicPulse): Promise<TopicPulse> {
+    const existing = await this.getTopicPulseByDate(data.topicSlug, data.publishDate);
+    if (existing) {
+      const [updated] = await db.update(topicPulses)
+        .set({ ...data, generatedAt: new Date() })
+        .where(eq(topicPulses.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(topicPulses).values(data).returning();
+    return created;
   }
 }
 

@@ -370,3 +370,24 @@ export const insertEpisodeQuoteSchema = createInsertSchema(episodeQuotes).omit({
 export type EpisodeQuote = typeof episodeQuotes.$inferSelect;
 export type InsertEpisodeQuote = z.infer<typeof insertEpisodeQuoteSchema>;
 
+export const topicPulses = pgTable("topic_pulses", {
+  id: serial("id").primaryKey(),
+  topicSlug: text("topic_slug").notNull(),
+  publishDate: text("publish_date").notNull(),
+  headline: text("headline").notNull(),
+  summary: text("summary").notNull(),
+  body: text("body").notNull(),
+  keyThemes: text("key_themes").array(),
+  episodeCount: integer("episode_count").notNull(),
+  sourceEpisodes: jsonb("source_episodes").notNull(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
+
+export const insertTopicPulseSchema = createInsertSchema(topicPulses).omit({
+  id: true,
+  generatedAt: true,
+});
+
+export type TopicPulse = typeof topicPulses.$inferSelect;
+export type InsertTopicPulse = z.infer<typeof insertTopicPulseSchema>;
+
