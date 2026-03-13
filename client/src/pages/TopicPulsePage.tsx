@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Activity, Podcast } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TOPICS } from "@/data/topicData";
@@ -31,6 +31,10 @@ function formatDateShort(dateStr: string) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatDateISO(dateStr: string) {
+  return dateStr;
+}
+
 function sanitizeText(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -40,7 +44,7 @@ function normalizeLink(href: string): string {
   if (cleaned.startsWith("javascript:") || cleaned.startsWith("data:") || cleaned.startsWith("vbscript:")) {
     return "#";
   }
-  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/daily-drop") || cleaned.startsWith("/bookstore/")) {
+  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/daily-drop") || cleaned.startsWith("/bookstore/") || cleaned.startsWith("/insights/")) {
     return cleaned;
   }
   const match = cleaned.match(/(?:https?:\/\/[^/]*)?(\/?podcasts\/[^\s)]+)/);
@@ -147,6 +151,51 @@ function renderMarkdownBody(body: string) {
   });
 }
 
+function Breadcrumbs({ topicSlug, topicName, date }: { topicSlug: string; topicName: string; date?: string }) {
+  return (
+    <nav className="flex flex-wrap items-center gap-1 text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-5" aria-label="Breadcrumb" data-testid="nav-breadcrumbs">
+      <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+      <ChevronRightSmall className="w-3 h-3 shrink-0" />
+      <Link href="/insights" className="hover:text-foreground transition-colors">Topics</Link>
+      <ChevronRightSmall className="w-3 h-3 shrink-0" />
+      <Link href={`/topics/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
+      <ChevronRightSmall className="w-3 h-3 shrink-0" />
+      {date ? (
+        <>
+          <Link href={`/topics/${topicSlug}/pulse`} className="hover:text-foreground transition-colors">The Pulse</Link>
+          <ChevronRightSmall className="w-3 h-3 shrink-0" />
+          <span className="text-foreground font-medium">{formatDateShort(date)}</span>
+        </>
+      ) : (
+        <span className="text-foreground font-medium">The Pulse</span>
+      )}
+    </nav>
+  );
+}
+
+function AsHeardOn({ sourceEpisodes }: { sourceEpisodes: TopicPulse["sourceEpisodes"] }) {
+  const uniquePodcasts = [...new Map(sourceEpisodes.map(ep => [ep.podcastSlug, ep])).values()];
+  if (uniquePodcasts.length === 0) return null;
+
+  return (
+    <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed" data-testid="text-as-heard-on">
+      <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">As heard on: </span>
+      {uniquePodcasts.map((ep, i) => (
+        <span key={ep.podcastSlug}>
+          <Link
+            href={`/podcasts/${ep.podcastSlug}`}
+            className="text-primary hover:text-primary/80 transition-colors"
+            data-testid={`link-podcast-source-${i}`}
+          >
+            {ep.podcastName}
+          </Link>
+          {i < uniquePodcasts.length - 1 && <span>, </span>}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) {
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
@@ -178,6 +227,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
       ? `${pulse.headline} - ${topicName} Pulse - PodCap`
       : `${topicName} Pulse - PodCap`;
     const description = pulse?.summary || `Daily ${topicName} intelligence briefing from podcast conversations. Stay informed about what matters.`;
+    const canonicalUrl = `https://podcap.io/topics/${topicSlug}/pulse/${date}`;
     if (typeof document !== "undefined") {
       document.title = title;
       const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -195,6 +245,14 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
       setOrCreate('meta[property="og:description"]', "property", description);
       setOrCreate('meta[property="og:type"]', "property", "article");
 
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.rel = "canonical";
+        document.head.appendChild(canonical);
+      }
+      canonical.href = canonicalUrl;
+
       let scriptEl = document.querySelector('script[type="application/ld+json"][data-pulse]') as HTMLScriptElement | null;
       if (pulse) {
         const jsonLd = {
@@ -210,7 +268,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
           },
           mainEntityOfPage: {
             "@type": "WebPage",
-            "@id": `https://podcap.io/topics/${topicSlug}/pulse/${date}`,
+            "@id": canonicalUrl,
           },
           about: {
             "@type": "Thing",
@@ -262,14 +320,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
               transition={{ duration: 0.5 }}
               className="mb-8 sm:mb-10"
             >
-              <Link
-                href={`/topics/${topicSlug}/pulse`}
-                className="inline-flex items-center gap-1.5 text-[16px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-5"
-                data-testid="link-back-pulse"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                All {topicName} Briefings
-              </Link>
+              <Breadcrumbs topicSlug={topicSlug} topicName={topicName} date={date} />
 
               <div className="flex items-center gap-2 text-[15px] font-semibold uppercase tracking-wider text-primary mb-4">
                 <Activity className="w-3.5 h-3.5" />
@@ -279,10 +330,13 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
                   {topicName}
                 </span>
                 <span className="text-muted-foreground/40 mx-1">·</span>
-                <span className="flex items-center gap-1.5 text-[#3F3F46] dark:text-[#A1A1AA] font-medium normal-case tracking-normal">
+                <time
+                  dateTime={formatDateISO(pulse.publishDate)}
+                  className="flex items-center gap-1.5 text-[#3F3F46] dark:text-[#A1A1AA] font-medium normal-case tracking-normal"
+                >
                   <Calendar className="w-3 h-3" />
                   {formatDateLong(pulse.publishDate)}
-                </span>
+                </time>
               </div>
 
               <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em] mb-3" data-testid="heading-pulse">
@@ -290,26 +344,12 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
               </h1>
 
               {pulse.summary && (
-                <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] leading-relaxed font-medium" data-testid="text-pulse-summary">
+                <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] leading-relaxed font-medium mb-4" data-testid="text-pulse-summary">
                   {pulse.summary}
                 </p>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 mt-4">
-                <span className="inline-flex items-center gap-1.5 text-[14px] text-[#52525B] dark:text-[#A1A1AA]">
-                  <Podcast className="w-3.5 h-3.5" />
-                  {pulse.episodeCount} episode{pulse.episodeCount !== 1 ? "s" : ""} analyzed
-                </span>
-                {pulse.keyThemes && pulse.keyThemes.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {pulse.keyThemes.map((theme, i) => (
-                      <span key={i} className="px-2.5 py-0.5 text-[13px] font-medium rounded-full bg-primary/10 text-primary" data-testid={`badge-theme-${i}`}>
-                        {theme}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
             </motion.header>
 
             <div className="w-full h-px bg-border mb-8 sm:mb-10" />
@@ -323,32 +363,6 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
             >
               {renderMarkdownBody(pulse.body)}
             </motion.div>
-
-            {pulse.sourceEpisodes && pulse.sourceEpisodes.length > 0 && (
-              <div className="mt-10 pt-8 border-t border-border" data-testid="section-source-episodes">
-                <h3 className="text-[17px] font-display font-bold text-foreground mb-4">Episodes Analyzed</h3>
-                <div className="space-y-2">
-                  {pulse.sourceEpisodes.map((ep, i) => (
-                    <Link
-                      key={i}
-                      href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group"
-                      data-testid={`link-source-episode-${i}`}
-                    >
-                      <Podcast className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-[15px] font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                          {ep.episodeTitle}
-                        </p>
-                        <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA]">
-                          {ep.podcastName}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="w-full h-px bg-border mt-10 mb-8" />
 
@@ -390,14 +404,14 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
                         <p className="text-[15px] font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
                           {p.headline}
                         </p>
-                        <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA]">
-                          {p.episodeCount} episodes analyzed
-                        </p>
                       </div>
-                      <span className="text-[14px] text-muted-foreground ml-3 shrink-0 flex items-center gap-1">
+                      <time
+                        dateTime={formatDateISO(p.publishDate)}
+                        className="text-[14px] text-muted-foreground ml-3 shrink-0 flex items-center gap-1"
+                      >
                         <Calendar className="w-3 h-3" />
                         {formatDateShort(p.publishDate)}
-                      </span>
+                      </time>
                     </Link>
                   ))}
                 </div>
@@ -427,7 +441,8 @@ function PulseArchive({ topicSlug }: { topicSlug: string }) {
 
   function SEOHead() {
     const title = `${topicName} Pulse - Daily Intelligence Briefing - PodCap`;
-    const description = `Stay informed about ${topicName} with daily intelligence briefings synthesized from podcast conversations. Key insights, expert quotes, and actionable knowledge delivered every morning.`;
+    const description = `Stay informed about ${topicName} with daily intelligence briefings synthesized from podcast conversations.`;
+    const canonicalUrl = `https://podcap.io/topics/${topicSlug}/pulse`;
     if (typeof document !== "undefined") {
       document.title = title;
       const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -443,6 +458,14 @@ function PulseArchive({ topicSlug }: { topicSlug: string }) {
       setOrCreate('meta[name="description"]', "name", description);
       setOrCreate('meta[property="og:title"]', "property", title);
       setOrCreate('meta[property="og:description"]', "property", description);
+
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.rel = "canonical";
+        document.head.appendChild(canonical);
+      }
+      canonical.href = canonicalUrl;
     }
     return null;
   }

@@ -361,6 +361,12 @@ function formatDateForDisplay(dateStr: string): string {
   return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 }
 
+function formatDateShortForPrompt(dateStr: string): string {
+  const parts = dateStr.split("-");
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
 export async function generatePulse(topicSlug: string, dateStr: string, topicName: string): Promise<GeneratedPulse | null> {
   const episodes = await getEpisodesForTopic(topicSlug, dateStr);
   if (episodes.length === 0) return null;
@@ -376,7 +382,7 @@ export async function generatePulse(topicSlug: string, dateStr: string, topicNam
 Host: ${ep.hosts || "Unknown"}${guestInfo ? `\nGuests: ${guestInfo}` : ""}
 Summary: ${ep.tldl}
 Recap: ${ep.whatHappened}
-Key Insights:
+Key points:
 ${insightsStr}
 ${ep.quote ? `Featured Quote: "${ep.quote}" - ${ep.quoteAttribution || ep.hosts}` : ""}
 ${resources.length > 0 ? `Resources/Books: ${resources.join(", ")}` : ""}
@@ -390,71 +396,66 @@ Podcast link: /podcasts/${ep.slug}`;
     ).join("\n")}`
     : "";
 
-  const prompt = `You are writing THE PULSE for ${topicName} on ${formatDateForDisplay(dateStr)}.
+  const podcastNames = [...new Set(episodes.map(ep => ep.podcastName))];
 
-THE PULSE is a daily intelligence briefing for professionals who want to stay informed about ${topicName} by extracting insights from podcast conversations. This is NOT about podcast news or the podcast industry. We do not care who appeared on what show. We care about the IDEAS, STRATEGIES, LESSONS, and KNOWLEDGE shared in these conversations.
+  const prompt = `You are writing THE PULSE, a ${topicName.toLowerCase()} podcast briefing for ${formatDateShortForPrompt(dateStr)}.
 
-Think of yourself as a team of analysts at a top consulting firm. Your analysts listened to every relevant podcast yesterday and are now presenting a briefing to a VP or CEO: "Here is what you need to know about ${topicName} based on what the smartest people were discussing yesterday."
+YOUR VOICE: You listened to every ${topicName.toLowerCase()} podcast so the reader did not have to, and now you are texting them the good parts. Smart, direct, conversational. Not a consulting deck. Not a report. A smart friend who is genuinely excited about what they heard.
 
-OUR MISSION: Unlock the world's knowledge trapped inside millions of podcasts, transforming billions of hours of spoken conversations into searchable, structured information anyone can instantly learn from.
+TARGET READER: A busy professional who decides in 3 seconds whether to keep reading. Every sentence earns its place or gets cut.
 
-Here are the ${topicName}-related podcast episodes from ${formatDateForDisplay(dateStr)}:
+TARGET LENGTH: The entire briefing fits on one screen without scrolling. About 250-350 words for the body. That is it.
+
+Here are the ${topicName.toLowerCase()}-related podcast episodes from ${formatDateForDisplay(dateStr)}:
 
 ${episodeBriefs}
 ${quotesSection}
 
 WHAT TO WRITE:
-1. A compelling HEADLINE (8-15 words) that captures the most important theme or insight from today's episodes. This should read like a headline from a premium industry briefing, not a podcast roundup.
 
-2. A brief SUMMARY (1-2 sentences) that gives a professional the gist of what they will learn.
+1. HEADLINE: Specific and datestamped. Must contain "${topicName.toLowerCase()} podcast" or "${topicName.toLowerCase()} podcasts". Never generic. Bad: "Mindset, Scaling, and AI: Core Pillars of Entrepreneurial Success". Good: "What ${topicName} Podcasts Are Talking About This Week, ${formatDateShortForPrompt(dateStr)}". The headline should not work if you changed the date to 2019.
 
-3. The BODY - a structured intelligence briefing in markdown. Structure it as follows:
+2. SUMMARY: One punchy sentence. The single most interesting thing from today.
 
-   Start with an executive overview paragraph (3-4 sentences) that synthesizes the biggest theme or most important insight across all episodes. What is the one thing a busy professional needs to know today?
+3. BODY in markdown:
 
-   Then organize insights into 2-4 thematic sections using **bold section headers**. Each section should:
-   - Synthesize insights from multiple episodes when possible, not just summarize one episode at a time
-   - Include specific, actionable information (numbers, strategies, frameworks, quotes)
-   - Link to relevant episode pages, podcast pages, people pages, and company pages naturally
-   - Include direct quotes embedded in the text (from the episode quotes or featured quotes provided)
+   OPEN WITH THE BEST QUOTE. Find the single sharpest, most specific quote across all episodes. Lead with it. Build down from there.
 
-   After the main sections, add a **Worth Noting** section with 2-3 shorter observations, interesting data points, or secondary insights that did not fit the main themes
+   Then 2-3 short sections with **bold headers**. Each section: 2-3 sentences MAX. Include specific details (numbers, strategies, names). Synthesize across episodes when possible.
 
-   End with a **Books and Resources** section if any books or resources were mentioned across the episodes
+   Then ONE "**Worth Noting**" item. Not a list. One sentence about the single most surprising or counterintuitive data point from today.
 
-4. KEY THEMES - a list of 3-5 theme labels that describe the main areas covered today
+   If books were mentioned, add a "**On the Reading List**" line with titles linked to /bookstore/book-slug-in-kebab-case.
+
+4. KEY THEMES: 3-5 short labels.
+
+BANNED WORDS AND PHRASES (if you use any of these, the output is rejected):
+landscape, navigating, rapidly evolving, key discussions, sustained growth, competitive advantage, undergoing significant changes, it is crucial, delve, transformative, key insights, pillars, comprehensive, leveraging, paradigm, synergy, holistic, cutting-edge, groundbreaking, game-changing, actionable, robust, ecosystem, empower, stakeholder, thought leader
 
 LINKING RULES:
-- Link episode titles to their episode pages: [Episode Title](/podcasts/slug/episode-slug)
-- Link podcast names to their podcast pages: [Podcast Name](/podcasts/slug)
-- Link well-known people to their pages: [Person Name](/people/first-last)
-- Link well-known companies to their pages: [Company Name](/companies/slug)
-- Link book titles to their book pages: [Book Title](/bookstore/book-slug-in-kebab-case)
-- Links MUST start with a forward slash / (relative paths, not full URLs)
-- Do not over-link. Link a name/title once then leave subsequent mentions unlinked
+- Episode titles: [Episode Title](/podcasts/slug/episode-slug)
+- Podcast names: [Podcast Name](/podcasts/slug)
+- People: [Person Name](/people/first-last)
+- Companies: [Company Name](/companies/slug)
+- Books: [Book Title](/bookstore/book-slug-in-kebab-case)
+- Links MUST start with / (relative paths)
+- Link a name once, leave later mentions unlinked
 
-VOICE AND TONE:
-- Authoritative and analytical, like a premium industry briefing (McKinsey, CB Insights, a16z newsletters)
-- Focus on WHAT WAS SAID that matters, not WHO was on what show
-- Specific over vague: include numbers, frameworks, strategies, quotes
-- Write for a time-pressed professional who needs to be informed
-- Never use em dashes. Use commas, periods, or colons instead
-- Do not use curly or smart apostrophes
+STYLE RULES:
+- Never use em dashes. Use commas, periods, or colons instead.
+- Do not use curly or smart apostrophes.
+- No numbered lists in the main body.
+- Write in present tense when possible.
+- Specific over vague. "Grew revenue 40% in 6 months" not "experienced significant growth."
+- If it sounds like it came from a consulting firm, rewrite it.
 
-CONSTRAINTS:
-- Include 2-4 direct quotes from the episodes, attributed to the speaker
-- Every insight should trace back to a specific episode (linked)
-- Focus on learnings and knowledge, not podcast industry talk
-- Do not mention episode downloads, podcast ratings, or industry metrics
-- Do not write "dropped today" or "hit the airwaves" style language
-- Minimum 500 words, maximum 900 words for the body
-- Do not use numbered lists for the main content sections. Use prose with embedded bullet points only when listing specific strategies, steps, or resources
+PODCASTS REFERENCED: ${podcastNames.join(", ")}
 
 Respond with ONLY valid JSON (no markdown fences):
 {
-  "headline": "The headline",
-  "summary": "1-2 sentence summary for professionals",
-  "body": "The full intelligence briefing in markdown. Use \\n\\n for paragraph breaks.",
+  "headline": "The headline with date and topic",
+  "summary": "One punchy sentence",
+  "body": "The full briefing in markdown. Use \\n\\n for paragraph breaks.",
   "keyThemes": ["Theme 1", "Theme 2", "Theme 3"]
 }`;
 
@@ -462,8 +463,8 @@ Respond with ONLY valid JSON (no markdown fences):
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 4000,
-      temperature: 0.7,
+      max_tokens: 2500,
+      temperature: 0.8,
       response_format: { type: "json_object" },
     });
 
