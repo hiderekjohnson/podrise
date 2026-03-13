@@ -252,22 +252,24 @@ export async function generateEmailSubjectAndPreview(summary: string, episodeCou
     const { openai } = await import("./replit_integrations/image/client");
 
     const coverlinesInstruction = episodeCount > 1
-      ? `5. COVERLINES (tease remaining episodes)
-- One short punchy tease per remaining episode (not the lead story), five words or less each.
-- Start with "Also yesterday \u2014 " and write as one flowing sentence connecting the remaining episodes.
-- Use "and" to join the last item, commas for earlier items if there are three or more.
-- Written as provocations, not descriptions. Imply secrets, surprises, things the reader doesn't know yet.
-- Never just list a podcast name or episode title.
-- Example: "Also yesterday \u2014 a startup podcast called out Mark Zuckerberg for something you wouldn't expect, and two comedians made more sense of the world than most journalists."`
+      ? `5. COVERLINES
+- One fluid italic sentence. Start with "Also yesterday \u2014" then connect all remaining episodes with "and."
+- NEVER use the words: deep dive, candid discussion, explores, examines, reshaping, narratives.
+- Must name at least one specific person or surprising claim from each remaining episode.
+- Must read like gossip between two people who actually listened, not a TV guide description.
+- BAD: "Also yesterday \u2014 a deep dive into geopolitical chaos, and a candid discussion on how AI is reshaping global narratives"
+- GOOD: "Also yesterday \u2014 two comedians made more sense of the world than most journalists, and one of them said something about AI that nobody in media wants to admit"`
       : `5. COVERLINES: Return empty string "" since there is only one episode.`;
 
     const resp = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{
         role: "user",
-        content: `You write email copy for a daily podcast recap email. The reader receives this email THE MORNING AFTER the episodes dropped. All copy must reflect this — never say "today's episodes", "in today's recap", or "this episode." Always write as if you are telling someone what happened yesterday.
+        content: `You write email copy for a daily podcast recap email. The reader receives this email THE MORNING AFTER the episodes dropped. All copy must reflect this \u2014 never say "today's episodes", "in today's recap", or "this episode." Always write as if you are telling someone what happened yesterday.
 
 The subject line, preheader, lead headline, supporting detail, and coverlines are ONE COMPLETE SYSTEM. Generate all of them together from the recap content below.
+
+THE SINGLE TEST FOR EVERY LINE: Would a tabloid editor print this on a front page? If it sounds like a university press release, a LinkedIn post, or a podcast description, rewrite it until it doesn't.
 
 1. SUBJECT LINE
 - The single most surprising, aspirational, or counterintuitive claim from any episode.
@@ -284,33 +286,25 @@ The subject line, preheader, lead headline, supporting detail, and coverlines ar
 - Never repeat the subject line verbatim.
 
 3. LEAD HEADLINE
-- The single most surprising or compelling story across ALL episodes.
-- Written like a New York Post front page — punchy, specific, slightly provocative.
-- Personal where possible. Specific enough that the reader feels something is at stake.
-- NO full stop at the end. Never vague. Never generic.
-- Must reference yesterday implicitly — never say "today."
+- Under 8 words. Must never wrap to a third line in a 600px email.
+- NEVER use the words: reveals, discusses, explores, examines, features, showcases, delves, unpacks. Those are press release words and they kill the hook instantly.
+- Must be personal, specific, and make the reader feel like they are about to miss something.
+- Written like a New York Post front page. Active language only.
+- NO full stop at the end.
+- BAD: "Sarah's List reveals the companies that could make you a millionaire"
+- GOOD: "The company list Sam Parr's wife used to make her first million"
+- BAD: "ZuruTech and Varda have the potential to transform entire industries"
+- GOOD: "The founder building homes for a tenth of the cost nobody knows about"
 
 4. SUPPORTING DETAIL
-- One sentence directly beneath the lead headline that deepens the hook without resolving it.
-- Leaves the most interesting part unsaid.
-- Must contain at least one specific detail — a number, a name, a comparison — that makes it feel true and worth clicking.
-- Never ends with a full stop that feels final. Always written in reference to yesterday.
+- One sentence. Never names more than one company or person.
+- NEVER use phrases like "have the potential to", "transform entire industries", "by 2026" as a throwaway ending, or "poised for growth."
+- Must contain exactly one specific surprising detail \u2014 a number, a direct comparison, or a claim that sounds almost too bold to be true.
+- Must leave the most interesting part unsaid so the only way to get the rest is to scroll.
+- BAD: "These firms including ZuruTech and Varda have the potential to transform entire industries by 2026"
+- GOOD: "One of them builds homes for a tenth of the cost \u2014 and the founder has already done it in three other industries"
 
 ${coverlinesInstruction}
-
-GOOD EXAMPLE:
-Subject: How AI could make you a millionaire by 2026
-Preheader: The company list that made one woman a millionaire \u2014 plus why two comedians understood the world better than most journalists yesterday
-Lead headline: The company list Sam Parr's wife used to make her first million
-Supporting detail: One of them is building homes for a tenth of the cost — and the founder has already done it in three other industries
-Coverlines: Also yesterday \u2014 a startup podcast called out Mark Zuckerberg for something you wouldn't expect, and two comedians made more sense of the world than most journalists.
-
-BAD EXAMPLE (never generate copy like this):
-Subject: Your Daily PodCap Digest \u2014 March 13
-Preheader: Plus -- the new space manufacturing model that could change everything.
-Lead headline: Here's what your podcasts were saying yesterday
-Supporting detail: Today's episodes cover entrepreneurship, AI, and geopolitics.
-Coverlines: Also: My First Million \u00b7 Joe Rogan Experience
 
 There are ${episodeCount} episode(s) in this email.
 
