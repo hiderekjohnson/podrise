@@ -535,7 +535,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
       .hero-block{padding:28px 20px 0!important;}
       .footer-inner{padding:20px!important;}
       .ep-title{font-size:18px!important;}
-      .lead-headline{font-size:20px!important;}
+      .lead-headline{font-size:24px!important;}
     }
   </style>
 </head>
@@ -567,19 +567,28 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 </td></tr>
 
 <!-- KICKER + LEAD HEADLINE + SUPPORTING DETAIL + COVERLINES -->
-<tr><td class="hero-block" style="padding:28px 28px 0;background:#ffffff;">
-  <p style="font-size:14px;font-weight:400;color:#A1A1AA;line-height:1.5;margin:0;padding:0;">In your podcasts yesterday \u2014</p>
-  ${leadHeadline ? `<p class="lead-headline" style="font-size:24px;font-weight:700;color:#09090B;letter-spacing:-0.03em;line-height:1.3;margin:0;padding:10px 0 0;">${escapeHtml(leadHeadline)}</p>` : ""}
-  ${supportingDetail ? `<p style="font-size:16px;font-weight:400;color:#71717A;line-height:1.6;margin:0;padding:10px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
-  ${coverlines ? `<p style="font-size:13px;font-weight:400;color:#A1A1AA;line-height:1.5;margin:0;padding:14px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
+<tr><td class="hero-block" style="padding:32px 28px 0;background:#ffffff;">
+  <p style="font-size:13px;font-weight:700;color:#6366F1;letter-spacing:0.12em;text-transform:uppercase;line-height:1.4;margin:0;padding:0;">In your podcasts yesterday</p>
+  ${leadHeadline ? `<p class="lead-headline" style="font-size:30px;font-weight:700;color:#09090B;letter-spacing:-0.03em;line-height:1.25;margin:0;padding:20px 0 0;font-family:Georgia,'Times New Roman',Times,serif;">${escapeHtml(leadHeadline)}</p>` : ""}
+  <div style="width:32px;height:3px;background:#6366F1;margin:20px 0 0;border-radius:2px;"></div>
+  ${supportingDetail ? `<p style="font-size:17px;font-weight:400;color:#3F3F46;line-height:1.6;margin:0;padding:20px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
+  ${coverlines ? `<p style="font-size:15px;font-weight:400;font-style:italic;color:#A1A1AA;line-height:1.6;margin:0;padding:24px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
 </td></tr>
 
-<!-- HAIRLINE + EPISODE PILLS -->
-<tr><td style="padding:0 28px;background:#ffffff;">
-  <div style="height:1px;background:#F0F0F2;margin:24px 0;"></div>
-  <div style="padding:0 0 24px;">
-    ${episodePillsHtml}
-  </div>
+<!-- EPISODE COUNT BAR -->
+<tr><td style="padding:28px 28px 0;background:#ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+    <tr><td style="background:#6366F1;border-radius:10px;padding:14px 20px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
+        <td valign="middle">
+          <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.1em;text-transform:uppercase;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW</span>
+        </td>
+        <td align="right" valign="middle">
+          <span style="font-size:18px;color:#ffffff;">&#8594;</span>
+        </td>
+      </tr></table>
+    </td></tr>
+  </table>
 </td></tr>
 
 ${episodeCardsHtml}

@@ -254,11 +254,11 @@ export async function generateEmailSubjectAndPreview(summary: string, episodeCou
     const coverlinesInstruction = episodeCount > 1
       ? `5. COVERLINES (tease remaining episodes)
 - One short punchy tease per remaining episode (not the lead story), five words or less each.
-- Prefixed with "Also:" and separated by " · "
+- Start with "Also yesterday \u2014 " and write as one flowing sentence connecting the remaining episodes.
+- Use "and" to join the last item, commas for earlier items if there are three or more.
 - Written as provocations, not descriptions. Imply secrets, surprises, things the reader doesn't know yet.
 - Never just list a podcast name or episode title.
-- Always written in reference to yesterday.
-- Example: "Also: Mark Zuckerberg came up in a startup podcast — not for the reason you'd think · Two comedians explained geopolitics better than the evening news"`
+- Example: "Also yesterday \u2014 a startup podcast called out Mark Zuckerberg for something you wouldn't expect, and two comedians made more sense of the world than most journalists."`
       : `5. COVERLINES: Return empty string "" since there is only one episode.`;
 
     const resp = await openai.chat.completions.create({
@@ -303,14 +303,14 @@ Subject: How AI could make you a millionaire by 2026
 Preheader: The company list that made one woman a millionaire \u2014 plus why two comedians understood the world better than most journalists yesterday
 Lead headline: The company list Sam Parr's wife used to make her first million
 Supporting detail: One of them is building homes for a tenth of the cost — and the founder has already done it in three other industries
-Coverlines: Also: Mark Zuckerberg came up in a startup podcast — not for the reason you'd think · Two comedians explained geopolitics better than the evening news
+Coverlines: Also yesterday \u2014 a startup podcast called out Mark Zuckerberg for something you wouldn't expect, and two comedians made more sense of the world than most journalists.
 
 BAD EXAMPLE (never generate copy like this):
-Subject: Your Daily PodCap Digest — March 13
+Subject: Your Daily PodCap Digest \u2014 March 13
 Preheader: Plus -- the new space manufacturing model that could change everything.
 Lead headline: Here's what your podcasts were saying yesterday
 Supporting detail: Today's episodes cover entrepreneurship, AI, and geopolitics.
-Coverlines: Also: My First Million · Joe Rogan Experience
+Coverlines: Also: My First Million \u00b7 Joe Rogan Experience
 
 There are ${episodeCount} episode(s) in this email.
 
