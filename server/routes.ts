@@ -4319,6 +4319,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const reorderedBatch = reorderMarkdownLeadFirst(summary, emailCopyBatch.leadEpisodePodcast);
         const newHtml = markdownToEmailHtml(reorderedBatch, email.recipientEmail, epMetaBatch, emailCopyBatch);
         await storage.updatePendingEmailHtml(email.id, newHtml);
+        await pool.query("UPDATE pending_emails SET subject = $1 WHERE id = $2", [emailCopyBatch.subject, email.id]);
         updated++;
       }
       res.json({ message: `Regenerated HTML for ${updated} pending emails` });
