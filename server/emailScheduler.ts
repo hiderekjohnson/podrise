@@ -41,7 +41,7 @@ async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, 
         const canonicalSlug = dirRow.rows[0]?.slug || derivedSlug;
 
         const recapRow = await client.query(
-          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug
+          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug, guests, duration, publish_date
            FROM landing_page_recaps
            WHERE slug = $1
            ORDER BY publish_date DESC LIMIT 1`,
@@ -56,14 +56,43 @@ async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, 
         const row = recapRow.rows[0];
         const artworkUrl = row.artwork_url || dirRow.rows[0]?.artwork_url || null;
 
+        const companyNames: string[] = [];
+        const personNames: string[] = [];
         let companiesCount = 0;
-        if (row.entity_contexts_cache && typeof row.entity_contexts_cache === "object") {
-          companiesCount = Object.keys(row.entity_contexts_cache).length;
+        let peopleCount = 0;
+        if (row.entity_contexts_cache) {
+          const cache = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+          for (const key of Object.keys(cache)) {
+            const isLikelyPerson = /^[a-z]+-[a-z]+(-[a-z]+)?$/.test(key) && !["openai", "anthropic", "nvidia", "google", "amazon", "spacex", "airbnb", "spotify", "amd", "apple", "microsoft", "meta", "tesla", "stripe", "shopify", "uber", "lyft", "doordash", "robinhood", "coinbase", "palantir", "databricks", "snowflake", "figma", "notion", "discord", "slack", "zoom", "netflix", "disney", "hulu", "warner", "paramount", "sony", "samsung", "intel", "qualcomm", "broadcom", "oracle", "salesforce", "adobe", "twilio", "snap", "pinterest", "reddit", "tiktok", "bytedance", "alibaba", "tencent", "baidu", "huawei"].includes(key);
+            const knownNames: Record<string, string> = {
+              "openai": "OpenAI", "nvidia": "NVIDIA", "spacex": "SpaceX", "airbnb": "Airbnb",
+              "amd": "AMD", "ai": "AI", "meta": "Meta", "tesla": "Tesla", "netflix": "Netflix",
+              "tiktok": "TikTok", "bytedance": "ByteDance", "shopify": "Shopify", "coinbase": "Coinbase",
+              "doordash": "DoorDash", "youtube": "YouTube", "linkedin": "LinkedIn", "deepmind": "DeepMind",
+              "ibm": "IBM", "sba": "SBA", "tsmc": "TSMC", "bmw": "BMW",
+            };
+            const displayName = knownNames[key] || key.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+            if (isLikelyPerson) {
+              personNames.push(displayName);
+              peopleCount++;
+            } else {
+              companyNames.push(displayName);
+              companiesCount++;
+            }
+          }
         }
 
         let booksCount = 0;
-        if (Array.isArray(row.resources)) {
-          booksCount = row.resources.filter((r: any) => r.type === "book").length;
+        const bookTitles: string[] = [];
+        const parsedResources = row.resources
+          ? (typeof row.resources === "string" ? JSON.parse(row.resources) : row.resources)
+          : [];
+        if (Array.isArray(parsedResources)) {
+          const books = parsedResources.filter((r: any) => r.type === "book");
+          booksCount = books.length;
+          for (const b of books) {
+            if (b.name) bookTitles.push(b.name);
+          }
         }
 
         let quotesCount = 0;
@@ -75,13 +104,37 @@ async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, 
           quotesCount = quotesResult.rows[0]?.cnt || 0;
         }
 
+        const guestNames: string[] = [];
+        if (row.guests) {
+          const guests = typeof row.guests === "string" ? JSON.parse(row.guests) : row.guests;
+          if (Array.isArray(guests)) {
+            for (const g of guests) {
+              if (g.name) guestNames.push(g.name);
+            }
+          }
+        }
+
+        let episodeDate = "";
+        if (row.publish_date) {
+          try {
+            const d = new Date(row.publish_date);
+            episodeDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+          } catch (e) {}
+        }
+
         meta[derivedSlug] = {
           canonicalSlug,
           artworkUrl,
           companiesCount,
-          peopleCount: 0,
+          peopleCount,
           booksCount,
           quotesCount,
+          companyNames,
+          personNames,
+          bookTitles,
+          guests: guestNames,
+          episodeDuration: row.duration || "",
+          episodeDate,
         };
       }
     } finally {

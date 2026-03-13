@@ -25,6 +25,12 @@ export interface EpisodeMetaForEmail {
   peopleCount?: number;
   booksCount?: number;
   quotesCount?: number;
+  companyNames?: string[];
+  personNames?: string[];
+  bookTitles?: string[];
+  guests?: string[];
+  episodeDuration?: string;
+  episodeDate?: string;
 }
 
 function isEpisodeSection(title: string, body: string): boolean {
@@ -325,10 +331,20 @@ function buildEpisodePills(episodes: ParsedEpisode[], episodeMeta?: Record<strin
     const meta = episodeMeta?.[derivedSlug];
     const slug = meta?.canonicalSlug || derivedSlug;
     const podcastUrl = `https://podcap.io/podcasts/${slug}`;
-    return `<td style="padding-right:7px;padding-bottom:7px;">
+    let artworkUrl = meta?.artworkUrl;
+    if (artworkUrl && artworkUrl.startsWith("/")) artworkUrl = `https://podcap.io${artworkUrl}`;
+    const imgHtml = artworkUrl
+      ? `<td valign="middle" style="padding-right:6px;"><img src="${escapeHtml(artworkUrl)}" alt="" width="18" height="18" style="width:18px;height:18px;border-radius:4px;display:block;" /></td>`
+      : "";
+    return `<td style="padding-right:8px;padding-bottom:8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td style="background:#F7F7FC;border:1.5px solid #E4E4E7;border-radius:99px;white-space:nowrap;">
-          <a href="${escapeHtml(podcastUrl)}" style="display:inline-block;padding:5px 13px;font-size:13px;font-weight:500;color:#52525B;text-decoration:none;">${escapeHtml(ep.podcastName)}</a>
+        <td style="background:#F7F7FC;border:1px solid #E4E4E7;border-radius:99px;white-space:nowrap;">
+          <a href="${escapeHtml(podcastUrl)}" style="display:inline-block;padding:5px 12px 5px ${artworkUrl ? "7px" : "12px"};font-size:13px;font-weight:600;color:#3F3F46;text-decoration:none;letter-spacing:-0.01em;">
+            <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+              ${imgHtml}
+              <td valign="middle">${escapeHtml(ep.podcastName)}</td>
+            </tr></table>
+          </a>
         </td>
       </tr></table>
     </td>`;
@@ -365,35 +381,78 @@ function buildRecapText(whatHappened: string): string {
 
 function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: string): string {
   if (!meta) return "";
-  const parts: string[] = [];
-  if (meta.companiesCount && meta.companiesCount > 0) {
-    parts.push(`${meta.companiesCount} ${meta.companiesCount === 1 ? "company" : "companies"}`);
-  }
-  if (meta.peopleCount && meta.peopleCount > 0) {
-    parts.push(`${meta.peopleCount} ${meta.peopleCount === 1 ? "person" : "people"}`);
-  }
-  if (meta.booksCount && meta.booksCount > 0) {
-    parts.push(`${meta.booksCount} book ${meta.booksCount === 1 ? "recommendation" : "recommendations"}`);
-  }
-  if (meta.quotesCount && meta.quotesCount > 0) {
-    parts.push(`${meta.quotesCount} shareable ${meta.quotesCount === 1 ? "quote" : "quotes"}`);
-  }
-  if (parts.length === 0) return "";
 
-  let text: string;
-  if (parts.length === 1) {
-    text = parts[0];
-  } else if (parts.length === 2) {
-    text = `${parts[0]} and ${parts[1]}`;
-  } else {
-    text = parts.slice(0, -1).join(", ") + ", and " + parts[parts.length - 1];
+  const namedEntities: string[] = [];
+  const companyNames = meta.companyNames || [];
+  const personNames = meta.personNames || [];
+  const bookTitles = meta.bookTitles || [];
+
+  const previewCompanies = companyNames.slice(0, 3);
+  const previewPeople = personNames.slice(0, 2);
+  const previewBooks = bookTitles.slice(0, 1);
+
+  for (const n of previewCompanies) namedEntities.push(n);
+  for (const n of previewPeople) namedEntities.push(n);
+
+  const hasMore = companyNames.length > 3 || personNames.length > 2 || bookTitles.length > 0;
+  const totalExtra = (meta.companiesCount || 0) + (meta.peopleCount || 0) + (meta.booksCount || 0);
+
+  if (namedEntities.length === 0 && bookTitles.length === 0) {
+    if (totalExtra === 0) return "";
+    const parts: string[] = [];
+    if (meta.companiesCount && meta.companiesCount > 0) parts.push(`${meta.companiesCount} ${meta.companiesCount === 1 ? "company" : "companies"}`);
+    if (meta.peopleCount && meta.peopleCount > 0) parts.push(`${meta.peopleCount} ${meta.peopleCount === 1 ? "person" : "people"} mentioned`);
+    if (meta.booksCount && meta.booksCount > 0) parts.push(`${meta.booksCount} book ${meta.booksCount === 1 ? "recommendation" : "recommendations"}`);
+    const text = parts.join(", ");
+    return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:18px;">
+      <tr><td style="padding:14px 18px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:10px;">
+        <a href="${escapeHtml(recapUrl)}" style="text-decoration:none;display:block;">
+          <p style="font-size:14px;color:#713F12;line-height:1.6;margin:0;">
+            This episode also covers ${text}. <span style="color:#6366F1;font-weight:600;text-decoration:underline;">See full recap &#8594;</span>
+          </p>
+        </a>
+      </td></tr>
+    </table>`;
+  }
+
+  const entityPills = namedEntities.map(name =>
+    `<td style="padding-right:6px;padding-bottom:6px;">
+      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+        <td style="background:#FEF9C3;border:1px solid #FDE047;border-radius:6px;white-space:nowrap;">
+          <span style="display:inline-block;padding:3px 10px;font-size:13px;font-weight:600;color:#854D0E;">${escapeHtml(name)}</span>
+        </td>
+      </tr></table>
+    </td>`
+  ).join("");
+
+  const bookPills = previewBooks.map(title =>
+    `<td style="padding-right:6px;padding-bottom:6px;">
+      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+        <td style="background:#FEF9C3;border:1px solid #FDE047;border-radius:6px;white-space:nowrap;">
+          <span style="display:inline-block;padding:3px 10px;font-size:13px;font-weight:600;color:#854D0E;">&#128214; ${escapeHtml(title)}</span>
+        </td>
+      </tr></table>
+    </td>`
+  ).join("");
+
+  let moreText = "";
+  const remainingCompanies = Math.max(0, companyNames.length - 3);
+  const remainingPeople = Math.max(0, personNames.length - 2);
+  const remainingBooks = Math.max(0, bookTitles.length - 1);
+  const totalRemaining = remainingCompanies + remainingPeople + remainingBooks;
+  if (totalRemaining > 0) {
+    moreText = ` + ${totalRemaining} more`;
   }
 
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:18px;">
-    <tr><td style="padding:12px 16px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:10px;">
+    <tr><td style="padding:16px 18px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:12px;">
       <a href="${escapeHtml(recapUrl)}" style="text-decoration:none;display:block;">
-        <p style="font-size:14px;color:#713F12;line-height:1.6;margin:0;">
-          This episode also covers ${text}. <span style="color:#6366F1;font-weight:600;text-decoration:underline;">See full recap &#8594;</span>
+        <p style="font-size:11px;font-weight:700;color:#A16207;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 10px;">Mentioned in this episode</p>
+        <table cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:10px;"><tr style="vertical-align:top;">
+          ${entityPills}${bookPills}
+        </tr></table>
+        <p style="font-size:14px;color:#713F12;line-height:1.5;margin:0;">
+          See what they said about each one${moreText}. <span style="color:#6366F1;font-weight:700;text-decoration:underline;">Read full recap &#8594;</span>
         </p>
       </a>
     </td></tr>
@@ -436,17 +495,25 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
         </tr></table>
       </a>`;
 
+  const guestNames = meta?.guests || [];
+  const metaDuration = meta?.episodeDuration || duration;
+  const metaDate = meta?.episodeDate || epDate;
+  const metaInfoParts = [metaDuration, metaDate].filter(Boolean);
+  const metaInfoStr = metaInfoParts.join(" \u00a0\u00b7\u00a0 ");
+  const guestStr = guestNames.length > 0 ? guestNames.join(", ") : "";
+
   return `<tr><td class="ep-block" style="padding:28px 28px 26px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
 
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:16px;"><tr>
-    <td width="48" valign="middle">
+    <td width="48" valign="top">
       ${artworkHtml}
     </td>
     <td style="padding-left:12px;" valign="middle">
       <a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;">
-        <p style="font-size:13px;font-weight:700;color:${accentColor};letter-spacing:0.06em;text-transform:uppercase;margin:0 0 2px;">${escapeHtml(episode.podcastName)}</p>
+        <p style="font-size:13px;font-weight:700;color:${accentColor};letter-spacing:0.06em;text-transform:uppercase;margin:0 0 3px;">${escapeHtml(episode.podcastName)}</p>
       </a>
-      ${metaStr ? `<p style="font-size:13px;color:#A1A1AA;margin:0;">${escapeHtml(metaStr)}</p>` : ""}
+      ${metaInfoStr ? `<p style="font-size:12px;color:#A1A1AA;margin:0 0 ${guestStr ? "2px" : "0"};">${escapeHtml(metaInfoStr)}</p>` : ""}
+      ${guestStr ? `<p style="font-size:12px;color:#71717A;margin:0;">with ${escapeHtml(guestStr)}</p>` : ""}
     </td>
   </tr></table>
 
