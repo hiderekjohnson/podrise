@@ -485,12 +485,12 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   }
   const artworkHtml = artworkUrl
     ? `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
-        <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="44" height="44" style="width:44px;height:44px;border-radius:10px;display:block;object-fit:cover;" />
+        <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="56" height="56" style="width:56px;height:56px;border-radius:12px;display:block;object-fit:cover;" />
       </a>`
     : `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
         <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-          <td style="width:44px;height:44px;background:linear-gradient(145deg,#0f172a,#312e81);border-radius:10px;text-align:center;vertical-align:middle;">
-            <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);">${escapeHtml(slug.slice(0, 3).toUpperCase())}</span>
+          <td style="width:56px;height:56px;background:linear-gradient(145deg,#0f172a,#312e81);border-radius:12px;text-align:center;vertical-align:middle;">
+            <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.5);">${escapeHtml(slug.slice(0, 3).toUpperCase())}</span>
           </td>
         </tr></table>
       </a>`;
@@ -505,7 +505,7 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   return `<tr><td class="ep-block" style="padding:28px 28px 26px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
 
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:16px;"><tr>
-    <td width="48" valign="top">
+    <td width="60" valign="top">
       ${artworkHtml}
     </td>
     <td style="padding-left:12px;" valign="middle">
