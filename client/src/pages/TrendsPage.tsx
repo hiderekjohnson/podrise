@@ -11,10 +11,14 @@ import {
   Building2,
   Lightbulb,
   Flame,
-  ArrowUpRight,
   ArrowDownUp,
   BarChart3,
   Zap,
+  ChevronRight,
+  BookOpen,
+  Globe,
+  Sparkles,
+  Radio,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
@@ -67,30 +71,30 @@ interface UnifiedEntity {
 }
 
 function SEOHead() {
-  const title = "Trends - What's Trending in Podcasts | PodCap";
-  const description = "See what's trending across the world's top podcasts. Track rising people, companies, and topics in real-time based on actual podcast mentions and discussions.";
+  const title = "Podcast Trends — What's Gaining Momentum Right Now | PodCap";
+  const description = "See what conversations are accelerating across the world's top podcasts. Discover rising people, companies, and topics — then go deeper into the intelligence behind the signal.";
 
   if (typeof document !== "undefined") {
     document.title = title;
-    const setOrCreate = (selector: string, attr: string, value: string) => {
+    const setOrCreate = (attr: string, key: string, value: string) => {
+      const selector = `meta[${attr}="${key}"]`;
       let el = document.querySelector(selector);
       if (!el) {
         el = document.createElement("meta");
-        const [k, v] = attr === "name" ? ["name", selector.match(/name="([^"]+)"/)?.[1] || ""] : ["property", selector.match(/property="([^"]+)"/)?.[1] || ""];
-        el.setAttribute(k, v);
+        el.setAttribute(attr, key);
         document.head.appendChild(el);
       }
       el.setAttribute("content", value);
     };
-    setOrCreate('meta[name="description"]', "name", description);
-    setOrCreate('meta[property="og:title"]', "property", title);
-    setOrCreate('meta[property="og:description"]', "property", description);
+    setOrCreate("name", "description", description);
+    setOrCreate("property", "og:title", title);
+    setOrCreate("property", "og:description", description);
   }
   return null;
 }
 
 function TrendBadge({ trend, changePercent, size = "default" }: { trend: string; changePercent: number; size?: "default" | "large" }) {
-  const textSize = size === "large" ? "text-[16px]" : "text-[15px]";
+  const textSize = size === "large" ? "text-[15px]" : "text-[13px]";
   const iconSize = size === "large" ? "w-4 h-4" : "w-3.5 h-3.5";
   if (trend === "rising") {
     return (
@@ -137,7 +141,7 @@ function TypePill({ type }: { type: "person" | "company" | "topic" }) {
   const c = config[type];
   const Icon = c.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[13px] font-medium border ${c.className}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium border ${c.className}`}>
       <Icon className="w-3 h-3" />
       {c.label}
     </span>
@@ -174,33 +178,43 @@ function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
   );
 }
 
-function BiggestMoverCard({ entity, rank }: { entity: UnifiedEntity; rank: number }) {
+function SpotlightCard({ entity, rank }: { entity: UnifiedEntity; rank: number }) {
+  const typeConfig = {
+    person: { verb: "See their full profile", color: "from-blue-500/[0.06] to-blue-500/[0.02]", borderColor: "border-blue-500/[0.12]", accentColor: "text-blue-600 dark:text-blue-400" },
+    company: { verb: "Read company intelligence", color: "from-amber-500/[0.06] to-amber-500/[0.02]", borderColor: "border-amber-500/[0.12]", accentColor: "text-amber-600 dark:text-amber-400" },
+    topic: { verb: "Explore topic analysis", color: "from-purple-500/[0.06] to-purple-500/[0.02]", borderColor: "border-purple-500/[0.12]", accentColor: "text-purple-600 dark:text-purple-400" },
+  };
+  const cfg = typeConfig[entity.type];
+
   return (
-    <Link href={entity.href} data-testid={`mover-${entity.slug}`}>
+    <Link href={entity.href} data-testid={`spotlight-${entity.slug}`}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: rank * 0.08 }}
-        className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer h-full"
+        className={`group bg-gradient-to-br ${cfg.color} border ${cfg.borderColor} rounded-2xl p-5 hover:shadow-lg transition-all cursor-pointer h-full`}
       >
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3.5">
           <div className="relative">
             <EntityAvatar entity={entity} />
-            <div className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[13px] font-bold">
+            <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold">
               {rank}
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-0.5">
               <h3 className="text-[16px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{entity.name}</h3>
-              <TypePill type={entity.type} />
             </div>
-            <p className="text-[15px] text-muted-foreground/70 truncate mb-2">{entity.subtitle}</p>
+            <p className="text-[13px] text-muted-foreground truncate mb-2">{entity.subtitle}</p>
             <div className="flex items-center gap-3">
-              <span className="text-[15px] font-mono text-muted-foreground">
-                {entity.recentMentions} recent mentions
+              <span className="text-[13px] font-mono text-muted-foreground">
+                {entity.recentMentions} recent
               </span>
               <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
+            </div>
+            <div className="flex items-center gap-1 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className={`text-[13px] font-semibold ${cfg.accentColor}`}>{cfg.verb}</span>
+              <ChevronRight className={`w-3.5 h-3.5 ${cfg.accentColor}`} />
             </div>
           </div>
         </div>
@@ -209,9 +223,104 @@ function BiggestMoverCard({ entity, rank }: { entity: UnifiedEntity; rank: numbe
   );
 }
 
+function CategorySection({
+  title,
+  icon: Icon,
+  entities,
+  maxMentions,
+  accentColor,
+  seeAllHref,
+  seeAllLabel,
+  delay = 0,
+}: {
+  title: string;
+  icon: any;
+  entities: UnifiedEntity[];
+  maxMentions: number;
+  accentColor: string;
+  seeAllHref: string;
+  seeAllLabel: string;
+  delay?: number;
+}) {
+  if (entities.length === 0) return null;
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay }}
+      className="mb-10"
+      data-testid={`section-${title.toLowerCase().replace(/\s+/g, '-')}`}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-8 h-8 rounded-lg ${accentColor} flex items-center justify-center`}>
+            <Icon className="w-4 h-4" />
+          </div>
+          <h2 className="text-[16px] font-bold text-foreground">{title}</h2>
+          <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+        </div>
+        <Link
+          href={seeAllHref}
+          className="text-[13px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+          data-testid={`link-see-all-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        >
+          {seeAllLabel}
+          <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
+      <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
+        {entities.slice(0, 10).map((entity, i) => (
+          <Link key={`${entity.type}-${entity.slug}`} href={entity.href} data-testid={`trend-row-${entity.slug}`}>
+            <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group">
+              <span className="text-[13px] font-mono text-muted-foreground/40 font-medium w-6 text-right shrink-0">{i + 1}</span>
+
+              <EntityAvatar entity={entity} />
+
+              <div className="flex-1 min-w-0">
+                <span className="text-[15px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">{entity.name}</span>
+                <span className="text-[13px] text-muted-foreground/60 block truncate">{entity.subtitle}</span>
+              </div>
+
+              <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0">
+                <MentionBar count={entity.recentMentions} maxCount={maxMentions} />
+                <span className="text-[12px] font-mono text-muted-foreground/40">
+                  {entity.recentMentions} mentions
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+function GatewayCard({ href, icon: Icon, title, description, color, testId }: { href: string; icon: any; title: string; description: string; color: string; testId: string }) {
+  return (
+    <Link href={href} data-testid={testId}>
+      <div className={`group bg-gradient-to-br ${color} border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer h-full`}>
+        <Icon className="w-5 h-5 text-primary mb-3" />
+        <h3 className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">{title}</h3>
+        <p className="text-[13px] text-muted-foreground leading-relaxed">{description}</p>
+        <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-[13px] font-semibold text-primary">Explore</span>
+          <ChevronRight className="w-3.5 h-3.5 text-primary" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function TrendsPage() {
   const [entityFilter, setEntityFilter] = useState<EntityType>("all");
-  const [sortMode, setSortMode] = useState<SortMode>("volume");
+  const [sortMode, setSortMode] = useState<SortMode>("momentum");
 
   const { data: people, isLoading: loadingPeople } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
@@ -286,7 +395,7 @@ export default function TrendsPage() {
     return entities;
   }, [people, companies, topics]);
 
-  const biggestMovers = useMemo(() => {
+  const spotlightMovers = useMemo(() => {
     return [...unifiedEntities]
       .filter(e => e.trend === "rising" && e.changePercent > 0)
       .sort((a, b) => {
@@ -296,6 +405,40 @@ export default function TrendsPage() {
       })
       .slice(0, 5);
   }, [unifiedEntities]);
+
+  const risingPeople = useMemo(() => {
+    return [...unifiedEntities]
+      .filter(e => e.type === "person")
+      .sort((a, b) => {
+        if (a.trend === "rising" && b.trend !== "rising") return -1;
+        if (b.trend === "rising" && a.trend !== "rising") return 1;
+        return b.recentMentions - a.recentMentions;
+      });
+  }, [unifiedEntities]);
+
+  const risingCompanies = useMemo(() => {
+    return [...unifiedEntities]
+      .filter(e => e.type === "company")
+      .sort((a, b) => {
+        if (a.trend === "rising" && b.trend !== "rising") return -1;
+        if (b.trend === "rising" && a.trend !== "rising") return 1;
+        return b.recentMentions - a.recentMentions;
+      });
+  }, [unifiedEntities]);
+
+  const risingTopics = useMemo(() => {
+    return [...unifiedEntities]
+      .filter(e => e.type === "topic")
+      .sort((a, b) => {
+        if (a.trend === "rising" && b.trend !== "rising") return -1;
+        if (b.trend === "rising" && a.trend !== "rising") return 1;
+        return b.recentMentions - a.recentMentions;
+      });
+  }, [unifiedEntities]);
+
+  const maxPeopleMentions = useMemo(() => Math.max(...risingPeople.map(e => e.recentMentions), 1), [risingPeople]);
+  const maxCompanyMentions = useMemo(() => Math.max(...risingCompanies.map(e => e.recentMentions), 1), [risingCompanies]);
+  const maxTopicMentions = useMemo(() => Math.max(...risingTopics.map(e => e.recentMentions), 1), [risingTopics]);
 
   const filteredEntities = useMemo(() => {
     let filtered = [...unifiedEntities];
@@ -347,26 +490,30 @@ export default function TrendsPage() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-7xl mx-auto px-6 pt-12 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-10"
+            className="text-center"
           >
-            <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="text-page-title">
-              The Pulse
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Radio className="w-4 h-4 text-primary" />
+              <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-primary">Discovery Radar</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-[1.15] mb-3" data-testid="text-page-title">
+              What conversations are gaining momentum?
             </h1>
-            <p className="text-[18px] text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
-              Real-time intelligence on who and what is being discussed across the world's top podcasts
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+              Spot the people, companies, and ideas generating buzz across the world's top podcasts — then go deeper into the intelligence.
             </p>
           </motion.div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 pb-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         {isLoading ? (
-          <div className="space-y-4 max-w-7xl mx-auto">
+          <div className="space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse">
                 <div className="flex items-center gap-4">
@@ -381,26 +528,127 @@ export default function TrendsPage() {
           </div>
         ) : (
           <>
-            {biggestMovers.length > 0 && (
-              <section className="mb-12" data-testid="section-biggest-movers">
+            {spotlightMovers.length > 0 && (
+              <section className="mb-12" data-testid="section-spotlight">
                 <div className="flex items-center gap-2.5 mb-5">
                   <Flame className="w-5 h-5 text-orange-500" />
-                  <h2 className="text-[18px] font-bold uppercase tracking-[0.08em] text-foreground">Biggest Movers</h2>
-                  <span className="text-[13px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+                  <h2 className="text-[16px] font-bold text-foreground">Fastest Rising Right Now</h2>
+                  <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  {biggestMovers.map((entity, i) => (
-                    <BiggestMoverCard key={entity.slug} entity={entity} rank={i + 1} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  {spotlightMovers.map((entity, i) => (
+                    <SpotlightCard key={entity.slug} entity={entity} rank={i + 1} />
                   ))}
                 </div>
               </section>
             )}
 
-            <section data-testid="section-trending-table">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8">
+              <div className="lg:col-span-2">
+                <CategorySection
+                  title="People in the Conversation"
+                  icon={Users}
+                  entities={risingPeople}
+                  maxMentions={maxPeopleMentions}
+                  accentColor="bg-blue-500/[0.08] text-blue-600"
+                  seeAllHref="/people"
+                  seeAllLabel="All People"
+                  delay={0.05}
+                />
+
+                <CategorySection
+                  title="Companies Being Discussed"
+                  icon={Building2}
+                  entities={risingCompanies}
+                  maxMentions={maxCompanyMentions}
+                  accentColor="bg-amber-500/[0.08] text-amber-600"
+                  seeAllHref="/companies"
+                  seeAllLabel="All Companies"
+                  delay={0.1}
+                />
+
+                <CategorySection
+                  title="Topics Accelerating"
+                  icon={Lightbulb}
+                  entities={risingTopics}
+                  maxMentions={maxTopicMentions}
+                  accentColor="bg-purple-500/[0.08] text-purple-600"
+                  seeAllHref="/interests"
+                  seeAllLabel="All Topics"
+                  delay={0.15}
+                />
+              </div>
+
+              <div className="lg:col-span-1">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-primary/[0.08] flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                    </div>
+                    <h2 className="text-[16px] font-bold text-foreground">Go Deeper</h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 lg:sticky lg:top-[84px]">
+                    <GatewayCard
+                      href="/industries"
+                      icon={Globe}
+                      title="Industry Intelligence"
+                      description="AI-powered analysis of what's happening across industries — from healthcare to fintech to media"
+                      color="from-emerald-500/[0.04] to-emerald-500/[0.01]"
+                      testId="link-explore-industries"
+                    />
+                    <GatewayCard
+                      href="/interests"
+                      icon={Lightbulb}
+                      title="Topic Deep Dives"
+                      description="Explore what experts are saying about AI, leadership, markets, health, and more"
+                      color="from-purple-500/[0.04] to-purple-500/[0.01]"
+                      testId="link-explore-interests"
+                    />
+                    <GatewayCard
+                      href="/people"
+                      icon={Users}
+                      title="People Directory"
+                      description="Browse influential voices — their podcast appearances, mentions, and what they're talking about"
+                      color="from-blue-500/[0.04] to-blue-500/[0.01]"
+                      testId="link-explore-people"
+                    />
+                    <GatewayCard
+                      href="/companies"
+                      icon={Building2}
+                      title="Company Tracker"
+                      description="See which companies are generating conversation and why they're in the spotlight"
+                      color="from-amber-500/[0.04] to-amber-500/[0.01]"
+                      testId="link-explore-companies"
+                    />
+                    <GatewayCard
+                      href="/bookstore"
+                      icon={BookOpen}
+                      title="Podcast Bookstore"
+                      description="Discover books that the world's smartest podcasters keep recommending"
+                      color="from-rose-500/[0.04] to-rose-500/[0.01]"
+                      testId="link-explore-bookstore"
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.25 }}
+              className="mt-6"
+              data-testid="section-full-table"
+            >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
                 <div className="flex items-center gap-2.5">
                   <BarChart3 className="w-5 h-5 text-primary" />
-                  <h2 className="text-[18px] font-bold uppercase tracking-[0.08em] text-foreground">Trending Now</h2>
+                  <h2 className="text-[16px] font-bold text-foreground">Full Leaderboard</h2>
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
@@ -409,16 +657,16 @@ export default function TrendsPage() {
                       <button
                         key={key}
                         onClick={() => setEntityFilter(key)}
-                        className={`flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold transition-all ${
                           entityFilter === key
                             ? "bg-primary text-primary-foreground"
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                         data-testid={`filter-${key}`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-3.5 h-3.5" />
                         {label}
-                        <span className={`text-[13px] font-mono ml-0.5 ${entityFilter === key ? "text-primary-foreground/70" : "text-muted-foreground/40"}`}>
+                        <span className={`text-[11px] font-mono ml-0.5 ${entityFilter === key ? "text-primary-foreground/70" : "text-muted-foreground/40"}`}>
                           {entityCounts[key]}
                         </span>
                       </button>
@@ -427,10 +675,10 @@ export default function TrendsPage() {
 
                   <button
                     onClick={() => setSortMode(s => s === "volume" ? "momentum" : "volume")}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[15px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors"
                     data-testid="sort-toggle"
                   >
-                    <ArrowDownUp className="w-4 h-4" />
+                    <ArrowDownUp className="w-3.5 h-3.5" />
                     {sortMode === "volume" ? "By Volume" : "By Momentum"}
                   </button>
                 </div>
@@ -438,28 +686,28 @@ export default function TrendsPage() {
 
               <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
                 <div className="hidden sm:grid grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.06]">
-                  <span className="text-[13px] font-mono text-muted-foreground/50 uppercase tracking-wider">#</span>
-                  <span className="text-[13px] font-mono text-muted-foreground/50 uppercase tracking-wider">Name</span>
-                  <span className="text-[13px] font-mono text-muted-foreground/50 uppercase tracking-wider">Type</span>
-                  <span className="text-[13px] font-mono text-muted-foreground/50 uppercase tracking-wider">Podcast Interest</span>
-                  <span className="text-[13px] font-mono text-muted-foreground/50 uppercase tracking-wider text-right">Change</span>
+                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">#</span>
+                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">Name</span>
+                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">Type</span>
+                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">Podcast Interest</span>
+                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider text-right">Change</span>
                 </div>
 
                 {filteredEntities.map((entity, i) => (
-                  <Link key={`${entity.type}-${entity.slug}`} href={entity.href} data-testid={`trend-row-${entity.slug}`}>
+                  <Link key={`${entity.type}-${entity.slug}`} href={entity.href} data-testid={`leaderboard-row-${entity.slug}`}>
                     <motion.div
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.02 }}
-                      className="grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0"
+                      className="grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group"
                     >
-                      <span className="text-[15px] font-mono text-muted-foreground/40 font-medium">{i + 1}</span>
+                      <span className="text-[14px] font-mono text-muted-foreground/40 font-medium">{i + 1}</span>
 
                       <div className="flex items-center gap-3 min-w-0">
                         <EntityAvatar entity={entity} />
                         <div className="min-w-0">
-                          <span className="text-[16px] font-semibold text-foreground block truncate">{entity.name}</span>
-                          <span className="text-[15px] text-muted-foreground/60 block truncate sm:hidden">{entity.subtitle}</span>
+                          <span className="text-[15px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">{entity.name}</span>
+                          <span className="text-[13px] text-muted-foreground/60 block truncate sm:hidden">{entity.subtitle}</span>
                         </div>
                       </div>
 
@@ -469,56 +717,26 @@ export default function TrendsPage() {
 
                       <div className="hidden sm:block">
                         <MentionBar count={entity.recentMentions} maxCount={maxMentions} />
-                        <span className="text-[13px] font-mono text-muted-foreground/40 mt-0.5 block">
+                        <span className="text-[12px] font-mono text-muted-foreground/40 mt-0.5 block">
                           {entity.recentMentions} mentions
                         </span>
                       </div>
 
                       <div className="flex justify-end items-center gap-2">
                         <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
-                        <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/30" />
+                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
                       </div>
                     </motion.div>
                   </Link>
                 ))}
 
                 {filteredEntities.length === 0 && (
-                  <div className="px-5 py-12 text-center text-[16px] text-muted-foreground/60">
+                  <div className="px-5 py-12 text-center text-[15px] text-muted-foreground/60">
                     No trending data available for this filter
                   </div>
                 )}
               </div>
-            </section>
-
-            <section className="mt-16" data-testid="section-explore-links">
-              <div className="flex items-center gap-2.5 mb-5">
-                <ArrowUpRight className="w-5 h-5 text-primary" />
-                <h2 className="text-[18px] font-bold uppercase tracking-[0.08em] text-foreground">Explore More</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Link href="/people" data-testid="link-explore-people">
-                  <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer">
-                    <Users className="w-6 h-6 text-blue-500 mb-3" />
-                    <h3 className="text-[17px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">People Directory</h3>
-                    <p className="text-[15px] text-muted-foreground/70 leading-relaxed">Browse all tracked people, their podcast appearances, and mention history</p>
-                  </div>
-                </Link>
-                <Link href="/companies" data-testid="link-explore-companies">
-                  <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer">
-                    <Building2 className="w-6 h-6 text-amber-500 mb-3" />
-                    <h3 className="text-[17px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">Companies Directory</h3>
-                    <p className="text-[15px] text-muted-foreground/70 leading-relaxed">Track company mentions across podcast conversations and industry analysis</p>
-                  </div>
-                </Link>
-                <Link href="/interests" data-testid="link-explore-interests">
-                  <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer">
-                    <Lightbulb className="w-6 h-6 text-purple-500 mb-3" />
-                    <h3 className="text-[17px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">Topic Intelligence</h3>
-                    <p className="text-[15px] text-muted-foreground/70 leading-relaxed">Deep dive into trending topics with curated insights from top podcasts</p>
-                  </div>
-                </Link>
-              </div>
-            </section>
+            </motion.section>
           </>
         )}
       </main>
