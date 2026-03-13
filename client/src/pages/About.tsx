@@ -223,7 +223,7 @@ export default function About() {
             {[
               { icon: Headphones, title: "Pick industries, roles, or podcasts", desc: "Follow the industries relevant to your work, the roles that match your career, or choose specific shows. Either way, you stay current.", color: "from-blue-500/10 to-blue-600/5", iconColor: "text-blue-500" },
               { icon: Zap, title: "Get daily briefings", desc: "Key insights, notable quotes, and takeaways from every episode — distilled into intelligence you can act on, delivered to you daily.", color: "from-amber-500/10 to-amber-600/5", iconColor: "text-amber-500" },
-              { icon: CheckCircle2, title: "Know what matters", desc: "Spend your listening time on the episodes that truly deserve your attention. We handle the rest.", color: "from-emerald-500/10 to-emerald-600/5", iconColor: "text-emerald-500" },
+              { icon: CheckCircle2, title: "Know what matters", desc: "Spend your listening time on the episodes that truly deserve your attention. We handle the rest.", color: "from-[#6366F1]/10 to-[#8B5CF6]/5", iconColor: "text-[#6366F1]" },
             ].map((item, i) => (
               <div key={i} className="group bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300" data-testid={`card-value-prop-${i + 1}`}>
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4`}>
@@ -270,8 +270,8 @@ export default function About() {
               </Link>
               <Link href="/roles" data-testid="link-explore-roles">
                 <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mx-auto mb-3">
-                    <Briefcase className="w-5 h-5 text-emerald-600" />
+                  <div className="w-11 h-11 rounded-xl bg-[#EEF2FF] dark:bg-[#6366F1]/10 flex items-center justify-center mx-auto mb-3">
+                    <Briefcase className="w-5 h-5 text-[#6366F1]" />
                   </div>
                   <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Roles</p>
                   <p className="text-[14px] text-muted-foreground">CEOs, Product Managers, Engineers, Marketers, and more</p>

@@ -147,7 +147,7 @@ export default function TopicsDirectory() {
       <SEOHead />
       <SiteHeader />
 
-      <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
+      <div className="bg-[#F7F7FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -232,7 +232,7 @@ export default function TopicsDirectory() {
               className="mb-12"
             >
               <div className="flex items-center gap-2 mb-5">
-                <TrendingUp className="w-4 h-4 text-emerald-500" />
+                <TrendingUp className="w-4 h-4 text-[#6366F1]" />
                 <h2 className="text-[15px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-trending">Trending Now</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -246,7 +246,7 @@ export default function TopicsDirectory() {
                       transition={{ duration: 0.3, delay: i * 0.04 }}
                     >
                       <Link href={`${getCategoryPath(topic.category)}/${topic.slug}`} data-testid={`card-trending-${topic.slug}`}>
-                        <div className="group relative bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl p-5 hover:border-emerald-500/30 hover:shadow-md transition-all cursor-pointer overflow-hidden">
+                        <div className="group relative bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl p-5 hover:border-[#6366F1]/30 hover:shadow-md transition-all cursor-pointer overflow-hidden">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2.5 mb-2">
@@ -257,7 +257,7 @@ export default function TopicsDirectory() {
                                   <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors">
                                     {topic.name}
                                   </h3>
-                                  <span className="text-[14px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <span className="text-[14px] font-mono text-[#6366F1] text-[#6366F1] flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3" />
                                     Rising
                                   </span>

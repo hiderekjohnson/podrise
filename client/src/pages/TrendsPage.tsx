@@ -1,3 +1,4 @@
+// See BRAND.md for all typography, color, spacing, and accessibility rules.
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -95,26 +96,26 @@ function SEOHead() {
 
 function TrendBadge({ trend, changePercent, size = "default" }: { trend: string; changePercent: number; size?: "default" | "large" }) {
   const textSize = size === "large" ? "text-[15px]" : "text-[14px]";
-  const iconSize = size === "large" ? "w-4 h-4" : "w-3.5 h-3.5";
+  const py = size === "large" ? "py-1 px-2.5" : "py-0.5 px-2";
   if (trend === "rising") {
     return (
-      <span className={`inline-flex items-center gap-1 ${textSize} font-mono font-semibold text-emerald-600 dark:text-emerald-400`}>
-        <TrendingUp className={iconSize} />
+      <span className={`inline-flex items-center gap-1 ${textSize} ${py} font-mono font-semibold text-[#6366F1] bg-[#EEF2FF] rounded-md`}>
+        <TrendingUp className="w-3.5 h-3.5" />
         +{Math.abs(changePercent)}%
       </span>
     );
   }
   if (trend === "falling") {
     return (
-      <span className={`inline-flex items-center gap-1 ${textSize} font-mono font-semibold text-red-500 dark:text-red-400`}>
-        <TrendingDown className={iconSize} />
+      <span className={`inline-flex items-center gap-1 ${textSize} ${py} font-mono font-semibold text-[#09090B] bg-[#F0F0F2] rounded-md`}>
+        <TrendingDown className="w-3.5 h-3.5" />
         {changePercent}%
       </span>
     );
   }
   return (
-    <span className={`inline-flex items-center gap-1 ${textSize} font-mono font-medium text-muted-foreground/60`}>
-      <Minus className={iconSize} />
+    <span className={`inline-flex items-center gap-1 ${textSize} ${py} font-mono font-medium text-[#52525B] bg-[#F0F0F2] rounded-md`}>
+      <Minus className="w-3.5 h-3.5" />
       Stable
     </span>
   );
@@ -123,7 +124,7 @@ function TrendBadge({ trend, changePercent, size = "default" }: { trend: string;
 function MentionBar({ count, maxCount }: { count: number; maxCount: number }) {
   const pct = maxCount > 0 ? Math.max(6, (count / maxCount) * 100) : 6;
   return (
-    <div className="w-full max-w-[160px] bg-muted/40 rounded-full h-[7px] overflow-hidden">
+    <div className="w-full max-w-[160px] bg-[#F0F0F2] rounded-full h-[7px] overflow-hidden">
       <div
         className="h-full bg-primary/60 rounded-full transition-all duration-500"
         style={{ width: `${pct}%` }}
@@ -134,9 +135,9 @@ function MentionBar({ count, maxCount }: { count: number; maxCount: number }) {
 
 function TypePill({ type }: { type: "person" | "company" | "topic" }) {
   const config = {
-    person: { label: "Person", icon: Users, className: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" },
-    company: { label: "Company", icon: Building2, className: "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
-    topic: { label: "Topic", icon: Lightbulb, className: "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" },
+    person: { label: "Person", icon: Users, className: "bg-[#EEF2FF] text-[#6366F1] border-[#E0E7FF]" },
+    company: { label: "Company", icon: Building2, className: "bg-[#FFF7ED] text-[#9A3412] border-[#FFEDD5]" },
+    topic: { label: "Topic", icon: Lightbulb, className: "bg-[#F5F3FF] text-[#7C3AED] border-[#EDE9FE]" },
   };
   const c = config[type];
   const Icon = c.icon;
@@ -151,8 +152,8 @@ function TypePill({ type }: { type: "person" | "company" | "topic" }) {
 function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
   if (entity.type === "topic") {
     return (
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 dark:from-purple-500/30 dark:to-violet-500/30 border border-purple-200 dark:border-purple-800 flex items-center justify-center flex-shrink-0">
-        <Lightbulb className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+      <div className="w-10 h-10 rounded-xl bg-[#F5F3FF] border border-[#EDE9FE] flex items-center justify-center flex-shrink-0">
+        <Lightbulb className="w-5 h-5 text-[#7C3AED]" />
       </div>
     );
   }
@@ -162,7 +163,7 @@ function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
       <img
         src={entity.imageUrl || '/people/default-avatar.png'}
         alt={entity.name}
-        className="w-10 h-10 rounded-xl object-contain bg-white dark:bg-zinc-900 border border-border p-0.5 flex-shrink-0"
+        className="w-10 h-10 rounded-xl object-contain bg-white dark:bg-zinc-900 border border-[#F0F0F2] p-0.5 flex-shrink-0"
         onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
       />
     );
@@ -172,29 +173,22 @@ function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
     <img
       src={entity.imageUrl || '/people/default-avatar.png'}
       alt={entity.name}
-      className="w-10 h-10 rounded-full object-cover border border-border flex-shrink-0"
+      className="w-10 h-10 rounded-full object-cover border border-[#F0F0F2] flex-shrink-0"
       onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
     />
   );
 }
 
 function SpotlightCard({ entity, rank }: { entity: UnifiedEntity; rank: number }) {
-  const typeConfig = {
-    person: { verb: "See their full profile", color: "from-blue-500/[0.06] to-blue-500/[0.02]", borderColor: "border-blue-500/[0.12]", accentColor: "text-blue-600 dark:text-blue-400" },
-    company: { verb: "Read company intelligence", color: "from-amber-500/[0.06] to-amber-500/[0.02]", borderColor: "border-amber-500/[0.12]", accentColor: "text-amber-600 dark:text-amber-400" },
-    topic: { verb: "Explore topic analysis", color: "from-purple-500/[0.06] to-purple-500/[0.02]", borderColor: "border-purple-500/[0.12]", accentColor: "text-purple-600 dark:text-purple-400" },
-  };
-  const cfg = typeConfig[entity.type];
-
   return (
     <Link href={entity.href} data-testid={`spotlight-${entity.slug}`}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: rank * 0.08 }}
-        className={`group bg-gradient-to-br ${cfg.color} border ${cfg.borderColor} rounded-2xl p-5 hover:shadow-lg transition-all cursor-pointer h-full`}
+        className="group bg-white border border-[#F0F0F2] rounded-xl p-5 hover:shadow-lg hover:border-[#E4E4E7] transition-all cursor-pointer h-full flex flex-col"
       >
-        <div className="flex items-start gap-3.5">
+        <div className="flex items-start gap-3.5 flex-1">
           <div className="relative">
             <EntityAvatar entity={entity} />
             <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[12px] font-bold">
@@ -202,21 +196,19 @@ function SpotlightCard({ entity, rank }: { entity: UnifiedEntity; rank: number }
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h3 className="text-[16px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{entity.name}</h3>
-            </div>
-            <p className="text-[14px] text-muted-foreground truncate mb-2">{entity.subtitle}</p>
-            <div className="flex items-center gap-3">
-              <span className="text-[14px] font-mono text-muted-foreground">
+            <h3 className="text-[16px] font-bold text-[#09090B] line-clamp-1 group-hover:text-primary transition-colors">{entity.name}</h3>
+            <p className="text-[14px] text-[#52525B] line-clamp-2 mb-3">{entity.subtitle}</p>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[14px] font-mono text-[#52525B] whitespace-nowrap">
                 {entity.recentMentions} recent
               </span>
               <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
             </div>
-            <div className="flex items-center gap-1 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className={`text-[14px] font-semibold ${cfg.accentColor}`}>{cfg.verb}</span>
-              <ChevronRight className={`w-3.5 h-3.5 ${cfg.accentColor}`} />
-            </div>
           </div>
+        </div>
+        <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-[14px] font-semibold text-primary">View profile</span>
+          <ChevronRight className="w-3.5 h-3.5 text-primary" />
         </div>
       </motion.div>
     </Link>
@@ -253,12 +245,12 @@ function CategorySection({
       data-testid={`section-${title.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-lg ${accentColor} flex items-center justify-center`}>
+        <div className="flex items-baseline gap-2.5">
+          <div className={`w-8 h-8 rounded-lg ${accentColor} flex items-center justify-center self-center`}>
             <Icon className="w-4 h-4" />
           </div>
-          <h2 className="text-[16px] font-bold text-foreground">{title}</h2>
-          <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+          <h2 className="text-[16px] font-semibold text-[#09090B]">{title}</h2>
+          <span className="text-[14px] text-[#A1A1AA] ml-1">Last 30 days</span>
         </div>
         <Link
           href={seeAllHref}
@@ -270,29 +262,29 @@ function CategorySection({
         </Link>
       </div>
 
-      <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-white border border-[#F0F0F2] rounded-xl overflow-hidden">
         {entities.slice(0, 10).map((entity, i) => (
           <Link key={`${entity.type}-${entity.slug}`} href={entity.href} data-testid={`trend-row-${entity.slug}`}>
-            <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group">
-              <span className="text-[14px] font-mono text-muted-foreground/40 font-medium w-6 text-right shrink-0">{i + 1}</span>
+            <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-[#F7F7FC] transition-colors cursor-pointer border-b border-[#F0F0F2] last:border-0 group">
+              <span className="text-[14px] font-mono text-[#A1A1AA] font-medium w-6 text-right shrink-0">{i + 1}</span>
 
               <EntityAvatar entity={entity} />
 
               <div className="flex-1 min-w-0">
-                <span className="text-[15px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">{entity.name}</span>
-                <span className="text-[14px] text-muted-foreground/60 block truncate">{entity.subtitle}</span>
+                <span className="text-[15px] font-semibold text-[#09090B] block truncate group-hover:text-primary transition-colors">{entity.name}</span>
+                <span className="text-[14px] text-[#52525B] block truncate">{entity.subtitle}</span>
               </div>
 
               <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0">
                 <MentionBar count={entity.recentMentions} maxCount={maxMentions} />
-                <span className="text-[12px] font-mono text-muted-foreground/40">
+                <span className="text-[12px] font-mono text-[#A1A1AA]">
                   {entity.recentMentions} mentions
                 </span>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#A1A1AA] group-hover:text-primary transition-colors" />
               </div>
             </div>
           </Link>
@@ -302,13 +294,13 @@ function CategorySection({
   );
 }
 
-function GatewayCard({ href, icon: Icon, title, description, color, testId }: { href: string; icon: any; title: string; description: string; color: string; testId: string }) {
+function GatewayCard({ href, icon: Icon, title, description, testId }: { href: string; icon: any; title: string; description: string; testId: string }) {
   return (
     <Link href={href} data-testid={testId}>
-      <div className={`group bg-gradient-to-br ${color} border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer h-full`}>
+      <div className="group bg-white border border-[#F0F0F2] rounded-xl p-5 hover:shadow-md hover:border-[#E4E4E7] transition-all cursor-pointer h-full">
         <Icon className="w-5 h-5 text-primary mb-3" />
-        <h3 className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">{title}</h3>
-        <p className="text-[14px] text-muted-foreground leading-relaxed">{description}</p>
+        <h3 className="text-[15px] font-bold text-[#09090B] group-hover:text-primary transition-colors mb-1">{title}</h3>
+        <p className="text-[14px] text-[#52525B] leading-relaxed">{description}</p>
         <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="text-[14px] font-semibold text-primary">Explore</span>
           <ChevronRight className="w-3.5 h-3.5 text-primary" />
@@ -489,7 +481,7 @@ export default function TrendsPage() {
       <SEOHead />
       <SiteHeader />
 
-      <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
+      <div className="bg-[#F7F7FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -501,26 +493,26 @@ export default function TrendsPage() {
               <Radio className="w-4 h-4 text-primary" />
               <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-primary">Discovery Radar</span>
             </div>
-            <h1 className="text-[1.75rem] sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-[1.15] mb-3" data-testid="text-page-title">
+            <h1 className="text-[1.75rem] sm:text-4xl md:text-5xl font-extrabold text-[#09090B] tracking-tight leading-[1.15] mb-3" data-testid="text-page-title">
               What conversations are gaining momentum?
             </h1>
-            <p className="text-[16px] sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+            <p className="text-[16px] sm:text-xl text-[#52525B] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
               Spot the people, companies, and ideas generating buzz across the world's top podcasts — then go deeper.
             </p>
           </motion.div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 pt-8">
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse">
+              <div key={i} className="bg-white border border-[#F0F0F2] rounded-xl p-5 animate-pulse">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-muted" />
+                  <div className="w-10 h-10 rounded-full bg-[#F0F0F2]" />
                   <div className="flex-1">
-                    <div className="h-5 bg-muted rounded w-40 mb-2" />
-                    <div className="h-4 bg-muted rounded w-56" />
+                    <div className="h-5 bg-[#F0F0F2] rounded w-40 mb-2" />
+                    <div className="h-4 bg-[#F0F0F2] rounded w-56" />
                   </div>
                 </div>
               </div>
@@ -530,12 +522,12 @@ export default function TrendsPage() {
           <>
             {spotlightMovers.length > 0 && (
               <section className="mb-12" data-testid="section-spotlight">
-                <div className="flex items-center gap-2.5 mb-5">
-                  <Flame className="w-5 h-5 text-orange-500" />
-                  <h2 className="text-[16px] font-bold text-foreground">Fastest Rising Right Now</h2>
-                  <span className="text-[12px] font-mono text-muted-foreground/50 ml-1">Last 30 days</span>
+                <div className="flex items-baseline gap-2.5 mb-5">
+                  <Flame className="w-5 h-5 text-[#6366F1] self-center" />
+                  <h2 className="text-[16px] font-semibold text-[#09090B]">Fastest Rising Right Now</h2>
+                  <span className="text-[14px] text-[#A1A1AA] ml-1">Last 30 days</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
                   {spotlightMovers.map((entity, i) => (
                     <SpotlightCard key={entity.slug} entity={entity} rank={i + 1} />
                   ))}
@@ -550,7 +542,7 @@ export default function TrendsPage() {
                   icon={Users}
                   entities={risingPeople}
                   maxMentions={maxPeopleMentions}
-                  accentColor="bg-blue-500/[0.08] text-blue-600"
+                  accentColor="bg-[#EEF2FF] text-[#6366F1]"
                   seeAllHref="/people"
                   seeAllLabel="All People"
                   delay={0.05}
@@ -561,7 +553,7 @@ export default function TrendsPage() {
                   icon={Building2}
                   entities={risingCompanies}
                   maxMentions={maxCompanyMentions}
-                  accentColor="bg-amber-500/[0.08] text-amber-600"
+                  accentColor="bg-[#FFF7ED] text-[#9A3412]"
                   seeAllHref="/companies"
                   seeAllLabel="All Companies"
                   delay={0.1}
@@ -572,33 +564,32 @@ export default function TrendsPage() {
                   icon={Lightbulb}
                   entities={risingTopics}
                   maxMentions={maxTopicMentions}
-                  accentColor="bg-purple-500/[0.08] text-purple-600"
+                  accentColor="bg-[#F5F3FF] text-[#7C3AED]"
                   seeAllHref="/interests"
                   seeAllLabel="All Topics"
                   delay={0.15}
                 />
               </div>
 
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 mt-8 lg:mt-0 pt-8 lg:pt-0 border-t lg:border-t-0 lg:border-l border-[#F0F0F2] lg:pl-8">
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 }}
                 >
                   <div className="flex items-center gap-2.5 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-primary/[0.08] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center">
                       <Sparkles className="w-4 h-4 text-primary" />
                     </div>
-                    <h2 className="text-[16px] font-bold text-foreground">Go Deeper</h2>
+                    <h2 className="text-[16px] font-semibold text-[#09090B]">Go Deeper</h2>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 lg:sticky lg:top-[84px]">
+                  <div className="grid grid-cols-1 gap-4 lg:sticky lg:top-[84px]">
                     <GatewayCard
                       href="/industries"
                       icon={Globe}
                       title="Industry Intelligence"
                       description="AI-powered analysis of what's happening across industries — from healthcare to fintech to media"
-                      color="from-emerald-500/[0.04] to-emerald-500/[0.01]"
                       testId="link-explore-industries"
                     />
                     <GatewayCard
@@ -606,7 +597,6 @@ export default function TrendsPage() {
                       icon={Lightbulb}
                       title="Topic Deep Dives"
                       description="Explore what experts are saying about AI, leadership, markets, health, and more"
-                      color="from-purple-500/[0.04] to-purple-500/[0.01]"
                       testId="link-explore-interests"
                     />
                     <GatewayCard
@@ -614,7 +604,6 @@ export default function TrendsPage() {
                       icon={Users}
                       title="People Directory"
                       description="Browse influential voices — their podcast appearances, mentions, and what they're talking about"
-                      color="from-blue-500/[0.04] to-blue-500/[0.01]"
                       testId="link-explore-people"
                     />
                     <GatewayCard
@@ -622,7 +611,6 @@ export default function TrendsPage() {
                       icon={Building2}
                       title="Company Tracker"
                       description="See which companies are generating conversation and why they're in the spotlight"
-                      color="from-amber-500/[0.04] to-amber-500/[0.01]"
                       testId="link-explore-companies"
                     />
                     <GatewayCard
@@ -630,7 +618,6 @@ export default function TrendsPage() {
                       icon={BookOpen}
                       title="Podcast Bookstore"
                       description="Discover books that the world's smartest podcasters keep recommending"
-                      color="from-rose-500/[0.04] to-rose-500/[0.01]"
                       testId="link-explore-bookstore"
                     />
                   </div>
@@ -642,31 +629,31 @@ export default function TrendsPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
-              className="mt-6"
+              className="mt-12"
               data-testid="section-full-table"
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
                 <div className="flex items-center gap-2.5">
                   <BarChart3 className="w-5 h-5 text-primary" />
-                  <h2 className="text-[16px] font-bold text-foreground">Full Leaderboard</h2>
+                  <h2 className="text-[16px] font-semibold text-[#09090B]">Full Leaderboard</h2>
                 </div>
 
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0 max-w-full">
-                  <div className="flex items-center bg-card border border-border rounded-xl overflow-x-auto hide-scrollbar max-w-full min-w-0" data-testid="entity-filter">
+                  <div className="flex items-center bg-white border border-[#F0F0F2] rounded-xl overflow-x-auto hide-scrollbar max-w-full min-w-0" data-testid="entity-filter">
                     {filterOptions.map(({ key, label, icon: Icon }) => (
                       <button
                         key={key}
                         onClick={() => setEntityFilter(key)}
-                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[14px] font-semibold transition-all whitespace-nowrap ${
+                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[14px] font-semibold transition-all whitespace-nowrap ${
                           entityFilter === key
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:text-foreground"
+                            ? "bg-primary text-white"
+                            : "text-[#52525B] hover:text-[#09090B]"
                         }`}
                         data-testid={`filter-${key}`}
                       >
                         <Icon className="w-3.5 h-3.5 hidden sm:block" />
                         {label}
-                        <span className={`text-[12px] font-mono ml-0.5 ${entityFilter === key ? "text-primary-foreground/70" : "text-muted-foreground/40"}`}>
+                        <span className={`text-[12px] font-mono ml-0.5 ${entityFilter === key ? "text-white/70" : "text-[#A1A1AA]"}`}>
                           {entityCounts[key]}
                         </span>
                       </button>
@@ -675,7 +662,7 @@ export default function TrendsPage() {
 
                   <button
                     onClick={() => setSortMode(s => s === "volume" ? "momentum" : "volume")}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[14px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[14px] font-medium text-[#52525B] hover:text-[#09090B] bg-white border border-[#F0F0F2] rounded-xl transition-colors whitespace-nowrap"
                     data-testid="sort-toggle"
                   >
                     <ArrowDownUp className="w-3.5 h-3.5" />
@@ -684,13 +671,13 @@ export default function TrendsPage() {
                 </div>
               </div>
 
-              <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
-                <div className="hidden sm:grid grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.06]">
-                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">#</span>
-                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">Name</span>
-                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">Type</span>
-                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider">Podcast Interest</span>
-                  <span className="text-[12px] font-mono text-muted-foreground/50 uppercase tracking-wider text-right">Change</span>
+              <div className="bg-white border border-[#F0F0F2] rounded-xl overflow-hidden">
+                <div className="hidden sm:grid grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3 border-b border-[#F0F0F2]">
+                  <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">#</span>
+                  <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">Name</span>
+                  <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">Type</span>
+                  <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">Podcast Interest</span>
+                  <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider text-right">Change</span>
                 </div>
 
                 {filteredEntities.map((entity, i) => (
@@ -699,15 +686,15 @@ export default function TrendsPage() {
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.02 }}
-                      className="grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group"
+                      className="grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3.5 hover:bg-[#F7F7FC] transition-colors cursor-pointer border-b border-[#F0F0F2] last:border-0 group"
                     >
-                      <span className="text-[14px] font-mono text-muted-foreground/40 font-medium">{i + 1}</span>
+                      <span className="text-[14px] font-mono text-[#A1A1AA] font-medium">{i + 1}</span>
 
                       <div className="flex items-center gap-3 min-w-0">
                         <EntityAvatar entity={entity} />
                         <div className="min-w-0">
-                          <span className="text-[15px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">{entity.name}</span>
-                          <span className="text-[14px] text-muted-foreground/60 block truncate sm:hidden">{entity.subtitle}</span>
+                          <span className="text-[15px] font-semibold text-[#09090B] block truncate group-hover:text-primary transition-colors">{entity.name}</span>
+                          <span className="text-[14px] text-[#52525B] block truncate sm:hidden">{entity.subtitle}</span>
                         </div>
                       </div>
 
@@ -717,21 +704,21 @@ export default function TrendsPage() {
 
                       <div className="hidden sm:block">
                         <MentionBar count={entity.recentMentions} maxCount={maxMentions} />
-                        <span className="text-[12px] font-mono text-muted-foreground/40 mt-0.5 block">
+                        <span className="text-[12px] font-mono text-[#A1A1AA] mt-0.5 block">
                           {entity.recentMentions} mentions
                         </span>
                       </div>
 
                       <div className="flex justify-end items-center gap-2">
                         <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+                        <ChevronRight className="w-3.5 h-3.5 text-[#A1A1AA] group-hover:text-primary transition-colors" />
                       </div>
                     </motion.div>
                   </Link>
                 ))}
 
                 {filteredEntities.length === 0 && (
-                  <div className="px-5 py-12 text-center text-[15px] text-muted-foreground/60">
+                  <div className="px-5 py-12 text-center text-[15px] text-[#52525B]">
                     No trending data available for this filter
                   </div>
                 )}

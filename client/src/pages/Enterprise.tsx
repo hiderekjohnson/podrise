@@ -38,7 +38,7 @@ function EnterpriseContactForm() {
   if (sent) {
     return (
       <div className="bg-card border border-border rounded-2xl p-8 text-center max-w-lg mx-auto" data-testid="enterprise-contact-success">
-        <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
+        <CheckCircle2 className="w-10 h-10 text-[#6366F1] mx-auto mb-4" />
         <h3 className="text-lg font-display font-bold mb-2">We will be in touch</h3>
         <p className="text-[16px] text-muted-foreground">A member of our team will follow up within one business day.</p>
         <button
@@ -125,7 +125,7 @@ export default function Enterprise() {
       <main className="min-h-screen bg-background">
 
         <section className="relative overflow-hidden pt-20 pb-16 sm:pt-28 sm:pb-20" data-testid="section-hero">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-background to-background" />
+          <div className="absolute inset-0 bg-[#F7F7FC]" />
           <div className="relative max-w-3xl mx-auto px-6 text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/[0.07] text-primary text-base font-display font-bold uppercase tracking-widest mb-8" data-testid="badge-enterprise">
               <Building2 className="w-4 h-4" />
@@ -230,7 +230,7 @@ export default function Enterprise() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: Layers, title: "Industry & role-based briefings", description: "Custom briefings built around specific industries, roles, and topics relevant to your business. Your marketing team gets different briefings than your engineering team — automatically.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: Clock, title: "Frequency control", description: "Daily, weekly, or real-time briefings. Choose the cadence that fits your team's workflow, and change it anytime.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: Clock, title: "Frequency control", description: "Daily, weekly, or real-time briefings. Choose the cadence that fits your team's workflow, and change it anytime.", color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10" },
                 { icon: Mail, title: "Delivered to the whole team", description: "Intelligence briefings delivered directly to your team's inboxes or Slack channels. Everyone stays current without logging in or searching.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: Podcast, title: "Custom podcast monitoring", description: "Track specific shows relevant to your industry. We monitor them daily and surface the insights your team needs to know.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
                 { icon: Target, title: "Competitor monitoring", description: "Surface what is being said about your competitors across podcasts. Know when they are mentioned, what is being said, and how sentiment is shifting.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
@@ -349,7 +349,7 @@ export default function Enterprise() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { title: "Venture Capital & Private Equity", description: "Track founder interviews, market sentiment, and sector trends. Your analysts get daily intelligence on what the smartest people in your sectors are saying — before it shows up in pitch decks.", icon: TrendingUp, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { title: "Corporate Strategy & Innovation", description: "Monitor how your industry, competitors, and emerging technologies are being discussed by experts. Daily briefings on your strategic priorities keep leadership informed.", icon: Briefcase, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { title: "Corporate Strategy & Innovation", description: "Monitor how your industry, competitors, and emerging technologies are being discussed by experts. Daily briefings on your strategic priorities keep leadership informed.", icon: Briefcase, color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10" },
                 { title: "Communications & PR Teams", description: "Know when your company, executives, or industry gets mentioned on influential podcasts. Track the narrative around key topics and respond faster.", icon: Building2, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
                 { title: "Research & Consulting", description: "Give your research team a daily feed of expert perspectives. Intelligence briefings surface quotes, data points, and analysis that traditional research tools miss entirely.", icon: BookOpen, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
               ].map((uc) => (

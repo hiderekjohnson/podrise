@@ -73,8 +73,8 @@ export default function Login() {
         </div>
 
         <div className="w-full max-w-sm glass-panel rounded-2xl p-6 sm:p-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-5">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center mx-auto mb-5">
+            <CheckCircle2 className="w-8 h-8 text-[#6366F1]" />
           </div>
           <h1 className="text-2xl font-display font-bold text-foreground mb-2" data-testid="text-check-email">
             Check Your Email

@@ -328,8 +328,8 @@ export default function FeatureRequests() {
 
             {sent ? (
               <div className="flex flex-col items-center gap-3 py-8 text-center" data-testid="section-sent-confirmation">
-                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-[#6366F1]" />
                 </div>
                 <p className="text-base font-semibold text-foreground">Thanks for the idea!</p>
                 <p className="text-base text-[#52525B] dark:text-[#A1A1AA] max-w-xs">We read every suggestion and will reach out if we have questions.</p>

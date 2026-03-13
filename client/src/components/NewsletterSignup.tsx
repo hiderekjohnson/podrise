@@ -59,10 +59,11 @@ export function NewsletterSignup({ type, slug, name, variant = "card", className
 
   if (success) {
     return (
-      <div className={`rounded-2xl border border-green-500/20 bg-green-500/[0.04] p-5 ${className}`} data-testid="newsletter-success">
+      <div className={`rounded-2xl border border-[#6366F1]/20 bg-[#EEF2FF] p-5 ${className}`} data-testid="newsletter-success">
+
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
-            <Check className="w-4 h-4 text-green-600" />
+          <div className="w-8 h-8 rounded-full bg-[#6366F1]/10 flex items-center justify-center shrink-0 mt-0.5">
+            <Check className="w-4 h-4 text-[#6366F1]" />
           </div>
           <div className="flex-1">
             <p className="text-[15px] font-semibold text-foreground">

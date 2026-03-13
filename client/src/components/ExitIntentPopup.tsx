@@ -256,8 +256,8 @@ export function ExitIntentPopup() {
                   {showArtwork && (
                     <img src={pageData!.artworkUrl} alt={pageData!.name} className="w-16 h-16 rounded-xl mx-auto mb-4 shadow-lg" />
                   )}
-                  <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-7 h-7 text-green-600" />
+                  <div className="w-14 h-14 rounded-full bg-[#6366F1]/10 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-7 h-7 text-[#6366F1]" />
                   </div>
                   <h3 className="text-xl font-display font-bold text-foreground mb-2" data-testid="text-exit-intent-success">
                     You're in!

@@ -47,7 +47,7 @@ function statusBadge(status: string) {
       );
     case "sent":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700" data-testid="badge-sent">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#EEF2FF] text-[#6366F1]" data-testid="badge-sent">
           <CheckCircle2 className="w-3 h-3" />
           Sent
         </span>
@@ -238,7 +238,7 @@ export default function PendingEmails() {
                         <div className="space-y-1" data-testid={`episode-stats-${email.id}`}>
                           <div className="flex items-center gap-3">
                             {stats.included > 0 && (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700" data-testid={`stat-included-${email.id}`}>
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-[#6366F1]" data-testid={`stat-included-${email.id}`}>
                                 <CheckCircle2 className="w-3 h-3" />
                                 {stats.included} included
                               </span>
@@ -260,11 +260,11 @@ export default function PendingEmails() {
                             <div className="text-xs text-muted-foreground/70 leading-relaxed">
                               {stats.details.map((d, i) => (
                                 <div key={i} className="flex items-center gap-1.5">
-                                  <span className={d.status === "included" ? "text-green-600" : d.status === "no_new_episode" ? "text-gray-400" : "text-red-500"}>
+                                  <span className={d.status === "included" ? "text-[#6366F1]" : d.status === "no_new_episode" ? "text-gray-400" : "text-red-500"}>
                                     {d.status === "included" ? "✓" : d.status === "no_new_episode" ? "-" : "✗"}
                                   </span>
                                   <span className="truncate max-w-[140px]" title={d.podcast}>{d.podcast}</span>
-                                  {d.status === "included" && d.episodeCount && <span className="text-green-600">({d.episodeCount} ep)</span>}
+                                  {d.status === "included" && d.episodeCount && <span className="text-[#6366F1]">({d.episodeCount} ep)</span>}
                                   {d.status === "error" && d.errorMessage && <span className="text-red-400 truncate max-w-[100px]" title={d.errorMessage}>({d.errorMessage})</span>}
                                 </div>
                               ))}
@@ -295,7 +295,7 @@ export default function PendingEmails() {
                       <p className="text-xs text-muted-foreground/60 mt-0.5">{formatDateTime(email.sentAt)}</p>
                     )}
                     {email.status === "sent" && (
-                      <span className={`inline-flex items-center gap-1 text-xs mt-1 ${email.emailOpenedAt ? "text-green-600" : "text-muted-foreground/40"}`} data-testid={`badge-opened-${email.id}`}>
+                      <span className={`inline-flex items-center gap-1 text-xs mt-1 ${email.emailOpenedAt ? "text-[#6366F1]" : "text-muted-foreground/40"}`} data-testid={`badge-opened-${email.id}`}>
                         <Mail className="w-3 h-3" />
                         {email.emailOpenedAt ? `Opened ${formatDateTime(email.emailOpenedAt)}` : "Not opened"}
                       </span>
@@ -316,7 +316,7 @@ export default function PendingEmails() {
                           <button
                             onClick={() => sendNowMutation.mutate(email.id)}
                             disabled={sendNowMutation.isPending}
-                            className="p-1.5 rounded-lg hover:bg-green-100 text-muted-foreground hover:text-green-600 transition-all"
+                            className="p-1.5 rounded-lg hover:bg-[#EEF2FF] text-muted-foreground hover:text-[#6366F1] transition-all"
                             title="Send now"
                             data-testid={`button-send-now-${email.id}`}
                           >

@@ -60,7 +60,7 @@ function ContactSection() {
 
         {sent ? (
           <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="contact-success">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
+            <CheckCircle2 className="w-10 h-10 text-[#6366F1] mx-auto mb-4" />
             <h3 className="text-lg font-display font-bold mb-2">Message sent</h3>
             <p className="text-[16px] text-muted-foreground">We will get back to you as soon as possible.</p>
             <button
@@ -214,7 +214,7 @@ export default function ForPodcasters() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: BookOpen, title: "AI-powered episode recaps", description: "Each episode gets a detailed summary with key takeaways, notable quotes, topic breakdowns, and chapter-by-chapter analysis. Your content, made scannable.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: Search, title: "Deep episode analysis", description: "Every episode gets structured breakdowns with key insights, topic tagging, and entity extraction. Listeners can explore exactly what was discussed.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: Search, title: "Deep episode analysis", description: "Every episode gets structured breakdowns with key insights, topic tagging, and entity extraction. Listeners can explore exactly what was discussed.", color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10" },
                 { icon: Globe, title: "SEO-indexed episode pages", description: "Each recap is a new page indexed by Google. Someone searching for a topic you have covered can discover your show for the first time.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
                 { icon: Sparkles, title: "AI-powered intelligence", description: "Listeners can ask questions about your show and get AI-powered answers drawn from episode analysis. Your episodes become a living knowledge base.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: Layers, title: "Guest and topic pages", description: "Guests who appear on your show get their own profile pages. Topics discussed across your episodes are cross-referenced and linked.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
@@ -253,7 +253,7 @@ export default function ForPodcasters() {
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { icon: Globe, title: "Web visibility", description: "Sponsors appear on every episode recap page with their name, description, coupon code, and a direct link. Visible to every visitor, not just listeners.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: Mail, title: "Email reach", description: "Daily recap emails include sponsor details alongside episode summaries. Your sponsors reach subscribers who catch up by reading instead of listening.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: Mail, title: "Email reach", description: "Daily recap emails include sponsor details alongside episode summaries. Your sponsors reach subscribers who catch up by reading instead of listening.", color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10" },
                 { icon: Tag, title: "Coupon codes highlighted", description: "Promo codes and special offers are styled prominently so readers can act on them immediately - no need to rewind and re-listen.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
               ].map((item) => (
                 <div
@@ -295,7 +295,7 @@ export default function ForPodcasters() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: PenLine, title: "Your message, your link", description: "Write a short callout with a custom URL. It appears as a prominent banner on your podcast page and every episode recap - visible to every visitor.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { icon: ShieldCheck, title: "Verified podcast owner", description: "Claiming your podcast gives you a verified badge and access to a dashboard where you can update your byline and review sponsor data at any time.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: ShieldCheck, title: "Verified podcast owner", description: "Claiming your podcast gives you a verified badge and access to a dashboard where you can update your byline and review sponsor data at any time.", color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10" },
               ].map((item) => (
                 <div
                   key={item.title}
@@ -358,7 +358,7 @@ export default function ForPodcasters() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: Globe, title: "Discoverability beyond the feed", description: "Every recap is a Google-indexed page. People searching for topics you have covered find your show organically -- even years after the episode aired.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: UserCheck, title: "Deeper audience connection", description: "Fans who read recaps stay engaged with your show even when they cannot listen. They never lose touch, and they come back for the episodes that matter most.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: UserCheck, title: "Deeper audience connection", description: "Fans who read recaps stay engaged with your show even when they cannot listen. They never lose touch, and they come back for the episodes that matter most.", color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10" },
                 { icon: TrendingUp, title: "Stronger engagement metrics", description: "Listeners who preview a recap before pressing play are more intentional. They are more likely to finish episodes, which sends the signals platforms reward.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: BarChart3, title: "Long-tail value from every episode", description: "Your back catalog keeps generating new listeners. Old episodes become permanent, searchable assets instead of disappearing into the archive.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
               ].map((b) => (
@@ -402,12 +402,12 @@ export default function ForPodcasters() {
 
         <section className="py-16 sm:py-20" data-testid="section-free">
           <div className="max-w-2xl mx-auto px-6">
-            <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
+            <div className="bg-[#EEF2FF]/60 dark:bg-[#6366F1]/10 border border-[#6366F1]/20 dark:border-[#6366F1]/20 rounded-2xl py-8 px-8 sm:px-10 text-center">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
               <p className="text-[16px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
                 There is no cost, no contract, and no catch. PodCap creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable -- not to gatekeep it.
               </p>
-              <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
+              <div className="border-t border-[#6366F1]/20 dark:border-[#6366F1]/20 pt-5 max-w-md mx-auto">
                 <p className="text-[16px] leading-[1.7] text-muted-foreground">
                   We also promote standout episodes daily on{" "}
                   <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podcap_io<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,

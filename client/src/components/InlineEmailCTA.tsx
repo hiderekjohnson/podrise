@@ -68,10 +68,10 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
 
   if (success) {
     return (
-      <div className={`rounded-2xl border border-green-500/20 bg-green-500/[0.04] p-5 ${className}`} data-testid="inline-cta-success">
+      <div className={`rounded-2xl border border-[#6366F1]/20 bg-[#EEF2FF] p-5 ${className}`} data-testid="inline-cta-success">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-            <Check className="w-5 h-5 text-green-600" />
+          <div className="w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center shrink-0">
+            <Check className="w-5 h-5 text-[#6366F1]" />
           </div>
           <div>
             <p className="text-[15px] font-semibold text-foreground">Subscribed to {name}</p>

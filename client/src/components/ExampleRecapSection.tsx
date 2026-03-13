@@ -63,7 +63,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             <div className="flex gap-1.5">
               <span className="w-3 h-3 rounded-full bg-red-400/70" />
               <span className="w-3 h-3 rounded-full bg-amber-400/70" />
-              <span className="w-3 h-3 rounded-full bg-green-400/70" />
+              <span className="w-3 h-3 rounded-full bg-[#6366F1]/70" />
             </div>
             <div className="flex items-center gap-2 ml-auto">
               <Inbox className="w-4 h-4 text-[#52525B]" />

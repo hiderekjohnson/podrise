@@ -75,7 +75,7 @@ function PodcasterLogin({ onSuccess }: { onSuccess: () => void }) {
 
       {sent ? (
         <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="section-login-sent">
-          <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
+          <CheckCircle2 className="w-10 h-10 text-[#6366F1] mx-auto mb-4" />
           <h3 className="text-lg font-display font-bold mb-2">Check your email</h3>
           <p className="text-[15px] text-muted-foreground">
             We sent a login link to <strong>{email}</strong>. Click it to access your dashboard.
@@ -264,7 +264,7 @@ export default function PodcasterDashboard() {
                   </h1>
                   <div className="flex items-center gap-2 mt-1">
                     {data.claim.verified ? (
-                      <span className="inline-flex items-center gap-1 text-[12px] font-display font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full" data-testid="badge-verified">
+                      <span className="inline-flex items-center gap-1 text-[12px] font-display font-bold text-[#6366F1] bg-[#EEF2FF] px-2 py-0.5 rounded-full" data-testid="badge-verified">
                         <CheckCircle2 className="w-3 h-3" /> Verified
                       </span>
                     ) : (
@@ -404,7 +404,7 @@ export default function PodcasterDashboard() {
                           )}
                           <div className="flex flex-wrap gap-2 mt-1.5">
                             {sponsor.couponCode && (
-                              <span className="inline-flex items-center gap-1 text-[12px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-1 text-[12px] font-mono font-bold text-[#6366F1] bg-[#EEF2FF] px-2 py-0.5 rounded">
                                 {sponsor.couponCode}
                               </span>
                             )}

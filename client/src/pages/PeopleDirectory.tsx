@@ -51,7 +51,7 @@ const PIE_COLORS = [
   "hsl(37, 90%, 51%)",
   "hsl(350, 72%, 50%)",
   "hsl(190, 75%, 44%)",
-  "hsl(142, 71%, 45%)",
+  "hsl(258, 90%, 66%)",
   "hsl(280, 67%, 56%)",
   "hsl(25, 95%, 53%)",
   "hsl(47, 96%, 53%)",
@@ -83,7 +83,7 @@ function SEOHead() {
 function TrendBadge({ trend, changePercent }: { trend: string; changePercent: number }) {
   if (trend === "rising") {
     return (
-      <span className="inline-flex items-center gap-1 text-[16px] font-mono text-emerald-600 dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 text-[14px] font-mono font-semibold text-[#6366F1] bg-[#EEF2FF] px-2 py-0.5 rounded-md">
         <TrendingUp className="w-3 h-3" />
         +{Math.abs(changePercent)}%
       </span>
@@ -91,14 +91,14 @@ function TrendBadge({ trend, changePercent }: { trend: string; changePercent: nu
   }
   if (trend === "falling") {
     return (
-      <span className="inline-flex items-center gap-1 text-[16px] font-mono text-red-500 dark:text-red-400">
+      <span className="inline-flex items-center gap-1 text-[14px] font-mono font-semibold text-[#09090B] bg-[#F0F0F2] px-2 py-0.5 rounded-md">
         <TrendingDown className="w-3 h-3" />
         {changePercent}%
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[16px] font-mono text-[#52525B]">
+    <span className="inline-flex items-center gap-1 text-[14px] font-mono font-medium text-[#52525B] bg-[#F0F0F2] px-2 py-0.5 rounded-md">
       <Minus className="w-3 h-3" />
       Stable
     </span>
@@ -244,7 +244,7 @@ export default function PeopleDirectory() {
     const stable = people.filter(p => p.trend === "stable").length;
     const falling = people.filter(p => p.trend === "falling").length;
     return [
-      { name: "Rising", value: rising, color: "hsl(142, 71%, 45%)" },
+      { name: "Rising", value: rising, color: "hsl(239, 84%, 67%)" },
       { name: "Stable", value: stable, color: "hsl(220, 9%, 46%)" },
       { name: "Declining", value: falling, color: "hsl(0, 72%, 51%)" },
     ].filter(d => d.value > 0);
@@ -266,7 +266,7 @@ export default function PeopleDirectory() {
       <SEOHead />
       <SiteHeader />
 
-      <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
+      <div className="bg-[#F7F7FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -539,7 +539,7 @@ export default function PeopleDirectory() {
                 key="rising"
               >
                 <div className="flex items-center gap-2 mb-6">
-                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  <TrendingUp className="w-5 h-5 text-[#6366F1]" />
                   <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-rising-people">Rising</h2>
                   <span className="text-[16px] text-[#52525B] ml-1">Biggest increase in mentions</span>
                 </div>

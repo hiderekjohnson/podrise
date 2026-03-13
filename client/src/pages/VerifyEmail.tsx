@@ -156,8 +156,8 @@ export default function VerifyEmail() {
             className="w-full max-w-[440px]"
           >
             <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-8 sm:p-10 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-8 h-8 text-[#6366F1]" />
               </div>
 
               <h1 className="text-[1.5rem] sm:text-[1.75rem] font-display font-extrabold text-foreground leading-tight tracking-[-0.025em] mb-3" data-testid="heading-verified">

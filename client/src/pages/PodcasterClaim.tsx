@@ -206,7 +206,7 @@ export default function PodcasterClaim() {
 
           {step === "done" && (
             <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="section-claim-success">
-              <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
+              <CheckCircle2 className="w-12 h-12 text-[#6366F1] mx-auto mb-4" />
               <h2 className="text-lg font-display font-bold mb-2">Claim submitted</h2>
               <p className="text-[15px] text-muted-foreground mb-1">
                 We'll verify your ownership of <strong>{selectedPodcast?.name}</strong> and get back to you at <strong>{email}</strong>.

@@ -227,7 +227,7 @@ function ShareButton({ book }: { book: BookDetail }) {
         data-testid="button-copy-link"
         title="Copy link"
       >
-        {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+        {copied ? <Check className="w-3.5 h-3.5 text-[#6366F1]" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
       </button>
     </div>
   );
@@ -648,7 +648,7 @@ export default function BookDetailPage() {
                     href={book.blinkistUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#09090B] hover:bg-[#09090B]/90 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                     data-testid="button-blinkist"
                   >
                     <FileText className="w-4 h-4" />
@@ -945,7 +945,7 @@ export default function BookDetailPage() {
                   href={book.blinkistUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#09090B] hover:bg-[#09090B]/90 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                   data-testid="button-blinkist-bottom"
                 >
                   <FileText className="w-4 h-4" />
@@ -977,7 +977,7 @@ export default function BookDetailPage() {
                 href={book.blinkistUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
+                className="flex items-center justify-center gap-2 flex-1 py-3.5 bg-[#09090B] hover:bg-[#09090B]/90 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                 data-testid="button-blinkist-sticky"
               >
                 <FileText className="w-4 h-4" />

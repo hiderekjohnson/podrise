@@ -1161,7 +1161,7 @@ export default function Dashboard() {
                     {autoSaveStatus === "saving" ? (
                       <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving...</>
                     ) : (
-                      <><Check className="w-3.5 h-3.5 text-green-500" /><span className="text-green-600">Saved</span></>
+                      <><Check className="w-3.5 h-3.5 text-[#6366F1]" /><span className="text-[#6366F1]">Saved</span></>
                     )}
                   </motion.div>
                 )}
@@ -1251,7 +1251,7 @@ export default function Dashboard() {
                           <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">$9.99/month - unlimited podcasts</p>
                         </div>
                       </div>
-                      <span className="text-[15px] bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
+                      <span className="text-[15px] bg-[#EEF2FF] text-[#6366F1] font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
                     </div>
                     {subscriptionData?.subscription?.current_period_end && (
                       <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-4">
@@ -1312,7 +1312,7 @@ export default function Dashboard() {
                               </p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className={`text-[15px] font-semibold px-2 py-0.5 rounded-full ${inv.status === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                              <span className={`text-[15px] font-semibold px-2 py-0.5 rounded-full ${inv.status === "paid" ? "bg-[#EEF2FF] text-[#6366F1]" : "bg-amber-100 text-amber-700"}`}>
                                 {inv.status === "paid" ? "Paid" : inv.status}
                               </span>
                               {inv.invoiceUrl && (

@@ -33,12 +33,12 @@ const DISCOVER_CATEGORIES = [
   { key: "all", label: "All", icon: Sparkles, color: "from-violet-500 to-indigo-500" },
   { key: "tech", label: "Tech & AI", icon: Cpu, color: "from-blue-500 to-cyan-500" },
   { key: "business", label: "Business", icon: Briefcase, color: "from-amber-500 to-orange-500" },
-  { key: "finance", label: "Finance", icon: DollarSign, color: "from-emerald-500 to-green-500" },
+  { key: "finance", label: "Finance", icon: DollarSign, color: "from-indigo-500 to-blue-500" },
   { key: "news", label: "News & Politics", icon: Globe, color: "from-red-500 to-rose-500" },
   { key: "health", label: "Health & Science", icon: Heart, color: "from-pink-500 to-rose-400" },
   { key: "self-improvement", label: "Self-Improvement", icon: Lightbulb, color: "from-yellow-400 to-amber-500" },
   { key: "marketing", label: "Marketing", icon: Megaphone, color: "from-purple-500 to-violet-500" },
-  { key: "culture", label: "Culture", icon: BookOpen, color: "from-teal-500 to-emerald-500" },
+  { key: "culture", label: "Culture", icon: BookOpen, color: "from-violet-500 to-purple-500" },
 ] as const;
 
 type CategoryKey = typeof DISCOVER_CATEGORIES[number]["key"];
@@ -388,7 +388,7 @@ export default function PodcastsExplorer() {
       <SEOHead />
       <SiteHeader />
 
-      <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
+      <div className="bg-[#F7F7FC]">
         <div className="max-w-5xl mx-auto px-6 pt-10 pb-6">
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}

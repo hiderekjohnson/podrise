@@ -148,7 +148,7 @@ export default function Support() {
           <div className="border border-black/[0.06] rounded-2xl bg-white p-6">
             {submitMutation.isSuccess ? (
               <div className="text-center py-8" data-testid="support-success">
-                <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
+                <CheckCircle2 className="w-10 h-10 text-[#6366F1] mx-auto mb-3" />
                 <p className="text-lg font-semibold">Message sent!</p>
                 <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground mt-1">We'll get back to you as soon as we can.</p>
                 <button

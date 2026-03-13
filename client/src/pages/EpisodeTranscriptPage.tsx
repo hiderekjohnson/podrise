@@ -90,7 +90,7 @@ function CopyLinkButton({ anchorId }: { anchorId: string }) {
       className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto p-0.5 rounded text-muted-foreground/60 hover:text-primary"
       data-testid={`button-copy-${anchorId}`}
     >
-      {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+      {copied ? <Check className="w-3.5 h-3.5 text-[#6366F1]" /> : <Copy className="w-3.5 h-3.5" />}
     </button>
   );
 }
@@ -120,7 +120,7 @@ function CopyFullTranscriptButton({ segments }: { segments: TranscriptSegment[] 
       onClick={handleCopy}
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[15px] font-semibold transition-all ${
         copied
-          ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+          ? "bg-[#EEF2FF] text-[#6366F1]"
           : "bg-primary/[0.06] text-primary hover:bg-primary/[0.12]"
       }`}
       data-testid="button-copy-transcript"

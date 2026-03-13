@@ -87,7 +87,7 @@ export function StickyEmailBar({ type, slug, name, artworkUrl, hosts, scrollThre
         >
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3">
             {success ? (
-              <div className="flex items-center gap-2 text-green-600 font-semibold text-[15px]" data-testid="sticky-bar-success">
+              <div className="flex items-center gap-2 text-[#6366F1] font-semibold text-[15px]" data-testid="sticky-bar-success">
                 <Check className="w-4 h-4" /> Subscribed to {name}!
               </div>
             ) : (
