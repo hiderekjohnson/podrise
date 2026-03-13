@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar, Tag } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TOPICS } from "@/data/topicData";
@@ -62,10 +63,41 @@ function isInternalLink(href: string): boolean {
   return href.startsWith("/");
 }
 
+function applyInlineFormatting(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, linkText, href) => {
+      const normalizedHref = normalizeLink(href);
+      const internal = isInternalLink(normalizedHref);
+      if (internal) {
+        return `<a href="${sanitizeText(normalizedHref)}" class="text-primary hover:text-primary/80 underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium">${linkText}</a>`;
+      }
+      return `<a href="${sanitizeText(normalizedHref)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium">${linkText}</a>`;
+    });
+}
+
 function renderMarkdownBody(body: string) {
   const paragraphs = body.split(/\n\n+/);
 
   return paragraphs.map((p, i) => {
+    const isBlockquote = p.split('\n').every(line => line.trimStart().startsWith('> ') || line.trim() === '');
+    if (isBlockquote) {
+      const quoteContent = p.split('\n')
+        .map(line => line.trimStart().replace(/^>\s?/, ''))
+        .join(' ')
+        .trim();
+      const rendered = applyInlineFormatting(sanitizeText(quoteContent));
+      return (
+        <blockquote
+          key={i}
+          className="border-l-4 border-primary/40 pl-5 py-3 my-6 text-[18px] sm:text-[20px] leading-[1.7] text-[#27272A] dark:text-[#D4D4D8] italic font-medium"
+          dangerouslySetInnerHTML={{ __html: rendered }}
+          data-testid={`body-blockquote-${i}`}
+        />
+      );
+    }
+
     let rendered = sanitizeText(p);
 
     const isBulletBlock = rendered.split('\n').some(line => line.trimStart().startsWith('- ') || line.trimStart().startsWith('* '));
@@ -87,21 +119,7 @@ function renderMarkdownBody(body: string) {
       }
       if (currentBullet) bullets.push(currentBullet);
 
-      const renderedBullets = bullets.map(b => {
-        let html = b;
-        html = html
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.+?)\*/g, '<em>$1</em>')
-          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, href) => {
-            const normalizedHref = normalizeLink(href);
-            const isInternal = isInternalLink(normalizedHref);
-            if (isInternal) {
-              return `<a href="${sanitizeText(normalizedHref)}" class="text-primary hover:text-primary/80 underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium">${text}</a>`;
-            }
-            return `<a href="${sanitizeText(normalizedHref)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium">${text}</a>`;
-          });
-        return html;
-      });
+      const renderedBullets = bullets.map(b => applyInlineFormatting(b));
 
       return (
         <ul key={i} className="space-y-2 pl-5 list-disc" data-testid={`body-list-${i}`}>
@@ -116,17 +134,7 @@ function renderMarkdownBody(body: string) {
       );
     }
 
-    rendered = rendered
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, href) => {
-        const normalizedHref = normalizeLink(href);
-        const isInternal = isInternalLink(normalizedHref);
-        if (isInternal) {
-          return `<a href="${sanitizeText(normalizedHref)}" class="text-primary hover:text-primary/80 underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium">${text}</a>`;
-        }
-        return `<a href="${sanitizeText(normalizedHref)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium">${text}</a>`;
-      });
+    rendered = applyInlineFormatting(rendered);
 
     const isHeader = rendered.startsWith('<strong>') && rendered.endsWith('</strong>') && !rendered.includes('<strong>', 8);
     if (isHeader) {
@@ -174,13 +182,18 @@ function Breadcrumbs({ topicSlug, topicName, date }: { topicSlug: string; topicN
 }
 
 function AsHeardOn({ sourceEpisodes }: { sourceEpisodes: TopicPulse["sourceEpisodes"] }) {
+  const [expanded, setExpanded] = useState(false);
   const uniquePodcasts = [...new Map(sourceEpisodes.map(ep => [ep.podcastSlug, ep])).values()];
   if (uniquePodcasts.length === 0) return null;
+  const MAX_VISIBLE = 5;
+  const hasOverflow = uniquePodcasts.length > MAX_VISIBLE;
+  const visiblePodcasts = expanded ? uniquePodcasts : uniquePodcasts.slice(0, MAX_VISIBLE);
+  const remainingCount = uniquePodcasts.length - MAX_VISIBLE;
 
   return (
     <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed" data-testid="text-as-heard-on">
       <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">As heard on: </span>
-      {uniquePodcasts.map((ep, i) => (
+      {visiblePodcasts.map((ep, i) => (
         <span key={ep.podcastSlug}>
           <Link
             href={`/podcasts/${ep.podcastSlug}`}
@@ -189,9 +202,18 @@ function AsHeardOn({ sourceEpisodes }: { sourceEpisodes: TopicPulse["sourceEpiso
           >
             {ep.podcastName}
           </Link>
-          {i < uniquePodcasts.length - 1 && <span>, </span>}
+          {i < visiblePodcasts.length - 1 && <span>, </span>}
         </span>
       ))}
+      {hasOverflow && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="text-primary hover:text-primary/80 transition-colors font-medium ml-1"
+          data-testid="button-show-more-podcasts"
+        >
+          + {remainingCount} more
+        </button>
+      )}
     </p>
   );
 }
@@ -243,6 +265,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
       setOrCreate('meta[name="description"]', "name", description);
       setOrCreate('meta[property="og:title"]', "property", title);
       setOrCreate('meta[property="og:description"]', "property", description);
+      setOrCreate('meta[property="og:url"]', "property", canonicalUrl);
       setOrCreate('meta[property="og:type"]', "property", "article");
 
       let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -363,6 +386,25 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
             >
               {renderMarkdownBody(pulse.body)}
             </motion.div>
+
+            {pulse.keyThemes && pulse.keyThemes.length > 0 && (
+              <div className="mt-8 flex flex-wrap items-center gap-2" data-testid="section-key-themes">
+                <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                {pulse.keyThemes.map((theme, i) => {
+                  const themeSlug = theme.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                  return (
+                    <Link
+                      key={theme}
+                      href={`/insights/${topicSlug}?tag=${encodeURIComponent(themeSlug)}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full bg-primary/[0.06] border border-primary/10 text-[13px] text-primary/80 font-medium hover:bg-primary/[0.12] hover:border-primary/20 transition-colors"
+                      data-testid={`link-theme-tag-${i}`}
+                    >
+                      {theme}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="w-full h-px bg-border mt-10 mb-8" />
 

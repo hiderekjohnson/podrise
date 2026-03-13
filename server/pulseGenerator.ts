@@ -400,11 +400,11 @@ Podcast link: /podcasts/${ep.slug}`;
 
   const prompt = `You are writing THE PULSE, a ${topicName.toLowerCase()} podcast briefing for ${formatDateShortForPrompt(dateStr)}.
 
-YOUR VOICE: You listened to every ${topicName.toLowerCase()} podcast so the reader did not have to, and now you are texting them the good parts. Smart, direct, conversational. Not a consulting deck. Not a report. A smart friend who is genuinely excited about what they heard.
+YOUR VOICE: You listened to every ${topicName.toLowerCase()} podcast so the reader did not have to, and now you are telling them the good parts. Smart, direct, conversational. Not a consulting deck. Not a report. A smart friend who is genuinely excited about what they heard.
 
-TARGET READER: A busy professional who decides in 3 seconds whether to keep reading. Every sentence earns its place or gets cut.
+TARGET AUDIENCE: Two people simultaneously. A VP or executive who evaluates this as a tool for their team, and the employees who read it daily. The VP needs to see its value in 10 seconds. The employees need enough depth to walk into a meeting and say something intelligent.
 
-TARGET LENGTH: The entire briefing fits on one screen without scrolling. About 250-350 words for the body. That is it.
+TARGET LENGTH: 3-4 minutes to read in full. About 600-900 words for the body. Short enough for a busy employee to finish at their desk, deep enough that they learn something worth sharing.
 
 Here are the ${topicName.toLowerCase()}-related podcast episodes from ${formatDateForDisplay(dateStr)}:
 
@@ -415,19 +415,21 @@ WHAT TO WRITE:
 
 1. HEADLINE: Specific and datestamped. Must contain "${topicName.toLowerCase()} podcast" or "${topicName.toLowerCase()} podcasts". Never generic. Bad: "Mindset, Scaling, and AI: Core Pillars of Entrepreneurial Success". Good: "What ${topicName} Podcasts Are Talking About This Week, ${formatDateShortForPrompt(dateStr)}". The headline should not work if you changed the date to 2019.
 
-2. SUMMARY: One punchy sentence. The single most interesting thing from today.
+2. SUMMARY: 2-3 sentences. An executive summary covering the single most important thing today. Written for someone who might only read this far. Do NOT repeat or paraphrase the opening quote. This should stand alone as a briefing for time-pressed readers.
 
 3. BODY in markdown:
 
-   OPEN WITH THE BEST QUOTE. Find the single sharpest, most specific quote across all episodes. Lead with it. Build down from there.
+   OPEN COLD WITH THE BEST QUOTE. Find the single sharpest, most specific quote across all episodes. Lead with it as a blockquote (> "Quote text" -- Speaker Name). No subtitle or summary before it. Let it hit the reader cold.
 
-   Then 2-3 short sections with **bold headers**. Each section: 2-3 sentences MAX. Include specific details (numbers, strategies, names). Synthesize across episodes when possible.
+   Then 3-4 sections, each with a **bold one-line header** so scanners can navigate without reading every word. Each section is a proper story, not a bullet summary. 4-6 sentences per section. Include enough context that the reader understands WHY it matters, not just what was said. Include specific details (numbers, strategies, names). Synthesize across episodes when possible. End each section with a "why this matters" sentence that connects the insight to something actionable or relevant for a professional reader.
 
-   Then ONE "**Worth Noting**" item. Not a list. One sentence about the single most surprising or counterintuitive data point from today.
+   STORY SELECTION: Every section should reflect what people in this field are actively debating and discussing. Not general business news or brand case studies. If a story could appear in any generic business newsletter, cut it and pick something more specific.
 
-   If books were mentioned, add a "**On the Reading List**" line with titles linked to /bookstore/book-slug-in-kebab-case.
+   Then ONE "**Worth Noting**" item. Not a list. One stat, one source, one sentence about the single most surprising or counterintuitive data point from today.
 
-4. KEY THEMES: 3-5 short labels.
+   DO NOT include any "On the Reading List", "Books and Resources", or book recommendation section. If a book is mentioned in context within a story section, that is fine, but no standalone book section.
+
+4. KEY THEMES: 3-5 short labels (e.g. "Entrepreneurial Mindset", "Business Scaling", "AI in Business").
 
 BANNED WORDS AND PHRASES (if you use any of these, the output is rejected):
 landscape, navigating, rapidly evolving, key discussions, sustained growth, competitive advantage, undergoing significant changes, it is crucial, delve, transformative, key insights, pillars, comprehensive, leveraging, paradigm, synergy, holistic, cutting-edge, groundbreaking, game-changing, actionable, robust, ecosystem, empower, stakeholder, thought leader
@@ -437,7 +439,7 @@ LINKING RULES:
 - Podcast names: [Podcast Name](/podcasts/slug)
 - People: [Person Name](/people/first-last)
 - Companies: [Company Name](/companies/slug)
-- Books: [Book Title](/bookstore/book-slug-in-kebab-case)
+- Books mentioned in context: [Book Title](/bookstore/book-slug-in-kebab-case)
 - Links MUST start with / (relative paths)
 - Link a name once, leave later mentions unlinked
 
@@ -454,7 +456,7 @@ PODCASTS REFERENCED: ${podcastNames.join(", ")}
 Respond with ONLY valid JSON (no markdown fences):
 {
   "headline": "The headline with date and topic",
-  "summary": "One punchy sentence",
+  "summary": "The 2-3 sentence executive summary",
   "body": "The full briefing in markdown. Use \\n\\n for paragraph breaks.",
   "keyThemes": ["Theme 1", "Theme 2", "Theme 3"]
 }`;
@@ -463,7 +465,7 @@ Respond with ONLY valid JSON (no markdown fences):
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 2500,
+      max_tokens: 4000,
       temperature: 0.8,
       response_format: { type: "json_object" },
     });
