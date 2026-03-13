@@ -1483,43 +1483,6 @@ export default function Admin() {
                         </button>
                       </div>
 
-                      <div className="glass-panel rounded-2xl p-5" data-testid="action-generate-daily-drop">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h3 className="text-sm font-bold text-foreground">Generate Signal</h3>
-                            <p className="text-xs text-muted-foreground mt-1">Generate a newsletter-style Signal edition for a specific date.</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="date"
-                            data-testid="input-daily-drop-date"
-                            className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm"
-                            defaultValue={new Date().toISOString().split("T")[0]}
-                            id="daily-drop-date-input"
-                          />
-                          <button
-                            data-testid="button-generate-daily-drop"
-                            onClick={async () => {
-                              const input = document.getElementById("daily-drop-date-input") as HTMLInputElement;
-                              const date = input?.value;
-                              if (!date) return;
-                              if (!confirm(`Generate Signal for ${date}? This will use 1 AI call.`)) return;
-                              try {
-                                const res = await apiRequest("POST", "/api/admin/generate-daily-drop", { date });
-                                const data = await res.json();
-                                toast({ title: "Signal Generated", description: `"${data.headline}" for ${date}` });
-                              } catch (err: any) {
-                                toast({ title: "Error", description: err?.message || "Failed to generate", variant: "destructive" });
-                              }
-                            }}
-                            className="px-4 py-1.5 rounded-xl text-xs font-bold bg-blue-500 text-white hover:bg-blue-600 transition-colors whitespace-nowrap"
-                          >
-                            Generate
-                          </button>
-                        </div>
-                      </div>
-
                       <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-books">
                         <div>
                           <h3 className="text-sm font-bold text-foreground">Backfill Books from Transcripts</h3>

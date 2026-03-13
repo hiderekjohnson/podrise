@@ -92,13 +92,6 @@ export default function Home() {
                 Explore Podcasts
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button
-                data-testid="button-hero-signal"
-                onClick={() => navigate("/daily-drop")}
-                className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-card border-2 border-border text-foreground hover:bg-muted/60 transition-colors"
-              >
-                Read Signal
-              </button>
             </div>
           </motion.div>
         </section>

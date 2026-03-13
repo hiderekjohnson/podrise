@@ -100,11 +100,6 @@ export function Footer() {
                   Enterprise
                 </Link>
               </li>
-              <li>
-                <Link href="/daily-drop" className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid="link-signal">
-                  Signal
-                </Link>
-              </li>
             </ul>
           </div>
 

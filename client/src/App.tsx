@@ -32,8 +32,6 @@ const GetStarted = lazy(() => import("./pages/GetStarted"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
 const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
 const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
-const DailyDrop = lazy(() => import("./pages/DailyDrop"));
-const DailyDropEdition = lazy(() => import("./pages/DailyDropEdition"));
 const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
 const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const Bookstore = lazy(() => import("./pages/Bookstore"));
@@ -100,8 +98,6 @@ function Router() {
         <Route path="/topics/:slug/pulse" component={TopicPulsePage} />
         <Route path="/topics/:slug" component={TopicDetailPage} />
         <Route path="/topics" component={TopicsDirectory} />
-        <Route path="/daily-drop/:date" component={DailyDropEdition} />
-        <Route path="/daily-drop" component={DailyDrop} />
         <Route path="/podcaster/claim" component={PodcasterClaim} />
         <Route path="/podcaster/verify" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />

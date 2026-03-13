@@ -103,15 +103,6 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
       ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Insights - Trending Topics</h1><p>Explore what the world's top podcasts are talking about. Trending topics, emerging themes, and key narratives across ${PODCAST_SEO.length}+ shows.</p><ul style="list-style:none;padding:0;">${topicLinks}</ul><a href="/">Back to Home</a></div>`,
     };
   },
-  "/daily-drop": {
-    title: "Signal - AI-Generated Daily Podcast Briefing | PodCap",
-    description: "Signal is PodCap's daily AI-generated briefing. Get the most important stories, insights, and trends from across the podcast ecosystem in one concise read.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/daily-drop",
-    twitterCard: "summary",
-    replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Signal - Daily Podcast Intelligence Briefing</h1><p>The most important stories, insights, and trends from across the podcast ecosystem, delivered daily. AI-powered analysis of what's happening across ${PODCAST_SEO.length}+ top podcasts.</p><a href="/">Back to Home</a></div>`,
-  },
   "/trends": {
     title: "The Pulse - Podcast Trends & Trending Topics | PodCap",
     description: "See what's trending across the podcast world. Track people, companies, and topics gaining momentum across 240+ top podcasts.",
@@ -717,29 +708,6 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(topic.name)} - Podcast Insights</h1><p>${escapeAttr(topic.description)}</p><a href="/insights">Browse All Topics</a> | <a href="/">Back to Home</a></article>`,
       });
     }
-  }
-
-  const dailyDropDateMatch = cleanUrl.match(/^\/daily-drop\/(\d{4}-\d{2}-\d{2})$/);
-  if (dailyDropDateMatch) {
-    const date = dailyDropDateMatch[1];
-    try {
-      const { rows } = await pool.query(
-        `SELECT title, summary FROM daily_drop_editions WHERE date = $1 LIMIT 1`,
-        [date]
-      );
-      if (rows.length > 0) {
-        const edition = rows[0];
-        return replaceMetaTags(html, {
-          title: `${edition.title || `Signal - ${date}`} | PodCap`,
-          description: edition.summary ? truncateAtWord(edition.summary, 150) : `Signal daily podcast briefing for ${date}.`,
-          image: "https://podcap.io/favicon.png",
-          url: `https://podcap.io/daily-drop/${date}`,
-          twitterCard: "summary",
-          replaceFavicon: false,
-          ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(edition.title || `Signal - ${date}`)}</h1>${edition.summary ? `<p>${escapeAttr(edition.summary)}</p>` : ""}<a href="/daily-drop">All Editions</a></article>`,
-        });
-      }
-    } catch (err) { console.error("[SSR] daily-drop date error:", err); }
   }
 
   if (!html.includes('rel="canonical"')) {
