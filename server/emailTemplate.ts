@@ -368,26 +368,43 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
   if (peopleCount > 0) {
     const teaser = meta.mentionTeaserPeople || "";
     const suffix = teaser ? ` -- ${teaser}` : "";
-    lines.push(`<p style="font-size:15px;color:#3F3F46;line-height:1.6;margin:0 0 6px;">&#128100; ${peopleCount} ${peopleCount === 1 ? "person" : "people"} came up${escapeHtml(suffix)}</p>`);
+    lines.push(`<tr><td style="padding:0 0 4px;">
+      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+        <td width="24" valign="top" style="font-size:15px;line-height:1.6;padding-top:1px;">&#x1F464;</td>
+        <td style="font-size:15px;color:#3F3F46;line-height:1.6;"><strong style="font-weight:600;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"} came up${escapeHtml(suffix)}</td>
+      </tr></table>
+    </td></tr>`);
   }
   if (companiesCount > 0) {
     const teaser = meta.mentionTeaserCompanies || "";
     const suffix = teaser ? ` -- ${teaser}` : "";
-    lines.push(`<p style="font-size:15px;color:#3F3F46;line-height:1.6;margin:0 0 6px;">&#127970; ${companiesCount} ${companiesCount === 1 ? "company" : "companies"} mentioned${escapeHtml(suffix)}</p>`);
+    lines.push(`<tr><td style="padding:0 0 4px;">
+      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+        <td width="24" valign="top" style="font-size:15px;line-height:1.6;padding-top:1px;">&#x1F3E2;</td>
+        <td style="font-size:15px;color:#3F3F46;line-height:1.6;"><strong style="font-weight:600;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"} mentioned${escapeHtml(suffix)}</td>
+      </tr></table>
+    </td></tr>`);
   }
   if (booksCount > 0) {
     const teaser = meta.mentionTeaserBooks || "";
     const suffix = teaser ? ` -- ${teaser}` : "";
-    lines.push(`<p style="font-size:15px;color:#3F3F46;line-height:1.6;margin:0 0 6px;">&#128218; ${booksCount} ${booksCount === 1 ? "book" : "books"} recommended${escapeHtml(suffix)}</p>`);
+    lines.push(`<tr><td style="padding:0 0 4px;">
+      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+        <td width="24" valign="top" style="font-size:15px;line-height:1.6;padding-top:1px;">&#x1F4DA;</td>
+        <td style="font-size:15px;color:#3F3F46;line-height:1.6;"><strong style="font-weight:600;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"} recommended${escapeHtml(suffix)}</td>
+      </tr></table>
+    </td></tr>`);
   }
 
   const mentionsUrl = `${recapUrl}#mentions`;
 
-  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:18px;">
-    <tr><td style="padding:0;">
-      <p style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 10px;">Mentioned in this episode</p>
-      ${lines.join("")}
-      <p style="margin:8px 0 0;">
+  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:20px 0 18px;border-top:1px solid #F0F0F2;padding-top:20px;">
+    <tr><td>
+      <p style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 12px;">Mentioned in this episode</p>
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        ${lines.join("")}
+      </table>
+      <p style="margin:10px 0 0;">
         <a href="${escapeHtml(mentionsUrl)}" style="font-size:13px;font-weight:600;color:#6366F1;text-decoration:none;">Who were they, and why did they come up? &#8594;</a>
       </p>
     </td></tr>
