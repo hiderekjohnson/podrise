@@ -157,6 +157,14 @@ export function SiteHeader() {
           >
             Podcasts
           </Link>
+          <Link
+            href="/bookstore"
+            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1.5"
+            data-testid="nav-bookstore"
+          >
+            Bookstore
+            <span className="text-[11px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
+          </Link>
           {user ? (
             <Link
               href="/dashboard"
@@ -228,9 +236,12 @@ export function SiteHeader() {
             <div className="border-t border-black/[0.06] dark:border-white/[0.06] pt-2 space-y-1">
               <Link href="/trends" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-trends">Trends</Link>
               <Link href="/podcasts" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-podcasts">Podcasts</Link>
+              <Link href="/bookstore" className="flex items-center gap-2 text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-bookstore">
+                Bookstore
+                <span className="text-[11px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
+              </Link>
               <Link href="/people" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-people">People</Link>
               <Link href="/companies" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-companies">Companies</Link>
-              <Link href="/bookstore" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-bookstore">Bookstore</Link>
             </div>
             <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.06] mt-2">
               {user ? (
