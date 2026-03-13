@@ -3043,6 +3043,46 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/topics/:slug/books", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const client = await pool.connect();
+      const topicEpisodes = await client.query(
+        `SELECT lpr.book_mentions FROM landing_page_recaps lpr WHERE lpr.slug IN (SELECT DISTINCT slug FROM landing_page_recaps WHERE key_topics @> $1::text[] LIMIT 100)`,
+        [JSON.stringify([slug])]
+      );
+      client.release();
+
+      const bookMap = new Map<string, { title: string; author?: string; slug: string; mentionCount: number }>();
+      for (const ep of topicEpisodes.rows) {
+        if (ep.book_mentions) {
+          const books = typeof ep.book_mentions === "string" ? JSON.parse(ep.book_mentions) : ep.book_mentions;
+          for (const book of Array.isArray(books) ? books : [books]) {
+            if (book && typeof book === "object") {
+              const key = book.title?.toLowerCase() || "";
+              if (bookMap.has(key)) {
+                const existing = bookMap.get(key)!;
+                existing.mentionCount++;
+              } else {
+                bookMap.set(key, {
+                  title: book.title || "Unknown",
+                  author: book.author,
+                  slug: (book.title || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                  mentionCount: 1,
+                });
+              }
+            }
+          }
+        }
+      }
+      const topBooks = Array.from(bookMap.values()).sort((a, b) => b.mentionCount - a.mentionCount).slice(0, 8);
+      res.json(topBooks);
+    } catch (err: any) {
+      console.error("[Topics Books] Error:", err);
+      res.json([]);
+    }
+  });
+
   app.get("/api/podcasts/:slug/:episodeSlug/quotes", async (req, res) => {
     try {
       const { slug, episodeSlug } = req.params;
