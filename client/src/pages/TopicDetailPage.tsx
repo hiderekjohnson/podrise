@@ -332,14 +332,6 @@ export default function TopicDetailPage() {
                 Active
               </p>
             </div>
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-sources">
-              <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Sources</p>
-              <p className="text-base font-display font-bold text-foreground">{uniquePodcastSources || relatedPodcasts.length} podcasts</p>
-            </div>
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-episodes">
-              <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Episodes</p>
-              <p className="text-base font-display font-bold text-foreground">{topicEpisodes?.length || 0}</p>
-            </div>
             {latestEpisodeDate && (
               <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-latest">
                 <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Latest</p>
