@@ -3752,9 +3752,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       const epMeta2 = await buildEpisodeMetaFromSummary(pending.summary);
       const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
-      const { subject: aiSubject, previewText } = await generateEmailSubjectAndPreview(pending.summary);
+      const { subject: aiSubject, previewText, hookSentence } = await generateEmailSubjectAndPreview(pending.summary);
       const freshSubject = aiSubject;
-      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2, previewText);
+      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2, previewText, hookSentence);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);

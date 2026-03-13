@@ -456,7 +456,7 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   const metaInfoStr = metaInfoParts.join(" \u00a0\u00b7\u00a0 ");
   const guestStr = guestNames.length > 0 ? guestNames.join(", ") : "";
 
-  return `<tr><td class="ep-block" style="padding:28px 28px 26px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
+  return `<tr><td id="ep-${index}" class="ep-block" style="padding:28px 28px 26px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
 
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:16px;"><tr>
     <td width="68" valign="top">
@@ -489,7 +489,7 @@ export function recapHasContent(markdown: string): boolean {
   return parsed.episodes.length > 0;
 }
 
-export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, customPreviewText?: string): string {
+export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, customPreviewText?: string, hookSentence?: string): string {
   const parsed = parseDigestMarkdown(markdown);
 
   const totalDuration = computeTotalDuration(parsed.episodes);
@@ -505,6 +505,16 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     const meta = episodeMeta?.[derivedSlug];
     return buildEpisodeCard(ep, idx, meta);
   }).join("\n");
+
+  const episodePillsHtml = parsed.episodes.map((ep, idx) => {
+    const accentColor = getAccentColor(idx);
+    const anchorId = `ep-${idx}`;
+    return `<td style="padding:0 ${idx < parsed.episodes.length - 1 ? "6px" : "0"} 0 0;">
+      <a href="#${anchorId}" style="display:inline-block;padding:5px 12px;font-size:12px;font-weight:600;color:${accentColor};background:#F7F7FC;border-radius:20px;text-decoration:none;white-space:nowrap;">${escapeHtml(ep.podcastName)}</a>
+    </td>`;
+  }).join("");
+
+  const hookText = hookSentence || "";
   const logoUrl = "https://podcap.io/favicon.png";
 
   return `<!DOCTYPE html>
@@ -522,7 +532,6 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     @media only screen and (max-width:620px){
       .outer-pad{padding:0!important;}.card{border-radius:0!important;}
       .topbar{padding:16px 20px!important;}
-      .hero{padding:28px 20px 24px!important;}
       .ep-block{padding:26px 20px!important;}
       .quiet-block{padding:18px 20px!important;}
       .footer-inner{padding:20px!important;}
@@ -557,29 +566,12 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   </tr></table>
 </td></tr>
 
-<!-- STAT HEADER -->
-<tr><td class="hero" style="padding:28px 28px 24px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
-
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:18px;"><tr>
-    <td>
-      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td style="padding-right:20px;border-right:1px solid #E4E4E7;">
-          <p style="font-size:28px;font-weight:700;color:#09090B;letter-spacing:-0.04em;margin:0 0 2px;">${episodeCount}</p>
-          <p style="font-size:13px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">Episode${episodeCount !== 1 ? "s" : ""}</p>
-        </td>
-        ${totalDuration ? `<td style="padding:0 20px;border-right:1px solid #E4E4E7;">
-          <p style="font-size:28px;font-weight:700;color:#09090B;letter-spacing:-0.04em;margin:0 0 2px;">${escapeHtml(totalDuration)}</p>
-          <p style="font-size:13px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">Of content</p>
-        </td>` : ""}
-        <td style="padding-left:20px;">
-          <p style="font-size:28px;font-weight:700;background:linear-gradient(135deg,#6366F1,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0 0 2px;">Distilled</p>
-          <p style="font-size:13px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">For you</p>
-        </td>
-      </tr></table>
-    </td>
+<!-- HOOK + PILLS -->
+<tr><td style="padding:24px 28px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
+  ${hookText ? `<p style="font-size:18px;font-weight:400;color:#09090B;line-height:1.5;margin:0 0 18px;">${escapeHtml(hookText)}</p>` : ""}
+  <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+    ${episodePillsHtml}
   </tr></table>
-
-
 </td></tr>
 
 ${episodeCardsHtml}

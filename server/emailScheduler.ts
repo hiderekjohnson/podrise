@@ -235,48 +235,57 @@ Only include keys where count > 0.`
   return meta;
 }
 
-export async function generateEmailSubjectAndPreview(summary: string): Promise<{ subject: string; previewText: string }> {
+export async function generateEmailSubjectAndPreview(summary: string): Promise<{ subject: string; previewText: string; hookSentence: string }> {
   const fallbackSubject = `Your podcasts dropped new episodes`;
   const fallbackPreview = `Here is what you missed today`;
+  const fallbackHook = `Your podcasts had some interesting things to say yesterday.`;
   try {
     const { openai } = await import("./replit_integrations/image/client");
     const resp = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{
         role: "user",
-        content: `You write email subject lines and preview text for a daily podcast recap email. The sender name is "PodCap" so DO NOT include "PodCap" in the subject.
+        content: `You write email copy for a daily podcast recap email. The sender name is "PodCap" so DO NOT include "PodCap" in the subject.
 
-Given today's podcast recap content below, generate:
+Given today's podcast recap content below, generate three things:
+
 1. A SUBJECT LINE: Pull the single most interesting or surprising thing from any episode and turn it into a subject line under 50 characters. It should read like a smart friend texting you something they just heard -- not a newsletter. Never use words like "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", or "episode". No emojis.
+
 2. A PREVIEW TEXT: This is the gray text Gmail shows next to the subject before opening. It should either complete the thought from the subject line or introduce a second hook from a DIFFERENT episode. Never repeat the subject. Keep under 80 characters. Start with "Plus --" or "Also --" if referencing a different episode.
+
+3. A HOOK SENTENCE: One punchy sentence that sits at the top of the email body. Scan all episodes, find the single most surprising, counterintuitive, or provocative claim made in any of them, and turn it into a statement that ends with a full stop. NOT a question. NOT a headline. A statement that makes the reader need to know more.
+
+The hook sentence should feel like a smart friend texting you something they just heard. Never use words like "explore", "discover", "dive into", or "learn." Never start with "In today's episode." Never make it sound like a newsletter introduction.
+
+GOOD hook examples:
+- Someone in your podcasts yesterday said Anthropic is more dangerous than OpenAI right now.
+- One of your podcasts made the case that boring businesses are the best businesses in 2026.
+- Yesterday a guest argued that everything you know about dopamine is probably wrong.
+
+BAD hook examples:
+- Today's digest features two fascinating episodes covering AI, entrepreneurship, and more.
+- Your daily PodCap recap is here -- sit back and enjoy today's insights.
+- We have distilled the key moments from your podcasts into one easy read.
 
 GOOD subject examples:
 - She made $1M as employee #3000
 - The simplest way to make $1M in 2026
 - Why boring businesses win right now
-- The AI lab nobody is watching closely enough
 
 BAD subject examples:
 - Your Daily Podcast Digest for Thursday
 - 3 episodes you need to hear today
-- PodCap: What happened this week in AI
 
 GOOD preview examples:
 - Plus -- the dopamine mistake you are probably making every morning
 - Also -- why Anthropic was called the most dangerous company in AI right now
-- And the book Elon said changed how he thinks about risk
-
-BAD preview examples:
-- 3 episodes covering AI, business, and health
-- Your daily podcast summary is ready
-- Tap to read your full recap
 
 Recap content:
 ${summary.slice(0, 3000)}
 
-Respond with JSON: { "subject": "...", "previewText": "..." }`
+Respond with JSON: { "subject": "...", "previewText": "...", "hookSentence": "..." }`
       }],
-      max_tokens: 200,
+      max_tokens: 300,
       temperature: 0.9,
       response_format: { type: "json_object" },
     });
@@ -286,17 +295,19 @@ Respond with JSON: { "subject": "...", "previewText": "..." }`
       const parsed = JSON.parse(content);
       const subj = String(parsed.subject || "").trim();
       const prev = String(parsed.previewText || "").trim();
+      const hook = String(parsed.hookSentence || "").trim();
       if (subj && subj.length <= 80) {
         return {
           subject: subj,
           previewText: prev || fallbackPreview,
+          hookSentence: hook || fallbackHook,
         };
       }
     }
   } catch (err) {
-    console.warn("[EmailScheduler] AI subject/preview generation failed:", err);
+    console.warn("[EmailScheduler] AI subject/preview/hook generation failed:", err);
   }
-  return { subject: fallbackSubject, previewText: fallbackPreview };
+  return { subject: fallbackSubject, previewText: fallbackPreview, hookSentence: fallbackHook };
 }
 
 async function sendAdminNotification(userEmail: string, subject: string) {
@@ -473,8 +484,8 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
 
     const podcastNames = result.parsedEpisodes.map((ep: any) => ep.podcastName).filter(Boolean);
     const episodeMeta = await buildEpisodeMeta(podcastNames);
-    const { subject: aiSubject, previewText } = await generateEmailSubjectAndPreview(result.summary);
-    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta, previewText);
+    const { subject: aiSubject, previewText, hookSentence } = await generateEmailSubjectAndPreview(result.summary);
+    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta, previewText, hookSentence);
 
     const deliveryTime = user.deliveryTime || "07:00";
     const subject = aiSubject;
