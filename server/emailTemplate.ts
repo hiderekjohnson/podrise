@@ -354,62 +354,38 @@ function buildRecapText(whatHappened: string): string {
   }).join("");
 }
 
-function truncateHint(hint: string, maxLen: number = 80): string {
-  if (hint.length <= maxLen) return hint;
-  const truncated = hint.slice(0, maxLen).replace(/\s+\S*$/, "");
-  return truncated + "...";
-}
-
 function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: string): string {
   if (!meta) return "";
 
-  const teasers = meta.entityTeasers || [];
-  const bookTeasers = meta.bookTeasers || [];
-  const totalEntities = (meta.companiesCount || 0) + (meta.peopleCount || 0);
-  const totalBooks = meta.booksCount || 0;
+  const companyNames = meta.companyNames || [];
+  const personNames = meta.personNames || [];
+  const bookTitles = meta.bookTitles || [];
 
-  if (teasers.length === 0 && bookTeasers.length === 0 && totalEntities === 0 && totalBooks === 0) return "";
+  const allNames = [...companyNames, ...personNames];
+  if (allNames.length === 0 && bookTitles.length === 0) return "";
 
-  const teaserRows = teasers.slice(0, 3).map(t =>
-    `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:8px;"><tr>
-      <td style="padding:10px 14px;background:#FEF9C3;border:1px solid #FDE047;border-radius:8px;">
-        <p style="font-size:13px;margin:0;line-height:1.5;">
-          <span style="font-weight:700;color:#854D0E;">${escapeHtml(t.name)}</span>
-          <span style="color:#92400E;"> -- ${escapeHtml(truncateHint(t.hint))}</span>
-        </p>
-      </td>
-    </tr></table>`
+  const namePills = allNames.slice(0, 5).map(name =>
+    `<td style="padding:0 4px 6px 0;"><span style="display:inline-block;padding:4px 10px;background:#FEF9C3;border:1px solid #FDE047;border-radius:6px;font-size:13px;font-weight:600;color:#854D0E;white-space:nowrap;">${escapeHtml(name)}</span></td>`
   ).join("");
 
-  const bookRows = bookTeasers.slice(0, 1).map(b =>
-    `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:8px;"><tr>
-      <td style="padding:10px 14px;background:#FEF9C3;border:1px solid #FDE047;border-radius:8px;">
-        <p style="font-size:13px;margin:0;line-height:1.5;">
-          <span style="font-weight:700;color:#854D0E;">&#128214; ${escapeHtml(b.title)}</span>
-          <span style="color:#92400E;"> -- ${escapeHtml(truncateHint(b.hint))}</span>
-        </p>
-      </td>
-    </tr></table>`
+  const bookPills = bookTitles.slice(0, 1).map(title =>
+    `<td style="padding:0 4px 6px 0;"><span style="display:inline-block;padding:4px 10px;background:#FEF9C3;border:1px solid #FDE047;border-radius:6px;font-size:13px;font-weight:600;color:#854D0E;white-space:nowrap;">&#128214; ${escapeHtml(title)}</span></td>`
   ).join("");
 
-  const shownCount = Math.min(teasers.length, 3) + Math.min(bookTeasers.length, 1);
-  const totalAvailable = totalEntities + totalBooks;
+  const shownCount = Math.min(allNames.length, 5) + Math.min(bookTitles.length, 1);
+  const totalAvailable = allNames.length + bookTitles.length;
   const remaining = Math.max(0, totalAvailable - shownCount);
-
-  let ctaText: string;
-  if (remaining > 0) {
-    ctaText = `${remaining} more ${remaining === 1 ? "name" : "names"} dropped in this episode.`;
-  } else {
-    ctaText = "Get the full breakdown on every name mentioned.";
-  }
+  const moreTag = remaining > 0 ? ` <span style="font-size:13px;color:#A16207;font-weight:500;">+${remaining} more</span>` : "";
 
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:18px;">
     <tr><td style="padding:16px 18px 14px;background:#FEFCE8;border:1px solid #FEF08A;border-radius:12px;">
       <a href="${escapeHtml(recapUrl)}" style="text-decoration:none;display:block;">
-        <p style="font-size:11px;font-weight:700;color:#A16207;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 10px;">Also mentioned in this episode</p>
-        ${teaserRows}${bookRows}
-        <p style="font-size:14px;color:#713F12;line-height:1.5;margin:4px 0 0;">
-          ${ctaText} <span style="color:#6366F1;font-weight:700;text-decoration:underline;">Read full recap &#8594;</span>
+        <p style="font-size:11px;font-weight:700;color:#A16207;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 10px;">Names dropped in this episode</p>
+        <table cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:10px;"><tr style="vertical-align:top;">
+          ${namePills}${bookPills}
+        </tr></table>${moreTag}
+        <p style="font-size:14px;color:#713F12;line-height:1.5;margin:6px 0 0;">
+          Why were they brought up? <span style="color:#6366F1;font-weight:700;text-decoration:underline;">Find out in the full recap &#8594;</span>
         </p>
       </a>
     </td></tr>
