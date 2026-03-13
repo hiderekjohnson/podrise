@@ -146,7 +146,7 @@ const PAGE_SIZE = 36;
 function SEOHead() {
   useEffect(() => {
     const title = "Podcast Bookstore | Books Recommended on Top Podcasts | PodCap";
-    const description = "Discover your next great read based on what the world's top podcasters are recommending. Not bestseller lists — real conversations about books that matter.";
+    const description = "Discover what the world's top podcast hosts and guests actually recommend reading — and why. Real recommendations from real conversations.";
     document.title = title;
     const setOrCreate = (attr: string, key: string, value: string) => {
       const selector = `meta[${attr}="${key}"]`;
@@ -188,9 +188,6 @@ function StarRating({ rating }: { rating: number }) {
 function FeaturedBook({ book }: { book: BookstoreBook }) {
   const hasPage = !!book.slug;
   const buzz = book.podcastBuzz || book.description;
-  const Wrapper = hasPage
-    ? ({ children, className }: { children: React.ReactNode; className?: string }) => <Link href={`/bookstore/${book.slug}`} className={className}>{children}</Link>
-    : ({ children, className }: { children: React.ReactNode; className?: string }) => <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className={className}>{children}</a>;
 
   return (
     <motion.div
@@ -204,39 +201,64 @@ function FeaturedBook({ book }: { book: BookstoreBook }) {
         <div className="flex items-center gap-2 mb-5">
           <Sparkles className="w-4 h-4 text-amber-600" />
           <span className="text-[13px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">
-            Featured Pick
+            Featured Recommendation
           </span>
         </div>
         <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
-          <Wrapper className="shrink-0 self-start">
-            <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
-          </Wrapper>
+          {hasPage ? (
+            <Link href={`/bookstore/${book.slug}`} className="shrink-0 self-start">
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
+            </Link>
+          ) : (
+            <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0 self-start">
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
+            </a>
+          )}
           <div className="flex-1 min-w-0">
-            <Wrapper className="block group">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors" data-testid="featured-book-title">
+            {hasPage ? (
+              <Link href={`/bookstore/${book.slug}`} className="block group">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors" data-testid="featured-book-title">
+                  {book.name}
+                </h2>
+              </Link>
+            ) : (
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight" data-testid="featured-book-title">
                 {book.name}
               </h2>
-            </Wrapper>
+            )}
             {book.author && book.author !== "null" && (
               <p className="text-lg text-muted-foreground mt-1.5">
                 by <AuthorWithLinks author={book.author} />
               </p>
             )}
-            <div className="flex flex-wrap items-center gap-3 mt-3">
-              <span className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.1] px-3 py-1 rounded-full">
-                <Mic className="w-3.5 h-3.5" />
-                {book.mentionCount} mentions across {book.podcastCount} podcasts
-              </span>
-              {book.rating && <StarRating rating={book.rating} />}
-            </div>
+
             {buzz && (
-              <div className="mt-5 flex gap-3">
-                <Quote className="w-5 h-5 text-amber-500/40 shrink-0 mt-0.5" />
-                <p className="text-[15px] text-muted-foreground leading-relaxed italic" data-testid="featured-book-buzz">
-                  {buzz}
+              <div className="mt-4 pl-4 border-l-[3px] border-amber-500/30">
+                <p className="text-[15px] sm:text-[16px] text-[#3F3F46] dark:text-[#D4D4D8] leading-relaxed italic" data-testid="featured-book-buzz">
+                  "{buzz}"
                 </p>
               </div>
             )}
+
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.1] px-2.5 py-1 rounded-full">
+                <Mic className="w-3 h-3" />
+                {book.mentionCount} mentions
+              </span>
+              <span className="text-[13px] text-muted-foreground">
+                across {book.podcastCount} podcasts
+              </span>
+              {book.rating && <StarRating rating={book.rating} />}
+            </div>
+
+            <div className="mt-2">
+              <p className="text-[13px] text-muted-foreground">
+                <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">Heard on:</span>{" "}
+                {book.podcastNames.slice(0, 4).join(", ")}
+                {book.podcastNames.length > 4 && ` + ${book.podcastNames.length - 4} more`}
+              </p>
+            </div>
+
             <div className="mt-5 flex flex-wrap items-center gap-3">
               {hasPage && (
                 <Link
@@ -244,7 +266,7 @@ function FeaturedBook({ book }: { book: BookstoreBook }) {
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                   data-testid="featured-book-view"
                 >
-                  Why podcasters love it
+                  See who recommends it
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               )}
@@ -270,7 +292,7 @@ const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia?
 
 function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) {
   const hasPage = !!book.slug;
-  const displayText = book.podcastBuzz || book.description;
+  const contextText = book.podcastBuzz || book.description;
   const skipAnim = prefersReducedMotion || index > 11;
 
   return (
@@ -312,37 +334,34 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              {book.rating && <StarRating rating={book.rating} />}
-              {book.pageCount && (
-                <span className="text-[13px] text-muted-foreground">
-                  {book.pageCount} pages
+              <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full shrink-0" data-testid={`book-mentions-${index}`}>
+                <Mic className="w-3 h-3" />
+                {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
+              </span>
+              {book.podcastCount > 1 && (
+                <span className="text-[13px] text-muted-foreground" data-testid={`book-podcasts-${index}`}>
+                  {book.podcastCount} podcasts
                 </span>
               )}
+              {book.rating && <StarRating rating={book.rating} />}
             </div>
           </div>
         </div>
 
-        {displayText && (
-          <div className="mt-3 flex gap-2.5">
-            <MessageCircle className="w-3.5 h-3.5 text-amber-500/40 shrink-0 mt-1" />
-            <p className="text-[14px] text-muted-foreground leading-relaxed line-clamp-3" data-testid={`book-buzz-${index}`}>
-              {displayText}
+        {contextText && (
+          <div className="mt-3 pl-3.5 border-l-2 border-amber-500/20">
+            <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed line-clamp-2 italic" data-testid={`book-buzz-${index}`}>
+              "{contextText}"
             </p>
           </div>
         )}
 
         <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04] flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full shrink-0" data-testid={`book-mentions-${index}`}>
-              <Mic className="w-3 h-3" />
-              {book.mentionCount}
-            </span>
-            {book.podcastCount > 1 && (
-              <span className="text-[13px] text-muted-foreground truncate" data-testid={`book-podcasts-${index}`}>
-                on {book.podcastCount} podcasts
-              </span>
-            )}
-          </div>
+          <p className="text-[12px] text-muted-foreground truncate flex-1 min-w-0">
+            <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">Heard on </span>
+            {book.podcastNames.slice(0, 2).join(", ")}
+            {book.podcastNames.length > 2 && ` + ${book.podcastNames.length - 2} more`}
+          </p>
           <div className="shrink-0">
             {hasPage ? (
               <Link
@@ -401,8 +420,7 @@ function DiscoveryShelf({ title, icon, books, description }: { title: string; ic
                 <p className="text-[13px] text-muted-foreground mt-0.5 line-clamp-1">{book.author}</p>
               )}
               <div className="flex items-center gap-1.5 mt-1.5">
-                {book.rating && <StarRating rating={book.rating} />}
-                <span className="text-[13px] text-muted-foreground flex items-center gap-1">
+                <span className="text-[12px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-0.5">
                   <Mic className="w-3 h-3 inline" />
                   {book.podcastCount} {book.podcastCount === 1 ? "podcast" : "podcasts"}
                 </span>
@@ -647,6 +665,18 @@ export default function Bookstore() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const totalBooks = data?.total || 0;
+  const totalMentions = useMemo(() => {
+    if (!data?.books) return 0;
+    return data.books.reduce((sum, b) => sum + b.mentionCount, 0);
+  }, [data]);
+  const totalPodcasts = useMemo(() => {
+    if (!data?.books) return 0;
+    const names = new Set<string>();
+    data.books.forEach(b => b.podcastNames.forEach(n => names.add(n)));
+    return names.size;
+  }, [data]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead />
@@ -655,12 +685,31 @@ export default function Bookstore() {
       <div className="bg-gradient-to-b from-amber-500/[0.04] via-background to-background">
         <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-4">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center text-center gap-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">Podcast Intelligence</span>
+            </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-[1.15]" data-testid="heading-bookstore">
-              What should you read next?
+              The reading list behind the world's best podcasts
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-bookstore-subtitle">
-              Discover books the world's top podcasters keep coming back to. Not bestseller lists — real conversations about books that matter.
+              Discover what hosts and guests actually recommend reading — and why. Real recommendations from real conversations, not bestseller algorithms.
             </p>
+            {!isLoading && totalBooks > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 mt-2 text-[14px] text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="font-semibold text-foreground">{totalBooks.toLocaleString()}</span> books
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MessageCircle className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="font-semibold text-foreground">{totalMentions.toLocaleString()}</span> recommendations
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Mic className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="font-semibold text-foreground">{totalPodcasts}</span> podcasts
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-3 mt-2">
               <button
                 onClick={() => setShowSearch(!showSearch)}
@@ -691,6 +740,7 @@ export default function Bookstore() {
                     ref={searchInputRef}
                     type="text"
                     placeholder="Search by title, author, or topic..."
+                    aria-label="Search books by title, author, or topic"
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); if (e.target.value) { setSelectedTopic(null); setSelectedLength(null); } }}
                     className="w-full pl-12 pr-10 py-3.5 text-[17px] bg-card border border-black/[0.1] dark:border-white/[0.1] rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/40 transition-all shadow-sm"
@@ -755,28 +805,28 @@ export default function Bookstore() {
 
           <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
             <DiscoveryShelf
-              title="The Books That Keep Coming Up"
+              title="Recommended Across the Most Podcasts"
               icon={TrendingUp}
               books={curatedShelves.trending}
-              description="Mentioned again and again across different podcasts"
+              description="These books keep coming up in conversation after conversation"
             />
             <DiscoveryShelf
-              title="Podcasters Can't Stop Talking About These"
+              title="Hosts Can't Stop Recommending These"
               icon={MessageCircle}
               books={curatedShelves.buzzworthy}
-              description="Books generating the most conversation right now"
+              description="The books generating the most enthusiastic recommendations right now"
             />
             <DiscoveryShelf
               title="Universally Loved"
               icon={Star}
               books={curatedShelves.highRated}
-              description="Top-rated books recommended by podcast hosts"
+              description="Top-rated books recommended by podcast hosts and guests"
             />
             <DiscoveryShelf
               title="Just Published & Already Buzzing"
               icon={Sparkles}
               books={curatedShelves.newReleases}
-              description="Recent releases making waves in the podcast world"
+              description="Recent releases making waves across podcast conversations"
             />
             <DiscoveryShelf
               title="Weekend Reads"
@@ -843,7 +893,7 @@ export default function Bookstore() {
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-600" />
               <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
-                {searchQuery ? "Search Results" : selectedTopic ? selectedTopic : "Browse All Books"}
+                {searchQuery ? "Search Results" : selectedTopic ? selectedTopic : "Browse All Recommendations"}
               </h2>
               {(searchQuery || selectedTopic || selectedLength) && (
                 <span className="text-[13px] font-mono text-[#52525B] ml-1">

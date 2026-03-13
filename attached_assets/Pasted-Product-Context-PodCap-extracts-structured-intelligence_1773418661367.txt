@@ -1,0 +1,78 @@
+Product Context
+
+PodCap extracts structured intelligence from podcast conversations. The most valuable pages on the site are the topic, industry, people, company, and book pages, because those pages synthesize insights and explain what experts are saying.
+
+The Trends page serves a different purpose. It is primarily a discovery layer that helps users see what conversations are gaining momentum across podcasts. It should act as a gateway that drives users deeper into the higher-value pages.
+
+Problem
+
+Right now the relationship between the Trends page and the deeper intelligence pages is not clearly expressed.
+
+The industry and topic pages contain the most meaningful insight, but the Trends page risks feeling like a standalone dashboard rather than a discovery layer that leads users into deeper analysis.
+
+We want the Trends experience to help users notice something interesting and then click into the pages where the real intelligence lives.
+
+Product Principle
+
+Think of the product as having two layers:
+
+Layer 1: Discovery
+The Trends page shows what is gaining momentum across podcasts. It should feel dynamic and exploratory.
+
+Layer 2: Intelligence
+Industry, topic, company, person, and book pages synthesize the insights behind those trends.
+
+The product should naturally guide users from discovery into deeper understanding.
+
+Goals for the Trends Page
+
+When a user lands on the Trends page, they should be able to quickly see:
+
+• what topics are gaining attention
+• which people or companies are being discussed more
+• what conversations are accelerating across podcasts
+
+The page should encourage curiosity and exploration.
+
+However, the page should also clearly guide users into deeper pages where PodCap provides more insight.
+
+Design Direction
+
+Please rethink the Trends page so that it functions primarily as a discovery engine that feeds traffic into deeper intelligence pages.
+
+The experience should emphasize exploration and momentum, while naturally encouraging users to click into:
+
+• topic pages
+• industry pages
+• people pages
+• company pages
+
+The deeper pages should feel like the place where the user actually understands the topic.
+
+You have freedom to rethink:
+
+• the hierarchy of information on the Trends page
+• how trends are grouped or categorized
+• how discovery modules lead into deeper pages
+• how the interface encourages exploration
+
+The goal is to make the discovery layer feel interesting while clearly guiding users toward the pages that contain the real value.
+
+Success Criteria
+
+A user landing on the Trends page should feel like they are seeing a map of what conversations are happening right now across podcasts.
+
+But the page should naturally lead them to click into deeper pages where they can understand:
+
+• why something is trending
+• who is discussing it
+• what the key insights are
+
+Guiding Idea
+
+The Trends page should feel like the radar screen for podcast conversations.
+
+The topic, industry, people, company, and book pages should feel like the analysis and intelligence behind those signals.
+
+The Trends page sparks curiosity.
+The deeper pages deliver understanding.

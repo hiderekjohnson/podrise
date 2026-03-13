@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { Loader2, Mail, Shield, Zap, BookOpen, Bell } from "lucide-react";
-import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
+import { PodCapWordmark } from "@/components/PodCapHeader";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -14,7 +12,6 @@ export default function Register() {
   const { mutate: register, isPending } = useRegister();
 
   const [email, setEmail] = useState("");
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     document.title = "Create Your Free Account | PodCap";
@@ -45,11 +42,6 @@ export default function Register() {
       return;
     }
 
-    if (!agreedToTerms) {
-      toast({ title: "Terms required", description: "Please agree to the Terms of Service and Privacy Policy to continue.", variant: "destructive" });
-      return;
-    }
-
     register(
       { email: email.trim(), podcasts: [] },
       {
@@ -67,156 +59,89 @@ export default function Register() {
     );
   };
 
-  const benefits = [
-    { icon: Zap, title: "AI Episode Recaps", desc: "Key takeaways from every episode in minutes, not hours" },
-    { icon: BookOpen, title: "Books & Resources", desc: "Every book and resource mentioned, linked and organized" },
-    { icon: Bell, title: "Daily Intelligence", desc: "Curated briefings on the topics you care about" },
-    { icon: Shield, title: "100% Free", desc: "No credit card required. Unsubscribe anytime" },
-  ];
-
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <SiteHeader />
+    <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col">
+      <header className="w-full px-6 sm:px-10 py-5">
+        <Link href="/" data-testid="link-home-logo">
+          <PodCapWordmark />
+        </Link>
+      </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16">
-        <div className="w-full max-w-[960px] flex flex-col lg:flex-row gap-10 lg:gap-16 items-center lg:items-start">
-
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex-1 max-w-md lg:max-w-none lg:pt-4"
-          >
-            <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em] mb-3" data-testid="heading-register">
-              Your podcast intelligence layer
+      <main className="flex-1 flex items-center justify-center px-4 pb-16">
+        <div className="w-full max-w-[440px]">
+          <div className="text-center mb-8">
+            <h1 className="text-[1.75rem] sm:text-[2rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em]" data-testid="heading-register">
+              Create your free account
             </h1>
-            <p className="text-base sm:text-lg text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-8 max-w-md">
-              Stop listening to hours of podcasts. Get the insights that matter, delivered to your inbox.
+            <p className="text-[15px] sm:text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-2">
+              100% free. No credit card needed.
             </p>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {benefits.map((b, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
-                  className="flex gap-3 items-start"
-                  data-testid={`benefit-${i}`}
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0 mt-0.5">
-                    <b.icon className="w-4.5 h-4.5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-[15px] font-bold text-foreground">{b.title}</p>
-                    <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-snug mt-0.5">{b.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="w-full max-w-[400px] shrink-0"
-          >
-            <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-8">
-              <div className="text-center mb-6">
-                <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-xl font-display font-extrabold text-foreground" data-testid="heading-form">
-                  Create your free account
-                </h2>
-                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mt-1.5">
-                  No credit card required
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-register">
-                <div>
-                  <label htmlFor="register-email" className="block text-[14px] font-semibold text-foreground mb-1.5">
-                    Email address
-                  </label>
-                  <input
-                    id="register-email"
-                    data-testid="input-email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full h-[48px] px-4 bg-background border-[1.5px] border-[#D4D4D8] dark:border-white/[0.12] rounded-xl text-foreground text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-[#A1A1AA]"
-                    required
-                  />
-                </div>
-
-                <div className="flex items-start gap-2.5">
-                  <input
-                    id="agree-terms"
-                    data-testid="checkbox-terms"
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-[#D4D4D8] text-primary focus:ring-primary/20 accent-primary cursor-pointer"
-                  />
-                  <label htmlFor="agree-terms" className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-snug cursor-pointer select-none">
-                    I agree to the{" "}
-                    <Link href="/terms" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-terms">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/privacy" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-privacy">
-                      Privacy Policy
-                    </Link>
-                  </label>
-                </div>
-
+          <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-register">
+            <div>
+              <label htmlFor="register-email" className="block text-[14px] font-semibold text-foreground mb-1.5">
+                Email address <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-3">
+                <input
+                  id="register-email"
+                  data-testid="input-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="flex-1 h-[44px] px-4 bg-white dark:bg-zinc-900 border border-[#D4D4D8] dark:border-white/[0.15] rounded-lg text-foreground text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-[#A1A1AA]"
+                  required
+                />
                 <button
                   data-testid="button-register"
                   type="submit"
                   disabled={isPending}
-                  className="w-full h-[48px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[16px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98]"
+                  aria-busy={isPending}
+                  className="h-[44px] px-5 flex items-center justify-center gap-2 rounded-lg font-semibold text-[15px] bg-primary text-primary-foreground hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
                 >
                   {isPending ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="sr-only">Creating account…</span>
+                    </>
                   ) : (
-                    "Get Started — It's Free"
+                    "Get started"
                   )}
                 </button>
-              </form>
-
-              <p className="text-center text-[13px] text-[#71717A] dark:text-[#A1A1AA]/70 mt-5">
-                Already have an account?{" "}
-                <Link href="/login" className="text-primary font-semibold hover:text-primary/80 transition-colors" data-testid="link-login">
-                  Sign in
-                </Link>
-              </p>
-
-              <div className="mt-6 pt-5 border-t border-black/[0.06] dark:border-white/[0.06]">
-                <div className="flex items-center justify-center gap-5 text-[12px] text-[#A1A1AA]">
-                  <span className="flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5" />
-                    Secure & encrypted
-                  </span>
-                  <span className="w-px h-3 bg-black/[0.08] dark:bg-white/[0.08]" />
-                  <span>No spam, ever</span>
-                  <span className="w-px h-3 bg-black/[0.08] dark:bg-white/[0.08]" />
-                  <span>Unsubscribe anytime</span>
-                </div>
               </div>
             </div>
 
-            <p className="text-center text-[12px] text-[#A1A1AA] mt-4 px-4">
-              By creating an account, you consent to receive email communications from PodCap. You can manage your preferences or unsubscribe at any time from your dashboard.
+            <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA]/70 leading-relaxed">
+              By creating an account, you agree to our{" "}
+              <Link href="/terms" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-terms">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-privacy">
+                Privacy Policy
+              </Link>.
+              We may contact you with relevant content and services. You can unsubscribe at any time.
             </p>
-          </motion.div>
+          </form>
+
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-[#E4E4E7] dark:bg-white/[0.08]" />
+            <span className="text-[13px] text-[#A1A1AA] font-medium">OR</span>
+            <div className="flex-1 h-px bg-[#E4E4E7] dark:bg-white/[0.08]" />
+          </div>
+
+          <Link
+            href="/login"
+            className="flex items-center justify-center w-full h-[44px] rounded-lg border border-[#D4D4D8] dark:border-white/[0.15] text-[15px] font-semibold text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors"
+            data-testid="link-login"
+          >
+            Have an account? Sign in
+          </Link>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

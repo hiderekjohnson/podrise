@@ -1,0 +1,75 @@
+Product Context
+PodCap analyzes conversations from top podcasts and extracts structured knowledge from them. One key output is identifying books that influential people recommend or discuss during those conversations.
+
+Each book page should act as the central hub for understanding why a book keeps coming up in high-signal conversations.
+
+The page is not meant to function like a normal book listing. It should function more like an intelligence page about the book’s impact and why credible people recommend it.
+
+Problem
+The current book pages behave too much like a standard book information page. They contain the book description and some metadata, but they do not fully highlight the most valuable insight PodCap has: the context behind why influential people recommend the book.
+
+Right now the page risks feeling similar to Amazon or Goodreads. Those sites already show descriptions, ratings, and reviews.
+
+PodCap’s advantage is different. We capture who recommended the book, where they said it, and why they think the book matters.
+
+The product currently underemphasizes that recommendation context.
+
+Product Principle
+The book page should answer the question:
+
+Why do smart people keep recommending this book?
+
+The goal is not simply to show information about the book. The goal is to surface the reasoning and insights behind the recommendation.
+
+Users should feel like they are seeing the conversation behind the reading list.
+
+Goals for the Experience
+When a user lands on a book page, they should quickly understand:
+	1.	Why this book keeps coming up in podcasts
+	2.	Which credible people are recommending it
+	3.	What those people specifically say about why the book matters
+	4.	Where the recommendations came from
+
+The page should help users decide quickly whether the book is worth reading based on high-signal insights.
+
+Design Direction
+Please rethink the individual book page so that it emphasizes recommendation context and insight rather than basic book metadata.
+
+The most valuable data we have is:
+
+• who recommended the book
+• what they said about it
+• which podcast the conversation came from
+• how frequently the book appears across conversations
+
+These elements should be prominent and easy to scan.
+
+The page should feel more like a curated collection of high-signal recommendations rather than a product page.
+
+You have freedom to rethink:
+
+• page hierarchy and structure
+• how recommendation quotes are displayed
+• how people and podcasts are surfaced
+• how the “why this book matters” insight is communicated
+• how conversations or excerpts are presented
+
+The experience should feel editorial, intelligent, and insight-driven.
+
+Success Criteria
+A user landing on the page should immediately understand:
+
+• why the book is important
+• who is recommending it
+• what they specifically say about it
+
+The page should encourage exploration of the recommendation context, including the podcasts and people connected to the book.
+
+Guiding Idea
+The purpose of a book page on PodCap is not to describe the book.
+
+The purpose is to explain why influential people keep telling others to read it.
+
+If the page is working well, a user should feel like they are reading a collection of the smartest reasons people give for why the book matters.
+
+If it helps, think of the page as surfacing the conversation around the book, not just the book itself.
