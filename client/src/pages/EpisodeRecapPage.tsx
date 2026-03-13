@@ -1,13 +1,14 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp, Mail, CheckCircle2, ArrowRight, Clock } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp, Mail, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
+import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -518,9 +519,7 @@ export default function EpisodeRecapPage() {
   const [showAllBooks, setShowAllBooks] = useState(false);
   const chatRef = useRef<ChatContextRef | null>(null);
   const { toast } = useToast();
-  const [updateEmail, setUpdateEmail] = useState("");
-  const [updateSubmitting, setUpdateSubmitting] = useState(false);
-  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showUpdatesModal, setShowUpdatesModal] = useState(false);
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
     queryKey: ["/api/podcasts", podcastSlug, "recaps", episodeSlug],
@@ -733,7 +732,6 @@ export default function EpisodeRecapPage() {
       "section-mentions",
       "section-books",
       "section-quotes",
-      "section-get-updates",
     ];
 
     const handleScroll = () => {
@@ -825,29 +823,6 @@ export default function EpisodeRecapPage() {
     window.scrollTo({ top, behavior: "smooth" });
   };
 
-  const handleUpdateSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!updateEmail || updateSubmitting) return;
-    setUpdateSubmitting(true);
-    try {
-      await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
-        email: updateEmail,
-        type: "podcast",
-        slug: podcastSlug,
-        name: episode.podcastName,
-      });
-      setUpdateSuccess(true);
-      toast({ title: "You're in!", description: `You'll get ${episode.podcastName} recaps in your inbox.` });
-    } catch (err: any) {
-      toast({
-        title: "Something went wrong",
-        description: err.message?.includes("400") ? "This email is already subscribed." : "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdateSubmitting(false);
-    }
-  };
 
   const epHostNames = podcastConfig?.hosts
     ? podcastConfig.hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean)
@@ -935,8 +910,8 @@ export default function EpisodeRecapPage() {
             </button>
           )}
           <button
-            onClick={() => scrollTo("section-get-updates")}
-            className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${activeSection === "section-get-updates" ? "bg-primary/[0.12] text-primary" : "text-primary/70 hover:text-primary hover:bg-primary/[0.06]"}`}
+            onClick={() => setShowUpdatesModal(true)}
+            className="px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
             data-testid="nav-get-updates"
           >
             <Mail className="w-4 h-4" />
@@ -1368,57 +1343,15 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        <section id="section-get-updates" className="bg-gradient-to-br from-primary/[0.04] to-violet-500/[0.04] border border-primary/[0.12] rounded-2xl overflow-hidden shadow-sm" data-testid="section-get-updates">
-          <div className="px-4 sm:px-6 py-8 sm:py-10">
-            <div className="max-w-lg mx-auto text-center">
-              <div className="w-14 h-14 rounded-2xl bg-primary/[0.1] flex items-center justify-center mx-auto mb-5">
-                <Mail className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-tight mb-3" data-testid="heading-get-updates">
-                {epHostNames.length > 0
-                  ? `Don't miss a word from ${epHostNames.length <= 2 ? epHostNames.join(" & ") : epHostNames.slice(0, 2).join(", ") + " & crew"}`
-                  : `Never miss an episode of ${episode.podcastName}`}
-              </h3>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-6">
-                Get a concise recap of every <span className="font-semibold text-foreground">{episode.podcastName}</span> episode — the key takeaways in minutes, not hours.
-              </p>
-
-              {updateSuccess ? (
-                <div className="py-4" data-testid="update-signup-success">
-                  <div className="w-12 h-12 rounded-2xl bg-green-500/[0.1] flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
-                  </div>
-                  <p className="text-lg font-display font-bold text-foreground mb-1">You're all set!</p>
-                  <p className="text-sm text-muted-foreground">We'll send you recaps as new episodes drop.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleUpdateSignup} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" data-testid="form-get-updates">
-                  <input
-                    data-testid="input-email-get-updates"
-                    type="email"
-                    value={updateEmail}
-                    onChange={(e) => setUpdateEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    required
-                    className="flex-1 h-[48px] px-4 bg-white dark:bg-zinc-900 border-[1.5px] border-[#D4D4D8] dark:border-white/[0.12] rounded-xl text-foreground text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-[#71717A] shadow-sm shadow-black/[0.03]"
-                  />
-                  <button
-                    data-testid="button-signup-get-updates"
-                    type="submit"
-                    disabled={updateSubmitting}
-                    className="min-h-[48px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[16px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
-                  >
-                    {updateSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Subscribe free <ArrowRight className="w-4 h-4" /></>}
-                  </button>
-                </form>
-              )}
-
-              <p className="text-xs text-muted-foreground mt-4">Free forever. No spam. Unsubscribe anytime.</p>
-            </div>
-          </div>
-        </section>
-
       </motion.article>
+
+      <GetRecapsModal
+        open={showUpdatesModal}
+        onClose={() => setShowUpdatesModal(false)}
+        podcastName={episode.podcastName}
+        artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl}
+        itunesId={podcastConfig?.itunesId || ""}
+      />
 
       <EpisodeChatPanelWithRef
         ref={chatRef}

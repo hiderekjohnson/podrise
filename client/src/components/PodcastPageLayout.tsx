@@ -70,7 +70,6 @@ export function PodcastPageLayout({
       "section-episodes",
       "section-discover",
       "section-books",
-      "section-get-recaps",
     ];
 
     const handleScroll = () => {
@@ -135,11 +134,11 @@ export function PodcastPageLayout({
     doRegister(stickyEmail);
   };
 
-  const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean }[] = [
+  const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean; action?: () => void }[] = [
     { id: "section-episodes", label: "Episode Recaps", icon: Mic },
     { id: "section-discover", label: "Discover", icon: Compass },
     { id: "section-books", label: "Reading", icon: BookOpen },
-    { id: "section-get-recaps", label: "Get Recaps", icon: Mail, accent: true },
+    { id: "get-recaps-modal", label: "Get Recaps", icon: Mail, accent: true, action: () => setShowRecapsModal(true) },
   ];
 
   return (
@@ -263,12 +262,12 @@ export function PodcastPageLayout({
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollTo(item.id)}
+                onClick={() => item.action ? item.action() : scrollTo(item.id)}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${
-                  activeSection === item.id
-                    ? "bg-primary/[0.12] text-primary"
-                    : item.accent
-                      ? "text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
+                  item.action
+                    ? "text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
+                    : activeSection === item.id
+                      ? "bg-primary/[0.12] text-primary"
                       : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"
                 }`}
                 data-testid={`tab-${item.id.replace("section-", "")}`}
