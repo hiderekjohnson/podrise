@@ -132,12 +132,6 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
                     {podcast.frequency}
                   </span>
                 )}
-                {stat && (
-                  <span className="flex items-center gap-1">
-                    <Mic className="w-3 h-3" />
-                    {stat.episodeCount} recaps
-                  </span>
-                )}
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
@@ -228,19 +222,13 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
           {podcast.description}
         </p>
         <div className="flex items-center gap-3 text-[12px] text-muted-foreground/60">
-          {stat && stat.episodeCount > 0 && (
-            <span className="flex items-center gap-1">
-              <Play className="w-3 h-3" />
-              {stat.episodeCount} recaps
-            </span>
-          )}
           {podcast.frequency && (
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {podcast.frequency.replace(/ per week/i, "/wk").replace(/ episodes/i, " ep").replace(/Twice/i, "2x")}
             </span>
           )}
-          {!stat?.episodeCount && !podcast.frequency && (
+          {!podcast.frequency && (
             <span className="truncate">{podcast.category}</span>
           )}
         </div>
@@ -406,7 +394,7 @@ export default function PodcastsExplorer() {
               What should you listen to?
             </h1>
             <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-xl mx-auto leading-relaxed" data-testid="text-page-description">
-              {PODCAST_LANDINGS.length} podcasts, each with AI-generated recaps. Find yours.
+              Podcasts with AI-generated recaps. Find yours.
             </p>
           </motion.div>
 
@@ -497,9 +485,6 @@ export default function PodcastsExplorer() {
               >
                 <CatIcon className="w-3.5 h-3.5" />
                 {label}
-                {key !== "all" && categoryCounts[key] && (
-                  <span className="text-[11px] text-muted-foreground/50 ml-0.5">{categoryCounts[key]}</span>
-                )}
               </button>
             ))}
             {(isFiltering || isSearching) && (
