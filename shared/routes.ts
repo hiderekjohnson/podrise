@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertUserSchema } from './schema';
+import { insertUserSchema, quickSubscribeSchema } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -18,6 +18,10 @@ const userResponseSchema = z.object({
   id: z.number(),
   email: z.string(),
   podcasts: z.array(z.string()),
+  industries: z.array(z.string()).optional(),
+  interests: z.array(z.string()).optional(),
+  roles: z.array(z.string()).optional(),
+  topicFrequencies: z.record(z.string(), z.string()).nullable().optional(),
   deliveryTime: z.string(),
   deliveryTimezone: z.string(),
   plan: z.string().optional(),
@@ -70,6 +74,10 @@ export const api = {
       input: z.object({
         email: z.string().email().optional(),
         podcasts: z.array(z.string()).min(1, "Select at least one podcast").optional(),
+        industries: z.array(z.string()).optional(),
+        interests: z.array(z.string()).optional(),
+        roles: z.array(z.string()).optional(),
+        topicFrequencies: z.record(z.string(), z.enum(["daily", "weekly"])).optional(),
         deliveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
         deliveryTimezone: z.string().optional(),
         vacationUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format").nullable().optional(),
@@ -78,6 +86,17 @@ export const api = {
         200: userResponseSchema,
         400: errorSchemas.validation,
         401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  subscriptions: {
+    quickSubscribe: {
+      method: 'POST' as const,
+      path: '/api/subscriptions/quick-subscribe' as const,
+      input: quickSubscribeSchema,
+      responses: {
+        200: z.object({ message: z.string(), user: userResponseSchema, isNew: z.boolean() }),
+        400: errorSchemas.validation,
       },
     },
   },

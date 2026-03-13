@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Receipt, Trash2, AlertTriangle } from "lucide-react";
+import { useLocation, Link } from "wouter";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Receipt, Trash2, AlertTriangle, Tag, Brain, Rocket, Lightbulb, BarChart3, Wallet, Users, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Hammer, Briefcase } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import ReactMarkdown from "react-markdown";
 import { PodCapWordmark } from "@/components/PodCapHeader";
+import { TOPICS, getCategoryPath, type TopicConfig } from "@/data/topicData";
+
+const TOPIC_ICON_MAP: Record<string, any> = {
+  Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users,
+  Megaphone, Handshake, Zap, GitFork, Sparkles, Cpu, LineChart, Building2,
+  Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe,
+  UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase,
+};
 
 interface SelectedPodcast {
   id: string;
@@ -37,7 +45,7 @@ interface LeaderboardPodcast {
   genres: string[];
 }
 
-type TabKey = "podcasts" | "settings" | "recaps" | "plan";
+type TabKey = "podcasts" | "topics" | "settings" | "recaps" | "plan";
 
 function parsePodcasts(raw: string[]): SelectedPodcast[] {
   return raw.map((item) => {
@@ -74,6 +82,7 @@ function fixMarkdownLinks(md: string): string {
 
 const TABS: { key: TabKey; label: string; icon: typeof Podcast }[] = [
   { key: "podcasts", label: "Podcasts", icon: Podcast },
+  { key: "topics", label: "Topics", icon: Tag },
   { key: "recaps", label: "Recaps", icon: FileText },
   { key: "settings", label: "Settings", icon: Settings },
   { key: "plan", label: "Your Plan", icon: CreditCard },
@@ -288,7 +297,7 @@ export default function Dashboard() {
     }
     if (params.get("tab")) {
       const t = params.get("tab") as TabKey;
-      if (["podcasts", "settings", "recaps", "plan"].includes(t)) setActiveTab(t);
+      if (["podcasts", "topics", "settings", "recaps", "plan"].includes(t)) setActiveTab(t);
       window.history.replaceState({}, "", "/dashboard");
     }
   }, [user]);
@@ -792,6 +801,126 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === "topics" && (
+            <motion.div
+              key="topics"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-5"
+            >
+              {(["industry", "interest", "role"] as const).map((category) => {
+                const categoryLabel = category === "industry" ? "Industries" : category === "interest" ? "Interests" : "Roles";
+                const fieldName = category === "industry" ? "industries" : category === "interest" ? "interests" : "roles";
+                const userSlugs: string[] = (user as any)?.[fieldName] || [];
+                const subscribedTopics = TOPICS.filter(t => t.category === category && userSlugs.includes(t.slug));
+                const availableTopics = TOPICS.filter(t => t.category === category && !userSlugs.includes(t.slug));
+
+                return (
+                  <div key={category} className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden" data-testid={`section-${fieldName}`}>
+                    <div className="px-6 pt-5 pb-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base font-display font-bold text-foreground" data-testid={`heading-${fieldName}`}>
+                          {categoryLabel}
+                        </h2>
+                        <span className="text-[15px] font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-full">
+                          {subscribedTopics.length}
+                        </span>
+                      </div>
+                      <Link
+                        href={getCategoryPath(category)}
+                        className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors"
+                        data-testid={`link-browse-${fieldName}`}
+                      >
+                        Browse all
+                      </Link>
+                    </div>
+
+                    {subscribedTopics.length > 0 ? (
+                      <div className="px-6 pb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {subscribedTopics.map((topic) => {
+                            const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
+                            return (
+                              <div
+                                key={topic.slug}
+                                className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/20 bg-primary/[0.04] transition-all"
+                                data-testid={`topic-subscribed-${topic.slug}`}
+                              >
+                                <div className={`w-7 h-7 rounded-md bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
+                                  <TIcon className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <span className="text-[14px] font-semibold text-foreground">{topic.name}</span>
+                                <button
+                                  onClick={() => {
+                                    const newList = userSlugs.filter(s => s !== topic.slug);
+                                    updateUser({ [fieldName]: newList });
+                                  }}
+                                  className="ml-1 w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                  data-testid={`button-unsubscribe-${topic.slug}`}
+                                  aria-label={`Unsubscribe from ${topic.name}`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="px-6 pb-5">
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-black/[0.02] border border-dashed border-black/[0.08]" data-testid={`empty-${fieldName}`}>
+                          <Tag className="w-5 h-5 text-muted-foreground/40" />
+                          <p className="text-[14px] text-muted-foreground">
+                            You're not following any {categoryLabel.toLowerCase()} yet. Add some below to get briefings.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {availableTopics.length > 0 && (
+                      <div className="px-6 pb-5 pt-1 border-t border-black/[0.04]">
+                        <p className="text-[13px] font-medium text-muted-foreground mb-3">Add {categoryLabel.toLowerCase()}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {availableTopics.slice(0, 12).map((topic) => {
+                            const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
+                            return (
+                              <button
+                                key={topic.slug}
+                                onClick={() => {
+                                  const newList = [...userSlugs, topic.slug];
+                                  updateUser({ [fieldName]: newList });
+                                }}
+                                className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-white hover:border-primary/20 hover:bg-primary/[0.02] transition-all cursor-pointer"
+                                data-testid={`button-subscribe-${topic.slug}`}
+                              >
+                                <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
+                                  <TIcon className="w-3 h-3 text-white" />
+                                </div>
+                                <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors">{topic.name}</span>
+                                <Plus className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                              </button>
+                            );
+                          })}
+                          {availableTopics.length > 12 && (
+                            <Link
+                              href={getCategoryPath(category)}
+                              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
+                              data-testid={`link-more-${fieldName}`}
+                            >
+                              +{availableTopics.length - 12} more
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </motion.div>
           )}
 

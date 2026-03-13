@@ -10,6 +10,7 @@ import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryDat
 import { SiteHeader } from "@/components/SiteHeader";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPIC_TO_TOPICS_PAGE_MAP, PODCAST_CATEGORIES, getPodcastsForTopic } from "@/data/podcastCategoryData";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 
 const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users: Users,
@@ -732,6 +733,22 @@ export default function TopicDetailPage() {
                 </motion.div>
               ))}
             </div>
+          </motion.section>
+        )}
+
+        {topic && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            className="mb-8"
+          >
+            <NewsletterSignup
+              type={topic.category}
+              slug={topic.slug}
+              name={topicDisplayName}
+              variant="banner"
+            />
           </motion.section>
         )}
 

@@ -611,6 +611,72 @@ export async function registerRoutes(
     }
   });
 
+  app.post(api.subscriptions.quickSubscribe.path, async (req, res) => {
+    try {
+      const input = api.subscriptions.quickSubscribe.input.parse(req.body);
+
+      if (!/^[a-z0-9][a-z0-9-]{0,80}$/.test(input.slug)) {
+        return res.status(400).json({ message: "Invalid topic slug", field: "slug" });
+      }
+
+      let user = await storage.getUserByEmail(input.email);
+      let isNew = false;
+
+      if (!user) {
+        try {
+          user = await storage.createUser({
+            email: input.email,
+            podcasts: input.type === "podcast" ? [input.slug] : [],
+            industries: input.type === "industry" ? [input.slug] : [],
+            interests: input.type === "interest" ? [input.slug] : [],
+            roles: input.type === "role" ? [input.slug] : [],
+            topicFrequencies: { [input.slug]: "daily" },
+          });
+          isNew = true;
+
+          sendNewUserNotification(user, req, `quick-subscribe-${input.type}`).catch((err) =>
+            console.error("[NewUserNotify] Failed:", err)
+          );
+
+          req.session.userId = user.id;
+        } catch (createErr: any) {
+          if (createErr.code === "23505") {
+            user = await storage.getUserByEmail(input.email);
+            if (!user) throw createErr;
+          } else {
+            throw createErr;
+          }
+        }
+      }
+
+      if (!isNew) {
+        const field = input.type === "podcast" ? "podcasts"
+          : input.type === "industry" ? "industries"
+          : input.type === "interest" ? "interests"
+          : "roles";
+
+        const currentList: string[] = (user as any)[field] || [];
+        if (!currentList.includes(input.slug)) {
+          const updates: any = { [field]: [...currentList, input.slug] };
+          const currentFreqs = (user.topicFrequencies as Record<string, string>) || {};
+          updates.topicFrequencies = { ...currentFreqs, [input.slug]: "daily" };
+          user = await storage.updateUser(user.id, updates);
+        }
+      }
+
+      const safeUser = { id: user.id, email: user.email, subscribed: true };
+      res.json({ message: `Subscribed to ${input.name || input.slug}`, user: safeUser, isNew });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join("."),
+        });
+      }
+      throw err;
+    }
+  });
+
   app.post(api.auth.login.path, async (req, res) => {
     try {
       const input = api.auth.login.input.parse(req.body);

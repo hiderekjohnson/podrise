@@ -6,6 +6,10 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   podcasts: text("podcasts").array().notNull(),
+  industries: text("industries").array().notNull().default([]),
+  interests: text("interests").array().notNull().default([]),
+  roles: text("roles").array().notNull().default([]),
+  topicFrequencies: jsonb("topic_frequencies").default({}),
   deliveryTime: text("delivery_time").notNull().default("07:00"),
   deliveryTimezone: text("delivery_timezone").notNull().default("America/New_York"),
   stripeCustomerId: text("stripe_customer_id"),
@@ -23,13 +27,25 @@ export const insertUserSchema = createInsertSchema(users).omit({
   podcasts: z.array(z.string()).min(1, "Select at least one podcast"),
   deliveryTime: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format").optional(),
   deliveryTimezone: z.string().optional(),
+  industries: z.array(z.string()).optional(),
+  interests: z.array(z.string()).optional(),
+  roles: z.array(z.string()).optional(),
+  topicFrequencies: z.record(z.string(), z.enum(["daily", "weekly"])).optional(),
 });
+
+export const quickSubscribeSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  type: z.enum(["podcast", "industry", "interest", "role"]),
+  slug: z.string().min(1),
+  name: z.string().optional(),
+});
+export type QuickSubscribeRequest = z.infer<typeof quickSubscribeSchema>;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type CreateUserRequest = InsertUser;
-export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "podcasts" | "deliveryTime" | "deliveryTimezone">> & { vacationUntil?: string | null };
+export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "podcasts" | "deliveryTime" | "deliveryTimezone" | "industries" | "interests" | "roles" | "topicFrequencies">> & { vacationUntil?: string | null };
 export type UserResponse = User;
 
 export const recaps = pgTable("recaps", {
