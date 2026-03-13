@@ -24,8 +24,8 @@ function hiResArtwork(url: string) {
 }
 
 function SEOHead() {
-  const title = "PodCap - Search What the World Is Saying";
-  const description = "Podcasts are the last unsearchable corner of the internet. PodCap indexes, analyzes, and structures the world's most influential podcast conversations. Discover insights by topic, explore entity pages, and get analyst-grade briefings delivered to your inbox.";
+  const title = "PodCap - The Intelligence Layer for Podcasts";
+  const description = "Know what the smartest people in your industry are talking about, without listening to everything. PodCap monitors hundreds of top podcasts and delivers structured intelligence by topic, company, or person -- so you stay current in minutes, not hours.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -78,10 +78,10 @@ export default function Home() {
               Podcast Intelligence Platform
             </div>
             <h1 className="text-[2.5rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
-              The world's smartest people are talking. Now you can find what they said.
+              Always know what the smartest people in your industry are saying
             </h1>
             <p className="text-lg sm:text-xl text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
-              Podcasts are the last unsearchable corner of the internet. PodCap indexes, analyzes, and structures the world's most influential podcast conversations so you can search them, skim them, and act on them - without listening to every episode.
+              PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's most influential shows and deliver structured briefings so you stay current on what matters -- without listening to everything.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <button
@@ -109,9 +109,9 @@ export default function Home() {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Search className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-1">Search every conversation</h3>
+              <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-1">Pick your industries or your podcasts</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
-                AI-powered recaps and structured insights. Find exactly what was discussed about any topic, company, or person across thousands of podcast episodes.
+                Follow the topics that matter to your work, or choose specific shows you want to track. Either way, you get structured intelligence on exactly what was discussed.
               </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
@@ -120,16 +120,16 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-2">Analyst-grade briefings</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
-                Every episode distilled into structured intelligence: key arguments, notable quotes, companies discussed, and actionable takeaways you can act on.
+                Every episode distilled into structured intelligence: key arguments, notable quotes, companies discussed, and actionable takeaways -- like having a research analyst listen to everything for you.
               </p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-7 sm:p-8 flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-3">Intelligence, delivered</h3>
+              <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-3">Intelligence, delivered daily</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
-                Subscribe to any podcast and receive daily briefings in your inbox. Like having a research analyst digesting every episode and sending you what matters.
+                Subscribe to topics or specific podcasts and receive daily briefings in your inbox. Stay current on what the sharpest minds in your field are saying, every morning.
               </p>
             </div>
           </motion.div>
@@ -139,7 +139,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <p className="text-center text-[16px] font-display font-bold uppercase tracking-[0.2em] text-[#52525B] mb-8" data-testid="text-scale-label">
-                The scale of what you've been missing
+                The scale of what you are missing
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 {[
@@ -167,7 +167,7 @@ export default function Home() {
                 Explore the intelligence layer
               </h2>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-xl mx-auto">
-                Navigate podcast knowledge by the dimension that matters most to you.
+                Start with the dimension that matters most to your work -- topics, people, companies, or specific shows.
               </p>
             </motion.div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -177,7 +177,7 @@ export default function Home() {
                     <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by topic, explore our picks, or search for exactly the podcast you're looking for.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by industry, explore our picks, or search for the specific shows you want intelligence on.</p>
                 </div>
               </Link>
               <Link href="/topics" className="block">
@@ -186,7 +186,7 @@ export default function Home() {
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Topics</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what's being said across podcasts on AI, crypto, leadership, markets, and more.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Follow what the smartest voices are saying about AI, crypto, leadership, markets, and more.</p>
                 </div>
               </Link>
               <Link href="/people" className="block">
@@ -195,7 +195,7 @@ export default function Home() {
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">People</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Discover founders, investors, and leaders across the podcast ecosystem.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">See what founders, investors, and industry leaders are saying across the podcast world.</p>
                 </div>
               </Link>
               <Link href="/companies" className="block">
@@ -204,7 +204,7 @@ export default function Home() {
                     <Building2 className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Companies</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">See what's being said about the companies shaping technology, business, and culture.</p>
+                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what is being said about the companies shaping technology, business, and culture.</p>
                 </div>
               </Link>
             </div>
@@ -218,7 +218,7 @@ export default function Home() {
                 Podcasts we cover
               </h2>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
-                From business strategy to science, culture, and technology - we analyze the world's most influential podcast conversations.
+                From business strategy to science, culture, and technology -- we deliver intelligence on the world's most influential podcast conversations.
               </p>
             </motion.div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
@@ -330,13 +330,13 @@ export default function Home() {
                 <Library className="w-6 h-6 text-white/80" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold leading-[1.1] tracking-[-0.02em]" data-testid="text-vision-heading">
-                Audio has always been a black box. We're opening it.
+                The best thinking in your industry is happening in conversations you do not have time to listen to
               </h2>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                Google made the web searchable. For over 20 years, podcasts have been the one place search can't reach. Investors, founders, scientists, and operators are sharing their deepest thinking in long-form conversations that go deeper than any article or tweet ever could.
+                Investors, founders, scientists, and operators are sharing their deepest thinking in long-form podcast conversations that go deeper than any article or tweet ever could. But who has time to listen to all of it?
               </p>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                PodCap is building the search engine audio always deserved - making that knowledge discoverable, structured, and actionable.
+                PodCap sits on top of that entire ecosystem and turns it into structured intelligence you can actually use -- so you always know what matters, without the time commitment.
               </p>
               <a
                 href="/about"
@@ -357,10 +357,10 @@ export default function Home() {
                 <BookOpen className="w-6 h-6 text-primary" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-cta-heading">
-                While you slept, thousands of hours of new podcasts dropped. We read them for you.
+                While you slept, thousands of hours of new podcasts dropped. We distilled them for you.
               </h2>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg">
-                Choose the podcasts you follow. We'll analyze every new episode and deliver structured briefings to your inbox - the key insights, notable quotes, and takeaways that matter.
+                Pick the industries you care about or the specific podcasts you follow. We will analyze every new episode and deliver structured intelligence to your inbox -- the key insights, notable quotes, and takeaways that matter.
               </p>
               <button
                 data-testid="button-bottom-cta"

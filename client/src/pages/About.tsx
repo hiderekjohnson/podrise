@@ -8,21 +8,21 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 export default function About() {
   useEffect(() => {
-    document.title = "About PodCap - Building the World's Searchable Library of Podcast Knowledge";
+    document.title = "About PodCap - The Intelligence Layer for Podcasts";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, and structured insights so great ideas travel further.");
-    setMeta("property", "og:title", "About PodCap - Building the World's Searchable Library of Podcast Knowledge");
-    setMeta("property", "og:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, and structured insights so great ideas travel further.");
+    setMeta("name", "description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
+    setMeta("property", "og:title", "About PodCap - The Intelligence Layer for Podcasts");
+    setMeta("property", "og:description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/favicon.png");
     setMeta("name", "twitter:card", "summary");
-    setMeta("name", "twitter:title", "About PodCap - Building the World's Searchable Library of Podcast Knowledge");
-    setMeta("name", "twitter:description", "PodCap is turning podcast episodes into searchable, discoverable knowledge. Get AI-powered podcast recaps, podcast summaries, and structured insights so great ideas travel further.");
+    setMeta("name", "twitter:title", "About PodCap - The Intelligence Layer for Podcasts");
+    setMeta("name", "twitter:description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
     setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -49,10 +49,10 @@ export default function About() {
             About PodCap
           </div>
           <h1 className="text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
-            Google indexed the web. We're indexing the conversation.
+            We are building the intelligence layer on top of podcasts
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-            150 million hours of podcast content exist today. That's longer than all of recorded human civilization. The world's best thinkers are sharing everything in audio nobody can search. Until now.
+            The world's best thinkers are sharing everything on podcasts -- but nobody has time to listen to all of it. PodCap monitors hundreds of the top shows and delivers structured intelligence so you always know what matters.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a
@@ -60,7 +60,7 @@ export default function About() {
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
               data-testid="link-get-summaries"
             >
-              Get Free Summaries
+              Get Started Free
               <ArrowRight className="w-4 h-4" />
             </a>
             <Link
@@ -109,24 +109,24 @@ export default function About() {
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-black/[0.06] dark:to-white/[0.06]" />
-            <h2 className="text-[16px] font-bold uppercase tracking-[0.2em] text-[#52525B]">The Problem</h2>
+            <h2 className="text-[16px] font-bold uppercase tracking-[0.2em] text-[#52525B]">The Gap</h2>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-black/[0.06] dark:to-white/[0.06]" />
           </div>
           <div className="space-y-5 text-[17px] leading-[1.85] text-muted-foreground max-w-2xl mx-auto">
             <p>
-              Every day, 80,000 new hours of podcast content are published. Founders, investors, scientists, economists, and operators are sharing their best thinking in long-form conversations that go deeper than any article or tweet ever could.
+              Every day, thousands of new podcast episodes are published. Founders, investors, scientists, economists, and operators are sharing their best thinking in long-form conversations that go deeper than any article or tweet ever could.
             </p>
             <p className="text-foreground font-semibold text-lg">
-              The problem? Almost none of it is searchable.
+              The problem? Nobody has time to listen to all of it.
             </p>
             <p>
-              While you slept last night, more than 3,000 hours of new audio dropped every hour. The breakthrough insight you need is probably already out there, buried in an episode you'll never find. Every contrarian take, every playbook, every hard-won lesson - recorded, published, and lost.
+              The breakthrough insight you need is probably already out there, discussed in an episode you will never get to. Every contrarian take, every playbook, every hard-won lesson -- recorded, published, and effectively invisible to anyone who was not already listening.
             </p>
             <p>
-              You'd need 9 years of continuous listening just to catch up on what dropped this week.
+              There is too much signal and not enough time. That is exactly why we built PodCap.
             </p>
             <p className="text-foreground font-semibold text-lg">
-              Nobody can keep up. That's the point - you shouldn't have to.
+              You should not have to listen to everything to know what matters. That is our job.
             </p>
           </div>
         </motion.section>
@@ -145,7 +145,7 @@ export default function About() {
               <h3 className="text-lg font-display font-bold text-foreground">The Scale Problem, Visualized</h3>
             </div>
             <p className="text-[16px] text-muted-foreground mb-6">
-              Netflix spent decades building a 50,000-hour library. Podcasters create that much content every 12 hours.
+              Netflix spent decades building a 50,000-hour library. Podcasters create that much content every 12 hours. The intelligence inside those conversations is staggering -- if you have the time to find it.
             </p>
             <div className="space-y-5">
               <div>
@@ -180,7 +180,7 @@ export default function About() {
               </div>
             </div>
             <p className="text-[16px] text-foreground font-semibold mt-6 text-center">
-              A trillion dollars of business insight, locked in audio files nobody can search.
+              A trillion dollars of business insight, locked in audio that nobody has time to get through.
             </p>
           </div>
         </motion.section>
@@ -196,7 +196,7 @@ export default function About() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
             <Quote className="w-10 h-10 text-primary/10 mb-4" />
             <blockquote className="text-xl sm:text-2xl font-display leading-relaxed text-foreground italic mb-8">
-              "Millions of hours of the world's most valuable conversations have already been recorded. Founders sharing exactly how they built their companies. Scientists explaining breakthroughs. Investors revealing how they really think. It's all been said - but until now, there's been no way to search through that immense library of human knowledge. That's what we're building."
+              "The smartest people in every industry are sharing everything on podcasts. Founders explaining exactly how they built their companies. Scientists describing breakthroughs. Investors revealing how they really think. But nobody can keep up with all of it. We are building the intelligence layer that makes sure you never miss what matters -- without having to listen to everything yourself."
             </blockquote>
             <div className="flex items-center gap-4">
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
@@ -217,13 +217,13 @@ export default function About() {
         >
           <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">What PodCap does today</h2>
           <p className="text-[17px] leading-[1.85] text-muted-foreground mb-10 text-center max-w-2xl mx-auto">
-            We process thousands of podcast episodes every week, turning hours of audio into structured, searchable knowledge. Instead of spending your day trying to keep up, you get the key ideas in minutes.
+            We monitor hundreds of the world's top podcasts and deliver structured intelligence so you always know what the smartest people in your industry are saying. Two paths in, same result: you stay current in minutes, not hours.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { icon: Headphones, title: "Follow more podcasts", desc: "Subscribe to everything that interests you without falling behind.", color: "from-blue-500/10 to-blue-600/5", iconColor: "text-blue-500" },
-              { icon: Zap, title: "Get the gist fast", desc: "Key insights and takeaways from every episode, delivered daily.", color: "from-amber-500/10 to-amber-600/5", iconColor: "text-amber-500" },
-              { icon: CheckCircle2, title: "Decide what's worth it", desc: "Choose which episodes deserve your full attention.", color: "from-emerald-500/10 to-emerald-600/5", iconColor: "text-emerald-500" },
+              { icon: Headphones, title: "Pick industries or podcasts", desc: "Follow the topics that matter to your work, or choose specific shows. Either way, you stay current.", color: "from-blue-500/10 to-blue-600/5", iconColor: "text-blue-500" },
+              { icon: Zap, title: "Get analyst-grade briefings", desc: "Key insights, notable quotes, and takeaways from every episode -- distilled into intelligence you can act on.", color: "from-amber-500/10 to-amber-600/5", iconColor: "text-amber-500" },
+              { icon: CheckCircle2, title: "Know what matters", desc: "Spend your listening time on the episodes that truly deserve your attention.", color: "from-emerald-500/10 to-emerald-600/5", iconColor: "text-emerald-500" },
             ].map((item, i) => (
               <div key={i} className="group bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300" data-testid={`card-value-prop-${i + 1}`}>
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4`}>
@@ -249,14 +249,14 @@ export default function About() {
               <h2 className="text-2xl sm:text-3xl font-display font-bold">The bigger vision</h2>
             </div>
             <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto text-[17px] leading-[1.85]">
-              The vision goes far beyond recaps. We're building the search engine for human conversation - every podcast, every word, searchable.
+              The vision goes beyond episode briefings. We are building the complete intelligence layer for the podcast ecosystem -- so every important idea is discoverable, structured, and actionable.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
               {[
-                { icon: BookOpen, title: "Every episode summarized", desc: "A comprehensive recap for every conversation, across every show.", color: "from-violet-500/10 to-violet-600/5", iconColor: "text-violet-500" },
-                { icon: Search, title: "Every conversation searchable", desc: "Search across millions of podcast conversations to find exactly what you need.", color: "from-cyan-500/10 to-cyan-600/5", iconColor: "text-cyan-500" },
-                { icon: Sparkles, title: "Every insight discoverable", desc: "Surface the most important ideas shared across the entire podcast ecosystem.", color: "from-rose-500/10 to-rose-600/5", iconColor: "text-rose-500" },
+                { icon: BookOpen, title: "Every episode analyzed", desc: "Structured intelligence for every conversation, across every show we cover.", color: "from-violet-500/10 to-violet-600/5", iconColor: "text-violet-500" },
+                { icon: Search, title: "Every conversation accessible", desc: "Find exactly what was said about any topic, company, or person across the podcast world.", color: "from-cyan-500/10 to-cyan-600/5", iconColor: "text-cyan-500" },
+                { icon: Sparkles, title: "Every insight delivered", desc: "Surface the most important ideas being discussed across your industry, delivered to you daily.", color: "from-rose-500/10 to-rose-600/5", iconColor: "text-rose-500" },
               ].map((item, i) => (
                 <div key={i} className="group bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300" data-testid={`card-vision-${i + 1}`}>
                   <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4`}>
@@ -270,13 +270,13 @@ export default function About() {
 
             <div className="max-w-2xl mx-auto space-y-5 text-[17px] leading-[1.85] text-muted-foreground">
               <p>
-                Today, podcasts are one of the most valuable sources of ideas on the internet, but they remain largely invisible to search engines and difficult to navigate for listeners.
+                Today, podcasts are one of the most valuable sources of ideas on the internet -- but the intelligence inside them is only accessible to people with hours to listen.
               </p>
               <p className="text-foreground font-semibold text-lg text-center">
                 We believe that will change.
               </p>
               <p>
-                Just as Wikipedia organized the world's written knowledge, PodCap is building the infrastructure to organize the world's podcast conversations.
+                PodCap is building the infrastructure that turns the world's podcast conversations into structured, actionable intelligence -- so you always know what the sharpest minds in your field are saying.
               </p>
             </div>
           </div>
@@ -289,15 +289,15 @@ export default function About() {
           transition={{ duration: 0.5, delay: 0.45 }}
           data-testid="section-where-were-headed"
         >
-          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">Where we're headed</h2>
+          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">Where we are headed</h2>
           <p className="text-muted-foreground mb-10 text-center max-w-lg mx-auto">
             Over time, PodCap will become the place where you can:
           </p>
           <div className="max-w-xl mx-auto space-y-4">
             {[
-              "Understand any podcast episode in minutes",
-              "Search across millions of podcast conversations",
-              "Discover the most important ideas shared across the entire podcast ecosystem",
+              "Get briefings on any podcast episode in minutes",
+              "Track what the smartest people in any industry are saying",
+              "Stay ahead of the conversations shaping your field, without listening to everything",
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 bg-white dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] rounded-xl px-5 py-4">
                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -308,7 +308,7 @@ export default function About() {
             ))}
           </div>
           <p className="text-center text-foreground font-semibold text-lg mt-8">
-            In other words, the fastest way to learn from the world's podcasts.
+            In other words, your intelligence layer for the world's most important conversations.
           </p>
         </motion.section>
 
@@ -328,16 +328,16 @@ export default function About() {
               </div>
               <div className="space-y-4 text-[17px] leading-[1.85] text-muted-foreground">
                 <p>
-                  We didn't build PodCap to replace podcasts. We built it to make them more powerful. Every episode you've ever loved is full of ideas worth revisiting, sharing, and acting on. PodCap turns that audio into searchable, structured knowledge that's easy to find and easy to use.
+                  We did not build PodCap to replace podcasts. We built it to make them more powerful. Every episode you have ever loved is full of ideas worth revisiting, sharing, and acting on. PodCap turns that audio into structured intelligence that is easy to find and easy to use.
                 </p>
                 <p>
-                  For listeners, that means spending less time sifting through episodes and more time on the ones that matter. For creators, it means your best ideas don't disappear after publish day. Your content becomes discoverable, quotable, and actionable for your audience long after the episode drops.
+                  For listeners, that means spending less time trying to keep up and more time on the episodes that truly deserve your attention. For creators, it means your best ideas do not disappear after publish day. Your content becomes discoverable and actionable for your audience long after the episode drops.
                 </p>
                 <p>
-                  We're also committed to supporting the creators who make these shows. <a href="/we-heart-podcasters" className="text-primary font-medium hover:underline">Find out how we support podcasters</a>.
+                  We are also committed to supporting the creators who make these shows. <a href="/we-heart-podcasters" className="text-primary font-medium hover:underline">Find out how we support podcasters</a>.
                 </p>
                 <p className="text-foreground font-semibold text-lg">
-                  Long live podcasts. :)
+                  Long live podcasts.
                 </p>
               </div>
             </div>
@@ -355,7 +355,7 @@ export default function About() {
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Constantly improving</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                We're constantly improving PodCap. Adding features, refining summaries, and making it easier to keep up.
+                We are constantly improving PodCap -- adding features, refining analysis, and making it easier to stay informed.
               </p>
               <Link
                 href="/updates"
@@ -369,7 +369,7 @@ export default function About() {
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Explore insights</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                Track what's being said across podcasts on the topics that matter to you.
+                Track what is being said across podcasts on the topics that matter to you.
               </p>
               <Link
                 href="/topics"
@@ -395,10 +395,10 @@ export default function About() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,hsl(var(--primary)/0.12),transparent_60%)]" />
             <div className="relative">
               <h2 className="text-3xl md:text-4xl font-display font-extrabold mb-4 tracking-[-0.02em]">
-                While you slept, 80,000 hours of new content dropped. We read it for you.
+                While you slept, thousands of hours of new podcasts dropped. We distilled them for you.
               </h2>
               <p className="text-lg text-muted-foreground mb-10 max-w-md mx-auto">
-                The fastest way to learn from the world's podcasts.
+                Your intelligence layer for the world's most important conversations.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <a
@@ -406,7 +406,7 @@ export default function About() {
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
                   data-testid="link-cta-get-summaries"
                 >
-                  Get Free Summaries
+                  Get Started Free
                   <ArrowRight className="w-4 h-4" />
                 </a>
                 <Link

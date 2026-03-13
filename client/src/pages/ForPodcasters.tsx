@@ -30,7 +30,7 @@ function ContactSection() {
       await apiRequest("POST", "/api/support", { email, message });
     },
     onSuccess: () => {
-      toast({ title: "Message sent", description: "We'll get back to you as soon as possible." });
+      toast({ title: "Message sent", description: "We will get back to you as soon as possible." });
       setEmail("");
       setMessage("");
       setSent(true);
@@ -54,7 +54,7 @@ function ContactSection() {
             Get your podcast on PodCap
           </h2>
           <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed">
-            We're building the most comprehensive podcast knowledge platform on the internet. If you host a podcast, we'd love to include your show.
+            We are building the most comprehensive podcast intelligence platform on the internet. If you host a podcast, we would love to include your show.
           </p>
         </div>
 
@@ -62,7 +62,7 @@ function ContactSection() {
           <div className="bg-card border border-border rounded-2xl p-8 text-center" data-testid="contact-success">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
             <h3 className="text-lg font-display font-bold mb-2">Message sent</h3>
-            <p className="text-[16px] text-muted-foreground">We'll get back to you as soon as possible.</p>
+            <p className="text-[16px] text-muted-foreground">We will get back to you as soon as possible.</p>
             <button
               onClick={() => setSent(false)}
               className="mt-4 text-base text-primary font-display font-bold hover:underline"
@@ -97,7 +97,7 @@ function ContactSection() {
                 required
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Share your podcast name, what it's about, or any questions you have..."
+                placeholder="Share your podcast name, what it covers, or any questions you have..."
                 rows={4}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[16px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
                 data-testid="input-message"
@@ -125,15 +125,15 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "For Podcasters - Make Your Episodes Searchable and Discoverable | PodCap";
-    const desc = "Your best ideas deserve to travel further than audio. PodCap turns every episode into a searchable knowledge asset, amplifies your sponsors, and makes your content discoverable long after it drops.";
+    document.title = "For Podcasters - Make Your Episodes Discoverable and Actionable | PodCap";
+    const desc = "Your best ideas deserve to travel further than audio. PodCap turns every episode into structured, discoverable intelligence -- amplifying your sponsors and making your content accessible long after it drops.";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "For Podcasters - Make Your Episodes Searchable and Discoverable | PodCap");
+    setMeta("property", "og:title", "For Podcasters - Make Your Episodes Discoverable and Actionable | PodCap");
     setMeta("property", "og:description", desc);
   }, []);
 
@@ -153,7 +153,7 @@ export default function ForPodcasters() {
               Your best ideas deserve to travel further than audio
             </h1>
             <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8" data-testid="text-hero-subtitle">
-              You spend hours recording conversations worth hearing. But once they publish, the ideas inside are only accessible to people with time to listen start to finish. PodCap makes every episode searchable, skimmable, and shareable - so your content keeps working long after it drops.
+              You spend hours recording conversations worth hearing. But once they publish, the ideas inside are only accessible to people with time to listen start to finish. PodCap makes every episode discoverable, skimmable, and shareable -- so your content keeps working long after it drops.
             </p>
             <Link href="/podcaster/claim" data-testid="link-hero-claim">
               <Button className="rounded-xl font-display font-bold text-[16px] px-6 shadow-sm">
@@ -168,10 +168,10 @@ export default function ForPodcasters() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-problem-title">
-                Your content's biggest enemy isn't competition. It's invisibility.
+                Your content's biggest enemy is not competition. It is invisibility.
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Audio is a black box to search engines. The moment an episode publishes, the ideas inside become invisible to anyone who wasn't already listening.
+                Audio is a black box. The moment an episode publishes, the ideas inside become invisible to anyone who was not already listening.
               </p>
             </div>
 
@@ -191,10 +191,10 @@ export default function ForPodcasters() {
 
             <div className="max-w-xl mx-auto text-center">
               <p className="text-[16px] leading-[1.75] text-muted-foreground">
-                You put everything into each episode. But once it publishes, the ideas inside are only accessible to people who listen start to finish. Everyone else moves on. The best insight you've ever shared might already be out there, buried in an episode most people will never find.
+                You put everything into each episode. But once it publishes, the ideas inside are only accessible to people who listen start to finish. Everyone else moves on. The best insight you have ever shared might already be out there, buried in an episode most people will never find.
               </p>
               <p className="text-[16px] leading-[1.75] font-display font-bold text-foreground mt-4">
-                PodCap makes your content findable, skimmable, and shareable - so your best ideas travel further.
+                PodCap makes your content findable, skimmable, and shareable -- so your best ideas travel further.
               </p>
             </div>
           </div>
@@ -215,8 +215,8 @@ export default function ForPodcasters() {
               {[
                 { icon: BookOpen, title: "AI-powered episode recaps", description: "Each episode gets a detailed summary with key takeaways, notable quotes, topic breakdowns, and chapter-by-chapter analysis. Your content, made scannable.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
                 { icon: Search, title: "Deep episode analysis", description: "Every episode gets structured breakdowns with key insights, topic tagging, and entity extraction. Listeners can explore exactly what was discussed.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-                { icon: Globe, title: "SEO-indexed episode pages", description: "Each recap is a new page indexed by Google. Someone searching for a topic you've covered can discover your show for the first time.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { icon: Sparkles, title: "AI-powered podcast intelligence", description: "Listeners can ask questions about your show and get AI-powered answers drawn from episode recaps and analysis. Your episodes become a knowledge base.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: Globe, title: "SEO-indexed episode pages", description: "Each recap is a new page indexed by Google. Someone searching for a topic you have covered can discover your show for the first time.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { icon: Sparkles, title: "AI-powered intelligence", description: "Listeners can ask questions about your show and get AI-powered answers drawn from episode analysis. Your episodes become a living knowledge base.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: Layers, title: "Guest and topic pages", description: "Guests who appear on your show get their own profile pages. Topics discussed across your episodes are cross-referenced and linked.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
                 { icon: Clock, title: "Daily recap emails", description: "Your fans can subscribe to daily email recaps. They stay connected to your show even on busy days and come back for the episodes that resonate.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
               ].map((item) => (
@@ -246,7 +246,7 @@ export default function ForPodcasters() {
                 Sponsor amplification
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps - reaching fans who read but don't always listen.
+                Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps -- reaching fans who read but do not always listen.
               </p>
             </div>
 
@@ -357,9 +357,9 @@ export default function ForPodcasters() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: Globe, title: "Discoverability beyond the feed", description: "Every recap is a Google-indexed page. People searching for topics you've covered find your show organically - even years after the episode aired.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: UserCheck, title: "Deeper audience connection", description: "Fans who read recaps stay engaged with your show even when they can't listen. They never lose touch, and they come back for the episodes that matter most.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-                { icon: TrendingUp, title: "Stronger engagement metrics", description: "Listeners who preview a recap before pressing play are more intentional. They're more likely to finish episodes, which sends the signals platforms reward.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: Globe, title: "Discoverability beyond the feed", description: "Every recap is a Google-indexed page. People searching for topics you have covered find your show organically -- even years after the episode aired.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: UserCheck, title: "Deeper audience connection", description: "Fans who read recaps stay engaged with your show even when they cannot listen. They never lose touch, and they come back for the episodes that matter most.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: TrendingUp, title: "Stronger engagement metrics", description: "Listeners who preview a recap before pressing play are more intentional. They are more likely to finish episodes, which sends the signals platforms reward.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: BarChart3, title: "Long-tail value from every episode", description: "Your back catalog keeps generating new listeners. Old episodes become permanent, searchable assets instead of disappearing into the archive.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
               ].map((b) => (
                 <div
@@ -384,14 +384,14 @@ export default function ForPodcasters() {
               <Library className="w-6 h-6 text-white/80" />
             </div>
             <h2 className="text-xl sm:text-2xl font-display font-bold mb-5">
-              We're building podcast infrastructure
+              We are building the intelligence layer for podcasts
             </h2>
             <div className="text-[16px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
-                Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio - unsearchable, unskimmable, and invisible to the web.
+                Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio -- unskimmable and invisible to the web.
               </p>
               <p>
-                PodCap is building the infrastructure to change that. We're turning every episode into structured, searchable knowledge - connecting ideas across shows, guests, and topics. When someone searches for an idea your podcast discussed, they should find it.
+                PodCap is building the intelligence layer that changes that. We turn every episode into structured, discoverable knowledge -- connecting ideas across shows, guests, and topics. When someone is looking for an idea your podcast discussed, they should find it.
               </p>
               <p className="text-white/80 font-display font-bold">
                 We believe great podcast content deserves to be as discoverable as any article on the internet.
@@ -405,7 +405,7 @@ export default function ForPodcasters() {
             <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30 rounded-2xl py-8 px-8 sm:px-10 text-center">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
               <p className="text-[16px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
-                There's no cost, no contract, and no catch. PodCap creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable - not to gatekeep it.
+                There is no cost, no contract, and no catch. PodCap creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable -- not to gatekeep it.
               </p>
               <div className="border-t border-emerald-200/40 dark:border-emerald-800/30 pt-5 max-w-md mx-auto">
                 <p className="text-[16px] leading-[1.7] text-muted-foreground">
@@ -425,7 +425,7 @@ export default function ForPodcasters() {
                 Thousands of podcasts on the platform
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                From indie shows to the world's most popular podcasts, we're building the most comprehensive library of podcast knowledge on the internet.
+                From indie shows to the world's most popular podcasts, we are building the most comprehensive intelligence platform for podcast content on the internet.
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

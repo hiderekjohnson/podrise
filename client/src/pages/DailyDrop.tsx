@@ -25,8 +25,8 @@ function formatDateShort(dateStr: string) {
 }
 
 function SEOHead() {
-  const title = "Signal | PodCap";
-  const description = "A free-flowing daily briefing on the most interesting conversations happening across the podcast world. Smart, sharp, and built for discovery.";
+  const title = "Signal - Daily Podcast Intelligence | PodCap";
+  const description = "A daily intelligence briefing on the most important conversations happening across the podcast world. Smart, structured, and built for the people who need to stay current.";
   if (typeof document !== "undefined") {
     document.title = title;
     const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -77,7 +77,7 @@ export default function DailyDrop() {
               Signal
             </h1>
             <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg leading-relaxed font-medium">
-              What happened yesterday in the podcast world. The stories, the quotes, and the ideas worth knowing about.
+              What the smartest people in the podcast world said yesterday. The key insights, quotes, and ideas worth knowing about.
             </p>
           </motion.div>
         </section>

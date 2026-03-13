@@ -18,7 +18,7 @@ function EnterpriseContactForm() {
       await apiRequest("POST", "/api/support", { email, message: `[Enterprise Inquiry] ${message}` });
     },
     onSuccess: () => {
-      toast({ title: "Message sent", description: "We'll be in touch shortly." });
+      toast({ title: "Message sent", description: "We will be in touch shortly." });
       setEmail("");
       setMessage("");
       setSent(true);
@@ -38,7 +38,7 @@ function EnterpriseContactForm() {
     return (
       <div className="bg-card border border-border rounded-2xl p-8 text-center max-w-lg mx-auto" data-testid="enterprise-contact-success">
         <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
-        <h3 className="text-lg font-display font-bold mb-2">We'll be in touch</h3>
+        <h3 className="text-lg font-display font-bold mb-2">We will be in touch</h3>
         <p className="text-[16px] text-muted-foreground">A member of our team will follow up within one business day.</p>
         <button
           onClick={() => setSent(false)}
@@ -102,8 +102,8 @@ function EnterpriseContactForm() {
 
 export default function Enterprise() {
   useEffect(() => {
-    const title = "Enterprise - Custom Podcast Intelligence Briefings for Teams | PodCap";
-    const desc = "Give your team a daily edge. PodCap Enterprise delivers custom Pulse briefings, topic dashboards, and podcast intelligence tailored to the subjects your organization needs to track.";
+    const title = "Enterprise - Podcast Intelligence for Teams | PodCap";
+    const desc = "Give your team a daily edge. PodCap Enterprise delivers custom intelligence briefings on the topics your organization needs to track -- so your team always knows what the smartest people in your industry are saying.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -135,7 +135,7 @@ export default function Enterprise() {
               <span className="text-primary">delivered to your team daily</span>
             </h1>
             <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-6" data-testid="text-hero-subtitle">
-              Your team picks the topics. We monitor hundreds of podcasts and deliver a daily Pulse briefing -- the key insights, quotes, and trends distilled into something your team can read in minutes. No listening required.
+              Your team picks the topics. We monitor hundreds of podcasts and deliver daily intelligence briefings -- the key insights, quotes, and trends distilled into something your team can read in minutes. No listening required.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {[
@@ -160,14 +160,14 @@ export default function Enterprise() {
                 Your industry's best thinking is locked inside podcasts
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Every week, executives, founders, and analysts share insights on podcasts that never make it into reports, newsletters, or search results. Your competitors are listening. Your team doesn't have the time. That's where we come in.
+                Every week, executives, founders, and analysts share insights on podcasts that never make it into reports, newsletters, or search results. Your competitors may be listening. Your team does not have the time. That is where we come in.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { value: "200+", label: "podcasts monitored daily", detail: "Across business, tech, finance, and more" },
-                { value: "Daily", label: "Pulse briefings delivered", detail: "Custom topics, every morning" },
+                { value: "Daily", label: "Intelligence briefings delivered", detail: "Custom topics, every morning" },
                 { value: "Minutes", label: "to read, not hours to listen", detail: "We distill, your team decides" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
@@ -187,16 +187,16 @@ export default function Enterprise() {
                 What your team gets
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                PodCap Enterprise is built around what actually helps teams stay informed -- daily briefings they'll read, dashboards they'll check, and data they can act on.
+                PodCap Enterprise is built around what actually helps teams stay informed -- daily briefings they will read, dashboards they will check, and data they can act on.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: Zap, title: "Custom Pulse briefings", description: "Daily AI-synthesized intelligence briefings on the topics your organization cares about. Each Pulse distills what podcasts are saying into a concise, readable summary -- delivered by email or accessible on your dashboard.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: Zap, title: "Custom intelligence briefings", description: "Daily AI-synthesized briefings on the topics your organization cares about. Each briefing distills what podcasts are saying into a concise, readable summary -- delivered by email or accessible on your dashboard.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
                 { icon: Target, title: "Choose your topics", description: "Your team selects the topics they need to track -- AI, fintech, healthcare, regulatory changes, competitor activity, whatever matters to your business. We handle the monitoring across hundreds of shows.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-                { icon: LineChart, title: "Topic dashboard", description: "A dedicated dashboard showing trending discussions, key quotes, and emerging themes across your selected topics. See what's gaining momentum before it hits mainstream coverage.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { icon: Mail, title: "Team-wide email delivery", description: "Pulse briefings delivered directly to your team's inboxes on your schedule. Everyone stays current without needing to log in, search, or listen to anything.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: LineChart, title: "Topic dashboard", description: "A dedicated dashboard showing trending discussions, key quotes, and emerging themes across your selected topics. See what is gaining momentum before it hits mainstream coverage.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { icon: Mail, title: "Team-wide email delivery", description: "Intelligence briefings delivered directly to your team's inboxes on your schedule. Everyone stays current without needing to log in, search, or listen to anything.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
                 { icon: Users, title: "Multi-seat access", description: "Give your entire team access to the PodCap platform -- search across episodes, explore topics in depth, and dive into full recaps when a briefing sparks their interest.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
                 { icon: Settings, title: "Admin controls", description: "Manage topics, team members, and delivery preferences from a central admin panel. Add new topics as your priorities shift. Adjust what gets delivered and to whom.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
               ].map((item) => (
@@ -223,16 +223,16 @@ export default function Enterprise() {
                 Who uses PodCap Enterprise
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Any team that needs to know what experts and leaders are saying -- without spending hours listening.
+                Any team that needs to know what the smartest people in their industry are saying -- without spending hours listening.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { title: "Venture Capital & Private Equity", description: "Track founder interviews, market sentiment, and sector trends across the podcast ecosystem. Your analysts get a daily briefing on what the smartest people in your sectors are saying -- before it shows up in pitch decks.", icon: TrendingUp, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { title: "Corporate Strategy & Innovation", description: "Monitor how your industry, competitors, and emerging technologies are being discussed by experts. A daily Pulse on your strategic priorities keeps leadership informed without adding to their calendar.", icon: Briefcase, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { title: "Venture Capital & Private Equity", description: "Track founder interviews, market sentiment, and sector trends across the podcast ecosystem. Your analysts get daily intelligence on what the smartest people in your sectors are saying -- before it shows up in pitch decks.", icon: TrendingUp, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { title: "Corporate Strategy & Innovation", description: "Monitor how your industry, competitors, and emerging technologies are being discussed by experts. Daily briefings on your strategic priorities keep leadership informed without adding to their calendar.", icon: Briefcase, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
                 { title: "Communications & PR Teams", description: "Know when your company, executives, or industry gets mentioned on influential podcasts. Track the narrative around key topics and respond faster with full context from the actual conversations.", icon: Building2, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { title: "Research & Consulting", description: "Give your research team a daily feed of expert perspectives on the topics they cover. Pulse briefings surface quotes, data points, and analysis from podcast conversations that traditional research tools miss entirely.", icon: BookOpen, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { title: "Research & Consulting", description: "Give your research team a daily feed of expert perspectives on the topics they cover. Intelligence briefings surface quotes, data points, and analysis from podcast conversations that traditional research tools miss entirely.", icon: BookOpen, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
               ].map((uc) => (
                 <div
                   key={uc.title}
@@ -260,10 +260,10 @@ export default function Enterprise() {
             </h2>
             <div className="text-[16px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
-                We monitor over 200 of the world's most influential podcasts daily. When new episodes drop, our AI processes every conversation -- extracting key insights, notable quotes, guest perspectives, and emerging themes.
+                We monitor hundreds of the world's most influential podcasts daily. When new episodes drop, our AI processes every conversation -- extracting key insights, notable quotes, guest perspectives, and emerging themes.
               </p>
               <p>
-                Your team tells us which topics matter. We build custom Pulse briefings around those topics and deliver them on your schedule. Each briefing is a concise, well-sourced summary your team can read in a few minutes -- with links to full recaps when they want to go deeper.
+                Your team tells us which topics matter. We build custom intelligence briefings around those topics and deliver them on your schedule. Each briefing is a concise, well-sourced summary your team can read in a few minutes -- with links to full recaps when they want to go deeper.
               </p>
               <p className="text-white/80 font-display font-bold">
                 Think of it as a research analyst who listens to every relevant podcast, every day, and sends your team the highlights before their morning coffee.
@@ -279,7 +279,7 @@ export default function Enterprise() {
                 Get podcast intelligence built for your team
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Tell us what topics your team needs to track. We'll show you what a custom Pulse briefing looks like for your organization.
+                Tell us what topics your team needs to track. We will show you what a custom intelligence briefing looks like for your organization.
               </p>
             </div>
 

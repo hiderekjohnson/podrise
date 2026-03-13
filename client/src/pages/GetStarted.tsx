@@ -19,8 +19,8 @@ interface SelectedPodcast {
 }
 
 function SEOHead() {
-  const title = "Build Your Custom Podcast Recap - PodCap";
-  const description = "Choose your favorite podcasts and get personalized podcast recaps and podcast summaries delivered daily. AI-powered key takeaways, structured insights, and analysis - stay current in minutes.";
+  const title = "Get Your Daily Podcast Intelligence - PodCap";
+  const description = "Choose your favorite podcasts and get daily intelligence briefings delivered to your inbox. Key insights, notable quotes, and structured takeaways -- stay current on what matters, in minutes.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -118,10 +118,10 @@ export default function GetStarted() {
         <section className="w-full max-w-2xl text-center pt-10 sm:pt-16 pb-8">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center gap-4">
             <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]" data-testid="text-headline">
-              Build Your Custom Podcast Recap
+              Get Your Daily Podcast Intelligence
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-lg leading-relaxed">
-              Choose the podcasts you follow, enter your email, and get a personalized daily recap with the key ideas from every new episode.
+              Choose the podcasts you follow, enter your email, and get daily intelligence briefings with the key insights from every new episode.
             </p>
           </motion.div>
         </section>
@@ -132,7 +132,7 @@ export default function GetStarted() {
               <div className="flex items-start gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
                 <div className="flex-1">
-                  <h2 className="text-lg font-display font-bold text-foreground">Choose podcasts to recap</h2>
+                  <h2 className="text-lg font-display font-bold text-foreground">Choose podcasts to follow</h2>
                   <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                 </div>
               </div>
@@ -174,8 +174,8 @@ export default function GetStarted() {
               <div className="flex items-start gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">2</span>
                 <div>
-                  <h2 className="text-lg font-display font-bold text-foreground">Where should we send your recap?</h2>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">All your podcast recaps in one daily email.</p>
+                  <h2 className="text-lg font-display font-bold text-foreground">Where should we send your briefings?</h2>
+                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">All your podcast intelligence in one daily email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
@@ -201,11 +201,11 @@ export default function GetStarted() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating your recap...
+                    Setting up your briefing...
                   </>
                 ) : (
                   <>
-                    Start My Daily Recap
+                    Start My Daily Briefing
                     <ArrowRight className="w-4.5 h-4.5" />
                   </>
                 )}
@@ -217,12 +217,12 @@ export default function GetStarted() {
 
         <section className="w-full max-w-2xl mt-12 text-center">
           <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
-            <h3 className="text-lg font-display font-bold text-foreground mb-3">What you'll get</h3>
+            <h3 className="text-lg font-display font-bold text-foreground mb-3">What you will get</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-2xl">📬</span>
-                <p className="font-medium text-foreground">Daily email</p>
-                <p>One recap covering all your selected podcasts</p>
+                <p className="font-medium text-foreground">Daily briefing</p>
+                <p>One intelligence email covering all your selected podcasts</p>
               </div>
               <div className="flex flex-col items-center gap-2">
                 <span className="text-2xl">⚡</span>
