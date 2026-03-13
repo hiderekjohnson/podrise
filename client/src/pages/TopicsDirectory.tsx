@@ -24,8 +24,8 @@ const CATEGORIES: { key: string; label: string; slugs: string[] }[] = [
 ];
 
 function SEOHead() {
-  const title = "Insights - Podcast Intelligence by Topic | PodCap";
-  const description = "Explore structured insights from top podcasts across AI, business, finance, technology, and more. Track what the world's smartest people are saying about the topics that matter.";
+  const title = "Topics - Podcast Intelligence by Topic | PodCap";
+  const description = "Explore topics from top podcasts across AI, business, finance, technology, and more. Track what the world's smartest people are saying about the topics that matter.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -156,7 +156,7 @@ export default function TopicsDirectory() {
             className="text-center mb-8"
           >
             <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="text-page-title">
-              Explore Insights
+              Explore Topics
             </h1>
             <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
               See what the world's top podcasts are saying about the topics that matter to you.

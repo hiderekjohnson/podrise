@@ -45,7 +45,7 @@ interface TopicEpisode {
 
 function SEOHead({ name, description }: { name: string; description: string }) {
   const title = `${name} Intelligence Brief - Podcast Signal Monitoring | PodCap`;
-  const desc = `${name} intelligence brief: synthesized insights, key signals, and trend analysis from monitored podcast sources. Built for analysts, strategists, and enterprise decision-makers.`;
+  const desc = `${name} topic overview: synthesized insights, key signals, and trend analysis from monitored podcast sources. Built for analysts, strategists, and enterprise decision-makers.`;
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -298,7 +298,7 @@ export default function TopicDetailPage() {
       <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
         <div className="flex items-center gap-2 text-[14px] text-muted-foreground mb-6">
           <Link href="/topics" className="hover:text-foreground transition-colors" data-testid="link-back-insights">
-            Insights
+            Topics
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
           <span className="text-foreground font-medium">{topicDisplayName}</span>
