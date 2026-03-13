@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useRoute, useLocation } from "wouter";
+import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Activity, Clock, Podcast } from "lucide-react";
+import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Activity, Podcast } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TOPICS } from "@/data/topicData";
@@ -374,6 +374,35 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
                 </Link>
               ) : <div />}
             </nav>
+
+            {allPulses && allPulses.length > 1 && (
+              <div className="mt-10 pt-8 border-t border-border" data-testid="section-past-briefings">
+                <h3 className="text-[17px] font-display font-bold text-foreground mb-4">Past Briefings</h3>
+                <div className="space-y-1">
+                  {allPulses.filter(p => p.publishDate !== date).map((p, i) => (
+                    <Link
+                      key={p.publishDate}
+                      href={`/topics/${topicSlug}/pulse/${p.publishDate}`}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group"
+                      data-testid={`link-past-briefing-${i}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                          {p.headline}
+                        </p>
+                        <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA]">
+                          {p.episodeCount} episodes analyzed
+                        </p>
+                      </div>
+                      <span className="text-[14px] text-muted-foreground ml-3 shrink-0 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDateShort(p.publishDate)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </article>
@@ -384,7 +413,6 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
 function PulseArchive({ topicSlug }: { topicSlug: string }) {
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
-  const [, navigate] = useLocation();
 
   const { data: pulses, isLoading } = useQuery<TopicPulse[]>({
     queryKey: ["/api/topics", topicSlug, "pulse"],
@@ -455,8 +483,14 @@ function PulseArchive({ topicSlug }: { topicSlug: string }) {
 }
 
 export default function TopicPulsePage() {
-  const [matchArchive, archiveParams] = useRoute("/topics/:slug/pulse");
-  const [matchDate, dateParams] = useRoute("/topics/:slug/pulse/:date");
+  const [matchTopicsArchive, topicsArchiveParams] = useRoute("/topics/:slug/pulse");
+  const [matchTopicsDate, topicsDateParams] = useRoute("/topics/:slug/pulse/:date");
+  const [matchInsightsArchive, insightsArchiveParams] = useRoute("/insights/:slug/pulse");
+  const [matchInsightsDate, insightsDateParams] = useRoute("/insights/:slug/pulse/:date");
+
+  const dateParams = topicsDateParams || insightsDateParams;
+  const archiveParams = topicsArchiveParams || insightsArchiveParams;
+  const matchDate = matchTopicsDate || matchInsightsDate;
 
   const topicSlug = dateParams?.slug || archiveParams?.slug || "";
   const date = dateParams?.date;

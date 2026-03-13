@@ -79,6 +79,10 @@ function Router() {
         <Route path="/get-started" component={GetStarted} />
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends" component={TrendsPage} />
+        <Route path="/insights/:slug/pulse/:date" component={TopicPulsePage} />
+        <Route path="/insights/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/insights/:slug" component={TopicDetailPage} />
+        <Route path="/insights" component={TopicsDirectory} />
         <Route path="/topics/:slug/pulse/:date" component={TopicPulsePage} />
         <Route path="/topics/:slug/pulse" component={TopicPulsePage} />
         <Route path="/topics/:slug" component={TopicDetailPage} />

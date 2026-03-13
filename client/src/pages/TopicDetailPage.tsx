@@ -458,6 +458,30 @@ export default function TopicDetailPage() {
               </motion.section>
             )}
 
+            <motion.section
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <Link
+                href={`/topics/${params.slug}/pulse`}
+                className="block bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all group"
+                data-testid="link-topic-pulse"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-primary" />
+                  <span className="text-[14px] font-semibold uppercase tracking-[0.12em] text-primary">The Pulse</span>
+                </div>
+                <p className="text-[15px] font-medium text-foreground mb-1">Daily Intelligence Briefing</p>
+                <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                  Key insights synthesized from yesterday's podcast conversations on {topic?.name || params.slug}.
+                </p>
+                <span className="inline-flex items-center gap-1 mt-3 text-[14px] font-semibold text-primary group-hover:gap-2 transition-all">
+                  Read latest briefing <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </Link>
+            </motion.section>
+
             {!isDynamic && (
               <motion.section
                 initial={{ opacity: 0, y: 16 }}

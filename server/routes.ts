@@ -2792,8 +2792,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.post("/api/admin/topics/:slug/pulse/generate", async (req, res) => {
     try {
-      const sess = req.session as any;
-      if (!sess?.adminAuthenticated) return res.status(401).json({ error: "Unauthorized" });
+      if (!req.session.isAdmin) return res.status(401).json({ error: "Unauthorized" });
 
       const { slug } = req.params;
       const { date, topicName } = req.body;

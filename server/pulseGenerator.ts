@@ -1,6 +1,8 @@
-import { openai } from "./replit_integrations/image/client";
+import OpenAI from "openai";
 import { pool } from "./db";
 import { storage } from "./storage";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 interface TopicKeywordConfig {
   primary: string[];
