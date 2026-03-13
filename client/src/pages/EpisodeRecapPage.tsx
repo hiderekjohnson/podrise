@@ -480,8 +480,8 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
           <span className="text-primary/40 text-2xl ml-1">{"\u201D"}</span>
         </blockquote>
 
-        <div className="flex items-center justify-between pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
-          <div className="flex items-center gap-3" data-testid={`quote-speaker-${index}`}>
+        <div className="flex items-center justify-between gap-2 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
+          <div className="flex items-center gap-3 min-w-0" data-testid={`quote-speaker-${index}`}>
             {personMatch ? (
               <img
                 src={personMatch.imageUrl}
@@ -494,9 +494,9 @@ function QuoteCard({ quote, podcastName, episodeTitle, index }: { quote: Episode
                 <span className="text-[16px] font-bold text-primary">{quote.speakerName.charAt(0)}</span>
               </div>
             )}
-            <div>
-              <p className="text-[16px] font-bold text-foreground">{quote.speakerName}</p>
-              {quote.speakerRole && <p className="text-[14px] text-muted-foreground">{quote.speakerRole}</p>}
+            <div className="min-w-0">
+              <p className="text-[16px] font-bold text-foreground truncate">{quote.speakerName}</p>
+              {quote.speakerRole && <p className="text-[14px] text-muted-foreground truncate">{quote.speakerRole}</p>}
             </div>
           </div>
           <QuoteShareBar quote={quote} podcastName={podcastName} episodeTitle={episodeTitle} />
@@ -903,15 +903,15 @@ export default function EpisodeRecapPage() {
 
         {episode.keyInsights?.length > 0 && (
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
-            <div className="px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+            <div className="px-4 sm:px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <Lightbulb className="w-4 h-4 text-amber-500" />
+                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
                 <span className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
                   {`Key Takeaways from ${seoSubject}`}
                 </span>
               </div>
             </div>
-            <div className="px-6 py-5 space-y-3">
+            <div className="px-4 sm:px-6 py-5 space-y-3">
               {episode.keyInsights.map((insight: string, i: number) => (
                 <div
                   key={i}
@@ -934,13 +934,13 @@ export default function EpisodeRecapPage() {
         )}
 
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
-          <div className="px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
+          <div className="px-4 sm:px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
             <div className="flex items-center gap-2.5">
-              <BookOpen className="w-4 h-4 text-primary" />
+              <BookOpen className="w-4 h-4 text-primary shrink-0" />
               <span className="text-base font-bold text-primary uppercase tracking-wider">{`Episode Recap: ${seoSubject}`}</span>
             </div>
           </div>
-          <div className="px-6 py-5 space-y-5">
+          <div className="px-4 sm:px-6 py-5 space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
               <p key={i} className="text-[17px] leading-[1.85] text-muted-foreground">
                 {paragraph}
@@ -951,13 +951,13 @@ export default function EpisodeRecapPage() {
 
         {(guests.length > 0 || (hasHosts && podcastHosts)) && (
           <section id="section-guests" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-guests">
-            <div className="px-6 py-4 bg-sky-500/[0.04] border-b border-sky-500/[0.08]">
+            <div className="px-4 sm:px-6 py-4 bg-sky-500/[0.04] border-b border-sky-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <Users className="w-4 h-4 text-sky-500" />
+                <Users className="w-4 h-4 text-sky-500 shrink-0" />
                 <span className="text-base font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">{`Who's in This Episode of ${episode.podcastName}`}</span>
               </div>
             </div>
-            <div className="px-6 py-5">
+            <div className="px-4 sm:px-6 py-5">
               <div className={`grid gap-8 ${guests.length > 0 && hasHosts && podcastHosts ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
 
               {hasHosts && podcastHosts && (
@@ -1096,13 +1096,13 @@ export default function EpisodeRecapPage() {
 
         {(notablePeople.length > 0 || notableCompanies.length > 0) && (
           <section id="section-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-mentions">
-            <div className="px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
+            <div className="px-4 sm:px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <Users className="w-4 h-4 text-orange-500" />
+                <Users className="w-4 h-4 text-orange-500 shrink-0" />
                 <h2 className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">{`Top Mentions in This ${episode.podcastName} Episode`}</h2>
               </div>
             </div>
-            <div className="px-6 py-5 space-y-8">
+            <div className="px-4 sm:px-6 py-5 space-y-8">
               {notablePeople.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
@@ -1194,13 +1194,13 @@ export default function EpisodeRecapPage() {
 
         {hasBooks && (
           <section id="section-books" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-books">
-            <div className="px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+            <div className="px-4 sm:px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <BookOpen className="w-4 h-4 text-amber-600" />
+                <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
                 <h2 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned in This Episode</h2>
               </div>
             </div>
-            <div className="px-6 py-5">
+            <div className="px-4 sm:px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(showAllBooks ? books : books.slice(0, INITIAL_SHOW)).map((book, i) => {
                   const bookKey = book.name.toLowerCase().trim();
@@ -1303,13 +1303,13 @@ export default function EpisodeRecapPage() {
 
         {hasQuotes && (
           <section id="section-quotes" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-quotes">
-            <div className="px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
+            <div className="px-4 sm:px-6 py-4 bg-violet-500/[0.04] border-b border-violet-500/[0.08]">
               <div className="flex items-center gap-2.5">
-                <Quote className="w-4 h-4 text-violet-500" />
+                <Quote className="w-4 h-4 text-violet-500 shrink-0" />
                 <span className="text-base font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider">{guestNames ? `Best ${guestNames} Quotes from ${episode.podcastName}` : `Best Quotes from ${seoSubject}`}</span>
               </div>
             </div>
-            <div className="px-6 py-5">
+            <div className="px-4 sm:px-6 py-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {episodeQuotes.slice(0, 4).map((q, i) => (
                   <QuoteCard

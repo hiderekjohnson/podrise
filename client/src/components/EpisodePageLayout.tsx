@@ -142,7 +142,7 @@ export function EpisodePageLayout({
   }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <PodCapHeader
         rightContent={
           <button
@@ -224,12 +224,12 @@ export function EpisodePageLayout({
                 </p>
               )}
 
-              <div className="flex items-center gap-2.5 mt-2 justify-center sm:justify-start" data-testid="listen-buttons">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-2 justify-center sm:justify-start" data-testid="listen-buttons">
                 <a
                   href={appleLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                   data-testid="link-apple-podcasts"
                   title="Listen on Apple Podcasts"
                 >
@@ -241,7 +241,7 @@ export function EpisodePageLayout({
                   href={spotifyLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                   data-testid="link-spotify"
                   title="Listen on Spotify"
                 >
@@ -254,7 +254,7 @@ export function EpisodePageLayout({
                     href={effectiveYoutubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                     data-testid="link-youtube"
                     title="Watch on YouTube"
                   >

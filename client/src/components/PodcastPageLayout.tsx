@@ -98,7 +98,7 @@ export function PodcastPageLayout({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       <PodCapHeader
         rightContent={
           <button
@@ -174,16 +174,16 @@ export function PodcastPageLayout({
                 )}
               </div>
 
-              <div className="flex items-center gap-2.5 mt-2 justify-center sm:justify-start" data-testid="hero-listen-links">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-2 justify-center sm:justify-start" data-testid="hero-listen-links">
                 <a
                   href={appleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px]"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                   data-testid="hero-link-apple"
                   title="Listen on Apple Podcasts"
                 >
-                  <SiApplepodcasts className="w-5 h-5 text-[#9933CC]" />
+                  <SiApplepodcasts className="w-4 h-4 text-[#9933CC]" />
                   Apple Podcasts
                   <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
@@ -191,11 +191,11 @@ export function PodcastPageLayout({
                   href={effectiveSpotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px]"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                   data-testid="hero-link-spotify"
                   title="Listen on Spotify"
                 >
-                  <SiSpotify className="w-5 h-5 text-[#1DB954]" />
+                  <SiSpotify className="w-4 h-4 text-[#1DB954]" />
                   Spotify
                   <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                 </a>
@@ -204,11 +204,11 @@ export function PodcastPageLayout({
                     href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px]"
+                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                     data-testid="hero-link-youtube"
                     title="Watch on YouTube"
                   >
-                    <SiYoutube className="w-5 h-5 text-[#FF0000]" />
+                    <SiYoutube className="w-4 h-4 text-[#FF0000]" />
                     YouTube
                     <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                   </a>
