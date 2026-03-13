@@ -333,14 +333,14 @@ function buildKeyTakeaways(insights: string[], accentColor: string): string {
   const items = insights.map((insight, idx) => {
     const marginBottom = idx < insights.length - 1 ? "margin-bottom:12px;" : "";
     return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="${marginBottom}"><tr>
-        <td width="20" valign="top" style="padding-top:6px;"><div style="width:5px;height:5px;background:${accentColor};border-radius:50%;"></div></td>
-        <td style="font-size:15px;color:#3F3F46;line-height:1.7;">${renderInlineMarkdown(escapeHtml(insight))}</td>
+        <td width="20" valign="top" style="padding-top:8px;"><div style="width:6px;height:6px;background:${accentColor};border-radius:50%;"></div></td>
+        <td style="font-size:17px;color:#3F3F46;line-height:1.7;">${renderInlineMarkdown(escapeHtml(insight))}</td>
       </tr></table>`;
   }).join("");
 
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F7F7FC;border-radius:12px;margin-bottom:18px;border-left:3px solid ${accentColor};">
-    <tr><td style="padding:16px 20px;">
-      <p style="font-size:11px;font-weight:700;color:${accentColor};letter-spacing:0.12em;text-transform:uppercase;margin:0 0 14px;">Key Takeaways</p>
+    <tr><td style="padding:18px 22px;">
+      <p style="font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.12em;text-transform:uppercase;margin:0 0 14px;">Key Takeaways</p>
       ${items}
     </td></tr>
   </table>`;
@@ -351,7 +351,7 @@ function buildRecapText(whatHappened: string): string {
   const paragraphs = whatHappened.split(/\n\n+/).filter(p => p.trim());
   return paragraphs.map((p, idx) => {
     const marginBottom = idx < paragraphs.length - 1 ? "14px" : "20px";
-    return `<p style="font-size:16px;color:#52525B;line-height:1.8;margin:0 0 ${marginBottom};">${renderInlineMarkdown(escapeHtml(p.trim()))}</p>`;
+    return `<p style="font-size:17px;color:#52525B;line-height:1.8;margin:0 0 ${marginBottom};">${renderInlineMarkdown(escapeHtml(p.trim()))}</p>`;
   }).join("");
 }
 
@@ -368,30 +368,30 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
   if (peopleCount > 0) {
     const teaser = String(meta.mentionTeaserPeople || "").trim();
     const suffix = teaser ? ` \u2014 <span style="color:#71717A;font-weight:400;">${escapeHtml(teaser)}</span>` : "";
-    lines.push(`<tr><td style="padding:0 0 6px;">
+    lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td width="26" valign="top" style="font-size:15px;line-height:1.6;padding-top:1px;">&#x1F464;</td>
-        <td style="font-size:15px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"} came up${suffix}</td>
+        <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F464;</td>
+        <td style="font-size:17px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"} came up${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
   if (companiesCount > 0) {
     const teaser = String(meta.mentionTeaserCompanies || "").trim();
     const suffix = teaser ? ` \u2014 <span style="color:#71717A;font-weight:400;">${escapeHtml(teaser)}</span>` : "";
-    lines.push(`<tr><td style="padding:0 0 6px;">
+    lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td width="26" valign="top" style="font-size:15px;line-height:1.6;padding-top:1px;">&#x1F3E2;</td>
-        <td style="font-size:15px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"} mentioned${suffix}</td>
+        <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F3E2;</td>
+        <td style="font-size:17px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"} mentioned${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
   if (booksCount > 0) {
     const teaser = String(meta.mentionTeaserBooks || "").trim();
     const suffix = teaser ? ` \u2014 <span style="color:#71717A;font-weight:400;">${escapeHtml(teaser)}</span>` : "";
-    lines.push(`<tr><td style="padding:0 0 6px;">
+    lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td width="26" valign="top" style="font-size:15px;line-height:1.6;padding-top:1px;">&#x1F4DA;</td>
-        <td style="font-size:15px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"} recommended${suffix}</td>
+        <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F4DA;</td>
+        <td style="font-size:17px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"} recommended${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
@@ -399,13 +399,13 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
   const mentionsUrl = `${recapUrl}#mentions`;
 
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:22px 0 18px;">
-    <tr><td style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 20px 20px;">
-      <p style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 14px;">Mentioned in this episode</p>
+    <tr><td style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 22px 22px;">
+      <p style="font-size:12px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 14px;">Mentioned in this episode</p>
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
         ${lines.join("")}
       </table>
       <p style="margin:20px 0 0;">
-        <a href="${escapeHtml(mentionsUrl)}" style="font-size:13px;font-weight:600;color:#6366F1;text-decoration:none;">Who were they, and why did they come up? &#8594;</a>
+        <a href="${escapeHtml(mentionsUrl)}" style="font-size:15px;font-weight:600;color:#6366F1;text-decoration:none;">Who were they, and why did they come up? &#8594;</a>
       </p>
     </td></tr>
   </table>`;
@@ -437,12 +437,12 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   }
   const artworkHtml = artworkUrl
     ? `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
-        <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="56" height="56" style="width:56px;height:56px;border-radius:12px;display:block;object-fit:cover;" />
+        <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="64" height="64" style="width:64px;height:64px;border-radius:12px;display:block;object-fit:cover;" />
       </a>`
     : `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
         <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-          <td style="width:56px;height:56px;background:linear-gradient(145deg,#0f172a,#312e81);border-radius:12px;text-align:center;vertical-align:middle;">
-            <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.5);">${escapeHtml(slug.slice(0, 3).toUpperCase())}</span>
+          <td style="width:64px;height:64px;background:linear-gradient(145deg,#0f172a,#312e81);border-radius:12px;text-align:center;vertical-align:middle;">
+            <span style="font-size:16px;font-weight:700;color:rgba(255,255,255,0.5);">${escapeHtml(slug.slice(0, 3).toUpperCase())}</span>
           </td>
         </tr></table>
       </a>`;
@@ -457,19 +457,19 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   return `<tr><td class="ep-block" style="padding:28px 28px 26px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
 
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:16px;"><tr>
-    <td width="60" valign="top">
+    <td width="68" valign="top">
       ${artworkHtml}
     </td>
     <td style="padding-left:12px;" valign="middle">
       <a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;">
-        <p style="font-size:13px;font-weight:700;color:${accentColor};letter-spacing:0.06em;text-transform:uppercase;margin:0 0 3px;">${escapeHtml(episode.podcastName)}</p>
+        <p style="font-size:14px;font-weight:700;color:${accentColor};letter-spacing:0.06em;text-transform:uppercase;margin:0 0 3px;">${escapeHtml(episode.podcastName)}</p>
       </a>
-      ${metaInfoStr ? `<p style="font-size:12px;color:#A1A1AA;margin:0 0 ${guestStr ? "2px" : "0"};">${escapeHtml(metaInfoStr)}</p>` : ""}
-      ${guestStr ? `<p style="font-size:12px;color:#71717A;margin:0;">with ${escapeHtml(guestStr)}</p>` : ""}
+      ${metaInfoStr ? `<p style="font-size:13px;color:#A1A1AA;margin:0 0 ${guestStr ? "2px" : "0"};">${escapeHtml(metaInfoStr)}</p>` : ""}
+      ${guestStr ? `<p style="font-size:13px;color:#71717A;margin:0;">with ${escapeHtml(guestStr)}</p>` : ""}
     </td>
   </tr></table>
 
-  <h2 class="ep-title" style="font-size:20px;font-weight:700;color:#09090B;letter-spacing:-0.02em;line-height:1.35;margin:0 0 18px;">
+  <h2 class="ep-title" style="font-size:22px;font-weight:700;color:#09090B;letter-spacing:-0.02em;line-height:1.35;margin:0 0 18px;">
     ${escapeHtml(episode.episodeTitle)}
   </h2>
 
@@ -551,7 +551,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
         </tr></table>
       </a>
     </td>
-    <td align="right" valign="middle"><span style="font-size:13px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(dateStr)}</span></td>
+    <td align="right" valign="middle"><span style="font-size:14px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(dateStr)}</span></td>
   </tr></table>
 </td></tr>
 
@@ -562,16 +562,16 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     <td>
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td style="padding-right:20px;border-right:1px solid #E4E4E7;">
-          <p style="font-size:26px;font-weight:700;color:#09090B;letter-spacing:-0.04em;margin:0 0 2px;">${episodeCount}</p>
-          <p style="font-size:12px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">Episode${episodeCount !== 1 ? "s" : ""}</p>
+          <p style="font-size:28px;font-weight:700;color:#09090B;letter-spacing:-0.04em;margin:0 0 2px;">${episodeCount}</p>
+          <p style="font-size:13px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">Episode${episodeCount !== 1 ? "s" : ""}</p>
         </td>
         ${totalDuration ? `<td style="padding:0 20px;border-right:1px solid #E4E4E7;">
-          <p style="font-size:26px;font-weight:700;color:#09090B;letter-spacing:-0.04em;margin:0 0 2px;">${escapeHtml(totalDuration)}</p>
-          <p style="font-size:12px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">Of content</p>
+          <p style="font-size:28px;font-weight:700;color:#09090B;letter-spacing:-0.04em;margin:0 0 2px;">${escapeHtml(totalDuration)}</p>
+          <p style="font-size:13px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">Of content</p>
         </td>` : ""}
         <td style="padding-left:20px;">
-          <p style="font-size:26px;font-weight:700;background:linear-gradient(135deg,#6366F1,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0 0 2px;">Distilled</p>
-          <p style="font-size:12px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">For you</p>
+          <p style="font-size:28px;font-weight:700;background:linear-gradient(135deg,#6366F1,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em;margin:0 0 2px;">Distilled</p>
+          <p style="font-size:13px;font-weight:500;color:#A1A1AA;letter-spacing:0.06em;text-transform:uppercase;margin:0;">For you</p>
         </td>
       </tr></table>
     </td>
