@@ -43,11 +43,11 @@ export function Footer() {
           </div>
 
           <div>
-            <Link href="/insights" className="text-base font-bold text-foreground mb-5 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-insights">Insights</Link>
+            <Link href="/topics" className="text-base font-bold text-foreground mb-5 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-topics">Topics</Link>
             <ul className="space-y-3.5">
               {topInsights.map((topic) => (
                 <li key={topic.slug}>
-                  <Link href={`/insights/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-insight-${topic.slug}`}>
+                  <Link href={`/topics/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-topic-${topic.slug}`}>
                     {topic.name}
                   </Link>
                 </li>

@@ -78,8 +78,8 @@ function Router() {
         <Route path="/get-started" component={GetStarted} />
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends" component={TrendsPage} />
-        <Route path="/insights/:slug" component={TopicDetailPage} />
-        <Route path="/insights" component={TopicsDirectory} />
+        <Route path="/topics/:slug" component={TopicDetailPage} />
+        <Route path="/topics" component={TopicsDirectory} />
         <Route path="/daily-drop/:date" component={DailyDropEdition} />
         <Route path="/daily-drop" component={DailyDrop} />
         <Route path="/podcaster/claim" component={PodcasterClaim} />

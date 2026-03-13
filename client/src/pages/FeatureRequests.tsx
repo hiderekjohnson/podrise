@@ -16,9 +16,9 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
-    title: "Explore podcast knowledge with Insights",
+    title: "Explore podcast knowledge with Topics",
     description: "Discover the topics, people, and companies shaping podcast conversations. Browse trending topics, influential guests, and mentioned organizations across your favorite shows.",
-    link: { url: "/insights", label: "Explore Insights" },
+    link: { url: "/topics", label: "Explore Topics" },
     emoji: "🔍",
     date: "Mar 13, 2026",
   },
@@ -140,7 +140,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Top podcasts directory",
     description: "Browse and discover the top podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
-    link: { url: "/insights", label: "Explore podcast insights by topic" },
+    link: { url: "/topics", label: "Explore podcast insights by topic" },
     emoji: "📊",
     date: "Jan 11, 2026",
   },

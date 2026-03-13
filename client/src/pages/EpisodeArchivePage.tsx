@@ -417,7 +417,7 @@ export default function EpisodeArchivePage() {
                       const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
                       if (!insightsSlug) return null;
                       return (
-                        <Link key={topic.slug} href={`/insights/${insightsSlug}`}>
+                        <Link key={topic.slug} href={`/topics/${insightsSlug}`}>
                           <span className="text-[16px] px-2 py-0.5 rounded-md bg-muted/60 text-[#3F3F46] font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                             {topic.name}
                           </span>

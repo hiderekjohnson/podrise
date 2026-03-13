@@ -372,11 +372,11 @@ export default function About() {
                 Track what's being said across podcasts on the topics that matter to you.
               </p>
               <Link
-                href="/insights"
+                href="/topics"
                 className="inline-flex items-center gap-1.5 text-base font-bold text-primary hover:text-primary/80 transition-colors"
-                data-testid="link-browse-insights"
+                data-testid="link-browse-topics"
               >
-                Explore Insights
+                Explore Topics
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -410,7 +410,7 @@ export default function About() {
                   <ArrowRight className="w-4 h-4" />
                 </a>
                 <Link
-                  href="/insights"
+                  href="/topics"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground shadow-sm hover:shadow-md transition-all"
                   data-testid="link-cta-browse"
                 >

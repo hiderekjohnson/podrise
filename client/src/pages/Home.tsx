@@ -180,8 +180,8 @@ export default function Home() {
                   <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by topic, explore our picks, or search for exactly the podcast you're looking for.</p>
                 </div>
               </Link>
-              <Link href="/insights" className="block">
-                <div className="group bg-card border border-border rounded-xl p-6 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer h-full" data-testid="nav-card-insights">
+              <Link href="/topics" className="block">
+                <div className="group bg-card border border-border rounded-xl p-6 hover:border-primary/20 hover:shadow-md transition-all cursor-pointer h-full" data-testid="nav-card-topics">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>

@@ -28,11 +28,11 @@ export function SiteHeader() {
             Trends
           </Link>
           <Link
-            href="/insights"
+            href="/topics"
             className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 hidden sm:flex items-center"
-            data-testid="nav-insights"
+            data-testid="nav-topics"
           >
-            Insights
+            Topics
           </Link>
           {user ? (
             <Link

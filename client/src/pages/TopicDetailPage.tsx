@@ -219,7 +219,7 @@ export default function TopicDetailPage() {
     const first = podcasts[0];
     return {
       podcasts: podcasts.slice(0, 4).map(p => p.podcast),
-      browseUrl: `/insights/${params.slug}`,
+      browseUrl: `/topics/${params.slug}`,
       topicSlug: first.topicSlug,
     };
   }, [params.slug]);
@@ -286,7 +286,7 @@ export default function TopicDetailPage() {
 
       <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
         <div className="flex items-center gap-2 text-[14px] text-muted-foreground mb-6">
-          <Link href="/insights" className="hover:text-foreground transition-colors" data-testid="link-back-insights">
+          <Link href="/topics" className="hover:text-foreground transition-colors" data-testid="link-back-insights">
             Insights
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
@@ -795,7 +795,7 @@ export default function TopicDetailPage() {
               {relatedTopics.map(t => {
                 const TIcon = ICON_MAP[t.icon] || Sparkles;
                 return (
-                  <Link key={t.slug} href={`/insights/${t.slug}`} data-testid={`link-related-topic-${t.slug}`}>
+                  <Link key={t.slug} href={`/topics/${t.slug}`} data-testid={`link-related-topic-${t.slug}`}>
                     <div className="group flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
                       <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${t.color} flex items-center justify-center`}>
                         <TIcon className="w-3.5 h-3.5 text-white" />
