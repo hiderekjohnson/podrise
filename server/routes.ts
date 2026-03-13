@@ -3420,7 +3420,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const parsedDigestForSend = parseDigestMarkdown(recap.summary);
       const epCountForSend = parsedDigestForSend.episodes.length || 1;
       const emailCopyForSend = await generateEmailSubjectAndPreview(recap.summary, epCountForSend);
-      const emailHtml = markdownToEmailHtml(recap.summary, user.email, epMeta, emailCopyForSend);
+      const { reorderMarkdownLeadFirst } = await import("./emailScheduler");
+      const reorderedForSend = reorderMarkdownLeadFirst(recap.summary, emailCopyForSend.leadEpisodePodcast);
+      const emailHtml = markdownToEmailHtml(reorderedForSend, user.email, epMeta, emailCopyForSend);
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
@@ -3721,7 +3723,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const parsedForPreview = parseDigestMarkdown(pending.summary);
     const epCountPreview = parsedForPreview.episodes.length || 1;
     const emailCopyPreview = await generateEmailSubjectAndPreview(pending.summary, epCountPreview);
-    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta, emailCopyPreview);
+    const { reorderMarkdownLeadFirst } = await import("./emailScheduler");
+    const reorderedPreview = reorderMarkdownLeadFirst(pending.summary, emailCopyPreview.leadEpisodePodcast);
+    const freshHtml = markdownToEmailHtml(reorderedPreview, pending.recipientEmail, epMeta, emailCopyPreview);
     res.json({ html: freshHtml });
   });
 
@@ -3766,8 +3770,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const parsedForSendNow = parseDigestMarkdown(pending.summary);
       const episodeCount = parsedForSendNow.episodes.length || 1;
       const emailCopy = await generateEmailSubjectAndPreview(pending.summary, episodeCount);
+      const { reorderMarkdownLeadFirst } = await import("./emailScheduler");
+      const reorderedSendNow = reorderMarkdownLeadFirst(pending.summary, emailCopy.leadEpisodePodcast);
       const freshSubject = emailCopy.subject;
-      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2, emailCopy);
+      const freshHtml = markdownToEmailHtml(reorderedSendNow, pending.recipientEmail, epMeta2, emailCopy);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
@@ -4309,7 +4315,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const parsedBatch = parseDigestMarkdown(summary);
         const epCountBatch = parsedBatch.episodes.length || 1;
         const emailCopyBatch = await generateEmailSubjectAndPreview(summary, epCountBatch);
-        const newHtml = markdownToEmailHtml(summary, email.recipientEmail, epMetaBatch, emailCopyBatch);
+        const { reorderMarkdownLeadFirst } = await import("./emailScheduler");
+        const reorderedBatch = reorderMarkdownLeadFirst(summary, emailCopyBatch.leadEpisodePodcast);
+        const newHtml = markdownToEmailHtml(reorderedBatch, email.recipientEmail, epMetaBatch, emailCopyBatch);
         await storage.updatePendingEmailHtml(email.id, newHtml);
         updated++;
       }

@@ -241,6 +241,7 @@ export interface EmailCopySystem {
   leadHeadline: string;
   supportingDetail: string;
   coverlines: string;
+  leadEpisodePodcast: string;
 }
 
 export async function generateEmailSubjectAndPreview(summary: string, episodeCount: number = 1): Promise<EmailCopySystem> {
@@ -266,6 +267,12 @@ export async function generateEmailSubjectAndPreview(summary: string, episodeCou
       messages: [{
         role: "user",
         content: `You write email copy for a daily podcast recap email. The reader receives this email THE MORNING AFTER the episodes dropped. All copy must reflect this \u2014 never say "today's episodes", "in today's recap", or "this episode." Always write as if you are telling someone what happened yesterday.
+
+CRITICAL RULE \u2014 LEAD EPISODE SELECTION (overrides everything else):
+Before writing any copy, scan all episodes in the recap and pick the one with the single most surprising, specific, or aspirational claim. That is the lead episode.
+\u2022 The ENTIRE header \u2014 headline, supporting detail, and subject line \u2014 must be written from the lead episode's content ONLY. Never from any other episode.
+\u2022 All remaining episodes are teased in the coverlines only.
+\u2022 You must return the lead episode's podcast name in the "leadEpisodePodcast" field so the system can place it first in the email.
 
 The subject line, preheader, lead headline, supporting detail, and coverlines are ONE COMPLETE SYSTEM. Generate all of them together from the recap content below.
 
@@ -311,8 +318,8 @@ There are ${episodeCount} episode(s) in this email.
 Recap content:
 ${summary.slice(0, 4000)}
 
-Respond with JSON: { "subject": "...", "preheader": "...", "leadHeadline": "...", "supportingDetail": "...", "coverlines": "..." }
-The preheader MUST be exactly 120 characters. Count them.`
+Respond with JSON: { "subject": "...", "preheader": "...", "leadHeadline": "...", "supportingDetail": "...", "coverlines": "...", "leadEpisodePodcast": "..." }
+The "leadEpisodePodcast" field must contain the EXACT podcast name as it appears in the recap headers (the ## lines). The preheader MUST be exactly 120 characters. Count them.`
       }],
       max_tokens: 600,
       temperature: 0.9,
@@ -327,6 +334,7 @@ The preheader MUST be exactly 120 characters. Count them.`
       const headline = String(parsed.leadHeadline || "").trim();
       const detail = String(parsed.supportingDetail || "").trim();
       const covers = String(parsed.coverlines || "").trim();
+      const leadPodcast = String(parsed.leadEpisodePodcast || "").trim();
       if (prev.length > 130) prev = prev.slice(0, 127) + "...";
       if (subj && subj.length <= 80) {
         return {
@@ -335,13 +343,51 @@ The preheader MUST be exactly 120 characters. Count them.`
           leadHeadline: headline || fallbackHeadline,
           supportingDetail: detail || fallbackDetail,
           coverlines: covers,
+          leadEpisodePodcast: leadPodcast,
         };
       }
     }
   } catch (err) {
     console.warn("[EmailScheduler] AI subject/preheader/hook generation failed:", err);
   }
-  return { subject: fallbackSubject, previewText: fallbackPreview, leadHeadline: fallbackHeadline, supportingDetail: fallbackDetail, coverlines: "" };
+  return { subject: fallbackSubject, previewText: fallbackPreview, leadHeadline: fallbackHeadline, supportingDetail: fallbackDetail, coverlines: "", leadEpisodePodcast: "" };
+}
+
+export function reorderMarkdownLeadFirst(markdown: string, leadEpisodePodcast: string): string {
+  if (!leadEpisodePodcast) return markdown;
+
+  const h2Sections = markdown.split(/^(?=## )/m);
+  const preamble: string[] = [];
+  const episodes: string[] = [];
+
+  for (const section of h2Sections) {
+    if (section.startsWith("## ")) {
+      episodes.push(section);
+    } else {
+      preamble.push(section);
+    }
+  }
+
+  if (episodes.length <= 1) return markdown;
+
+  const leadNorm = leadEpisodePodcast.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const leadIdx = episodes.findIndex(ep => {
+    const titleLine = ep.split("\n")[0].replace(/^## /, "").trim();
+    const titleNorm = titleLine.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return titleNorm.includes(leadNorm) || leadNorm.includes(titleNorm);
+  });
+
+  if (leadIdx > 0) {
+    const [lead] = episodes.splice(leadIdx, 1);
+    episodes.unshift(lead);
+    console.log(`[EmailScheduler] Reordered: moved "${leadEpisodePodcast}" to first position`);
+  } else if (leadIdx === 0) {
+    console.log(`[EmailScheduler] Lead episode "${leadEpisodePodcast}" already first`);
+  } else {
+    console.log(`[EmailScheduler] Could not find lead episode "${leadEpisodePodcast}" in markdown sections`);
+  }
+
+  return [...preamble, ...episodes].join("");
 }
 
 async function sendAdminNotification(userEmail: string, subject: string) {
@@ -520,7 +566,8 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     const episodeMeta = await buildEpisodeMeta(podcastNames);
     const episodeCount = result.parsedEpisodes.length || 1;
     const emailCopy = await generateEmailSubjectAndPreview(result.summary, episodeCount);
-    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta, emailCopy);
+    const reorderedSummary = reorderMarkdownLeadFirst(result.summary, emailCopy.leadEpisodePodcast);
+    const emailHtml = markdownToEmailHtml(reorderedSummary, user.email, episodeMeta, emailCopy);
 
     const deliveryTime = user.deliveryTime || "07:00";
     const subject = emailCopy.subject;
@@ -529,7 +576,7 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
       userId: user.id,
       recapDate: result.dateStr,
       podcasts: result.recappedPodcasts,
-      summary: result.summary,
+      summary: reorderedSummary,
     });
 
     await storage.createPendingEmail({
@@ -537,7 +584,7 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
       recipientEmail: user.email,
       podcasts: result.recappedPodcasts,
       recapDate: result.dateStr,
-      summary: result.summary,
+      summary: reorderedSummary,
       emailHtml,
       subject,
       scheduledFor: deliveryTime,
@@ -658,7 +705,8 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   const parsedDigest = parseDigestMarkdown(pending.summary);
   const episodeCount = parsedDigest.episodes.length || 1;
   const emailCopy = await generateEmailSubjectAndPreview(pending.summary, episodeCount);
-  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, episodeMeta, emailCopy);
+  const reorderedSummary = reorderMarkdownLeadFirst(pending.summary, emailCopy.leadEpisodePodcast);
+  const freshHtml = markdownToEmailHtml(reorderedSummary, pending.recipientEmail, episodeMeta, emailCopy);
 
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
