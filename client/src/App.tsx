@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import Home from "./pages/Home";
 import NotFound from "./pages/not-found";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -113,6 +114,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Router />
+        <ExitIntentPopup />
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
