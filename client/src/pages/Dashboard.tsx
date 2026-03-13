@@ -315,6 +315,11 @@ export default function Dashboard() {
     return null;
   }
 
+  if (user && !user.emailVerified) {
+    navigate("/verify-email");
+    return null;
+  }
+
   const serializePodcasts = (list: SelectedPodcast[]) =>
     list.map((p) => JSON.stringify(p));
 

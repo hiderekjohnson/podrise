@@ -16,12 +16,23 @@ export const users = pgTable("users", {
   stripeSubscriptionId: text("stripe_subscription_id"),
   plan: text("plan").notNull().default("free"),
   vacationUntil: text("vacation_until"),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  emailVerified: true,
 }).extend({
   email: z.string().email("Please enter a valid email address"),
   podcasts: z.array(z.string()).min(1, "Select at least one podcast"),

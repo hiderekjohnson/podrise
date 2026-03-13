@@ -150,6 +150,46 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
   console.log(`[NewUserNotify] Notification sent for ${user.email}`);
 }
 
+async function sendVerificationEmail(user: { id: number; email: string }) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await pool.query(
+    `INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+    [user.id, token, expiresAt]
+  );
+
+  const verifyUrl = `https://podcap.io/verify-email?token=${token}`;
+
+  const { client, fromEmail } = await getUncachableResendClient();
+  await client.emails.send({
+    from: `PodCap <${fromEmail}>`,
+    to: user.email,
+    subject: "Confirm your email address",
+    html: `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
+<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<div style="padding:40px 32px 24px;text-align:center;">
+<div style="width:56px;height:56px;margin:0 auto 20px;background:#f0f4ff;border-radius:14px;display:flex;align-items:center;justify-content:center;">
+<span style="font-size:28px;">📬</span>
+</div>
+<h1 style="margin:0 0 8px;color:#18181b;font-size:22px;font-weight:800;">Confirm your email</h1>
+<p style="margin:0;color:#71717a;font-size:15px;line-height:1.5;">Tap the button below to verify your email address and activate your PodCap account.</p>
+</div>
+<div style="padding:0 32px 32px;text-align:center;">
+<a href="${verifyUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:-0.01em;">Verify Email Address</a>
+<p style="margin:20px 0 0;color:#a1a1aa;font-size:13px;line-height:1.5;">This link expires in 24 hours.<br/>If you didn't create a PodCap account, you can ignore this email.</p>
+</div>
+<div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
+<span style="font-size:12px;color:#a1a1aa;">PodCap — The intelligence layer on top of podcasts</span>
+</div>
+</div>
+</body></html>`,
+  });
+
+  console.log(`[VerifyEmail] Verification email sent to ${user.email}`);
+}
+
 const DOMAIN = "https://podcap.io";
 
 const STATIC_PAGES = [
@@ -510,6 +550,10 @@ export async function registerRoutes(
       sendNewUserNotification(user, req, req.body.signupSource).catch((err) =>
         console.error("[NewUserNotify] Failed:", err)
       );
+
+      sendVerificationEmail(user).catch((err) =>
+        console.error("[VerifyEmail] Failed to send:", err)
+      );
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
@@ -518,6 +562,67 @@ export async function registerRoutes(
         });
       }
       throw err;
+    }
+  });
+
+  app.get("/api/auth/verify-email", async (req, res) => {
+    const token = req.query.token as string;
+    if (!token) {
+      return res.status(400).json({ message: "Missing verification token" });
+    }
+
+    try {
+      const result = await pool.query(
+        `SELECT * FROM email_verification_tokens WHERE token = $1`,
+        [token]
+      );
+      const row = result.rows[0];
+      if (!row) {
+        return res.status(400).json({ message: "Invalid or expired verification link" });
+      }
+      if (row.used_at) {
+        return res.status(400).json({ message: "This link has already been used" });
+      }
+      if (new Date(row.expires_at) < new Date()) {
+        return res.status(400).json({ message: "This verification link has expired. Please request a new one." });
+      }
+
+      await pool.query(
+        `UPDATE email_verification_tokens SET used_at = NOW() WHERE id = $1`,
+        [row.id]
+      );
+      await pool.query(
+        `UPDATE users SET email_verified = true WHERE id = $1`,
+        [row.user_id]
+      );
+
+      req.session.userId = row.user_id;
+      const user = await storage.getUserById(row.user_id);
+      res.json({ message: "Email verified successfully", user });
+    } catch (err) {
+      console.error("[VerifyEmail] Error:", err);
+      res.status(500).json({ message: "Verification failed. Please try again." });
+    }
+  });
+
+  app.post("/api/auth/resend-verification", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.emailVerified) {
+      return res.status(400).json({ message: "Email is already verified" });
+    }
+
+    try {
+      await sendVerificationEmail(user);
+      res.json({ message: "Verification email sent" });
+    } catch (err) {
+      console.error("[ResendVerify] Error:", err);
+      res.status(500).json({ message: "Failed to send verification email. Please try again." });
     }
   });
 
@@ -546,6 +651,10 @@ export async function registerRoutes(
 
           sendNewUserNotification(user, req, `quick-subscribe-${input.type}`).catch((err) =>
             console.error("[NewUserNotify] Failed:", err)
+          );
+
+          sendVerificationEmail(user).catch((err) =>
+            console.error("[VerifyEmail] Failed to send:", err)
           );
 
           req.session.userId = user.id;
@@ -668,6 +777,10 @@ export async function registerRoutes(
 
     await storage.markMagicLinkUsed(magicLink.id);
     req.session.userId = user.id;
+
+    if (!user.emailVerified) {
+      await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+    }
 
     req.session.save(() => {
       res.redirect("/dashboard");

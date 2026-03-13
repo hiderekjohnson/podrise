@@ -29,7 +29,11 @@ export default function Register() {
   }, []);
 
   if (user) {
-    navigate("/dashboard");
+    if (!user.emailVerified) {
+      navigate("/verify-email");
+    } else {
+      navigate("/dashboard");
+    }
     return null;
   }
 
@@ -49,7 +53,7 @@ export default function Register() {
     register(
       { email: email.trim(), podcasts: [] },
       {
-        onSuccess: () => navigate("/dashboard?welcome=true"),
+        onSuccess: () => navigate("/verify-email"),
         onError: (err) => {
           toast({
             title: "Something went wrong",
