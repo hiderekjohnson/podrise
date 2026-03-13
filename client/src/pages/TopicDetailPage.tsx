@@ -323,16 +323,6 @@ export default function TopicDetailPage() {
               </p>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4" data-testid="kpi-status">
-              <p className="text-[13px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Status</p>
-              <p className="text-base font-display font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Active
-              </p>
-            </div>
-          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-14">
