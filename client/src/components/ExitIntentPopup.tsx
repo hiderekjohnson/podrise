@@ -145,8 +145,7 @@ export function ExitIntentPopup() {
 
   const shouldSuppress = useCallback(() => {
     if (user) return true;
-    const path = window.location.pathname;
-    if (path === "/bookstore" || path.startsWith("/bookstore/")) return true;
+    if (!pageData) return true;
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return false;
     if (stored === "subscribed") return true;
@@ -156,7 +155,7 @@ export function ExitIntentPopup() {
       if (hoursSince < 72) return true;
     }
     return false;
-  }, [user]);
+  }, [user, pageData]);
 
   const tryShow = useCallback(() => {
     if (triggeredRef.current) return;
