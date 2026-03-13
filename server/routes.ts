@@ -3070,14 +3070,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       };
       const searchTopics = topicMapping[slug] || [slug];
       const result = await pool.query(
-        `SELECT book_title, author, slug FROM book_enrichments WHERE topics && $1::text[] ORDER BY rating DESC NULLS LAST, rating_count DESC NULLS LAST LIMIT 8`,
+        `SELECT book_title, author, slug, google_books_id FROM book_enrichments WHERE topics && $1::text[] ORDER BY rating DESC NULLS LAST, rating_count DESC NULLS LAST LIMIT 8`,
         [searchTopics]
       );
-      const books = result.rows.map((row: any) => ({
-        title: row.book_title,
-        author: row.author,
-        slug: row.slug,
-      }));
+      const books = result.rows.map((row: any) => {
+        let coverUrl = "/placeholder-book.jpg";
+        if (row.google_books_id) {
+          coverUrl = `https://books.google.com/books/content?id=${row.google_books_id}&printsec=frontcover&img=1&zoom=1`;
+        }
+        return {
+          title: row.book_title,
+          author: row.author,
+          slug: row.slug,
+          coverUrl,
+        };
+      });
       res.json(books);
     } catch (err: any) {
       console.error("[Topics Books] Error:", err);
