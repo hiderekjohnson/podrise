@@ -446,15 +446,26 @@ export class DatabaseStorage implements IStorage {
         updateFields[key] = value;
       }
     }
-    const [entry] = await db
-      .insert(podcastDirectory)
-      .values(data)
-      .onConflictDoUpdate({
-        target: podcastDirectory.itunesId,
-        set: updateFields,
-      })
-      .returning();
-    return entry;
+    try {
+      const [entry] = await db
+        .insert(podcastDirectory)
+        .values(data)
+        .onConflictDoUpdate({
+          target: podcastDirectory.itunesId,
+          set: updateFields,
+        })
+        .returning();
+      return entry;
+    } catch (err: any) {
+      if (err?.code === '23505' && err?.constraint?.includes('slug')) {
+        const [existing] = await db.select().from(podcastDirectory).where(eq(podcastDirectory.slug, data.slug)).limit(1);
+        if (existing) {
+          const [updated] = await db.update(podcastDirectory).set(updateFields).where(eq(podcastDirectory.slug, data.slug)).returning();
+          return updated;
+        }
+      }
+      throw err;
+    }
   }
 
   async deletePodcastDirectoryEntry(id: number): Promise<void> {
