@@ -548,8 +548,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
       .entity-box{padding:14px 16px 16px!important;}
       .entity-label{font-size:11px!important;}
       .entity-text{font-size:14px!important;}
-      .episode-bar{padding:12px 16px!important;border-radius:8px!important;}
-      .episode-bar-text{font-size:12px!important;}
+      .episode-bar-text{font-size:10px!important;}
       .signoff-text{font-size:13px!important;}
       .footer-desc{font-size:12px!important;}
       .footer-links{font-size:12px!important;}
@@ -593,18 +592,11 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   ${coverlines ? `<p class="coverlines-text" style="font-size:15px;font-weight:400;font-style:italic;color:#A1A1AA;line-height:1.6;margin:0;padding:24px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
 </td></tr>
 
-<!-- EPISODE COUNT BAR -->
+<!-- EPISODE COUNT DIVIDER -->
 <tr><td style="padding:28px 28px 0;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-    <tr><td class="episode-bar" style="background:#6366F1;border-radius:10px;padding:14px 20px;">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td valign="middle">
-          <span class="episode-bar-text" style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.1em;text-transform:uppercase;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW</span>
-        </td>
-        <td align="right" valign="middle">
-          <span style="font-size:18px;color:#ffffff;">&#8595;</span>
-        </td>
-      </tr></table>
+    <tr><td style="border-top:1px solid #E4E4E7;padding-top:16px;">
+      <p class="episode-bar-text" style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:0;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW &#8595;</p>
     </td></tr>
   </table>
 </td></tr>
