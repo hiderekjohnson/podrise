@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Clock, Mail, Sparkles, Search, BookOpen, Globe, BarChart3 } from "lucide-react";
+import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Sparkles, Search, BookOpen, Globe, BarChart3, Building2, Briefcase, Users } from "lucide-react";
 import derekPhoto from "@assets/Derek_Johnson_nobg.png";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -52,17 +52,17 @@ export default function About() {
             We are building the intelligence layer on top of podcasts
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-            The world's best thinkers are sharing everything on podcasts -- but nobody has time to listen to all of it. PodCap monitors hundreds of the top shows and delivers structured intelligence so you always know what matters.
+            The world's best thinkers are sharing everything on podcasts — but nobody has time to listen to all of it. PodCap monitors hundreds of the top shows and delivers structured intelligence so you always know what matters.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <a
+            <Link
               href="/"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
               data-testid="link-get-summaries"
             >
               Get Started Free
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </Link>
             <Link
               href="/updates"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-all"
@@ -120,7 +120,7 @@ export default function About() {
               The problem? Nobody has time to listen to all of it.
             </p>
             <p>
-              The breakthrough insight you need is probably already out there, discussed in an episode you will never get to. Every contrarian take, every playbook, every hard-won lesson -- recorded, published, and effectively invisible to anyone who was not already listening.
+              The breakthrough insight you need is probably already out there, discussed in an episode you will never get to. Every contrarian take, every playbook, every hard-won lesson — recorded, published, and effectively invisible to anyone who was not already listening.
             </p>
             <p>
               There is too much signal and not enough time. That is exactly why we built PodCap.
@@ -145,7 +145,7 @@ export default function About() {
               <h3 className="text-lg font-display font-bold text-foreground">The Scale Problem, Visualized</h3>
             </div>
             <p className="text-[16px] text-muted-foreground mb-6">
-              Netflix spent decades building a 50,000-hour library. Podcasters create that much content every 12 hours. The intelligence inside those conversations is staggering -- if you have the time to find it.
+              Netflix spent decades building a 50,000-hour library. Podcasters create that much content every 12 hours. The intelligence inside those conversations is staggering — if you have the time to find it.
             </p>
             <div className="space-y-5">
               <div>
@@ -176,7 +176,7 @@ export default function About() {
                     transition={{ duration: 1.8, delay: 0.9, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-[16px] text-[#52525B] mt-1">2,000x more content - and growing by 80,000+ hours every day</p>
+                <p className="text-[16px] text-[#52525B] mt-1">2,000x more content — and growing by 80,000+ hours every day</p>
               </div>
             </div>
             <p className="text-[16px] text-foreground font-semibold mt-6 text-center">
@@ -196,7 +196,7 @@ export default function About() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
             <Quote className="w-10 h-10 text-primary/10 mb-4" />
             <blockquote className="text-xl sm:text-2xl font-display leading-relaxed text-foreground italic mb-8">
-              "The smartest people in every industry are sharing everything on podcasts. Founders explaining exactly how they built their companies. Scientists describing breakthroughs. Investors revealing how they really think. But nobody can keep up with all of it. We are building the intelligence layer that makes sure you never miss what matters -- without having to listen to everything yourself."
+              "The smartest people in every industry are sharing everything on podcasts. Founders explaining exactly how they built their companies. Scientists describing breakthroughs. Investors revealing how they really think. But nobody can keep up with all of it. We are building the intelligence layer that makes sure you never miss what matters — without having to listen to everything yourself."
             </blockquote>
             <div className="flex items-center gap-4">
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
@@ -221,9 +221,9 @@ export default function About() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { icon: Headphones, title: "Pick industries or podcasts", desc: "Follow the topics that matter to your work, or choose specific shows. Either way, you stay current.", color: "from-blue-500/10 to-blue-600/5", iconColor: "text-blue-500" },
-              { icon: Zap, title: "Get analyst-grade briefings", desc: "Key insights, notable quotes, and takeaways from every episode -- distilled into intelligence you can act on.", color: "from-amber-500/10 to-amber-600/5", iconColor: "text-amber-500" },
-              { icon: CheckCircle2, title: "Know what matters", desc: "Spend your listening time on the episodes that truly deserve your attention.", color: "from-emerald-500/10 to-emerald-600/5", iconColor: "text-emerald-500" },
+              { icon: Headphones, title: "Pick industries, roles, or podcasts", desc: "Follow the industries relevant to your work, the roles that match your career, or choose specific shows. Either way, you stay current.", color: "from-blue-500/10 to-blue-600/5", iconColor: "text-blue-500" },
+              { icon: Zap, title: "Get daily briefings", desc: "Key insights, notable quotes, and takeaways from every episode — distilled into intelligence you can act on, delivered to you daily.", color: "from-amber-500/10 to-amber-600/5", iconColor: "text-amber-500" },
+              { icon: CheckCircle2, title: "Know what matters", desc: "Spend your listening time on the episodes that truly deserve your attention. We handle the rest.", color: "from-emerald-500/10 to-emerald-600/5", iconColor: "text-emerald-500" },
             ].map((item, i) => (
               <div key={i} className="group bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300" data-testid={`card-value-prop-${i + 1}`}>
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4`}>
@@ -233,6 +233,51 @@ export default function About() {
                 <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
               </div>
             ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.38 }}
+          data-testid="section-explore-categories"
+        >
+          <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 shadow-sm overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
+            <h3 className="text-lg font-display font-bold text-foreground text-center mb-3">Explore by industry, interest, or role</h3>
+            <p className="text-[16px] text-muted-foreground text-center max-w-lg mx-auto mb-8">
+              Every topic comes with a daily intelligence briefing, curated reading lists, key people to follow, and the best podcasts to listen to.
+            </p>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <Link href="/industries" data-testid="link-explore-industries">
+                <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
+                  <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-3">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Industries</p>
+                  <p className="text-[14px] text-muted-foreground">AI, Healthcare, Finance, Real Estate, and more</p>
+                </div>
+              </Link>
+              <Link href="/interests" data-testid="link-explore-interests">
+                <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
+                  <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3">
+                    <Zap className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Interests</p>
+                  <p className="text-[14px] text-muted-foreground">Health, Leadership, Personal Finance, and more</p>
+                </div>
+              </Link>
+              <Link href="/roles" data-testid="link-explore-roles">
+                <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mx-auto mb-3">
+                    <Briefcase className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Roles</p>
+                  <p className="text-[14px] text-muted-foreground">CEOs, Product Managers, Engineers, Marketers, and more</p>
+                </div>
+              </Link>
+            </div>
           </div>
         </motion.section>
 
@@ -249,7 +294,7 @@ export default function About() {
               <h2 className="text-2xl sm:text-3xl font-display font-bold">The bigger vision</h2>
             </div>
             <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto text-[17px] leading-[1.85]">
-              The vision goes beyond episode briefings. We are building the complete intelligence layer for the podcast ecosystem -- so every important idea is discoverable, structured, and actionable.
+              The vision goes beyond episode briefings. We are building the complete intelligence layer for the podcast ecosystem — so every important idea is discoverable, structured, and actionable.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
@@ -270,13 +315,13 @@ export default function About() {
 
             <div className="max-w-2xl mx-auto space-y-5 text-[17px] leading-[1.85] text-muted-foreground">
               <p>
-                Today, podcasts are one of the most valuable sources of ideas on the internet -- but the intelligence inside them is only accessible to people with hours to listen.
+                Today, podcasts are one of the most valuable sources of ideas on the internet — but the intelligence inside them is only accessible to people with hours to listen.
               </p>
               <p className="text-foreground font-semibold text-lg text-center">
                 We believe that will change.
               </p>
               <p>
-                PodCap is building the infrastructure that turns the world's podcast conversations into structured, actionable intelligence -- so you always know what the sharpest minds in your field are saying.
+                PodCap is building the infrastructure that turns the world's podcast conversations into structured, actionable intelligence — so you always know what the sharpest minds in your field are saying.
               </p>
             </div>
           </div>
@@ -286,37 +331,38 @@ export default function About() {
           className="max-w-3xl mx-auto px-4 sm:px-6 py-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.45 }}
-          data-testid="section-where-were-headed"
+          transition={{ duration: 0.5, delay: 0.42 }}
+          data-testid="section-for-teams"
         >
-          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">Where we are headed</h2>
-          <p className="text-muted-foreground mb-10 text-center max-w-lg mx-auto">
-            Over time, PodCap will become the place where you can:
-          </p>
-          <div className="max-w-xl mx-auto space-y-4">
-            {[
-              "Get briefings on any podcast episode in minutes",
-              "Track what the smartest people in any industry are saying",
-              "Stay ahead of the conversations shaping your field, without listening to everything",
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-4 bg-white dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] rounded-xl px-5 py-4">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <p className="text-[16px] text-foreground leading-relaxed">{item}</p>
+          <div className="relative bg-foreground text-background rounded-2xl p-8 sm:p-10 md:p-12 overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-5 h-5 text-primary" />
+                <span className="text-[13px] font-bold uppercase tracking-[0.15em] text-primary">For Teams</span>
               </div>
-            ))}
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-3">
+                PodCap for your whole organization
+              </h2>
+              <p className="text-[16px] text-white/60 leading-relaxed max-w-xl mb-6">
+                Give every employee intelligence tailored to their industry and role. Custom briefings, team management, Slack integration, and more — so your whole team stays ahead without listening to a single episode.
+              </p>
+              <Link
+                href="/enterprise"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-base font-bold hover:bg-primary/90 transition-all"
+                data-testid="link-enterprise-about"
+              >
+                Learn about Enterprise <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
-          <p className="text-center text-foreground font-semibold text-lg mt-8">
-            In other words, your intelligence layer for the world's most important conversations.
-          </p>
         </motion.section>
 
         <motion.section
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.48 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
           data-testid="section-still-love-podcasts"
         >
           <div className="relative overflow-hidden bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm">
@@ -348,14 +394,14 @@ export default function About() {
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.48 }}
           data-testid="section-whats-new"
         >
           <div className="flex items-stretch gap-5 flex-col sm:flex-row">
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Constantly improving</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                We are constantly improving PodCap -- adding features, refining analysis, and making it easier to stay informed.
+                We are constantly improving PodCap — adding features, refining analysis, and making it easier to stay informed.
               </p>
               <Link
                 href="/updates"
@@ -367,16 +413,16 @@ export default function About() {
               </Link>
             </div>
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
-              <h3 className="text-lg font-display font-bold mb-2">Explore insights</h3>
+              <h3 className="text-lg font-display font-bold mb-2">Explore by topic</h3>
               <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                Track what is being said across podcasts on the topics that matter to you.
+                Browse industries, interests, and roles — each with daily briefings, recommended reading, and top voices.
               </p>
               <Link
-                href="/interests"
+                href="/industries"
                 className="inline-flex items-center gap-1.5 text-base font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="link-browse-topics"
               >
-                Explore Topics
+                Explore Industries
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -387,7 +433,7 @@ export default function About() {
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-24"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.55 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
           data-testid="section-final-cta"
         >
           <div className="relative overflow-hidden text-center rounded-2xl p-12 md:p-16">
@@ -401,20 +447,20 @@ export default function About() {
                 Your intelligence layer for the world's most important conversations.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                <a
+                <Link
                   href="/"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
                   data-testid="link-cta-get-summaries"
                 >
                   Get Started Free
                   <ArrowRight className="w-4 h-4" />
-                </a>
+                </Link>
                 <Link
-                  href="/interests"
+                  href="/industries"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground shadow-sm hover:shadow-md transition-all"
                   data-testid="link-cta-browse"
                 >
-                  Explore Insights
+                  Explore Industries
                 </Link>
               </div>
             </div>
