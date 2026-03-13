@@ -1,0 +1,56 @@
+The subject line, preheader, kicker, lead headline, supporting detail, coverlines, and sign-off are one complete system. They must all be generated together in a single AI prompt from that day's episode content, except for the kicker and sign-off which never change. Here is exactly how each piece works:
+Subject line
+Under 50 characters. The single most surprising, aspirational, or counterintuitive claim from any episode in that day's email. No words like digest, recap, daily, or newsletter. Sounds like a smart friend texting you something they just heard. Creates a question in the reader's mind that can only be answered by opening the email.
+Preheader
+Exactly 120 characters. Set explicitly as a hidden div at the very top of the email HTML before any other content. Styles: display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; color:#ffffff; line-height:1px. Never let it be pulled automatically from the email body. Written as two connected thoughts separated by an em dash — never a double hyphen. First 60 characters work standalone in Gmail desktop. Full 120 characters work as a compelling iOS lock screen notification. Should tease the lead story and at least one other episode without resolving either.
+Kicker
+Always exactly: "In your podcasts yesterday —"
+Never changes. Never generated. Never varies.
+Style: 14px, color #A1A1AA, font-weight 400, padding 28px 28px 0.
+Lead headline
+The single most surprising or compelling story across all episodes in that day's email. Written like a New York Post front page — punchy, specific, slightly provocative. Personal where possible. Specific enough that the reader feels something is at stake. No full stop at the end. Never vague. Never generic.
+Style: 24px, color #09090B, font-weight 700, letter-spacing -0.03em, line-height 1.3, padding 10px 28px 0.
+Supporting detail
+One sentence directly beneath the lead headline that deepens the hook without resolving it. Leaves the most interesting part unsaid. Should contain at least one specific detail — a number, a name, a comparison — that makes it feel true and worth clicking. Never ends with a full stop that feels final. Always written in reference to yesterday.
+Style: 16px, color #71717A, font-weight 400, line-height 1.6, padding 10px 28px 0.
+Coverlines
+One short punchy tease per remaining episode, five words or less each, separated by · , prefixed with "Also:". Written as provocations not descriptions. Use words that imply secrets, surprises, or things the reader doesn't know yet. Never just list the podcast name or episode title. Always written in reference to yesterday.
+Style: 13px, color #A1A1AA, font-weight 400, padding 14px 28px 0.
+Hairline divider
+1px solid #F0F0F2, margin 24px 28px, sits between the coverlines and the episode pills.
+Episode pills
+Exactly as they are now, linking to anchors for each episode block below.
+Episode blocks
+Straight into the first episode block after the pills. Nothing else between the pills and the content.
+Sign-off
+Always exactly: "We listened so you didn't have to."
+Never changes. Never generated. Never varies.
+Sits directly above the footer, centered, with a 1px solid #F0F0F2 hairline divider above it.
+Style: 14px, color #A1A1AA, font-weight 400, font-style italic, text-align center, padding 28px 28px.
+
+Timing rule — critical.
+The reader receives this email the morning after the episodes dropped. All generated copy must reflect this. Never say "today's episodes", "in today's recap", or "this episode." Always write as if you are telling someone what happened yesterday. The AI prompt must include this instruction explicitly.
+
+If there is only one episode in the email:
+The kicker, lead headline, and supporting detail work exactly the same. There are no coverlines. The episode pill is a single pill. Everything else stays the same.
+If there are multiple episodes:
+The AI picks the strongest story across all episodes for the lead headline regardless of which podcast it came from. The remaining episodes become coverlines. The best story wins the front page every time.
+
+A good example of the full system:
+Subject: How AI could make you a millionaire by 2026
+Preheader: The company list that made one woman a millionaire — plus why two comedians understood the world better than most journalists yesterday
+Kicker: In your podcasts yesterday —
+Lead headline: The company list Sam Parr's wife used to make her first million
+Supporting detail: One of them is building homes for a tenth of the cost — and the founder has already done it in three other industries
+Coverlines: Also: Mark Zuckerberg came up in a startup podcast — not for the reason you'd think · Two comedians explained geopolitics better than the evening news
+Sign-off: We listened so you didn't have to.
+
+A bad example — never generate copy like this:
+Subject: Your Daily PodCap Digest — March 13
+Preheader: Plus -- the new space manufacturing model that could change everything.
+Kicker: WHAT YOUR PODCASTS SAID WHILE YOU WEREN'T LISTENING
+Lead headline: Here's what your podcasts were saying yesterday.
+Supporting detail: Today's episodes cover entrepreneurship, AI, and geopolitics.
+Coverlines: Also: My First Million · Joe Rogan Experience
+Sign-off: Thanks for reading PodCap today.
+The bad example fails because the subject is generic, the preheader uses double hyphens instead of an em dash, the kicker is shouty and tries too hard, the headline is not a headline, the detail resolves itself, the coverlines are just podcast names, and the sign-off has no personality.

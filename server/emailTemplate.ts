@@ -87,7 +87,7 @@ function normalizeMarkdownHeaders(markdown: string): string {
   return result.join("\n");
 }
 
-function parseDigestMarkdown(markdown: string): ParsedDigest {
+export function parseDigestMarkdown(markdown: string): ParsedDigest {
   markdown = normalizeMarkdownHeaders(markdown);
   const result: ParsedDigest = {
     statsHeader: "",
@@ -489,16 +489,15 @@ export function recapHasContent(markdown: string): boolean {
   return parsed.episodes.length > 0;
 }
 
-export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, customPreviewText?: string, hookSentence?: string): string {
+export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, emailCopy?: { previewText?: string; leadHeadline?: string; supportingDetail?: string; coverlines?: string }): string {
   const parsed = parseDigestMarkdown(markdown);
 
-  const totalDuration = computeTotalDuration(parsed.episodes);
   const episodeCount = parsed.episodes.length;
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-  const previewText = customPreviewText || `${episodeCount} of your followed podcasts dropped new episodes - ${parsed.episodes.map(e => e.podcastName).join(", ")}.`;
+  const previewText = emailCopy?.previewText || `${episodeCount} of your followed podcasts dropped new episodes - ${parsed.episodes.map(e => e.podcastName).join(", ")}.`;
 
   const episodeCardsHtml = parsed.episodes.map((ep, idx) => {
     const derivedSlug = podcastNameToSlug(ep.podcastName);
@@ -506,8 +505,15 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     return buildEpisodeCard(ep, idx, meta);
   }).join("\n");
 
-  const hookText = hookSentence || "";
+  const leadHeadline = emailCopy?.leadHeadline || "";
+  const supportingDetail = emailCopy?.supportingDetail || "";
+  const coverlines = emailCopy?.coverlines || "";
   const logoUrl = "https://podcap.io/favicon.png";
+
+  const episodePillsHtml = parsed.episodes.map((ep, idx) => {
+    const accentColor = getAccentColor(idx);
+    return `<a href="#ep-${idx}" style="display:inline-block;padding:5px 12px;background:#F7F7FC;border-radius:100px;font-size:12px;font-weight:600;color:${accentColor};text-decoration:none;margin:0 4px 4px 0;">${escapeHtml(ep.podcastName)}</a>`;
+  }).join("");
 
   return `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -526,8 +532,10 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
       .topbar{padding:16px 20px!important;}
       .ep-block{padding:26px 20px!important;}
       .quiet-block{padding:18px 20px!important;}
+      .hero-block{padding:28px 20px 0!important;}
       .footer-inner{padding:20px!important;}
       .ep-title{font-size:18px!important;}
+      .lead-headline{font-size:20px!important;}
     }
   </style>
 </head>
@@ -558,13 +566,31 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   </tr></table>
 </td></tr>
 
-<!-- OPENING + HOOK -->
-<tr><td style="padding:24px 28px 24px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
-  <p style="font-size:15px;font-weight:400;color:#A1A1AA;line-height:1.5;margin:0 0 ${hookText ? "12px" : "0"};">Here's what your podcasts were saying yesterday.</p>
-  ${hookText ? `<p style="font-size:18px;font-weight:400;color:#09090B;line-height:1.6;margin:0;">${escapeHtml(hookText)}</p>` : ""}
+<!-- KICKER + LEAD HEADLINE + SUPPORTING DETAIL + COVERLINES -->
+<tr><td class="hero-block" style="padding:28px 28px 0;background:#ffffff;">
+  <p style="font-size:14px;font-weight:400;color:#A1A1AA;line-height:1.5;margin:0;padding:0;">In your podcasts yesterday \u2014</p>
+  ${leadHeadline ? `<p class="lead-headline" style="font-size:24px;font-weight:700;color:#09090B;letter-spacing:-0.03em;line-height:1.3;margin:0;padding:10px 0 0;">${escapeHtml(leadHeadline)}</p>` : ""}
+  ${supportingDetail ? `<p style="font-size:16px;font-weight:400;color:#71717A;line-height:1.6;margin:0;padding:10px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
+  ${coverlines ? `<p style="font-size:13px;font-weight:400;color:#A1A1AA;line-height:1.5;margin:0;padding:14px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
+</td></tr>
+
+<!-- HAIRLINE + EPISODE PILLS -->
+<tr><td style="padding:0 28px;background:#ffffff;">
+  <div style="height:1px;background:#F0F0F2;margin:24px 0;"></div>
+  <div style="padding:0 0 24px;">
+    ${episodePillsHtml}
+  </div>
 </td></tr>
 
 ${episodeCardsHtml}
+
+<!-- SIGN-OFF -->
+<tr><td style="padding:0 28px;background:#ffffff;">
+  <div style="height:1px;background:#F0F0F2;margin:0;"></div>
+</td></tr>
+<tr><td style="padding:28px 28px;background:#ffffff;text-align:center;">
+  <p style="font-size:14px;font-weight:400;font-style:italic;color:#A1A1AA;margin:0;">We listened so you didn't have to.</p>
+</td></tr>
 
 <!-- FOOTER -->
 <tr><td class="footer-inner" style="padding:24px 28px;background:#F7F7FC;border-top:1px solid #F0F0F2;">

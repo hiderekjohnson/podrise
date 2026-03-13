@@ -235,60 +235,92 @@ Only include keys where count > 0.`
   return meta;
 }
 
-export async function generateEmailSubjectAndPreview(summary: string): Promise<{ subject: string; previewText: string; hookSentence: string }> {
+export interface EmailCopySystem {
+  subject: string;
+  previewText: string;
+  leadHeadline: string;
+  supportingDetail: string;
+  coverlines: string;
+}
+
+export async function generateEmailSubjectAndPreview(summary: string, episodeCount: number = 1): Promise<EmailCopySystem> {
   const fallbackSubject = `Your podcasts dropped new episodes`;
   const fallbackPreview = `One of your podcasts made a claim yesterday that changes how you think about it`;
-  const fallbackHook = `Your podcasts had some interesting things to say yesterday.`;
+  const fallbackHeadline = `Something worth knowing came up in your podcasts`;
+  const fallbackDetail = `One of them made a claim yesterday that changes how you think about it`;
   try {
     const { openai } = await import("./replit_integrations/image/client");
+
+    const coverlinesInstruction = episodeCount > 1
+      ? `5. COVERLINES (tease remaining episodes)
+- One short punchy tease per remaining episode (not the lead story), five words or less each.
+- Prefixed with "Also:" and separated by " · "
+- Written as provocations, not descriptions. Imply secrets, surprises, things the reader doesn't know yet.
+- Never just list a podcast name or episode title.
+- Always written in reference to yesterday.
+- Example: "Also: Mark Zuckerberg came up in a startup podcast — not for the reason you'd think · Two comedians explained geopolitics better than the evening news"`
+      : `5. COVERLINES: Return empty string "" since there is only one episode.`;
+
     const resp = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{
         role: "user",
-        content: `You write email copy for a daily podcast recap. The subject line, preheader, and hook sentence are ONE SYSTEM -- they should feel like one continuous thought that gets more specific as the reader moves deeper.
+        content: `You write email copy for a daily podcast recap email. The reader receives this email THE MORNING AFTER the episodes dropped. All copy must reflect this — never say "today's episodes", "in today's recap", or "this episode." Always write as if you are telling someone what happened yesterday.
 
-Generate all three together from the recap content below:
+The subject line, preheader, lead headline, supporting detail, and coverlines are ONE COMPLETE SYSTEM. Generate all of them together from the recap content below.
 
-1. SUBJECT LINE (gets the open)
-- The single most surprising or counterintuitive claim from any episode.
+1. SUBJECT LINE
+- The single most surprising, aspirational, or counterintuitive claim from any episode.
 - Under 50 characters. No emojis.
 - Never use "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", "episode", or "PodCap".
 - Creates a question in the reader's mind that can only be answered by opening.
 - Sounds like a smart friend texting you something they just heard.
 
-2. PREHEADER TEXT (confirms the open was worth it)
+2. PREHEADER
 - EXACTLY 120 characters (count carefully).
-- Two connected thoughts separated by an em dash (\u2014).
-- First thought is ~60 characters expanding on the subject line with a new detail.
-- Second thought is ~55 characters introducing a different episode's hook.
-- Never repeat the subject line. Never use double hyphens -- always use \u2014.
+- Two connected thoughts separated by an em dash (\u2014). Never use double hyphens --.
+- First 60 characters work standalone in Gmail desktop.
+- Full 120 characters work as a compelling iOS lock screen notification.
+- Never repeat the subject line verbatim.
 
-3. HOOK SENTENCE (pulls the reader into the content)
-- One punchy sentence stating something surprising. Ends with a full stop.
-- NOT a question. NOT a headline. A statement that leaves the most interesting part unsaid.
-- Never fully resolves the claim it makes -- the only way to get the rest is to keep scrolling.
-- Never uses "explore", "discover", "dive into", "learn", or "In today's episode."
-- Never sounds like a newsletter introduction.
+3. LEAD HEADLINE
+- The single most surprising or compelling story across ALL episodes.
+- Written like a New York Post front page — punchy, specific, slightly provocative.
+- Personal where possible. Specific enough that the reader feels something is at stake.
+- NO full stop at the end. Never vague. Never generic.
+- Must reference yesterday implicitly — never say "today."
 
-GOOD EXAMPLE (all three working as one system):
-Subject: She made $1M as employee #3000
-Preheader: One podcast said homes could be 10x cheaper to build \u2014 plus the zero-gravity manufacturing play nobody sees yet.
-Hook: One of them made the case that homes could be built 10x cheaper \u2014 and the guy saying it has done it before in three other industries.
+4. SUPPORTING DETAIL
+- One sentence directly beneath the lead headline that deepens the hook without resolving it.
+- Leaves the most interesting part unsaid.
+- Must contain at least one specific detail — a number, a name, a comparison — that makes it feel true and worth clicking.
+- Never ends with a full stop that feels final. Always written in reference to yesterday.
 
-BAD EXAMPLE:
-Subject: Your Daily PodCap Digest \u2014 March 13
+${coverlinesInstruction}
+
+GOOD EXAMPLE:
+Subject: How AI could make you a millionaire by 2026
+Preheader: The company list that made one woman a millionaire \u2014 plus why two comedians understood the world better than most journalists yesterday
+Lead headline: The company list Sam Parr's wife used to make her first million
+Supporting detail: One of them is building homes for a tenth of the cost — and the founder has already done it in three other industries
+Coverlines: Also: Mark Zuckerberg came up in a startup podcast — not for the reason you'd think · Two comedians explained geopolitics better than the evening news
+
+BAD EXAMPLE (never generate copy like this):
+Subject: Your Daily PodCap Digest — March 13
 Preheader: Plus -- the new space manufacturing model that could change everything.
-Hook: Today's episodes cover entrepreneurship, AI, and geopolitics.
+Lead headline: Here's what your podcasts were saying yesterday
+Supporting detail: Today's episodes cover entrepreneurship, AI, and geopolitics.
+Coverlines: Also: My First Million · Joe Rogan Experience
 
-The bad example fails because the subject is generic, the preheader uses double hyphens, and the hook resolves itself.
+There are ${episodeCount} episode(s) in this email.
 
 Recap content:
-${summary.slice(0, 3000)}
+${summary.slice(0, 4000)}
 
-Respond with JSON: { "subject": "...", "preheader": "...", "hook": "..." }
+Respond with JSON: { "subject": "...", "preheader": "...", "leadHeadline": "...", "supportingDetail": "...", "coverlines": "..." }
 The preheader MUST be exactly 120 characters. Count them.`
       }],
-      max_tokens: 400,
+      max_tokens: 600,
       temperature: 0.9,
       response_format: { type: "json_object" },
     });
@@ -297,21 +329,25 @@ The preheader MUST be exactly 120 characters. Count them.`
     if (content) {
       const parsed = JSON.parse(content);
       const subj = String(parsed.subject || "").trim();
-      let prev = String(parsed.preheader || parsed.previewText || "").trim();
-      const hook = String(parsed.hook || parsed.hookSentence || "").trim();
+      let prev = String(parsed.preheader || "").trim();
+      const headline = String(parsed.leadHeadline || "").trim();
+      const detail = String(parsed.supportingDetail || "").trim();
+      const covers = String(parsed.coverlines || "").trim();
       if (prev.length > 130) prev = prev.slice(0, 127) + "...";
       if (subj && subj.length <= 80) {
         return {
           subject: subj,
           previewText: prev || fallbackPreview,
-          hookSentence: hook || fallbackHook,
+          leadHeadline: headline || fallbackHeadline,
+          supportingDetail: detail || fallbackDetail,
+          coverlines: covers,
         };
       }
     }
   } catch (err) {
     console.warn("[EmailScheduler] AI subject/preheader/hook generation failed:", err);
   }
-  return { subject: fallbackSubject, previewText: fallbackPreview, hookSentence: fallbackHook };
+  return { subject: fallbackSubject, previewText: fallbackPreview, leadHeadline: fallbackHeadline, supportingDetail: fallbackDetail, coverlines: "" };
 }
 
 async function sendAdminNotification(userEmail: string, subject: string) {
@@ -488,11 +524,12 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
 
     const podcastNames = result.parsedEpisodes.map((ep: any) => ep.podcastName).filter(Boolean);
     const episodeMeta = await buildEpisodeMeta(podcastNames);
-    const { subject: aiSubject, previewText, hookSentence } = await generateEmailSubjectAndPreview(result.summary);
-    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta, previewText, hookSentence);
+    const episodeCount = result.parsedEpisodes.length || 1;
+    const emailCopy = await generateEmailSubjectAndPreview(result.summary, episodeCount);
+    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta, emailCopy);
 
     const deliveryTime = user.deliveryTime || "07:00";
-    const subject = aiSubject;
+    const subject = emailCopy.subject;
 
     await storage.createRecap({
       userId: user.id,
@@ -623,7 +660,11 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
 
   const podcastNamesFromSummary = (pending.summary.match(/^## (.+)$/gm) || []).map((h: string) => h.replace(/^## /, "").trim());
   const episodeMeta = await buildEpisodeMeta(podcastNamesFromSummary);
-  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, episodeMeta);
+  const { parseDigestMarkdown } = await import("./emailTemplate");
+  const parsedDigest = parseDigestMarkdown(pending.summary);
+  const episodeCount = parsedDigest.episodes.length || 1;
+  const emailCopy = await generateEmailSubjectAndPreview(pending.summary, episodeCount);
+  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, episodeMeta, emailCopy);
 
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
@@ -632,10 +673,11 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
 
   const { client, fromEmail } = await getUncachableResendClient();
+  const freshSubject = emailCopy.subject;
   const sendResult = await client.emails.send({
     from: `PodCap <${fromEmail}>`,
     to: pending.recipientEmail,
-    subject: pending.subject,
+    subject: freshSubject,
     html: htmlWithTracking,
   });
 

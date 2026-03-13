@@ -3415,13 +3415,18 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const epMeta = await buildEpisodeMetaFromSummary(recap.summary);
-      const emailHtml = markdownToEmailHtml(recap.summary, user.email, epMeta);
+      const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
+      const { parseDigestMarkdown } = await import("./emailTemplate");
+      const parsedDigestForSend = parseDigestMarkdown(recap.summary);
+      const epCountForSend = parsedDigestForSend.episodes.length || 1;
+      const emailCopyForSend = await generateEmailSubjectAndPreview(recap.summary, epCountForSend);
+      const emailHtml = markdownToEmailHtml(recap.summary, user.email, epMeta, emailCopyForSend);
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
         from: `PodCap <${fromEmail}>`,
         to: user.email,
-        subject: `☕ Your PodCap Daily Recap - ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
+        subject: emailCopyForSend.subject,
         html: emailHtml,
       });
 
@@ -3711,7 +3716,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(404).json({ message: "Pending email not found" });
     }
     const epMeta = await buildEpisodeMetaFromSummary(pending.summary);
-    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta);
+    const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
+    const { parseDigestMarkdown } = await import("./emailTemplate");
+    const parsedForPreview = parseDigestMarkdown(pending.summary);
+    const epCountPreview = parsedForPreview.episodes.length || 1;
+    const emailCopyPreview = await generateEmailSubjectAndPreview(pending.summary, epCountPreview);
+    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta, emailCopyPreview);
     res.json({ html: freshHtml });
   });
 
@@ -3752,9 +3762,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       const epMeta2 = await buildEpisodeMetaFromSummary(pending.summary);
       const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
-      const { subject: aiSubject, previewText, hookSentence } = await generateEmailSubjectAndPreview(pending.summary);
-      const freshSubject = aiSubject;
-      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2, previewText, hookSentence);
+      const { parseDigestMarkdown } = await import("./emailTemplate");
+      const parsedForSendNow = parseDigestMarkdown(pending.summary);
+      const episodeCount = parsedForSendNow.episodes.length || 1;
+      const emailCopy = await generateEmailSubjectAndPreview(pending.summary, episodeCount);
+      const freshSubject = emailCopy.subject;
+      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2, emailCopy);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
@@ -4291,7 +4304,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         await storage.updatePendingEmailSummary(email.id, summary);
 
         const epMetaBatch = await buildEpisodeMetaFromSummary(summary);
-        const newHtml = markdownToEmailHtml(summary, email.recipientEmail, epMetaBatch);
+        const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
+        const { parseDigestMarkdown } = await import("./emailTemplate");
+        const parsedBatch = parseDigestMarkdown(summary);
+        const epCountBatch = parsedBatch.episodes.length || 1;
+        const emailCopyBatch = await generateEmailSubjectAndPreview(summary, epCountBatch);
+        const newHtml = markdownToEmailHtml(summary, email.recipientEmail, epMetaBatch, emailCopyBatch);
         await storage.updatePendingEmailHtml(email.id, newHtml);
         updated++;
       }
