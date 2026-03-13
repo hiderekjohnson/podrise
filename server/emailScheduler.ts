@@ -56,6 +56,13 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
         const row = recapRow.rows[0];
         const artworkUrl = row.artwork_url || dirRow.rows[0]?.artwork_url || null;
 
+        const knownNames: Record<string, string> = {
+          "openai": "OpenAI", "nvidia": "NVIDIA", "spacex": "SpaceX", "airbnb": "Airbnb",
+          "amd": "AMD", "ai": "AI", "meta": "Meta", "tesla": "Tesla", "netflix": "Netflix",
+          "tiktok": "TikTok", "bytedance": "ByteDance", "shopify": "Shopify", "coinbase": "Coinbase",
+          "doordash": "DoorDash", "youtube": "YouTube", "linkedin": "LinkedIn", "deepmind": "DeepMind",
+          "ibm": "IBM", "sba": "SBA", "tsmc": "TSMC", "bmw": "BMW",
+        };
         const companyNames: string[] = [];
         const personNames: string[] = [];
         let companiesCount = 0;
@@ -64,13 +71,6 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
           const cache = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
           for (const key of Object.keys(cache)) {
             const isLikelyPerson = /^[a-z]+-[a-z]+(-[a-z]+)?$/.test(key) && !["openai", "anthropic", "nvidia", "google", "amazon", "spacex", "airbnb", "spotify", "amd", "apple", "microsoft", "meta", "tesla", "stripe", "shopify", "uber", "lyft", "doordash", "robinhood", "coinbase", "palantir", "databricks", "snowflake", "figma", "notion", "discord", "slack", "zoom", "netflix", "disney", "hulu", "warner", "paramount", "sony", "samsung", "intel", "qualcomm", "broadcom", "oracle", "salesforce", "adobe", "twilio", "snap", "pinterest", "reddit", "tiktok", "bytedance", "alibaba", "tencent", "baidu", "huawei"].includes(key);
-            const knownNames: Record<string, string> = {
-              "openai": "OpenAI", "nvidia": "NVIDIA", "spacex": "SpaceX", "airbnb": "Airbnb",
-              "amd": "AMD", "ai": "AI", "meta": "Meta", "tesla": "Tesla", "netflix": "Netflix",
-              "tiktok": "TikTok", "bytedance": "ByteDance", "shopify": "Shopify", "coinbase": "Coinbase",
-              "doordash": "DoorDash", "youtube": "YouTube", "linkedin": "LinkedIn", "deepmind": "DeepMind",
-              "ibm": "IBM", "sba": "SBA", "tsmc": "TSMC", "bmw": "BMW",
-            };
             const displayName = knownNames[key] || key.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
             if (isLikelyPerson) {
               personNames.push(displayName);
