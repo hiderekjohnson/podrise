@@ -165,7 +165,10 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
       if (i < lines.length) {
         const titleMatch = lines[i].match(/^\*\*(.+?)\*\*\s*$/);
         if (titleMatch) {
-          episode.episodeTitle = titleMatch[1];
+          let titleText = titleMatch[1];
+          const linkInTitle = titleText.match(/\[([^\]]+)\]\([^)]+\)/);
+          if (linkInTitle) titleText = linkInTitle[1];
+          episode.episodeTitle = titleText;
           i++;
         } else {
           const plainTitle = lines[i].trim();
@@ -177,7 +180,12 @@ function parseDigestMarkdown(markdown: string): ParsedDigest {
       }
 
       while (i < lines.length && !lines[i].trim()) i++;
-      if (i < lines.length && !lines[i].startsWith("**") && !lines[i].startsWith(">") && !lines[i].startsWith("-") && !/^🎧/.test(lines[i]) && !/^TLDL/i.test(lines[i].trim())) {
+      if (i < lines.length && /\[.*Full Recap.*\]\(|^\[📖/.test(lines[i].trim())) {
+        i++;
+      }
+
+      while (i < lines.length && !lines[i].trim()) i++;
+      if (i < lines.length && !lines[i].startsWith("**") && !lines[i].startsWith(">") && !lines[i].startsWith("-") && !/^🎧/.test(lines[i]) && !/^TLDL/i.test(lines[i].trim()) && !/\[.*Full Recap.*\]\(/.test(lines[i])) {
         episode.metaLine = lines[i].trim();
         i++;
       }
@@ -412,7 +420,10 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
     .join("-");
   const recapUrl = `https://podcap.io/podcasts/${slug}/${epSlug}`;
 
-  const artworkUrl = meta?.artworkUrl;
+  let artworkUrl = meta?.artworkUrl;
+  if (artworkUrl && artworkUrl.startsWith("/")) {
+    artworkUrl = `https://podcap.io${artworkUrl}`;
+  }
   const artworkHtml = artworkUrl
     ? `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
         <img src="${escapeHtml(artworkUrl)}" alt="${escapeHtml(episode.podcastName)}" width="44" height="44" style="width:44px;height:44px;border-radius:10px;display:block;object-fit:cover;" />
