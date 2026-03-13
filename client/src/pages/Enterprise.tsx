@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Globe, BarChart3, Send, CheckCircle2, Loader2, Database, Layers, TrendingUp, Building2, BookOpen, Shield } from "lucide-react";
+import { Zap, Send, CheckCircle2, Loader2, TrendingUp, Building2, BookOpen, Shield, Mail, Users, Settings, Target, Briefcase, LineChart } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -70,14 +70,14 @@ function EnterpriseContactForm() {
       </div>
       <div>
         <label htmlFor="enterprise-message" className="block text-base font-display font-semibold mb-1.5">
-          How can PodCap help your team?
+          What topics does your team need to track?
         </label>
         <textarea
           id="enterprise-message"
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Tell us about your organization and what you're looking for..."
+          placeholder="Tell us about your organization, the topics that matter to your team, and how you'd like to stay informed..."
           rows={4}
           className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-[16px] placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
           data-testid="input-enterprise-message"
@@ -94,7 +94,7 @@ function EnterpriseContactForm() {
         ) : (
           <Send className="w-3.5 h-3.5 mr-2" />
         )}
-        {submitMutation.isPending ? "Sending..." : "Get in Touch"}
+        {submitMutation.isPending ? "Sending..." : "Request a Demo"}
       </Button>
     </form>
   );
@@ -102,8 +102,8 @@ function EnterpriseContactForm() {
 
 export default function Enterprise() {
   useEffect(() => {
-    const title = "Enterprise - Podcast Intelligence & Knowledge Infrastructure | PodCap";
-    const desc = "PodCap turns podcast content into structured, searchable knowledge for enterprise teams. Monitor topics, discover insights, and surface important discussions across thousands of podcast conversations.";
+    const title = "Enterprise - Custom Podcast Intelligence Briefings for Teams | PodCap";
+    const desc = "Give your team a daily edge. PodCap Enterprise delivers custom Pulse briefings, topic dashboards, and podcast intelligence tailored to the subjects your organization needs to track.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -131,17 +131,19 @@ export default function Enterprise() {
               Enterprise
             </div>
             <h1 className="text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem] font-display font-extrabold tracking-[-0.03em] leading-[1.12] mb-6" data-testid="text-hero-title">
-              Podcast intelligence{" "}
-              <span className="text-primary">for teams that need to know</span>
+              Custom podcast intelligence,{" "}
+              <span className="text-primary">delivered to your team daily</span>
             </h1>
             <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-6" data-testid="text-hero-subtitle">
-              Podcasts have become one of the most important sources of expert insight, market signals, and emerging ideas. PodCap makes that knowledge searchable, structured, and accessible at scale.
+              Your team picks the topics. We monitor hundreds of podcasts and deliver a daily Pulse briefing -- the key insights, quotes, and trends distilled into something your team can read in minutes. No listening required.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {[
-                "What have top VCs said about AI valuations this quarter?",
-                "Find every founder interview about pricing strategy",
-                "Track competitor mentions across the podcast ecosystem",
+                "AI & machine learning",
+                "Fintech & payments",
+                "Healthcare innovation",
+                "Cybersecurity",
+                "Climate & energy",
               ].map((q) => (
                 <span key={q} className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-[16px] text-primary/80 font-medium">
                   {q}
@@ -155,18 +157,18 @@ export default function Enterprise() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-problem-title">
-                The knowledge is there. The access isn't.
+                Your industry's best thinking is locked inside podcasts
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Every week, thousands of podcast episodes surface expert analysis, industry signals, and strategic conversations that matter to your business. But that knowledge disappears into a black box the moment it's published. No search, no index, no way to know what was said or where. Your team is flying blind.
+                Every week, executives, founders, and analysts share insights on podcasts that never make it into reports, newsletters, or search results. Your competitors are listening. Your team doesn't have the time. That's where we come in.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { value: "4M+", label: "active podcasts worldwide", detail: "Rapidly growing knowledge layer" },
-                { value: "95%", label: "of podcast content is unsearchable", detail: "Trapped inside long-form audio" },
-                { value: "70hrs", label: "of new episodes published per minute", detail: "Impossible to monitor manually" },
+                { value: "200+", label: "podcasts monitored daily", detail: "Across business, tech, finance, and more" },
+                { value: "Daily", label: "Pulse briefings delivered", detail: "Custom topics, every morning" },
+                { value: "Minutes", label: "to read, not hours to listen", detail: "We distill, your team decides" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
@@ -182,21 +184,21 @@ export default function Enterprise() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
-                A structured knowledge layer for podcast content
+                What your team gets
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                PodCap processes podcast episodes into structured, queryable data - turning conversations into searchable knowledge your team can actually use.
+                PodCap Enterprise is built around what actually helps teams stay informed -- daily briefings they'll read, dashboards they'll check, and data they can act on.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: Search, title: "Search across conversations", description: "Full-text search across episode summaries, recaps, and metadata. Find the exact discussion you're looking for across thousands of episodes.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { icon: BarChart3, title: "Topic monitoring", description: "Track mentions of companies, people, products, and ideas across the podcast ecosystem. Know when your market is being discussed.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-                { icon: Layers, title: "Structured knowledge extraction", description: "AI-powered extraction of key insights, quotes, guest appearances, and topic breakdowns from every episode processed.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { icon: Database, title: "API access", description: "Programmatic access to structured podcast data. Integrate podcast intelligence into your existing tools and workflows.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
-                { icon: Globe, title: "Cross-show intelligence", description: "Connect ideas, guests, and topics across different podcasts. Surface patterns and emerging themes your competitors might miss.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
-                { icon: BookOpen, title: "Knowledge summaries", description: "Concise, accurate episode recaps with key takeaways, notable quotes, and structured chapter analysis - generated automatically.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
+                { icon: Zap, title: "Custom Pulse briefings", description: "Daily AI-synthesized intelligence briefings on the topics your organization cares about. Each Pulse distills what podcasts are saying into a concise, readable summary -- delivered by email or accessible on your dashboard.", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { icon: Target, title: "Choose your topics", description: "Your team selects the topics they need to track -- AI, fintech, healthcare, regulatory changes, competitor activity, whatever matters to your business. We handle the monitoring across hundreds of shows.", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { icon: LineChart, title: "Topic dashboard", description: "A dedicated dashboard showing trending discussions, key quotes, and emerging themes across your selected topics. See what's gaining momentum before it hits mainstream coverage.", color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { icon: Mail, title: "Team-wide email delivery", description: "Pulse briefings delivered directly to your team's inboxes on your schedule. Everyone stays current without needing to log in, search, or listen to anything.", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { icon: Users, title: "Multi-seat access", description: "Give your entire team access to the PodCap platform -- search across episodes, explore topics in depth, and dive into full recaps when a briefing sparks their interest.", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
+                { icon: Settings, title: "Admin controls", description: "Manage topics, team members, and delivery preferences from a central admin panel. Add new topics as your priorities shift. Adjust what gets delivered and to whom.", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30" },
               ].map((item) => (
                 <div
                   key={item.title}
@@ -218,19 +220,19 @@ export default function Enterprise() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
-                Built for teams that move on information
+                Who uses PodCap Enterprise
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Podcast intelligence is relevant anywhere expert conversations, market signals, and emerging ideas matter.
+                Any team that needs to know what experts and leaders are saying -- without spending hours listening.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { title: "Investment & Research", description: "Monitor founder interviews, earnings commentary, and sector discussions across the podcast landscape. Surface signals before they appear in traditional media.", icon: TrendingUp, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-                { title: "Media & Podcast Networks", description: "Understand what's being discussed across your catalog and beyond. Identify trending topics, cross-promote content, and measure the knowledge footprint of your shows.", icon: Globe, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-                { title: "Corporate Strategy", description: "Track how your company, competitors, and industry are being discussed in long-form expert conversations. Podcast mentions often signal shifting sentiment early.", icon: Building2, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-                { title: "Knowledge & Education", description: "Turn podcast conversations into structured learning resources. Build searchable archives of expert knowledge organized by topic, guest, and key insight.", icon: BookOpen, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+                { title: "Venture Capital & Private Equity", description: "Track founder interviews, market sentiment, and sector trends across the podcast ecosystem. Your analysts get a daily briefing on what the smartest people in your sectors are saying -- before it shows up in pitch decks.", icon: TrendingUp, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+                { title: "Corporate Strategy & Innovation", description: "Monitor how your industry, competitors, and emerging technologies are being discussed by experts. A daily Pulse on your strategic priorities keeps leadership informed without adding to their calendar.", icon: Briefcase, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+                { title: "Communications & PR Teams", description: "Know when your company, executives, or industry gets mentioned on influential podcasts. Track the narrative around key topics and respond faster with full context from the actual conversations.", icon: Building2, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
+                { title: "Research & Consulting", description: "Give your research team a daily feed of expert perspectives on the topics they cover. Pulse briefings surface quotes, data points, and analysis from podcast conversations that traditional research tools miss entirely.", icon: BookOpen, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
               ].map((uc) => (
                 <div
                   key={uc.title}
@@ -254,17 +256,17 @@ export default function Enterprise() {
               <Shield className="w-6 h-6 text-white/80" />
             </div>
             <h2 className="text-xl sm:text-2xl font-display font-bold mb-5">
-              The infrastructure layer for podcast knowledge
+              How it works
             </h2>
             <div className="text-[16px] sm:text-[16px] leading-[1.8] text-white/60 space-y-4 max-w-xl mx-auto">
               <p>
-                PodCap is building the structured data layer that makes podcast content accessible to machines and teams alike. We process episodes into structured recaps, extract entities and topics, link ideas across shows, and create knowledge graphs from conversations.
+                We monitor over 200 of the world's most influential podcasts daily. When new episodes drop, our AI processes every conversation -- extracting key insights, notable quotes, guest perspectives, and emerging themes.
               </p>
               <p>
-                Today we cover thousands of the world's most popular and influential podcast shows. The platform is expanding, and enterprise partnerships help us prioritize coverage that matters to your organization.
+                Your team tells us which topics matter. We build custom Pulse briefings around those topics and deliver them on your schedule. Each briefing is a concise, well-sourced summary your team can read in a few minutes -- with links to full recaps when they want to go deeper.
               </p>
               <p className="text-white/80 font-display font-bold">
-                We believe podcast content will become one of the most important knowledge layers on the internet. We're building the tools to make that useful.
+                Think of it as a research analyst who listens to every relevant podcast, every day, and sends your team the highlights before their morning coffee.
               </p>
             </div>
           </div>
@@ -274,10 +276,10 @@ export default function Enterprise() {
           <div className="max-w-2xl mx-auto px-6">
             <div className="text-center mb-8">
               <h2 className="text-xl sm:text-2xl font-display font-bold mb-3" data-testid="text-cta-title">
-                Explore what podcast intelligence can do for your team
+                Get podcast intelligence built for your team
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed">
-                We're working with a select group of organizations to shape the enterprise product. If podcast content matters to your work, we'd like to hear from you.
+                Tell us what topics your team needs to track. We'll show you what a custom Pulse briefing looks like for your organization.
               </p>
             </div>
 
