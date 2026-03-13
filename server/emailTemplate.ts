@@ -398,6 +398,21 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
 
   const mentionsUrl = `${recapUrl}#mentions`;
 
+  let ctaText = "See all names, companies, and books &#8594;";
+  if (peopleCount > 0 && companiesCount === 0 && booksCount === 0) {
+    ctaText = "See who came up and why &#8594;";
+  } else if (companiesCount > 0 && peopleCount === 0 && booksCount === 0) {
+    ctaText = "See which companies and why &#8594;";
+  } else if (booksCount > 0 && peopleCount === 0 && companiesCount === 0) {
+    ctaText = "See the books and why they came up &#8594;";
+  } else if (peopleCount > 0 && companiesCount > 0 && booksCount === 0) {
+    ctaText = "See all the names and companies &#8594;";
+  } else if (peopleCount > 0 && booksCount > 0 && companiesCount === 0) {
+    ctaText = "See all the names and books &#8594;";
+  } else if (companiesCount > 0 && booksCount > 0 && peopleCount === 0) {
+    ctaText = "See all the companies and books &#8594;";
+  }
+
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:22px 0 18px;">
     <tr><td style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 22px 22px;">
       <p style="font-size:12px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 14px;">Mentioned in this episode</p>
@@ -405,7 +420,7 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
         ${lines.join("")}
       </table>
       <p style="margin:20px 0 0;">
-        <a href="${escapeHtml(mentionsUrl)}" style="font-size:15px;font-weight:600;color:#6366F1;text-decoration:none;">Who were they, and why did they come up? &#8594;</a>
+        <a href="${escapeHtml(mentionsUrl)}" style="font-size:15px;font-weight:600;color:#6366F1;text-decoration:none;">${ctaText}</a>
       </p>
     </td></tr>
   </table>`;
