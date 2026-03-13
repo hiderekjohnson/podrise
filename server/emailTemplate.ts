@@ -567,19 +567,19 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 <!-- TOP BAR -->
 <tr><td class="topbar" style="padding:18px 28px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
-    <td valign="middle">
+    <td valign="middle" style="white-space:nowrap;">
       <a href="https://podcap.io" style="text-decoration:none;display:inline-block;">
         <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;"><tr>
           <td valign="middle">
-            <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="32" height="32" style="width:32px;height:32px;border-radius:9px;display:block;" />
+            <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
           </td>
-          <td style="padding-left:9px;vertical-align:middle;">
-            <span style="font-size:20px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:20px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
+          <td style="padding-left:8px;vertical-align:middle;">
+            <span style="font-size:18px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:18px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
           </td>
         </tr></table>
       </a>
     </td>
-    <td align="right" valign="middle"><span class="topbar-date" style="font-size:14px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(dateStr)}</span></td>
+    <td align="right" valign="middle"><span class="topbar-date" style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;white-space:nowrap;">${escapeHtml(dateStr)}</span></td>
   </tr></table>
 </td></tr>
 
@@ -593,7 +593,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 </td></tr>
 
 <!-- EPISODE COUNT DIVIDER -->
-<tr><td style="padding:28px 28px 0;background:#ffffff;">
+<tr><td style="padding:28px 28px 8px;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
     <tr><td style="border-top:1px solid #E4E4E7;padding-top:16px;">
       <p class="episode-bar-text" style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:0;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW &#8595;</p>
