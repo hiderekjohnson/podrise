@@ -2864,6 +2864,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/pulses/recent", async (req, res) => {
+    try {
+      const exclude = (req.query.exclude as string) || "";
+      const pulses = await storage.getRecentPulsesAcrossTopics(exclude, 3);
+      res.json(pulses);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch recent pulses" });
+    }
+  });
+
   app.get("/api/topics/:slug/pulse", async (req, res) => {
     try {
       const { slug } = req.params;

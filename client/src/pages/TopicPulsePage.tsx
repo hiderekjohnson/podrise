@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar, Tag } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StickyEmailBar } from "@/components/StickyEmailBar";
@@ -159,6 +159,57 @@ function renderMarkdownBody(body: string) {
       />
     );
   });
+}
+
+function RelatedArticles({ currentTopicSlug }: { currentTopicSlug: string }) {
+  const { data: recentPulses } = useQuery<TopicPulse[]>({
+    queryKey: ["/api/pulses/recent", currentTopicSlug],
+    queryFn: async () => {
+      const res = await fetch(`/api/pulses/recent?exclude=${encodeURIComponent(currentTopicSlug)}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  if (!recentPulses || recentPulses.length === 0) return null;
+
+  return (
+    <div className="mt-12 pt-10 border-t border-border" data-testid="section-related-articles">
+      <h3 className="text-[18px] sm:text-[20px] font-display font-bold text-foreground mb-6">More from PodCap</h3>
+      <div className="grid grid-cols-1 gap-4">
+        {recentPulses.map((p, i) => {
+          const topic = TOPICS.find(t => t.slug === p.topicSlug);
+          const topicName = topic?.name || p.topicSlug;
+          const topicBasePath = topic ? getCategoryPath(topic.category) : "/interests";
+          return (
+            <Link
+              key={p.id}
+              href={`${topicBasePath}/${p.topicSlug}/pulse/${p.publishDate}`}
+              className="group flex flex-col gap-2 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-primary/20 hover:bg-primary/[0.02] transition-all"
+              data-testid={`link-related-article-${i}`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold uppercase tracking-wider text-primary/70">{topicName}</span>
+                <span className="text-muted-foreground/30">·</span>
+                <time dateTime={p.publishDate} className="text-[13px] text-muted-foreground flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {formatDateShort(p.publishDate)}
+                </time>
+              </div>
+              <p className="text-[15px] sm:text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2">
+                {p.headline}
+              </p>
+              {p.summary && (
+                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">
+                  {p.summary}
+                </p>
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function Breadcrumbs({ topicSlug, topicName, date, basePath }: { topicSlug: string; topicName: string; date?: string; basePath: string }) {
@@ -415,25 +466,6 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
               })()}
             </motion.div>
 
-            {pulse.keyThemes && pulse.keyThemes.length > 0 && (
-              <div className="mt-8 flex flex-wrap items-center gap-2" data-testid="section-key-themes">
-                <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                {pulse.keyThemes.map((theme, i) => {
-                  const themeSlug = theme.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                  return (
-                    <Link
-                      key={theme}
-                      href={`${basePath}/${topicSlug}?tag=${encodeURIComponent(themeSlug)}`}
-                      className="inline-flex items-center px-3 py-1 rounded-full bg-primary/[0.06] border border-primary/10 text-[13px] text-primary/80 font-medium hover:bg-primary/[0.12] hover:border-primary/20 transition-colors"
-                      data-testid={`link-theme-tag-${i}`}
-                    >
-                      {theme}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-
             <InlineEmailCTA
               type={categoryType}
               slug={topicSlug}
@@ -495,6 +527,8 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
                 </div>
               </div>
             )}
+
+            <RelatedArticles currentTopicSlug={topicSlug} />
           </>
         )}
       </article>

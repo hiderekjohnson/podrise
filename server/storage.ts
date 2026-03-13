@@ -70,6 +70,7 @@ export interface IStorage {
   deleteEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<void>;
   getTopicPulses(topicSlug: string, limit?: number): Promise<TopicPulse[]>;
   getTopicPulseByDate(topicSlug: string, publishDate: string): Promise<TopicPulse | undefined>;
+  getRecentPulsesAcrossTopics(excludeSlug: string, limit?: number): Promise<TopicPulse[]>;
   upsertTopicPulse(data: InsertTopicPulse): Promise<TopicPulse>;
 }
 
@@ -657,6 +658,13 @@ export class DatabaseStorage implements IStorage {
   async getTopicPulses(topicSlug: string, limit: number = 30): Promise<TopicPulse[]> {
     return db.select().from(topicPulses)
       .where(eq(topicPulses.topicSlug, topicSlug))
+      .orderBy(desc(topicPulses.publishDate))
+      .limit(limit);
+  }
+
+  async getRecentPulsesAcrossTopics(excludeSlug: string, limit: number = 3): Promise<TopicPulse[]> {
+    return db.select().from(topicPulses)
+      .where(sql`${topicPulses.topicSlug} != ${excludeSlug}`)
       .orderBy(desc(topicPulses.publishDate))
       .limit(limit);
   }
