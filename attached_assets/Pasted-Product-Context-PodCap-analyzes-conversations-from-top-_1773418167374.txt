@@ -1,0 +1,62 @@
+Product Context
+PodCap analyzes conversations from top podcasts and extracts structured knowledge from them. One part of the product is a “bookstore,” which surfaces books that are recommended or discussed across those conversations.
+
+The bookstore should not behave like a traditional ecommerce bookstore. The goal is not to catalog books. The goal is to help users discover what to read next based on high-signal recommendations from credible people.
+
+Problem
+The current bookstore page functions correctly but does not clearly communicate the product’s unique value. The experience currently feels too similar to a generic bookstore or book directory. It shows books, descriptions, and counts, but it does not strongly highlight the insight that makes PodCap different.
+
+PodCap’s advantage is not simply that books are mentioned on podcasts. The advantage is that we know which books influential people repeatedly recommend, where those recommendations happen, and why those people say the books matter.
+
+The product currently underemphasizes the most valuable part of the data: the explanation behind the recommendation.
+
+Product Principle
+PodCap should feel like a discovery engine powered by trusted voices, not a catalog of books.
+
+Users should feel like they are seeing the reading list behind the world’s smartest conversations.
+
+Goals for the Experience
+When a user lands on the bookstore page, they should quickly understand:
+	1.	These books are being recommended by credible people across podcasts.
+	2.	The platform captures the context behind those recommendations.
+	3.	PodCap helps explain why a book matters, not just that it exists.
+
+The experience should emphasize signal, authority, and insight rather than inventory.
+
+Design Direction
+Please rethink the bookstore experience so it highlights recommendation context more clearly.
+
+The most important data we have is:
+
+• who recommended the book
+• what they said about it
+• where the recommendation happened
+• how often the book comes up across conversations
+
+The design should prioritize those elements so users immediately understand the value of the product.
+
+You have freedom to rethink:
+
+• page hierarchy
+• layout and presentation
+• how books are grouped
+• how recommendation data is surfaced
+• how the page communicates authority and credibility
+
+The experience should feel more like a curated intelligence product or knowledge discovery tool rather than a standard bookstore.
+
+Success Criteria
+A user landing on the page should immediately feel that:
+
+• the books here come from real conversations
+• the recommendations come from credible people
+• PodCap helps explain why these books are worth reading
+
+The interface should encourage users to explore recommendations and click into book pages to learn why those books keep coming up.
+
+Guiding Idea
+We are not trying to build a better list of books.
+
+We are trying to build the best place on the internet to discover books that influential people actually recommend, and to understand why they recommend them.
+
+If it helps, think of the product as surfacing the reading list behind the world’s best podcasts.
