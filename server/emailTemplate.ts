@@ -584,7 +584,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
           <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.1em;text-transform:uppercase;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW</span>
         </td>
         <td align="right" valign="middle">
-          <span style="font-size:18px;color:#ffffff;">&#8594;</span>
+          <span style="font-size:18px;color:#ffffff;">&#8595;</span>
         </td>
       </tr></table>
     </td></tr>

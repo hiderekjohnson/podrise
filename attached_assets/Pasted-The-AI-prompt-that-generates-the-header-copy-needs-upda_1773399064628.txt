@@ -1,0 +1,17 @@
+The AI prompt that generates the header copy needs updated rules. Replace whatever instructions currently govern the header copy with these exact requirements.
+Headline rules:
+Under 8 words. Never wraps to a third line. Never uses the words reveals, discusses, explores, examines, features, showcases, delves, or unpacks. Those are press release words and they kill the hook instantly. The headline must be personal, specific, and make the reader feel like they are about to miss something. Written like a New York Post front page. Active language only.
+Bad: Sarah's List reveals the companies that could make you a millionaire
+Good: The company list Sam Parr's wife used to make her first million
+Bad: ZuruTech and Varda have the potential to transform entire industries
+Good: The founder building homes for a tenth of the cost nobody knows about
+Supporting detail rules:
+One sentence. Never names more than one company or person. Never uses phrases like "have the potential to", "transform entire industries", "by 2026" as a throwaway ending, or "poised for growth." Must contain exactly one specific surprising detail — a number, a direct comparison, or a claim that sounds almost too bold to be true. Must leave the most interesting part unsaid so the only way to get the rest is to scroll.
+Bad: These firms including ZuruTech and Varda have the potential to transform entire industries by 2026
+Good: One of them builds homes for a tenth of the cost — and the founder has already done it in three other industries
+Also line rules:
+One fluid italic sentence. Starts with "Also yesterday —" then connects all remaining episodes with "and." Never uses the words deep dive, candid discussion, explores, examines, reshaping, or narratives. Must name at least one specific person or surprising claim from each remaining episode. Must read like gossip between two people who actually listened, not a TV guide description of what the episode covered.
+Bad: Also yesterday — a deep dive into geopolitical chaos, and a candid discussion on how AI is reshaping global narratives
+Good: Also yesterday — two comedians made more sense of the world than most journalists, and one of them said something about AI that nobody in media wants to admit
+The single test for every line of generated copy:
+Would a tabloid editor print this on a front page? If it sounds like a university press release, a LinkedIn post, or a podcast description, the AI must rewrite it until it doesn't.
