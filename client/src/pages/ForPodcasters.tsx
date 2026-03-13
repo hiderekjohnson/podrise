@@ -443,7 +443,7 @@ export default function ForPodcasters() {
               ))}
             </div>
             <div className="text-center mt-8">
-              <Link href="/topics" data-testid="link-browse-all">
+              <Link href="/interests" data-testid="link-browse-all">
                 <Button variant="outline" size="sm" className="rounded-xl font-display font-bold text-base h-9 px-5">
                   Explore Insights <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>

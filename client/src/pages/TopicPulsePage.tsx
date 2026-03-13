@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar, Tag } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { TOPICS } from "@/data/topicData";
+import { TOPICS, getCategoryPath } from "@/data/topicData";
 
 interface TopicPulse {
   id: number;
@@ -45,7 +45,7 @@ function normalizeLink(href: string): string {
   if (cleaned.startsWith("javascript:") || cleaned.startsWith("data:") || cleaned.startsWith("vbscript:")) {
     return "#";
   }
-  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/daily-drop") || cleaned.startsWith("/bookstore/") || cleaned.startsWith("/insights/")) {
+  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/daily-drop") || cleaned.startsWith("/bookstore/") || cleaned.startsWith("/insights/") || cleaned.startsWith("/industries/") || cleaned.startsWith("/interests/") || cleaned.startsWith("/roles/")) {
     return cleaned;
   }
   const match = cleaned.match(/(?:https?:\/\/[^/]*)?(\/?podcasts\/[^\s)]+)/);
@@ -159,18 +159,18 @@ function renderMarkdownBody(body: string) {
   });
 }
 
-function Breadcrumbs({ topicSlug, topicName, date }: { topicSlug: string; topicName: string; date?: string }) {
+function Breadcrumbs({ topicSlug, topicName, date, basePath }: { topicSlug: string; topicName: string; date?: string; basePath: string }) {
   return (
     <nav className="flex flex-wrap items-center gap-1 text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-5" aria-label="Breadcrumb" data-testid="nav-breadcrumbs">
       <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
-      <Link href="/insights" className="hover:text-foreground transition-colors">Topics</Link>
+      <Link href={basePath} className="hover:text-foreground transition-colors">{basePath === "/industries" ? "Industries" : basePath === "/roles" ? "Roles" : "Topics"}</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
-      <Link href={`/topics/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
+      <Link href={`${basePath}/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
       {date ? (
         <>
-          <Link href={`/topics/${topicSlug}/pulse`} className="hover:text-foreground transition-colors">The Pulse</Link>
+          <Link href={`${basePath}/${topicSlug}/pulse`} className="hover:text-foreground transition-colors">The Pulse</Link>
           <ChevronRightSmall className="w-3 h-3 shrink-0" />
           <span className="text-foreground font-medium">{formatDateShort(date)}</span>
         </>
@@ -218,7 +218,7 @@ function AsHeardOn({ sourceEpisodes }: { sourceEpisodes: TopicPulse["sourceEpiso
   );
 }
 
-function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) {
+function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: string; basePath: string }) {
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
 
@@ -331,7 +331,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
             <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-lg font-display font-bold text-foreground mb-1">Briefing not found</p>
             <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">No Pulse briefing available for this date.</p>
-            <Link href={`/topics/${topicSlug}/pulse`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
+            <Link href={`${basePath}/${topicSlug}/pulse`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
               Browse all briefings
             </Link>
           </div>
@@ -343,7 +343,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
               transition={{ duration: 0.5 }}
               className="mb-8 sm:mb-10"
             >
-              <Breadcrumbs topicSlug={topicSlug} topicName={topicName} date={date} />
+              <Breadcrumbs topicSlug={topicSlug} topicName={topicName} date={date} basePath={basePath} />
 
               <div className="flex items-center gap-2 text-[15px] font-semibold uppercase tracking-wider text-primary mb-4">
                 <Activity className="w-3.5 h-3.5" />
@@ -395,7 +395,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
                   return (
                     <Link
                       key={theme}
-                      href={`/insights/${topicSlug}?tag=${encodeURIComponent(themeSlug)}`}
+                      href={`${basePath}/${topicSlug}?tag=${encodeURIComponent(themeSlug)}`}
                       className="inline-flex items-center px-3 py-1 rounded-full bg-primary/[0.06] border border-primary/10 text-[13px] text-primary/80 font-medium hover:bg-primary/[0.12] hover:border-primary/20 transition-colors"
                       data-testid={`link-theme-tag-${i}`}
                     >
@@ -411,7 +411,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
             <nav className="flex items-center justify-between" data-testid="nav-pulse-editions">
               {prevPulse ? (
                 <Link
-                  href={`/topics/${topicSlug}/pulse/${prevPulse.publishDate}`}
+                  href={`${basePath}/${topicSlug}/pulse/${prevPulse.publishDate}`}
                   className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors"
                   data-testid="link-prev-pulse"
                 >
@@ -421,7 +421,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
               ) : <div />}
               {nextPulse ? (
                 <Link
-                  href={`/topics/${topicSlug}/pulse/${nextPulse.publishDate}`}
+                  href={`${basePath}/${topicSlug}/pulse/${nextPulse.publishDate}`}
                   className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors"
                   data-testid="link-next-pulse"
                 >
@@ -438,7 +438,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
                   {allPulses.filter(p => p.publishDate !== date).map((p, i) => (
                     <Link
                       key={p.publishDate}
-                      href={`/topics/${topicSlug}/pulse/${p.publishDate}`}
+                      href={`${basePath}/${topicSlug}/pulse/${p.publishDate}`}
                       className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group"
                       data-testid={`link-past-briefing-${i}`}
                     >
@@ -466,7 +466,7 @@ function PulseEdition({ topicSlug, date }: { topicSlug: string; date: string }) 
   );
 }
 
-function PulseArchive({ topicSlug }: { topicSlug: string }) {
+function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: string }) {
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
 
@@ -513,7 +513,7 @@ function PulseArchive({ topicSlug }: { topicSlug: string }) {
   }
 
   if (latestPulse && !isLoading) {
-    return <PulseEdition topicSlug={topicSlug} date={latestPulse.publishDate} />;
+    return <PulseEdition topicSlug={topicSlug} date={latestPulse.publishDate} basePath={basePath} />;
   }
 
   return (
@@ -537,7 +537,7 @@ function PulseArchive({ topicSlug }: { topicSlug: string }) {
             <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-lg font-display font-bold text-foreground mb-1">No briefings yet</p>
             <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">The {topicName} Pulse will be published soon.</p>
-            <Link href={`/topics/${topicSlug}`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
+            <Link href={`${basePath}/${topicSlug}`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
               Explore {topicName} topic
             </Link>
           </div>
@@ -552,22 +552,35 @@ export default function TopicPulsePage() {
   const [matchTopicsDate, topicsDateParams] = useRoute("/topics/:slug/pulse/:date");
   const [matchInsightsArchive, insightsArchiveParams] = useRoute("/insights/:slug/pulse");
   const [matchInsightsDate, insightsDateParams] = useRoute("/insights/:slug/pulse/:date");
+  const [matchIndustriesArchive, industriesArchiveParams] = useRoute("/industries/:slug/pulse");
+  const [matchIndustriesDate, industriesDateParams] = useRoute("/industries/:slug/pulse/:date");
+  const [matchInterestsArchive, interestsArchiveParams] = useRoute("/interests/:slug/pulse");
+  const [matchInterestsDate, interestsDateParams] = useRoute("/interests/:slug/pulse/:date");
+  const [matchRolesArchive, rolesArchiveParams] = useRoute("/roles/:slug/pulse");
+  const [matchRolesDate, rolesDateParams] = useRoute("/roles/:slug/pulse/:date");
 
-  const dateParams = topicsDateParams || insightsDateParams;
-  const archiveParams = topicsArchiveParams || insightsArchiveParams;
-  const matchDate = matchTopicsDate || matchInsightsDate;
+  const dateParams = topicsDateParams || insightsDateParams || industriesDateParams || interestsDateParams || rolesDateParams;
+  const archiveParams = topicsArchiveParams || insightsArchiveParams || industriesArchiveParams || interestsArchiveParams || rolesArchiveParams;
+  const matchDate = matchTopicsDate || matchInsightsDate || matchIndustriesDate || matchInterestsDate || matchRolesDate;
 
   const topicSlug = dateParams?.slug || archiveParams?.slug || "";
   const date = dateParams?.date;
+
+  const topic = TOPICS.find(t => t.slug === topicSlug);
+  let basePath = "/interests";
+  if (matchIndustriesArchive || matchIndustriesDate) basePath = "/industries";
+  else if (matchInterestsArchive || matchInterestsDate) basePath = "/interests";
+  else if (matchRolesArchive || matchRolesDate) basePath = "/roles";
+  else if (topic) basePath = getCategoryPath(topic.category);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
         {matchDate && date ? (
-          <PulseEdition topicSlug={topicSlug} date={date} />
+          <PulseEdition topicSlug={topicSlug} date={date} basePath={basePath} />
         ) : (
-          <PulseArchive topicSlug={topicSlug} />
+          <PulseArchive topicSlug={topicSlug} basePath={basePath} />
         )}
       </main>
       <Footer />

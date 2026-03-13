@@ -4,7 +4,7 @@ import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X,
 import { useQuery } from "@tanstack/react-query";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
-import { TOPICS } from "@/data/topicData";
+import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
@@ -417,7 +417,7 @@ export default function EpisodeArchivePage() {
                       const insightsSlug = TOPIC_TO_TOPICS_PAGE_MAP[topic.slug];
                       if (!insightsSlug) return null;
                       return (
-                        <Link key={topic.slug} href={`/topics/${insightsSlug}`}>
+                        <Link key={topic.slug} href={`${getCategoryPath(getTopicBySlug(insightsSlug)?.category || "interest")}/${insightsSlug}`}>
                           <span className="text-[16px] px-2 py-0.5 rounded-md bg-muted/60 text-[#3F3F46] font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                             {topic.name}
                           </span>

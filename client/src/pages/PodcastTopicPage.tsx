@@ -4,6 +4,7 @@ import { Headphones, ArrowRight, ChevronRight, Globe, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getTopicBySlug as getTopicConfig, getCategoryPath } from "@/data/topicData";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import {
   getCategoryBySlug,
@@ -266,7 +267,7 @@ export default function PodcastTopicPage() {
                   Explore recent episodes, key people, and trending insights about {topic.name.toLowerCase()} from across the podcast ecosystem.
                 </p>
                 <a
-                  href={`/topics/${topicsPageSlug}`}
+                  href={`${getCategoryPath(getTopicConfig(topicsPageSlug)?.category || "interest")}/${topicsPageSlug}`}
                   className="inline-flex items-center gap-2 text-primary font-semibold text-[15px] hover:underline"
                   data-testid="link-topics-page"
                 >

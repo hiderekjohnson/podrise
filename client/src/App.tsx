@@ -40,6 +40,7 @@ const Bookstore = lazy(() => import("./pages/Bookstore"));
 const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
 const TrendsPage = lazy(() => import("./pages/TrendsPage"));
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
+const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 
 function PageLoader() {
   return (
@@ -79,6 +80,18 @@ function Router() {
         <Route path="/get-started" component={GetStarted} />
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends" component={TrendsPage} />
+        <Route path="/industries/:slug/pulse/:date" component={TopicPulsePage} />
+        <Route path="/industries/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/industries/:slug" component={TopicDetailPage} />
+        <Route path="/industries" component={CategoryDirectory} />
+        <Route path="/interests/:slug/pulse/:date" component={TopicPulsePage} />
+        <Route path="/interests/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/interests/:slug" component={TopicDetailPage} />
+        <Route path="/interests" component={CategoryDirectory} />
+        <Route path="/roles/:slug/pulse/:date" component={TopicPulsePage} />
+        <Route path="/roles/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/roles/:slug" component={TopicDetailPage} />
+        <Route path="/roles" component={CategoryDirectory} />
         <Route path="/insights/:slug/pulse/:date" component={TopicPulsePage} />
         <Route path="/insights/:slug/pulse" component={TopicPulsePage} />
         <Route path="/insights/:slug" component={TopicDetailPage} />

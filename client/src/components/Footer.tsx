@@ -1,10 +1,12 @@
 import { Link } from "wouter";
 import { SiX } from "react-icons/si";
 import { PodCapWordmark } from "./PodCapHeader";
-import { TOPICS } from "@/data/topicData";
+import { INDUSTRIES, INTERESTS, ROLES, getCategoryPath } from "@/data/topicData";
 
 export function Footer() {
-  const topInsights = TOPICS.slice(0, 8);
+  const topIndustries = INDUSTRIES.slice(0, 4);
+  const topInterests = INTERESTS.slice(0, 4);
+  const topRoles = ROLES.slice(0, 4);
 
   return (
     <footer className="w-full border-t border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/40 backdrop-blur-sm mt-auto" data-testid="footer">
@@ -43,11 +45,31 @@ export function Footer() {
           </div>
 
           <div>
-            <Link href="/topics" className="text-base font-bold text-foreground mb-5 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-topics">Topics</Link>
+            <Link href="/industries" className="text-base font-bold text-foreground mb-5 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-industries">Industries</Link>
             <ul className="space-y-3.5">
-              {topInsights.map((topic) => (
+              {topIndustries.map((topic) => (
                 <li key={topic.slug}>
-                  <Link href={`/topics/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-topic-${topic.slug}`}>
+                  <Link href={`/industries/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-industry-${topic.slug}`}>
+                    {topic.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link href="/interests" className="text-base font-bold text-foreground mb-5 mt-8 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-interests">Topics</Link>
+            <ul className="space-y-3.5">
+              {topInterests.map((topic) => (
+                <li key={topic.slug}>
+                  <Link href={`/interests/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-interest-${topic.slug}`}>
+                    {topic.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link href="/roles" className="text-base font-bold text-foreground mb-5 mt-8 tracking-wide uppercase block hover:text-foreground/80 transition-colors" data-testid="link-roles">Roles</Link>
+            <ul className="space-y-3.5">
+              {topRoles.map((topic) => (
+                <li key={topic.slug}>
+                  <Link href={`/roles/${topic.slug}`} className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors" data-testid={`link-role-${topic.slug}`}>
                     {topic.name}
                   </Link>
                 </li>

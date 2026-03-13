@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Search, ArrowRight, Zap, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Activity, ChevronRight, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { TOPICS } from "@/data/topicData";
+import { TOPICS, getCategoryPath } from "@/data/topicData";
 import { SiteHeader } from "@/components/SiteHeader";
 
 const ICON_MAP: Record<string, any> = {
@@ -245,7 +245,7 @@ export default function TopicsDirectory() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.04 }}
                     >
-                      <Link href={`/topics/${topic.slug}`} data-testid={`card-trending-${topic.slug}`}>
+                      <Link href={`${getCategoryPath(topic.category)}/${topic.slug}`} data-testid={`card-trending-${topic.slug}`}>
                         <div className="group relative bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl p-5 hover:border-emerald-500/30 hover:shadow-md transition-all cursor-pointer overflow-hidden">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
@@ -306,7 +306,7 @@ export default function TopicsDirectory() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.4) }}
                 >
-                  <Link href={`/topics/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
+                  <Link href={`${getCategoryPath(topic.category)}/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
                     <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full">
                       <div className="flex items-center gap-2.5 mb-2">
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center flex-shrink-0`}>

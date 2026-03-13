@@ -4,6 +4,7 @@ import { Headphones, ChevronRight, ArrowRight, Zap, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import {
   getCategoryBySlug,
@@ -249,7 +250,7 @@ export default function PodcastCategoryPage() {
                 {goDeeper.map(link => (
                   <Link
                     key={link.topicSlug}
-                    href={`/topics/${link.topicsPageSlug}`}
+                    href={`${getCategoryPath(getTopicBySlug(link.topicsPageSlug)?.category || "interest")}/${link.topicsPageSlug}`}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-white/[0.03] text-[15px] font-medium text-foreground hover-elevate transition-all"
                     data-testid={`go-deeper-${link.topicSlug}`}
                   >

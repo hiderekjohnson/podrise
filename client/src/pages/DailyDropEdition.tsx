@@ -43,7 +43,7 @@ function normalizeLink(href: string): string {
   if (cleaned.startsWith("javascript:") || cleaned.startsWith("data:") || cleaned.startsWith("vbscript:")) {
     return "#";
   }
-  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/daily-drop")) {
+  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/daily-drop") || cleaned.startsWith("/industries/") || cleaned.startsWith("/interests/") || cleaned.startsWith("/roles/")) {
     return cleaned;
   }
   const match = cleaned.match(/(?:https?:\/\/[^/]*)?(\/?podcasts\/[^\s)]+)/);

@@ -7,7 +7,7 @@ import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { LinkedHosts } from "@/components/LinkedHosts";
-import { TOPICS } from "@/data/topicData";
+import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -680,7 +680,7 @@ export default function PersonDetailPage() {
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
                           <span className="text-[16px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
-                          <Link href={`/topics/${idea.topicPageSlug}`} className="text-[16px] text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
+                          <Link href={`${getCategoryPath(getTopicBySlug(idea.topicPageSlug)?.category || "interest")}/${idea.topicPageSlug}`} className="text-[16px] text-primary hover:text-primary/80 font-medium transition-colors ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
                             Explore Topic &rarr;
                           </Link>
                         </div>
@@ -1000,7 +1000,7 @@ export default function PersonDetailPage() {
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {broadTopics.slice(0, 5).map((topic, i) => (
-                      <Link key={i} href={`/topics/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
+                      <Link key={i} href={`${getCategoryPath(getTopicBySlug(topic.slug)?.category || "interest")}/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
                         <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
                         <span className="text-[16px] text-muted-foreground">{topic.count}</span>
                       </Link>

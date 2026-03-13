@@ -5,7 +5,7 @@ import { BookOpen } from "lucide-react"
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Footer } from "@/components/Footer";
-import { TOPICS, matchesKeywords } from "@/data/topicData";
+import { TOPICS, matchesKeywords, getCategoryPath } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -124,6 +124,7 @@ export default function TopicDetailPage() {
   const dynamicTopicName = isDynamic
     ? (params.slug || "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
     : "";
+  const categoryBasePath = topic ? getCategoryPath(topic.category) : "/interests";
 
   const { data: peopleData } = useQuery<PersonSummary[]>({
     queryKey: ["/api/entities/people"],
@@ -230,7 +231,7 @@ export default function TopicDetailPage() {
     const first = podcasts[0];
     return {
       podcasts: podcasts.slice(0, 4).map(p => p.podcast),
-      browseUrl: `/topics/${params.slug}`,
+      browseUrl: `${categoryBasePath}/${params.slug}`,
       topicSlug: first.topicSlug,
     };
   }, [params.slug]);
@@ -297,8 +298,8 @@ export default function TopicDetailPage() {
 
       <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
         <div className="flex items-center gap-2 text-[14px] text-muted-foreground mb-6">
-          <Link href="/topics" className="hover:text-foreground transition-colors" data-testid="link-back-insights">
-            Topics
+          <Link href={categoryBasePath} className="hover:text-foreground transition-colors" data-testid="link-back-insights">
+            {topic?.category === "industry" ? "Industries" : topic?.category === "role" ? "Roles" : "Topics"}
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
           <span className="text-foreground font-medium">{topicDisplayName}</span>
@@ -464,7 +465,7 @@ export default function TopicDetailPage() {
               transition={{ duration: 0.4, delay: 0.2 }}
             >
               <Link
-                href={`/topics/${params.slug}/pulse`}
+                href={`${categoryBasePath}/${params.slug}/pulse`}
                 className="block bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all group"
                 data-testid="link-topic-pulse"
               >
@@ -855,7 +856,7 @@ export default function TopicDetailPage() {
               {relatedTopics.map(t => {
                 const TIcon = ICON_MAP[t.icon] || Sparkles;
                 return (
-                  <Link key={t.slug} href={`/topics/${t.slug}`} data-testid={`link-related-topic-${t.slug}`}>
+                  <Link key={t.slug} href={`${getCategoryPath(t.category)}/${t.slug}`} data-testid={`link-related-topic-${t.slug}`}>
                     <div className="group flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
                       <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${t.color} flex items-center justify-center`}>
                         <TIcon className="w-3.5 h-3.5 text-white" />

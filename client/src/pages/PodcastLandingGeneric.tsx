@@ -10,6 +10,7 @@ import { PodCapHeader } from "@/components/PodCapHeader";
 import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayout";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
@@ -898,7 +899,7 @@ export default function PodcastLandingGeneric() {
               </div>
               <div className="flex flex-wrap gap-2.5">
                 {entityLinks.topics.map((t: any, i: number) => (
-                  <Link key={i} href={`/topics/${t.slug || t.topic}`}>
+                  <Link key={i} href={`${getCategoryPath(getTopicBySlug(t.slug || t.topic)?.category || "interest")}/${t.slug || t.topic}`}>
                     <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[16px] font-medium text-foreground hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer" data-testid={`tag-topic-${i}`}>
                       {t.topic}
                       <span className="text-muted-foreground/40 text-[16px] font-bold">({t.count})</span>

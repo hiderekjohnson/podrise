@@ -1,0 +1,54 @@
+Based on the recent changes to industries and roles pages, update /enterprise and about us to reflect the new offers we have, as enterprise customers will be able to use us for employees to get industry related knowledge and role knowledge. Some enterprise features… 
+
+Here's everything an enterprise customer would care about paying for:
+Intelligence & Briefings
+	•	Custom briefings built around specific industries and topics relevant to their business
+	•	Frequency control — daily, weekly, or real time
+	•	Briefings delivered to the whole team automatically
+	•	Custom podcast monitoring — track specific shows relevant to their industry
+	•	Competitor monitoring — surface what's being said about competitors across podcasts
+	•	Industry trend reports on demand
+Team Management
+	•	Admin dashboard to manage all users
+	•	Add and remove employees
+	•	Assign industries, roles, and interests per employee or department
+	•	Role-based briefing customization — marketing team gets different briefings than engineering team
+	•	Usage analytics — see what your team is reading and engaging with
+Access & Integrations
+	•	Slack integration — briefings delivered directly into team channels
+	•	Email integration — custom branded briefings
+	•	API access for pulling intelligence into internal tools
+	•	SSO — single sign on for easy employee access
+Security & Control
+	•	Custom data retention policies
+	•	Admin approval for new users
+	•	Private team workspace
+Reporting
+	•	Monthly intelligence reports for leadership
+	•	Trend tracking over time
+	•	Most discussed topics in your industry this month
+
+The core enterprise pitch in one line:
+"Your whole team stays ahead of your industry — automatically, every day, without listening to a single episode."
+Also we can use some of these ideas 
+
+THE PODCAST INTELLIGENCE GAP
+Your industry is talking. You're missing it.
+Every day, thousands of hours of expert conversation, competitor strategy, and market intelligence are published in podcast form — and virtually none of it reaches your desk.
+70,000+
+New episodes published today
+A new podcast episode drops every single second — around the clock, every day of the year.
+3,000 hrs
+Of new audio released today
+125 straight days of listening — just from today's new content alone. Tomorrow resets to zero.
+500+
+Brand new shows this week
+New voices, new topics, new agendas entering the conversation constantly — every week, every month.
+THE BUSINESS PROBLEM
+Podcasts have become where real conversations happen — and businesses have no way to listen.
+Executives, analysts, journalists, and competitors speak candidly on podcasts in ways they never would in press releases or earnings calls. It's where narratives form, where reputations shift, and where markets move — before anyone writes it down.
+The problem isn't awareness. It's access. No team is large enough, and no human is fast enough, to monitor what's actually being said.
+WHAT YOUR ORGANIZATION IS MISSING
+	•	01 Competitor intelligence Your competitors' executives are giving unscripted interviews — discussing strategy, product direction, and market views — and you're not in the room.  02 Brand & reputation monitoring Your company, your leadership, and your products are being discussed — positively and negatively — in conversations your PR team will never see.  03 Emerging narratives Industry trends and opinions form in podcasts weeks before they show up in trade media. By the time it's written down, you're already behind.  04 Expert & analyst signal The most candid thinking from the smartest people in your industry lives in long-form podcast conversations — not in reports, not on LinkedIn. 
+
+Audio can't be searched, skimmed, or ctrl+F'd. Every minute of insight requires a minute of listening — and there are 3,000 hours of new content today alone.

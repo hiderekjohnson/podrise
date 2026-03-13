@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -277,7 +278,7 @@ export default function TrendsPage() {
           totalMentions: t.mentionCount,
           trend: t.trend,
           changePercent: t.changePercent,
-          href: `/topics/${t.slug}`,
+          href: `${getCategoryPath(getTopicBySlug(t.slug)?.category || "interest")}/${t.slug}`,
         });
       }
     }
@@ -509,7 +510,7 @@ export default function TrendsPage() {
                     <p className="text-[15px] text-muted-foreground/70 leading-relaxed">Track company mentions across podcast conversations and industry analysis</p>
                   </div>
                 </Link>
-                <Link href="/topics" data-testid="link-explore-insights">
+                <Link href="/interests" data-testid="link-explore-interests">
                   <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer">
                     <Lightbulb className="w-6 h-6 text-purple-500 mb-3" />
                     <h3 className="text-[17px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">Topic Intelligence</h3>
