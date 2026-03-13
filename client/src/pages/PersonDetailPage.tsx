@@ -108,7 +108,7 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
               </span>
             )}
           </div>
-          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1 flex items-center gap-1.5 flex-wrap">
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1 flex items-center gap-1.5 flex-wrap">
             <Link href={`/podcasts/${episode.slug}`} className="hover:text-foreground transition-colors flex items-center gap-1">
               <Headphones className="w-3.5 h-3.5" />
               {episode.podcast_name}
@@ -124,7 +124,7 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
             )}
           </p>
           {episode.context && (
-            <p className="mt-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 leading-relaxed italic">
+            <p className="mt-2 text-base text-[#52525B] dark:text-[#A1A1AA]/80 leading-relaxed italic">
               &ldquo;{episode.context}&rdquo;
             </p>
           )}
@@ -445,7 +445,7 @@ export default function PersonDetailPage() {
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-6xl">
-          <nav className="flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-6 mt-2" data-testid="breadcrumb">
+          <nav className="flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA] mb-6 mt-2" data-testid="breadcrumb">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
             <Link href="/people" className="hover:text-foreground transition-colors">People</Link>
@@ -487,7 +487,7 @@ export default function PersonDetailPage() {
                     </h1>
                     <p className="text-base text-muted-foreground mb-3">{person.title}</p>
 
-                    <p className="text-[16px] text-[#3F3F46] leading-relaxed mb-4" data-testid="text-person-intro">
+                    <p className="text-[16px] text-[#52525B] leading-relaxed mb-4" data-testid="text-person-intro">
                       {personData?.bio
                         ? personData.bio
                         : hasGuestAppearances
@@ -497,25 +497,25 @@ export default function PersonDetailPage() {
 
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
                       {socialLinks?.twitter && (
-                        <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
+                        <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-twitter">
                           <SiX className="w-3.5 h-3.5" /> X / Twitter
                           <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                       {socialLinks?.linkedin && (
-                        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
+                        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-linkedin">
                           <SiLinkedin className="w-3.5 h-3.5" /> LinkedIn
                           <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                       {socialLinks?.instagram && (
-                        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
+                        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-instagram">
                           <SiInstagram className="w-3.5 h-3.5" /> Instagram
                           <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
                       )}
                       {socialLinks?.website && (
-                        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
+                        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full" data-testid="link-website">
                           <Globe className="w-3.5 h-3.5" /> Website
                           <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
                         </a>
@@ -604,7 +604,7 @@ export default function PersonDetailPage() {
                       <Mic className="w-5 h-5 text-primary" />
                       Podcast Host
                     </h2>
-                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">
+                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">
                       {person?.name} is the host of the following podcast{hostedPodcasts.length !== 1 ? "s" : ""}:
                     </p>
                     <div className="grid grid-cols-1 gap-4">
@@ -618,8 +618,8 @@ export default function PersonDetailPage() {
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors">{podcast.name}</p>
-                            <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2">{podcast.description}</p>
-                            <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
+                            <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5 line-clamp-2">{podcast.description}</p>
+                            <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[16px] text-[#52525B] dark:text-[#A1A1AA] font-medium">
                               {podcast.yearStarted && (
                                 <span className="inline-flex items-center gap-1">
                                   <Calendar className="w-3.5 h-3.5" />
@@ -663,12 +663,12 @@ export default function PersonDetailPage() {
                       <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`key-idea-${i}`}>
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
-                          <span className="text-[13px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
-                          <Link href={`${getCategoryPath(getTopicBySlug(idea.topicPageSlug)?.category || "interest")}/${idea.topicPageSlug}`} className="text-[13px] text-primary hover:text-primary/80 font-medium transition-colors sm:ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
+                          <span className="text-[14px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
+                          <Link href={`${getCategoryPath(getTopicBySlug(idea.topicPageSlug)?.category || "interest")}/${idea.topicPageSlug}`} className="text-[14px] text-primary hover:text-primary/80 font-medium transition-colors sm:ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>
                             Explore Topic &rarr;
                           </Link>
                         </div>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-3">
+                        <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-3">
                           {hasGuestAppearances
                             ? `${person.name} discusses ${idea.topic.toLowerCase()} across ${idea.count} podcast episode${idea.count !== 1 ? "s" : ""}. Explore the full recaps for in-depth coverage of this theme.`
                             : `${person.name} is discussed in the context of ${idea.topic.toLowerCase()} across ${idea.count} episode${idea.count !== 1 ? "s" : ""}. Explore recaps for detailed coverage.`}
@@ -679,7 +679,7 @@ export default function PersonDetailPage() {
                               <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[14px] text-primary/80 hover:text-primary transition-colors flex items-start gap-1.5 min-w-0" data-testid={`key-idea-ep-${i}-${j}`}>
                                 <Headphones className="w-3 h-3 mt-0.5 shrink-0" />
                                 <span className="line-clamp-1">{ep.episode_title}</span>
-                                <span className="text-muted-foreground text-[13px] shrink-0 hidden sm:inline">on {ep.podcast_name}</span>
+                                <span className="text-muted-foreground text-[14px] shrink-0 hidden sm:inline">on {ep.podcast_name}</span>
                               </Link>
                             ))}
                           </div>
@@ -707,7 +707,7 @@ export default function PersonDetailPage() {
                               {quote.text}
                             </p>
                             <div className="flex items-center justify-between flex-wrap gap-2">
-                              <div className="text-base text-[#3F3F46] dark:text-[#A1A1AA] flex items-center gap-1.5">
+                              <div className="text-base text-[#52525B] dark:text-[#A1A1AA] flex items-center gap-1.5">
                                 <Headphones className="w-3.5 h-3.5" />
                                 <span>{quote.podcastName}</span>
                                 {date && <><span>&middot;</span><span>{date}</span></>}
@@ -744,7 +744,7 @@ export default function PersonDetailPage() {
                         </button>
                         {faqOpen[i] && (
                           <div className="px-4 pb-4" data-testid={`faq-answer-${i}`}>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.a}</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">{item.a}</p>
                           </div>
                         )}
                       </div>
@@ -792,7 +792,7 @@ export default function PersonDetailPage() {
                     </div>
                     <button
                       onClick={() => setSortOrder(o => o === "relevance" ? "newest" : o === "newest" ? "oldest" : "relevance")}
-                      className="flex items-center gap-1 px-3 py-2 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground bg-muted/50 border border-border rounded-lg transition-colors flex-shrink-0"
+                      className="flex items-center gap-1 px-3 py-2 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground bg-muted/50 border border-border rounded-lg transition-colors flex-shrink-0"
                       data-testid="button-sort"
                     >
                       <ArrowUpDown className="w-3.5 h-3.5" />
@@ -839,10 +839,10 @@ export default function PersonDetailPage() {
                             <p className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>
                               {podcast.name}
                             </p>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
                               {podcast.count} episode{podcast.count !== 1 ? "s" : ""} {latestDate && <>&middot; Latest: {latestDate}</>}
                             </p>
-                            <p className="text-[16px] text-[#3F3F46] mt-1 truncate">
+                            <p className="text-[16px] text-[#52525B] mt-1 truncate">
                               {podcast.latestTitle}
                             </p>
                           </div>

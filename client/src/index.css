@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=DM+Serif+Display&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,7 @@
 @layer base {
   :root {
     --font-sans: 'DM Sans', system-ui, sans-serif;
+    --font-serif: 'DM Serif Display', Georgia, serif;
     --font-display: 'DM Sans', system-ui, sans-serif;
     --font-mono: 'DM Mono', monospace;
 
@@ -45,12 +46,14 @@
     --color-indigo-light: #A5B4FC;
     --color-heading: #09090B;
     --color-body: #09090B;
-    --color-muted: #3F3F46;
-    --color-subtle: #52525B;
+    --color-secondary: #52525B;
+    --color-muted: #A1A1AA;
     --color-placeholder: #71717A;
-    --color-border-light: #E4E4E7;
-    --color-surface-light: #F4F4F5;
+    --color-border: #F0F0F2;
+    --color-border-medium: #E4E4E7;
+    --color-surface-light: #F7F7FC;
     --color-bg-light: #F7F7FC;
+    --color-bg-dark: #08080F;
     --color-icon-tint: #EEF2FF;
   }
 
@@ -85,11 +88,13 @@
 
     --color-heading: #FFFFFF;
     --color-body: #F4F4F5;
-    --color-muted: #A1A1AA;
-    --color-subtle: #A1A1AA;
-    --color-border-light: #27272A;
+    --color-secondary: #A1A1AA;
+    --color-muted: #71717A;
+    --color-border: #1C1C22;
+    --color-border-medium: #27272A;
     --color-surface-light: #0D0D1F;
     --color-bg-light: #08080F;
+    --color-bg-dark: #08080F;
   }
 
   * {
@@ -173,10 +178,11 @@
   }
 
   input, textarea, select {
-    font-size: 17px;
+    font-size: 16px;
     min-height: 52px;
-    border: 1.5px solid #D4D4D8;
-    border-radius: 10px;
+    border: 1px solid var(--color-border-medium);
+    border-radius: 8px;
+    padding: 12px 16px;
   }
 
   input:focus-visible,
@@ -201,7 +207,7 @@
   nav a {
     font-size: 17px;
     font-weight: 500;
-    color: #3F3F46;
+    color: #52525B;
   }
 
   nav a:hover, nav a.active {
@@ -215,12 +221,12 @@
     background: #6366F1;
     color: white;
     border: none;
-    min-height: 52px;
-    padding: 14px 28px;
-    font-size: 17px;
+    min-height: 44px;
+    padding: 12px 22px;
+    font-size: 15px;
     font-weight: 600;
     font-family: var(--font-sans);
-    border-radius: 10px;
+    border-radius: 9px;
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -234,12 +240,12 @@
     background: transparent;
     color: #18181B;
     border: 2px solid #18181B;
-    min-height: 52px;
-    padding: 14px 28px;
-    font-size: 17px;
+    min-height: 44px;
+    padding: 12px 22px;
+    font-size: 15px;
     font-weight: 600;
     font-family: var(--font-sans);
-    border-radius: 10px;
+    border-radius: 9px;
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -253,13 +259,13 @@
     border: none;
     color: #6366F1;
     font-weight: 600;
-    font-size: 17px;
+    font-size: 15px;
     cursor: pointer;
   }
 
   .brand-card {
     padding: 24px;
-    border: 1px solid #E4E4E7;
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     background: white;
     transition: all 0.2s;
@@ -289,12 +295,12 @@
     scrollbar-width: none;
   }
 
-  .text-brand-muted {
-    color: #3F3F46;
+  .text-brand-secondary {
+    color: var(--color-secondary);
   }
 
-  .text-brand-subtle {
-    color: #52525B;
+  .text-brand-muted {
+    color: var(--color-muted);
   }
 
   .min-touch {

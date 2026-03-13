@@ -334,7 +334,7 @@ export default function EpisodeTranscriptPage() {
       allRecaps={allRecaps}
     >
       <div>
-        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-6" data-testid="text-recap-link">
+        <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-6" data-testid="text-recap-link">
           Too long to read?{" "}
           <Link
             href={`/podcasts/${podcastSlug}/${episodeSlug}`}
@@ -347,7 +347,7 @@ export default function EpisodeTranscriptPage() {
         </p>
 
         <div
-          className="flex items-center gap-4 flex-wrap text-base text-[#3F3F46] dark:text-[#A1A1AA] px-4 py-3 bg-white border border-black/[0.06] rounded-xl mb-4"
+          className="flex items-center gap-4 flex-wrap text-base text-[#52525B] dark:text-[#A1A1AA] px-4 py-3 bg-white border border-black/[0.06] rounded-xl mb-4"
           data-testid="stats-bar"
         >
           <div className="flex items-center gap-1.5">

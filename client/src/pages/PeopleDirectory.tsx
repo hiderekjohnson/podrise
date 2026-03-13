@@ -277,7 +277,7 @@ export default function PeopleDirectory() {
             <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="heading-people">
               People Intelligence
             </h1>
-            <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+            <p className="text-lg text-[#52525B] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
               Track who's being discussed across the world's top podcasts. See trending mentions, rising voices, and explore every episode.
             </p>
           </motion.div>
@@ -515,7 +515,7 @@ export default function PeopleDirectory() {
                                 <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors truncate">
                                   {person.name}
                                 </h3>
-                                <p className="text-[16px] text-[#3F3F46] truncate">{person.title}</p>
+                                <p className="text-[16px] text-[#52525B] truncate">{person.title}</p>
                                 <div className="flex items-center gap-3 mt-2">
                                   <span className="text-[16px] font-mono text-foreground font-semibold">{person.recentMentions} mentions</span>
                                   <TrendBadge trend={person.trend} changePercent={person.changePercent} />

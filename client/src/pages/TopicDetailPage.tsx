@@ -366,7 +366,7 @@ export default function TopicDetailPage() {
               <div className="relative">
                 <div className="flex items-center gap-2 mb-2">
                   <Activity className="w-4 h-4 text-white/80" />
-                  <span className="text-[13px] font-bold uppercase tracking-[0.15em] text-white/70">The Pulse</span>
+                  <span className="text-[14px] font-bold uppercase tracking-[0.15em] text-white/70">The Pulse</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-2">
                   Your daily {topicDisplayName.toLowerCase()} briefing
@@ -439,7 +439,7 @@ export default function TopicDetailPage() {
                 </h2>
               </div>
               {latestEpisodeDate && (
-                <span className="text-[13px] text-muted-foreground flex items-center gap-1.5">
+                <span className="text-[14px] text-muted-foreground flex items-center gap-1.5">
                   <Clock className="w-3 h-3" />
                   {formatRelativeDate(latestEpisodeDate)}
                 </span>
@@ -458,9 +458,9 @@ export default function TopicDetailPage() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[13px] font-medium text-primary">{ep.podcast_name}</span>
+                          <span className="text-[14px] font-medium text-primary">{ep.podcast_name}</span>
                           <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                          <span className="text-[13px] text-muted-foreground">{ep.publish_date ? formatRelativeDate(ep.publish_date) : ""}</span>
+                          <span className="text-[14px] text-muted-foreground">{ep.publish_date ? formatRelativeDate(ep.publish_date) : ""}</span>
                         </div>
                         <h3 className="text-[15px] sm:text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1.5">
                           {ep.episode_title}
@@ -516,7 +516,7 @@ export default function TopicDetailPage() {
                   </div>
                   <div>
                     <p className="text-[15px] font-semibold text-foreground">{g.name}</p>
-                    {g.title && <p className="text-[13px] text-muted-foreground">{g.title}</p>}
+                    {g.title && <p className="text-[14px] text-muted-foreground">{g.title}</p>}
                   </div>
                 </div>
               ))}
@@ -574,7 +574,7 @@ export default function TopicDetailPage() {
                       <h4 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
                         {book.title}
                       </h4>
-                      <p className="text-[13px] text-muted-foreground mt-1">{book.author || "Unknown"}</p>
+                      <p className="text-[14px] text-muted-foreground mt-1">{book.author || "Unknown"}</p>
                       {book.mentionCount && (
                         <p className="text-[12px] text-amber-600 dark:text-amber-400 font-medium mt-1.5">Mentioned {book.mentionCount}x on podcasts</p>
                       )}
@@ -624,10 +624,10 @@ export default function TopicDetailPage() {
                         <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                           {person.name}
                         </h4>
-                        <p className="text-[13px] text-muted-foreground truncate">{person.title}</p>
+                        <p className="text-[14px] text-muted-foreground truncate">{person.title}</p>
                       </div>
                       {(person.guestCount > 0 || person.mentionCount > 0) && (
-                        <div className="flex items-center gap-2 text-[13px] text-muted-foreground/50 flex-shrink-0">
+                        <div className="flex items-center gap-2 text-[14px] text-muted-foreground/50 flex-shrink-0">
                           {person.guestCount > 0 && (
                             <span className="flex items-center gap-1">
                               <Mic className="w-3 h-3" />
@@ -688,7 +688,7 @@ export default function TopicDetailPage() {
                         <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                           {podcast.name}
                         </h4>
-                        <p className="text-[13px] text-muted-foreground truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
+                        <p className="text-[14px] text-muted-foreground truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
                       </div>
                     </div>
                   </Link>
@@ -736,7 +736,7 @@ export default function TopicDetailPage() {
                         <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                           {company.name}
                         </h4>
-                        <p className="text-[13px] text-muted-foreground truncate">{company.details.industry}</p>
+                        <p className="text-[14px] text-muted-foreground truncate">{company.details.industry}</p>
                       </div>
                     </div>
                   </Link>
@@ -774,7 +774,7 @@ export default function TopicDetailPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="w-4 h-4 text-primary" />
-                    <span className="text-[13px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise</span>
+                    <span className="text-[14px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise</span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2" data-testid="heading-enterprise-cta">
                     Need {topicDisplayName.toLowerCase()} intelligence at scale?

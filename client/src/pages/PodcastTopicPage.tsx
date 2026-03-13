@@ -215,7 +215,7 @@ export default function PodcastTopicPage() {
                   {topic.name} Podcasts
                 </span>
               </div>
-              <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
+              <span className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">
               </span>
             </div>
 
@@ -243,7 +243,7 @@ export default function PodcastTopicPage() {
                     <p className="text-[15px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
                       {podcast.name}
                     </p>
-                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 truncate">
+                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5 truncate">
                       <LinkedHosts hosts={podcast.hosts || ""} />
                     </p>
                   </div>

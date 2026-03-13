@@ -158,7 +158,7 @@ export default function TopicsDirectory() {
             <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="text-page-title">
               Explore Topics
             </h1>
-            <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+            <p className="text-lg text-[#52525B] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
               See what the world's top podcasts are saying about the topics that matter to you.
             </p>
           </motion.div>
@@ -257,18 +257,18 @@ export default function TopicsDirectory() {
                                   <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors">
                                     {topic.name}
                                   </h3>
-                                  <span className="text-[13px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <span className="text-[14px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3" />
                                     Rising
                                   </span>
                                 </div>
                               </div>
-                              <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">{topic.description}</p>
+                              <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">{topic.description}</p>
                             </div>
                             <MiniTrendLine seed={i * 7 + 3} rising={true} />
                           </div>
                           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                            <span className="ml-auto text-[13px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                            <span className="ml-auto text-[14px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                               Explore <ArrowUpRight className="w-3 h-3" />
                             </span>
                           </div>
@@ -289,7 +289,7 @@ export default function TopicsDirectory() {
               {isSearching ? "Search Results" : isFiltering ? CATEGORIES.find(c => c.key === activeCategory)?.label || "Topics" : "All Topics"}
             </h2>
             {(isSearching || isFiltering) && (
-              <span className="text-[13px] font-mono text-muted-foreground/60 ml-1">
+              <span className="text-[14px] font-mono text-muted-foreground/60 ml-1">
                 {filteredTopics.length} topic{filteredTopics.length !== 1 ? "s" : ""}
               </span>
             )}
@@ -319,7 +319,7 @@ export default function TopicsDirectory() {
                         </div>
                         <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors flex-shrink-0" />
                       </div>
-                      <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">
+                      <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">
                         {topic.description}
                       </p>
                     </div>
@@ -349,7 +349,7 @@ export default function TopicsDirectory() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="w-4 h-4 text-primary" />
-                    <span className="text-[13px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise Intelligence</span>
+                    <span className="text-[14px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise Intelligence</span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2">
                     Custom intelligence for your organization

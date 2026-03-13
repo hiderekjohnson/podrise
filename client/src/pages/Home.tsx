@@ -73,14 +73,14 @@ export default function Home() {
 
         <section className="w-full max-w-4xl mx-auto text-center px-4 sm:px-6 pt-16 sm:pt-24 pb-16 sm:pb-20">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex flex-col items-center gap-6">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-[13px] sm:text-[16px] font-semibold uppercase tracking-wider" data-testid="badge-tagline">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-[14px] sm:text-[16px] font-semibold uppercase tracking-wider" data-testid="badge-tagline">
               <BarChart3 className="w-3.5 h-3.5" />
               Podcast Intelligence Platform
             </div>
             <h1 className="text-[2rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
               Always know what the smartest people in your industry are saying
             </h1>
-            <p className="text-lg sm:text-xl text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
+            <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
               PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's most influential shows and deliver structured briefings so you stay current on what matters -- without listening to everything.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
@@ -124,7 +124,7 @@ export default function Home() {
                 <Search className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-1">Pick your industries or your podcasts</h3>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                 Follow the topics that matter to your work, or choose specific shows you want to track. Either way, you get structured intelligence on exactly what was discussed.
               </p>
             </div>
@@ -133,7 +133,7 @@ export default function Home() {
                 <Sparkles className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-2">Analyst-grade briefings</h3>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                 Every episode distilled into structured intelligence: key arguments, notable quotes, companies discussed, and actionable takeaways -- like having a research analyst listen to everything for you.
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function Home() {
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-display font-bold text-foreground" data-testid="text-value-prop-3">Intelligence, delivered daily</h3>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                 Subscribe to topics or specific podcasts and receive daily briefings in your inbox. Stay current on what the sharpest minds in your field are saying, every morning.
               </p>
             </div>
@@ -164,7 +164,7 @@ export default function Home() {
                 ].map((stat) => (
                   <div key={stat.label} className="text-center py-4">
                     <p className="text-[2rem] sm:text-[2.5rem] font-display font-extrabold tracking-tight leading-none text-foreground" data-testid={`stat-${stat.label.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`}>{stat.value}</p>
-                    <p className="text-[16px] font-semibold text-[#3F3F46] mt-1.5">{stat.label}</p>
+                    <p className="text-[16px] font-semibold text-[#52525B] mt-1.5">{stat.label}</p>
                     <p className="text-[16px] text-[#52525B]">{stat.sub}</p>
                   </div>
                 ))}
@@ -180,7 +180,7 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-explore-heading">
                 Explore the intelligence layer
               </h2>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-xl mx-auto">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-3 max-w-xl mx-auto">
                 Start with the dimension that matters most to your work -- topics, people, companies, or specific shows.
               </p>
             </motion.div>
@@ -191,7 +191,7 @@ export default function Home() {
                     <Mic className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Podcasts</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by industry, explore our picks, or search for the specific shows you want intelligence on.</p>
+                  <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-1 leading-relaxed">Browse by industry, explore our picks, or search for the specific shows you want intelligence on.</p>
                 </div>
               </Link>
               <Link href="/interests" className="block">
@@ -200,7 +200,7 @@ export default function Home() {
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Topics</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Follow what the smartest voices are saying about AI, crypto, leadership, markets, and more.</p>
+                  <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-1 leading-relaxed">Follow what the smartest voices are saying about AI, crypto, leadership, markets, and more.</p>
                 </div>
               </Link>
               <Link href="/people" className="block">
@@ -209,7 +209,7 @@ export default function Home() {
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">People</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">See what founders, investors, and industry leaders are saying across the podcast world.</p>
+                  <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-1 leading-relaxed">See what founders, investors, and industry leaders are saying across the podcast world.</p>
                 </div>
               </Link>
               <Link href="/companies" className="block">
@@ -218,7 +218,7 @@ export default function Home() {
                     <Building2 className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Companies</h3>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what is being said about the companies shaping technology, business, and culture.</p>
+                  <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what is being said about the companies shaping technology, business, and culture.</p>
                 </div>
               </Link>
             </div>
@@ -231,7 +231,7 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-podcasts-heading">
                 Podcasts we cover
               </h2>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
                 From business strategy to science, culture, and technology -- we deliver intelligence on the world's most influential podcast conversations.
               </p>
             </motion.div>
@@ -262,7 +262,7 @@ export default function Home() {
                     <p className="mt-2.5 text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                       {podcast.name}
                     </p>
-                    <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-1">{podcast.category}</p>
+                    <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5 line-clamp-1">{podcast.category}</p>
                   </div>
                 </motion.div>
               ))}
@@ -286,7 +286,7 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-people-heading">
                 Voices shaping the conversation
               </h2>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto">
                 Track what the most influential founders, investors, journalists, and thought leaders are saying across podcasts.
               </p>
             </motion.div>
@@ -317,7 +317,7 @@ export default function Home() {
                     <p className="mt-3 text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
                       {person.name}
                     </p>
-                    <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5 line-clamp-2 leading-relaxed">
                       {person.title}
                     </p>
                   </div>
@@ -373,7 +373,7 @@ export default function Home() {
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-cta-heading">
                 While you slept, thousands of hours of new podcasts dropped. We distilled them for you.
               </h2>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-lg">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] max-w-lg">
                 Pick the industries you care about or the specific podcasts you follow. We will analyze every new episode and deliver structured intelligence to your inbox -- the key insights, notable quotes, and takeaways that matter.
               </p>
               <button

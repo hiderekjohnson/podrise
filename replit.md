@@ -29,7 +29,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **People Image Pipeline**: Resolves profile photos prioritizing local images, then Wikipedia/Wikimedia Commons, then X/Twitter via unavatar.io, with a fallback placeholder.
 - **RSS Feeds**: Public and custom RSS feeds.
 - **SEO/SSR Pipeline**: `server/podcastMeta.ts` provides async DB-backed meta tag injection and SSR HTML for all public pages, ensuring content is visible to search engines. JSON-LD and all DB-derived content are sanitized/escaped.
-- **Style Guide**: Strict typography, color contrast, and sizing rules for readability on public-facing pages.
+- **Brand Guide**: `BRAND.md` is the single source of truth for all design and accessibility decisions. Fonts: DM Sans (UI), DM Mono (dates/code), DM Serif Display (editorial headlines). Colors: Primary #6366F1, Accent #8B5CF6, Text primary #09090B, Text secondary #52525B, Text muted #A1A1AA. Border default #F0F0F2, border medium #E4E4E7. Buttons: border-radius 9px, padding 12px 22px, font-size 15px. Min font: 16px body, 14px general, 12px constrained labels only. WCAG AA minimum contrast ratios enforced.
 - **Apple Podcast Ratings**: Integration and display of scraped Apple Podcast ratings.
 - **Podcast Bookstore**: Discovery engine at `/bookstore` with curated shelves, topic/length filters, and sort options. Individual book pages at `/bookstore/:bookSlug` feature Podcast Score, enriched hero, featured quotes, notable hosts, related books, and Blinkist CTAs. Book links point to Blinkist summaries.
 - **Episode Recap Page Structure**: SEO intro, Key Takeaways, Episode Recap, Participants, Notable Mentions, Books Mentioned, Quotes. Guest block in header. Invisible JSON-LD FAQ schema for Q&A.

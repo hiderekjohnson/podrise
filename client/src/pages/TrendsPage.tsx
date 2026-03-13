@@ -94,7 +94,7 @@ function SEOHead() {
 }
 
 function TrendBadge({ trend, changePercent, size = "default" }: { trend: string; changePercent: number; size?: "default" | "large" }) {
-  const textSize = size === "large" ? "text-[15px]" : "text-[13px]";
+  const textSize = size === "large" ? "text-[15px]" : "text-[14px]";
   const iconSize = size === "large" ? "w-4 h-4" : "w-3.5 h-3.5";
   if (trend === "rising") {
     return (
@@ -197,7 +197,7 @@ function SpotlightCard({ entity, rank }: { entity: UnifiedEntity; rank: number }
         <div className="flex items-start gap-3.5">
           <div className="relative">
             <EntityAvatar entity={entity} />
-            <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold">
+            <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[12px] font-bold">
               {rank}
             </div>
           </div>
@@ -205,15 +205,15 @@ function SpotlightCard({ entity, rank }: { entity: UnifiedEntity; rank: number }
             <div className="flex items-center gap-2 mb-0.5">
               <h3 className="text-[16px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{entity.name}</h3>
             </div>
-            <p className="text-[13px] text-muted-foreground truncate mb-2">{entity.subtitle}</p>
+            <p className="text-[14px] text-muted-foreground truncate mb-2">{entity.subtitle}</p>
             <div className="flex items-center gap-3">
-              <span className="text-[13px] font-mono text-muted-foreground">
+              <span className="text-[14px] font-mono text-muted-foreground">
                 {entity.recentMentions} recent
               </span>
               <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
             </div>
             <div className="flex items-center gap-1 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className={`text-[13px] font-semibold ${cfg.accentColor}`}>{cfg.verb}</span>
+              <span className={`text-[14px] font-semibold ${cfg.accentColor}`}>{cfg.verb}</span>
               <ChevronRight className={`w-3.5 h-3.5 ${cfg.accentColor}`} />
             </div>
           </div>
@@ -262,7 +262,7 @@ function CategorySection({
         </div>
         <Link
           href={seeAllHref}
-          className="text-[13px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+          className="text-[14px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
           data-testid={`link-see-all-${title.toLowerCase().replace(/\s+/g, '-')}`}
         >
           {seeAllLabel}
@@ -274,13 +274,13 @@ function CategorySection({
         {entities.slice(0, 10).map((entity, i) => (
           <Link key={`${entity.type}-${entity.slug}`} href={entity.href} data-testid={`trend-row-${entity.slug}`}>
             <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-muted/30 transition-colors cursor-pointer border-b border-black/[0.03] dark:border-white/[0.03] last:border-0 group">
-              <span className="text-[13px] font-mono text-muted-foreground/40 font-medium w-6 text-right shrink-0">{i + 1}</span>
+              <span className="text-[14px] font-mono text-muted-foreground/40 font-medium w-6 text-right shrink-0">{i + 1}</span>
 
               <EntityAvatar entity={entity} />
 
               <div className="flex-1 min-w-0">
                 <span className="text-[15px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">{entity.name}</span>
-                <span className="text-[13px] text-muted-foreground/60 block truncate">{entity.subtitle}</span>
+                <span className="text-[14px] text-muted-foreground/60 block truncate">{entity.subtitle}</span>
               </div>
 
               <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0">
@@ -308,9 +308,9 @@ function GatewayCard({ href, icon: Icon, title, description, color, testId }: { 
       <div className={`group bg-gradient-to-br ${color} border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer h-full`}>
         <Icon className="w-5 h-5 text-primary mb-3" />
         <h3 className="text-[15px] font-bold text-foreground group-hover:text-primary transition-colors mb-1">{title}</h3>
-        <p className="text-[13px] text-muted-foreground leading-relaxed">{description}</p>
+        <p className="text-[14px] text-muted-foreground leading-relaxed">{description}</p>
         <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-[13px] font-semibold text-primary">Explore</span>
+          <span className="text-[14px] font-semibold text-primary">Explore</span>
           <ChevronRight className="w-3.5 h-3.5 text-primary" />
         </div>
       </div>
@@ -657,7 +657,7 @@ export default function TrendsPage() {
                       <button
                         key={key}
                         onClick={() => setEntityFilter(key)}
-                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[13px] font-semibold transition-all whitespace-nowrap ${
+                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[14px] font-semibold transition-all whitespace-nowrap ${
                           entityFilter === key
                             ? "bg-primary text-primary-foreground"
                             : "text-muted-foreground hover:text-foreground"
@@ -666,7 +666,7 @@ export default function TrendsPage() {
                       >
                         <Icon className="w-3.5 h-3.5 hidden sm:block" />
                         {label}
-                        <span className={`text-[11px] font-mono ml-0.5 ${entityFilter === key ? "text-primary-foreground/70" : "text-muted-foreground/40"}`}>
+                        <span className={`text-[12px] font-mono ml-0.5 ${entityFilter === key ? "text-primary-foreground/70" : "text-muted-foreground/40"}`}>
                           {entityCounts[key]}
                         </span>
                       </button>
@@ -675,7 +675,7 @@ export default function TrendsPage() {
 
                   <button
                     onClick={() => setSortMode(s => s === "volume" ? "momentum" : "volume")}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[13px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[12px] sm:text-[14px] font-medium text-muted-foreground hover:text-foreground bg-card border border-border rounded-xl transition-colors whitespace-nowrap"
                     data-testid="sort-toggle"
                   >
                     <ArrowDownUp className="w-3.5 h-3.5" />
@@ -707,7 +707,7 @@ export default function TrendsPage() {
                         <EntityAvatar entity={entity} />
                         <div className="min-w-0">
                           <span className="text-[15px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">{entity.name}</span>
-                          <span className="text-[13px] text-muted-foreground/60 block truncate sm:hidden">{entity.subtitle}</span>
+                          <span className="text-[14px] text-muted-foreground/60 block truncate sm:hidden">{entity.subtitle}</span>
                         </div>
                       </div>
 

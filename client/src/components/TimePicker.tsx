@@ -70,7 +70,7 @@ function ColumnDropdown({ options, selected, onSelect, testIdPrefix, label }: Co
         <span>{selectedLabel}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
-      <span className="text-[15px] font-medium text-[#3F3F46] dark:text-[#A1A1AA]">{label}</span>
+      <span className="text-[15px] font-medium text-[#52525B] dark:text-[#A1A1AA]">{label}</span>
 
       {open && (
         <div

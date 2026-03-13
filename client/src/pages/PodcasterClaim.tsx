@@ -64,7 +64,7 @@ export default function PodcasterClaim() {
       <main className="min-h-screen bg-background">
         <div className="max-w-xl mx-auto px-6 py-20">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.07] text-primary text-[13px] font-display font-bold uppercase tracking-widest mb-6" data-testid="badge-claim">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.07] text-primary text-[14px] font-display font-bold uppercase tracking-widest mb-6" data-testid="badge-claim">
               <Mic className="w-3.5 h-3.5" />
               Claim Your Podcast
             </div>
@@ -119,7 +119,7 @@ export default function PodcasterClaim() {
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-[14px] font-display font-semibold truncate">{podcast.name}</p>
-                          <p className="text-[13px] text-muted-foreground truncate">podcap.io/podcasts/{podcast.slug}</p>
+                          <p className="text-[14px] text-muted-foreground truncate">podcap.io/podcasts/{podcast.slug}</p>
                         </div>
                         <ArrowRight className="w-4 h-4 text-muted-foreground/30 shrink-0" />
                       </button>
@@ -128,7 +128,7 @@ export default function PodcasterClaim() {
                 </div>
               )}
 
-              <p className="text-[13px] text-muted-foreground/60 mt-4 text-center">
+              <p className="text-[14px] text-muted-foreground/60 mt-4 text-center">
                 Don't see your podcast? <Link href="/contact" className="text-primary font-semibold hover:underline">Get it added</Link>
               </p>
             </div>
@@ -146,7 +146,7 @@ export default function PodcasterClaim() {
                 )}
                 <div>
                   <p className="text-[15px] font-display font-bold">{selectedPodcast.name}</p>
-                  <button onClick={() => { setStep("search"); setSelectedPodcast(null); }} className="text-[13px] text-primary font-semibold hover:underline" data-testid="button-change-podcast">
+                  <button onClick={() => { setStep("search"); setSelectedPodcast(null); }} className="text-[14px] text-primary font-semibold hover:underline" data-testid="button-change-podcast">
                     Change
                   </button>
                 </div>

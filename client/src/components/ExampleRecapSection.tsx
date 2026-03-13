@@ -67,7 +67,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             </div>
             <div className="flex items-center gap-2 ml-auto">
               <Inbox className="w-4 h-4 text-[#52525B]" />
-              <span className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Inbox</span>
+              <span className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] font-medium">Inbox</span>
             </div>
           </div>
           <div className="space-y-1.5 text-base">
@@ -81,7 +81,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             </div>
             <div className="flex items-center gap-3">
               <span className="text-[#52525B] w-12 shrink-0">To:</span>
-              <span className="text-[#3F3F46]">you@email.com</span>
+              <span className="text-[#52525B]">you@email.com</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-[#52525B] w-12 shrink-0">Subject:</span>
@@ -108,7 +108,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
               >
                 {recap.episodeTitle}
               </h3>
-              <div className="flex flex-wrap items-center gap-4 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+              <div className="flex flex-wrap items-center gap-4 text-base text-[#52525B] dark:text-[#A1A1AA]">
                 {recap.episodeDate && (
                   <span className="flex items-center gap-2" data-testid="text-episode-date">
                     <Calendar className="w-4 h-4" />
@@ -167,7 +167,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
               data-testid="section-quote"
             >
               <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">"{recap.quote}"</p>
-              <div className="flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+              <div className="flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]">
                 <Quote className="w-4 h-4" />
                 {recap.quoteAttribution}
               </div>
@@ -178,7 +178,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             <div className="flex items-center gap-2">
               <PodCapWordmark />
             </div>
-            <span className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA]">podcap.io</span>
+            <span className="text-[16px] text-[#52525B] dark:text-[#A1A1AA]">podcap.io</span>
           </div>
         </div>
       </div>

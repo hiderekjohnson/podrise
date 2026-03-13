@@ -132,7 +132,7 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
                 {podcast.name}
               </h3>
               <p className="text-[14px] text-muted-foreground mb-2">{podcast.hosts}</p>
-              <p className="text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed capitalize">
+              <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed capitalize">
                 {podcast.description}
               </p>
               <div className="flex items-center gap-3 mt-3 text-[12px] text-muted-foreground/60">
@@ -150,7 +150,7 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
             <div className="px-5 pb-4 pt-0">
               <div className="flex flex-wrap gap-1.5">
                 {podcast.knownFor.slice(0, 2).map((item, i) => (
-                  <span key={i} className="text-[11px] px-2 py-1 rounded-md bg-primary/[0.06] text-primary/80 font-medium line-clamp-1">
+                  <span key={i} className="text-[12px] px-2 py-1 rounded-md bg-primary/[0.06] text-primary/80 font-medium line-clamp-1">
                     {item.length > 50 ? item.substring(0, 47) + "..." : item}
                   </span>
                 ))}
@@ -224,11 +224,11 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
             <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate" data-testid={`text-podcast-name-${podcast.slug}`}>
               {podcast.name}
             </h3>
-            <p className="text-[13px] text-muted-foreground/70 truncate">{podcast.hosts}</p>
+            <p className="text-[14px] text-muted-foreground/70 truncate">{podcast.hosts}</p>
           </div>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors flex-shrink-0" />
         </div>
-        <p className="text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed capitalize">
+        <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-2 mb-2.5 leading-relaxed capitalize">
           {podcast.description}
         </p>
         <div className="flex items-center gap-3 text-[12px] text-muted-foreground/60">
@@ -259,7 +259,7 @@ function LatestEpisodePill({ episode }: { episode: DiscoveryData["recentEpisodes
         />
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-semibold text-primary/70 truncate">{episode.podcastName}</p>
-          <p className="text-[13px] font-medium text-foreground truncate group-hover:text-primary transition-colors">{episode.episodeTitle}</p>
+          <p className="text-[14px] font-medium text-foreground truncate group-hover:text-primary transition-colors">{episode.episodeTitle}</p>
         </div>
       </div>
     </Link>
@@ -398,12 +398,12 @@ export default function PodcastsExplorer() {
           >
             <div className="flex items-center justify-center gap-2 mb-3">
               <Headphones className="w-5 h-5 text-primary" />
-              <span className="text-[13px] font-semibold uppercase tracking-[0.15em] text-primary">Podcast Discovery</span>
+              <span className="text-[14px] font-semibold uppercase tracking-[0.15em] text-primary">Podcast Discovery</span>
             </div>
             <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="text-page-title">
               What should you listen to?
             </h1>
-            <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-xl mx-auto leading-relaxed" data-testid="text-page-description">
+            <p className="text-lg text-[#52525B] dark:text-[#A1A1AA] max-w-xl mx-auto leading-relaxed" data-testid="text-page-description">
               Podcasts with AI-generated recaps. Find yours.
             </p>
           </motion.div>
@@ -460,7 +460,7 @@ export default function PodcastsExplorer() {
                     <button
                       key={i}
                       onClick={() => handlePromptClick(i)}
-                      className={`group flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-medium transition-all border ${
+                      className={`group flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[14px] font-medium transition-all border ${
                         activePromptIdx === i
                           ? "bg-primary text-primary-foreground border-primary shadow-sm"
                           : "bg-card border-black/[0.06] dark:border-white/[0.08] text-muted-foreground hover:text-foreground hover:border-primary/20 hover:bg-primary/[0.03]"
@@ -486,7 +486,7 @@ export default function PodcastsExplorer() {
               <button
                 key={key}
                 onClick={() => handleCategoryClick(key)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] font-semibold whitespace-nowrap transition-all ${
                   activeCategory === key
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
@@ -500,7 +500,7 @@ export default function PodcastsExplorer() {
             {(isFiltering || isSearching) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg text-[13px] font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors whitespace-nowrap ml-1"
+                className="flex items-center gap-1 px-3 py-2 rounded-lg text-[14px] font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors whitespace-nowrap ml-1"
                 data-testid="button-clear-filters"
               >
                 <X className="w-3.5 h-3.5" />
@@ -546,7 +546,7 @@ export default function PodcastsExplorer() {
               <h2 className="text-[15px] font-semibold text-foreground">
                 {activePromptIdx !== null ? DISCOVERY_PROMPTS[activePromptIdx].label : DISCOVER_CATEGORIES.find(c => c.key === activeCategory)?.label}
               </h2>
-              <span className="text-[13px] text-muted-foreground/60">{filteredPodcasts.length} podcast{filteredPodcasts.length !== 1 ? "s" : ""}</span>
+              <span className="text-[14px] text-muted-foreground/60">{filteredPodcasts.length} podcast{filteredPodcasts.length !== 1 ? "s" : ""}</span>
             </div>
           </div>
         )}
@@ -650,7 +650,7 @@ export default function PodcastsExplorer() {
                         </div>
                         <button
                           onClick={() => handleCategoryClick(cat.key)}
-                          className="text-[13px] font-medium text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+                          className="text-[14px] font-medium text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
                           data-testid={`link-see-all-${cat.key}`}
                         >
                           See all <ArrowRight className="w-3.5 h-3.5" />
@@ -690,11 +690,11 @@ export default function PodcastsExplorer() {
                       <Sparkles className="w-4 h-4 text-primary" />
                       <h3 className="text-[14px] font-bold text-foreground">Can't decide?</h3>
                     </div>
-                    <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+                    <p className="text-[14px] text-muted-foreground leading-relaxed mb-4">
                       Subscribe and get AI-generated recaps of every episode, so you never miss the key takeaways.
                     </p>
                     <Link href="/register" data-testid="link-get-started-sidebar">
-                      <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground text-[13px] font-semibold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer">
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground text-[14px] font-semibold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer">
                         Get started free
                         <ArrowRight className="w-3.5 h-3.5" />
                       </span>

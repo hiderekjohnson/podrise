@@ -14,10 +14,10 @@ export default function Terms() {
             Terms & Conditions
           </div>
           <h1 className="sr-only">Terms & Conditions</h1>
-          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground">Last updated: January 1, 2026</p>
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground">Last updated: January 1, 2026</p>
         </div>
 
-        <div className="prose prose-sm max-w-none space-y-6 text-[#3F3F46]">
+        <div className="prose prose-sm max-w-none space-y-6 text-[#52525B]">
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">1. Acceptance of Terms</h2>
             <p>By accessing or using PodCap ("the Service"), operated at podcap.io, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you may not access or use the Service. These Terms constitute a legally binding agreement between you and PodCap ("we," "our," or "us").</p>

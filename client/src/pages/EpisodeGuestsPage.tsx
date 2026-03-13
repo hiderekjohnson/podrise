@@ -150,7 +150,7 @@ export default function EpisodeGuestsPage() {
         {guestsLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4" data-testid="guests-loading">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">Identifying guests from episode...</p>
+            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">Identifying guests from episode...</p>
           </div>
         ) : guestsError ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-center" data-testid="guests-error">
@@ -159,7 +159,7 @@ export default function EpisodeGuestsPage() {
             </div>
             <div>
               <p className="text-lg font-display font-bold text-foreground mb-1">Unable to load guests</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-sm">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] max-w-sm">
                 We couldn't identify the guests for this episode right now. Please try again later.
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function EpisodeGuestsPage() {
             </div>
             <div>
               <p className="text-lg font-display font-bold text-foreground mb-1">No guests on this episode</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-sm">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] max-w-sm">
                 This episode features the regular hosts only. Check other episodes for guest appearances.
               </p>
             </div>
@@ -182,7 +182,7 @@ export default function EpisodeGuestsPage() {
               <h2 className="text-xl font-display font-bold tracking-tight mb-2" data-testid="text-guests-heading">
                 {guests.length === 1 ? "Guest on This Episode" : `${guests.length} Guests on This Episode`}
               </h2>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
                 Learn more about {guests.length === 1 ? "the guest" : "the guests"} who appeared on "{episode.episodeTitle}"
               </p>
             </div>

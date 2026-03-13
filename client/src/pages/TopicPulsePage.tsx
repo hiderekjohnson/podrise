@@ -191,7 +191,7 @@ function RelatedArticles({ currentTopicSlug }: { currentTopicSlug: string }) {
               <div className="flex items-center gap-2">
                 <span className="text-[12px] font-semibold uppercase tracking-wider text-primary/70">{topicName}</span>
                 <span className="text-muted-foreground/30">·</span>
-                <time dateTime={p.publishDate} className="text-[13px] text-muted-foreground flex items-center gap-1">
+                <time dateTime={p.publishDate} className="text-[14px] text-muted-foreground flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   {formatDateShort(p.publishDate)}
                 </time>
@@ -245,7 +245,7 @@ function AsHeardOn({ sourceEpisodes }: { sourceEpisodes: TopicPulse["sourceEpiso
 
   return (
     <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed" data-testid="text-as-heard-on">
-      <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">As heard on: </span>
+      <span className="font-medium text-[#52525B] dark:text-[#A1A1AA]">As heard on: </span>
       {visiblePodcasts.map((ep, i) => (
         <span key={ep.podcastSlug}>
           <Link
@@ -384,7 +384,7 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
           <div className="text-center py-16" data-testid="pulse-error">
             <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-lg font-display font-bold text-foreground mb-1">Briefing not found</p>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">No Pulse briefing available for this date.</p>
+            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">No Pulse briefing available for this date.</p>
             <Link href={`${basePath}/${topicSlug}/pulse`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
               Browse all briefings
             </Link>
@@ -403,13 +403,13 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
                 <Activity className="w-3.5 h-3.5" />
                 The Pulse
                 <span className="text-muted-foreground/40 mx-1">·</span>
-                <span className="font-medium normal-case tracking-normal text-[#3F3F46] dark:text-[#A1A1AA]">
+                <span className="font-medium normal-case tracking-normal text-[#52525B] dark:text-[#A1A1AA]">
                   {topicName}
                 </span>
                 <span className="text-muted-foreground/40 mx-1">·</span>
                 <time
                   dateTime={formatDateISO(pulse.publishDate)}
-                  className="flex items-center gap-1.5 text-[#3F3F46] dark:text-[#A1A1AA] font-medium normal-case tracking-normal"
+                  className="flex items-center gap-1.5 text-[#52525B] dark:text-[#A1A1AA] font-medium normal-case tracking-normal"
                 >
                   <Calendar className="w-3 h-3" />
                   {formatDateLong(pulse.publishDate)}
@@ -606,7 +606,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
           <div className="text-center py-16">
             <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-lg font-display font-bold text-foreground mb-1">No briefings yet</p>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-4">The {topicName} Pulse will be published soon.</p>
+            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">The {topicName} Pulse will be published soon.</p>
             <Link href={`${basePath}/${topicSlug}`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
               Explore {topicName} topic
             </Link>

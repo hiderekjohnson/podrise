@@ -201,12 +201,12 @@ export function EpisodePageLayout({
               </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
-                <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-date">
+                <span className="inline-flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-episode-date">
                   <Calendar className="w-3.5 h-3.5 text-[#52525B]" />
                   {formattedDate}
                 </span>
                 {episode.duration && (
-                  <span className="inline-flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episode-duration">
+                  <span className="inline-flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-episode-duration">
                     <Clock className="w-3.5 h-3.5 text-[#52525B]" />
                     {episode.duration}
                   </span>
@@ -214,7 +214,7 @@ export function EpisodePageLayout({
               </div>
 
               {guests.length > 0 && (
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1" data-testid="header-guests-block">
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1" data-testid="header-guests-block">
                   <span className="font-semibold text-foreground">{guests.length === 1 ? "Guest" : "Guests"}:</span>{" "}
                   {guests.map((g, i) => (
                     <span key={i} data-testid={`header-guest-${i}`}>
@@ -230,7 +230,7 @@ export function EpisodePageLayout({
                   href={appleLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                   data-testid="link-apple-podcasts"
                   title="Listen on Apple Podcasts"
                 >
@@ -242,7 +242,7 @@ export function EpisodePageLayout({
                   href={spotifyLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                   data-testid="link-spotify"
                   title="Listen on Spotify"
                 >
@@ -255,7 +255,7 @@ export function EpisodePageLayout({
                     href={effectiveYoutubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                     data-testid="link-youtube"
                     title="Watch on YouTube"
                   >

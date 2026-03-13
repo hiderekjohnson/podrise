@@ -418,7 +418,7 @@ export default function EpisodeArchivePage() {
                       if (!insightsSlug) return null;
                       return (
                         <Link key={topic.slug} href={`${getCategoryPath(getTopicBySlug(insightsSlug)?.category || "interest")}/${insightsSlug}`}>
-                          <span className="text-[16px] px-2 py-0.5 rounded-md bg-muted/60 text-[#3F3F46] font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
+                          <span className="text-[16px] px-2 py-0.5 rounded-md bg-muted/60 text-[#52525B] font-medium hover:bg-muted hover:text-foreground transition-colors cursor-pointer" data-testid={`link-topic-${topic.slug}`}>
                             {topic.name}
                           </span>
                         </Link>
@@ -460,7 +460,7 @@ export default function EpisodeArchivePage() {
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       selectedYear
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#52525B] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-year"
                   >
@@ -505,7 +505,7 @@ export default function EpisodeArchivePage() {
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       selectedTopic
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#52525B] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-topic"
                   >
@@ -564,7 +564,7 @@ export default function EpisodeArchivePage() {
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       selectedGuest
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#52525B] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-guest"
                   >
@@ -622,7 +622,7 @@ export default function EpisodeArchivePage() {
                   className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                     guestPresence !== "all"
                       ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
+                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#52525B] hover:border-primary/[0.15]"
                   }`}
                   data-testid="button-filter-guest-presence"
                 >
@@ -646,7 +646,7 @@ export default function EpisodeArchivePage() {
                     className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                       durationRange !== "all"
                         ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
+                        : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#52525B] hover:border-primary/[0.15]"
                     }`}
                     data-testid="button-filter-duration"
                   >
@@ -688,7 +688,7 @@ export default function EpisodeArchivePage() {
                   className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-[16px] font-medium border transition-all ${
                     sort !== "newest"
                       ? "bg-primary/[0.08] border-primary/[0.2] text-primary"
-                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#3F3F46] hover:border-primary/[0.15]"
+                      : "bg-white dark:bg-zinc-900 border-black/[0.08] dark:border-white/[0.08] text-[#52525B] hover:border-primary/[0.15]"
                   }`}
                   data-testid="button-sort"
                 >

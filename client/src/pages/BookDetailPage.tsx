@@ -293,7 +293,7 @@ function RecommendationCard({ ep, index, peopleMap }: { ep: BookEpisode; index: 
         </div>
         <Link
           href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
-          className="text-[13px] text-muted-foreground hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0 flex items-center gap-1 group"
+          className="text-[14px] text-muted-foreground hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0 flex items-center gap-1 group"
           aria-label={`Listen on ${ep.podcastName}`}
           data-testid={`recommendation-episode-${index}`}
         >
@@ -356,7 +356,7 @@ function ConversationsList({ episodes }: { episodes: BookEpisode[] }) {
                   onClick={() => togglePodcast(group.podcastSlug)}
                   aria-expanded={isExpanded}
                   aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.episodes.length} episodes from ${group.podcastName}`}
-                  className="flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground transition-colors"
                   data-testid={`toggle-group-${gi}`}
                 >
                   {group.episodes.length} episodes
@@ -380,7 +380,7 @@ function ConversationsList({ episodes }: { episodes: BookEpisode[] }) {
                       </h3>
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
                         {ep.recommendedBy && (
-                          <span className={`inline-flex items-center gap-1 text-[13px] font-medium px-2 py-0.5 rounded-full ${
+                          <span className={`inline-flex items-center gap-1 text-[14px] font-medium px-2 py-0.5 rounded-full ${
                             ep.recommenderRole === "author"
                               ? "bg-violet-500/[0.08] text-violet-700 dark:text-violet-400"
                               : ep.recommenderRole === "guest"
@@ -393,7 +393,7 @@ function ConversationsList({ episodes }: { episodes: BookEpisode[] }) {
                           </span>
                         )}
                         {ep.publishedAt && (
-                          <span className="text-[13px] text-muted-foreground flex items-center gap-1">
+                          <span className="text-[14px] text-muted-foreground flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {formatDate(ep.publishedAt)}
                           </span>
@@ -586,14 +586,14 @@ export default function BookDetailPage() {
                   <Mic className="w-4 h-4 text-amber-600" />
                   <div className="flex flex-col">
                     <span className="text-[18px] font-bold text-amber-700 dark:text-amber-400 leading-tight" data-testid="stat-mentions">{book.mentionCount}</span>
-                    <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Mentions</span>
+                    <span className="text-[12px] text-muted-foreground font-medium uppercase tracking-wider">Mentions</span>
                   </div>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-500/[0.06] border border-amber-500/[0.12] rounded-xl">
                   <MessageCircle className="w-4 h-4 text-amber-600" />
                   <div className="flex flex-col">
                     <span className="text-[18px] font-bold text-amber-700 dark:text-amber-400 leading-tight" data-testid="stat-podcasts">{book.podcastCount}</span>
-                    <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Podcasts</span>
+                    <span className="text-[12px] text-muted-foreground font-medium uppercase tracking-wider">Podcasts</span>
                   </div>
                 </div>
                 {book.podcastScore && (
@@ -601,7 +601,7 @@ export default function BookDetailPage() {
                     <TrendingUp className="w-4 h-4 text-amber-600" />
                     <div className="flex flex-col">
                       <span className="text-[18px] font-bold text-amber-700 dark:text-amber-400 leading-tight">{book.podcastScore.toFixed(1)}</span>
-                      <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Score</span>
+                      <span className="text-[12px] text-muted-foreground font-medium uppercase tracking-wider">Score</span>
                     </div>
                   </div>
                 )}
@@ -609,7 +609,7 @@ export default function BookDetailPage() {
                   <div className="inline-flex items-center gap-1.5 text-[14px] text-muted-foreground">
                     <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                     <span className="font-semibold text-foreground" data-testid="stat-rating">{book.rating.toFixed(1)}</span>
-                    {book.ratingCount && <span className="text-[13px]">({book.ratingCount.toLocaleString()})</span>}
+                    {book.ratingCount && <span className="text-[14px]">({book.ratingCount.toLocaleString()})</span>}
                   </div>
                 )}
               </div>
@@ -620,7 +620,7 @@ export default function BookDetailPage() {
                     <Link
                       key={t}
                       href="/bookstore"
-                      className="text-[13px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] px-2.5 py-1 rounded-full transition-colors"
+                      className="text-[14px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] px-2.5 py-1 rounded-full transition-colors"
                       data-testid={`topic-${t.toLowerCase().replace(/\s+/g, '-')}`}
                     >
                       {t}
@@ -669,7 +669,7 @@ export default function BookDetailPage() {
               className="mt-8"
               data-testid="section-featured-podcasts"
             >
-              <p className="text-[13px] font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+              <p className="text-[14px] font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
                 Heard on
               </p>
               <div className="flex flex-wrap gap-2.5">
@@ -691,7 +691,7 @@ export default function BookDetailPage() {
                   </Link>
                 ))}
                 {book.podcastCount > featuredPodcasts.length && (
-                  <span className="flex items-center px-3 py-2 text-[13px] text-muted-foreground">
+                  <span className="flex items-center px-3 py-2 text-[14px] text-muted-foreground">
                     +{book.podcastCount - featuredPodcasts.length} more
                   </span>
                 )}
@@ -735,7 +735,7 @@ export default function BookDetailPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-foreground" data-testid="heading-what-they-say">What People Say About It</h2>
-                  <p className="text-[13px] text-muted-foreground">Real recommendations from podcast conversations</p>
+                  <p className="text-[14px] text-muted-foreground">Real recommendations from podcast conversations</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -840,10 +840,10 @@ export default function BookDetailPage() {
                 </p>
               )}
               {metaItems.length > 0 && (
-                <div className={`flex flex-wrap gap-x-5 gap-y-1.5 ${book.description ? "mt-3" : "mt-0"} pl-[42px] text-[13px] text-muted-foreground`}>
+                <div className={`flex flex-wrap gap-x-5 gap-y-1.5 ${book.description ? "mt-3" : "mt-0"} pl-[42px] text-[14px] text-muted-foreground`}>
                   {metaItems.map(item => (
                     <span key={item.label}>
-                      <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">{item.label}:</span> {item.value}
+                      <span className="font-medium text-[#52525B] dark:text-[#A1A1AA]">{item.label}:</span> {item.value}
                     </span>
                   ))}
                 </div>
@@ -865,7 +865,7 @@ export default function BookDetailPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-foreground" data-testid="heading-episodes">The Conversations</h2>
-                  <p className="text-[13px] text-muted-foreground">Every podcast episode where this book was discussed</p>
+                  <p className="text-[14px] text-muted-foreground">Every podcast episode where this book was discussed</p>
                 </div>
               </div>
               <ConversationsList episodes={book.episodes} />

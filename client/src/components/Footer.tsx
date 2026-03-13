@@ -8,8 +8,8 @@ export function Footer() {
   const topInterests = INTERESTS.slice(0, 5);
   const topRoles = ROLES.slice(0, 5);
 
-  const linkClass = "text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors";
-  const headingClass = "text-[13px] font-bold text-foreground/80 mb-4 tracking-[0.1em] uppercase";
+  const linkClass = "text-[14px] text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors";
+  const headingClass = "text-[14px] font-bold text-foreground/80 mb-4 tracking-[0.1em] uppercase";
 
   return (
     <footer className="w-full border-t border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/40 backdrop-blur-sm mt-auto" data-testid="footer">
@@ -41,7 +41,7 @@ export function Footer() {
               <li>
                 <Link href="/bookstore" className={`inline-flex items-center gap-1.5 ${linkClass}`} data-testid="link-bookstore">
                   Bookstore
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
+                  <span className="text-[12px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
                 </Link>
               </li>
             </ul>
@@ -156,7 +156,7 @@ export function Footer() {
               href="https://x.com/podcap_io"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors p-2"
+              className="inline-flex items-center gap-1 text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors p-2"
               data-testid="link-social-x"
               aria-label="Follow PodCap on X"
             >
@@ -166,7 +166,7 @@ export function Footer() {
           </div>
 
           <PodCapWordmark />
-          <p className="text-[13px] text-[#3F3F46] dark:text-[#A1A1AA] mt-3">
+          <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mt-3">
             &copy; {new Date().getFullYear()} PodCap, Inc. All rights reserved.
           </p>
         </div>

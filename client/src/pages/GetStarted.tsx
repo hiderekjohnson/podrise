@@ -133,7 +133,7 @@ export default function GetStarted() {
                 <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">Choose podcasts to follow</h2>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
                 </div>
               </div>
 
@@ -175,7 +175,7 @@ export default function GetStarted() {
                 <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">2</span>
                 <div>
                   <h2 className="text-lg font-display font-bold text-foreground">Where should we send your briefings?</h2>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">All your podcast intelligence in one daily email.</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">All your podcast intelligence in one daily email.</p>
                 </div>
               </div>
               <div className="pl-10 space-y-4">
@@ -210,7 +210,7 @@ export default function GetStarted() {
                   </>
                 )}
               </button>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] italic">No credit card required.</p>
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] italic">No credit card required.</p>
             </div>
           </div>
         </motion.div>
@@ -218,7 +218,7 @@ export default function GetStarted() {
         <section className="w-full max-w-2xl mt-12 text-center">
           <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
             <h3 className="text-lg font-display font-bold text-foreground mb-3">What you will get</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-[#52525B] dark:text-[#A1A1AA]">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-2xl">📬</span>
                 <p className="font-medium text-foreground">Daily briefing</p>

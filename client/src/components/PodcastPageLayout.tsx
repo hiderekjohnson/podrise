@@ -173,36 +173,36 @@ export function PodcastPageLayout({
                 {name}
               </h1>
 
-              <p className="text-base sm:text-lg text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
+              <p className="text-base sm:text-lg text-[#52525B] dark:text-[#A1A1AA] leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
                 {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
               </p>
 
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 mt-1">
                 {hosts && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-hosts">
-                    <Users className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
-                    <span className="font-medium text-[#3F3F46]">{hosts}</span>
+                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-hosts">
+                    <Users className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA]" />
+                    <span className="font-medium text-[#52525B]">{hosts}</span>
                   </span>
                 )}
                 {totalEpisodes && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-episodes">
-                    <Mic className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
+                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-episodes">
+                    <Mic className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA]" />
                     {totalEpisodes}+ episodes
                   </span>
                 )}
                 {yearStarted && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-since">
-                    <Calendar className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA]" />
+                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-since">
+                    <Calendar className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA]" />
                     Since {yearStarted}
                   </span>
                 )}
                 {appleRating && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#3F3F46] dark:text-[#A1A1AA]" data-testid="text-apple-rating">
+                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-apple-rating">
                     <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                    <span className="font-medium text-[#3F3F46]">{appleRating}</span>
+                    <span className="font-medium text-[#52525B]">{appleRating}</span>
                     {appleRatingCount && (
-                      <span className="text-[#3F3F46]">({appleRatingCount >= 1000 ? `${(appleRatingCount / 1000).toFixed(appleRatingCount >= 10000 ? 0 : 1)}K` : appleRatingCount.toLocaleString()} ratings)</span>
+                      <span className="text-[#52525B]">({appleRatingCount >= 1000 ? `${(appleRatingCount / 1000).toFixed(appleRatingCount >= 10000 ? 0 : 1)}K` : appleRatingCount.toLocaleString()} ratings)</span>
                     )}
                   </span>
                 )}
@@ -213,7 +213,7 @@ export function PodcastPageLayout({
                   href={appleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                   data-testid="hero-link-apple"
                   title="Listen on Apple Podcasts"
                 >
@@ -225,7 +225,7 @@ export function PodcastPageLayout({
                   href={effectiveSpotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                   data-testid="hero-link-spotify"
                   title="Listen on Spotify"
                 >
@@ -238,7 +238,7 @@ export function PodcastPageLayout({
                     href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#3F3F46] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                     data-testid="hero-link-youtube"
                     title="Watch on YouTube"
                   >
@@ -294,7 +294,7 @@ export function PodcastPageLayout({
                 <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2">
                   Get {name} recaps in your inbox
                 </h2>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
                   We'll send a recap whenever a new episode drops.
                 </p>
               </div>
@@ -361,7 +361,7 @@ export function PodcastPageLayout({
               </form>
               <button
                 onClick={() => setStickyDismissed(true)}
-                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 data-testid="button-dismiss-sticky"
                 aria-label="Dismiss"
               >

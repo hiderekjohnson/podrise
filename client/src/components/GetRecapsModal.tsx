@@ -77,7 +77,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
           >
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-2 rounded-full text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="absolute top-4 right-4 p-2 rounded-full text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               data-testid="button-close-modal"
               aria-label="Close"
             >
@@ -98,7 +98,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
                 Get recaps of every new {podcastName} episode
               </h2>
 
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-6" data-testid="text-modal-subtitle">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-6" data-testid="text-modal-subtitle">
                 Enter your email and we'll send a recap whenever a new episode drops.
               </p>
 
@@ -133,7 +133,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
                 </button>
               </form>
 
-              <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-4 leading-relaxed" data-testid="text-modal-disclaimer">
+              <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-4 leading-relaxed" data-testid="text-modal-disclaimer">
                 No credit card required.
               </p>
             </div>

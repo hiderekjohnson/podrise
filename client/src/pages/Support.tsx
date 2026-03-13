@@ -19,7 +19,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-5 pb-4 text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground leading-relaxed border-t border-black/[0.04] pt-3">
+        <div className="px-5 pb-4 text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground leading-relaxed border-t border-black/[0.04] pt-3">
           {answer}
         </div>
       )}
@@ -141,7 +141,7 @@ export default function Support() {
             <Mail className="w-5 h-5 text-primary" />
             <span>Contact Us</span>
           </h2>
-          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground mb-5">
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground mb-5">
             Can't find the answer you're looking for above? Send us a message below and we'll get back to you as soon as we can.
           </p>
 
@@ -150,7 +150,7 @@ export default function Support() {
               <div className="text-center py-8" data-testid="support-success">
                 <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
                 <p className="text-lg font-semibold">Message sent!</p>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground mt-1">We'll get back to you as soon as we can.</p>
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground mt-1">We'll get back to you as soon as we can.</p>
                 <button
                   onClick={() => submitMutation.reset()}
                   className="mt-4 text-base text-primary font-medium hover:underline"

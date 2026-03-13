@@ -414,7 +414,7 @@ export default function PodcastLandingGeneric() {
       <section id="section-episodes" className="pb-16" data-testid="section-episode-list">
           {episodeRecaps.length > 0 ? (
             <>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-5">
                 Quick summaries of the latest episodes - key takeaways in minutes, not hours.
               </p>
               <div className="flex flex-col gap-5">
@@ -445,7 +445,7 @@ export default function PodcastLandingGeneric() {
                 <Mic className="w-6 h-6 text-primary/30" />
               </div>
               <p className="text-muted-foreground font-medium">Episode recaps are being generated.</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/60 mt-1">Check back soon for the latest summaries.</p>
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]/60 mt-1">Check back soon for the latest summaries.</p>
             </div>
           )}
         </section>

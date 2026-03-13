@@ -335,7 +335,7 @@ function buildKeyTakeaways(insights: string[], accentColor: string): string {
     const marginBottom = idx < insights.length - 1 ? "margin-bottom:12px;" : "";
     return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="${marginBottom}"><tr>
         <td width="20" valign="top" style="padding-top:8px;"><div style="width:6px;height:6px;background:${accentColor};border-radius:50%;"></div></td>
-        <td class="takeaway-text" style="font-size:17px;color:#3F3F46;line-height:1.7;">${renderInlineMarkdown(escapeHtml(insight))}</td>
+        <td class="takeaway-text" style="font-size:17px;color:#52525B;line-height:1.7;">${renderInlineMarkdown(escapeHtml(insight))}</td>
       </tr></table>`;
   }).join("");
 
@@ -587,7 +587,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   <p style="font-size:13px;font-weight:700;color:#6366F1;letter-spacing:0.12em;text-transform:uppercase;line-height:1.4;margin:0;padding:0;">In your podcasts yesterday</p>
   ${leadHeadline ? `<p class="lead-headline" style="font-size:30px;font-weight:700;color:#09090B;letter-spacing:-0.03em;line-height:1.25;margin:0;padding:20px 0 0;font-family:Georgia,'Times New Roman',Times,serif;">${escapeHtml(leadHeadline)}</p>` : ""}
   <div style="width:32px;height:3px;background:#6366F1;margin:20px 0 0;border-radius:2px;"></div>
-  ${supportingDetail ? `<p class="supporting-detail" style="font-size:17px;font-weight:400;color:#3F3F46;line-height:1.6;margin:0;padding:20px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
+  ${supportingDetail ? `<p class="supporting-detail" style="font-size:17px;font-weight:400;color:#52525B;line-height:1.6;margin:0;padding:20px 0 0;">${escapeHtml(supportingDetail)}</p>` : ""}
   ${coverlines ? `<p class="coverlines-text" style="font-size:15px;font-weight:400;font-style:italic;color:#A1A1AA;line-height:1.6;margin:0;padding:24px 0 0;">${escapeHtml(coverlines)}</p>` : ""}
 </td></tr>
 

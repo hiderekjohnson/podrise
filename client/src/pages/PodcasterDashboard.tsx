@@ -61,7 +61,7 @@ function PodcasterLogin({ onSuccess }: { onSuccess: () => void }) {
   return (
     <div className="max-w-md mx-auto px-6 py-20">
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.07] text-primary text-[13px] font-display font-bold uppercase tracking-widest mb-6">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.07] text-primary text-[14px] font-display font-bold uppercase tracking-widest mb-6">
           <Mic className="w-3.5 h-3.5" />
           Podcaster Dashboard
         </div>
@@ -115,7 +115,7 @@ function PodcasterLogin({ onSuccess }: { onSuccess: () => void }) {
         </form>
       )}
 
-      <p className="text-center text-[13px] text-muted-foreground/60 mt-6">
+      <p className="text-center text-[14px] text-muted-foreground/60 mt-6">
         Don't have an account? <Link href="/podcaster/claim" className="text-primary font-semibold hover:underline" data-testid="link-claim">Claim your podcast first</Link>
       </p>
     </div>
@@ -231,14 +231,14 @@ export default function PodcasterDashboard() {
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
           <Link href="/" data-testid="link-home"><PodCapWordmark /></Link>
           {data?.claim && (
-            <span className="text-[13px] text-muted-foreground">{data.claim.email}</span>
+            <span className="text-[14px] text-muted-foreground">{data.claim.email}</span>
           )}
         </div>
       </nav>
 
       <main className="min-h-screen bg-background">
         <div className="max-w-3xl mx-auto px-6 py-10">
-          <Link href="/we-heart-podcasters" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-6 transition-colors" data-testid="link-back">
+          <Link href="/we-heart-podcasters" className="inline-flex items-center gap-1.5 text-[14px] text-muted-foreground hover:text-foreground mb-6 transition-colors" data-testid="link-back">
             <ArrowLeft className="w-3.5 h-3.5" />
             For Podcasters
           </Link>
@@ -272,7 +272,7 @@ export default function PodcasterDashboard() {
                         <Clock className="w-3 h-3" /> Pending Verification
                       </span>
                     )}
-                    <Link href={`/podcasts/${slug}`} className="text-[13px] text-primary font-semibold hover:underline inline-flex items-center gap-0.5" data-testid="link-podcast-page">
+                    <Link href={`/podcasts/${slug}`} className="text-[14px] text-primary font-semibold hover:underline inline-flex items-center gap-0.5" data-testid="link-podcast-page">
                       View Page <ExternalLink className="w-3 h-3" />
                     </Link>
                   </div>
@@ -304,7 +304,7 @@ export default function PodcasterDashboard() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[13px] font-display font-semibold mb-1.5">Message</label>
+                    <label className="block text-[14px] font-display font-semibold mb-1.5">Message</label>
                     <input
                       type="text"
                       value={bylineText}
@@ -318,7 +318,7 @@ export default function PodcasterDashboard() {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[13px] font-display font-semibold mb-1.5">Link Label</label>
+                      <label className="block text-[14px] font-display font-semibold mb-1.5">Link Label</label>
                       <input
                         type="text"
                         value={bylineLabel}
@@ -330,7 +330,7 @@ export default function PodcasterDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[13px] font-display font-semibold mb-1.5">Link URL</label>
+                      <label className="block text-[14px] font-display font-semibold mb-1.5">Link URL</label>
                       <input
                         type="url"
                         value={bylineUrl}
@@ -395,12 +395,12 @@ export default function PodcasterDashboard() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <p className="text-[14px] font-display font-bold truncate">{sponsor.name}</p>
-                            <span className="text-[11px] font-display font-bold text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded-full shrink-0">
+                            <span className="text-[12px] font-display font-bold text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded-full shrink-0">
                               {count} {count === 1 ? "episode" : "episodes"}
                             </span>
                           </div>
                           {sponsor.description && (
-                            <p className="text-[13px] text-muted-foreground line-clamp-2">{sponsor.description}</p>
+                            <p className="text-[14px] text-muted-foreground line-clamp-2">{sponsor.description}</p>
                           )}
                           <div className="flex flex-wrap gap-2 mt-1.5">
                             {sponsor.couponCode && (
@@ -421,7 +421,7 @@ export default function PodcasterDashboard() {
                   </div>
                 )}
 
-                <p className="text-[13px] text-muted-foreground/50 mt-5 leading-relaxed">
+                <p className="text-[14px] text-muted-foreground/50 mt-5 leading-relaxed">
                   Sponsors are automatically extracted from your episode content. Contact us if you'd like to update or add sponsor information.
                 </p>
               </section>

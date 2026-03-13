@@ -70,7 +70,7 @@ export default function Contact() {
             <div className="text-center py-8" data-testid="contact-success">
               <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
               <p className="text-lg font-semibold">Message sent</p>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">We'll get back to you as soon as we can.</p>
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">We'll get back to you as soon as we can.</p>
               <button
                 onClick={() => submitMutation.reset()}
                 className="mt-4 text-base text-primary font-medium hover:underline"

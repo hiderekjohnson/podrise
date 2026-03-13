@@ -289,7 +289,7 @@ export default function FeatureRequests() {
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] text-muted-foreground/50 font-medium mb-1">{entry.date}</p>
                       <h3 className="text-[15px] font-bold text-foreground leading-snug mb-1.5">{entry.title}</h3>
-                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{entry.description}</p>
+                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">{entry.description}</p>
                       {entry.link && (
                         <a
                           href={entry.link.url}
@@ -332,7 +332,7 @@ export default function FeatureRequests() {
                   <CheckCircle2 className="w-6 h-6 text-green-600" />
                 </div>
                 <p className="text-base font-semibold text-foreground">Thanks for the idea!</p>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-xs">We read every suggestion and will reach out if we have questions.</p>
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] max-w-xs">We read every suggestion and will reach out if we have questions.</p>
                 <button
                   onClick={() => { setSent(false); setMessage(""); setEmail(""); }}
                   className="text-base font-medium text-primary hover:text-primary/80 transition-colors mt-1"

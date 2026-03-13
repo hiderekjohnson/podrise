@@ -157,7 +157,7 @@ export default function Login() {
         </form>
 
         <div className="mt-5 text-center">
-          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
             Don't have an account?{" "}
             <button
               data-testid="link-signup"

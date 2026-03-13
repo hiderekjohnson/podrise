@@ -416,7 +416,7 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
             </div>
           )}
           {sponsor.howToRedeem && (
-            <p className="text-[16px] text-[#3F3F46] mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
+            <p className="text-[16px] text-[#52525B] mt-2 leading-relaxed" data-testid={`sponsor-redeem-${index}`}>
               {sponsor.howToRedeem}
             </p>
           )}
@@ -1128,7 +1128,7 @@ export default function EpisodeRecapPage() {
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
-                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
+                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
                             </div>
                           </div>
                         </Link>
@@ -1172,7 +1172,7 @@ export default function EpisodeRecapPage() {
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-base font-bold text-foreground group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors truncate">{company.name}</p>
-                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
+                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
                             </div>
                           </div>
                         </Link>

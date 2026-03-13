@@ -118,7 +118,7 @@ export default function CompanyDetailPage() {
         <div className="w-full max-w-6xl">
           <button
             onClick={() => navigate("/companies")}
-            className="flex items-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-6 mt-4"
+            className="flex items-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors mb-6 mt-4"
             data-testid="button-back-companies"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -188,7 +188,7 @@ export default function CompanyDetailPage() {
                   </h2>
                   <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
                     {companyData?.background && (
-                      <p className="text-base text-[#3F3F46] leading-relaxed mb-5" data-testid="text-company-background">
+                      <p className="text-base text-[#52525B] leading-relaxed mb-5" data-testid="text-company-background">
                         {companyData.background}
                       </p>
                     )}
@@ -198,21 +198,21 @@ export default function CompanyDetailPage() {
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Headquarters</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Headquarters</p>
                             <p className="text-base font-medium text-foreground">{details.headquarters}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <Clock className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founded</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Founded</p>
                             <p className="text-base font-medium text-foreground">{details.founded}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Employees</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Employees</p>
                             <p className="text-base font-medium text-foreground">{details.employees}</p>
                           </div>
                         </div>
@@ -220,7 +220,7 @@ export default function CompanyDetailPage() {
                           <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                             <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                             <div>
-                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Market Cap</p>
+                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Market Cap</p>
                               <p className="text-base font-medium text-foreground">{details.marketCap}</p>
                             </div>
                           </div>
@@ -228,14 +228,14 @@ export default function CompanyDetailPage() {
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">CEO</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">CEO</p>
                             <p className="text-base font-medium text-foreground">{details.ceo}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Industry</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Industry</p>
                             <p className="text-base font-medium text-foreground">{details.industry}</p>
                           </div>
                         </div>
@@ -243,7 +243,7 @@ export default function CompanyDetailPage() {
                           <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2 sm:col-span-3">
                             <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                             <div>
-                              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Website</p>
+                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Website</p>
                               <a href={details.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-base font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-company-website">
                                 {details.website.replace("https://", "")}
                                 <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
@@ -292,7 +292,7 @@ export default function CompanyDetailPage() {
                             <p className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
                               {ep.episode_title}
                             </p>
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
                               <Headphones className="w-3.5 h-3.5" />
                               {ep.podcast_name}
                               {ep.publish_date && (
@@ -307,7 +307,7 @@ export default function CompanyDetailPage() {
                           <ExternalLink className="w-4 h-4 text-[#52525B] group-hover:text-primary transition-colors flex-shrink-0" />
                         </div>
                         {ep.context && (
-                          <p className="mt-3 text-base text-[#3F3F46] dark:text-[#A1A1AA]/80 leading-relaxed pl-16 italic">
+                          <p className="mt-3 text-base text-[#52525B] dark:text-[#A1A1AA]/80 leading-relaxed pl-16 italic">
                             &ldquo;{ep.context}&rdquo;
                           </p>
                         )}

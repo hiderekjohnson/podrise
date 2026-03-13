@@ -41,7 +41,7 @@ export function SiteHeader() {
             <button
               ref={triggerRef}
               onClick={() => setExploreOpen(!exploreOpen)}
-              className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1"
+              className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1"
               data-testid="nav-explore"
             >
               Explore
@@ -65,7 +65,7 @@ export function SiteHeader() {
                         <Link
                           key={t.slug}
                           href={`/industries/${t.slug}`}
-                          className="block text-[15px] text-[#3F3F46] dark:text-[#D4D4D8] hover:text-foreground hover:bg-muted/60 px-2.5 py-2 rounded-lg transition-colors"
+                          className="block text-[15px] text-[#52525B] dark:text-[#D4D4D8] hover:text-foreground hover:bg-muted/60 px-2.5 py-2 rounded-lg transition-colors"
                           data-testid={`dropdown-industry-${t.slug}`}
                           onClick={() => setExploreOpen(false)}
                         >
@@ -75,7 +75,7 @@ export function SiteHeader() {
                     </div>
                     <Link
                       href="/industries"
-                      className="flex items-center gap-1 text-[13px] font-medium text-[#6366F1] hover:text-[#4F46E5] mt-3 px-2.5 transition-colors"
+                      className="flex items-center gap-1 text-[14px] font-medium text-[#6366F1] hover:text-[#4F46E5] mt-3 px-2.5 transition-colors"
                       data-testid="dropdown-view-all-industries"
                       onClick={() => setExploreOpen(false)}
                     >
@@ -93,7 +93,7 @@ export function SiteHeader() {
                         <Link
                           key={t.slug}
                           href={`/interests/${t.slug}`}
-                          className="block text-[15px] text-[#3F3F46] dark:text-[#D4D4D8] hover:text-foreground hover:bg-muted/60 px-2.5 py-2 rounded-lg transition-colors"
+                          className="block text-[15px] text-[#52525B] dark:text-[#D4D4D8] hover:text-foreground hover:bg-muted/60 px-2.5 py-2 rounded-lg transition-colors"
                           data-testid={`dropdown-interest-${t.slug}`}
                           onClick={() => setExploreOpen(false)}
                         >
@@ -103,7 +103,7 @@ export function SiteHeader() {
                     </div>
                     <Link
                       href="/interests"
-                      className="flex items-center gap-1 text-[13px] font-medium text-[#6366F1] hover:text-[#4F46E5] mt-3 px-2.5 transition-colors"
+                      className="flex items-center gap-1 text-[14px] font-medium text-[#6366F1] hover:text-[#4F46E5] mt-3 px-2.5 transition-colors"
                       data-testid="dropdown-view-all-interests"
                       onClick={() => setExploreOpen(false)}
                     >
@@ -121,7 +121,7 @@ export function SiteHeader() {
                         <Link
                           key={t.slug}
                           href={`/roles/${t.slug}`}
-                          className="block text-[15px] text-[#3F3F46] dark:text-[#D4D4D8] hover:text-foreground hover:bg-muted/60 px-2.5 py-2 rounded-lg transition-colors"
+                          className="block text-[15px] text-[#52525B] dark:text-[#D4D4D8] hover:text-foreground hover:bg-muted/60 px-2.5 py-2 rounded-lg transition-colors"
                           data-testid={`dropdown-role-${t.slug}`}
                           onClick={() => setExploreOpen(false)}
                         >
@@ -131,7 +131,7 @@ export function SiteHeader() {
                     </div>
                     <Link
                       href="/roles"
-                      className="flex items-center gap-1 text-[13px] font-medium text-[#6366F1] hover:text-[#4F46E5] mt-3 px-2.5 transition-colors"
+                      className="flex items-center gap-1 text-[14px] font-medium text-[#6366F1] hover:text-[#4F46E5] mt-3 px-2.5 transition-colors"
                       data-testid="dropdown-view-all-roles"
                       onClick={() => setExploreOpen(false)}
                     >
@@ -145,30 +145,30 @@ export function SiteHeader() {
 
           <Link
             href="/trends"
-            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
+            className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
             data-testid="nav-trends"
           >
             Trends
           </Link>
           <Link
             href="/podcasts"
-            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
+            className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
             data-testid="nav-podcasts"
           >
             Podcasts
           </Link>
           <Link
             href="/bookstore"
-            className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1.5"
+            className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1.5"
             data-testid="nav-bookstore"
           >
             Bookstore
-            <span className="text-[11px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
+            <span className="text-[12px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
           </Link>
           {user ? (
             <Link
               href="/dashboard"
-              className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
+              className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
               data-testid="nav-dashboard"
             >
               Dashboard
@@ -177,7 +177,7 @@ export function SiteHeader() {
             <>
               <button
                 onClick={() => navigate("/login")}
-                className="text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center ml-2"
+                className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center ml-2"
                 data-testid="nav-login"
               >
                 Log in
@@ -238,7 +238,7 @@ export function SiteHeader() {
               <Link href="/podcasts" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-podcasts">Podcasts</Link>
               <Link href="/bookstore" className="flex items-center gap-2 text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-bookstore">
                 Bookstore
-                <span className="text-[11px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
+                <span className="text-[12px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
               </Link>
               <Link href="/people" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-people">People</Link>
               <Link href="/companies" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-companies">Companies</Link>
@@ -249,7 +249,7 @@ export function SiteHeader() {
               ) : (
                 <div className="space-y-2 px-3 pb-2">
                   <button onClick={() => { navigate("/register"); setMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#6366F1] text-white rounded-[10px] text-[17px] font-semibold hover:bg-[#4F46E5] transition-all min-h-[48px]" data-testid="mobile-nav-create-account">Get started</button>
-                  <button onClick={() => { navigate("/login"); setMobileMenuOpen(false); }} className="w-full text-center text-[17px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] py-3 min-h-[44px]" data-testid="mobile-nav-login">Log in</button>
+                  <button onClick={() => { navigate("/login"); setMobileMenuOpen(false); }} className="w-full text-center text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] py-3 min-h-[44px]" data-testid="mobile-nav-login">Log in</button>
                 </div>
               )}
             </div>

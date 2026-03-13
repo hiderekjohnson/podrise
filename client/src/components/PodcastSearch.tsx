@@ -107,7 +107,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                   <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
                     Free plan limit reached
                   </h3>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                     You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
                   </p>
                 </div>
@@ -123,12 +123,12 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                   <button
                     data-testid="button-dismiss-upgrade"
                     onClick={() => setShowUpgradeModal(false)}
-                    className="w-full min-h-[44px] flex items-center justify-center rounded-xl text-base font-semibold text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.03] transition-colors"
+                    className="w-full min-h-[44px] flex items-center justify-center rounded-xl text-base font-semibold text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.03] transition-colors"
                   >
                     Not now
                   </button>
                 </div>
-                <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA]">Cancel anytime. No questions asked.</p>
+                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA]">Cancel anytime. No questions asked.</p>
               </motion.div>
             </motion.div>
           )}
@@ -139,7 +139,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
       <div className="relative">
         <div className="relative group flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#3F3F46] dark:text-[#A1A1AA] w-5 h-5 transition-colors group-focus-within:text-primary" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#52525B] dark:text-[#A1A1AA] w-5 h-5 transition-colors group-focus-within:text-primary" />
             <input
               data-testid="input-search-podcasts"
               type="search"
@@ -152,7 +152,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
               <button
                 data-testid="button-clear-search"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/[0.06] text-[#3F3F46] dark:text-[#A1A1AA] hover:bg-black/[0.1] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/[0.06] text-[#52525B] dark:text-[#A1A1AA] hover:bg-black/[0.1] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -170,13 +170,13 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
               className="absolute left-0 right-0 z-50 bg-white rounded-2xl shadow-2xl shadow-black/[0.12] border border-black/[0.06] overflow-hidden max-h-[360px] overflow-y-auto"
             >
               {isSearching ? (
-                <div className="flex items-center justify-center gap-2.5 px-6 py-10 text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+                <div className="flex items-center justify-center gap-2.5 px-6 py-10 text-base text-[#52525B] dark:text-[#A1A1AA]">
                   <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   <span>Searching podcasts...</span>
                 </div>
               ) : filteredResults.length > 0 ? (
                 <div className="py-2">
-                  <p className="px-5 pt-3 pb-2 text-[16px] font-bold text-[#3F3F46] dark:text-[#A1A1AA] uppercase tracking-wider">
+                  <p className="px-5 pt-3 pb-2 text-[16px] font-bold text-[#52525B] dark:text-[#A1A1AA] uppercase tracking-wider">
                     Results
                   </p>
                   {filteredResults.map((podcast) => (
@@ -201,18 +201,18 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                           <p className="font-semibold text-foreground text-base truncate">
                             {podcast.name}
                           </p>
-                          <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] truncate mt-0.5">
+                          <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] truncate mt-0.5">
                             {podcast.artistName}
                           </p>
                         </div>
-                        <Plus className="w-5 h-5 text-[#3F3F46] dark:text-[#A1A1AA] shrink-0 transition-colors group-hover/row:text-primary" />
+                        <Plus className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA] shrink-0 transition-colors group-hover/row:text-primary" />
                       </div>
                     ))}
                 </div>
               ) : (
                 <div className="px-6 py-10 text-center">
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">No podcasts found</p>
-                  <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Try a different search term</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">No podcasts found</p>
+                  <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-1">Try a different search term</p>
                 </div>
               )}
             </motion.div>

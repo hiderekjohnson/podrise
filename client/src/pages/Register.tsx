@@ -114,7 +114,7 @@ export default function Register() {
               </div>
             </div>
 
-            <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA]/70 leading-relaxed">
+            <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA]/70 leading-relaxed">
               By creating an account, you agree to our{" "}
               <Link href="/terms" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-terms">
                 Terms of Service
@@ -129,7 +129,7 @@ export default function Register() {
 
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-[#E4E4E7] dark:bg-white/[0.08]" />
-            <span className="text-[13px] text-[#A1A1AA] font-medium">OR</span>
+            <span className="text-[14px] text-[#A1A1AA] font-medium">OR</span>
             <div className="flex-1 h-px bg-[#E4E4E7] dark:bg-white/[0.08]" />
           </div>
 

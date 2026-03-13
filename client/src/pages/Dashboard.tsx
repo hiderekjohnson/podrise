@@ -422,12 +422,12 @@ export default function Dashboard() {
                   Cancel your subscription?
                 </h3>
                 {podcastsOverLimit ? (
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                     The free plan supports up to 3 podcasts. You currently have <span className="font-semibold text-foreground">{podcasts.length}</span> selected.
                     Please remove {podcastsToRemove} podcast{podcastsToRemove > 1 ? "s" : ""} before canceling.
                   </p>
                 ) : (
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                     You'll lose access to unlimited podcasts and be moved to the free plan (up to 3 podcasts).
                   </p>
                 )}
@@ -487,7 +487,7 @@ export default function Dashboard() {
                 <h3 className="font-display font-extrabold text-xl text-foreground">
                   Free plan limit reached
                 </h3>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                   You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
                 </p>
               </div>
@@ -537,7 +537,7 @@ export default function Dashboard() {
                 <h3 className="font-display font-extrabold text-2xl text-foreground" data-testid="text-welcome-title">
                   You're all set!
                 </h3>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
                   Your podcast recap is locked and loaded. If any of your favorite shows drop a new episode today, you'll get your first digest <span className="font-semibold text-foreground">tomorrow morning</span>.
                 </p>
               </div>
@@ -715,7 +715,7 @@ export default function Dashboard() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-3">Search below to add podcasts and start getting daily recaps.</p>
+                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-3">Search below to add podcasts and start getting daily recaps.</p>
                   </div>
                 )}
               </div>
@@ -725,7 +725,7 @@ export default function Dashboard() {
                   <h2 className="text-base font-display font-bold text-foreground mb-1" data-testid="heading-add-podcasts">
                     Discover Podcasts
                   </h2>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
                     Search or browse popular shows to add to your daily recap.
                   </p>
                 </div>
@@ -889,7 +889,7 @@ export default function Dashboard() {
 
                     {availableTopics.length > 0 && (
                       <div className="px-6 pb-5 pt-1 border-t border-black/[0.04]">
-                        <p className="text-[13px] font-medium text-muted-foreground mb-3">Add {categoryLabel.toLowerCase()}</p>
+                        <p className="text-[14px] font-medium text-muted-foreground mb-3">Add {categoryLabel.toLowerCase()}</p>
                         <div className="flex flex-wrap gap-2">
                           {availableTopics.slice(0, 12).map((topic) => {
                             const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
@@ -906,7 +906,7 @@ export default function Dashboard() {
                                 <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
                                   <TIcon className="w-3 h-3 text-white" />
                                 </div>
-                                <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors">{topic.name}</span>
+                                <span className="text-[14px] font-medium text-foreground group-hover:text-primary transition-colors">{topic.name}</span>
                                 <Plus className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                               </button>
                             );
@@ -914,7 +914,7 @@ export default function Dashboard() {
                           {availableTopics.length > 12 && (
                             <Link
                               href={getCategoryPath(category)}
-                              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
+                              className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium text-primary hover:text-primary/80 transition-colors"
                               data-testid={`link-more-${fieldName}`}
                             >
                               +{availableTopics.length - 12} more
@@ -948,7 +948,7 @@ export default function Dashboard() {
                       <FileText className="w-7 h-7 text-primary" />
                     </div>
                     <h3 className="text-lg font-display font-bold text-foreground mb-1">No recaps yet</h3>
-                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] max-w-xs">
+                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] max-w-xs">
                       Your first recap will arrive after your next scheduled delivery time.
                     </p>
                   </div>
@@ -1008,7 +1008,7 @@ export default function Dashboard() {
               <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 pt-6 pb-2">
                   <h2 className="text-lg font-display font-bold text-foreground">Delivery Schedule</h2>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Choose when to receive your daily recap email.</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">Choose when to receive your daily recap email.</p>
                 </div>
                 <div className="px-6 pb-6 pt-3">
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -1039,7 +1039,7 @@ export default function Dashboard() {
               <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 pt-6 pb-2">
                   <h2 className="text-lg font-display font-bold text-foreground">Email Address</h2>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Where we send your daily recap.</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">Where we send your daily recap.</p>
                 </div>
                 <div className="px-6 pb-6 pt-3">
                   {editingEmail ? (
@@ -1084,7 +1084,7 @@ export default function Dashboard() {
                     <Palmtree className="w-4.5 h-4.5 text-amber-500" />
                     <h2 className="text-lg font-display font-bold text-foreground">Vacation Mode</h2>
                   </div>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-1">Pause your daily recaps while you're away.</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">Pause your daily recaps while you're away.</p>
                 </div>
                 <div className="px-6 pb-6 pt-3">
                   {vacationUntil ? (
@@ -1156,7 +1156,7 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
-                    className="flex items-center justify-center gap-1.5 text-base text-[#3F3F46] dark:text-[#A1A1AA] py-1"
+                    className="flex items-center justify-center gap-1.5 text-base text-[#52525B] dark:text-[#A1A1AA] py-1"
                   >
                     {autoSaveStatus === "saving" ? (
                       <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving...</>
@@ -1172,7 +1172,7 @@ export default function Dashboard() {
                   <button
                     data-testid="button-delete-account"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="text-base text-[#3F3F46] dark:text-[#A1A1AA] hover:text-red-500 transition-colors"
+                    className="text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-red-500 transition-colors"
                   >
                     Delete account
                   </button>
@@ -1186,7 +1186,7 @@ export default function Dashboard() {
                       <AlertTriangle className="w-5 h-5 text-red-500" />
                       <h3 className="text-lg font-display font-bold text-red-600">Delete Account</h3>
                     </div>
-                    <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-2">
+                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-2">
                       This will permanently delete your account, saved podcasts, recap history, and all email data. This action cannot be undone.
                     </p>
                     <div className="mt-4">
@@ -1248,13 +1248,13 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <h2 className="text-base font-display font-bold text-foreground">Pro Plan</h2>
-                          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">$9.99/month - unlimited podcasts</p>
+                          <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">$9.99/month - unlimited podcasts</p>
                         </div>
                       </div>
                       <span className="text-[15px] bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
                     </div>
                     {subscriptionData?.subscription?.current_period_end && (
-                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-4">
+                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-4">
                         Next bill: <span className="font-semibold text-foreground">{new Date(
                           typeof subscriptionData.subscription.current_period_end === "number"
                             ? subscriptionData.subscription.current_period_end * 1000
@@ -1273,12 +1273,12 @@ export default function Dashboard() {
                         <div>
                           <h3 className="text-base font-semibold text-foreground">Payment Method</h3>
                           {paymentMethodData?.paymentMethod ? (
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
                               {paymentMethodData.paymentMethod.brand.charAt(0).toUpperCase() + paymentMethodData.paymentMethod.brand.slice(1)} ending in {paymentMethodData.paymentMethod.last4}
                               <span className="text-[15px] ml-2">Exp {paymentMethodData.paymentMethod.expMonth.toString().padStart(2, "0")}/{paymentMethodData.paymentMethod.expYear}</span>
                             </p>
                           ) : (
-                            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">No card on file</p>
+                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">No card on file</p>
                           )}
                         </div>
                       </div>
@@ -1358,9 +1358,9 @@ export default function Dashboard() {
                       </div>
                       <div className="mb-5">
                         <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
-                        <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">/month</span>
+                        <span className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">/month</span>
                       </div>
-                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed flex-1">
+                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed flex-1">
                         Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
                       </p>
                     </div>
@@ -1384,9 +1384,9 @@ export default function Dashboard() {
                       </div>
                       <div className="mb-5">
                         <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
-                        <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">/month</span>
+                        <span className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">/month</span>
                       </div>
-                      <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed flex-1">
+                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed flex-1">
                         Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
                       </p>
                     </div>

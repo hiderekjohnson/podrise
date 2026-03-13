@@ -290,7 +290,7 @@ export function ExitIntentPopup() {
                   )}
                   <div className="flex items-center gap-2 mb-3 justify-center">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">{copy.badge}</span>
+                    <span className="text-[14px] font-semibold uppercase tracking-[0.12em] text-primary">{copy.badge}</span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-display font-bold text-foreground mb-2 leading-tight text-center" data-testid="text-exit-intent-heading">
                     {copy.heading}

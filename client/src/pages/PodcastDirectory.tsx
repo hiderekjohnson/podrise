@@ -116,7 +116,7 @@ export default function PodcastDirectory() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-foreground">Podcast Directory</h3>
-          <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
             {entries?.length || 0} podcasts tracked · {landingCount} with landing pages
           </p>
         </div>

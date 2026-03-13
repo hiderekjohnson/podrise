@@ -143,7 +143,7 @@ export default function Leaderboard() {
             <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               Get free AI-powered recaps for any of the top podcasts delivered to your inbox.
             </p>
-            <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+            <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
               Can't find your favorite podcast? No problem.{" "}
               <Link href="/" className="text-primary font-medium hover:underline" data-testid="link-search-all">
                 click here to search all podcasts
@@ -214,7 +214,7 @@ export default function Leaderboard() {
                   {selectedCategory ? selectedCategory : "All Podcasts"}
                 </span>
               </div>
-              <span className="text-base text-[#3F3F46] dark:text-[#A1A1AA] font-medium">
+              <span className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">
                 Podcasts
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function Leaderboard() {
               <div className="px-8 py-16 text-center">
                 <Headphones className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-base font-medium text-muted-foreground mb-1">No podcasts found</p>
-                <p className="text-[16px] text-[#3F3F46]">
+                <p className="text-[16px] text-[#52525B]">
                   Try a different search or{" "}
                   <button onClick={() => { setSearchTerm(""); setSelectedCategory(null); }} className="text-primary hover:underline" data-testid="button-clear-filters">
                     clear all filters
@@ -256,7 +256,7 @@ export default function Leaderboard() {
                         <p className="text-[16px] font-bold text-foreground truncate group-hover/row:text-primary transition-colors">
                           {podcast.name}
                         </p>
-                        <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-0.5">
+                        <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
                           {podcast.category}
                         </p>
                       </div>
@@ -323,7 +323,7 @@ export default function Leaderboard() {
                         <p className="text-[16px] text-muted-foreground mt-1 line-clamp-2">
                           {topic.description}
                         </p>
-                        <p className="text-[16px] text-[#3F3F46] mt-2 font-medium">
+                        <p className="text-[16px] text-[#52525B] mt-2 font-medium">
                           Browse podcasts
                         </p>
                       </a>

@@ -183,7 +183,7 @@ export default function ForPodcasters() {
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl py-6 px-5 text-center">
                   <p className="text-[2rem] sm:text-[2.25rem] font-display font-extrabold tracking-tight leading-none mb-1.5">{stat.value}</p>
-                  <p className="text-[16px] font-display font-semibold text-[#3F3F46] mb-1">{stat.label}</p>
+                  <p className="text-[16px] font-display font-semibold text-[#52525B] mb-1">{stat.label}</p>
                   <p className="text-[16px] text-[#52525B] leading-snug">{stat.detail}</p>
                 </div>
               ))}

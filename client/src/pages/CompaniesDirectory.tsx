@@ -239,7 +239,7 @@ export default function CompaniesDirectory() {
             <h1 className="text-3xl sm:text-[2.75rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] mb-3" data-testid="heading-companies">
               Company Intelligence
             </h1>
-            <p className="text-lg text-[#3F3F46] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
+            <p className="text-lg text-[#52525B] dark:text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed" data-testid="text-page-description">
               Track which companies are driving conversation across the world's top podcasts. See trending mentions and explore every episode.
             </p>
           </motion.div>
@@ -477,7 +477,7 @@ export default function CompaniesDirectory() {
                                 <h3 className="text-[17px] font-display font-bold text-foreground group-hover:text-primary transition-colors truncate">
                                   {company.name}
                                 </h3>
-                                <p className="text-[16px] text-[#3F3F46] truncate">{company.description}</p>
+                                <p className="text-[16px] text-[#52525B] truncate">{company.description}</p>
                                 <div className="flex items-center gap-3 mt-2">
                                   <span className="text-[16px] font-mono text-foreground font-semibold">{company.recentMentions} mentions</span>
                                   <TrendBadge trend={company.trend} changePercent={company.changePercent} />

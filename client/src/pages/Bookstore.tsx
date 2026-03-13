@@ -171,7 +171,7 @@ function FeaturedBook({ book }: { book: BookstoreBook }) {
       <div className="p-6 sm:p-8 md:p-10">
         <div className="flex items-center gap-2 mb-5">
           <Sparkles className="w-4 h-4 text-amber-600" />
-          <span className="text-[13px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">
+          <span className="text-[14px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">
             Featured Recommendation
           </span>
         </div>
@@ -205,26 +205,26 @@ function FeaturedBook({ book }: { book: BookstoreBook }) {
 
             {buzz && (
               <div className="mt-4 pl-4 border-l-[3px] border-amber-500/30">
-                <p className="text-[15px] sm:text-[16px] text-[#3F3F46] dark:text-[#D4D4D8] leading-relaxed italic" data-testid="featured-book-buzz">
+                <p className="text-[15px] sm:text-[16px] text-[#52525B] dark:text-[#D4D4D8] leading-relaxed italic" data-testid="featured-book-buzz">
                   "{buzz}"
                 </p>
               </div>
             )}
 
             <div className="flex flex-wrap items-center gap-2 mt-4">
-              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.1] px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.1] px-2.5 py-1 rounded-full">
                 <Mic className="w-3 h-3" />
                 {book.mentionCount} mentions
               </span>
-              <span className="text-[13px] text-muted-foreground">
+              <span className="text-[14px] text-muted-foreground">
                 across {book.podcastCount} podcasts
               </span>
               {book.rating && <StarRating rating={book.rating} />}
             </div>
 
             <div className="mt-2">
-              <p className="text-[13px] text-muted-foreground">
-                <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">Heard on:</span>{" "}
+              <p className="text-[14px] text-muted-foreground">
+                <span className="font-medium text-[#52525B] dark:text-[#A1A1AA]">Heard on:</span>{" "}
                 {book.podcastNames.slice(0, 4).join(", ")}
                 {book.podcastNames.length > 4 && ` + ${book.podcastNames.length - 4} more`}
               </p>
@@ -305,12 +305,12 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full shrink-0" data-testid={`book-mentions-${index}`}>
+              <span className="inline-flex items-center gap-1 text-[14px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full shrink-0" data-testid={`book-mentions-${index}`}>
                 <Mic className="w-3 h-3" />
                 {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
               </span>
               {book.podcastCount > 1 && (
-                <span className="text-[13px] text-muted-foreground" data-testid={`book-podcasts-${index}`}>
+                <span className="text-[14px] text-muted-foreground" data-testid={`book-podcasts-${index}`}>
                   {book.podcastCount} podcasts
                 </span>
               )}
@@ -329,7 +329,7 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
 
         <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04] flex items-center justify-between gap-2">
           <p className="text-[12px] text-muted-foreground truncate flex-1 min-w-0">
-            <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">Heard on </span>
+            <span className="font-medium text-[#52525B] dark:text-[#A1A1AA]">Heard on </span>
             {book.podcastNames.slice(0, 2).join(", ")}
             {book.podcastNames.length > 2 && ` + ${book.podcastNames.length - 2} more`}
           </p>
@@ -388,7 +388,7 @@ function DiscoveryShelf({ title, icon, books, description }: { title: string; ic
                 {book.name}
               </p>
               {book.author && book.author !== "null" && (
-                <p className="text-[13px] text-muted-foreground mt-0.5 line-clamp-1">{book.author}</p>
+                <p className="text-[14px] text-muted-foreground mt-0.5 line-clamp-1">{book.author}</p>
               )}
               <div className="flex items-center gap-1.5 mt-1.5">
                 <span className="text-[12px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-0.5">
@@ -743,7 +743,7 @@ export default function Bookstore() {
             >
               <div className="flex items-center gap-2.5 mb-4">
                 <Lightbulb className="w-4.5 h-4.5 text-amber-600" />
-                <h2 className="text-[13px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Start with a question</h2>
+                <h2 className="text-[14px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Start with a question</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5" data-testid="discovery-prompts">
                 {DISCOVERY_PROMPTS.filter(p => availableTopics.includes(p.topic)).map((prompt) => {
@@ -863,11 +863,11 @@ export default function Bookstore() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-600" />
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
+              <h2 className="text-[14px] font-bold uppercase tracking-[0.12em] text-foreground" data-testid="heading-browse">
                 {searchQuery ? "Search Results" : selectedTopic ? selectedTopic : "Browse All Recommendations"}
               </h2>
               {(searchQuery || selectedTopic || selectedLength) && (
-                <span className="text-[13px] font-mono text-[#52525B] ml-1">
+                <span className="text-[14px] font-mono text-[#52525B] ml-1">
                   {filteredBooks.length} book{filteredBooks.length !== 1 ? "s" : ""}
                 </span>
               )}
@@ -880,7 +880,7 @@ export default function Bookstore() {
                 <button
                   key={len.value}
                   onClick={() => setSelectedLength(selectedLength === len.value ? null : len.value)}
-                  className={`px-3 py-1.5 text-[13px] font-semibold rounded-full whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 text-[14px] font-semibold rounded-full whitespace-nowrap transition-colors ${
                     selectedLength === len.value
                       ? "bg-amber-500/[0.15] text-amber-700 dark:text-amber-400 border border-amber-500/25"
                       : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
@@ -900,7 +900,7 @@ export default function Bookstore() {
                 <button
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
-                  className={`px-3 py-1.5 text-[13px] font-semibold rounded-full whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 text-[14px] font-semibold rounded-full whitespace-nowrap transition-colors ${
                     sortBy === opt.value
                       ? "bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 border border-amber-500/20"
                       : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-transparent"
@@ -915,7 +915,7 @@ export default function Bookstore() {
             {hasActiveFilters && (
               <button
                 onClick={clearAll}
-                className="text-[13px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                className="text-[14px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
                 data-testid="button-clear-filters"
               >
                 Clear all
@@ -968,7 +968,7 @@ export default function Bookstore() {
         </section>
 
         <div className="w-full max-w-7xl mt-12">
-          <p className="text-[13px] text-[#52525B] text-center" data-testid="text-affiliate-disclosure">
+          <p className="text-[14px] text-[#52525B] text-center" data-testid="text-affiliate-disclosure">
             Links to Amazon are affiliate links. PodCap may earn a small commission on purchases at no extra cost to you.
           </p>
         </div>

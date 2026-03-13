@@ -112,7 +112,7 @@ export default function VerifyEmail() {
                 </button>
               </div>
 
-              <p className="text-[13px] text-[#A1A1AA] mt-6">
+              <p className="text-[14px] text-[#A1A1AA] mt-6">
                 Don't see the email? Check your spam folder.
               </p>
             </div>

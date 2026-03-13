@@ -158,7 +158,7 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
                 ? `Get ${name} recaps in your inbox`
                 : `Get the daily ${name.toLowerCase()} ${label}`}
             </p>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
+            <p className="text-[14px] text-muted-foreground mt-0.5">
               {isPodcast
                 ? `Free recap every new episode${hostDisplay ? ` from ${hostDisplay}` : ""}.`
                 : "Key podcast insights delivered daily."}

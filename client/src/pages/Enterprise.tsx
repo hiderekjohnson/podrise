@@ -167,7 +167,7 @@ export default function Enterprise() {
         <section className="py-16 sm:py-20 border-t border-border" data-testid="section-intelligence-gap">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-4">
-              <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">The Podcast Intelligence Gap</p>
+              <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">The Podcast Intelligence Gap</p>
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-gap-title">
                 Your industry is talking. You are missing it.
               </h2>
@@ -218,7 +218,7 @@ export default function Enterprise() {
         <section className="py-16 sm:py-20 bg-card/50 border-y border-border" data-testid="section-intelligence-briefings">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
-              <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Intelligence & Briefings</p>
+              <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Intelligence & Briefings</p>
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
                 Custom briefings built around your business
               </h2>
@@ -255,7 +255,7 @@ export default function Enterprise() {
         <section className="py-16 sm:py-20" data-testid="section-team-management">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
-              <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Team Management</p>
+              <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Team Management</p>
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
                 Built for teams, managed by admins
               </h2>
@@ -291,7 +291,7 @@ export default function Enterprise() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="grid md:grid-cols-2 gap-10">
               <div>
-                <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Access & Integrations</p>
+                <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Access & Integrations</p>
                 <h3 className="text-lg font-display font-bold mb-5">Fits into your existing workflow</h3>
                 <div className="space-y-3">
                   {[
@@ -312,7 +312,7 @@ export default function Enterprise() {
               </div>
 
               <div>
-                <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Security & Control</p>
+                <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">Security & Control</p>
                 <h3 className="text-lg font-display font-bold mb-5">Enterprise-grade security</h3>
                 <div className="space-y-3">
                   {[

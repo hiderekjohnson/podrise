@@ -94,7 +94,7 @@ export default function About() {
               >
                 <p className="text-2xl sm:text-3xl font-display font-extrabold text-primary tracking-tight mb-1">{stat.value}</p>
                 <p className="text-[16px] font-semibold text-foreground leading-snug">{stat.label}</p>
-                <p className="text-[16px] text-[#3F3F46] leading-snug mt-0.5">{stat.sublabel}</p>
+                <p className="text-[16px] text-[#52525B] leading-snug mt-0.5">{stat.sublabel}</p>
               </div>
             ))}
           </div>
@@ -202,7 +202,7 @@ export default function About() {
               <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
               <div>
                 <p className="text-[16px] font-bold text-foreground">Derek Johnson</p>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">Founder, PodCap</p>
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Founder, PodCap</p>
               </div>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function About() {
                   <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                 </div>
                 <p className="text-[16px] font-bold text-foreground mb-1.5">{item.title}</p>
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -308,7 +308,7 @@ export default function About() {
                     <item.icon className={`w-6 h-6 ${item.iconColor}`} />
                   </div>
                   <p className="text-[16px] font-bold text-foreground mb-1.5">{item.title}</p>
-                  <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -339,7 +339,7 @@ export default function About() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
                 <Users className="w-5 h-5 text-primary" />
-                <span className="text-[13px] font-bold uppercase tracking-[0.15em] text-primary">For Teams</span>
+                <span className="text-[14px] font-bold uppercase tracking-[0.15em] text-primary">For Teams</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-3">
                 PodCap for your whole organization
@@ -400,7 +400,7 @@ export default function About() {
           <div className="flex items-stretch gap-5 flex-col sm:flex-row">
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Constantly improving</h3>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-4">
                 We are constantly improving PodCap — adding features, refining analysis, and making it easier to stay informed.
               </p>
               <Link
@@ -414,7 +414,7 @@ export default function About() {
             </div>
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Explore by topic</h3>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed mb-4">
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-4">
                 Browse industries, interests, and roles — each with daily briefings, recommended reading, and top voices.
               </p>
               <Link

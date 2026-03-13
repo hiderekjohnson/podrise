@@ -267,7 +267,7 @@ export function TimezoneSelect({ value, onChange }: TimezoneSelectProps) {
 
             {search && popularFiltered.length === 0 && otherFiltered.length === 0 && (
               <div className="px-4 py-8 text-center">
-                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] dark:text-muted-foreground">No timezones match "{search}"</p>
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground">No timezones match "{search}"</p>
               </div>
             )}
           </div>
