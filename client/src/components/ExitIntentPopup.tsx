@@ -329,7 +329,7 @@ export function ExitIntentPopup() {
                     </button>
                   </form>
                   <p className="text-[12px] text-muted-foreground/50 text-center mt-3">
-                    Free forever. No spam. Unsubscribe anytime.
+                    No spam. Unsubscribe anytime.
                   </p>
                 </>
               )}

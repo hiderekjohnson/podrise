@@ -20,7 +20,7 @@ export default function Register() {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("name", "description", "Sign up for PodCap — get AI-powered podcast summaries, key insights, and episode recaps delivered to your inbox. Free forever.");
+    setMeta("name", "description", "Sign up for PodCap — get AI-powered podcast summaries, key insights, and episode recaps delivered to your inbox.");
     setMeta("property", "og:title", "Create Your Free Account | PodCap");
     setMeta("property", "og:description", "Join thousands of professionals who save hours every week with AI podcast intelligence.");
   }, []);

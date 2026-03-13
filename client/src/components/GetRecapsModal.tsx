@@ -134,7 +134,7 @@ export function GetRecapsModal({ open, onClose, podcastName, artworkUrl, itunesI
               </form>
 
               <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-4 leading-relaxed" data-testid="text-modal-disclaimer">
-                Free forever for up to 3 podcasts. No credit card required.
+                No credit card required.
               </p>
             </div>
           </motion.div>

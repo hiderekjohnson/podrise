@@ -384,7 +384,7 @@ export default function Home() {
                 Create Your Free Account
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <p className="text-[16px] text-muted-foreground">Free forever. No credit card required.</p>
+              <p className="text-[16px] text-muted-foreground">No credit card required.</p>
             </motion.div>
           </div>
         </section>

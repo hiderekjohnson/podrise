@@ -242,7 +242,7 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
           </button>
         </form>
         <p className="text-[12px] text-muted-foreground/40 mt-2.5">
-          Free forever. No spam. Unsubscribe anytime.
+          No spam. Unsubscribe anytime.
         </p>
       </div>
     </div>

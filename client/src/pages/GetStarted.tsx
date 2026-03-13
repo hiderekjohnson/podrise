@@ -210,7 +210,7 @@ export default function GetStarted() {
                   </>
                 )}
               </button>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] italic">Free forever for up to 3 podcasts.</p>
+              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] italic">No credit card required.</p>
             </div>
           </div>
         </motion.div>
