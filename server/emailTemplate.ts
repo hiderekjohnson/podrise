@@ -367,51 +367,36 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
   const lines: string[] = [];
   if (peopleCount > 0) {
     const teaser = String(meta.mentionTeaserPeople || "").trim();
-    const suffix = teaser ? ` \u2014 <span style="color:#71717A;font-weight:400;">${escapeHtml(teaser)}</span>` : "";
+    const suffix = teaser ? ` \u2014 ${escapeHtml(teaser)}` : "";
     lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F464;</td>
-        <td style="font-size:17px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"} came up${suffix}</td>
+        <td style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"}${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
   if (companiesCount > 0) {
     const teaser = String(meta.mentionTeaserCompanies || "").trim();
-    const suffix = teaser ? ` \u2014 <span style="color:#71717A;font-weight:400;">${escapeHtml(teaser)}</span>` : "";
+    const suffix = teaser ? ` \u2014 ${escapeHtml(teaser)}` : "";
     lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F3E2;</td>
-        <td style="font-size:17px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"} mentioned${suffix}</td>
+        <td style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"}${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
   if (booksCount > 0) {
     const teaser = String(meta.mentionTeaserBooks || "").trim();
-    const suffix = teaser ? ` \u2014 <span style="color:#71717A;font-weight:400;">${escapeHtml(teaser)}</span>` : "";
+    const suffix = teaser ? ` \u2014 ${escapeHtml(teaser)}` : "";
     lines.push(`<tr><td style="padding:0 0 8px;">
       <table cellpadding="0" cellspacing="0" role="presentation"><tr>
         <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F4DA;</td>
-        <td style="font-size:17px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"} recommended${suffix}</td>
+        <td style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"}${suffix}</td>
       </tr></table>
     </td></tr>`);
   }
 
   const mentionsUrl = `${recapUrl}#mentions`;
-
-  let ctaText = "See all names, companies, and books &#8594;";
-  if (peopleCount > 0 && companiesCount === 0 && booksCount === 0) {
-    ctaText = "See who came up and why &#8594;";
-  } else if (companiesCount > 0 && peopleCount === 0 && booksCount === 0) {
-    ctaText = "See which companies and why &#8594;";
-  } else if (booksCount > 0 && peopleCount === 0 && companiesCount === 0) {
-    ctaText = "See the books and why they came up &#8594;";
-  } else if (peopleCount > 0 && companiesCount > 0 && booksCount === 0) {
-    ctaText = "See all the names and companies &#8594;";
-  } else if (peopleCount > 0 && booksCount > 0 && companiesCount === 0) {
-    ctaText = "See all the names and books &#8594;";
-  } else if (companiesCount > 0 && booksCount > 0 && peopleCount === 0) {
-    ctaText = "See all the companies and books &#8594;";
-  }
 
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:22px 0 18px;">
     <tr><td style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 22px 22px;">
@@ -419,8 +404,9 @@ function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: stri
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
         ${lines.join("")}
       </table>
-      <p style="margin:20px 0 0;">
-        <a href="${escapeHtml(mentionsUrl)}" style="font-size:15px;font-weight:600;color:#6366F1;text-decoration:none;">${ctaText}</a>
+      <p style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:20px 0 0;">Not mentioned anywhere else in this email</p>
+      <p style="margin:12px 0 0;">
+        <a href="${escapeHtml(mentionsUrl)}" style="font-size:14px;font-weight:600;color:#6366F1;text-decoration:none;">Find out exactly why they came up &#8594;</a>
       </p>
     </td></tr>
   </table>`;

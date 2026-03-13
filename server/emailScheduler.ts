@@ -153,31 +153,31 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
               model: "gpt-4o-mini",
               messages: [{
                 role: "user",
-                content: `You write curiosity-driven teasers for a podcast recap email. Given the entity context from this specific episode, write SHORT teaser fragments that complete lines like:
+                content: `You write teaser lines for a podcast recap email's "Mentioned in this episode" section. Each line starts with an emoji, a count, and an em dash, then YOUR FRAGMENT completes it.
 
-"5 people came up — [YOUR FRAGMENT]"
-"3 companies mentioned — [YOUR FRAGMENT]"
-"2 books recommended — [YOUR FRAGMENT]"
+FORMAT (follow exactly):
+- For PEOPLE: lead with the most recognisable person's name, then intrigue
+  "including [Most Famous Name], and not for the reason you'd think"
+- For COMPANIES: lead with a short direct quote (under 10 words, in quotation marks) -- the most surprising or provocative thing said about any company
+  "one was called \\"the most dangerous company in AI right now\\""
+- For BOOKS: lead with the specific book title if there is only one, or the most notable title if multiple, then a hook
+  "they said everyone should read it this weekend"
 
 CRITICAL RULES:
-- Be SPECIFIC to what was actually said in this episode. Reference real claims, predictions, or opinions from the context below.
-- Do NOT name any person, company, or book — that is the mystery the reader clicks to solve.
-- Do NOT write generic clickbait like "one has a surprising rivalry" or "one revealed a career pivot" — these feel fake because they could apply to any episode.
-- DO write teasers that reference the actual substance: a specific dollar amount, a specific industry, a specific bold claim, a contrarian opinion.
-- Keep each fragment under 70 characters.
-- Start lowercase (it follows an em dash).
+- For people: ALWAYS name the single most recognisable person from the list. Pick the biggest name the reader would instantly recognise.
+- For companies: ALWAYS include a real short quote from the episode context below. Put it in quotation marks. Keep the quote under 10 words.
+- For books: if only 1 book, name it. If multiple, name the most notable one and add intrigue about the rest.
+- Keep each fragment under 80 characters total.
+- Start lowercase (it follows an em dash in the email).
+- Be SPECIFIC to this episode -- reference real claims from the context below.
 
-GOOD (specific, feels real):
-- "one of them was called the most dangerous company in AI right now"
-- "one just mass-fired their leadership team and nobody is talking about it"
-- "they said one book should be mandatory reading before you start a company"
-- "one was cited as proof that dropping out still beats an MBA"
-
-BAD (generic, could be any episode):
-- "one is rumored to be eyeing a major acquisition"
-- "one of them revealed a surprising career pivot"
-- "and one has a surprising rivalry that is heating up"
-- "one company stands out for its innovative approach"
+GOOD examples:
+- People: "including Elon Musk, and not for the reason you'd think"
+- People: "including Sam Altman -- one host called his strategy reckless"
+- Companies: "one was called \\"a ticking time bomb for the industry\\""
+- Companies: "one was described as \\"printing money while nobody watches\\""
+- Books: "they said The Almanack of Naval Ravikant changed everything"
+- Books: "including one they called mandatory reading for founders"
 
 Episode entities and what was said about them:
 ${contextSummary.join('\n')}
