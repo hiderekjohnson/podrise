@@ -1,13 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useRoute } from "wouter";
-import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Zap, GitFork, Sparkles, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Code, DollarSign, ChevronRight, Mail, Loader2, Check } from "lucide-react";
+import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Zap, GitFork, Sparkles, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Code, DollarSign, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMutation } from "@tanstack/react-query";
 import { Footer } from "@/components/Footer";
 import { INDUSTRIES, INTERESTS, ROLES, type TopicCategory } from "@/data/topicData";
 import { SiteHeader } from "@/components/SiteHeader";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users,
@@ -56,91 +53,6 @@ function SEOHead({ title, description }: { title: string; description: string })
     setOrCreate('meta[property="og:description"]', "property", description);
   }
   return null;
-}
-
-function CategoryNewsletterCTA({ category, categoryLabel }: { category: TopicCategory; categoryLabel: string }) {
-  const [email, setEmail] = useState("");
-  const [success, setSuccess] = useState(false);
-  const { toast } = useToast();
-  const topicType = category === "industry" ? "industry" : category === "interest" ? "interest" : "role";
-  const briefingLabel = category === "industry" ? "industry" : category === "interest" ? "interest" : "role";
-
-  const subscribe = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
-        email,
-        type: topicType,
-        slug: `all-${category}`,
-        name: `All ${categoryLabel}`,
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      setSuccess(true);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({ title: `Subscribed to ${categoryLabel}`, description: "You'll receive briefings in your inbox." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Couldn't subscribe", description: err.message || "Please try again.", variant: "destructive" });
-    },
-  });
-
-  if (success) {
-    return (
-      <div className="mt-10 rounded-2xl border border-green-500/20 bg-green-500/[0.04] p-6" data-testid="category-newsletter-success">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-green-500/10 flex items-center justify-center">
-            <Check className="w-5 h-5 text-green-600" />
-          </div>
-          <div>
-            <p className="text-[15px] font-semibold text-foreground">You're subscribed!</p>
-            <p className="text-[14px] text-muted-foreground mt-0.5">We'll send {briefingLabel} briefings to your inbox.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-10 rounded-2xl bg-gradient-to-r from-primary/[0.06] via-primary/[0.03] to-transparent border border-primary/[0.12] p-6 sm:p-8" data-testid="category-newsletter-cta">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Mail className="w-4 h-4 text-primary" />
-            <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">Stay informed</span>
-          </div>
-          <h3 className="text-lg font-bold text-foreground">
-            Get {categoryLabel.toLowerCase()} briefings in your inbox
-          </h3>
-          <p className="text-[14px] text-muted-foreground mt-1">
-            Key insights from top podcasts about {categoryLabel.toLowerCase()}, delivered daily.
-          </p>
-        </div>
-        <form onSubmit={(e) => { e.preventDefault(); if (email.trim()) subscribe.mutate(); }} className="flex gap-2 shrink-0">
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-[220px] pl-10 pr-4 py-2.5 text-[14px] bg-card border border-black/[0.1] dark:border-white/[0.1] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
-              data-testid="input-category-newsletter-email"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={subscribe.isPending}
-            className="px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-[14px] rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
-            data-testid="button-category-newsletter-subscribe"
-          >
-            {subscribe.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Subscribe"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
 }
 
 export default function CategoryDirectory() {
@@ -200,8 +112,6 @@ export default function CategoryDirectory() {
             );
           })}
         </div>
-
-        <CategoryNewsletterCTA category={meta.category} categoryLabel={meta.title} />
 
         <div className="mt-16 pt-8 border-t border-black/[0.06] dark:border-white/[0.06]">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Also explore</h2>

@@ -326,26 +326,12 @@ export default function TopicDetailPage() {
             </div>
           </div>
 
-          {(topicEpisodes && topicEpisodes.length > 0) && (
+          {latestEpisodeDate && (
             <div className="flex flex-wrap items-center gap-4 mt-4 text-[14px] text-muted-foreground" data-testid="topic-stats">
               <span className="flex items-center gap-1.5">
-                <Podcast className="w-3.5 h-3.5" />
-                {uniquePodcastSources} podcasts
+                <Clock className="w-3.5 h-3.5" />
+                Updated {formatRelativeDate(latestEpisodeDate)}
               </span>
-              <span className="w-px h-3.5 bg-border" />
-              <span className="flex items-center gap-1.5">
-                <Mic className="w-3.5 h-3.5" />
-                {topicEpisodes.length} episodes
-              </span>
-              {latestEpisodeDate && (
-                <>
-                  <span className="w-px h-3.5 bg-border" />
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    Updated {formatRelativeDate(latestEpisodeDate)}
-                  </span>
-                </>
-              )}
             </div>
           )}
         </motion.div>
