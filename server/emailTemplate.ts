@@ -472,7 +472,7 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   </tr></table>
 
   <h2 class="ep-title" style="font-size:22px;font-weight:700;color:#09090B;letter-spacing:-0.02em;line-height:1.35;margin:0 0 18px;">
-    ${escapeHtml(episode.episodeTitle)}
+    <a href="${escapeHtml(recapUrl)}" style="color:#09090B;text-decoration:none;">${escapeHtml(episode.episodeTitle)}</a>
   </h2>
 
   ${buildKeyTakeaways(episode.keyInsights, accentColor)}
