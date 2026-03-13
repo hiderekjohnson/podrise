@@ -16,6 +16,38 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    title: "Explore podcast knowledge with Insights",
+    description: "Discover the topics, people, and companies shaping podcast conversations. Browse trending topics, influential guests, and mentioned organizations across your favorite shows.",
+    link: { url: "/insights", label: "Explore Insights" },
+    emoji: "🔍",
+    date: "Mar 13, 2026",
+  },
+  {
+    title: "Curated book recommendations from episodes",
+    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. Discover your next read from the podcasts you love, with a dedicated bookstore featuring curated shelves, ratings, and host recommendations.",
+    link: { url: "/bookstore", label: "Browse the Bookstore" },
+    emoji: "📚",
+    date: "Mar 13, 2026",
+  },
+  {
+    title: "Notable people and companies in every episode",
+    description: "Episode recaps now highlight the key people and organizations discussed. Click through to learn more about influential guests, industry leaders, and companies shaping the conversation.",
+    emoji: "👥",
+    date: "Mar 13, 2026",
+  },
+  {
+    title: "Direct quotes from every episode",
+    description: "Discover the most insightful moments from each episode with up to 5 carefully selected quotes. Every quote includes the speaker's name and context so you know who said what and why it matters.",
+    emoji: "💬",
+    date: "Mar 13, 2026",
+  },
+  {
+    title: "Higher quality episode recaps with better insights",
+    description: "We completely rebuilt our recap system for clarity and accuracy. Recaps now feature better-structured key insights, improved guest detection from episode titles, and cleaner formatting so the important details stand out.",
+    emoji: "✨",
+    date: "Mar 13, 2026",
+  },
+  {
     title: "Ask AI about any podcast",
     description: "Ask questions about any podcast and get AI-powered answers drawn from episode recaps and summaries across the entire show's history.",
     emoji: "🤖",
