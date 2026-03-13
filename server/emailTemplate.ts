@@ -506,14 +506,6 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
     return buildEpisodeCard(ep, idx, meta);
   }).join("\n");
 
-  const episodePillsHtml = parsed.episodes.map((ep, idx) => {
-    const accentColor = getAccentColor(idx);
-    const anchorId = `ep-${idx}`;
-    return `<td style="padding:0 ${idx < parsed.episodes.length - 1 ? "6px" : "0"} 0 0;">
-      <a href="#${anchorId}" style="display:inline-block;padding:5px 12px;font-size:12px;font-weight:600;color:${accentColor};background:#F7F7FC;border-radius:20px;text-decoration:none;white-space:nowrap;">${escapeHtml(ep.podcastName)}</a>
-    </td>`;
-  }).join("");
-
   const hookText = hookSentence || "";
   const logoUrl = "https://podcap.io/favicon.png";
 
@@ -566,13 +558,10 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   </tr></table>
 </td></tr>
 
-<!-- HOOK + PILLS -->
-<tr><td style="padding:24px 28px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
-  ${hookText ? `<p style="font-size:18px;font-weight:400;color:#09090B;line-height:1.5;margin:0 0 18px;">${escapeHtml(hookText)}</p>` : ""}
-  <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-    ${episodePillsHtml}
-  </tr></table>
-</td></tr>
+<!-- HOOK -->
+${hookText ? `<tr><td style="padding:24px 28px;background:#ffffff;border-bottom:1px solid #F0F0F2;">
+  <p style="font-size:18px;font-weight:400;color:#09090B;line-height:1.5;margin:0;">${escapeHtml(hookText)}</p>
+</td></tr>` : ""}
 
 ${episodeCardsHtml}
 
