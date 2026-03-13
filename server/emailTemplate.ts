@@ -531,7 +531,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
       .outer-pad{padding:0!important;}
       .card{border-radius:0!important;}
       .topbar{padding:14px 18px!important;}
-      .topbar-date{display:none!important;}
+      .topbar-date{font-size:11px!important;}
       .ep-block{padding:22px 18px 20px!important;}
       .quiet-block{padding:16px 18px!important;}
       .hero-block{padding:24px 18px 0!important;}
@@ -567,16 +567,14 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 <!-- TOP BAR -->
 <tr><td class="topbar" style="padding:18px 28px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
+    <td width="36" valign="middle">
+      <a href="https://podcap.io" style="text-decoration:none;">
+        <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
+      </a>
+    </td>
     <td valign="middle">
-      <a href="https://podcap.io" style="text-decoration:none;display:inline-block;">
-        <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;"><tr>
-          <td valign="middle">
-            <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
-          </td>
-          <td style="padding-left:8px;vertical-align:middle;">
-            <span style="font-size:18px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:18px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
-          </td>
-        </tr></table>
+      <a href="https://podcap.io" style="text-decoration:none;">
+        <span style="font-size:18px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:18px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
       </a>
     </td>
     <td class="topbar-date" align="right" valign="middle"><span style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;white-space:nowrap;">${escapeHtml(dateStr)}</span></td>
@@ -593,12 +591,9 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 </td></tr>
 
 <!-- EPISODE COUNT DIVIDER -->
-<tr><td style="padding:28px 28px 8px;background:#ffffff;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-    <tr><td style="border-top:1px solid #E4E4E7;padding-top:16px;">
-      <p class="episode-bar-text" style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:0;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW &#8595;</p>
-    </td></tr>
-  </table>
+<tr><td style="padding:28px 28px 0;background:#ffffff;">
+  <p class="episode-bar-text" style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 16px;">${episodeCount} EPISODE${episodeCount !== 1 ? "S" : ""} BELOW &#8595;</p>
+  <div style="height:1px;background:#E4E4E7;"></div>
 </td></tr>
 
 ${episodeCardsHtml}
