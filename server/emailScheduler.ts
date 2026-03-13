@@ -122,26 +122,77 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
           } catch (e) {}
         }
 
-        const guestSlugs = new Set(guestNames.map(g => g.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")));
-        const entityTeasers: { name: string; hint: string }[] = [];
+        let mentionTeaserPeople = "";
+        let mentionTeaserCompanies = "";
+        let mentionTeaserBooks = "";
+
+        const entityContexts: Record<string, string> = {};
         if (row.entity_contexts_cache) {
-          const cacheForTeasers = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
-          if (cacheForTeasers && typeof cacheForTeasers === "object") {
-            for (const [slug, context] of Object.entries(cacheForTeasers)) {
-              if (typeof context !== "string" || !context) continue;
-              if (guestSlugs.has(slug)) continue;
-              const name = knownNames[slug] || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-              entityTeasers.push({ name, hint: context });
+          const cache = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+          if (cache && typeof cache === "object") {
+            for (const [slug, ctx] of Object.entries(cache)) {
+              if (typeof ctx === "string" && ctx) entityContexts[slug] = ctx;
             }
           }
         }
 
-        const bookTeaserList: { title: string; hint: string }[] = [];
-        if (Array.isArray(parsedResources)) {
-          for (const r of parsedResources) {
-            if (r.type === "book" && r.name) {
-              bookTeaserList.push({ title: r.name, hint: r.context || r.description || "" });
+        if (peopleCount > 0 || companiesCount > 0 || booksCount > 0) {
+          try {
+            const { openai } = await import("./replit_integrations/image/client");
+            const contextSummary: string[] = [];
+            for (const [slug, ctx] of Object.entries(entityContexts)) {
+              const name = knownNames[slug] || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+              contextSummary.push(`${name}: ${ctx}`);
             }
+            const bookContexts = bookTitles.map(t => {
+              const res = Array.isArray(parsedResources) ? parsedResources.find((r: any) => r.name === t) : null;
+              return `Book: "${t}" - ${res?.context || res?.description || "recommended"}`;
+            });
+
+            const aiResp = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [{
+                role: "user",
+                content: `You are writing curiosity-driven email teasers for a podcast recap newsletter. Given the entity data from this episode, write SHORT teaser fragments (the second half of a line) that create specific curiosity without revealing the answer.
+
+These fragments complete sentences like:
+- "5 people came up -- [YOUR FRAGMENT]"
+- "3 companies mentioned -- [YOUR FRAGMENT]"  
+- "2 books recommended -- [YOUR FRAGMENT]"
+
+Rules:
+- Each fragment must be specific to this episode's actual content
+- Create curiosity: hint at something surprising, unexpected, or intriguing
+- Do NOT name any specific person, company, or book in the fragment
+- Keep each fragment under 60 characters
+- Do NOT start with "including" -- vary the phrasing
+- Examples of good fragments: "and one prediction caught everyone off guard", "one of them just mass-fired their entire team", "and they said one should be required reading"
+
+Episode entities:
+${contextSummary.join('\n')}
+${bookContexts.join('\n')}
+
+People count: ${peopleCount}
+Companies count: ${companiesCount}  
+Books count: ${booksCount}
+
+Respond with JSON: { "people": "fragment or empty string", "companies": "fragment or empty string", "books": "fragment or empty string" }
+Only include keys for categories with count > 0.`
+              }],
+              max_tokens: 300,
+              temperature: 0.8,
+              response_format: { type: "json_object" },
+            });
+
+            const content = aiResp.choices[0]?.message?.content;
+            if (content) {
+              const parsed = JSON.parse(content);
+              mentionTeaserPeople = parsed.people || "";
+              mentionTeaserCompanies = parsed.companies || "";
+              mentionTeaserBooks = parsed.books || "";
+            }
+          } catch (err) {
+            console.warn("[EmailScheduler] AI teaser generation failed, using plain counts:", err);
           }
         }
 
@@ -158,8 +209,9 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
           guests: guestNames,
           episodeDuration: row.duration || "",
           episodeDate,
-          entityTeasers,
-          bookTeasers: bookTeaserList,
+          mentionTeaserPeople,
+          mentionTeaserCompanies,
+          mentionTeaserBooks,
         };
       }
     } finally {
