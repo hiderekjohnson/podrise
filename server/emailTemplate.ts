@@ -496,6 +496,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const shortDateStr = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   const previewText = emailCopy?.previewText || `${episodeCount} of your followed podcasts dropped new episodes - ${parsed.episodes.map(e => e.podcastName).join(", ")}.`;
 
@@ -572,12 +573,12 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
         <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
       </a>
     </td>
-    <td valign="middle">
-      <a href="https://podcap.io" style="text-decoration:none;">
+    <td valign="middle" style="padding-right:12px;">
+      <a href="https://podcap.io" style="text-decoration:none;white-space:nowrap;">
         <span style="font-size:18px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:18px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
       </a>
     </td>
-    <td class="topbar-date" align="right" valign="middle"><span style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;white-space:nowrap;">${escapeHtml(dateStr)}</span></td>
+    <td align="right" valign="middle" style="white-space:nowrap;"><span class="topbar-date" style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(shortDateStr)}</span></td>
   </tr></table>
 </td></tr>
 
