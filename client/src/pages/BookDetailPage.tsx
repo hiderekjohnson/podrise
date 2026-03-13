@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, User, FileText, ShoppingCart } from "lucide-react";
+import { BookOpen, ExternalLink, Mic, ArrowLeft, Calendar, ChevronRight, ChevronDown, Star, Share2, Copy, Check, User, FileText, ShoppingCart, Quote, MessageCircle, Hash, TrendingUp } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -145,8 +145,8 @@ function SmallBookCover({ title, slug, googleBooksId }: { title: string; asin?: 
 }
 
 function SEOHead({ book }: { book: BookDetail }) {
-  const title = `${book.name}${book.author ? ` by ${book.author}` : ""} - Mentioned on ${book.podcastCount} ${book.podcastCount === 1 ? "Podcast" : "Podcasts"}, ${book.mentionCount} ${book.mentionCount === 1 ? "Time" : "Times"} | PodCap`;
-  const description = `${book.name}${book.author ? ` by ${book.author}` : ""} has been mentioned ${book.mentionCount} times across ${book.podcastCount} podcasts including ${book.podcastNames.slice(0, 2).join(" and ")}${book.podcastNames.length > 2 ? " and more" : ""}. See every mention and what hosts said about it.`;
+  const title = `Why ${book.podcastCount} Podcasts Recommend ${book.name}${book.author ? ` by ${book.author}` : ""} | PodCap`;
+  const description = `${book.name} has been recommended ${book.mentionCount} times across ${book.podcastCount} podcasts including ${book.podcastNames.slice(0, 2).join(" and ")}${book.podcastNames.length > 2 ? " and more" : ""}. See who recommends it and what they say.`;
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -206,23 +206,10 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
-function PodcastScoreBadge({ score }: { score: number }) {
-  const color = score >= 8 ? "text-green-600 dark:text-green-400 bg-green-500/[0.08] border-green-500/20" :
-    score >= 5 ? "text-amber-600 dark:text-amber-400 bg-amber-500/[0.08] border-amber-500/20" :
-    "text-muted-foreground bg-black/[0.04] border-black/[0.06]";
-
-  return (
-    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[16px] font-bold ${color}`} data-testid="badge-podcast-score" title="Based on mention frequency, podcast diversity, and repeat recommendations">
-      <Mic className="w-3.5 h-3.5" />
-      {score.toFixed(1)} Podcast Score
-    </div>
-  );
-}
-
 function ShareButton({ book }: { book: BookDetail }) {
   const [copied, setCopied] = useState(false);
   const url = `https://podcap.io/bookstore/${book.slug}`;
-  const tweetText = `${book.name}${book.author ? ` by ${book.author}` : ""} - mentioned on ${book.podcastCount} podcasts\n${url}`;
+  const tweetText = `${book.name}${book.author ? ` by ${book.author}` : ""} — recommended on ${book.podcastCount} podcasts\n${url}`;
 
   const handleCopy = async () => {
     try {
@@ -265,13 +252,85 @@ function ShareButton({ book }: { book: BookDetail }) {
   );
 }
 
+function RecommendationCard({ ep, index, peopleMap }: { ep: BookEpisode; index: number; peopleMap: Map<string, { slug: string; name: string; imageUrl: string }> }) {
+  const person = ep.recommendedBy ? peopleMap.get(ep.recommendedBy.toLowerCase()) : null;
+  const roleLabel = ep.recommenderRole === "author" ? "Author" : ep.recommenderRole === "guest" ? "Guest" : "Host";
+  const roleColor = ep.recommenderRole === "author"
+    ? "text-violet-700 dark:text-violet-400 bg-violet-500/[0.08]"
+    : ep.recommenderRole === "guest"
+    ? "text-blue-700 dark:text-blue-400 bg-blue-500/[0.08]"
+    : "text-amber-700 dark:text-amber-400 bg-amber-500/[0.08]";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }}
+      className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-5 hover:shadow-md hover:border-amber-500/15 transition-all"
+      data-testid={`recommendation-card-${index}`}
+    >
+      {ep.context && (
+        <div className="mb-4">
+          <Quote className="w-5 h-5 text-amber-500/30 mb-2" />
+          <p className="text-[15px] sm:text-[16px] text-foreground leading-relaxed" data-testid={`recommendation-context-${index}`}>
+            {ep.context}
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
+        <div className="flex items-center gap-3 min-w-0">
+          {ep.recommendedBy && (
+            <>
+              {person ? (
+                <Link href={`/people/${person.slug}`} className="shrink-0">
+                  <img
+                    src={person.imageUrl}
+                    alt={ep.recommendedBy}
+                    className="w-9 h-9 rounded-full object-cover border border-black/[0.06] shadow-sm"
+                  />
+                </Link>
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0">
+                {person ? (
+                  <Link href={`/people/${person.slug}`} className="text-[14px] font-semibold text-foreground hover:text-amber-700 dark:hover:text-amber-400 transition-colors block truncate">
+                    {ep.recommendedBy}
+                  </Link>
+                ) : (
+                  <span className="text-[14px] font-semibold text-foreground block truncate">{ep.recommendedBy}</span>
+                )}
+                <span className={`text-[12px] font-medium px-1.5 py-0.5 rounded-full ${roleColor} inline-block`}>
+                  {roleLabel}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+        <Link
+          href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
+          className="text-[13px] text-muted-foreground hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0 flex items-center gap-1 group"
+          aria-label={`Listen on ${ep.podcastName}`}
+          data-testid={`recommendation-episode-${index}`}
+        >
+          <span className="truncate max-w-[120px] sm:max-w-[140px]">{ep.podcastName}</span>
+          <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
 interface PodcastGroup {
   podcastSlug: string;
   podcastName: string;
   episodes: BookEpisode[];
 }
 
-function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; bookName: string }) {
+function ConversationsList({ episodes }: { episodes: BookEpisode[] }) {
   const groups = useMemo(() => {
     const map = new Map<string, PodcastGroup>();
     for (const ep of episodes) {
@@ -308,16 +367,18 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
         return (
           <div key={group.podcastSlug} className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl overflow-hidden" data-testid={`podcast-group-${gi}`}>
             <div className="flex items-center justify-between px-4 pt-3 pb-1">
-              <Link href={`/podcasts/${group.podcastSlug}`} className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider hover:underline underline-offset-2" data-testid={`podcast-link-${gi}`}>
+              <Link href={`/podcasts/${group.podcastSlug}`} className="text-[14px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider hover:underline underline-offset-2" data-testid={`podcast-link-${gi}`}>
                 {group.podcastName}
               </Link>
               {isMulti && (
                 <button
                   onClick={() => togglePodcast(group.podcastSlug)}
-                  className="flex items-center gap-1 text-[16px] text-muted-foreground hover:text-foreground transition-colors"
+                  aria-expanded={isExpanded}
+                  aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.episodes.length} episodes from ${group.podcastName}`}
+                  className="flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
                   data-testid={`toggle-group-${gi}`}
                 >
-                  {group.episodes.length} mentions
+                  {group.episodes.length} episodes
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
               )}
@@ -333,12 +394,12 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                 <div className="px-4 py-3 hover:bg-amber-500/[0.03] transition-colors">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[16px] font-bold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2">
+                      <h3 className="text-[15px] font-bold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2">
                         {ep.episodeTitle}
                       </h3>
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
                         {ep.recommendedBy && (
-                          <span className={`inline-flex items-center gap-1 text-[16px] font-medium px-2 py-0.5 rounded-full ${
+                          <span className={`inline-flex items-center gap-1 text-[13px] font-medium px-2 py-0.5 rounded-full ${
                             ep.recommenderRole === "author"
                               ? "bg-violet-500/[0.08] text-violet-700 dark:text-violet-400"
                               : ep.recommenderRole === "guest"
@@ -351,15 +412,15 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
                           </span>
                         )}
                         {ep.publishedAt && (
-                          <span className="text-[16px] text-muted-foreground flex items-center gap-1">
+                          <span className="text-[13px] text-muted-foreground flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {formatDate(ep.publishedAt)}
                           </span>
                         )}
                       </div>
                       {ep.context && (
-                        <p className="text-[16px] text-[#3F3F46] leading-relaxed mt-2">
-                          {ep.context.length > 150 ? ep.context.slice(0, 150).replace(/\s+\S*$/, "") + "." : ep.context}
+                        <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mt-2 line-clamp-2">
+                          {ep.context}
                         </p>
                       )}
                     </div>
@@ -372,10 +433,10 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
             {isMulti && !isExpanded && (
               <button
                 onClick={() => togglePodcast(group.podcastSlug)}
-                className="w-full px-4 py-2 text-[16px] text-amber-700 dark:text-amber-400 font-medium hover:bg-amber-500/[0.04] transition-colors border-t border-black/[0.04] dark:border-white/[0.04]"
+                className="w-full px-4 py-2 text-[14px] text-amber-700 dark:text-amber-400 font-medium hover:bg-amber-500/[0.04] transition-colors border-t border-black/[0.04] dark:border-white/[0.04]"
                 data-testid={`show-more-${gi}`}
               >
-                Show {group.episodes.length - 1} more {group.episodes.length - 1 === 1 ? "episode" : "episodes"} from {group.podcastName}
+                Show {group.episodes.length - 1} more from {group.podcastName}
               </button>
             )}
           </div>
@@ -386,10 +447,10 @@ function GroupedEpisodes({ episodes, bookName }: { episodes: BookEpisode[]; book
         <div className="flex justify-center mt-4">
           <button
             onClick={() => setShowAll(true)}
-            className="px-6 py-2.5 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-[16px] rounded-xl transition-colors border border-amber-500/10"
+            className="px-6 py-2.5 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] text-amber-700 dark:text-amber-400 font-semibold text-[15px] rounded-xl transition-colors border border-amber-500/10"
             data-testid="button-show-all-groups"
           >
-            Show all podcasts
+            Show all {groups.length} podcasts
           </button>
         </div>
       )}
@@ -464,6 +525,16 @@ export default function BookDetailPage() {
     return map;
   }, []);
 
+  const allEpsWithContext = useMemo(() => {
+    if (!book) return [];
+    return book.episodes
+      .filter(ep => ep.context && ep.context.length > 20 && ep.recommendedBy)
+      .sort((a, b) => (b.context?.length || 0) - (a.context?.length || 0));
+  }, [book]);
+
+  const [showAllQuotes, setShowAllQuotes] = useState(false);
+  const visibleQuotes = showAllQuotes ? allEpsWithContext : allEpsWithContext.slice(0, 3);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -489,7 +560,12 @@ export default function BookDetailPage() {
     );
   }
 
-  const featuredQuote = book.episodes.find(e => e.context && e.context.length > 30);
+  const metaItems: { label: string; value: string }[] = [];
+  if (book.rating) metaItems.push({ label: "Rating", value: `${book.rating.toFixed(1)}${book.ratingCount ? ` (${book.ratingCount.toLocaleString()})` : ""}` });
+  if (book.pageCount) metaItems.push({ label: "Pages", value: String(book.pageCount) });
+  if (book.publishYear) metaItems.push({ label: "Published", value: String(book.publishYear) });
+  if (book.firstMentioned) metaItems.push({ label: "First mentioned", value: formatDate(book.firstMentioned) });
+  if (book.lastMentioned && book.lastMentioned !== book.firstMentioned) metaItems.push({ label: "Last mentioned", value: formatDate(book.lastMentioned) });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -497,21 +573,24 @@ export default function BookDetailPage() {
       <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="w-full max-w-6xl">
-          <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-[16px] text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
+        <div className="w-full max-w-5xl">
+          <Link href="/bookstore" className="inline-flex items-center gap-1.5 text-[14px] text-muted-foreground hover:text-foreground transition-colors mb-8" data-testid="link-back-bookstore">
             <ArrowLeft className="w-4 h-4" />
-            Back to Bookstore
+            Bookstore
           </Link>
 
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-8 items-start"
+            className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start"
             data-testid="section-hero"
           >
             <BookCover title={book.name} asin={book.asin} slug={book.slug} googleBooksId={book.googleBooksId} size="xl" />
             <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[12px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">Podcast Intelligence</span>
+              </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight" data-testid="heading-book-title">
                 {book.name}
               </h1>
@@ -521,30 +600,36 @@ export default function BookDetailPage() {
                 </p>
               )}
 
-              <div className="flex flex-wrap items-center gap-2.5 mt-4">
-                {book.podcastScore && <PodcastScoreBadge score={book.podcastScore} />}
-                <span className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-3 py-1.5 rounded-full" data-testid="stat-mentions">
-                  <Mic className="w-3.5 h-3.5" />
-                  {book.mentionCount} {book.mentionCount === 1 ? "mention" : "mentions"}
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-[16px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] px-3 py-1.5 rounded-full" data-testid="stat-podcasts">
-                  {book.podcastCount} {book.podcastCount === 1 ? "podcast" : "podcasts"}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-[16px] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-500/[0.06] border border-amber-500/[0.12] rounded-xl">
+                  <Mic className="w-4 h-4 text-amber-600" />
+                  <div className="flex flex-col">
+                    <span className="text-[18px] font-bold text-amber-700 dark:text-amber-400 leading-tight" data-testid="stat-mentions">{book.mentionCount}</span>
+                    <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Mentions</span>
+                  </div>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-500/[0.06] border border-amber-500/[0.12] rounded-xl">
+                  <MessageCircle className="w-4 h-4 text-amber-600" />
+                  <div className="flex flex-col">
+                    <span className="text-[18px] font-bold text-amber-700 dark:text-amber-400 leading-tight" data-testid="stat-podcasts">{book.podcastCount}</span>
+                    <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Podcasts</span>
+                  </div>
+                </div>
+                {book.podcastScore && (
+                  <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-500/[0.06] border border-amber-500/[0.12] rounded-xl" data-testid="badge-podcast-score" title="Based on mention frequency, podcast diversity, and repeat recommendations">
+                    <TrendingUp className="w-4 h-4 text-amber-600" />
+                    <div className="flex flex-col">
+                      <span className="text-[18px] font-bold text-amber-700 dark:text-amber-400 leading-tight">{book.podcastScore.toFixed(1)}</span>
+                      <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Score</span>
+                    </div>
+                  </div>
+                )}
                 {book.rating && (
-                  <span className="inline-flex items-center gap-1" data-testid="stat-rating">
+                  <div className="inline-flex items-center gap-1.5 text-[14px] text-muted-foreground">
                     <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                    {book.rating.toFixed(1)}
-                    {book.ratingCount && <span className="text-[16px]">({book.ratingCount.toLocaleString()} ratings)</span>}
-                  </span>
-                )}
-                {book.pageCount && (
-                  <span data-testid="stat-pages">{book.pageCount} pages</span>
-                )}
-                {book.publishYear && (
-                  <span data-testid="stat-year">Published {book.publishYear}</span>
+                    <span className="font-semibold text-foreground" data-testid="stat-rating">{book.rating.toFixed(1)}</span>
+                    {book.ratingCount && <span className="text-[13px]">({book.ratingCount.toLocaleString()})</span>}
+                  </div>
                 )}
               </div>
 
@@ -553,24 +638,13 @@ export default function BookDetailPage() {
                   {book.topics.map(t => (
                     <Link
                       key={t}
-                      href={`/bookstore`}
-                      className="text-[16px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] px-2.5 py-1 rounded-full transition-colors"
+                      href="/bookstore"
+                      className="text-[13px] font-medium text-muted-foreground bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] px-2.5 py-1 rounded-full transition-colors"
                       data-testid={`topic-${t.toLowerCase().replace(/\s+/g, '-')}`}
                     >
                       {t}
                     </Link>
                   ))}
-                </div>
-              )}
-
-              {(book.firstMentioned || book.lastMentioned) && (
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-[16px] text-[#3F3F46]">
-                  {book.firstMentioned && (
-                    <span data-testid="stat-first-mentioned">First mentioned {formatDate(book.firstMentioned)}</span>
-                  )}
-                  {book.lastMentioned && book.firstMentioned !== book.lastMentioned && (
-                    <span data-testid="stat-last-mentioned">Last mentioned {formatDate(book.lastMentioned)}</span>
-                  )}
                 </div>
               )}
 
@@ -580,7 +654,7 @@ export default function BookDetailPage() {
                     href={book.amazonUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                     data-testid="button-amazon"
                   >
                     <ShoppingCart className="w-4 h-4" />
@@ -593,11 +667,11 @@ export default function BookDetailPage() {
                     href={book.blinkistUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                     data-testid="button-blinkist"
                   >
                     <FileText className="w-4 h-4" />
-                    Read Summary on Blinkist
+                    Summary on Blinkist
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
@@ -614,29 +688,29 @@ export default function BookDetailPage() {
               className="mt-8"
               data-testid="section-featured-podcasts"
             >
-              <p className="text-[16px] font-semibold text-muted-foreground mb-3">
-                Featured on top podcasts like
+              <p className="text-[13px] font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+                Heard on
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2.5">
                 {featuredPodcasts.map((p) => (
                   <Link
                     key={p.slug}
                     href={`/podcasts/${p.slug}`}
-                    className="flex items-center gap-2.5 px-3 py-2 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl hover:bg-amber-500/[0.04] transition-colors group"
+                    className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl hover:bg-amber-500/[0.04] hover:border-amber-500/15 transition-all group"
                     data-testid={`featured-podcast-${p.slug}`}
                   >
                     <img
                       src={p.artworkUrl}
                       alt={p.name}
-                      className="w-8 h-8 rounded-lg object-cover shrink-0 shadow-sm"
+                      className="w-7 h-7 rounded-lg object-cover shrink-0 shadow-sm"
                     />
-                    <span className="text-[16px] font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                    <span className="text-[14px] font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                       {p.name}
                     </span>
                   </Link>
                 ))}
                 {book.podcastCount > featuredPodcasts.length && (
-                  <span className="flex items-center px-3 py-2 text-[16px] text-muted-foreground">
+                  <span className="flex items-center px-3 py-2 text-[13px] text-muted-foreground">
                     +{book.podcastCount - featuredPodcasts.length} more
                   </span>
                 )}
@@ -644,44 +718,59 @@ export default function BookDetailPage() {
             </motion.section>
           )}
 
-          {featuredQuote && (
+          {book.podcastBuzz && (
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="mt-8"
-              data-testid="section-featured-quote"
+              className="mt-10"
+              data-testid="section-the-signal"
             >
-              <div className="px-6 py-5 bg-amber-500/[0.04] border-l-4 border-amber-500 rounded-r-xl">
-                <p className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">How It Was Mentioned</p>
-                <p className="text-[16px] text-foreground leading-relaxed" data-testid="text-featured-quote">
-                  {featuredQuote.context}
-                </p>
-                <p className="mt-3 text-[16px] text-muted-foreground">
-                  {featuredQuote.hosts && <span className="font-semibold text-foreground">{featuredQuote.hosts}</span>}
-                  {featuredQuote.hosts && " on "}
-                  <Link href={`/podcasts/${featuredQuote.podcastSlug}`} className="font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2">
-                    {featuredQuote.podcastName}
-                  </Link>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/[0.08] flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-amber-600" />
+                </div>
+                <h2 className="text-lg font-bold text-foreground" data-testid="heading-the-signal">Why This Book Keeps Coming Up</h2>
+              </div>
+              <div className="pl-5 border-l-[3px] border-amber-500/30">
+                <p className="text-[15px] sm:text-[16px] text-foreground leading-relaxed" data-testid="text-podcast-buzz">
+                  {book.podcastBuzz}
                 </p>
               </div>
             </motion.section>
           )}
 
-          {book.description && (
+          {recommendationQuotes.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
               className="mt-10"
-              data-testid="section-about"
+              data-testid="section-what-they-say"
             >
-              <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-about">
-                What Is {book.name} About
-              </h2>
-              <p className="text-[16px] text-muted-foreground leading-relaxed" data-testid="text-description">
-                {book.description}
-              </p>
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/[0.08] flex items-center justify-center">
+                  <Quote className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground" data-testid="heading-what-they-say">What People Say About It</h2>
+                  <p className="text-[13px] text-muted-foreground">Real recommendations from podcast conversations</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {visibleQuotes.map((ep, i) => (
+                  <RecommendationCard key={`${ep.episodeSlug}-${i}`} ep={ep} index={i} peopleMap={peopleMap} />
+                ))}
+              </div>
+              {allEpsWithContext.length > 3 && !showAllQuotes && (
+                <button
+                  onClick={() => setShowAllQuotes(true)}
+                  className="mt-4 w-full py-3 text-[15px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.04] hover:bg-amber-500/[0.08] rounded-xl border border-amber-500/10 transition-colors"
+                  data-testid="button-show-all-quotes"
+                >
+                  See all {allEpsWithContext.length} recommendations
+                </button>
+              )}
             </motion.section>
           )}
 
@@ -690,26 +779,31 @@ export default function BookDetailPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.18 }}
-              className="mt-8"
+              className="mt-10"
               data-testid="section-who-recommends"
             >
-              <h2 className="text-lg font-bold text-foreground mb-3" data-testid="heading-who-recommends">Recommended By</h2>
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/[0.08] flex items-center justify-center">
+                  <User className="w-4 h-4 text-amber-600" />
+                </div>
+                <h2 className="text-lg font-bold text-foreground" data-testid="heading-who-recommends">Who Recommends It</h2>
+              </div>
               {hasAuthorAppearance && (
                 <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-violet-500/[0.04] border border-violet-500/[0.12] rounded-xl" data-testid="author-appearance-note">
                   <User className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
-                  <span className="text-[16px] text-muted-foreground">
+                  <span className="text-[14px] text-muted-foreground">
                     <span className="font-semibold text-violet-700 dark:text-violet-400">{book.author}</span> appeared as a guest to discuss this book
                   </span>
                 </div>
               )}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2.5">
                 {[...hostRecommenders.slice(0, 8), ...guestRecommenders.slice(0, 6)].map(r => {
                   const person = peopleMap.get(r.name.toLowerCase());
                   const roleColor = r.role === "guest"
                     ? "text-blue-600 dark:text-blue-400"
                     : "text-amber-600 dark:text-amber-400";
                   const content = (
-                    <div className="flex items-center gap-2.5 px-3 py-2 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl hover:bg-amber-500/[0.04] transition-colors group">
+                    <div className="flex items-center gap-2.5 px-3 py-2 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-xl hover:bg-amber-500/[0.04] hover:border-amber-500/15 transition-all group">
                       {person ? (
                         <img
                           src={person.imageUrl}
@@ -722,10 +816,10 @@ export default function BookDetailPage() {
                         </div>
                       )}
                       <div className="flex flex-col">
-                        <span className="text-[16px] font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors leading-tight">{r.name}</span>
-                        <span className={`text-[16px] font-medium ${roleColor} leading-tight`}>
+                        <span className="text-[14px] font-semibold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors leading-tight">{r.name}</span>
+                        <span className={`text-[12px] font-medium ${roleColor} leading-tight`}>
                           {r.role === "guest" ? "Guest" : "Host"}
-                          {r.count >= 2 && ` · ${r.count}x`}
+                          {r.count >= 2 && ` · mentioned ${r.count}x`}
                         </span>
                       </div>
                     </div>
@@ -745,18 +839,55 @@ export default function BookDetailPage() {
             </motion.section>
           )}
 
-          {book.episodes.length > 0 && (
+          {(book.description || metaItems.length > 0) && (
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
               className="mt-10"
+              data-testid="section-about"
+            >
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <h2 className="text-lg font-bold text-foreground" data-testid="heading-about">About the Book</h2>
+              </div>
+              {book.description && (
+                <p className="text-[15px] text-muted-foreground leading-relaxed pl-[42px]" data-testid="text-description">
+                  {book.description}
+                </p>
+              )}
+              {metaItems.length > 0 && (
+                <div className={`flex flex-wrap gap-x-5 gap-y-1.5 ${book.description ? "mt-3" : "mt-0"} pl-[42px] text-[13px] text-muted-foreground`}>
+                  {metaItems.map(item => (
+                    <span key={item.label}>
+                      <span className="font-medium text-[#3F3F46] dark:text-[#A1A1AA]">{item.label}:</span> {item.value}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </motion.section>
+          )}
+
+          {book.episodes.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.22 }}
+              className="mt-10"
               data-testid="section-episodes"
             >
-              <h2 className="text-lg font-bold text-foreground mb-4" data-testid="heading-episodes">
-                Podcast Mentions
-              </h2>
-              <GroupedEpisodes episodes={book.episodes} bookName={book.name} />
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/[0.08] flex items-center justify-center">
+                  <Mic className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground" data-testid="heading-episodes">The Conversations</h2>
+                  <p className="text-[13px] text-muted-foreground">Every podcast episode where this book was discussed</p>
+                </div>
+              </div>
+              <ConversationsList episodes={book.episodes} />
             </motion.section>
           )}
 
@@ -769,11 +900,16 @@ export default function BookDetailPage() {
               data-testid="section-related"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-foreground" data-testid="heading-related">Podcast Listeners Also Read</h2>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/[0.08] flex items-center justify-center">
+                    <Hash className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-foreground" data-testid="heading-related">Frequently Recommended Together</h2>
+                </div>
                 {book.topics.length > 0 && (
                   <Link
                     href="/bookstore"
-                    className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2"
+                    className="text-[14px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 hidden sm:block"
                     data-testid="link-browse-topic"
                   >
                     Browse all {book.topics[0]} books
@@ -791,15 +927,15 @@ export default function BookDetailPage() {
                     <div className="flex justify-center mb-2">
                       <SmallBookCover title={rb.name} asin={rb.asin} slug={rb.slug} googleBooksId={rb.googleBooksId} />
                     </div>
-                    <p className="text-[16px] font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
+                    <p className="text-[14px] font-semibold text-foreground leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 text-center">
                       {rb.name}
                     </p>
                     {rb.author && (
-                      <p className="text-[16px] text-muted-foreground mt-0.5 line-clamp-1 text-center">
+                      <p className="text-[12px] text-muted-foreground mt-0.5 line-clamp-1 text-center">
                         {rb.author}
                       </p>
                     )}
-                    <p className="text-[16px] text-amber-600 dark:text-amber-400 font-medium mt-1 text-center">
+                    <p className="text-[12px] text-amber-600 dark:text-amber-400 font-medium mt-1 text-center">
                       {rb.mentionCount > 1 ? `Mentioned ${rb.mentionCount}x together` : "Mentioned together"}
                     </p>
                   </Link>
@@ -815,7 +951,7 @@ export default function BookDetailPage() {
                   href={book.amazonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                   data-testid="button-amazon-bottom"
                 >
                   <ShoppingCart className="w-4 h-4" />
@@ -828,11 +964,11 @@ export default function BookDetailPage() {
                   href={book.blinkistUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                   data-testid="button-blinkist-bottom"
                 >
                   <FileText className="w-4 h-4" />
-                  Read Summary on Blinkist
+                  Summary on Blinkist
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               )}
@@ -848,7 +984,7 @@ export default function BookDetailPage() {
               href={book.amazonUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center justify-center gap-2 ${book.blinkistUrl ? 'flex-1' : 'w-full'} py-3.5 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-[16px] rounded-xl transition-colors shadow-sm`}
+              className={`flex items-center justify-center gap-2 ${book.blinkistUrl ? 'flex-1' : 'w-full'} py-3.5 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-[15px] rounded-xl transition-colors shadow-sm`}
               data-testid="button-amazon-sticky"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -860,7 +996,7 @@ export default function BookDetailPage() {
                 href={book.blinkistUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[16px] rounded-xl transition-colors shadow-sm"
+                className="flex items-center justify-center gap-2 flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[15px] rounded-xl transition-colors shadow-sm"
                 data-testid="button-blinkist-sticky"
               >
                 <FileText className="w-4 h-4" />
