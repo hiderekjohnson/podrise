@@ -272,7 +272,8 @@ function renderInlineMarkdown(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#6366F1;text-decoration:underline;" target="_blank">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#6366F1;text-decoration:underline;" target="_blank">$1</a>')
+    .replace(/\[([^\]]+)\](?!\()/g, "$1");
 }
 
 function podcastNameToSlug(name: string): string {
