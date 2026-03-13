@@ -378,7 +378,7 @@ export default function Home() {
               </p>
               <button
                 data-testid="button-bottom-cta"
-                onClick={() => navigate("/get-started")}
+                onClick={() => navigate("/register")}
                 className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-[10px] font-display font-bold text-[17px] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
               >
                 Create Your Free Account

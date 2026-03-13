@@ -170,7 +170,7 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     title: "Get Started - Create Your Free PodCap Account",
     description: "Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from 240+ top podcasts.",
     image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/get-started",
+    url: "https://podcap.io/register",
     twitterCard: "summary",
     replaceFavicon: false,
     ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Get Started with PodCap</h1><p>Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from ${PODCAST_SEO.length}+ top podcasts.</p><a href="/podcasts">Browse Podcasts</a></div>`,

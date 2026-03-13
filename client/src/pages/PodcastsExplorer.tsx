@@ -682,7 +682,7 @@ export default function PodcastsExplorer() {
                     <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
                       Subscribe and get AI-generated recaps of every episode, so you never miss the key takeaways.
                     </p>
-                    <Link href="/get-started" data-testid="link-get-started-sidebar">
+                    <Link href="/register" data-testid="link-get-started-sidebar">
                       <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground text-[13px] font-semibold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer">
                         Get started free
                         <ArrowRight className="w-3.5 h-3.5" />

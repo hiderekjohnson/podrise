@@ -116,7 +116,7 @@ export function Footer() {
             <h3 className={headingClass}>Support</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/get-started" className={linkClass} data-testid="link-get-started">
+                <Link href="/register" className={linkClass} data-testid="link-get-started">
                   Create Account
                 </Link>
               </li>

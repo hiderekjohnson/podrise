@@ -79,7 +79,7 @@ function Router() {
         <Route path="/people" component={PeopleDirectory} />
         <Route path="/companies/:slug" component={CompanyDetailPage} />
         <Route path="/companies" component={CompaniesDirectory} />
-        <Route path="/get-started" component={GetStarted} />
+        <Route path="/get-started">{() => { window.location.replace("/register"); return null; }}</Route>
         <Route path="/register" component={Register} />
         <Route path="/verify-email" component={VerifyEmail} />
         <Route path="/enterprise" component={Enterprise} />
