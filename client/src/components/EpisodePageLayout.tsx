@@ -153,7 +153,7 @@ export function EpisodePageLayout({
   }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background">
       <PodCapHeader
         rightContent={
           <button

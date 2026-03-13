@@ -845,7 +845,7 @@ export default function EpisodeRecapPage() {
           <span className="text-foreground font-medium truncate min-w-0">{episode.episodeTitle}</span>
         </nav>
 
-        <nav className="sticky top-[56px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
+        <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
           {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}
