@@ -502,7 +502,7 @@ export function recapHasContent(markdown: string): boolean {
   return parsed.episodes.length > 0;
 }
 
-export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>): string {
+export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, customPreviewText?: string): string {
   const parsed = parseDigestMarkdown(markdown);
 
   const totalDuration = computeTotalDuration(parsed.episodes);
@@ -511,7 +511,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-  const previewText = `${episodeCount} of your followed podcasts dropped new episodes - ${parsed.episodes.map(e => e.podcastName).join(", ")}.`;
+  const previewText = customPreviewText || `${episodeCount} of your followed podcasts dropped new episodes - ${parsed.episodes.map(e => e.podcastName).join(", ")}.`;
 
   const episodeCardsHtml = parsed.episodes.map((ep, idx) => {
     const derivedSlug = podcastNameToSlug(ep.podcastName);
@@ -525,7 +525,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Your Daily PodCap Digest</title>
+  <title>Your Daily Podcast Recap</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}

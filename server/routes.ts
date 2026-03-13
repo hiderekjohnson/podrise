@@ -3419,7 +3419,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
-        from: `PodCap Daily <${fromEmail}>`,
+        from: `PodCap <${fromEmail}>`,
         to: user.email,
         subject: `☕ Your PodCap Daily Recap - ${new Date(recap.recapDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
         html: emailHtml,
@@ -3751,16 +3751,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
     try {
       const epMeta2 = await buildEpisodeMetaFromSummary(pending.summary);
-      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2);
+      const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
+      const { subject: aiSubject, previewText } = await generateEmailSubjectAndPreview(pending.summary);
+      const freshSubject = aiSubject;
+      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, epMeta2, previewText);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
-        from: `PodCap Daily <${fromEmail}>`,
+        from: `PodCap <${fromEmail}>`,
         to: pending.recipientEmail,
-        subject: pending.subject,
+        subject: freshSubject,
         html: htmlWithTracking,
       });
 

@@ -235,6 +235,70 @@ Only include keys where count > 0.`
   return meta;
 }
 
+export async function generateEmailSubjectAndPreview(summary: string): Promise<{ subject: string; previewText: string }> {
+  const fallbackSubject = `Your podcasts dropped new episodes`;
+  const fallbackPreview = `Here is what you missed today`;
+  try {
+    const { openai } = await import("./replit_integrations/image/client");
+    const resp = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: `You write email subject lines and preview text for a daily podcast recap email. The sender name is "PodCap" so DO NOT include "PodCap" in the subject.
+
+Given today's podcast recap content below, generate:
+1. A SUBJECT LINE: Pull the single most interesting or surprising thing from any episode and turn it into a subject line under 50 characters. It should read like a smart friend texting you something they just heard -- not a newsletter. Never use words like "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", or "episode". No emojis.
+2. A PREVIEW TEXT: This is the gray text Gmail shows next to the subject before opening. It should either complete the thought from the subject line or introduce a second hook from a DIFFERENT episode. Never repeat the subject. Keep under 80 characters. Start with "Plus --" or "Also --" if referencing a different episode.
+
+GOOD subject examples:
+- She made $1M as employee #3000
+- The simplest way to make $1M in 2026
+- Why boring businesses win right now
+- The AI lab nobody is watching closely enough
+
+BAD subject examples:
+- Your Daily Podcast Digest for Thursday
+- 3 episodes you need to hear today
+- PodCap: What happened this week in AI
+
+GOOD preview examples:
+- Plus -- the dopamine mistake you are probably making every morning
+- Also -- why Anthropic was called the most dangerous company in AI right now
+- And the book Elon said changed how he thinks about risk
+
+BAD preview examples:
+- 3 episodes covering AI, business, and health
+- Your daily podcast summary is ready
+- Tap to read your full recap
+
+Recap content:
+${summary.slice(0, 3000)}
+
+Respond with JSON: { "subject": "...", "previewText": "..." }`
+      }],
+      max_tokens: 200,
+      temperature: 0.9,
+      response_format: { type: "json_object" },
+    });
+
+    const content = resp.choices[0]?.message?.content;
+    if (content) {
+      const parsed = JSON.parse(content);
+      const subj = String(parsed.subject || "").trim();
+      const prev = String(parsed.previewText || "").trim();
+      if (subj && subj.length <= 80) {
+        return {
+          subject: subj,
+          previewText: prev || fallbackPreview,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[EmailScheduler] AI subject/preview generation failed:", err);
+  }
+  return { subject: fallbackSubject, previewText: fallbackPreview };
+}
+
 async function sendAdminNotification(userEmail: string, subject: string) {
   const { client, fromEmail } = await getUncachableResendClient();
   await client.emails.send({
@@ -409,10 +473,11 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
 
     const podcastNames = result.parsedEpisodes.map((ep: any) => ep.podcastName).filter(Boolean);
     const episodeMeta = await buildEpisodeMeta(podcastNames);
-    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta);
+    const { subject: aiSubject, previewText } = await generateEmailSubjectAndPreview(result.summary);
+    const emailHtml = markdownToEmailHtml(result.summary, user.email, episodeMeta, previewText);
 
     const deliveryTime = user.deliveryTime || "07:00";
-    const subject = `☕ Your PodCap Daily Recap - ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
+    const subject = aiSubject;
 
     await storage.createRecap({
       userId: user.id,
@@ -553,7 +618,7 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
 
   const { client, fromEmail } = await getUncachableResendClient();
   const sendResult = await client.emails.send({
-    from: `PodCap Daily <${fromEmail}>`,
+    from: `PodCap <${fromEmail}>`,
     to: pending.recipientEmail,
     subject: pending.subject,
     html: htmlWithTracking,
