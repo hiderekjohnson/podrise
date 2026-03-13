@@ -122,6 +122,29 @@ async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, 
           } catch (e) {}
         }
 
+        const guestSlugs = new Set(guestNames.map(g => g.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")));
+        const entityTeasers: { name: string; hint: string }[] = [];
+        if (row.entity_contexts_cache) {
+          const cacheForTeasers = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+          if (cacheForTeasers && typeof cacheForTeasers === "object") {
+            for (const [slug, context] of Object.entries(cacheForTeasers)) {
+              if (typeof context !== "string" || !context) continue;
+              if (guestSlugs.has(slug)) continue;
+              const name = knownNames[slug] || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+              entityTeasers.push({ name, hint: context });
+            }
+          }
+        }
+
+        const bookTeaserList: { title: string; hint: string }[] = [];
+        if (Array.isArray(parsedResources)) {
+          for (const r of parsedResources) {
+            if (r.type === "book" && r.name) {
+              bookTeaserList.push({ title: r.name, hint: r.context || r.description || "" });
+            }
+          }
+        }
+
         meta[derivedSlug] = {
           canonicalSlug,
           artworkUrl,
@@ -135,6 +158,8 @@ async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, 
           guests: guestNames,
           episodeDuration: row.duration || "",
           episodeDate,
+          entityTeasers,
+          bookTeasers: bookTeaserList,
         };
       }
     } finally {
