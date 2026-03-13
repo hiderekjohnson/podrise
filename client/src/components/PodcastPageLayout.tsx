@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PodCapHeader } from "@/components/PodCapHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
+import { useSetConversion } from "@/contexts/PageConversionContext";
 
 export type PodcastTab = "episodes" | "about" | "discover" | "books";
 
@@ -37,6 +38,15 @@ export function PodcastPageLayout({
 
   const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description, appleRating, appleRatingCount } = config;
   const twitterHandle = config.twitterHandle;
+
+  useSetConversion({
+    pageType: "podcast",
+    name,
+    slug: config.slug,
+    artworkUrl,
+    hosts: hosts ? hosts.split(/,\s*|&\s*|\sand\s/i).map(h => h.trim()).filter(Boolean) : [],
+    description,
+  });
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;

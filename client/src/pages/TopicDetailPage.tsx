@@ -11,6 +11,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPIC_TO_TOPICS_PAGE_MAP, PODCAST_CATEGORIES, getPodcastsForTopic } from "@/data/podcastCategoryData";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { InlineEmailCTA } from "@/components/InlineEmailCTA";
+import { StickyEmailBar } from "@/components/StickyEmailBar";
+import { useSetConversion } from "@/contexts/PageConversionContext";
 
 const ICON_MAP: Record<string, any> = {
   Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Users: Users,
@@ -292,6 +295,15 @@ export default function TopicDetailPage() {
 
   const categoryLabel = topic?.category === "industry" ? "Industries" : topic?.category === "role" ? "Roles" : "Interests";
 
+  useSetConversion(topic ? {
+    pageType: "topic",
+    name: topicDisplayName,
+    slug: topic.slug,
+    categoryType: topic.category,
+    description: topicDescription,
+    podcastCount: uniquePodcastSources || allPodcasts.length,
+  } : null);
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead name={topicDisplayName} description={topicDescription} />
@@ -393,6 +405,22 @@ export default function TopicDetailPage() {
               ))}
             </div>
           </motion.section>
+        )}
+
+        {topic && keyInsights.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.14 }}
+            className="mb-12"
+          >
+            <InlineEmailCTA
+              type={topic.category}
+              slug={topic.slug}
+              name={topicDisplayName}
+              variant="gradient"
+            />
+          </motion.div>
         )}
 
         {topicEpisodes && topicEpisodes.length > 0 && (
@@ -729,11 +757,11 @@ export default function TopicDetailPage() {
             transition={{ duration: 0.4, delay: 0.35 }}
             className="mb-8"
           >
-            <NewsletterSignup
+            <InlineEmailCTA
               type={topic.category}
               slug={topic.slug}
               name={topicDisplayName}
-              variant="banner"
+              variant="card"
             />
           </motion.section>
         )}
@@ -797,6 +825,14 @@ export default function TopicDetailPage() {
       </main>
 
       <Footer />
+
+      {topic && (
+        <StickyEmailBar
+          type={topic.category}
+          slug={topic.slug}
+          name={topicDisplayName}
+        />
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
+import { useSetConversion } from "@/contexts/PageConversionContext";
 
 interface EpisodeGuest {
   name: string;
@@ -61,6 +62,16 @@ export function EpisodePageLayout({
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
   const register = useRegister();
+
+  useSetConversion({
+    pageType: "episode",
+    name: episode.episodeTitle,
+    slug: episodeSlug,
+    podcastName: episode.podcastName,
+    podcastSlug,
+    artworkUrl: episode.artworkUrl,
+    hosts: podcastConfig.hosts ? podcastConfig.hosts.split(/,\s*|&\s*|\sand\s/i).map(h => h.trim()).filter(Boolean) : [],
+  });
 
   const publishDate = new Date(episode.publishDate + "T00:00:00");
   const formattedDate = publishDate.toLocaleDateString("en-US", {

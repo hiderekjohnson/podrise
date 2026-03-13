@@ -6,10 +6,97 @@ import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { usePageConversion, type PageConversionData } from "@/contexts/PageConversionContext";
 
 const STORAGE_KEY = "podcap_exit_dismissed";
 const MIN_TIME_ON_PAGE_MS = 8000;
 const SCROLL_THRESHOLD = 0.3;
+
+function getContextualCopy(data: PageConversionData | null) {
+  if (!data) {
+    return {
+      badge: "Before you go",
+      heading: "Never miss the key takeaways",
+      subtext: "Get AI-generated recaps of every episode from top podcasts — the insights without the hours of listening.",
+      cta: "Get free recaps",
+      subscribeType: "interest" as const,
+      subscribeSlug: "general",
+      subscribeName: "PodCap Recaps",
+    };
+  }
+
+  switch (data.pageType) {
+    case "podcast": {
+      const hostList = data.hosts || [];
+      const hostDisplay = hostList.length > 2
+        ? `${hostList.slice(0, 2).join(", ")} & more`
+        : hostList.join(" & ");
+      return {
+        badge: `${data.name} Recaps`,
+        heading: hostDisplay
+          ? `Don't miss ${hostDisplay}'s latest takes`
+          : `Never miss a ${data.name} episode`,
+        subtext: `Get a free recap every time ${data.name} drops a new episode — key insights in 5 minutes, not ${data.description ? "hours" : "an hour"}.`,
+        cta: `Get ${data.name} recaps`,
+        subscribeType: "podcast" as const,
+        subscribeSlug: data.slug,
+        subscribeName: data.name,
+      };
+    }
+    case "episode": {
+      const hostList = data.hosts || [];
+      const podcastDisplayName = data.podcastName || data.name;
+      const hostDisplay = hostList.length > 2
+        ? `${hostList.slice(0, 2).join(", ")} & more`
+        : hostList.join(" & ");
+      return {
+        badge: `${data.name} Recaps`,
+        heading: hostDisplay
+          ? `Get every ${podcastDisplayName} recap with ${hostDisplay}`
+          : `Never miss a ${podcastDisplayName} recap`,
+        subtext: `Liked this recap? Get one every time a new episode drops — free, in your inbox.`,
+        cta: `Get ${podcastDisplayName} recaps`,
+        subscribeType: "podcast" as const,
+        subscribeSlug: data.podcastSlug || data.slug,
+        subscribeName: podcastDisplayName,
+      };
+    }
+    case "topic": {
+      const label = data.categoryType === "industry" ? "industry" : data.categoryType === "role" ? "role" : "topic";
+      return {
+        badge: `${data.name} Intelligence`,
+        heading: `Stay ahead on ${data.name.toLowerCase()}`,
+        subtext: `Get a daily briefing with the key insights about ${data.name.toLowerCase()} from ${data.podcastCount ? `${data.podcastCount}+` : "top"} podcasts — delivered to your inbox.`,
+        cta: `Get the ${data.name} briefing`,
+        subscribeType: data.categoryType || "interest",
+        subscribeSlug: data.slug,
+        subscribeName: data.name,
+      };
+    }
+    case "category": {
+      const catLabel = data.categoryType === "industry" ? "industry" : data.categoryType === "role" ? "role" : "interest";
+      return {
+        badge: "Podcast Intelligence",
+        heading: `Get daily ${catLabel} briefings`,
+        subtext: `Choose the ${catLabel === "role" ? "roles" : catLabel === "industry" ? "industries" : "topics"} you care about and get a daily briefing with key insights from top podcasts.`,
+        cta: "Get started free",
+        subscribeType: data.categoryType || "interest",
+        subscribeSlug: "general",
+        subscribeName: `PodCap ${data.name}`,
+      };
+    }
+    default:
+      return {
+        badge: "Before you go",
+        heading: "Never miss the key takeaways",
+        subtext: "Get AI-generated recaps of every episode from top podcasts — the insights without the hours of listening.",
+        cta: "Get free recaps",
+        subscribeType: "interest" as const,
+        subscribeSlug: "general",
+        subscribeName: "PodCap Recaps",
+      };
+  }
+}
 
 export function ExitIntentPopup() {
   const [show, setShow] = useState(false);
@@ -19,17 +106,20 @@ export function ExitIntentPopup() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: user } = useAuth();
+  const { data: pageData } = usePageConversion();
   const triggeredRef = useRef(false);
   const mountTimeRef = useRef(Date.now());
   const hasScrolledRef = useRef(false);
+
+  const copy = getContextualCopy(pageData);
 
   const subscribe = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
         email,
-        type: "interest",
-        slug: "general",
-        name: "PodCap Recaps",
+        type: copy.subscribeType,
+        slug: copy.subscribeSlug,
+        name: copy.subscribeName,
       });
       return res.json();
     },
@@ -130,6 +220,8 @@ export function ExitIntentPopup() {
     subscribe.mutate();
   };
 
+  const showArtwork = pageData?.artworkUrl && (pageData.pageType === "podcast" || pageData.pageType === "episode");
+
   return (
     <AnimatePresence>
       {show && (
@@ -160,6 +252,9 @@ export function ExitIntentPopup() {
             <div className="p-6 sm:p-8">
               {success ? (
                 <div className="text-center py-4">
+                  {showArtwork && (
+                    <img src={pageData!.artworkUrl} alt={pageData!.name} className="w-16 h-16 rounded-xl mx-auto mb-4 shadow-lg" />
+                  )}
                   <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                     <Check className="w-7 h-7 text-green-600" />
                   </div>
@@ -167,7 +262,10 @@ export function ExitIntentPopup() {
                     You're in!
                   </h3>
                   <p className="text-[15px] text-muted-foreground mb-4">
-                    {isNewUser ? "We created your account. " : ""}Check your inbox for podcast recaps.
+                    {isNewUser ? "We created your account. " : ""}
+                    {pageData?.pageType === "podcast" || pageData?.pageType === "episode"
+                      ? `You'll get a recap every time ${pageData.podcastName || pageData.name} drops a new episode.`
+                      : "Check your inbox for podcast recaps."}
                   </p>
                   <Link href="/dashboard" onClick={dismiss}>
                     <span className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary hover:underline cursor-pointer" data-testid="link-exit-intent-dashboard">
@@ -177,15 +275,27 @@ export function ExitIntentPopup() {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 mb-3">
+                  {showArtwork && (
+                    <div className="flex justify-center mb-5">
+                      <div className="relative">
+                        <div className="absolute -inset-3 bg-primary/[0.06] rounded-2xl blur-xl" />
+                        <img
+                          src={pageData!.artworkUrl}
+                          alt={pageData!.name}
+                          className="relative w-20 h-20 rounded-xl shadow-xl ring-1 ring-black/[0.06]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-3 justify-center">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">Before you go</span>
+                    <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">{copy.badge}</span>
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-display font-bold text-foreground mb-2 leading-tight" data-testid="text-exit-intent-heading">
-                    Never miss the key takeaways
+                  <h3 className="text-xl sm:text-2xl font-display font-bold text-foreground mb-2 leading-tight text-center" data-testid="text-exit-intent-heading">
+                    {copy.heading}
                   </h3>
-                  <p className="text-[15px] text-muted-foreground leading-relaxed mb-6">
-                    Get AI-generated recaps of every episode from top podcasts — the insights without the hours of listening.
+                  <p className="text-[15px] text-muted-foreground leading-relaxed mb-6 text-center">
+                    {copy.subtext}
                   </p>
                   <form onSubmit={handleSubmit} className="space-y-3">
                     <div className="relative">
@@ -211,7 +321,7 @@ export function ExitIntentPopup() {
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <>
-                          Get free recaps
+                          {copy.cta}
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}

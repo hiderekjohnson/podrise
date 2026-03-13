@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import Home from "./pages/Home";
 import NotFound from "./pages/not-found";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { PageConversionProvider } from "@/contexts/PageConversionContext";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -112,11 +113,13 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Router />
-        <ExitIntentPopup />
-        <Toaster />
-      </TooltipProvider>
+      <PageConversionProvider>
+        <TooltipProvider>
+          <Router />
+          <ExitIntentPopup />
+          <Toaster />
+        </TooltipProvider>
+      </PageConversionProvider>
     </QueryClientProvider>
   );
 }
