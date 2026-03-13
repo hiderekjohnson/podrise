@@ -16,7 +16,7 @@ interface PodcastStat {
 }
 
 interface DiscoveryData {
-  recentEpisodes: { slug: string; episode_slug: string; podcast_name: string; episode_title: string; publish_date: string; artwork_url: string; tldl: string }[];
+  recentEpisodes: { slug: string; episodeSlug: string; podcastName: string; episodeTitle: string; publishDate: string; artworkUrl: string; tldl: string; hosts: string }[];
   podcastStats: PodcastStat[];
 }
 
@@ -251,17 +251,17 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
 
 function LatestEpisodePill({ episode }: { episode: DiscoveryData["recentEpisodes"][number] }) {
   return (
-    <Link href={`/podcasts/${episode.slug}/${episode.episode_slug}`} data-testid={`pill-episode-${episode.episode_slug}`}>
+    <Link href={`/podcasts/${episode.slug}/${episode.episodeSlug}`} data-testid={`pill-episode-${episode.episodeSlug}`}>
       <div className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-black/[0.05] dark:border-white/[0.05] hover:border-primary/15 hover:shadow-sm transition-all cursor-pointer shrink-0 w-[340px]">
         <img
-          src={episode.artwork_url}
-          alt={episode.podcast_name}
+          src={episode.artworkUrl}
+          alt={episode.podcastName}
           className="w-9 h-9 rounded-lg object-cover flex-shrink-0"
           loading="lazy"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-semibold text-primary/70 truncate">{episode.podcast_name}</p>
-          <p className="text-[13px] font-medium text-foreground truncate group-hover:text-primary transition-colors">{episode.episode_title}</p>
+          <p className="text-[12px] font-semibold text-primary/70 truncate">{episode.podcastName}</p>
+          <p className="text-[13px] font-medium text-foreground truncate group-hover:text-primary transition-colors">{episode.episodeTitle}</p>
         </div>
       </div>
     </Link>
@@ -593,7 +593,7 @@ export default function PodcastsExplorer() {
                     className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
                   >
                     {recentEpisodes.slice(0, 12).map((ep) => (
-                      <LatestEpisodePill key={ep.episode_slug} episode={ep} />
+                      <LatestEpisodePill key={ep.episodeSlug} episode={ep} />
                     ))}
                   </div>
                   <div className="absolute right-0 top-0 bottom-2 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none" />
