@@ -11,7 +11,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { useSetConversion } from "@/contexts/PageConversionContext";
 
-export type PodcastTab = "episodes" | "about" | "discover" | "books";
+export type PodcastTab = "episodes" | "about" | "discover" | "books" | "get-recaps";
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
@@ -101,10 +101,11 @@ export function PodcastPageLayout({
     doRegister(stickyEmail);
   };
 
-  const tabs: { id: PodcastTab; label: string; icon: typeof Mic }[] = [
+  const tabs: { id: PodcastTab; label: string; icon: typeof Mic; accent?: boolean }[] = [
     { id: "episodes", label: "Episode Recaps", icon: Mic },
     { id: "discover", label: "Discover", icon: Compass },
     { id: "books", label: "Recommended Reading", icon: BookOpen },
+    { id: "get-recaps", label: "Get Recaps", icon: Mail, accent: true },
   ];
 
   return (
@@ -232,7 +233,9 @@ export function PodcastPageLayout({
                 className={`flex items-center gap-2 px-4 py-3.5 text-[16px] font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[48px] ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
-                    : "border-transparent text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:border-black/[0.08]"
+                    : tab.accent
+                      ? "border-transparent text-primary/70 hover:text-primary hover:border-primary/30"
+                      : "border-transparent text-[#3F3F46] dark:text-[#A1A1AA] hover:text-foreground hover:border-black/[0.08]"
                 }`}
                 data-testid={`tab-${tab.id}`}
               >

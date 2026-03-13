@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, X, Compass, Headphones, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, X, Compass, Headphones, ShoppingBag, Globe, Building2, Tag, UserCircle, BookOpen, Mail, CheckCircle2, Lightbulb } from "lucide-react";
 import { SiX, SiApplepodcasts, SiSpotify, SiYoutube, SiLinkedin, SiInstagram, SiTiktok, SiFacebook, SiDiscord } from "react-icons/si";
 import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayout";
@@ -242,10 +244,14 @@ export default function PodcastLandingGeneric() {
   const staticConfig = getPodcastBySlug(slug || "");
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
+  const { toast } = useToast();
+  const [recapEmail, setRecapEmail] = useState("");
+  const [recapSubmitting, setRecapSubmitting] = useState(false);
+  const [recapSuccess, setRecapSuccess] = useState(false);
 
   const getTabFromUrl = () => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (urlTab === "discover" || urlTab === "episodes" || urlTab === "books") return urlTab;
+    if (urlTab === "discover" || urlTab === "episodes" || urlTab === "books" || urlTab === "get-recaps") return urlTab;
     return "episodes" as PodcastTab;
   };
   const [activeTab, setActiveTab] = useState<PodcastTab>(getTabFromUrl);
@@ -392,6 +398,32 @@ export default function PodcastLandingGeneric() {
   const discordUrl = (config as any).discordUrl as string | null | undefined;
   const websiteUrl = (config as any).websiteUrl as string | null | undefined;
   const storeUrl = (config as any).storeUrl as string | null | undefined;
+
+  const handleRecapSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recapEmail || recapSubmitting) return;
+    setRecapSubmitting(true);
+    try {
+      await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
+        email: recapEmail,
+        type: "podcast",
+        slug: slug,
+        name: name,
+      });
+      setRecapSuccess(true);
+      toast({ title: "You're in!", description: `You'll get ${name} recaps in your inbox.` });
+    } catch (err: any) {
+      toast({
+        title: "Something went wrong",
+        description: err.message?.includes("400") ? "This email is already subscribed." : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRecapSubmitting(false);
+    }
+  };
+
+  const hostNames = hosts ? hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean) : [];
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
@@ -950,6 +982,84 @@ export default function PodcastLandingGeneric() {
               <p className="text-muted-foreground font-medium">Loading discover content...</p>
             </div>
           )}
+        </section>
+      )}
+      {activeTab === "get-recaps" && (
+        <section className="pb-16" data-testid="section-get-recaps">
+          <div className="max-w-lg mx-auto">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-5">
+                <Mail className="w-7 h-7 text-primary" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground leading-tight mb-3" data-testid="heading-get-recaps">
+                {hostNames.length > 0
+                  ? `Don't miss a word from ${hostNames.length <= 2 ? hostNames.join(" & ") : hostNames.slice(0, 2).join(", ") + " & crew"}`
+                  : `Never miss an episode of ${name}`}
+              </h2>
+              <p className="text-base sm:text-lg text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
+                Get a concise recap of every <span className="font-semibold text-foreground">{name}</span> episode delivered straight to your inbox — the key takeaways in minutes, not hours.
+              </p>
+            </div>
+
+            {recapSuccess ? (
+              <div className="text-center py-8" data-testid="recap-signup-success">
+                <div className="w-14 h-14 rounded-2xl bg-green-500/[0.1] flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-7 h-7 text-green-600" />
+                </div>
+                <h3 className="text-xl font-display font-bold text-foreground mb-2">You're all set!</h3>
+                <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA]">
+                  {hostNames.length > 0
+                    ? `${hostNames[0]} would be proud. We'll send you ${name} recaps as new episodes drop.`
+                    : `We'll send you ${name} recaps as new episodes drop.`}
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleRecapSignup} className="space-y-4" data-testid="form-get-recaps">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    data-testid="input-email-get-recaps"
+                    type="email"
+                    value={recapEmail}
+                    onChange={(e) => setRecapEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                    className="flex-1 h-[52px] px-4 bg-white dark:bg-zinc-900 border-[1.5px] border-[#D4D4D8] dark:border-white/[0.12] rounded-xl text-foreground text-[17px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-[#71717A] shadow-sm shadow-black/[0.03]"
+                  />
+                  <button
+                    data-testid="button-signup-get-recaps"
+                    type="submit"
+                    disabled={recapSubmitting}
+                    className="min-h-[52px] px-8 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
+                  >
+                    {recapSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Subscribe free <ArrowRight className="w-4 h-4" /></>}
+                  </button>
+                </div>
+                <p className="text-center text-sm text-muted-foreground">Free forever. No spam. Unsubscribe anytime.</p>
+              </form>
+            )}
+
+            <div className="mt-10 pt-8 border-t border-black/[0.06] dark:border-white/[0.06]">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 text-center">What you'll get</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { icon: Lightbulb, title: "Key Takeaways", desc: "The most important insights distilled into bullet points" },
+                  { icon: Clock, title: "Save Hours", desc: "Get the highlights in 5 minutes instead of listening for an hour" },
+                  { icon: Users, title: "Who Said What", desc: "Notable quotes and perspectives from hosts and guests" },
+                  { icon: BookOpen, title: "Resources & Books", desc: "Every book and resource mentioned, linked for you" },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-3 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03]">
+                    <div className="w-9 h-9 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0 mt-0.5">
+                      <item.icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{item.title}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
       )}
     </PodcastPageLayout>
