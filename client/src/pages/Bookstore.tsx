@@ -662,11 +662,6 @@ export default function Bookstore() {
               Discover books the world's top podcasters keep coming back to. Not bestseller lists — real conversations about books that matter.
             </p>
             <div className="flex items-center gap-3 mt-2">
-              {data && (
-                <span className="text-[14px] text-muted-foreground font-medium">
-                  {data.total.toLocaleString()} books from {new Set(data.books.flatMap(b => b.podcastNames)).size}+ podcasts
-                </span>
-              )}
               <button
                 onClick={() => setShowSearch(!showSearch)}
                 aria-expanded={showSearch}
