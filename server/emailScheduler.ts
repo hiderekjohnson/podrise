@@ -185,8 +185,7 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
       return "skipped";
     }
 
-    const templateSettings = await storage.getEmailTemplateSettings();
-    const emailHtml = markdownToEmailHtml(result.summary, user.email, templateSettings);
+    const emailHtml = markdownToEmailHtml(result.summary, user.email);
 
     const deliveryTime = user.deliveryTime || "07:00";
     const subject = `☕ Your PodCap Daily Recap - ${new Date().toLocaleDateString("en-US", { timeZone: timezone, weekday: "long", month: "short", day: "numeric" })}`;
@@ -318,8 +317,7 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
     throw new Error("Email has no episode content");
   }
 
-  const templateSettings = await storage.getEmailTemplateSettings();
-  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, templateSettings);
+  const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail);
 
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`

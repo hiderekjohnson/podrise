@@ -1,0 +1,25 @@
+Overall
+The target audience is actually two people simultaneously — a VP or executive who evaluates it as a tool for their team, and the employees who read it daily. Write for both. The VP needs to see its value in 10 seconds. The employees need enough depth to walk into a meeting and say something intelligent.
+Writing & content changes
+
+Use a two-layer structure. Open with a 2-3 sentence executive summary — the single most important thing today, written for someone who might only read that far. Then go deeper in the sections below for the employees who want to actually learn something.
+Each section should be a proper story, not a bullet summary. 4-6 sentences per section. Enough context that the reader understands why it matters, not just what was said.
+Lead with the best quote, not a theme summary. Find the single sharpest quote across all episodes and open with it. Build down from there.
+Add a "why this matters" line to each section. One sentence at the end of each story that connects the insight to something actionable or relevant for a professional reader.
+Drop "On the Reading List" / Books and Resources. It keeps coming back — remove it entirely.
+The subtitle and opening quote are redundant. If the quote is strong enough to open with, let it open cold. Don't summarize it in a subtitle first.
+Cap the "As heard on" list at 5 shows — the most recognizable names — with a "+ X more" that expands or links to the full list. 12 names in the header is overwhelming.
+Add a bold one-line header to each section so scanners can navigate without reading every word.
+Keep "Worth Noting" exactly as is — one stat, one source, one sentence.
+Ban these words and phrases: landscape, navigating, rapidly evolving, key discussions, sustained growth, competitive advantage, undergoing significant changes, it is crucial, delve, transformative, key insights, pillars. If the model uses any of these, regenerate.
+Story selection matters. Every section should reflect what entrepreneurs and founders are actively debating and discussing — not general business news or brand case studies. If a story could appear in any generic business newsletter, cut it.
+
+Target length: 3-4 minutes to read in full. Short enough for a busy employee to finish at their desk, deep enough that they learn something worth sharing.
+SEO & internal linking
+
+Add a full breadcrumb trail with live links at the top of every pulse page: Home → Topics → Entrepreneurship → The Pulse → [Date]. Each level should be a clickable link. This passes link equity up through the site hierarchy and tells Google how the page fits into the site structure.
+Make topic tags linkable. The pills at the bottom — Entrepreneurial Mindset, Business Scaling, AI in Business etc — should link to filtered tag pages, not just be decorative. Each tag becomes its own indexable page that can capture search traffic.
+Add podcast show names to the header as linked text — "As heard on: Entrepreneurs on Fire, The Game with Alex Hormozi…" These are real brand names people search for. Linking them back to their respective podcast pages on PodCap strengthens internal link structure across the whole site.
+Mark up the date properly using a <time datetime="2026-03-10"> HTML element, not just display text. This helps search engines understand content freshness.
+Add a canonical URL tag on each pulse page pointing to itself, so syndicated or shared versions don't dilute the page's search authority.
+The H1 title should contain "entrepreneurship podcast" or similar — specific and datestamped, never generic. Avoid titles that could have been written in 2019.

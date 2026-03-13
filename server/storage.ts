@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, emailTemplateSettings, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -24,9 +24,6 @@ export interface IStorage {
   deleteUser(id: number): Promise<void>;
   getAllRecaps(): Promise<Recap[]>;
   getTopPodcasts(limit?: number): Promise<{ id: string; name: string; artworkUrl: string; userCount: number }[]>;
-  getEmailTemplateSettings(): Promise<Record<string, string>>;
-  setEmailTemplateSetting(key: string, value: string): Promise<void>;
-  setEmailTemplateSettings(settings: Record<string, string>): Promise<void>;
   logTranscriptEvent(data: { userId?: number; podcastName: string; podcastId: string; episodeTitle: string; episodeGuid?: string; taddyUuid?: string; status: string; transcriptLength?: number; errorMessage?: string }): Promise<TranscriptLog>;
   getTranscriptLogs(limit?: number): Promise<TranscriptLog[]>;
   getTranscriptById(id: number): Promise<EpisodeTranscript | undefined>;
@@ -300,31 +297,6 @@ export class DatabaseStorage implements IStorage {
       .slice(0, limit)
       .map((p) => ({ id: p.id, name: p.name, artworkUrl: p.artworkUrl, userCount: p.count }));
   }
-  async getEmailTemplateSettings(): Promise<Record<string, string>> {
-    const rows = await db.select().from(emailTemplateSettings);
-    const settings: Record<string, string> = {};
-    for (const row of rows) {
-      settings[row.key] = row.value;
-    }
-    return settings;
-  }
-
-  async setEmailTemplateSetting(key: string, value: string): Promise<void> {
-    await db
-      .insert(emailTemplateSettings)
-      .values({ key, value })
-      .onConflictDoUpdate({
-        target: emailTemplateSettings.key,
-        set: { value },
-      });
-  }
-
-  async setEmailTemplateSettings(settings: Record<string, string>): Promise<void> {
-    for (const [key, value] of Object.entries(settings)) {
-      await this.setEmailTemplateSetting(key, value);
-    }
-  }
-
   async logTranscriptEvent(data: { userId?: number; podcastName: string; podcastId: string; episodeTitle: string; episodeGuid?: string; taddyUuid?: string; status: string; transcriptLength?: number; errorMessage?: string }): Promise<TranscriptLog> {
     const [log] = await db
       .insert(transcriptLogs)

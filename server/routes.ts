@@ -8,7 +8,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml, recapHasContent, DEFAULT_TEMPLATE, MERGE_TAGS, type EmailTemplateConfig } from "./emailTemplate";
+import { markdownToEmailHtml, recapHasContent } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
@@ -3399,13 +3399,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return res.status(404).json({ message: "Recap not found" });
       }
 
-      const templateSettings = await storage.getEmailTemplateSettings();
-
       if (!recapHasContent(recap.summary)) {
         return res.status(400).json({ message: "This recap has no parseable episode content. It cannot be sent." });
       }
 
-      const emailHtml = markdownToEmailHtml(recap.summary, user.email, templateSettings);
+      const emailHtml = markdownToEmailHtml(recap.summary, user.email);
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
@@ -3700,8 +3698,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!pending) {
       return res.status(404).json({ message: "Pending email not found" });
     }
-    const templateSettings = await storage.getEmailTemplateSettings();
-    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, templateSettings);
+    const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail);
     res.json({ html: freshHtml });
   });
 
@@ -3740,8 +3737,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
 
     try {
-      const templateSettings = await storage.getEmailTemplateSettings();
-      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail, templateSettings);
+      const freshHtml = markdownToEmailHtml(pending.summary, pending.recipientEmail);
       const baseUrl = "https://podcap.io";
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
@@ -4185,7 +4181,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const held = await storage.getPendingEmails("held");
       const pending = await storage.getPendingEmails("pending");
       const allPending = [...held, ...pending];
-      const templateSettings = await storage.getEmailTemplateSettings();
       let updated = 0;
       for (const email of allPending) {
         let summary = email.summary;
@@ -4277,7 +4272,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
         await storage.updatePendingEmailSummary(email.id, summary);
 
-        const newHtml = markdownToEmailHtml(summary, email.recipientEmail, templateSettings);
+        const newHtml = markdownToEmailHtml(summary, email.recipientEmail);
         await storage.updatePendingEmailHtml(email.id, newHtml);
         updated++;
       }
@@ -5338,53 +5333,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     });
   });
 
-  app.get("/api/admin/email-template", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    const saved = await storage.getEmailTemplateSettings();
-    const template: EmailTemplateConfig = { ...DEFAULT_TEMPLATE };
-    for (const key of Object.keys(DEFAULT_TEMPLATE) as (keyof EmailTemplateConfig)[]) {
-      if (saved[key] !== undefined) {
-        template[key] = saved[key];
-      }
-    }
-    res.json({ template, mergeTags: MERGE_TAGS, defaults: DEFAULT_TEMPLATE });
-  });
-
-  app.put("/api/admin/email-template", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    const { template } = req.body;
-    if (!template || typeof template !== "object") {
-      return res.status(400).json({ message: "Invalid template data" });
-    }
-    const validKeys = Object.keys(DEFAULT_TEMPLATE);
-    const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
-    const colorKeys = ["headerColor", "accentColor"];
-    const toSave: Record<string, string> = {};
-    for (const [key, value] of Object.entries(template)) {
-      if (!validKeys.includes(key) || typeof value !== "string") continue;
-      if (value.length > 500) continue;
-      if (colorKeys.includes(key) && !hexColorRegex.test(value)) continue;
-      if (key === "showPs" && value !== "true" && value !== "false") continue;
-      toSave[key] = value;
-    }
-    await storage.setEmailTemplateSettings(toSave);
-    res.json({ message: "Template saved" });
-  });
-
-  app.post("/api/admin/email-template/preview", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    const { template } = req.body;
-    const sampleMarkdown = `My First Million · The All-In Podcast\n\n**2** Podcasts · **5 hours and 32 minutes** Total duration\n\n---\n\n## MY FIRST MILLION\n\n**How This 25-Year-Old Built a $100M Business**\nJake Chen · CEO of CloudStack · 1 hr 12 min\n\n🎧 [Apple Podcasts](https://podcasts.apple.com/example) · [Spotify](https://open.spotify.com/search/example)\n\n**TLDL:** Jake Chen dropped out of college to build CloudStack, a no-code platform that now processes $2B in transactions annually.\n\n**What Happened**\nSam opens by calling Jake "the most impressive founder under 30." Jake walks through the origin story, building internal tools for his university when he realized every small business had the same problem.\n\nHe launched on Product Hunt, got 2,000 users in the first week, and was profitable by month three.\n\n**Key Insights:**\n- CloudStack processes $2B in annual transactions with only 47 employees\n- White-labeling through accounting firms drives 40% of revenue\n- The no-code market is projected to hit $187B by 2030\n\n**Quote**\nJake Chen on turning down $50M:\n> "Everyone told me I was crazy. But I looked at every founder who sold early and asked one question: are you happier? Not one said yes."\n\n---`;
-    const config: Partial<EmailTemplateConfig> = template || {};
-    const html = markdownToEmailHtml(sampleMarkdown, "preview@example.com", config);
-    res.json({ html });
-  });
 
   app.get("/api/podcast-directory/by-itunes/:itunesId", async (req, res) => {
     const entry = await storage.getPodcastDirectoryEntry(req.params.itunesId);
