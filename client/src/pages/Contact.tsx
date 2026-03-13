@@ -55,7 +55,7 @@ export default function Contact() {
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
 
-      <main className="flex-1 w-full max-w-xl mx-auto px-6 py-10">
+      <main className="flex-1 w-full max-w-xl mx-auto px-4 sm:px-6 py-10">
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-4 mx-auto">
             <Mail className="w-5 h-5" />

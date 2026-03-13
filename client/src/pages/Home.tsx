@@ -185,7 +185,7 @@ export default function Home() {
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Insights</h3>
+                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Topics</h3>
                   <p className="text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 leading-relaxed">Track what's being said across podcasts on AI, crypto, leadership, markets, and more.</p>
                 </div>
               </Link>

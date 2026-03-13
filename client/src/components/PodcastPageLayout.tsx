@@ -103,10 +103,10 @@ export function PodcastPageLayout({
         rightContent={
           <button
             onClick={() => setShowRecapsModal(true)}
-            className="min-h-[44px] px-5 rounded-[10px] font-display font-bold text-[16px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+            className="min-h-[44px] px-4 sm:px-5 rounded-[10px] font-display font-bold text-[15px] sm:text-[16px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] max-w-[200px] sm:max-w-none truncate"
             data-testid="button-get-recaps"
           >
-            Get {name} Recaps
+            Get <span className="hidden sm:inline">{name} </span>Recaps
           </button>
         }
       />

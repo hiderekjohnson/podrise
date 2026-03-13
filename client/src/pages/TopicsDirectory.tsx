@@ -148,7 +148,7 @@ export default function TopicsDirectory() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-7xl mx-auto px-6 pt-12 pb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,7 +180,7 @@ export default function TopicsDirectory() {
                 data-testid="input-search-topics"
               />
               {searchQuery && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] font-mono text-muted-foreground/60">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] font-mono text-muted-foreground/60">
                   {filteredTopics.length} result{filteredTopics.length !== 1 ? "s" : ""}
                 </span>
               )}
@@ -191,11 +191,11 @@ export default function TopicsDirectory() {
 
       <div ref={navRef} className="h-0" />
       <div className={`sticky top-[68px] z-30 bg-background/95 backdrop-blur-sm border-b transition-shadow ${isSticky ? "border-black/[0.06] dark:border-white/[0.06] shadow-sm" : "border-transparent"}`}>
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide" data-testid="category-nav">
             <button
               onClick={() => { setActiveCategory(null); setSearchQuery(""); }}
-              className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-2 rounded-lg text-[14px] font-semibold whitespace-nowrap transition-all ${
                 !activeCategory
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
@@ -208,7 +208,7 @@ export default function TopicsDirectory() {
               <button
                 key={cat.key}
                 onClick={() => handleCategoryClick(cat.key)}
-                className={`px-3.5 py-2 rounded-lg text-[13px] font-semibold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2 rounded-lg text-[14px] font-semibold whitespace-nowrap transition-all ${
                   activeCategory === cat.key
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
@@ -222,7 +222,7 @@ export default function TopicsDirectory() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 pb-20 pt-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 pt-6">
         {showCurated && (
           <>
             <motion.section

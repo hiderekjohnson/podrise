@@ -9,7 +9,7 @@ export function Footer() {
   return (
     <footer className="w-full border-t border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/40 backdrop-blur-sm mt-auto" data-testid="footer">
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-8 sm:gap-10 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 sm:gap-10 mb-12">
           <div>
             <h3 className="text-base font-bold text-foreground mb-5 tracking-wide uppercase">Discover</h3>
             <ul className="space-y-3.5">

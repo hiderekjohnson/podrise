@@ -38,7 +38,7 @@ export default function About() {
 
       <main className="flex-1 w-full">
         <motion.section
-          className="max-w-3xl mx-auto px-6 pt-16 sm:pt-24 pb-12 text-center"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12 text-center"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -77,7 +77,7 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.12 }}
-          className="max-w-3xl mx-auto px-6 mb-16"
+          className="max-w-3xl mx-auto px-4 sm:px-6 mb-16"
           data-testid="section-stat-block"
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -101,7 +101,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -132,7 +132,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
@@ -186,7 +186,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -209,7 +209,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.35 }}
@@ -243,7 +243,7 @@ export default function About() {
           transition={{ duration: 0.5, delay: 0.4 }}
           data-testid="section-bigger-vision"
         >
-          <div className="max-w-3xl mx-auto px-6">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div className="flex items-center gap-3 mb-4 justify-center">
               <Globe className="w-6 h-6 text-primary" />
               <h2 className="text-2xl sm:text-3xl font-display font-bold">The bigger vision</h2>
@@ -283,7 +283,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 py-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 py-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.45 }}
@@ -313,7 +313,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.48 }}
@@ -345,7 +345,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-20"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
@@ -384,7 +384,7 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-6 pb-24"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-24"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.55 }}

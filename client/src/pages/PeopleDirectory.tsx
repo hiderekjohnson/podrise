@@ -267,7 +267,7 @@ export default function PeopleDirectory() {
       <SiteHeader />
 
       <div className="bg-gradient-to-b from-primary/[0.04] via-background to-background">
-        <div className="max-w-7xl mx-auto px-6 pt-12 pb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -309,7 +309,7 @@ export default function PeopleDirectory() {
       </div>
 
       <div className="sticky top-[68px] z-40 bg-background/95 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <nav className="flex gap-1 overflow-x-auto scrollbar-hide py-1" data-testid="nav-tabs">
             {TABS.map(tab => {
               const Icon = tab.icon;
@@ -334,7 +334,7 @@ export default function PeopleDirectory() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 pb-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 pb-20">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 8 }).map((_, i) => (

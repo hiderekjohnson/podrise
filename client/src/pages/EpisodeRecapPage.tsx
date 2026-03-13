@@ -835,14 +835,14 @@ export default function EpisodeRecapPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="space-y-8"
       >
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground" data-testid="breadcrumb-nav">
-          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link href="/podcasts" className="hover:text-foreground transition-colors">Podcasts</Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors">{episode.podcastName}</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-foreground font-medium truncate max-w-[200px]">{episode.episodeTitle}</span>
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground overflow-hidden" data-testid="breadcrumb-nav">
+          <Link href="/" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Home</Link>
+          <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
+          <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Podcasts</Link>
+          <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
+          <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors shrink-0 truncate max-w-[140px] sm:max-w-none">{episode.podcastName}</Link>
+          <ChevronRight className="w-3 h-3 shrink-0" />
+          <span className="text-foreground font-medium truncate min-w-0">{episode.episodeTitle}</span>
         </nav>
 
         <nav className="sticky top-[56px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
