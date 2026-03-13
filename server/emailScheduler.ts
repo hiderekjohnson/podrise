@@ -23,7 +23,7 @@ function podcastNameToSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, EpisodeMetaForEmail>> {
+export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<string, EpisodeMetaForEmail>> {
   const meta: Record<string, EpisodeMetaForEmail> = {};
   if (podcastNames.length === 0) return meta;
 

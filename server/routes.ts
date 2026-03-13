@@ -61,40 +61,10 @@ function podcastNameToSlugForEmail(name: string): string {
 }
 
 async function buildEpisodeMetaFromSummary(summary: string): Promise<Record<string, EpisodeMetaForEmail>> {
-  const meta: Record<string, EpisodeMetaForEmail> = {};
+  const { buildEpisodeMeta } = await import("./emailScheduler");
   const podcastNames = (summary.match(/^## (.+)$/gm) || []).map((h: string) => h.replace(/^## /, "").trim());
-  if (podcastNames.length === 0) return meta;
-
-  try {
-    const client = await pool.connect();
-    try {
-      for (const name of podcastNames) {
-        const derivedSlug = podcastNameToSlugForEmail(name);
-        const dirRow = await client.query(`SELECT slug, artwork_url FROM podcast_directory WHERE LOWER(name) = LOWER($1) LIMIT 1`, [name]);
-        const canonicalSlug = dirRow.rows[0]?.slug || derivedSlug;
-        const recapRow = await client.query(
-          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug FROM landing_page_recaps WHERE slug = $1 ORDER BY publish_date DESC LIMIT 1`,
-          [canonicalSlug]
-        );
-        if (recapRow.rows.length === 0) { meta[derivedSlug] = { canonicalSlug, artworkUrl: dirRow.rows[0]?.artwork_url || null }; continue; }
-        const row = recapRow.rows[0];
-        const artworkUrl = row.artwork_url || dirRow.rows[0]?.artwork_url || null;
-        let companiesCount = 0;
-        if (row.entity_contexts_cache && typeof row.entity_contexts_cache === "object") companiesCount = Object.keys(row.entity_contexts_cache).length;
-        let booksCount = 0;
-        if (Array.isArray(row.resources)) booksCount = row.resources.filter((r: any) => r.type === "book").length;
-        let quotesCount = 0;
-        if (row.episode_slug) {
-          const qr = await client.query(`SELECT COUNT(*)::int as cnt FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [canonicalSlug, row.episode_slug]);
-          quotesCount = qr.rows[0]?.cnt || 0;
-        }
-        meta[derivedSlug] = { canonicalSlug, artworkUrl, companiesCount, peopleCount: 0, booksCount, quotesCount };
-      }
-    } finally { client.release(); }
-  } catch (err) {
-    console.warn("[Routes] Failed to build episode metadata:", err);
-  }
-  return meta;
+  if (podcastNames.length === 0) return {};
+  return buildEpisodeMeta(podcastNames);
 }
 
 function parsePodcastName(raw: string): string {
