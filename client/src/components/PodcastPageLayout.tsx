@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
-import { PodCapHeader } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { useSetConversion } from "@/contexts/PageConversionContext";
@@ -109,17 +109,7 @@ export function PodcastPageLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <PodCapHeader
-        rightContent={
-          <button
-            onClick={() => setShowRecapsModal(true)}
-            className="min-h-[44px] px-4 sm:px-5 rounded-[10px] font-display font-bold text-[15px] sm:text-[16px] bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] max-w-[200px] sm:max-w-none truncate"
-            data-testid="button-get-recaps"
-          >
-            Get <span className="hidden sm:inline">{name} </span>Recaps
-          </button>
-        }
-      />
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
         <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">

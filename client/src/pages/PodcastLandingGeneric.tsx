@@ -6,7 +6,7 @@ import { ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { PodCapHeader } from "@/components/PodCapHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { PodcastPageLayout, type PodcastTab } from "@/components/PodcastPageLayout";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
@@ -14,7 +14,7 @@ import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+
 
 function extractAsin(url: string): string | null {
   const patterns = [
@@ -363,7 +363,7 @@ export default function PodcastLandingGeneric() {
   if (!config && !dbEntry && !staticConfig) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <PodCapHeader />
+        <SiteHeader />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">Podcast not found</h1>
