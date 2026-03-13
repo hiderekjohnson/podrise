@@ -145,6 +145,8 @@ export function ExitIntentPopup() {
 
   const shouldSuppress = useCallback(() => {
     if (user) return true;
+    const path = window.location.pathname;
+    if (path === "/bookstore" || path.startsWith("/bookstore/")) return true;
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return false;
     if (stored === "subscribed") return true;
