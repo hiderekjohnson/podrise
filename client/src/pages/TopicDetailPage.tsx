@@ -1,7 +1,6 @@
-import { useMemo } from "react";
-import { useLocation, Link, useParams } from "wouter";
-import { ArrowLeft, ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock } from "lucide-react";
-import { BookOpen } from "lucide-react"
+import { useMemo, useEffect } from "react";
+import { Link, useParams } from "wouter";
+import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Footer } from "@/components/Footer";
@@ -44,10 +43,9 @@ interface TopicEpisode {
 }
 
 function SEOHead({ name, description }: { name: string; description: string }) {
-  const title = `${name} Intelligence Brief - Podcast Signal Monitoring | PodCap`;
-  const desc = `${name} topic overview: synthesized insights, key signals, and trend analysis from monitored podcast sources. Built for analysts, strategists, and enterprise decision-makers.`;
-
-  if (typeof document !== "undefined") {
+  useEffect(() => {
+    const title = `${name} - Podcast Intelligence | PodCap`;
+    const desc = `${description} Daily insights, key takeaways, recommended books, and top voices in ${name.toLowerCase()} from the world's best podcasts.`;
     document.title = title;
     const setOrCreate = (selector: string, attr: string, value: string) => {
       let el = document.querySelector(selector);
@@ -62,22 +60,8 @@ function SEOHead({ name, description }: { name: string; description: string }) {
     setOrCreate('meta[name="description"]', "name", desc);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", desc);
-  }
+  }, [name, description]);
   return null;
-}
-
-function extractQuotes(episodes: TopicEpisode[]): { quote: string; source: string; podcast: string; date: string }[] {
-  const quotes: { quote: string; source: string; podcast: string; date: string }[] = [];
-  for (const ep of episodes) {
-    const text = ep.what_happened || "";
-    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.length > 40 && s.length < 200);
-    if (sentences.length > 0) {
-      const best = sentences.reduce((a, b) => b.length > a.length ? b : a, sentences[0]);
-      quotes.push({ quote: best, source: ep.episode_title, podcast: ep.podcast_name, date: ep.publish_date });
-    }
-    if (quotes.length >= 3) break;
-  }
-  return quotes;
 }
 
 function extractInsights(episodes: TopicEpisode[]): string[] {
@@ -89,7 +73,7 @@ function extractInsights(episodes: TopicEpisode[]): string[] {
     }
     if (Array.isArray(ki)) {
       for (const insight of ki) {
-        if (typeof insight === "string" && insight.length > 20 && insights.length < 6) {
+        if (typeof insight === "string" && insight.length > 20 && insights.length < 8) {
           insights.push(insight);
         }
       }
@@ -117,7 +101,6 @@ function formatRelativeDate(dateStr: string) {
 
 export default function TopicDetailPage() {
   const params = useParams<{ slug: string }>();
-  const [, navigate] = useLocation();
 
   const topic = TOPICS.find(t => t.slug === params.slug);
   const isDynamic = !topic;
@@ -131,7 +114,7 @@ export default function TopicDetailPage() {
     enabled: !isDynamic,
   });
 
-  const { data: topicEpisodes, isLoading: episodesLoading } = useQuery<TopicEpisode[]>({
+  const { data: rawTopicEpisodes, isLoading: episodesLoading } = useQuery<TopicEpisode[]>({
     queryKey: ["/api/topics", params.slug, "episodes"],
     queryFn: async () => {
       const res = await fetch(`/api/topics/${params.slug}/episodes`);
@@ -140,6 +123,13 @@ export default function TopicDetailPage() {
     },
     enabled: !!params.slug,
   });
+
+  const topicEpisodes = useMemo(() => {
+    if (!rawTopicEpisodes) return rawTopicEpisodes;
+    return [...rawTopicEpisodes].sort((a, b) =>
+      new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime()
+    );
+  }, [rawTopicEpisodes]);
 
   const relatedPodcasts = useMemo(() => {
     if (!topic) return [];
@@ -197,7 +187,6 @@ export default function TopicDetailPage() {
     enabled: !!params.slug,
   });
 
-  const quotes = useMemo(() => topicEpisodes ? extractQuotes(topicEpisodes) : [], [topicEpisodes]);
   const keyInsights = useMemo(() => topicEpisodes ? extractInsights(topicEpisodes) : [], [topicEpisodes]);
 
   const taxonomyPodcasts = useMemo(() => {
@@ -290,422 +279,405 @@ export default function TopicDetailPage() {
     return person?.imageUrl || "";
   };
 
+  const allPodcasts = useMemo(() => {
+    const combined = [...relatedPodcasts];
+    if (taxonomyPodcasts) {
+      for (const p of taxonomyPodcasts.podcasts) {
+        if (!combined.find(c => c.slug === p.slug)) combined.push(p);
+      }
+    }
+    return combined.slice(0, 12);
+  }, [relatedPodcasts, taxonomyPodcasts]);
+
+  const categoryLabel = topic?.category === "industry" ? "Industries" : topic?.category === "role" ? "Roles" : "Interests";
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead name={topicDisplayName} description={topicDescription} />
-
       <SiteHeader />
 
-      <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-20">
         <div className="flex items-center gap-2 text-[14px] text-muted-foreground mb-6">
           <Link href={categoryBasePath} className="hover:text-foreground transition-colors" data-testid="link-back-insights">
-            {topic?.category === "industry" ? "Industries" : topic?.category === "role" ? "Roles" : "Topics"}
+            {categoryLabel}
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
           <span className="text-foreground font-medium">{topicDisplayName}</span>
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
+          transition={{ duration: 0.4 }}
+          className="mb-10"
         >
-          <div className="flex items-start gap-4 mb-5">
+          <div className="flex items-start gap-4 mb-4">
             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${topic ? topic.color : "from-emerald-500 to-teal-600"} flex items-center justify-center flex-shrink-0`}>
               <Icon className="w-7 h-7 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="text-topic-title">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl sm:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="text-topic-title">
                 {topicDisplayName}
               </h1>
-              <p className="text-base text-[#3F3F46] dark:text-[#A1A1AA] mt-2 max-w-2xl leading-relaxed" data-testid="text-topic-description">
+              <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-2 max-w-2xl leading-relaxed" data-testid="text-topic-description">
                 {topicDescription}
               </p>
             </div>
           </div>
+
+          {(topicEpisodes && topicEpisodes.length > 0) && (
+            <div className="flex flex-wrap items-center gap-4 mt-4 text-[14px] text-muted-foreground" data-testid="topic-stats">
+              <span className="flex items-center gap-1.5">
+                <Podcast className="w-3.5 h-3.5" />
+                {uniquePodcastSources} podcasts
+              </span>
+              <span className="w-px h-3.5 bg-border" />
+              <span className="flex items-center gap-1.5">
+                <Mic className="w-3.5 h-3.5" />
+                {topicEpisodes.length} episodes
+              </span>
+              {latestEpisodeDate && (
+                <>
+                  <span className="w-px h-3.5 bg-border" />
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    Updated {formatRelativeDate(latestEpisodeDate)}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-14">
-          <div className="lg:col-span-2 space-y-6">
-            {topicEpisodes && topicEpisodes.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden"
-              >
-                <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-primary" />
-                    <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-recent-episodes">
-                      Signal Feed
-                    </h2>
-                  </div>
-                  {latestEpisodeDate && (
-                    <span className="text-[13px] font-mono text-muted-foreground/50">
-                      Updated {formatRelativeDate(latestEpisodeDate)}
-                    </span>
-                  )}
-                </div>
-                <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
-                  {topicEpisodes.slice(0, 8).map((ep, i) => (
-                    <Link key={`${ep.slug}-${ep.episode_slug}`} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="block" data-testid={`link-episode-${i}`}>
-                      <div className="group px-5 py-4 hover:bg-muted/30 transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3.5">
-                          <img
-                            src={ep.artwork_url}
-                            alt={ep.podcast_name}
-                            className="w-10 h-10 rounded-lg object-cover flex-shrink-0 mt-0.5"
-                            loading="lazy"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[13px] font-mono text-muted-foreground/60 flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {ep.publish_date ? formatRelativeDate(ep.publish_date) : ""}
-                              </span>
-                              <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                              <span className="text-[13px] font-mono text-muted-foreground/50 truncate">{ep.podcast_name}</span>
-                            </div>
-                            <p className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                              {ep.episode_title}
-                            </p>
-                            {ep.tldl && (
-                              <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mt-1 line-clamp-2 leading-relaxed">{ep.tldl}</p>
-                            )}
-                          </div>
-                          <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary flex-shrink-0 mt-1.5 transition-colors" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-
-            {episodesLoading && (
-              <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-10 flex items-center justify-center">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <span className="text-[14px] font-mono">Analyzing signals...</span>
-                </div>
-              </div>
-            )}
-
-            {!episodesLoading && (!topicEpisodes || topicEpisodes.length === 0) && (
-              <div className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-10 text-center">
-                <Radio className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-base font-medium text-foreground mb-1">Signal acquisition in progress</p>
-                <p className="text-[14px] text-muted-foreground/60">We're expanding {topicDisplayName.toLowerCase()} coverage across our monitoring network.</p>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-5">
-            {keyInsights.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden"
-              >
-                <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-key-insights">
-                    Key Intelligence
-                  </h2>
-                </div>
-                <div className="px-5 py-4 space-y-3">
-                  {keyInsights.map((insight, i) => (
-                    <div key={i} className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0 mt-2" />
-                      <p className="text-[14px] text-foreground/80 leading-relaxed">{insight}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-
-            {quotes.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden"
-              >
-                <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
-                  <Quote className="w-4 h-4 text-purple-500" />
-                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-notable-quotes">
-                    Signal Excerpts
-                  </h2>
-                </div>
-                <div className="px-5 py-4 space-y-4">
-                  {quotes.map((q, i) => (
-                    <div key={i} className="border-l-2 border-primary/20 pl-3.5">
-                      <p className="text-[14px] text-foreground/80 italic leading-relaxed">"{q.quote}"</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[13px] font-mono text-muted-foreground/50">{q.podcast}</span>
-                        {q.date && (
-                          <>
-                            <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                            <span className="text-[13px] font-mono text-muted-foreground/40">{formatRelativeDate(q.date)}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <Link
-                href={`${categoryBasePath}/${params.slug}/pulse`}
-                className="block bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all group"
-                data-testid="link-topic-pulse"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-4 h-4 text-primary" />
-                  <span className="text-[14px] font-semibold uppercase tracking-[0.12em] text-primary">The Pulse</span>
-                </div>
-                <p className="text-[15px] font-medium text-foreground mb-1">Daily Intelligence Briefing</p>
-                <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed">
-                  Key insights synthesized from yesterday's podcast conversations on {topic?.name || params.slug}.
-                </p>
-                <span className="inline-flex items-center gap-1 mt-3 text-[14px] font-semibold text-primary group-hover:gap-2 transition-all">
-                  Read latest briefing <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
-            </motion.section>
-
-            {!isDynamic && (
-              <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden"
-              >
-                <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-emerald-500" />
-                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-topic-pulse">
-                    Coverage Metrics
-                  </h2>
-                </div>
-                <div className="px-5 py-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA]">Coverage status</span>
-                    <span className="text-[13px] font-mono font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Active
-                    </span>
-                  </div>
-                  {latestEpisodeDate && (
-                    <>
-                      <div className="h-px bg-black/[0.04] dark:bg-white/[0.04]" />
-                      <div className="flex items-center justify-between">
-                        <span className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA]">Latest signal</span>
-                        <span className="text-[13px] font-mono text-muted-foreground">{formatDate(latestEpisodeDate)}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </motion.section>
-            )}
-
-            {isDynamic && dynamicGuests.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-                className="bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl overflow-hidden"
-              >
-                <div className="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-sky-500" />
-                  <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-related-people">
-                    Key Stakeholders
-                  </h2>
-                </div>
-                <div className="px-5 py-4 space-y-3">
-                  {dynamicGuests.map((g, i) => (
-                    <div key={i} className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0 mt-1.5" />
-                      <div>
-                        <p className="text-[14px] font-semibold text-foreground">{g.name}</p>
-                        {g.title && <p className="text-[13px] text-muted-foreground/60">{g.title}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-          </div>
-        </div>
-
-        {relatedPodcasts.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="mb-14"
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.08 }}
+          className="mb-12"
+        >
+          <Link
+            href={`${categoryBasePath}/${params.slug}/pulse`}
+            className="block group"
+            data-testid="link-topic-pulse"
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Radio className="w-4 h-4 text-primary" />
-              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-podcasts">
-                Monitored Sources
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-6 sm:p-8">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/[0.05] rounded-full -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/[0.05] rounded-full translate-y-1/3 -translate-x-1/4" />
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-white/80" />
+                  <span className="text-[13px] font-bold uppercase tracking-[0.15em] text-white/70">The Pulse</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-2">
+                  Your daily {topicDisplayName.toLowerCase()} briefing
+                </h2>
+                <p className="text-[15px] text-white/70 leading-relaxed max-w-xl mb-4">
+                  Every day, we synthesize the key insights from {topicDisplayName.toLowerCase()} podcast conversations into one concise briefing. Stop scrolling, start knowing.
+                </p>
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#6366F1] rounded-lg text-[15px] font-semibold group-hover:shadow-lg transition-all">
+                  Read today's briefing <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        {keyInsights.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.12 }}
+            className="mb-12"
+          >
+            <div className="flex items-center gap-2 mb-5">
+              <Zap className="w-5 h-5 text-amber-500" />
+              <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-key-insights">
+                Key Takeaways
               </h2>
             </div>
-            <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-              Primary podcast sources actively monitored for {topicDisplayName.toLowerCase()} intelligence.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-              {relatedPodcasts.map((podcast, i) => (
-                <motion.div
-                  key={podcast.slug}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
-                >
-                  <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
-                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3.5 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={podcast.artworkUrl}
-                          alt={podcast.name}
-                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                          loading="lazy"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                            {podcast.name}
-                          </h3>
-                          <p className="text-[13px] text-muted-foreground/60 truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {keyInsights.map((insight, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/10 border border-amber-200/30 dark:border-amber-800/20">
+                  <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <p className="text-[15px] text-foreground/80 leading-relaxed">{insight}</p>
+                </div>
               ))}
             </div>
           </motion.section>
         )}
 
-        {taxonomyPodcasts && (
+        {topicEpisodes && topicEpisodes.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.32 }}
-            className="mb-14"
-            data-testid="section-top-podcasts"
+            transition={{ duration: 0.4, delay: 0.16 }}
+            className="mb-12"
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Podcast className="w-4 h-4 text-primary" />
-              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-top-podcasts">
-                Top {topicDisplayName} Sources
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Radio className="w-5 h-5 text-primary" />
+                <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-recent-episodes">
+                  Latest Episodes
+                </h2>
+              </div>
+              {latestEpisodeDate && (
+                <span className="text-[13px] text-muted-foreground flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  {formatRelativeDate(latestEpisodeDate)}
+                </span>
+              )}
+            </div>
+            <div className="space-y-3">
+              {topicEpisodes.slice(0, 10).map((ep, i) => (
+                <Link key={`${ep.slug}-${ep.episode_slug}`} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="block" data-testid={`link-episode-${i}`}>
+                  <div className="group rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-4 sm:p-5 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={ep.artwork_url}
+                        alt={ep.podcast_name}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover flex-shrink-0"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[13px] font-medium text-primary">{ep.podcast_name}</span>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                          <span className="text-[13px] text-muted-foreground">{ep.publish_date ? formatRelativeDate(ep.publish_date) : ""}</span>
+                        </div>
+                        <h3 className="text-[15px] sm:text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1.5">
+                          {ep.episode_title}
+                        </h3>
+                        {ep.tldl && (
+                          <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">{ep.tldl}</p>
+                        )}
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {episodesLoading && (
+          <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-12 flex items-center justify-center mb-12">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <span className="text-[15px]">Loading episodes...</span>
+            </div>
+          </div>
+        )}
+
+        {!episodesLoading && (!topicEpisodes || topicEpisodes.length === 0) && (
+          <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-12 text-center mb-12">
+            <Radio className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-base font-semibold text-foreground mb-1">Coming soon</p>
+            <p className="text-[14px] text-muted-foreground/60">We're expanding {topicDisplayName.toLowerCase()} coverage. Check back soon for episodes.</p>
+          </div>
+        )}
+
+        {isDynamic && dynamicGuests.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="mb-12"
+          >
+            <div className="flex items-center gap-2 mb-5">
+              <Users className="w-5 h-5 text-sky-500" />
+              <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-related-people">
+                People to Follow
               </h2>
             </div>
-            <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-              Highest-signal sources for {topicDisplayName.toLowerCase()} coverage, ranked by relevance and depth.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-              {taxonomyPodcasts.podcasts.map((podcast, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {dynamicGuests.map((g, i) => (
+                <div key={i} className="flex items-center gap-3 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card">
+                  <div className="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-950/40 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-sky-500" />
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-semibold text-foreground">{g.name}</p>
+                    {g.title && <p className="text-[13px] text-muted-foreground">{g.title}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3 mb-1">
+            <h2 className="text-2xl font-display font-extrabold text-foreground tracking-tight" data-testid="heading-discover">
+              Discover more about {topicDisplayName.toLowerCase()}
+            </h2>
+          </div>
+          <p className="text-[15px] text-muted-foreground mb-8">
+            Books to read, people to follow, podcasts to subscribe to, and companies to watch.
+          </p>
+        </motion.div>
+
+        {topicBooks && topicBooks.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.24 }}
+            className="mb-12"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-amber-600" />
+                <h3 className="text-lg font-display font-bold text-foreground" data-testid="heading-topic-books">
+                  Recommended Reading
+                </h3>
+              </div>
+              <Link href="/bookstore" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                All books <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {topicBooks.slice(0, 8).map((book: any, i: number) => (
                 <motion.div
-                  key={podcast.slug}
-                  initial={{ opacity: 0, y: 12 }}
+                  key={book.slug}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
+                  transition={{ duration: 0.2, delay: Math.min(i * 0.03, 0.3) }}
                 >
-                  <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-top-podcast-${podcast.slug}`}>
-                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3.5 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
-                      <div className="flex items-center gap-3">
+                  <Link href={`/bookstore/${book.slug}`} data-testid={`card-topic-book-${book.slug}`}>
+                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full flex flex-col">
+                      <div className="w-full aspect-[2/3] bg-muted rounded-lg mb-3 overflow-hidden flex items-center justify-center">
                         <img
-                          src={podcast.artworkUrl}
-                          alt={podcast.name}
-                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                          src={book.coverUrl || "/placeholder-book.jpg"}
+                          alt={book.title}
+                          className="w-full h-full object-cover"
                           loading="lazy"
                         />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                            {podcast.name}
-                          </h3>
-                          <p className="text-[13px] text-muted-foreground/60 truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
-                        </div>
                       </div>
+                      <h4 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
+                        {book.title}
+                      </h4>
+                      <p className="text-[13px] text-muted-foreground mt-1">{book.author || "Unknown"}</p>
+                      {book.mentionCount && (
+                        <p className="text-[12px] text-amber-600 dark:text-amber-400 font-medium mt-1.5">Mentioned {book.mentionCount}x on podcasts</p>
+                      )}
                     </div>
                   </Link>
                 </motion.div>
               ))}
-            </div>
-            <div className="mt-4">
-              <Link
-                href={taxonomyPodcasts.browseUrl}
-                className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary hover:text-primary/80 transition-colors"
-                data-testid="link-browse-all-podcasts"
-              >
-                Browse all {topicDisplayName.toLowerCase()} sources
-                <ArrowRight className="w-4 h-4" />
-              </Link>
             </div>
           </motion.section>
         )}
 
         {relatedPeople.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35 }}
-            className="mb-14"
+            transition={{ duration: 0.4, delay: 0.28 }}
+            className="mb-12"
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-sky-500" />
-              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-people">
-                Key Stakeholders
-              </h2>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-sky-500" />
+                <h3 className="text-lg font-display font-bold text-foreground" data-testid="heading-people">
+                  People to Follow
+                </h3>
+              </div>
+              <Link href="/people" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                All people <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-              Influential voices shaping the {topicDisplayName.toLowerCase()} narrative across monitored sources.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {relatedPeople.map((person, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {relatedPeople.slice(0, 9).map((person, i) => (
                 <motion.div
                   key={person.slug}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
+                  transition={{ duration: 0.2, delay: Math.min(i * 0.03, 0.3) }}
                 >
                   <Link href={`/people/${person.slug}`} data-testid={`card-person-${person.slug}`}>
-                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={getPersonImage(person.slug)}
-                          alt={person.name}
-                          className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
-                          loading="lazy"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                            {person.name}
-                          </h3>
-                          <p className="text-[13px] text-muted-foreground/60 truncate">{person.title}</p>
-                        </div>
-                        <div className="flex items-center gap-2.5 text-[13px] text-muted-foreground/50 flex-shrink-0">
+                    <div className="group flex items-center gap-3 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                      <img
+                        src={getPersonImage(person.slug)}
+                        alt={person.name}
+                        className="w-11 h-11 rounded-full object-cover flex-shrink-0 bg-muted"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          {person.name}
+                        </h4>
+                        <p className="text-[13px] text-muted-foreground truncate">{person.title}</p>
+                      </div>
+                      {(person.guestCount > 0 || person.mentionCount > 0) && (
+                        <div className="flex items-center gap-2 text-[13px] text-muted-foreground/50 flex-shrink-0">
                           {person.guestCount > 0 && (
-                            <span className="flex items-center gap-1 font-mono">
+                            <span className="flex items-center gap-1">
                               <Mic className="w-3 h-3" />
                               {person.guestCount}
                             </span>
                           )}
                           {person.mentionCount > 0 && (
-                            <span className="flex items-center gap-1 font-mono">
+                            <span className="flex items-center gap-1">
                               <MessageSquare className="w-3 h-3" />
                               {person.mentionCount}
                             </span>
                           )}
                         </div>
+                      )}
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {allPodcasts.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.32 }}
+            className="mb-12"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Podcast className="w-5 h-5 text-violet-500" />
+                <h3 className="text-lg font-display font-bold text-foreground" data-testid="heading-podcasts">
+                  Podcasts to Listen To
+                </h3>
+              </div>
+              <Link href="/podcasts" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                All podcasts <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {allPodcasts.map((podcast, i) => (
+                <motion.div
+                  key={podcast.slug}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: Math.min(i * 0.03, 0.3) }}
+                >
+                  <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
+                    <div className="group flex items-center gap-3 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                      <img
+                        src={podcast.artworkUrl}
+                        alt={podcast.name}
+                        className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          {podcast.name}
+                        </h4>
+                        <p className="text-[13px] text-muted-foreground truncate"><LinkedHosts hosts={podcast.hosts || ""} /></p>
                       </div>
                     </div>
                   </Link>
@@ -717,93 +689,44 @@ export default function TopicDetailPage() {
 
         {relatedCompanies.length > 0 && (
           <motion.section
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="mb-14"
+            transition={{ duration: 0.4, delay: 0.36 }}
+            className="mb-12"
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Building2 className="w-4 h-4 text-orange-500" />
-              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-companies">
-                Companies in Focus
-              </h2>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-orange-500" />
+                <h3 className="text-lg font-display font-bold text-foreground" data-testid="heading-companies">
+                  Companies to Watch
+                </h3>
+              </div>
+              <Link href="/companies" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                All companies <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-              Organizations at the center of the {topicDisplayName.toLowerCase()} landscape, tracked across podcast discourse.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {relatedCompanies.map((company, i) => (
                 <motion.div
                   key={company.slug}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
+                  transition={{ duration: 0.2, delay: Math.min(i * 0.03, 0.3) }}
                 >
                   <Link href={`/companies/${company.slug}`} data-testid={`card-company-${company.slug}`}>
-                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={company.logoUrl}
-                          alt={company.name}
-                          className="w-8 h-8 rounded-lg object-contain flex-shrink-0 bg-muted p-0.5"
-                          loading="lazy"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                            {company.name}
-                          </h3>
-                          <p className="text-[13px] text-muted-foreground/60 truncate">{company.details.industry}</p>
-                        </div>
+                    <div className="group flex items-center gap-3 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                      <img
+                        src={company.logoUrl}
+                        alt={company.name}
+                        className="w-9 h-9 rounded-lg object-contain flex-shrink-0 bg-muted p-0.5"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          {company.name}
+                        </h4>
+                        <p className="text-[13px] text-muted-foreground truncate">{company.details.industry}</p>
                       </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-        )}
-
-        {topicBooks && topicBooks.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.42 }}
-            className="mb-14"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <BookOpen className="w-4 h-4 text-amber-600" />
-              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-topic-books">
-                Reading List
-              </h2>
-            </div>
-            <p className="text-[14px] text-[#3F3F46] dark:text-[#A1A1AA] mb-5">
-              Books most frequently recommended and discussed in {topicDisplayName.toLowerCase()} conversations.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {topicBooks.slice(0, 8).map((book, i) => (
-                <motion.div
-                  key={book.slug}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.3) }}
-                >
-                  <Link href={`/bookstore/${book.slug}`} data-testid={`card-topic-book-${book.slug}`}>
-                    <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full flex flex-col">
-                      <div className="w-full aspect-[2/3] bg-muted rounded-lg mb-3 overflow-hidden flex items-center justify-center">
-                        <img 
-                          src={book.coverUrl || "/placeholder-book.jpg"} 
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <h3 className="text-[13px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
-                        {book.title}
-                      </h3>
-                      <p className="text-[12px] text-muted-foreground/70 mt-1">{book.author || "Unknown"}</p>
-                      {book.mentionCount && (
-                        <p className="text-[12px] text-amber-600 font-mono mt-2">Mentioned {book.mentionCount}x</p>
-                      )}
                     </div>
                   </Link>
                 </motion.div>
@@ -813,30 +736,29 @@ export default function TopicDetailPage() {
         )}
 
         <motion.section
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.45 }}
-          className="mb-14"
+          transition={{ duration: 0.4, delay: 0.4 }}
+          className="mb-12"
         >
-          <div className="rounded-xl bg-foreground text-background overflow-hidden">
+          <div className="rounded-2xl bg-foreground text-background overflow-hidden">
             <div className="px-8 py-10 sm:py-12">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="w-4 h-4 text-primary" />
-                    <span className="text-[13px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise Intelligence</span>
+                    <span className="text-[13px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise</span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2" data-testid="heading-enterprise-cta">
                     Need {topicDisplayName.toLowerCase()} intelligence at scale?
                   </h3>
-                  <p className="text-[14px] text-white/60 leading-relaxed max-w-xl">
-                    We build custom monitoring and synthesis pipelines for enterprise teams. Get structured data, automated alerts, and analyst-ready briefs on {topicDisplayName.toLowerCase()} - tailored to your organization's specific intelligence requirements.
+                  <p className="text-[15px] text-white/60 leading-relaxed max-w-xl">
+                    Custom monitoring, automated alerts, and analyst-ready briefs on {topicDisplayName.toLowerCase()} — tailored to your team.
                   </p>
                 </div>
                 <Link href="/enterprise" data-testid="link-enterprise-cta">
-                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-base font-semibold hover:bg-primary/90 transition-colors cursor-pointer whitespace-nowrap">
-                    Request Access
-                    <ArrowRight className="w-4 h-4" />
+                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-[15px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer whitespace-nowrap">
+                    Request Access <ArrowRight className="w-4 h-4" />
                   </span>
                 </Link>
               </div>
@@ -847,10 +769,10 @@ export default function TopicDetailPage() {
         {relatedTopics.length > 0 && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-5">
-              <Tag className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-related-topics">
-                Related Intelligence
-              </h2>
+              <Tag className="w-5 h-5 text-muted-foreground" />
+              <h3 className="text-lg font-display font-bold text-foreground" data-testid="heading-related-topics">
+                Related Topics
+              </h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {relatedTopics.map(t => {
