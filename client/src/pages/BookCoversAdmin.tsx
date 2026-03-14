@@ -958,26 +958,28 @@ export default function BookCoversAdmin() {
       ) : books.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground text-sm">No books in this filter</div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {books.slice(0, visibleCount).map((book, index) => (
-            isReplacementView ? (
-              <ReplacementCard key={book.id} book={book} index={index} />
-            ) : (
-              <StandardCard key={book.id} book={book} index={index} />
-            )
-          ))}
-        </div>
-        {visibleCount < books.length && (
-          <div className="flex justify-center pt-6 pb-2">
-            <button
-              onClick={() => setVisibleCount(prev => prev + 20)}
-              className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
-              data-testid="button-show-more-books"
-            >
-              Show More ({books.length - visibleCount} remaining)
-            </button>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {books.slice(0, visibleCount).map((book, index) => (
+              isReplacementView ? (
+                <ReplacementCard key={book.id} book={book} index={index} />
+              ) : (
+                <StandardCard key={book.id} book={book} index={index} />
+              )
+            ))}
           </div>
-        )}
+          {visibleCount < books.length && (
+            <div className="flex justify-center pt-6 pb-2">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 20)}
+                className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
+                data-testid="button-show-more-books"
+              >
+                Show More ({books.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
