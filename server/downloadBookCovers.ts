@@ -10,8 +10,11 @@ async function sleep(ms: number) {
 }
 
 function isPlaceholder(buf: Buffer, contentType: string): boolean {
-  if (contentType.includes("png") && buf.length < 2000) return true;
   if (buf.length < 1000) return true;
+  if (contentType.includes("png") && buf.length < 2000) return true;
+  const isPng = buf[0] === 0x89 && buf[1] === 0x50;
+  if (isPng && buf.length === 15567) return true;
+  if (isPng && buf.length === 1269) return true;
   return false;
 }
 
@@ -42,9 +45,9 @@ async function main() {
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
   const { rows } = await pool.query(
-    `SELECT slug, google_books_id, isbn, has_cover, book_title 
+    `SELECT slug, google_books_id, isbn, has_cover, cover_approved, book_title 
      FROM book_enrichments 
-     WHERE slug IS NOT NULL
+     WHERE slug IS NOT NULL AND (cover_approved IS NULL OR cover_approved = false)
      ORDER BY book_title`
   );
 
