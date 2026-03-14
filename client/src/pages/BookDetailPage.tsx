@@ -1,5 +1,5 @@
 // See BRAND.md for all typography, color, spacing, and accessibility rules.
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { BookOpen, ExternalLink, ChevronDown, ShoppingCart, FileText } from "lucide-react";
@@ -153,15 +153,26 @@ function formatMonthYear(dateStr: string | null): string {
   }
 }
 
-function HeroCover({ title, slug }: { title: string; slug: string }) {
+function HeroCover({ title, slug, size = "default" }: { title: string; slug: string; size?: "default" | "sticky" }) {
   const [failed, setFailed] = useState(false);
+  const dims = size === "sticky"
+    ? "w-[28px] h-[42px]"
+    : "w-[160px] h-[240px] sm:w-[180px] sm:h-[270px]";
+  const radius = size === "sticky" ? "rounded-[2px_3px_3px_2px]" : "rounded-[4px_8px_8px_4px]";
+  const shadow = size === "sticky"
+    ? "shadow-sm"
+    : "shadow-[0_8px_30px_rgba(0,0,0,0.15),_-2px_0_0_rgba(0,0,0,0.15)]";
 
   if (failed) {
     return (
-      <div className="w-[108px] h-[162px] rounded-[3px_6px_6px_3px] bg-gradient-to-br from-[#1a1a2e] via-[#0f2145] to-[#0a1628] flex flex-col items-center justify-center p-3 text-center relative shrink-0 shadow-[_-2px_0_0_rgba(0,0,0,0.2),3px_6px_20px_rgba(0,0,0,0.18)]">
-        <div className="absolute left-0 top-0 bottom-0 w-[9px] bg-white/[0.04] border-r border-white/[0.06] rounded-l-[3px]" />
-        <div className="font-serif text-xl font-bold text-[#e2c27d] leading-none mb-2">{title.length > 30 ? title.substring(0, 28) + "…" : title}</div>
-        <div className="w-3.5 h-px bg-[#e2c27d]/30 mx-auto mb-2" />
+      <div className={`${dims} ${radius} bg-gradient-to-br from-[#1a1a2e] via-[#0f2145] to-[#0a1628] flex flex-col items-center justify-center p-3 text-center relative shrink-0 ${shadow}`}>
+        {size === "default" && (
+          <>
+            <div className="absolute left-0 top-0 bottom-0 w-[10px] bg-white/[0.04] border-r border-white/[0.06] rounded-l-[4px]" />
+            <div className="font-serif text-2xl font-bold text-[#e2c27d] leading-none mb-2">{title.length > 30 ? title.substring(0, 28) + "…" : title}</div>
+            <div className="w-5 h-px bg-[#e2c27d]/30 mx-auto mb-2" />
+          </>
+        )}
       </div>
     );
   }
@@ -170,7 +181,7 @@ function HeroCover({ title, slug }: { title: string; slug: string }) {
     <img
       src={`/books/${slug}.jpg`}
       alt={title}
-      className="w-[108px] h-[162px] rounded-[3px_6px_6px_3px] object-cover shrink-0 shadow-[_-2px_0_0_rgba(0,0,0,0.2),3px_6px_20px_rgba(0,0,0,0.18)]"
+      className={`${dims} ${radius} object-cover shrink-0 ${shadow}`}
       onError={() => setFailed(true)}
     />
   );
@@ -280,6 +291,55 @@ function RelatedBookCard({ book }: { book: RelatedBook }) {
   );
 }
 
+function StickyBuyBar({ book, visible }: { book: BookDetail; visible: boolean }) {
+  return (
+    <div
+      className={`fixed left-0 right-0 z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md border-b border-[#F0F0F2] dark:border-white/[0.08] transition-all duration-300 ${visible ? "top-[69px] opacity-100" : "top-[12px] opacity-0 pointer-events-none"}`}
+      data-testid="sticky-buy-bar"
+    >
+      <div className="max-w-[960px] mx-auto px-5 sm:px-8 flex items-center gap-3 h-[56px]">
+        <HeroCover title={book.name} slug={book.slug} size="sticky" />
+        <div className="flex-1 min-w-0">
+          <div className="text-[15px] font-semibold text-[#09090B] dark:text-white truncate leading-tight">
+            {book.name}
+          </div>
+          {book.author && (
+            <div className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] truncate leading-tight">
+              by {book.author}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {book.blinkistUrl && (
+            <a
+              href={book.blinkistUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 text-[14px] font-semibold text-[#52525B] hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:text-white transition-colors"
+              data-testid="sticky-blinkist"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Blinkist
+            </a>
+          )}
+          {book.amazonUrl && (
+            <a
+              href={book.amazonUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg px-4 py-2 text-[14px] font-semibold transition-colors flex items-center gap-1.5"
+              data-testid="sticky-buy-amazon"
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+              Buy on Amazon
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BookDetailPage() {
   const [, params] = useRoute("/bookstore/:bookSlug");
   const bookSlug = params?.bookSlug;
@@ -290,6 +350,24 @@ export default function BookDetailPage() {
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [visibleCards, setVisibleCards] = useState(4);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!book) return;
+    let observer: IntersectionObserver | null = null;
+    const timer = setTimeout(() => {
+      if (!heroRef.current) return;
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setShowStickyBar(!entry.isIntersecting);
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(heroRef.current);
+    }, 300);
+    return () => { clearTimeout(timer); observer?.disconnect(); };
+  }, [book]);
 
   const podcastArtworkMap = useMemo(() => {
     const map = new Map<string, { slug: string; name: string; artworkUrl: string }>();
@@ -362,6 +440,7 @@ export default function BookDetailPage() {
     <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
       <SEOHead book={book} />
       <SiteHeader />
+      <StickyBuyBar book={book} visible={showStickyBar} />
 
       <main className="flex-1">
         <div className="max-w-[960px] mx-auto px-5 sm:px-8 pt-8 pb-24">
@@ -374,16 +453,43 @@ export default function BookDetailPage() {
             <span>{book.name}</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-5 items-start mb-5" data-testid="section-hero">
+          <div ref={heroRef} className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start mb-8" data-testid="section-hero">
             <HeroCover title={book.name} slug={book.slug} />
-            <div className="pt-0.5 flex-1 min-w-0">
-              <h1 className="text-[24px] sm:text-[30px] font-bold leading-[1.05] tracking-tight text-[#09090B] dark:text-white mb-1" data-testid="heading-book-title">
+            <div className="flex-1 min-w-0 pt-1">
+              <h1 className="text-[28px] sm:text-[34px] font-bold leading-[1.1] tracking-tight text-[#09090B] dark:text-white mb-1.5" data-testid="heading-book-title">
                 {book.name}
               </h1>
               {book.author && (
-                <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] mb-3.5" data-testid="text-book-author">
+                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mb-4" data-testid="text-book-author">
                   by <AuthorWithLinks author={book.author} />
                 </p>
+              )}
+
+              {book.amazonUrl && (
+                <div className="flex items-center gap-3 mb-5">
+                  <a
+                    href={book.amazonUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg px-5 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2"
+                    data-testid="button-buy-amazon-hero"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Buy on Amazon
+                  </a>
+                  {book.blinkistUrl && (
+                    <a
+                      href={book.blinkistUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border border-[#E4E4E7] dark:border-white/[0.12] text-[#52525B] dark:text-[#A1A1AA] hover:border-[#6366F1]/40 hover:text-[#6366F1] rounded-lg px-4 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2"
+                      data-testid="button-blinkist-hero"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Blinkist Summary
+                    </a>
+                  )}
+                </div>
               )}
 
               {featuredPodcasts.length > 0 && (
@@ -420,7 +526,7 @@ export default function BookDetailPage() {
 
           {episodesWithContext.length > 0 && (
             <>
-              <h2 className="text-[20px] font-bold tracking-tight text-[#09090B] dark:text-white mb-4" id="appearances" data-testid="heading-appearances">
+              <h2 className="text-[20px] font-bold tracking-tight text-[#09090B] dark:text-white mb-4 scroll-mt-[140px]" id="appearances" data-testid="heading-appearances">
                 What podcasters said about this book
               </h2>
 
@@ -510,36 +616,6 @@ export default function BookDetailPage() {
 
         </div>
       </main>
-
-      {(book.amazonUrl || book.blinkistUrl) && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
-          {book.blinkistUrl && (
-            <a
-              href={book.blinkistUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#09090B] hover:bg-[#09090B]/90 text-white border-none rounded-lg px-5 py-3 text-[15px] font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2"
-              data-testid="button-blinkist-floating"
-            >
-              <FileText className="w-4 h-4" />
-              Blinkist
-            </a>
-          )}
-          {book.amazonUrl && (
-            <a
-              href={book.amazonUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white border-none rounded-lg px-6 py-3 text-[15px] font-semibold shadow-[0_4px_16px_rgba(99,102,241,0.4)] transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2"
-              data-testid="button-buy-floating"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Buy on Amazon
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          )}
-        </div>
-      )}
 
       <Footer />
     </div>
