@@ -6,7 +6,8 @@ import {
   Search, BookOpen, ArrowLeft, ExternalLink, Image, Hash, FileText,
   Calendar, Star, Layers, Tag, Globe, CheckCircle2, XCircle, AlertTriangle,
   Clock, ChevronLeft, ChevronRight, RefreshCw, Loader2, BookMarked,
-  Languages, Library, Users, Eye, Bookmark, BookOpenCheck, BarChart3,
+  Languages, Library, Eye, Bookmark, BookOpenCheck, BarChart3,
+  DollarSign, ShoppingCart, Monitor, Headphones, FileImage, Ruler,
 } from "lucide-react";
 
 interface BookEnrichment {
@@ -63,7 +64,33 @@ interface BookEnrichment {
   ol_publishers: string[] | null;
   ol_number_of_pages: number | null;
   ol_first_sentence: string | null;
+  ol_subtitle: string | null;
+  ol_author_names: string[] | null;
+  ol_id_amazon: string[] | null;
+  ol_id_goodreads: string[] | null;
+  ol_has_fulltext: boolean | null;
+  ol_all_isbns: string[] | null;
+  ol_publish_dates: string[] | null;
   last_api_fetch: string | null;
+  printed_page_count: number | null;
+  dimensions: string | null;
+  canonical_volume_link: string | null;
+  content_version: string | null;
+  gb_image_links: Record<string, string> | null;
+  gb_reading_modes: Record<string, boolean> | null;
+  gb_saleability: string | null;
+  gb_is_ebook: boolean | null;
+  gb_list_price: number | null;
+  gb_retail_price: number | null;
+  gb_price_currency: string | null;
+  gb_buy_link: string | null;
+  gb_viewability: string | null;
+  gb_embeddable: boolean | null;
+  gb_public_domain: boolean | null;
+  gb_text_to_speech: string | null;
+  gb_epub_available: boolean | null;
+  gb_pdf_available: boolean | null;
+  gb_web_reader_link: string | null;
 }
 
 const ITEMS_PER_PAGE = 50;
@@ -74,6 +101,10 @@ const LANG_NAMES: Record<string, string> = {
   zho: "Chinese", chi: "Chinese", kor: "Korean", rus: "Russian", ara: "Arabic",
   hin: "Hindi", und: "Undetermined",
 };
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, '\n\n').trim();
+}
 
 function CoverStatusBadge({ book }: { book: BookEnrichment }) {
   if (book.cover_approved === true)
@@ -87,8 +118,9 @@ function CoverStatusBadge({ book }: { book: BookEnrichment }) {
   return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600"><Clock className="w-2.5 h-2.5" />Pending</span>;
 }
 
-function DataRow({ label, value, icon: Icon, mono, link }: { label: string; value: string | number | null | undefined; icon?: typeof Hash; mono?: boolean; link?: string }) {
-  if (value === null || value === undefined || value === "") return null;
+function DataRow({ label, value, icon: Icon, mono, link }: { label: string; value: string | number | boolean | null | undefined; icon?: typeof Hash; mono?: boolean; link?: string }) {
+  if (value === null || value === undefined || value === "" || (typeof value === 'number' && isNaN(value))) return null;
+  const display = typeof value === "boolean" ? (value ? "Yes" : "No") : String(value);
   return (
     <div className="flex items-start gap-3 py-2 border-b border-border/40 last:border-0">
       <div className="flex items-center gap-2 w-40 shrink-0">
@@ -97,10 +129,10 @@ function DataRow({ label, value, icon: Icon, mono, link }: { label: string; valu
       </div>
       {link ? (
         <a href={link} target="_blank" rel="noopener noreferrer" className={`text-sm text-primary hover:underline flex items-center gap-1 ${mono ? "font-mono text-xs" : ""}`}>
-          {String(value)} <ExternalLink className="w-3 h-3" />
+          {display} <ExternalLink className="w-3 h-3" />
         </a>
       ) : (
-        <span className={`text-sm break-all ${mono ? "font-mono text-xs" : ""}`}>{String(value)}</span>
+        <span className={`text-sm break-all ${mono ? "font-mono text-xs" : ""}`}>{display}</span>
       )}
     </div>
   );
@@ -117,6 +149,18 @@ function TagList({ items, color }: { items: string[]; color?: string }) {
   );
 }
 
+function Section({ title, icon: Icon, children }: { title: string; icon: typeof Hash; children: React.ReactNode }) {
+  return (
+    <div className="glass-panel rounded-2xl p-5">
+      <h4 className="text-sm font-black mb-3 flex items-center gap-2">
+        <Icon className="w-4 h-4 text-primary" />
+        {title}
+      </h4>
+      {children}
+    </div>
+  );
+}
+
 function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichment; onBack: () => void; onUpdate: (b: BookEnrichment) => void }) {
   const { toast } = useToast();
   const [book, setBook] = useState(initialBook);
@@ -127,7 +171,12 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
       return res.json();
     },
     onSuccess: (data) => {
-      toast({ title: "Enriched", description: `Updated ${data.fieldsUpdated} fields from APIs` });
+      const apis = data.apiStatus;
+      const apiList = [apis?.googleBooks && "Google Books", apis?.openLibrary && "Open Library"].filter(Boolean);
+      const desc = data.fieldsUpdated > 0
+        ? `Updated ${data.fieldsUpdated} fields from ${apiList.join(" & ") || "APIs"}`
+        : `No new data found${apiList.length ? ` (checked ${apiList.join(" & ")})` : ""}`;
+      toast({ title: data.fieldsUpdated > 0 ? "Enriched" : "No changes", description: desc });
       setBook(data.book);
       onUpdate(data.book);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/bookstore"] });
@@ -139,66 +188,46 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
 
   const coverUrl = book.has_cover ? `/books/${book.slug}.jpg` : null;
   const ts = Date.now();
-
-  const hasOlData = book.ol_work_key || book.ol_ratings_average || book.ol_subjects?.length;
-  const hasGbData = book.google_books_id || book.google_description;
+  const gbDesc = book.google_description ? stripHtml(book.google_description) : null;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-sm font-bold text-primary hover:underline"
-          data-testid="button-book-back"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to all books
+        <button onClick={onBack} className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="button-book-back">
+          <ArrowLeft className="w-4 h-4" /> Back to all books
         </button>
-        <button
-          onClick={() => enrichMutation.mutate()}
-          disabled={enrichMutation.isPending}
+        <button onClick={() => enrichMutation.mutate()} disabled={enrichMutation.isPending}
           className="px-4 py-2 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-          data-testid="button-enrich-book"
-        >
-          {enrichMutation.isPending ? (
-            <><Loader2 className="w-4 h-4 animate-spin" />Fetching from APIs...</>
-          ) : (
-            <><RefreshCw className="w-4 h-4" />Fetch All API Data</>
-          )}
+          data-testid="button-enrich-book">
+          {enrichMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Fetching from APIs...</> : <><RefreshCw className="w-4 h-4" />Fetch All API Data</>}
         </button>
       </div>
 
       {book.last_api_fetch && (
-        <p className="text-[10px] text-muted-foreground text-right">
-          Last API fetch: {new Date(book.last_api_fetch).toLocaleString()}
-        </p>
+        <p className="text-[10px] text-muted-foreground text-right">Last API fetch: {new Date(book.last_api_fetch).toLocaleString()}</p>
       )}
 
       <div className="glass-panel rounded-2xl p-6">
         <div className="flex gap-6">
           <div className="shrink-0">
             {coverUrl ? (
-              <img
-                src={`${coverUrl}?v=${ts}`}
-                alt={book.book_title}
-                className="w-[180px] h-[270px] object-cover rounded-xl shadow-md"
-                data-testid="img-book-cover"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
+              <img src={`${coverUrl}?v=${ts}`} alt={book.book_title} className="w-[180px] h-[270px] object-cover rounded-xl shadow-md" data-testid="img-book-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             ) : (
               <div className="w-[180px] h-[270px] bg-muted/30 rounded-xl flex items-center justify-center border border-dashed border-border">
                 <BookOpen className="w-12 h-12 text-muted-foreground/30" />
               </div>
             )}
-            <div className="mt-2 flex justify-center">
-              <CoverStatusBadge book={book} />
-            </div>
+            <div className="mt-2 flex justify-center"><CoverStatusBadge book={book} /></div>
           </div>
-
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-black mb-0.5" data-testid="text-book-title">{book.book_title}</h3>
             {book.subtitle && <p className="text-sm text-muted-foreground italic mb-1" data-testid="text-book-subtitle">{book.subtitle}</p>}
-            {book.author && <p className="text-sm text-muted-foreground mb-3" data-testid="text-book-author">by {book.author}</p>}
+            {book.ol_subtitle && book.ol_subtitle !== book.subtitle && <p className="text-xs text-muted-foreground/70 italic mb-1">OL: {book.ol_subtitle}</p>}
+            {book.author && <p className="text-sm text-muted-foreground mb-1" data-testid="text-book-author">by {book.author}</p>}
+            {book.ol_author_names && book.ol_author_names.length > 0 && book.ol_author_names.join(", ") !== book.author && (
+              <p className="text-xs text-muted-foreground/70 mb-2">OL Authors: {book.ol_author_names.join(", ")}</p>
+            )}
 
             <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
               {book.publisher && <span className="flex items-center gap-1"><BookMarked className="w-3 h-3" />{book.publisher}</span>}
@@ -206,8 +235,16 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
               {book.page_count && <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{book.page_count} pages</span>}
               {book.language && <span className="flex items-center gap-1"><Languages className="w-3 h-3" />{LANG_NAMES[book.language] || book.language}</span>}
               {book.print_type && <span className="flex items-center gap-1"><Library className="w-3 h-3" />{book.print_type}</span>}
-              {book.maturity_rating && book.maturity_rating !== "NOT_MATURE" && <span className="flex items-center gap-1">{book.maturity_rating}</span>}
+              {book.dimensions && <span className="flex items-center gap-1"><Ruler className="w-3 h-3" />{book.dimensions}</span>}
             </div>
+
+            {(book.gb_list_price != null || book.gb_retail_price != null) && (
+              <div className="flex items-center gap-3 mb-3">
+                {book.gb_list_price != null && <span className="text-sm font-bold text-green-700 flex items-center gap-1"><DollarSign className="w-3.5 h-3.5" />{book.gb_list_price} {book.gb_price_currency || "USD"}</span>}
+                {book.gb_retail_price != null && book.gb_retail_price !== book.gb_list_price && <span className="text-xs text-muted-foreground">Retail: ${book.gb_retail_price}</span>}
+                {book.gb_saleability && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-600">{book.gb_saleability.replace(/_/g, " ")}</span>}
+              </div>
+            )}
 
             {(book.rating || book.ol_ratings_average) && (
               <div className="flex items-center gap-4 mb-3">
@@ -218,7 +255,7 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
                     {book.rating_count && <span className="text-xs text-muted-foreground">({book.rating_count.toLocaleString()} ratings)</span>}
                   </div>
                 )}
-                {book.ol_ratings_average && book.ol_ratings_average !== book.rating && (
+                {book.ol_ratings_average && Number(book.ol_ratings_average) !== Number(book.rating) && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span>OL: {Number(book.ol_ratings_average).toFixed(1)}</span>
                     {book.ol_ratings_count && <span>({book.ol_ratings_count} ratings)</span>}
@@ -233,10 +270,10 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
                 <p className="text-sm leading-relaxed" data-testid="text-book-description">{book.description}</p>
               </div>
             )}
-            {book.google_description && book.google_description !== book.description && (
+            {gbDesc && gbDesc !== book.description && (
               <div className="mb-3">
                 <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Google Books Description</p>
-                <p className="text-sm leading-relaxed text-muted-foreground">{book.google_description}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{gbDesc}</p>
               </div>
             )}
             {book.ol_first_sentence && (
@@ -256,11 +293,7 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
       </div>
 
       {((book.categories?.length || 0) > 0 || (book.topics?.length || 0) > 0 || (book.ol_subjects?.length || 0) > 0) && (
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <Tag className="w-4 h-4 text-primary" />
-            Categories & Topics
-          </h4>
+        <Section title="Categories & Topics" icon={Tag}>
           <div className="space-y-3">
             {book.categories && book.categories.length > 0 && (
               <div>
@@ -281,31 +314,28 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
               </div>
             )}
           </div>
-        </div>
+        </Section>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <Hash className="w-4 h-4 text-primary" />
-            Identifiers
-          </h4>
+        <Section title="Identifiers" icon={Hash}>
           <DataRow label="ISBN-13" value={book.isbn_13 || book.isbn} icon={Hash} mono />
           <DataRow label="ISBN-10" value={book.isbn_10} icon={Hash} mono />
-          <DataRow label="ISBN (stored)" value={book.isbn} icon={Hash} mono />
+          {book.isbn && book.isbn !== book.isbn_13 && book.isbn !== book.isbn_10 && <DataRow label="ISBN (stored)" value={book.isbn} icon={Hash} mono />}
           <DataRow label="ASIN" value={book.asin} icon={Hash} mono />
           <DataRow label="Google ID" value={book.google_books_id} icon={Globe} mono link={book.google_books_id ? `https://books.google.com/books?id=${book.google_books_id}` : undefined} />
           <DataRow label="OL Work Key" value={book.ol_work_key} icon={Globe} mono link={book.ol_work_key ? `https://openlibrary.org${book.ol_work_key}` : undefined} />
           <DataRow label="OL Cover ID" value={book.ol_cover_id} icon={Image} mono link={book.ol_cover_id ? `https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg` : undefined} />
+          {book.ol_id_amazon && book.ol_id_amazon.length > 0 && <DataRow label="Amazon ID (OL)" value={book.ol_id_amazon.join(", ")} icon={ShoppingCart} mono />}
+          {book.ol_id_goodreads && book.ol_id_goodreads.length > 0 && (
+            <DataRow label="Goodreads ID" value={book.ol_id_goodreads[0]} icon={BookOpen} mono link={`https://www.goodreads.com/book/show/${book.ol_id_goodreads[0]}`} />
+          )}
           <DataRow label="Slug" value={book.slug} icon={Tag} mono />
           <DataRow label="Book Key" value={book.book_key} icon={Tag} mono />
-        </div>
+          <DataRow label="Content Ver." value={book.content_version} icon={Hash} mono />
+        </Section>
 
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" />
-            Publication Details
-          </h4>
+        <Section title="Publication Details" icon={BookOpen}>
           <DataRow label="Publisher" value={book.publisher} icon={BookMarked} />
           {book.ol_publishers && book.ol_publishers.length > 0 && book.ol_publishers.join(", ") !== book.publisher && (
             <DataRow label="OL Publishers" value={book.ol_publishers.join(", ")} icon={BookMarked} />
@@ -315,7 +345,13 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
           {book.ol_first_publish_year && book.ol_first_publish_year !== book.publish_year && (
             <DataRow label="OL First Pub" value={book.ol_first_publish_year} icon={Calendar} />
           )}
+          {book.ol_publish_dates && book.ol_publish_dates.length > 0 && (
+            <DataRow label="OL Pub Dates" value={book.ol_publish_dates.join(", ")} icon={Calendar} />
+          )}
           <DataRow label="Pages" value={book.page_count} icon={FileText} />
+          {book.printed_page_count && book.printed_page_count !== book.page_count && (
+            <DataRow label="Printed Pages" value={book.printed_page_count} icon={FileText} />
+          )}
           {book.ol_number_of_pages && book.ol_number_of_pages !== book.page_count && (
             <DataRow label="OL Pages" value={book.ol_number_of_pages} icon={FileText} />
           )}
@@ -323,35 +359,70 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
           {book.ol_languages && book.ol_languages.length > 0 && (
             <DataRow label="OL Languages" value={book.ol_languages.map(l => LANG_NAMES[l] || l).join(", ")} icon={Languages} />
           )}
+          <DataRow label="Dimensions" value={book.dimensions} icon={Ruler} />
           <DataRow label="Print Type" value={book.print_type} icon={Library} />
           <DataRow label="Maturity" value={book.maturity_rating} icon={Eye} />
           <DataRow label="Editions" value={book.ol_edition_count} icon={Layers} />
           <DataRow label="Ebook Editions" value={book.ol_ebook_count} icon={BookOpenCheck} />
-        </div>
+          <DataRow label="Full Text" value={book.ol_has_fulltext} icon={FileText} />
+        </Section>
 
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-primary" />
-            Open Library Community Stats
-          </h4>
+        <Section title="Google Books Sale & Access" icon={ShoppingCart}>
+          <DataRow label="Saleability" value={book.gb_saleability?.replace(/_/g, " ")} icon={ShoppingCart} />
+          <DataRow label="Is Ebook" value={book.gb_is_ebook} icon={Monitor} />
+          <DataRow label="List Price" value={book.gb_list_price ? `$${book.gb_list_price} ${book.gb_price_currency || "USD"}` : null} icon={DollarSign} />
+          <DataRow label="Retail Price" value={book.gb_retail_price ? `$${book.gb_retail_price} ${book.gb_price_currency || "USD"}` : null} icon={DollarSign} />
+          <DataRow label="Buy Link" value={book.gb_buy_link ? "Google Play Store" : null} icon={ShoppingCart} link={book.gb_buy_link || undefined} />
+          <DataRow label="Viewability" value={book.gb_viewability} icon={Eye} />
+          <DataRow label="Embeddable" value={book.gb_embeddable} icon={Monitor} />
+          <DataRow label="Public Domain" value={book.gb_public_domain} icon={Globe} />
+          <DataRow label="Text-to-Speech" value={book.gb_text_to_speech} icon={Headphones} />
+          <DataRow label="EPUB Available" value={book.gb_epub_available} icon={FileText} />
+          <DataRow label="PDF Available" value={book.gb_pdf_available} icon={FileText} />
+          <DataRow label="Web Reader" value={book.gb_web_reader_link ? "Open Reader" : null} icon={Monitor} link={book.gb_web_reader_link || undefined} />
+          {book.gb_reading_modes && (
+            <DataRow label="Reading Modes" value={Object.entries(book.gb_reading_modes).filter(([,v]) => v).map(([k]) => k).join(", ") || "None"} icon={BookOpen} />
+          )}
+          {!book.gb_saleability && !book.gb_viewability && (
+            <p className="text-xs text-muted-foreground">No sale/access data yet. Click "Fetch All API Data" to pull from Google Books.</p>
+          )}
+        </Section>
+
+        <Section title="Open Library Community Stats" icon={BarChart3}>
           {(book.ol_want_to_read !== null || book.ol_currently_reading !== null || book.ol_already_read !== null || book.ol_ratings_average !== null) ? (
-            <div className="space-y-0">
+            <>
               <DataRow label="Rating" value={book.ol_ratings_average ? `${Number(book.ol_ratings_average).toFixed(2)} / 5` : null} icon={Star} />
               <DataRow label="# Ratings" value={book.ol_ratings_count} icon={Star} />
               <DataRow label="Want to Read" value={book.ol_want_to_read} icon={Bookmark} />
               <DataRow label="Reading Now" value={book.ol_currently_reading} icon={BookOpen} />
               <DataRow label="Already Read" value={book.ol_already_read} icon={CheckCircle2} />
-            </div>
+            </>
           ) : (
             <p className="text-xs text-muted-foreground">No community data yet. Click "Fetch All API Data" to pull from Open Library.</p>
           )}
-        </div>
+        </Section>
 
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <Image className="w-4 h-4 text-primary" />
-            Cover Status & Sources
-          </h4>
+        {book.gb_image_links && Object.keys(book.gb_image_links).length > 0 && (
+          <Section title="Google Books Cover Variants" icon={FileImage}>
+            <div className="space-y-1.5">
+              {Object.entries(book.gb_image_links).map(([size, url]) => (
+                <DataRow key={size} label={size} value="View Image" icon={Image} link={url.replace('http://', 'https://')} />
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {book.ol_all_isbns && book.ol_all_isbns.length > 0 && (
+          <Section title="All Known ISBNs (Open Library)" icon={Hash}>
+            <div className="flex flex-wrap gap-1.5">
+              {book.ol_all_isbns.map((isbn, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-muted/50 text-muted-foreground">{isbn}</span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        <Section title="Cover Status & Sources" icon={Image}>
           <DataRow label="Has Cover" value={book.has_cover ? "Yes" : "No"} icon={Image} />
           <DataRow label="Cover Status" value={
             book.cover_approved === true ? "Approved (locked)" :
@@ -363,79 +434,58 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
           <DataRow label="Tried Sources" value={book.cover_tried_sources?.join(", ") || "None"} icon={Layers} />
           {book.rejection_reason && <DataRow label="Reject Reason" value={book.rejection_reason} icon={XCircle} />}
           {book.replacement_note && <DataRow label="Replace Note" value={book.replacement_note} icon={AlertTriangle} />}
-        </div>
+        </Section>
 
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <ExternalLink className="w-4 h-4 text-primary" />
-            Links
-          </h4>
+        <Section title="Links" icon={ExternalLink}>
           <div className="space-y-2">
             {book.amazon_url && (
-              <a href={book.amazon_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-amazon">
-                Amazon <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={book.amazon_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-amazon">Amazon <ExternalLink className="w-3 h-3" /></a>
+            )}
+            {book.gb_buy_link && (
+              <a href={book.gb_buy_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-buy">Buy on Google Play <ExternalLink className="w-3 h-3" /></a>
             )}
             {book.google_books_id && (
-              <a href={`https://books.google.com/books?id=${book.google_books_id}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-google">
-                Google Books <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={`https://books.google.com/books?id=${book.google_books_id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-google">Google Books <ExternalLink className="w-3 h-3" /></a>
             )}
             {book.google_preview_link && (
-              <a href={book.google_preview_link} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-preview">
-                Google Preview <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={book.google_preview_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-preview">Google Preview <ExternalLink className="w-3 h-3" /></a>
             )}
             {book.google_info_link && (
-              <a href={book.google_info_link} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-play">
-                Google Play <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={book.google_info_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-play">Google Play Info <ExternalLink className="w-3 h-3" /></a>
+            )}
+            {book.canonical_volume_link && book.canonical_volume_link !== book.google_info_link && (
+              <a href={book.canonical_volume_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Canonical Link <ExternalLink className="w-3 h-3" /></a>
+            )}
+            {book.gb_web_reader_link && (
+              <a href={book.gb_web_reader_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Web Reader <ExternalLink className="w-3 h-3" /></a>
             )}
             {book.isbn && (
-              <a href={`https://openlibrary.org/isbn/${book.isbn}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-openlibrary">
-                Open Library (ISBN) <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={`https://openlibrary.org/isbn/${book.isbn}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-openlibrary">Open Library (ISBN) <ExternalLink className="w-3 h-3" /></a>
             )}
             {book.ol_work_key && (
-              <a href={`https://openlibrary.org${book.ol_work_key}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-work">
-                Open Library (Work) <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={`https://openlibrary.org${book.ol_work_key}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-work">Open Library (Work) <ExternalLink className="w-3 h-3" /></a>
             )}
             {book.ol_cover_id && (
-              <a href={`https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-cover">
-                OL Cover Image <ExternalLink className="w-3 h-3" />
-              </a>
+              <a href={`https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-cover">OL Cover Image <ExternalLink className="w-3 h-3" /></a>
             )}
-            <a href={`/myfirstmillion/books/${book.slug}`} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-podcap">
-              PodCap Page <ExternalLink className="w-3 h-3" />
-            </a>
+            {book.ol_id_goodreads && book.ol_id_goodreads.length > 0 && (
+              <a href={`https://www.goodreads.com/book/show/${book.ol_id_goodreads[0]}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Goodreads <ExternalLink className="w-3 h-3" /></a>
+            )}
+            <a href={`/myfirstmillion/books/${book.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-podcap">PodCap Page <ExternalLink className="w-3 h-3" /></a>
           </div>
-        </div>
+        </Section>
 
-        <div className="glass-panel rounded-2xl p-5">
-          <h4 className="text-sm font-black mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-primary" />
-            Timestamps
-          </h4>
+        <Section title="Timestamps" icon={Clock}>
           <DataRow label="Created" value={book.created_at ? new Date(book.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : null} icon={Calendar} />
           <DataRow label="Updated" value={book.updated_at ? new Date(book.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null} icon={Clock} />
           <DataRow label="Last API Fetch" value={book.last_api_fetch ? new Date(book.last_api_fetch).toLocaleString() : "Never"} icon={RefreshCw} />
-        </div>
+        </Section>
       </div>
     </div>
   );
 }
 
 export default function BookstoreAdmin() {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -462,32 +512,24 @@ export default function BookstoreAdmin() {
 
   const filtered = useMemo(() => {
     let result = allBooks;
-
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       result = result.filter(b =>
-        b.book_title.toLowerCase().includes(q) ||
-        (b.author && b.author.toLowerCase().includes(q)) ||
-        b.slug.includes(q) ||
-        (b.isbn && b.isbn.includes(q)) ||
-        (b.publisher && b.publisher.toLowerCase().includes(q))
+        b.book_title.toLowerCase().includes(q) || (b.author && b.author.toLowerCase().includes(q)) ||
+        b.slug.includes(q) || (b.isbn && b.isbn.includes(q)) || (b.publisher && b.publisher.toLowerCase().includes(q))
       );
     }
-
     if (coverFilter === "has_cover") result = result.filter(b => b.has_cover);
     else if (coverFilter === "no_cover") result = result.filter(b => !b.has_cover);
     else if (coverFilter === "no_isbn") result = result.filter(b => !b.isbn);
-
     if (sortBy === "title") result = [...result].sort((a, b) => a.book_title.localeCompare(b.book_title));
     else if (sortBy === "updated") result = [...result].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
     else if (sortBy === "rating") result = [...result].sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
-
     return result;
   }, [allBooks, searchTerm, coverFilter, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
   const selectedBook = selectedBookId ? allBooks.find(b => b.id === selectedBookId) : null;
 
   if (selectedBook) {
@@ -513,55 +555,34 @@ export default function BookstoreAdmin() {
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-bold flex items-center gap-2" data-testid="text-bookstore-title">
-          <BookOpen className="w-5 h-5 text-primary" />
-          Bookstore ({stats.total} books)
+          <BookOpen className="w-5 h-5 text-primary" /> Bookstore ({stats.total} books)
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
           {stats.withCover} with covers · {stats.withIsbn} with ISBNs · {stats.approved} approved · {stats.enriched} API-enriched
         </p>
       </div>
-
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <div className="relative flex-1 w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search by title, author, slug, ISBN, or publisher..."
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+          <input type="text" placeholder="Search by title, author, slug, ISBN, or publisher..."
+            value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            data-testid="input-bookstore-search"
-          />
+            data-testid="input-bookstore-search" />
         </div>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-bold"
-          data-testid="select-bookstore-sort"
-        >
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+          className="px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-bold" data-testid="select-bookstore-sort">
           <option value="title">Sort: A-Z</option>
           <option value="updated">Sort: Recently Updated</option>
           <option value="rating">Sort: Highest Rated</option>
         </select>
       </div>
-
       <div className="flex flex-wrap items-center gap-2">
         {filterButtons.map(({ mode, label }) => (
-          <button
-            key={mode}
-            onClick={() => { setCoverFilter(mode); setPage(1); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              coverFilter === mode
-                ? "bg-primary/10 text-primary ring-2 ring-offset-1 ring-primary/30"
-                : "bg-muted/50 text-muted-foreground hover:bg-muted"
-            }`}
-            data-testid={`filter-bookstore-${mode}`}
-          >
-            {label}
-          </button>
+          <button key={mode} onClick={() => { setCoverFilter(mode); setPage(1); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${coverFilter === mode ? "bg-primary/10 text-primary ring-2 ring-offset-1 ring-primary/30" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
+            data-testid={`filter-bookstore-${mode}`}>{label}</button>
         ))}
       </div>
-
       {isLoading ? (
         <div className="text-center py-10 text-muted-foreground text-sm">Loading books...</div>
       ) : filtered.length === 0 ? (
@@ -575,19 +596,12 @@ export default function BookstoreAdmin() {
             {paginated.map((book) => {
               const coverUrl = book.has_cover ? `/books/${book.slug}.jpg` : null;
               return (
-                <button
-                  key={book.id}
-                  onClick={() => setSelectedBookId(book.id)}
+                <button key={book.id} onClick={() => setSelectedBookId(book.id)}
                   className="flex items-center gap-4 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/[0.02] transition-all text-left group"
-                  data-testid={`card-book-${book.id}`}
-                >
+                  data-testid={`card-book-${book.id}`}>
                   {coverUrl ? (
-                    <img
-                      src={coverUrl}
-                      alt={book.book_title}
-                      className="w-[40px] h-[60px] object-cover rounded-md shadow-sm shrink-0"
-                      onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).className = "w-[40px] h-[60px] bg-muted/30 rounded-md shrink-0"; }}
-                    />
+                    <img src={coverUrl} alt={book.book_title} className="w-[40px] h-[60px] object-cover rounded-md shadow-sm shrink-0"
+                      onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).className = "w-[40px] h-[60px] bg-muted/30 rounded-md shrink-0"; }} />
                   ) : (
                     <div className="w-[40px] h-[60px] bg-muted/20 rounded-md flex items-center justify-center shrink-0">
                       <BookOpen className="w-4 h-4 text-muted-foreground/30" />
@@ -614,26 +628,15 @@ export default function BookstoreAdmin() {
               );
             })}
           </div>
-
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-muted/50 hover:bg-muted disabled:opacity-30 transition-colors flex items-center gap-1"
-                data-testid="button-bookstore-prev"
-              >
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-muted/50 hover:bg-muted disabled:opacity-30 transition-colors flex items-center gap-1" data-testid="button-bookstore-prev">
                 <ChevronLeft className="w-3 h-3" /> Previous
               </button>
-              <span className="text-xs text-muted-foreground font-bold">
-                Page {page} of {totalPages} · {filtered.length} books
-              </span>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-muted/50 hover:bg-muted disabled:opacity-30 transition-colors flex items-center gap-1"
-                data-testid="button-bookstore-next"
-              >
+              <span className="text-xs text-muted-foreground font-bold">Page {page} of {totalPages} · {filtered.length} books</span>
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-muted/50 hover:bg-muted disabled:opacity-30 transition-colors flex items-center gap-1" data-testid="button-bookstore-next">
                 Next <ChevronRight className="w-3 h-3" />
               </button>
             </div>

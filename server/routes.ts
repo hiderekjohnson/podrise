@@ -4417,14 +4417,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
-      const { id } = req.body;
-      if (!id) return res.status(400).json({ message: "id required" });
+      const rawId = req.body?.id;
+      const id = typeof rawId === 'string' ? parseInt(rawId, 10) : rawId;
+      if (!id || typeof id !== 'number' || !Number.isInteger(id) || id < 1) {
+        return res.status(400).json({ message: "Valid integer id required" });
+      }
 
       const { rows } = await pool.query(`SELECT * FROM book_enrichments WHERE id = $1`, [id]);
       if (!rows.length) return res.status(404).json({ message: "Book not found" });
       const book = rows[0];
 
       const updates: Record<string, any> = {};
+      let gbSuccess = false;
+      let olSuccess = false;
 
       let googleBooksId = book.google_books_id;
       if (!googleBooksId) {
@@ -4447,11 +4452,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           if (gbRes.ok) {
             const gb = await gbRes.json();
             const vi = gb.volumeInfo || {};
+            const si = gb.saleInfo || {};
+            const ai = gb.accessInfo || {};
             if (vi.subtitle) updates.subtitle = vi.subtitle;
             if (vi.publisher) updates.publisher = vi.publisher;
             if (vi.publishedDate) updates.published_date = vi.publishedDate;
             if (vi.pageCount && !book.page_count) updates.page_count = vi.pageCount;
-            if (vi.description && !book.google_description) updates.google_description = vi.description;
+            if (vi.description) updates.google_description = vi.description;
             if (vi.language) updates.language = vi.language;
             if (vi.categories) updates.categories = vi.categories;
             if (vi.maturityRating) updates.maturity_rating = vi.maturityRating;
@@ -4474,6 +4481,25 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             if (vi.authors?.length && !book.author) {
               updates.author = vi.authors.join(", ");
             }
+            if (vi.printedPageCount) updates.printed_page_count = vi.printedPageCount;
+            if (vi.dimensions) updates.dimensions = typeof vi.dimensions === 'object' ? Object.entries(vi.dimensions).map(([k,v]) => `${k}: ${v}`).join(', ') : String(vi.dimensions);
+            if (vi.canonicalVolumeLink) updates.canonical_volume_link = vi.canonicalVolumeLink;
+            if (vi.contentVersion) updates.content_version = vi.contentVersion;
+            if (vi.imageLinks) updates.gb_image_links = vi.imageLinks;
+            if (vi.readingModes) updates.gb_reading_modes = vi.readingModes;
+            if (si.saleability) updates.gb_saleability = si.saleability;
+            if (si.isEbook !== undefined) updates.gb_is_ebook = si.isEbook;
+            if (si.listPrice?.amount !== undefined && si.listPrice?.amount !== null) { updates.gb_list_price = si.listPrice.amount; updates.gb_price_currency = si.listPrice.currencyCode; }
+            if (si.retailPrice?.amount !== undefined && si.retailPrice?.amount !== null) updates.gb_retail_price = si.retailPrice.amount;
+            if (si.buyLink) updates.gb_buy_link = si.buyLink;
+            if (ai.viewability) updates.gb_viewability = ai.viewability;
+            if (ai.embeddable !== undefined) updates.gb_embeddable = ai.embeddable;
+            if (ai.publicDomain !== undefined) updates.gb_public_domain = ai.publicDomain;
+            if (ai.textToSpeechPermission) updates.gb_text_to_speech = ai.textToSpeechPermission;
+            if (ai.epub?.isAvailable !== undefined) updates.gb_epub_available = ai.epub.isAvailable;
+            if (ai.pdf?.isAvailable !== undefined) updates.gb_pdf_available = ai.pdf.isAvailable;
+            if (ai.webReaderLink) updates.gb_web_reader_link = ai.webReaderLink;
+            gbSuccess = true;
           }
         } catch (e) {
           console.warn("[Bookstore] Google Books fetch failed:", e);
@@ -4482,13 +4508,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       try {
         const q = encodeURIComponent(book.book_title + (book.author ? ` ${book.author}` : ""));
-        const olRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=5&fields=key,title,author_name,isbn,publisher,publish_date,number_of_pages_median,first_publish_year,subject,language,edition_count,ebook_count_i,cover_i,ratings_average,ratings_count,want_to_read_count,currently_reading_count,already_read_count,first_sentence,subtitle`);
+        const olRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=5&fields=key,title,author_name,isbn,publisher,publish_date,number_of_pages_median,first_publish_year,subject,language,edition_count,ebook_count_i,cover_i,ratings_average,ratings_count,want_to_read_count,currently_reading_count,already_read_count,first_sentence,subtitle,id_amazon,id_goodreads,has_fulltext,lcc,ddc,contributor,person,place,time`);
         if (olRes.ok) {
           const olData = await olRes.json();
-          const titleLower = book.book_title.toLowerCase();
-          const doc = (olData.docs || []).find((d: any) =>
-            d.title?.toLowerCase().includes(titleLower) || titleLower.includes(d.title?.toLowerCase())
-          ) || olData.docs?.[0];
+          const titleLower = book.book_title.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const doc = (olData.docs || []).find((d: any) => {
+            const docTitle = (d.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            return docTitle === titleLower;
+          }) || (olData.docs || []).find((d: any) => {
+            const docTitle = (d.title || '').toLowerCase();
+            return docTitle.includes(book.book_title.toLowerCase()) || book.book_title.toLowerCase().includes(docTitle);
+          }) || olData.docs?.[0];
 
           if (doc) {
             if (doc.key) updates.ol_work_key = doc.key;
@@ -4510,9 +4540,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               if (!book.page_count && !updates.page_count) updates.page_count = doc.number_of_pages_median;
             }
             if (doc.first_sentence?.length) updates.ol_first_sentence = typeof doc.first_sentence === 'string' ? doc.first_sentence : doc.first_sentence[0];
-            if (doc.subtitle) {
-              if (!updates.subtitle) updates.subtitle = doc.subtitle;
-            }
+            if (doc.subtitle) updates.ol_subtitle = doc.subtitle;
+            if (doc.subtitle && !updates.subtitle) updates.subtitle = doc.subtitle;
+            if (doc.author_name?.length) updates.ol_author_names = doc.author_name;
+            if (doc.id_amazon?.length) updates.ol_id_amazon = doc.id_amazon;
+            if (doc.id_goodreads?.length) updates.ol_id_goodreads = doc.id_goodreads;
+            if (doc.has_fulltext !== undefined) updates.ol_has_fulltext = doc.has_fulltext;
+            if (doc.isbn?.length) updates.ol_all_isbns = doc.isbn;
+            if (doc.publish_date?.length) updates.ol_publish_dates = doc.publish_date;
 
             if (!book.isbn && !updates.isbn && doc.isbn?.length) {
               const isbn13 = doc.isbn.find((i: string) => i.length === 13);
@@ -4528,6 +4563,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             if (doc.ratings_count && (!book.rating_count || book.rating_count === null)) {
               updates.rating_count = doc.ratings_count;
             }
+            olSuccess = true;
           }
         }
       } catch (e) {
@@ -4554,7 +4590,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const { rows: updated } = await pool.query(`SELECT * FROM book_enrichments WHERE id = $1`, [id]);
-      res.json({ book: updated[0], fieldsUpdated: Object.keys(updates).length });
+      const fieldsUpdated = Object.keys(updates).filter(k => k !== 'last_api_fetch').length;
+      res.json({ book: updated[0], fieldsUpdated, apiStatus: { googleBooks: gbSuccess, openLibrary: olSuccess } });
     } catch (err: any) {
       console.error("[Bookstore] Enrich error:", err);
       res.status(500).json({ message: err?.message || "Failed to enrich book" });
