@@ -4377,6 +4377,107 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/book-covers", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const filter = req.query.filter as string || "all";
+      const fs = await import("fs");
+      const path = await import("path");
+      const coversDir = path.default.resolve("public/books");
+
+      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved FROM book_enrichments WHERE slug IS NOT NULL";
+      if (filter === "pending") query += " AND (cover_approved IS NULL)";
+      else if (filter === "approved") query += " AND cover_approved = true";
+      else if (filter === "rejected") query += " AND cover_approved = false";
+      query += " ORDER BY book_title ASC";
+
+      const { rows } = await pool.query(query);
+
+      const books = rows.map((r: any) => {
+        const filePath = path.default.join(coversDir, `${r.slug}.jpg`);
+        const hasFile = fs.default.existsSync(filePath);
+        return {
+          id: r.id,
+          title: r.book_title,
+          author: r.author,
+          slug: r.slug,
+          googleBooksId: r.google_books_id,
+          isbn: r.isbn,
+          hasCover: r.has_cover,
+          coverApproved: r.cover_approved,
+          hasFile,
+        };
+      });
+
+      const allRows = await pool.query("SELECT cover_approved FROM book_enrichments WHERE slug IS NOT NULL");
+      const stats = {
+        total: allRows.rows.length,
+        approved: allRows.rows.filter((r: any) => r.cover_approved === true).length,
+        rejected: allRows.rows.filter((r: any) => r.cover_approved === false).length,
+        pending: allRows.rows.filter((r: any) => r.cover_approved === null).length,
+      };
+
+      res.json({ books, stats });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to load book covers" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/approve", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "ids array required" });
+      }
+      await pool.query(
+        "UPDATE book_enrichments SET cover_approved = true, updated_at = NOW() WHERE id = ANY($1::int[])",
+        [ids]
+      );
+      res.json({ message: `Approved ${ids.length} covers` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to approve covers" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/reject", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "ids array required" });
+      }
+      const fs = await import("fs");
+      const path = await import("path");
+      const coversDir = path.default.resolve("public/books");
+
+      const { rows } = await pool.query(
+        "SELECT id, slug FROM book_enrichments WHERE id = ANY($1::int[])",
+        [ids]
+      );
+      for (const row of rows) {
+        const filePath = path.default.join(coversDir, `${row.slug}.jpg`);
+        if (fs.default.existsSync(filePath)) {
+          fs.default.unlinkSync(filePath);
+        }
+      }
+
+      await pool.query(
+        "UPDATE book_enrichments SET cover_approved = false, has_cover = false, updated_at = NOW() WHERE id = ANY($1::int[])",
+        [ids]
+      );
+      res.json({ message: `Rejected ${ids.length} covers, files removed` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to reject covers" });
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
