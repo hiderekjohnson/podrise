@@ -77,6 +77,7 @@ export default function BookCoversAdmin() {
   const [selectingCandidate, setSelectingCandidate] = useState<Set<number>>(new Set());
   const [coverVersion, setCoverVersion] = useState<Record<number, number>>({});
   const [candidateIndex, setCandidateIndex] = useState<Record<number, number>>({});
+  const [candidateFetchTime, setCandidateFetchTime] = useState<Record<number, number>>({});
   const [autoFetchedIds, setAutoFetchedIds] = useState<Set<number>>(new Set());
 
   const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
@@ -192,6 +193,7 @@ export default function BookCoversAdmin() {
       const data = await res.json();
       setCandidatesMap(prev => ({ ...prev, [bookId]: data.candidates || [] }));
       setCandidateIndex(prev => ({ ...prev, [bookId]: 0 }));
+      setCandidateFetchTime(prev => ({ ...prev, [bookId]: Date.now() }));
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to fetch candidates", variant: "destructive" });
       setCandidatesMap(prev => ({ ...prev, [bookId]: [] }));
@@ -322,6 +324,7 @@ export default function BookCoversAdmin() {
     const isLoadingCands = loadingCandidates.has(book.id);
     const isSelecting = selectingCandidate.has(book.id);
     const currentIdx = candidateIndex[book.id] || 0;
+    const fetchTs = candidateFetchTime[book.id] || 1;
     const hasCandidates = candidates && candidates.length > 0;
     const currentCandidate = hasCandidates ? candidates[currentIdx] : null;
     const isSelected = selected.has(book.id);
@@ -359,7 +362,7 @@ export default function BookCoversAdmin() {
               <div className="relative">
                 <div className="w-[287px] h-[425px] rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg border-2 border-indigo-200">
                   <img
-                    src={`${currentCandidate.url}?t=${Date.now()}`}
+                    src={`${currentCandidate.url}?t=${fetchTs}`}
                     alt={`${currentCandidate.source} candidate`}
                     className="w-full h-full object-contain"
                   />
@@ -716,7 +719,7 @@ export default function BookCoversAdmin() {
                             data-testid={`candidate-${book.id}-${c.source}`}
                           >
                             <img
-                              src={`${c.url}?t=${Date.now()}`}
+                              src={`${c.url}?t=${candidateFetchTime[book.id] || 1}`}
                               alt={`${c.source} cover`}
                               className="w-[120px] h-[180px] object-contain bg-white"
                             />
