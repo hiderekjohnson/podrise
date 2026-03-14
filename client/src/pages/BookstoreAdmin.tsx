@@ -103,7 +103,14 @@ const LANG_NAMES: Record<string, string> = {
 };
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, '\n\n').trim();
+  let text = html;
+  text = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<\/p>\s*<p>/gi, '\n\n');
+  text = text.replace(/<[^>]*>/g, '');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  return text.trim();
 }
 
 function CoverStatusBadge({ book }: { book: BookEnrichment }) {
@@ -118,7 +125,20 @@ function CoverStatusBadge({ book }: { book: BookEnrichment }) {
   return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600"><Clock className="w-2.5 h-2.5" />Pending</span>;
 }
 
-function DataRow({ label, value, icon: Icon, mono, link }: { label: string; value: string | number | boolean | null | undefined; icon?: typeof Hash; mono?: boolean; link?: string }) {
+type ApiSource = "gb" | "ol" | "pc" | "amazon";
+const SOURCE_BADGES: Record<ApiSource, { label: string; color: string }> = {
+  gb: { label: "Google Books", color: "bg-blue-50 text-blue-600 border-blue-200" },
+  ol: { label: "Open Library", color: "bg-indigo-50 text-indigo-600 border-indigo-200" },
+  pc: { label: "PodCap", color: "bg-violet-50 text-violet-600 border-violet-200" },
+  amazon: { label: "Amazon", color: "bg-orange-50 text-orange-600 border-orange-200" },
+};
+
+function SourceBadge({ source }: { source: ApiSource }) {
+  const s = SOURCE_BADGES[source];
+  return <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${s.color} shrink-0 leading-none`}>{s.label}</span>;
+}
+
+function DataRow({ label, value, icon: Icon, mono, link, source }: { label: string; value: string | number | boolean | null | undefined; icon?: typeof Hash; mono?: boolean; link?: string; source?: ApiSource }) {
   if (value === null || value === undefined || value === "" || (typeof value === 'number' && isNaN(value))) return null;
   const display = typeof value === "boolean" ? (value ? "Yes" : "No") : String(value);
   return (
@@ -127,13 +147,16 @@ function DataRow({ label, value, icon: Icon, mono, link }: { label: string; valu
         {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
         <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">{label}</span>
       </div>
-      {link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer" className={`text-sm text-primary hover:underline flex items-center gap-1 ${mono ? "font-mono text-xs" : ""}`}>
-          {display} <ExternalLink className="w-3 h-3" />
-        </a>
-      ) : (
-        <span className={`text-sm break-all ${mono ? "font-mono text-xs" : ""}`}>{display}</span>
-      )}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {link ? (
+          <a href={link} target="_blank" rel="noopener noreferrer" className={`text-sm text-primary hover:underline flex items-center gap-1 ${mono ? "font-mono text-xs" : ""}`}>
+            {display} <ExternalLink className="w-3 h-3" />
+          </a>
+        ) : (
+          <span className={`text-sm break-all ${mono ? "font-mono text-xs" : ""}`}>{display}</span>
+        )}
+        {source && <SourceBadge source={source} />}
+      </div>
     </div>
   );
 }
@@ -222,11 +245,24 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-black mb-0.5" data-testid="text-book-title">{book.book_title}</h3>
-            {book.subtitle && <p className="text-sm text-muted-foreground italic mb-1" data-testid="text-book-subtitle">{book.subtitle}</p>}
-            {book.ol_subtitle && book.ol_subtitle !== book.subtitle && <p className="text-xs text-muted-foreground/70 italic mb-1">OL: {book.ol_subtitle}</p>}
+            {book.subtitle && (
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-sm text-muted-foreground italic" data-testid="text-book-subtitle">{book.subtitle}</p>
+                <SourceBadge source="gb" />
+              </div>
+            )}
+            {book.ol_subtitle && book.ol_subtitle !== book.subtitle && (
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs text-muted-foreground/70 italic">{book.ol_subtitle}</p>
+                <SourceBadge source="ol" />
+              </div>
+            )}
             {book.author && <p className="text-sm text-muted-foreground mb-1" data-testid="text-book-author">by {book.author}</p>}
             {book.ol_author_names && book.ol_author_names.length > 0 && book.ol_author_names.join(", ") !== book.author && (
-              <p className="text-xs text-muted-foreground/70 mb-2">OL Authors: {book.ol_author_names.join(", ")}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-xs text-muted-foreground/70">Authors: {book.ol_author_names.join(", ")}</p>
+                <SourceBadge source="ol" />
+              </div>
             )}
 
             <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
@@ -243,6 +279,7 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
                 {book.gb_list_price != null && <span className="text-sm font-bold text-green-700 flex items-center gap-1"><DollarSign className="w-3.5 h-3.5" />{book.gb_list_price} {book.gb_price_currency || "USD"}</span>}
                 {book.gb_retail_price != null && book.gb_retail_price !== book.gb_list_price && <span className="text-xs text-muted-foreground">Retail: ${book.gb_retail_price}</span>}
                 {book.gb_saleability && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-600">{book.gb_saleability.replace(/_/g, " ")}</span>}
+                <SourceBadge source="gb" />
               </div>
             )}
 
@@ -253,12 +290,14 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
                     <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                     <span className="text-sm font-bold">{Number(book.rating).toFixed(1)}</span>
                     {book.rating_count && <span className="text-xs text-muted-foreground">({book.rating_count.toLocaleString()} ratings)</span>}
+                    <SourceBadge source="ol" />
                   </div>
                 )}
                 {book.ol_ratings_average && Number(book.ol_ratings_average) !== Number(book.rating) && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>OL: {Number(book.ol_ratings_average).toFixed(1)}</span>
+                    <span>{Number(book.ol_ratings_average).toFixed(1)}</span>
                     {book.ol_ratings_count && <span>({book.ol_ratings_count} ratings)</span>}
+                    <SourceBadge source="ol" />
                   </div>
                 )}
               </div>
@@ -266,25 +305,37 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
 
             {book.description && (
               <div className="mb-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase mb-1">PodCap Description</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-bold text-muted-foreground uppercase">Description</p>
+                  <SourceBadge source="pc" />
+                </div>
                 <p className="text-sm leading-relaxed" data-testid="text-book-description">{book.description}</p>
               </div>
             )}
             {gbDesc && gbDesc !== book.description && (
               <div className="mb-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Google Books Description</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-bold text-muted-foreground uppercase">Description</p>
+                  <SourceBadge source="gb" />
+                </div>
                 <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{gbDesc}</p>
               </div>
             )}
             {book.ol_first_sentence && (
               <div className="mb-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase mb-1">First Sentence</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-bold text-muted-foreground uppercase">First Sentence</p>
+                  <SourceBadge source="ol" />
+                </div>
                 <p className="text-sm italic text-muted-foreground">"{book.ol_first_sentence}"</p>
               </div>
             )}
             {book.podcast_buzz && (
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 mb-3">
-                <p className="text-xs font-bold text-primary mb-1">Podcast Buzz</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-bold text-primary">Podcast Buzz</p>
+                  <SourceBadge source="pc" />
+                </div>
                 <p className="text-sm">{book.podcast_buzz}</p>
               </div>
             )}
@@ -297,19 +348,28 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
           <div className="space-y-3">
             {book.categories && book.categories.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Google Books Categories</p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Categories</p>
+                  <SourceBadge source="gb" />
+                </div>
                 <TagList items={book.categories} color="bg-blue-50 text-blue-700" />
               </div>
             )}
             {book.ol_subjects && book.ol_subjects.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Open Library Subjects</p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Subjects</p>
+                  <SourceBadge source="ol" />
+                </div>
                 <TagList items={book.ol_subjects} color="bg-indigo-50 text-indigo-700" />
               </div>
             )}
             {book.topics && book.topics.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5">PodCap Topics</p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Topics</p>
+                  <SourceBadge source="pc" />
+                </div>
                 <TagList items={book.topics} />
               </div>
             )}
@@ -319,83 +379,83 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Section title="Identifiers" icon={Hash}>
-          <DataRow label="ISBN-13" value={book.isbn_13 || book.isbn} icon={Hash} mono />
-          <DataRow label="ISBN-10" value={book.isbn_10} icon={Hash} mono />
-          {book.isbn && book.isbn !== book.isbn_13 && book.isbn !== book.isbn_10 && <DataRow label="ISBN (stored)" value={book.isbn} icon={Hash} mono />}
-          <DataRow label="ASIN" value={book.asin} icon={Hash} mono />
-          <DataRow label="Google ID" value={book.google_books_id} icon={Globe} mono link={book.google_books_id ? `https://books.google.com/books?id=${book.google_books_id}` : undefined} />
-          <DataRow label="OL Work Key" value={book.ol_work_key} icon={Globe} mono link={book.ol_work_key ? `https://openlibrary.org${book.ol_work_key}` : undefined} />
-          <DataRow label="OL Cover ID" value={book.ol_cover_id} icon={Image} mono link={book.ol_cover_id ? `https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg` : undefined} />
-          {book.ol_id_amazon && book.ol_id_amazon.length > 0 && <DataRow label="Amazon ID (OL)" value={book.ol_id_amazon.join(", ")} icon={ShoppingCart} mono />}
+          <DataRow label="ISBN-13" value={book.isbn_13 || book.isbn} icon={Hash} mono source="gb" />
+          <DataRow label="ISBN-10" value={book.isbn_10} icon={Hash} mono source="gb" />
+          {book.isbn && book.isbn !== book.isbn_13 && book.isbn !== book.isbn_10 && <DataRow label="ISBN (stored)" value={book.isbn} icon={Hash} mono source="pc" />}
+          <DataRow label="ASIN" value={book.asin} icon={Hash} mono source="amazon" />
+          <DataRow label="Google ID" value={book.google_books_id} icon={Globe} mono link={book.google_books_id ? `https://books.google.com/books?id=${book.google_books_id}` : undefined} source="gb" />
+          <DataRow label="OL Work Key" value={book.ol_work_key} icon={Globe} mono link={book.ol_work_key ? `https://openlibrary.org${book.ol_work_key}` : undefined} source="ol" />
+          <DataRow label="OL Cover ID" value={book.ol_cover_id} icon={Image} mono link={book.ol_cover_id ? `https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg` : undefined} source="ol" />
+          {book.ol_id_amazon && book.ol_id_amazon.length > 0 && <DataRow label="Amazon ID" value={book.ol_id_amazon.join(", ")} icon={ShoppingCart} mono source="ol" />}
           {book.ol_id_goodreads && book.ol_id_goodreads.length > 0 && (
-            <DataRow label="Goodreads ID" value={book.ol_id_goodreads[0]} icon={BookOpen} mono link={`https://www.goodreads.com/book/show/${book.ol_id_goodreads[0]}`} />
+            <DataRow label="Goodreads ID" value={book.ol_id_goodreads[0]} icon={BookOpen} mono link={`https://www.goodreads.com/book/show/${book.ol_id_goodreads[0]}`} source="ol" />
           )}
-          <DataRow label="Slug" value={book.slug} icon={Tag} mono />
-          <DataRow label="Book Key" value={book.book_key} icon={Tag} mono />
-          <DataRow label="Content Ver." value={book.content_version} icon={Hash} mono />
+          <DataRow label="Slug" value={book.slug} icon={Tag} mono source="pc" />
+          <DataRow label="Book Key" value={book.book_key} icon={Tag} mono source="pc" />
+          <DataRow label="Content Ver." value={book.content_version} icon={Hash} mono source="gb" />
         </Section>
 
         <Section title="Publication Details" icon={BookOpen}>
-          <DataRow label="Publisher" value={book.publisher} icon={BookMarked} />
+          <DataRow label="Publisher" value={book.publisher} icon={BookMarked} source="gb" />
           {book.ol_publishers && book.ol_publishers.length > 0 && book.ol_publishers.join(", ") !== book.publisher && (
-            <DataRow label="OL Publishers" value={book.ol_publishers.join(", ")} icon={BookMarked} />
+            <DataRow label="Publisher" value={book.ol_publishers.join(", ")} icon={BookMarked} source="ol" />
           )}
-          <DataRow label="Published" value={book.published_date} icon={Calendar} />
-          <DataRow label="Publish Year" value={book.publish_year} icon={Calendar} />
+          <DataRow label="Published" value={book.published_date} icon={Calendar} source="gb" />
+          <DataRow label="Publish Year" value={book.publish_year} icon={Calendar} source={book.published_date ? "gb" : "ol"} />
           {book.ol_first_publish_year && book.ol_first_publish_year !== book.publish_year && (
-            <DataRow label="OL First Pub" value={book.ol_first_publish_year} icon={Calendar} />
+            <DataRow label="First Published" value={book.ol_first_publish_year} icon={Calendar} source="ol" />
           )}
           {book.ol_publish_dates && book.ol_publish_dates.length > 0 && (
-            <DataRow label="OL Pub Dates" value={book.ol_publish_dates.join(", ")} icon={Calendar} />
+            <DataRow label="Pub Dates" value={book.ol_publish_dates.join(", ")} icon={Calendar} source="ol" />
           )}
-          <DataRow label="Pages" value={book.page_count} icon={FileText} />
+          <DataRow label="Pages" value={book.page_count} icon={FileText} source="gb" />
           {book.printed_page_count && book.printed_page_count !== book.page_count && (
-            <DataRow label="Printed Pages" value={book.printed_page_count} icon={FileText} />
+            <DataRow label="Printed Pages" value={book.printed_page_count} icon={FileText} source="gb" />
           )}
           {book.ol_number_of_pages && book.ol_number_of_pages !== book.page_count && (
-            <DataRow label="OL Pages" value={book.ol_number_of_pages} icon={FileText} />
+            <DataRow label="Pages" value={book.ol_number_of_pages} icon={FileText} source="ol" />
           )}
-          <DataRow label="Language" value={book.language ? (LANG_NAMES[book.language] || book.language) : null} icon={Languages} />
+          <DataRow label="Language" value={book.language ? (LANG_NAMES[book.language] || book.language) : null} icon={Languages} source="gb" />
           {book.ol_languages && book.ol_languages.length > 0 && (
-            <DataRow label="OL Languages" value={book.ol_languages.map(l => LANG_NAMES[l] || l).join(", ")} icon={Languages} />
+            <DataRow label="Languages" value={book.ol_languages.map(l => LANG_NAMES[l] || l).join(", ")} icon={Languages} source="ol" />
           )}
-          <DataRow label="Dimensions" value={book.dimensions} icon={Ruler} />
-          <DataRow label="Print Type" value={book.print_type} icon={Library} />
-          <DataRow label="Maturity" value={book.maturity_rating} icon={Eye} />
-          <DataRow label="Editions" value={book.ol_edition_count} icon={Layers} />
-          <DataRow label="Ebook Editions" value={book.ol_ebook_count} icon={BookOpenCheck} />
-          <DataRow label="Full Text" value={book.ol_has_fulltext} icon={FileText} />
+          <DataRow label="Dimensions" value={book.dimensions} icon={Ruler} source="gb" />
+          <DataRow label="Print Type" value={book.print_type} icon={Library} source="gb" />
+          <DataRow label="Maturity" value={book.maturity_rating} icon={Eye} source="gb" />
+          <DataRow label="Editions" value={book.ol_edition_count} icon={Layers} source="ol" />
+          <DataRow label="Ebook Editions" value={book.ol_ebook_count} icon={BookOpenCheck} source="ol" />
+          <DataRow label="Full Text Avail." value={book.ol_has_fulltext} icon={FileText} source="ol" />
         </Section>
 
-        <Section title="Google Books Sale & Access" icon={ShoppingCart}>
-          <DataRow label="Saleability" value={book.gb_saleability?.replace(/_/g, " ")} icon={ShoppingCart} />
-          <DataRow label="Is Ebook" value={book.gb_is_ebook} icon={Monitor} />
-          <DataRow label="List Price" value={book.gb_list_price ? `$${book.gb_list_price} ${book.gb_price_currency || "USD"}` : null} icon={DollarSign} />
-          <DataRow label="Retail Price" value={book.gb_retail_price ? `$${book.gb_retail_price} ${book.gb_price_currency || "USD"}` : null} icon={DollarSign} />
-          <DataRow label="Buy Link" value={book.gb_buy_link ? "Google Play Store" : null} icon={ShoppingCart} link={book.gb_buy_link || undefined} />
-          <DataRow label="Viewability" value={book.gb_viewability} icon={Eye} />
-          <DataRow label="Embeddable" value={book.gb_embeddable} icon={Monitor} />
-          <DataRow label="Public Domain" value={book.gb_public_domain} icon={Globe} />
-          <DataRow label="Text-to-Speech" value={book.gb_text_to_speech} icon={Headphones} />
-          <DataRow label="EPUB Available" value={book.gb_epub_available} icon={FileText} />
-          <DataRow label="PDF Available" value={book.gb_pdf_available} icon={FileText} />
-          <DataRow label="Web Reader" value={book.gb_web_reader_link ? "Open Reader" : null} icon={Monitor} link={book.gb_web_reader_link || undefined} />
+        <Section title="Sale & Access Info" icon={ShoppingCart}>
+          <DataRow label="Saleability" value={book.gb_saleability?.replace(/_/g, " ")} icon={ShoppingCart} source="gb" />
+          <DataRow label="Is Ebook" value={book.gb_is_ebook} icon={Monitor} source="gb" />
+          <DataRow label="List Price" value={book.gb_list_price != null ? `$${book.gb_list_price} ${book.gb_price_currency || "USD"}` : null} icon={DollarSign} source="gb" />
+          <DataRow label="Retail Price" value={book.gb_retail_price != null ? `$${book.gb_retail_price} ${book.gb_price_currency || "USD"}` : null} icon={DollarSign} source="gb" />
+          <DataRow label="Buy Link" value={book.gb_buy_link ? "Google Play Store" : null} icon={ShoppingCart} link={book.gb_buy_link || undefined} source="gb" />
+          <DataRow label="Viewability" value={book.gb_viewability} icon={Eye} source="gb" />
+          <DataRow label="Embeddable" value={book.gb_embeddable} icon={Monitor} source="gb" />
+          <DataRow label="Public Domain" value={book.gb_public_domain} icon={Globe} source="gb" />
+          <DataRow label="Text-to-Speech" value={book.gb_text_to_speech} icon={Headphones} source="gb" />
+          <DataRow label="EPUB Available" value={book.gb_epub_available} icon={FileText} source="gb" />
+          <DataRow label="PDF Available" value={book.gb_pdf_available} icon={FileText} source="gb" />
+          <DataRow label="Web Reader" value={book.gb_web_reader_link ? "Open Reader" : null} icon={Monitor} link={book.gb_web_reader_link || undefined} source="gb" />
           {book.gb_reading_modes && (
-            <DataRow label="Reading Modes" value={Object.entries(book.gb_reading_modes).filter(([,v]) => v).map(([k]) => k).join(", ") || "None"} icon={BookOpen} />
+            <DataRow label="Reading Modes" value={Object.entries(book.gb_reading_modes).filter(([,v]) => v).map(([k]) => k).join(", ") || "None"} icon={BookOpen} source="gb" />
           )}
           {!book.gb_saleability && !book.gb_viewability && (
             <p className="text-xs text-muted-foreground">No sale/access data yet. Click "Fetch All API Data" to pull from Google Books.</p>
           )}
         </Section>
 
-        <Section title="Open Library Community Stats" icon={BarChart3}>
+        <Section title="Community Stats" icon={BarChart3}>
           {(book.ol_want_to_read !== null || book.ol_currently_reading !== null || book.ol_already_read !== null || book.ol_ratings_average !== null) ? (
             <>
-              <DataRow label="Rating" value={book.ol_ratings_average ? `${Number(book.ol_ratings_average).toFixed(2)} / 5` : null} icon={Star} />
-              <DataRow label="# Ratings" value={book.ol_ratings_count} icon={Star} />
-              <DataRow label="Want to Read" value={book.ol_want_to_read} icon={Bookmark} />
-              <DataRow label="Reading Now" value={book.ol_currently_reading} icon={BookOpen} />
-              <DataRow label="Already Read" value={book.ol_already_read} icon={CheckCircle2} />
+              <DataRow label="Rating" value={book.ol_ratings_average ? `${Number(book.ol_ratings_average).toFixed(2)} / 5` : null} icon={Star} source="ol" />
+              <DataRow label="# Ratings" value={book.ol_ratings_count} icon={Star} source="ol" />
+              <DataRow label="Want to Read" value={book.ol_want_to_read} icon={Bookmark} source="ol" />
+              <DataRow label="Reading Now" value={book.ol_currently_reading} icon={BookOpen} source="ol" />
+              <DataRow label="Already Read" value={book.ol_already_read} icon={CheckCircle2} source="ol" />
             </>
           ) : (
             <p className="text-xs text-muted-foreground">No community data yet. Click "Fetch All API Data" to pull from Open Library.</p>
@@ -403,17 +463,21 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
         </Section>
 
         {book.gb_image_links && Object.keys(book.gb_image_links).length > 0 && (
-          <Section title="Google Books Cover Variants" icon={FileImage}>
+          <Section title="Cover Variants" icon={FileImage}>
             <div className="space-y-1.5">
               {Object.entries(book.gb_image_links).map(([size, url]) => (
-                <DataRow key={size} label={size} value="View Image" icon={Image} link={url.replace('http://', 'https://')} />
+                <DataRow key={size} label={size} value="View Image" icon={Image} link={url.replace('http://', 'https://')} source="gb" />
               ))}
             </div>
           </Section>
         )}
 
         {book.ol_all_isbns && book.ol_all_isbns.length > 0 && (
-          <Section title="All Known ISBNs (Open Library)" icon={Hash}>
+          <Section title="All Known ISBNs" icon={Hash}>
+            <div className="flex items-center gap-2 mb-2">
+              <SourceBadge source="ol" />
+              <span className="text-[10px] text-muted-foreground">{book.ol_all_isbns.length} ISBNs found</span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {book.ol_all_isbns.map((isbn, i) => (
                 <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-muted/50 text-muted-foreground">{isbn}</span>
@@ -423,62 +487,98 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
         )}
 
         <Section title="Cover Status & Sources" icon={Image}>
-          <DataRow label="Has Cover" value={book.has_cover ? "Yes" : "No"} icon={Image} />
+          <DataRow label="Has Cover" value={book.has_cover ? "Yes" : "No"} icon={Image} source="pc" />
           <DataRow label="Cover Status" value={
             book.cover_approved === true ? "Approved (locked)" :
             book.cover_approved === false ? (book.needs_replacement ? "Needs Replacement" : "Rejected") :
             "Pending Review"
-          } icon={CheckCircle2} />
-          <DataRow label="Cover Source" value={book.cover_source} icon={Globe} />
-          <DataRow label="Quality Score" value={book.cover_quality_score} icon={Star} />
-          <DataRow label="Tried Sources" value={book.cover_tried_sources?.join(", ") || "None"} icon={Layers} />
-          {book.rejection_reason && <DataRow label="Reject Reason" value={book.rejection_reason} icon={XCircle} />}
-          {book.replacement_note && <DataRow label="Replace Note" value={book.replacement_note} icon={AlertTriangle} />}
+          } icon={CheckCircle2} source="pc" />
+          <DataRow label="Cover Source" value={book.cover_source} icon={Globe} source="pc" />
+          <DataRow label="Quality Score" value={book.cover_quality_score} icon={Star} source="pc" />
+          <DataRow label="Tried Sources" value={book.cover_tried_sources?.join(", ") || "None"} icon={Layers} source="pc" />
+          {book.rejection_reason && <DataRow label="Reject Reason" value={book.rejection_reason} icon={XCircle} source="pc" />}
+          {book.replacement_note && <DataRow label="Replace Note" value={book.replacement_note} icon={AlertTriangle} source="pc" />}
         </Section>
 
         <Section title="Links" icon={ExternalLink}>
           <div className="space-y-2">
             {book.amazon_url && (
-              <a href={book.amazon_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-amazon">Amazon <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={book.amazon_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-amazon">Amazon <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="amazon" />
+              </div>
             )}
             {book.gb_buy_link && (
-              <a href={book.gb_buy_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-buy">Buy on Google Play <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={book.gb_buy_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-buy">Buy on Google Play <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="gb" />
+              </div>
             )}
             {book.google_books_id && (
-              <a href={`https://books.google.com/books?id=${book.google_books_id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-google">Google Books <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={`https://books.google.com/books?id=${book.google_books_id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-google">Google Books <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="gb" />
+              </div>
             )}
             {book.google_preview_link && (
-              <a href={book.google_preview_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-preview">Google Preview <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={book.google_preview_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-preview">Google Preview <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="gb" />
+              </div>
             )}
             {book.google_info_link && (
-              <a href={book.google_info_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-play">Google Play Info <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={book.google_info_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-play">Google Play Info <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="gb" />
+              </div>
             )}
             {book.canonical_volume_link && book.canonical_volume_link !== book.google_info_link && (
-              <a href={book.canonical_volume_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Canonical Link <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={book.canonical_volume_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Canonical Link <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="gb" />
+              </div>
             )}
             {book.gb_web_reader_link && (
-              <a href={book.gb_web_reader_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Web Reader <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={book.gb_web_reader_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Web Reader <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="gb" />
+              </div>
             )}
             {book.isbn && (
-              <a href={`https://openlibrary.org/isbn/${book.isbn}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-openlibrary">Open Library (ISBN) <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={`https://openlibrary.org/isbn/${book.isbn}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-openlibrary">Open Library (ISBN) <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="ol" />
+              </div>
             )}
             {book.ol_work_key && (
-              <a href={`https://openlibrary.org${book.ol_work_key}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-work">Open Library (Work) <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={`https://openlibrary.org${book.ol_work_key}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-work">Open Library (Work) <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="ol" />
+              </div>
             )}
             {book.ol_cover_id && (
-              <a href={`https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-cover">OL Cover Image <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={`https://covers.openlibrary.org/b/id/${book.ol_cover_id}-L.jpg`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-ol-cover">OL Cover Image <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="ol" />
+              </div>
             )}
             {book.ol_id_goodreads && book.ol_id_goodreads.length > 0 && (
-              <a href={`https://www.goodreads.com/book/show/${book.ol_id_goodreads[0]}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Goodreads <ExternalLink className="w-3 h-3" /></a>
+              <div className="flex items-center gap-2">
+                <a href={`https://www.goodreads.com/book/show/${book.ol_id_goodreads[0]}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">Goodreads <ExternalLink className="w-3 h-3" /></a>
+                <SourceBadge source="ol" />
+              </div>
             )}
-            <a href={`/myfirstmillion/books/${book.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-podcap">PodCap Page <ExternalLink className="w-3 h-3" /></a>
+            <div className="flex items-center gap-2">
+              <a href={`/myfirstmillion/books/${book.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-podcap">PodCap Page <ExternalLink className="w-3 h-3" /></a>
+              <SourceBadge source="pc" />
+            </div>
           </div>
         </Section>
 
         <Section title="Timestamps" icon={Clock}>
-          <DataRow label="Created" value={book.created_at ? new Date(book.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : null} icon={Calendar} />
-          <DataRow label="Updated" value={book.updated_at ? new Date(book.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null} icon={Clock} />
-          <DataRow label="Last API Fetch" value={book.last_api_fetch ? new Date(book.last_api_fetch).toLocaleString() : "Never"} icon={RefreshCw} />
+          <DataRow label="Created" value={book.created_at ? new Date(book.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : null} icon={Calendar} source="pc" />
+          <DataRow label="Updated" value={book.updated_at ? new Date(book.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null} icon={Clock} source="pc" />
+          <DataRow label="Last API Fetch" value={book.last_api_fetch ? new Date(book.last_api_fetch).toLocaleString() : "Never"} icon={RefreshCw} source="pc" />
         </Section>
       </div>
     </div>
