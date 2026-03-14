@@ -6002,78 +6002,27 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const client = await pool.connect();
       try {
         const { rows: podcasts } = await client.query(
-          `SELECT pd.itunes_id, pd.name, pd.taddy_uuid,
+          `SELECT pd.itunes_id, pd.name,
                   COALESCE(pd.total_episodes, 0)::int as total_episodes,
-                  COALESCE(tc.transcript_count, 0)::int as transcript_count,
-                  COALESCE(tc.complete_count, 0)::int as complete_count
+                  COALESCE(tc.transcript_count, 0)::int as transcript_count
            FROM podcast_directory pd
            LEFT JOIN (
-             SELECT podcast_id, COUNT(*)::int as transcript_count,
-                    SUM(CASE WHEN complete_record = true THEN 1 ELSE 0 END)::int as complete_count
+             SELECT podcast_id, COUNT(*)::int as transcript_count
              FROM episode_transcripts
              GROUP BY podcast_id
            ) tc ON pd.itunes_id = tc.podcast_id
            ORDER BY pd.name ASC`
         );
-        let backfillStatus: { currentIndex: number; currentName: string; totalPodcasts: number; processedNames: string[]; podcastResults?: Record<string, { name: string; error?: string }>; running: boolean } | null = null;
-        try {
-          const raw = readFileSync("/tmp/backfill_status.json", "utf-8");
-          backfillStatus = JSON.parse(raw);
-        } catch {}
-
-        const processedSet = new Set(backfillStatus?.processedNames || []);
-        const isBackfillRunning = backfillStatus?.running === true;
-        const podcastResults = backfillStatus?.podcastResults || {};
 
         res.json({
-          podcasts: podcasts.map((p, i) => {
-            let status: string;
-            let error: string | undefined;
-            const result = podcastResults[p.name];
-
-            const TARGET = 100;
-            const closeEnough = p.total_episodes > 0 && p.transcript_count > 0 && p.transcript_count >= p.total_episodes * 0.9;
-            if (closeEnough && p.complete_count > 0 && p.complete_count >= p.transcript_count * 0.9) {
-              status = "complete_record";
-            } else if (p.transcript_count >= TARGET) {
-              status = "done";
-            } else if (!p.taddy_uuid) {
-              status = "no_taddy";
-              error = "Podcast not found on Taddy";
-            } else if (isBackfillRunning && backfillStatus?.currentName === p.name) {
-              status = "in_process";
-            } else if (isBackfillRunning && !processedSet.has(p.name) && backfillStatus?.currentName !== p.name) {
-              status = "in_queue";
-            } else if (result?.error) {
-              status = "error";
-              error = result.error;
-            } else if (processedSet.has(p.name)) {
-              status = p.transcript_count > 0 ? "partial" : "error";
-              error = p.transcript_count > 0 ? undefined : `Only ${p.transcript_count} of ${TARGET} transcripts available on Taddy`;
-            } else {
-              status = "in_queue";
-            }
-            const totalEpisodes = p.total_episodes || 0;
-            return {
-              index: i + 1,
-              name: p.name,
-              itunesId: p.itunes_id,
-              hasTaddyUuid: !!p.taddy_uuid,
-              transcriptCount: p.transcript_count,
-              completeCount: p.complete_count,
-              totalEpisodes,
-              target: TARGET,
-              remaining: Math.max(0, TARGET - p.transcript_count),
-              status,
-              error,
-            };
-          }),
+          podcasts: podcasts.map((p) => ({
+            name: p.name,
+            itunesId: p.itunes_id,
+            transcriptCount: p.transcript_count,
+            totalEpisodes: p.total_episodes || 0,
+          })),
           totalTranscripts: podcasts.reduce((sum, p) => sum + (p.transcript_count || 0), 0),
           totalPodcasts: podcasts.length,
-          podcastsComplete: podcasts.filter(p => (p.transcript_count || 0) >= 100).length,
-          backfillRunning: isBackfillRunning,
-          backfillCurrentName: backfillStatus?.currentName || null,
-          backfillCurrentIndex: backfillStatus?.currentIndex || null,
         });
       } finally {
         client.release();
