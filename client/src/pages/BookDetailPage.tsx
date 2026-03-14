@@ -2,8 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
-import { BookOpen, ExternalLink, ChevronDown, ShoppingCart, Copy, Check, FileText } from "lucide-react";
-import { SiX } from "react-icons/si";
+import { BookOpen, ExternalLink, ChevronDown, ShoppingCart, FileText } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -144,51 +143,6 @@ function AuthorWithLinks({ author }: { author: string }) {
   );
 }
 
-function ShareButton({ book }: { book: BookDetail }) {
-  const [copied, setCopied] = useState(false);
-  const url = `https://podcap.io/bookstore/${book.slug}`;
-  const tweetText = `${book.name}${book.author ? ` by ${book.author}` : ""} — recommended on ${book.podcastCount} podcasts\n${url}`;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const textArea = document.createElement("textarea");
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-2" data-testid="share-buttons">
-      <a
-        href={`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="p-2 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2"
-        data-testid="button-share-x"
-        title="Share on X"
-      >
-        <SiX className="w-3.5 h-3.5 text-[#09090B] dark:text-white" />
-      </a>
-      <button
-        onClick={handleCopy}
-        className="p-2 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2"
-        data-testid="button-copy-link"
-        title="Copy link"
-      >
-        {copied ? <Check className="w-3.5 h-3.5 text-[#6366F1]" /> : <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />}
-      </button>
-    </div>
-  );
-}
 
 function formatMonthYear(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -223,20 +177,31 @@ function HeroCover({ title, slug }: { title: string; slug: string }) {
 }
 
 function ArtworkTile({ slug, name, artworkUrl }: { slug: string; name: string; artworkUrl: string }) {
+  const scrollToEpisode = () => {
+    const cards = document.querySelectorAll(`[data-podcast-slug="${slug}"]`);
+    if (cards.length > 0) {
+      cards[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      cards[0].classList.add("ring-2", "ring-[#6366F1]", "ring-offset-2");
+      setTimeout(() => cards[0].classList.remove("ring-2", "ring-[#6366F1]", "ring-offset-2"), 2000);
+    } else {
+      document.getElementById("appearances")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <Link
-      href={`/podcasts/${slug}`}
-      className="shrink-0 relative group block"
+    <button
+      onClick={scrollToEpisode}
+      className="shrink-0 relative group block cursor-pointer"
       data-testid={`artwork-tile-${slug}`}
     >
-      <div className="w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-[14px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.18)] transition-transform group-hover:scale-105 group-hover:z-10">
+      <div className="w-[88px] h-[88px] sm:w-[110px] sm:h-[110px] rounded-[14px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.18)] transition-transform group-hover:scale-105 group-hover:z-10">
         <img src={artworkUrl} alt={name} className="w-full h-full object-cover block" />
       </div>
       <div className="absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 translate-y-1 bg-[#09090B] text-white text-xs font-medium px-2.5 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all pointer-events-none z-20">
         {name}
         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#09090B]" />
       </div>
-    </Link>
+    </button>
   );
 }
 
@@ -245,6 +210,7 @@ function AppearanceCard({ ep, podcastArtwork }: { ep: BookEpisode; podcastArtwor
     <div
       className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl overflow-hidden transition-all hover:border-[#6366F1]/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.1)]"
       data-testid={`appearance-card-${ep.episodeSlug}`}
+      data-podcast-slug={ep.podcastSlug}
     >
       <div className="flex items-center gap-3.5 px-4 pt-3.5 pb-3 border-b border-[#F0F0F2] dark:border-white/[0.06]">
         <div className="w-11 h-11 rounded-[10px] shrink-0 overflow-hidden bg-[#F7F7FC]">
@@ -428,9 +394,13 @@ export default function BookDetailPage() {
                       <ArtworkTile key={p.slug} slug={p.slug} name={p.name} artworkUrl={p.artworkUrl} />
                     ))}
                     {remainingPodcasts > 0 && (
-                      <div className="w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] rounded-[14px] bg-[#F7F7FC] dark:bg-white/[0.04] border border-dashed border-[#E4E4E7] dark:border-white/[0.12] flex items-center justify-center text-sm text-[#52525B] font-semibold" data-testid="artwork-more">
+                      <button
+                        onClick={() => document.getElementById("appearances")?.scrollIntoView({ behavior: "smooth" })}
+                        className="w-[88px] h-[88px] sm:w-[110px] sm:h-[110px] rounded-[14px] bg-[#F7F7FC] dark:bg-white/[0.04] border border-dashed border-[#E4E4E7] dark:border-white/[0.12] flex items-center justify-center text-sm text-[#52525B] font-semibold cursor-pointer hover:border-[#6366F1]/40 hover:text-[#6366F1] transition-colors"
+                        data-testid="artwork-more"
+                      >
                         +{remainingPodcasts}
-                      </div>
+                      </button>
                     )}
                   </div>
                 </>
@@ -438,11 +408,6 @@ export default function BookDetailPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 mb-5">
-            <span className="text-[14px] font-semibold text-[#09090B] dark:text-white">{book.mentionCount} mentions across {book.podcastCount} podcasts</span>
-            <div className="flex-1" />
-            <ShareButton book={book} />
-          </div>
 
           {book.podcastBuzz && (
             <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] border-l-[3px] border-l-[#6366F1] rounded-[0_12px_12px_0] px-5 py-4 mb-7 shadow-[0_1px_3px_rgba(0,0,0,0.07)]" data-testid="section-podcast-buzz">
