@@ -2488,6 +2488,19 @@ export async function registerRoutes(
         return false;
       }
 
+      const AD_CONTEXT_PATTERNS = [
+        /\bavailable on blinkist\b/i,
+        /\bmentioned as a book available on\b/i,
+        /\bavailable on audible\b/i,
+        /\bsponsored by\b/i,
+        /\bbrought to you by\b/i,
+        /\bpromo code\b/i,
+        /\buse code\b/i,
+        /\bdiscount code\b/i,
+        /\bfor quick learning\b/i,
+        /\bget (?:a )?free (?:trial|audiobook)\b/i,
+      ];
+
       for (const row of rows) {
         let resources: any[];
         try {
@@ -2504,8 +2517,12 @@ export async function registerRoutes(
           if (!r || r.type !== 'book' || !r.name) continue;
           const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
           if (bookKeyVariants.has(rKey)) {
-            foundInEpisode = true;
-            bookContext = r.context || "";
+            const ctx = r.context || "";
+            const isAdMention = AD_CONTEXT_PATTERNS.some(p => p.test(ctx));
+            if (!isAdMention) {
+              foundInEpisode = true;
+              bookContext = ctx;
+            }
           } else if (r.name !== '_books_checked') {
             otherBooks.push(rKey);
           }
@@ -2583,13 +2600,30 @@ export async function registerRoutes(
         }
       }
 
+      const insightsResult = await pool.query(
+        `SELECT episode_slug, insight FROM book_insights WHERE book_key = $1`,
+        [bookKey]
+      );
+      const insightsMap = new Map<string, string>();
+      for (const r of insightsResult.rows) {
+        insightsMap.set(r.episode_slug, r.insight);
+      }
+      for (const ep of episodes) {
+        const insight = insightsMap.get(ep.episodeSlug);
+        if (insight) ep.context = insight;
+      }
+
+      const datedEpisodes = episodes.filter(e => e.publishedAt).map(e => new Date(e.publishedAt).getTime());
+      const firstMentioned = datedEpisodes.length > 0 ? new Date(Math.min(...datedEpisodes)).toISOString() : null;
+      const lastMentioned = datedEpisodes.length > 0 ? new Date(Math.max(...datedEpisodes)).toISOString() : null;
+
       episodes.sort((a, b) => {
+        const aHasInsight = insightsMap.has(a.episodeSlug) ? 1 : 0;
+        const bHasInsight = insightsMap.has(b.episodeSlug) ? 1 : 0;
+        if (bHasInsight !== aHasInsight) return bHasInsight - aHasInsight;
         if (a.publishedAt && b.publishedAt) return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
         return 0;
       });
-
-      const firstMentioned = episodes.length > 0 ? episodes[episodes.length - 1].publishedAt : null;
-      const lastMentioned = episodes.length > 0 ? episodes[0].publishedAt : null;
 
       const topHosts = Array.from(hostMentionCounts.entries())
         .sort((a, b) => b[1] - a[1])

@@ -282,9 +282,7 @@ function AppearanceCard({ ep, podcastArtwork }: { ep: BookEpisode; podcastArtwor
             Why they talked about it
             <span className="flex-1 h-px bg-[#F0F0F2] dark:bg-white/[0.06]" />
           </div>
-          <div className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.85]">
-            {ep.context}
-          </div>
+          <div className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.85] [&_strong]:text-[#18181B] dark:[&_strong]:text-white [&_strong]:font-semibold" dangerouslySetInnerHTML={{ __html: ep.context.replace(/<(?!\/?strong\b)[^>]*>/gi, '') }} />
         </div>
       )}
     </div>
