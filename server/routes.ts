@@ -196,13 +196,21 @@ const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/podcasts", priority: "0.9", changefreq: "daily" },
   { path: "/trends", priority: "0.9", changefreq: "daily" },
-  { path: "/insights", priority: "0.9", changefreq: "daily" },
-  { path: "/login", priority: "0.5", changefreq: "monthly" },
-  { path: "/privacy", priority: "0.3", changefreq: "yearly" },
-  { path: "/terms", priority: "0.3", changefreq: "yearly" },
-  { path: "/support", priority: "0.5", changefreq: "monthly" },
+  { path: "/bookstore", priority: "0.8", changefreq: "weekly" },
+  { path: "/shop", priority: "0.7", changefreq: "weekly" },
   { path: "/people", priority: "0.8", changefreq: "weekly" },
   { path: "/companies", priority: "0.8", changefreq: "weekly" },
+  { path: "/industries", priority: "0.8", changefreq: "weekly" },
+  { path: "/interests", priority: "0.8", changefreq: "weekly" },
+  { path: "/roles", priority: "0.8", changefreq: "weekly" },
+  { path: "/insights", priority: "0.7", changefreq: "weekly" },
+  { path: "/about", priority: "0.5", changefreq: "monthly" },
+  { path: "/contact", priority: "0.4", changefreq: "monthly" },
+  { path: "/enterprise", priority: "0.5", changefreq: "monthly" },
+  { path: "/login", priority: "0.3", changefreq: "monthly" },
+  { path: "/privacy", priority: "0.3", changefreq: "yearly" },
+  { path: "/terms", priority: "0.3", changefreq: "yearly" },
+  { path: "/support", priority: "0.4", changefreq: "monthly" },
 ];
 
 const PODCAST_SLUGS = Object.values(ITUNES_ID_TO_SLUG);
@@ -273,17 +281,38 @@ async function buildSitemap(): Promise<string> {
   }
 
   try {
-    const { TOPICS } = await import("../client/src/data/topicData");
+    const { TOPICS, getCategoryPath } = await import("../client/src/data/topicData");
     for (const topic of TOPICS) {
+      const categoryPath = getCategoryPath(topic.category);
       xml += `  <url>\n`;
-      xml += `    <loc>${DOMAIN}/insights/${topic.slug}</loc>\n`;
+      xml += `    <loc>${DOMAIN}${categoryPath}/${topic.slug}</loc>\n`;
       xml += `    <lastmod>${today}</lastmod>\n`;
       xml += `    <changefreq>weekly</changefreq>\n`;
       xml += `    <priority>0.7</priority>\n`;
       xml += `  </url>\n`;
+      xml += `  <url>\n`;
+      xml += `    <loc>${DOMAIN}${categoryPath}/${topic.slug}/pulse</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>0.6</priority>\n`;
+      xml += `  </url>\n`;
     }
   } catch (err) {
-    console.error("[Sitemap] Error generating insights URLs:", err);
+    console.error("[Sitemap] Error generating topic URLs:", err);
+  }
+
+  try {
+    const bookRows = await pool.query(`SELECT slug FROM book_enrichments WHERE slug IS NOT NULL`);
+    for (const row of bookRows.rows) {
+      xml += `  <url>\n`;
+      xml += `    <loc>${DOMAIN}/bookstore/${row.slug}</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>monthly</changefreq>\n`;
+      xml += `    <priority>0.6</priority>\n`;
+      xml += `  </url>\n`;
+    }
+  } catch (err) {
+    console.error("[Sitemap] Error generating book URLs:", err);
   }
 
   xml += `</urlset>`;
