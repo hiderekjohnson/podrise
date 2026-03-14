@@ -1792,7 +1792,7 @@ export async function registerRoutes(
           } catch { continue; }
           for (const r of resources) {
             if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
-            const key = r.name.toLowerCase().trim();
+            const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
             const existing = bookMentionMap.get(key);
             if (existing) {
               existing.mentionCount++;
@@ -2181,7 +2181,7 @@ export async function registerRoutes(
         for (const r of resources) {
           if (r.type !== 'book' || !r.name) continue;
 
-          const key = r.name.toLowerCase().trim();
+          const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
           const existing = bookMap.get(key);
           if (existing) {
             existing.mentionCount++;
@@ -2211,9 +2211,11 @@ export async function registerRoutes(
       const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
       const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
 
+      const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+
       const books = Array.from(bookMap.values())
         .map(b => {
-          const key = b.name.toLowerCase().trim();
+          const key = normalizeBookKey(b.name);
           const enrichment = enrichMap.get(key) as any;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichment?.asin || originalAsin;
@@ -2318,7 +2320,7 @@ export async function registerRoutes(
         for (const r of resources) {
           if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
 
-          const key = r.name.toLowerCase().trim();
+          const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
           const existing = bookMap.get(key);
           if (existing) {
             existing.mentionCount++;
@@ -2352,9 +2354,11 @@ export async function registerRoutes(
       const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
       const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
 
+      const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+
       const books = Array.from(bookMap.values())
         .map(b => {
-          const key = b.name.toLowerCase().trim();
+          const key = normalizeBookKey(b.name);
           const enrichment = enrichMap.get(key) as any;
           const enrichedAsin = enrichment?.asin || null;
           const originalAsin = extractAsinFromUrl(b.url);
@@ -2467,7 +2471,7 @@ export async function registerRoutes(
 
         for (const r of resources) {
           if (!r || r.type !== 'book' || !r.name) continue;
-          const rKey = r.name.toLowerCase().trim();
+          const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
           if (rKey === bookKey) {
             foundInEpisode = true;
             bookContext = r.context || "";
