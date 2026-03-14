@@ -445,7 +445,7 @@ OTHER RULES:
 - topQuestions: exactly 3 questions phrased like real Google searches. Each question MUST contain at least one of: the podcast name, a guest name, or a specific named entity (person, company, framework, book). NEVER generic questions. BAD: "What is the best way to find your passion?" GOOD: "What does Bill Gurley say about finding your passion on My First Million?" Each answer should be 2-3 sentences maximum that deliver the ACTUAL answer with specific facts or claims from the episode. Answers must follow the same rules as the recap: no speaker attribution patterns ("[Person] emphasizes/highlights/explains..."), no banned words, just the substance. BAD answer: "Bill Gurley emphasizes the importance of frameworks like regret minimization." GOOD answer: "The regret minimization framework asks you to imagine your 80-year-old self looking back - what would that person regret not trying? Jeff Bezos used exactly this thought experiment to decide to leave his hedge fund job and start Amazon."
 - sponsors: Extract ALL sponsors/advertisers. Include coupon codes and URLs when mentioned. Return empty array [] if none
 - guests: Extract ALL guests (NOT regular hosts). CRITICAL: Use FULL NAME (first AND last). Search the entire transcript for last names. A guest is anyone who is interviewed, joins the conversation, or is introduced on the show - even if they only appear briefly. Look for introductions like "joining us", "our guest", "we have", "[Name] is here", or any person who speaks who is not a regular host. If the episode title mentions a person by name or title (e.g. "$450M VC", "$100B Founder"), that person is almost certainly a guest - find their full name. Return empty array [] ONLY if the episode truly has no guests (e.g. hosts-only discussion episodes)
-- resources: Extract ALL books mentioned - even briefly. Include full title and author name. The "context" field must answer why this book was mentioned and what specific argument it supported. Do NOT describe the book generically. BAD context: "Daniel H. Pink explores how embracing regret can improve decision-making." GOOD context: "Recommended in the context of the central argument that 6 out of 10 people regret their career choices - Pink's research on how regrets of inaction outweigh mistakes was cited as the foundation for the whole conversation." Do NOT include sponsors, SaaS products, or abstract concepts. Return empty array [] if none`;
+- resources: Extract ALL books mentioned - even briefly. Include full title and author name. The "context" field is the MOST IMPORTANT part - it must be 3-5 sentences of RICH, EPISODE-SPECIFIC detail: WHO mentioned this book, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported. Include concrete details like names, numbers, and anecdotes from the actual conversation. Write as if explaining to a friend why this book came up in this specific episode. BAD context: "Daniel H. Pink explores how embracing regret can improve decision-making." BAD context: "Mentioned as a recommended read." GOOD context: "Bill Gurley brought up Pink's research when making his central argument that 6 out of 10 people regret their career choices. He cited Pink's finding that regrets of inaction outweigh regrets of mistakes as the foundation for his 'Runnin' Down a Dream' lecture, which he's given to Stanford students for the past decade. Sacks pushed back asking whether that stat is inflated by survivorship bias, but Gurley argued the data holds across income levels." Do NOT include sponsors, SaaS products, or abstract concepts. Return empty array [] if none`;
 
   console.log(`[RecapGenerator] Pass 1: Generating recap + structured data for "${episodeTitle}"...`);
 
@@ -789,13 +789,13 @@ For each book, provide:
 - name: The exact book title
 - author: The author's full name (look it up if you know it, even if the transcript only gives a last name)
 - description: A 1-sentence description of what the book is about
-- context: 1-2 sentences explaining exactly what was said about this book in the episode - why it was mentioned, what point it supported, or why it was recommended. This should feel like transcript context, not a generic description.
+- context: 3-5 sentences of RICH, EPISODE-SPECIFIC context. This is the most important field. You MUST answer: WHO mentioned this book? WHY did they bring it up? What SPECIFIC argument, story, or point did it support? Include concrete details from the conversation - names, numbers, anecdotes, the actual claim being made. Write as if explaining to a friend why this book came up. BAD: "Mentioned as a recommended read on building habits." BAD: "James Clear's book on habit formation." GOOD: "Sam Parr brought this up when discussing how he restructured his morning routine after selling The Hustle. He said Atomic Habits changed his approach to productivity - instead of setting big goals, he started focusing on 1% daily improvements. Shaan pushed back saying the book oversimplifies willpower, but Sam argued the identity-based habit framework was the single most useful idea he'd encountered in any business book."
 - url: An Amazon direct product URL in format https://www.amazon.com/dp/ASIN if you know the ASIN, otherwise https://www.amazon.com/s?k=Book+Title+Author+Name
 
 Respond ONLY with a valid JSON object:
 {
   "books": [
-    {"name": "Book Title", "type": "book", "description": "Brief description.", "url": "https://www.amazon.com/dp/ASIN", "author": "Author Name", "context": "What was said about this book in the episode."}
+    {"name": "Book Title", "type": "book", "description": "Brief description.", "url": "https://www.amazon.com/dp/ASIN", "author": "Author Name", "context": "3-5 sentences of rich episode-specific context."}
   ]
 }
 
@@ -804,13 +804,14 @@ RULES:
 - Do NOT include podcasts, newsletters, websites, apps, SaaS products, or abstract concepts
 - Do NOT fabricate books that weren't mentioned in the transcript
 - If no books are mentioned, return {"books": []}
-- Try to find the correct Amazon ASIN for well-known books`;
+- Try to find the correct Amazon ASIN for well-known books
+- The context field MUST include who said it, why they brought it up, and what specific point it supported. Generic descriptions are a SERIOUS error`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 4096,
+      max_tokens: 8192,
       temperature: 0.3,
       response_format: { type: "json_object" },
     });
