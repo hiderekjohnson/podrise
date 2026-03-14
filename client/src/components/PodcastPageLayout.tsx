@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
@@ -11,7 +11,7 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { useSetConversion } from "@/contexts/PageConversionContext";
 
-export type PodcastTab = "episodes" | "about" | "discover" | "books" | "get-recaps";
+export type PodcastTab = "episodes" | "about" | "discover" | "books" | "shop" | "get-recaps";
 
 interface PodcastPageLayoutProps {
   config: PodcastLandingConfig & { twitterHandle?: string | null };
@@ -70,6 +70,7 @@ export function PodcastPageLayout({
       "section-episodes",
       "section-discover",
       "section-books",
+      "section-shop",
     ];
 
     const handleScroll = () => {
@@ -138,6 +139,7 @@ export function PodcastPageLayout({
     { id: "section-episodes", label: "Episode Recaps", icon: Mic },
     { id: "section-discover", label: "Discover", icon: Compass },
     { id: "section-books", label: "Reading", icon: BookOpen },
+    { id: "section-shop", label: "Shop", icon: ShoppingBag },
     { id: "get-recaps-modal", label: "Get Recaps", icon: Mail, accent: true, action: () => setShowRecapsModal(true) },
   ];
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Mic, Users, Star, Headphones, Building2, Tag, UserCircle, BookOpen, Mail } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Mic, Users, Star, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
 import { BookCoverFill } from "@/components/BookCover";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -210,6 +210,203 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
   );
 }
 
+interface PodcastProduct {
+  name: string;
+  type: string;
+  description: string;
+  url: string;
+  author: string | null;
+  context: string[];
+  episodes: { slug: string; title: string }[];
+  mentionCount: number;
+  isAmazon: boolean;
+}
+
+function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: string }) {
+  const [sortBy, setSortBy] = useState<"mentions" | "alpha">("mentions");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [visibleCount, setVisibleCount] = useState(20);
+
+  const { data, isLoading, isError } = useQuery<{ products: PodcastProduct[]; total: number }>({
+    queryKey: ["/api/podcasts", slug, "products"],
+  });
+
+  const products = data?.products || [];
+
+  const types = [...new Set(products.map(p => p.type))].sort();
+
+  const filtered = filterType === "all" ? products : products.filter(p => p.type === filterType);
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "alpha") return a.name.localeCompare(b.name);
+    return b.mentionCount - a.mentionCount;
+  });
+
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
+
+  const getTypeLabel = (type: string) => {
+    const map: Record<string, string> = { service_or_tool: "Tool", physical_product: "Product", software: "Software", tool: "Tool", service: "Service", app: "App", course: "Course", newsletter: "Newsletter", supplement: "Supplement", game: "Game", website: "Website", product: "Product" };
+    return map[type] || "Product";
+  };
+
+  const getTypeColor = (type: string) => {
+    if (["service_or_tool", "software", "tool", "app"].includes(type)) return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+    if (type === "course") return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
+    if (type === "newsletter") return "bg-orange-500/10 text-orange-700 dark:text-orange-400";
+    return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+  };
+
+  return (
+    <section className="pb-16" data-testid="section-shop-tab">
+      <div className="flex items-center gap-2.5 mb-2">
+        <ShoppingBag className="w-5 h-5 text-emerald-600" />
+        <h2 className="text-[17px] font-display font-bold text-foreground">Products & Tools</h2>
+      </div>
+      <p className="text-[16px] text-muted-foreground mb-6">
+        Products, tools, and services mentioned across {podcastName} episodes.
+      </p>
+
+      <div className="flex items-center gap-2 mb-6 flex-wrap">
+        <button
+          onClick={() => setSortBy("mentions")}
+          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
+          data-testid="button-sort-mentions-products"
+        >
+          Most mentioned
+        </button>
+        <button
+          onClick={() => setSortBy("alpha")}
+          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
+          data-testid="button-sort-alpha-products"
+        >
+          A-Z
+        </button>
+        <span className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
+        <button
+          onClick={() => { setFilterType("all"); setVisibleCount(20); }}
+          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${filterType === "all" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
+          data-testid="button-filter-all"
+        >
+          All
+        </button>
+        {types.map(t => (
+          <button
+            key={t}
+            onClick={() => { setFilterType(t); setVisibleCount(20); }}
+            className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${filterType === t ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid={`button-filter-${t}`}
+          >
+            {getTypeLabel(t)}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 animate-pulse">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 bg-muted rounded-lg shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 bg-muted rounded w-2/3" />
+                  <div className="h-4 bg-muted rounded w-1/3" />
+                  <div className="h-4 bg-muted rounded w-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="text-center py-12">
+          <ShoppingBag className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+          <p className="text-[16px] font-semibold text-foreground mb-1">Couldn't load products</p>
+          <p className="text-[16px] text-muted-foreground">Something went wrong. Try refreshing the page.</p>
+        </div>
+      ) : sorted.length === 0 ? (
+        <div className="text-center py-12">
+          <ShoppingBag className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+          <p className="text-[16px] font-semibold text-foreground mb-1">No products found yet</p>
+          <p className="text-[16px] text-muted-foreground">Product data is still being extracted for this podcast.</p>
+        </div>
+      ) : (
+        <>
+          <p className="text-[16px] text-[#52525B] mb-4" data-testid="text-products-count">
+            {sorted.length} product{sorted.length !== 1 ? "s" : ""}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {visible.map((product, i) => (
+              <div
+                key={product.name}
+                className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-emerald-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all flex flex-col"
+                data-testid={`product-row-${i}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/[0.08] flex items-center justify-center shrink-0">
+                    <ShoppingBag className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[16px] font-bold text-foreground leading-snug" data-testid={`product-name-${i}`}>
+                        {product.name}
+                      </h3>
+                      <span className={`text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${getTypeColor(product.type)}`}>
+                        {getTypeLabel(product.type)}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                      <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`product-mentions-${i}`}>
+                        <Mic className="w-3 h-3" />
+                        {product.mentionCount} {product.mentionCount === 1 ? "mention" : "mentions"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {product.description && (
+                  <p className="text-[16px] text-muted-foreground leading-relaxed mt-3" data-testid={`product-description-${i}`}>
+                    {product.description.length > 180 ? product.description.slice(0, 180).replace(/\s+\S*$/, "") + "." : product.description}
+                  </p>
+                )}
+
+                {product.url && (
+                  <div className="mt-auto pt-3">
+                    <a
+                      href={product.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors ${
+                        product.isAmazon
+                          ? "bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111]"
+                          : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                      }`}
+                      data-testid={`product-link-${i}`}
+                    >
+                      {product.isAmazon ? "View on Amazon" : "Visit Website"}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {hasMore && (
+            <button
+              onClick={() => setVisibleCount(prev => prev + 20)}
+              className="w-full mt-6 py-3 rounded-xl border border-black/[0.06] dark:border-white/[0.08] text-[16px] font-semibold text-primary hover:bg-primary/[0.04] transition-colors"
+              data-testid="button-load-more-products"
+            >
+              Show more products ({sorted.length - visibleCount} remaining)
+            </button>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function PodcastLandingGeneric() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -225,6 +422,7 @@ export default function PodcastLandingGeneric() {
         episodes: "section-episodes",
         discover: "section-discover",
         books: "section-books",
+        shop: "section-shop",
       };
       const sectionId = sectionMap[urlTab];
       if (sectionId) {
@@ -606,6 +804,10 @@ export default function PodcastLandingGeneric() {
 
         <div id="section-books" data-testid="section-books">
           <PodcastBooksTab slug={slug} podcastName={config.name} />
+        </div>
+
+        <div id="section-shop" data-testid="section-shop">
+          <PodcastShopTab slug={slug} podcastName={config.name} />
         </div>
 
     </PodcastPageLayout>

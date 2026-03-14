@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp, Mail, Clock } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp, Mail, Clock, ShoppingBag } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
@@ -505,6 +505,7 @@ export default function EpisodeRecapPage() {
   const [showAllPeople, setShowAllPeople] = useState(false);
   const [showAllCompanies, setShowAllCompanies] = useState(false);
   const [showAllBooks, setShowAllBooks] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
   const chatRef = useRef<ChatContextRef | null>(null);
   const { toast } = useToast();
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
@@ -540,6 +541,11 @@ export default function EpisodeRecapPage() {
   });
 
   const episodeQuotes = quotesData?.quotes || [];
+
+  const { data: approvedProducts } = useQuery<{ products: any[] }>({
+    queryKey: ["/api/podcasts", podcastSlug, "episode-products", episodeSlug],
+    enabled: !!podcastSlug && !!episodeSlug,
+  });
 
   const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null; googleBooksId: string | null }>>({
     queryKey: ["/api/book-slugs"],
@@ -719,6 +725,7 @@ export default function EpisodeRecapPage() {
       "section-guests",
       "section-mentions",
       "section-books",
+      "section-shop",
       "section-quotes",
     ];
 
@@ -780,6 +787,8 @@ export default function EpisodeRecapPage() {
       });
   } catch { books = []; }
 
+  const shopProducts = approvedProducts?.products || [];
+
   let sponsors: Sponsor[] = [];
   try {
     const raw = episode.sponsors;
@@ -792,6 +801,7 @@ export default function EpisodeRecapPage() {
 
   const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
+  const hasShopProducts = shopProducts.length > 0;
   const INITIAL_SHOW = 6;
   const hasSponsors = sponsors.length > 0;
   const hasQuotes = episodeQuotes.length > 0;
@@ -891,7 +901,15 @@ export default function EpisodeRecapPage() {
               Books
             </button>
           )}
-          {/* Sponsors nav chip — disabled for now, enable when podcaster promotion tools go public */}
+          {hasShopProducts && (
+            <button
+              onClick={() => scrollTo("section-shop")}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-shop"
+            >
+              Shop
+            </button>
+          )}
           {hasQuotes && (
             <button
               onClick={() => scrollTo("section-quotes")}
@@ -1289,7 +1307,95 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {/* Sponsors section — disabled for now, enable when podcaster promotion tools go public */}
+        {hasShopProducts && (
+          <section id="section-shop" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-shop">
+            <div className="px-4 sm:px-6 py-4 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <ShoppingBag className="w-4 h-4 text-emerald-600 shrink-0" />
+                <h2 className="text-base font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider m-0">Products & Tools Mentioned</h2>
+              </div>
+            </div>
+            <div className="px-4 sm:px-6 py-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(showAllProducts ? shopProducts : shopProducts.slice(0, INITIAL_SHOW)).map((product: any, i: number) => {
+                  const typeLabel = product.type === "service_or_tool" ? "Tool" :
+                    product.type === "physical_product" ? "Product" :
+                    product.type === "software" ? "Software" :
+                    product.type === "app" ? "App" :
+                    product.type === "course" ? "Course" :
+                    product.type === "newsletter" ? "Newsletter" : "Product";
+
+                  const typeColor = ["service_or_tool", "software", "app"].includes(product.type)
+                    ? "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                    : product.type === "course"
+                    ? "bg-purple-500/10 text-purple-700 dark:text-purple-400"
+                    : product.type === "newsletter"
+                    ? "bg-orange-500/10 text-orange-700 dark:text-orange-400"
+                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+
+                  const contextSnippet = typeof product.context === "string" ? product.context : "";
+
+                  return (
+                    <div
+                      key={i}
+                      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-emerald-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all flex flex-col"
+                      data-testid={`product-card-${i}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/[0.08] flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-[16px] font-bold text-foreground leading-snug" data-testid={`product-name-${i}`}>
+                              {product.name}
+                            </h3>
+                            <span className={`text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${typeColor}`}>
+                              {typeLabel}
+                            </span>
+                          </div>
+                          {product.company && product.company !== product.name && (
+                            <p className="text-[14px] text-muted-foreground mt-0.5">by {product.company}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {product.description && (
+                        <p className="text-[14px] text-muted-foreground leading-relaxed mt-3" data-testid={`product-context-${i}`}>
+                          {product.description.length > 180 ? product.description.slice(0, 180).replace(/\s+\S*$/, "") + "." : product.description}
+                        </p>
+                      )}
+
+                      {product.url && (
+                        <div className="mt-auto pt-3">
+                          <a
+                            href={product.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors ${
+                              product.isAmazon
+                                ? "bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111]"
+                                : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                            }`}
+                            data-testid={`product-link-${i}`}
+                          >
+                            {product.isAmazon ? "View on Amazon" : "Visit Website"}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {shopProducts.length > INITIAL_SHOW && (
+                <button onClick={() => setShowAllProducts(p => !p)} className="mt-4 text-[16px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors" data-testid="show-more-products">
+                  {showAllProducts ? "Show Less" : `Show ${shopProducts.length - INITIAL_SHOW} More`}
+                </button>
+              )}
+            </div>
+          </section>
+        )}
 
         {hasTopQuestions && (
           <script

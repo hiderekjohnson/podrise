@@ -2253,6 +2253,135 @@ export async function registerRoutes(
     }
   });
 
+  function normalizeProductKey(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+  }
+
+  function isAmazonUrl(url: string): boolean {
+    return /amazon\.(com|co\.|ca|de|fr|it|es)/i.test(url || "");
+  }
+
+  function ensureAffiliateTag(url: string): string {
+    if (!url) return "";
+    if (!isAmazonUrl(url)) return url;
+    try {
+      const u = new URL(url);
+      u.searchParams.set("tag", "podcap-20");
+      return u.toString();
+    } catch {
+      if (url.includes("tag=")) return url.replace(/tag=[^&]*/, "tag=podcap-20");
+      return url + (url.includes("?") ? "&" : "?") + "tag=podcap-20";
+    }
+  }
+
+  function addUtmParams(url: string): string {
+    if (!url || isAmazonUrl(url)) return url;
+    try {
+      const u = new URL(url);
+      u.searchParams.set("utm_source", "podcap");
+      u.searchParams.set("utm_medium", "podcast_recap");
+      return u.toString();
+    } catch {
+      return url;
+    }
+  }
+
+  app.get("/api/podcasts/:slug/products", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { rows } = await pool.query(
+        `SELECT ep.id, ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
+                ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
+         FROM extracted_products ep
+         WHERE ep.podcast_slug = $1 AND ep.status = 'approved'
+         ORDER BY ep.name`,
+        [slug]
+      );
+
+      const productMap = new Map<string, {
+        name: string;
+        company: string | null;
+        type: string;
+        description: string;
+        url: string;
+        context: string[];
+        episodes: { slug: string; title: string }[];
+        mentionCount: number;
+      }>();
+
+      for (const row of rows) {
+        const key = normalizeProductKey(row.name);
+        const existing = productMap.get(key);
+        const epSlug = row.episode_slug || row.episode_title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "";
+        if (existing) {
+          existing.mentionCount++;
+          if (row.context && !existing.context.includes(row.context)) {
+            existing.context.push(row.context);
+          }
+          if (!existing.episodes.find((e: any) => e.slug === epSlug)) {
+            existing.episodes.push({ slug: epSlug, title: row.episode_title });
+          }
+          if (!existing.url && row.purchase_url) existing.url = row.purchase_url;
+        } else {
+          productMap.set(key, {
+            name: row.name,
+            company: row.company || null,
+            type: row.category || "product",
+            description: row.description || "",
+            url: row.purchase_url || "",
+            context: row.context ? [row.context] : [],
+            episodes: [{ slug: epSlug, title: row.episode_title }],
+            mentionCount: 1,
+          });
+        }
+      }
+
+      const products = Array.from(productMap.values())
+        .map(p => ({
+          ...p,
+          url: isAmazonUrl(p.url) ? ensureAffiliateTag(p.url) : addUtmParams(p.url),
+          isAmazon: isAmazonUrl(p.url),
+        }))
+        .sort((a, b) => b.mentionCount - a.mentionCount);
+
+      res.json({ products, total: products.length });
+    } catch (err) {
+      console.error("Podcast products error:", err);
+      res.status(500).json({ message: "Failed to load products" });
+    }
+  });
+
+  app.get("/api/podcasts/:slug/episode-products/:episodeSlug", async (req, res) => {
+    try {
+      const { slug, episodeSlug } = req.params;
+      const { rows } = await pool.query(
+        `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
+                ep.mention_type, ep.category
+         FROM extracted_products ep
+         WHERE ep.podcast_slug = $1 AND ep.status = 'approved'
+           AND (ep.episode_slug = $2 OR lower(regexp_replace(trim(ep.episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $2)
+         ORDER BY ep.name`,
+        [slug, episodeSlug]
+      );
+
+      const products = rows.map(r => ({
+        name: r.name,
+        company: r.company || null,
+        type: r.category || "product",
+        description: r.description || "",
+        url: isAmazonUrl(r.purchase_url || "") ? ensureAffiliateTag(r.purchase_url) : addUtmParams(r.purchase_url || ""),
+        isAmazon: isAmazonUrl(r.purchase_url || ""),
+        context: r.context || "",
+        mentionType: r.mention_type || null,
+      }));
+
+      res.json({ products });
+    } catch (err) {
+      console.error("Episode products error:", err);
+      res.status(500).json({ message: "Failed to load episode products" });
+    }
+  });
+
   function extractAsinFromUrl(url: string): string | null {
     if (!url) return null;
     const patterns = [
