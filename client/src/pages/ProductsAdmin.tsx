@@ -327,11 +327,11 @@ export default function ProductsAdmin() {
                             )}
                           </div>
                           {p.description && (
-                            <p className="text-xs text-muted-foreground mb-2">{p.description}</p>
+                            <p className="text-sm text-muted-foreground mb-2">{p.description}</p>
                           )}
                           {p.context && (
-                            <div className="border-l-2 border-zinc-200 pl-3 mb-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-r-lg py-2 pr-2">
-                              <p className="text-xs italic text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">"{p.context}"</p>
+                            <div className="border-l-3 border-indigo-300 pl-4 mb-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-r-lg py-3 pr-3">
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">"{p.context}"</p>
                             </div>
                           )}
 
