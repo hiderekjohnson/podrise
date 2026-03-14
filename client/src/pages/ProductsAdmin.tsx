@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, ExternalLink, ShoppingBag, Play, Package, Radio, FileText, Star, MessageSquare, ThumbsUp, ThumbsDown, Check, X, Filter, Clock, CheckCircle2, XCircle, Wrench, Globe } from "lucide-react";
+import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, Check, X, Filter, Clock, CheckCircle2, XCircle, Trash2, AlertTriangle } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,52 +22,27 @@ interface Product {
   reviewed_at: string | null;
 }
 
-type CategoryMode = "physical_product" | "service_or_tool" | "experience";
-
 const MENTION_LABELS: Record<string, { label: string; color: string; icon: typeof Star }> = {
   recommendation: { label: "Recommended", color: "bg-green-100 text-green-700", icon: ThumbsUp },
   personal_use: { label: "Personal Use", color: "bg-blue-100 text-blue-700", icon: Star },
   discussion: { label: "Discussed", color: "bg-zinc-100 text-zinc-600", icon: MessageSquare },
 };
 
-const PRODUCT_REJECT_REASONS = [
-  { value: "not_specific_brand", label: "No specific brand" },
-  { value: "software_or_app", label: "Software / app / service" },
-  { value: "not_physical", label: "Not a physical product" },
-  { value: "too_well_known", label: "Too well known" },
+const CATEGORY_LABELS: Record<string, { label: string; color: string; icon: typeof Package }> = {
+  physical_product: { label: "Product", color: "bg-orange-50 text-orange-700", icon: Package },
+  service_or_tool: { label: "Service", color: "bg-indigo-50 text-indigo-600", icon: Globe },
+  experience: { label: "Experience", color: "bg-purple-50 text-purple-600", icon: Star },
+};
+
+const REJECT_REASONS = [
   { value: "sponsor_ad", label: "Sponsor / ad" },
+  { value: "not_specific_brand", label: "No specific brand" },
   { value: "passing_mention", label: "Just a passing mention" },
-  { value: "cant_buy_online", label: "Can't buy online" },
+  { value: "too_well_known", label: "Too well known" },
   { value: "not_interesting", label: "Not interesting enough" },
   { value: "book_or_media", label: "Book / media / digital" },
-  { value: "enterprise_tool", label: "Enterprise / B2B (wrong category)" },
-  { value: "other", label: "Other" },
-];
-
-const SERVICE_REJECT_REASONS = [
-  { value: "not_specific_brand", label: "No specific brand" },
-  { value: "physical_product", label: "Physical product (wrong category)" },
-  { value: "too_well_known", label: "Too well known / obvious" },
-  { value: "sponsor_ad", label: "Sponsor / ad" },
-  { value: "passing_mention", label: "Just a passing mention" },
-  { value: "not_interesting", label: "Not interesting enough" },
   { value: "investment_context", label: "Investment context only" },
-  { value: "social_media", label: "Social media platform" },
-  { value: "book_or_media", label: "Book / media content" },
-  { value: "not_available", label: "Not publicly available" },
-  { value: "other", label: "Other" },
-];
-
-const EXPERIENCE_REJECT_REASONS = [
-  { value: "not_specific_brand", label: "No specific brand/name" },
-  { value: "physical_product", label: "Physical product (wrong category)" },
-  { value: "service_or_tool", label: "Service/tool (wrong category)" },
-  { value: "too_well_known", label: "Too well known / obvious" },
-  { value: "sponsor_ad", label: "Sponsor / ad" },
-  { value: "passing_mention", label: "Just a passing mention" },
-  { value: "not_bookable", label: "Can't book or buy" },
-  { value: "not_interesting", label: "Not interesting enough" },
-  { value: "not_available", label: "Not publicly available" },
+  { value: "cant_buy_online", label: "Can't buy / use" },
   { value: "other", label: "Other" },
 ];
 
@@ -75,17 +50,18 @@ type FilterMode = "all" | "pending" | "approved" | "rejected";
 
 export default function ProductsAdmin() {
   const { toast } = useToast();
-  const [category, setCategory] = useState<CategoryMode>("physical_product");
   const [filter, setFilter] = useState<FilterMode>("pending");
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
-  const [lastExtraction, setLastExtraction] = useState<{ newCount: number; coverage: string; urlsSkipped?: number } | null>(null);
+  const [lastExtraction, setLastExtraction] = useState<{ newCount: number; coverage: string; urlsSkipped?: number; episodeCount?: number } | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading } = useQuery<{ products: Product[]; stats: Record<string, number> }>({
-    queryKey: ["/api/admin/products", filter, category],
+    queryKey: ["/api/admin/products", filter],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/products?filter=${filter}&category=${category}`, { credentials: "include" });
+      const res = await fetch(`/api/admin/products?filter=${filter}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },
@@ -96,7 +72,7 @@ export default function ProductsAdmin() {
       await apiRequest("POST", "/api/admin/products/approve", { ids });
     },
     onSuccess: (_, ids) => {
-      toast({ title: "Approved", description: `${ids.length} ${category === "service_or_tool" ? "service(s)" : "product(s)"} approved — AI will learn from this` });
+      toast({ title: "Approved", description: `${ids.length} item(s) approved — AI will learn from this` });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
     },
   });
@@ -106,7 +82,7 @@ export default function ProductsAdmin() {
       await apiRequest("POST", "/api/admin/products/reject", { ids, reason });
     },
     onSuccess: (_, { ids }) => {
-      toast({ title: "Rejected", description: `${ids.length} ${category === "service_or_tool" ? "service(s)" : "product(s)"} rejected — AI will avoid similar ones` });
+      toast({ title: "Rejected", description: `${ids.length} item(s) rejected — AI will avoid similar ones` });
       setRejectingId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
     },
@@ -116,13 +92,13 @@ export default function ProductsAdmin() {
     setExtracting(true);
     setExtractError(null);
     try {
-      const endpoint = category === "experience" ? "/api/admin/extract-experiences" : category === "service_or_tool" ? "/api/admin/extract-services" : "/api/admin/extract-products";
-      const res = await apiRequest("POST", endpoint);
+      const res = await apiRequest("POST", "/api/admin/extract-products", { episodeLimit: 25 });
       const result = await res.json();
       setLastExtraction({
         newCount: result.newCount || 0,
         coverage: result.transcriptCoverage || "100%",
         urlsSkipped: result.urlsSkipped || 0,
+        episodeCount: result.episodeCount || 0,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
       setFilter("pending");
@@ -130,6 +106,21 @@ export default function ProductsAdmin() {
       setExtractError(err?.message || "Extraction failed");
     } finally {
       setExtracting(false);
+    }
+  };
+
+  const deleteAll = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/products/all", { method: "DELETE", credentials: "include" });
+      const result = await res.json();
+      toast({ title: "Deleted", description: result.message });
+      setShowDeleteConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to delete", variant: "destructive" });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -151,85 +142,78 @@ export default function ProductsAdmin() {
     { mode: "all", label: "All", icon: Filter, color: "bg-gray-100 text-gray-700" },
   ];
 
-  const isServices = category === "service_or_tool";
-  const isExperiences = category === "experience";
-  const rejectReasons = isExperiences ? EXPERIENCE_REJECT_REASONS : isServices ? SERVICE_REJECT_REASONS : PRODUCT_REJECT_REASONS;
-  const categoryLabel = isExperiences ? "Experiences" : isServices ? "Services & Tools" : "Physical Products";
-  const extractLabel = isExperiences ? "Extract New Experiences" : isServices ? "Extract New Services" : "Extract New Products";
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 p-1 rounded-xl bg-muted/50 w-fit" data-testid="category-tabs">
-        <button
-          onClick={() => { setCategory("physical_product"); setFilter("pending"); setLastExtraction(null); setExtractError(null); }}
-          className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
-            category === "physical_product" ? "bg-white dark:bg-zinc-800 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
-          data-testid="tab-physical-products"
-        >
-          <Package className="w-4 h-4" />
-          Products
-        </button>
-        <button
-          onClick={() => { setCategory("service_or_tool"); setFilter("pending"); setLastExtraction(null); setExtractError(null); }}
-          className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
-            category === "service_or_tool" ? "bg-white dark:bg-zinc-800 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
-          data-testid="tab-services"
-        >
-          <Globe className="w-4 h-4" />
-          Services & Tools
-        </button>
-        <button
-          onClick={() => { setCategory("experience"); setFilter("pending"); setLastExtraction(null); setExtractError(null); }}
-          className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
-            category === "experience" ? "bg-white dark:bg-zinc-800 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
-          data-testid="tab-experiences"
-        >
-          <Star className="w-4 h-4" />
-          Experiences
-        </button>
-      </div>
-
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold flex items-center gap-2" data-testid="text-products-title">
-            {isExperiences ? <Star className="w-5 h-5 text-primary" /> : isServices ? <Globe className="w-5 h-5 text-primary" /> : <ShoppingBag className="w-5 h-5 text-primary" />}
-            {isExperiences ? "Experience Discovery" : isServices ? "Service & Tool Discovery" : "Product Discovery Engine"}
+            <ShoppingBag className="w-5 h-5 text-primary" />
+            Product & Service Discovery
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {isExperiences
-              ? "Approve or reject experiences to train the AI. It learns from your decisions."
-              : isServices
-              ? "Approve or reject services & tools to train the AI. It learns from your decisions."
-              : "Approve or reject products to train the AI. It learns from your decisions."}
+            All products, services, tools, and experiences from podcast episodes — approve or reject to train the AI.
           </p>
           {totalReviewed > 0 && (
             <p className="text-xs text-indigo-600 mt-1 font-medium">
-              AI trained on {totalReviewed} {categoryLabel.toLowerCase()} decisions ({stats.approved} approved, {stats.rejected} rejected)
+              AI trained on {totalReviewed} decisions ({stats.approved} approved, {stats.rejected} rejected)
             </p>
           )}
         </div>
-        <button
-          data-testid="button-run-extraction"
-          onClick={runExtraction}
-          disabled={extracting}
-          className="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-        >
-          {extracting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Extracting...
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              {extractLabel}
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            data-testid="button-delete-all"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2.5 rounded-xl text-sm font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center gap-2 border border-red-200"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete All
+          </button>
+          <button
+            data-testid="button-run-extraction"
+            onClick={runExtraction}
+            disabled={extracting}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {extracting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Extracting...
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4" />
+                Extract (25 Episodes)
+              </>
+            )}
+          </button>
+        </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between" data-testid="delete-confirm">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertTriangle className="w-5 h-5" />
+            <span className="text-sm font-bold">Delete ALL {stats.pending + stats.approved + stats.rejected} extracted products? This cannot be undone.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 transition-colors border"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={deleteAll}
+              disabled={deleting}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+              data-testid="button-confirm-delete"
+            >
+              {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+              Yes, Delete All
+            </button>
+          </div>
+        </div>
+      )}
 
       {extractError && (
         <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm" data-testid="text-products-error">
@@ -241,9 +225,7 @@ export default function ProductsAdmin() {
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">
-            {isServices
-              ? "Scanning transcripts for services & tools... this may take 1-2 minutes"
-              : "Reading full transcripts across 10 episodes... this may take 1-2 minutes"}
+            Scanning full transcripts across 25 episodes for products, services & experiences... this may take 3-5 minutes
           </p>
         </div>
       )}
@@ -252,7 +234,7 @@ export default function ProductsAdmin() {
         <div className="p-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-3" data-testid="text-extraction-result">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>
-            Found {lastExtraction.newCount} new {isExperiences ? "experiences" : isServices ? "services/tools" : "products"} ({lastExtraction.coverage} transcript coverage)
+            Found {lastExtraction.newCount} new items across {lastExtraction.episodeCount} episodes ({lastExtraction.coverage} transcript coverage)
             {lastExtraction.urlsSkipped ? ` · ${lastExtraction.urlsSkipped} skipped (dead URLs)` : ""}
           </span>
         </div>
@@ -275,15 +257,15 @@ export default function ProductsAdmin() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-10 text-muted-foreground text-sm">Loading {categoryLabel.toLowerCase()}...</div>
+        <div className="text-center py-10 text-muted-foreground text-sm">Loading items...</div>
       ) : products.length === 0 ? (
         <div className="text-center py-10">
-          {isServices ? <Globe className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" /> : <ShoppingBag className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />}
+          <ShoppingBag className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">
-            {filter === "pending" ? `No ${categoryLabel.toLowerCase()} waiting for review. Run extraction to find new ones.` :
-             filter === "approved" ? `No approved ${categoryLabel.toLowerCase()} yet. Review pending items to build the training set.` :
-             filter === "rejected" ? `No rejected ${categoryLabel.toLowerCase()} yet.` :
-             `No ${categoryLabel.toLowerCase()} extracted yet. Click '${extractLabel}' to scan episodes.`}
+            {filter === "pending" ? "No items waiting for review. Run extraction to find new ones." :
+             filter === "approved" ? "No approved items yet. Review pending items to build the training set." :
+             filter === "rejected" ? "No rejected items yet." :
+             "No items extracted yet. Click 'Extract' to scan episodes."}
           </p>
         </div>
       ) : (
@@ -308,6 +290,8 @@ export default function ProductsAdmin() {
                 {eps.map((p) => {
                   const mention = MENTION_LABELS[p.mention_type || "discussion"] || MENTION_LABELS.discussion;
                   const MentionIcon = mention.icon;
+                  const catInfo = CATEGORY_LABELS[p.category] || CATEGORY_LABELS.physical_product;
+                  const CatIcon = catInfo.icon;
                   const showRejectPicker = rejectingId === p.id;
 
                   return (
@@ -323,15 +307,14 @@ export default function ProductsAdmin() {
                             {p.company && (
                               <span className="text-xs text-muted-foreground">by {p.company}</span>
                             )}
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${catInfo.color}`}>
+                              <CatIcon className="w-2.5 h-2.5" />
+                              {catInfo.label}
+                            </span>
                             <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${mention.color}`}>
                               <MentionIcon className="w-2.5 h-2.5" />
                               {mention.label}
                             </span>
-                            {isServices && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
-                                <Globe className="w-2.5 h-2.5" /> Service
-                              </span>
-                            )}
                             {p.status === "approved" && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                                 <CheckCircle2 className="w-2.5 h-2.5" /> Approved
@@ -347,7 +330,9 @@ export default function ProductsAdmin() {
                             <p className="text-xs text-muted-foreground mb-2">{p.description}</p>
                           )}
                           {p.context && (
-                            <p className="text-xs italic text-zinc-500 border-l-2 border-zinc-200 pl-2 mb-3">"{p.context}"</p>
+                            <div className="border-l-2 border-zinc-200 pl-3 mb-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-r-lg py-2 pr-2">
+                              <p className="text-xs italic text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">"{p.context}"</p>
+                            </div>
                           )}
 
                           <div className="flex flex-wrap items-center gap-2">
@@ -360,7 +345,7 @@ export default function ProductsAdmin() {
                                   data-testid={`button-approve-product-${p.id}`}
                                 >
                                   <ThumbsUp className="w-3 h-3" />
-                                  {isServices ? "Feature This" : "Feature This"}
+                                  Feature This
                                 </button>
                                 <button
                                   onClick={() => setRejectingId(showRejectPicker ? null : p.id)}
@@ -389,7 +374,7 @@ export default function ProductsAdmin() {
                           {showRejectPicker && (
                             <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-red-50 border border-red-200 mt-2">
                               <span className="text-xs font-bold text-red-700 mr-1">Why?</span>
-                              {rejectReasons.map(r => (
+                              {REJECT_REASONS.map(r => (
                                 <button
                                   key={r.value}
                                   onClick={() => rejectMutation.mutate({ ids: [p.id], reason: r.value })}

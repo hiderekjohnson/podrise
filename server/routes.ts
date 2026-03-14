@@ -8333,12 +8333,14 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
   app.post("/api/admin/extract-products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
+      const episodeLimit = parseInt(req.body.episodeLimit as string) || 25;
       const { rows: episodes } = await pool.query(
         `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
          FROM episode_transcripts
          WHERE podcast_id = '1469759170'
          ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 10`
+         LIMIT $1`,
+        [episodeLimit]
       );
 
       if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
@@ -8349,96 +8351,90 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
       const allProducts: any[] = [];
 
       const { rows: approvedExamples } = await pool.query(
-        `SELECT name, company, description, mention_type FROM extracted_products WHERE status = 'approved' ORDER BY reviewed_at DESC LIMIT 20`
+        `SELECT name, company, description, mention_type, category FROM extracted_products WHERE status = 'approved' ORDER BY reviewed_at DESC LIMIT 20`
       );
       const { rows: rejectedExamples } = await pool.query(
-        `SELECT name, company, rejection_reason FROM extracted_products WHERE status = 'rejected' ORDER BY reviewed_at DESC LIMIT 30`
+        `SELECT name, company, rejection_reason, category FROM extracted_products WHERE status = 'rejected' ORDER BY reviewed_at DESC LIMIT 30`
       );
 
       let trainingSection = "";
       if (approvedExamples.length > 0 || rejectedExamples.length > 0) {
         trainingSection = "\n\nLEARN FROM PAST DECISIONS:\n";
         if (approvedExamples.length > 0) {
-          trainingSection += "These products were APPROVED by our editor — extract similar ones:\n";
-          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} — ${p.description || ""}`).join("\n");
+          trainingSection += "These items were APPROVED by our editor — extract similar ones:\n";
+          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} [${p.category}] — ${p.description || ""}`).join("\n");
           trainingSection += "\n";
         }
         if (rejectedExamples.length > 0) {
-          trainingSection += "These products were REJECTED — do NOT extract products like these:\n";
-          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""}${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
+          trainingSection += "These items were REJECTED — do NOT extract items like these:\n";
+          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""} [${p.category}]${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
           trainingSection += "\n";
         }
       }
 
-      const extractionPrompt = `You find PHYSICAL CONSUMER PRODUCTS mentioned in podcast transcripts — real, tangible things people can buy online and have shipped to them.
+      const extractionPrompt = `You find PRODUCTS, SERVICES, TOOLS, APPS, and EXPERIENCES that podcast hosts and guests genuinely endorse from personal experience. Extract ALL types in a single pass.
 
-WHAT TO EXTRACT — physical, shippable consumer products like:
-- Electronics: laptops, smartphones, tablets, smartwatches, wireless earbuds, portable chargers, webcams, keyboards, mice, dash cams, power banks
-- Fitness/Health: yoga mats, resistance bands, dumbbells, foam rollers, fitness trackers, water bottles, specific supplement brands (like AG1), vitamins
-- Kitchen/Home: air fryers, coffee makers, blenders, instant pots, electric kettles, knife sets, cookware
-- Beauty/Personal care: face serums, hair dryers, hair straighteners, moisturizers, sunscreen, makeup brushes, electric toothbrushes
-- Clothing/Accessories: t-shirts, hoodies, leggings, sneakers, sunglasses, watches, backpacks, baseball caps
-- Office/Stationery: pens, notebooks, desk organizers, standing desks, monitors
-- Outdoor/Sports: camping tents, sleeping bags, hiking boots, flashlights, multi-tools, bikes, drones, boats
-- Pets: dog leashes, cat trees, pet beds, automatic feeders
-- Auto: car phone mounts, jump starters, tire inflators
-- Kids: baby monitors, strollers, play mats, building blocks, board games
-- Tools: power drills, tool sets
+CATEGORIES — assign each item one of these:
+- "physical_product" — tangible, shippable items (electronics, fitness gear, kitchen tools, clothing, supplements with specific brand names like AG1)
+- "service_or_tool" — digital services, apps, platforms, SaaS tools (Mercury, Notion, GoodRx, Calm, etc.)
+- "experience" — places to visit, events to attend, restaurants, retreats, memberships (Soho House, Burning Man, specific restaurants, etc.)
 
-The KEY TEST: Could this product be ordered on Amazon (or should it be on Amazon)? If yes, extract it. If no, skip it.
+THE CRITICAL AD-DETECTION TEST:
+Before extracting ANYTHING, determine whether the mention is a GENUINE personal endorsement or a PAID ADVERTISEMENT/SPONSORSHIP.
 
-A good product to extract is:
-- A specific, named physical product or brand (not a generic category like "liver supplements" or "gadgets")
-- Must have a SPECIFIC BRAND NAME — never extract generic product categories without a named brand
-- The host/guest must EXPRESS GENUINE PERSONAL ENDORSEMENT — they personally use it, own it, love it, bought it, or their family uses it
-- Something you could hold in your hands, wear, use, or consume physically
+Signs of an AD or SPONSOR — DO NOT EXTRACT:
+- "brought to you by...", "thanks to our sponsor...", "use code...", "use my link..."
+- Sounds like a scripted sales pitch with specific offers, discount codes, or promotional language
+- The speaker reads a prepared description that sounds like marketing copy
+- Mentions a free trial, special offer, or "go to [brand].com/[podcast]"
+- The endorsement feels forced, overly detailed, or reads like a commercial break
+- Example AD: "I use it myself for not one, not two, but I have eight different Mercury accounts... I highly, highly recommend it. Like I said, I use it myself." — This READS LIKE AN AD with exaggerated enthusiasm and repetitive "I use it myself" framing
 
-THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE of these:
-- "I use this" / "I bought one" / "I actually have this" / "I've been using this for months"
-- "My wife loves her [product]" / "We use [product] at home" / "I carry it everywhere"
-- "I really like this" / "These are great" / "I'm obsessed with this"
-- "I just got one and it's amazing" / "Game changer for me personally"
+Signs of a GENUINE endorsement — OK to extract:
+- Comes up naturally in conversation, not as a segment break
+- The speaker shares a specific personal story or experience with the product
+- Mentioned casually alongside other topics, not as a dedicated pitch
+- The endorsement has nuance — they mention both positives and limitations
+- Example GENUINE: "Yeah I just switched to that standing desk from FlexiSpot and my back has been way better. Cost me like $300 on Amazon."
 
-These DO NOT count as endorsements — DO NOT extract:
-- Discussing a company's business model or success: "Yeti made coolers sexy" — SKIP
-- Admiring a company's innovation: "I know those guys, he was always doing little internet checks" — SKIP
-- Mentioning a product exists or someone else made it: "Marshawn Lynch has Beast Mode Apparel, which is a Shopify store" — SKIP
-- Discussing as an investment or business case: "Gymshark raised money, a PE firm bought 20% for $1.3 billion" — SKIP
-- Talking about how cool or innovative a company/product CONCEPT is without personal use: "He's creating a bubble hotel... it's like this cool version of camping" — SKIP
-- Mentioning a brand only because of its founder or business story, not because the host actually uses the product — SKIP
+THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE:
+- "I use this" / "I bought one" / "We use this at our company" / "I've been using this for months"
+- "My wife loves her [product]" / "I carry it everywhere" / "Game changer for me"
+- "I went there and it was incredible" / "You have to try this"
+- Must be NATURAL, CONVERSATIONAL, and NOT scripted
 
-GOOD examples that PASS the test:
-- "Jim Huffman sent us something pretty cool that I liked. Ex-Nike guy decided to make shoes for nurses. They are good looking. I like them a lot." — EXTRACT (personal positive reaction to product)
-- "I actually use this, I've used this for a few months now, and it's this machine with a touchscreen and 3D sensor for strength training." — EXTRACT (personal use)
-- "I just bought one of these paper tablets... it's been great because I literally carry it around with me all the time." — EXTRACT (personal purchase + daily use)
-
-ABSOLUTELY DO NOT extract any of these:
-- Generic product categories without a specific brand (e.g. "liver supplements" by "Various Brands" — SKIP)
-- Software, apps, websites, or digital platforms (no Notion, no ChatGPT, no Match.com, no apps of any kind)
-- SaaS tools, B2B software, enterprise tools
+DO NOT EXTRACT:
+- Podcast sponsors/ads (even if the host says "I use it" — if it sounds scripted or is in an ad break, SKIP)
+- Generic categories without specific brand names ("liver supplements", "standing desks" without a brand)
 - Books, ebooks, audiobooks (tracked separately)
-- Digital downloads, gift cards, software licenses, subscriptions to digital services
-- Podcast sponsors/ads ("brought to you by...", "use code...", "thanks to our sponsor...")
-- Well-known megabrands where no specific product is discussed (just saying "Apple" or "Nike" without a specific product)
-- Stocks, ETFs, crypto, or investment vehicles
-- Social media platforms (Twitter/X, Instagram, TikTok, LinkedIn, etc.)
-- Payment processors, banks, or financial infrastructure
-- News outlets, media companies, or content platforms
+- Companies discussed only as business cases or investments, not as products to use
+- Stocks, ETFs, crypto, investment vehicles
+- Social media platforms mentioned casually
+- Well-known megabrands without specific product discussion (just "Apple" or "Nike")
+- Companies mentioned only because of their founder or business story
 - Medications, weapons, alcohol, or heavily regulated items
-- Free services or platforms
-- Companies mentioned only in a business/investment context, not as a product to buy
 
-QUALITY BAR: We want 0-3 high-quality physical products per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying products — that's perfectly fine. Only extract products you're confident a listener could go buy right now.
+CONTEXT REQUIREMENT — CRITICAL:
+For the "context" field, you MUST provide a SUBSTANTIAL direct quote from the transcript — at least 2-3 full sentences that capture the COMPLETE context of how the item was discussed. Include enough surrounding dialogue so a human reviewer can determine:
+1. Whether this is an ad/sponsor or genuine endorsement
+2. Whether the host actually uses/owns/recommends it
+3. The full flavor of how it came up in conversation
 
-For each qualifying product, return:
-- name: the specific product name (e.g. "Vitamix A3500" not just "blender")
+BAD context (too short): "I can see the clients' whole history: calls, support tickets, emails"
+GOOD context (full picture): "So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails, and here's a task from three days ago I totally missed. Before that we were using spreadsheets like idiots. It's like forty bucks a month, totally worth it."
+
+QUALITY BAR: We want 0-5 high-quality items per episode across ALL categories. Many episodes will have ZERO qualifying items — that's perfectly fine. Only extract items you're confident are genuine endorsements, not ads.
+
+For each qualifying item, return:
+- name: the specific product/service/experience name (e.g. "Vitamix A3500" not just "blender")
 - company: the company/brand behind it
 - description: 1 sentence explaining what it is and why it's interesting
-- purchaseUrl: the best URL to buy it (prefer Amazon links when possible)
-- context: a direct quote or close paraphrase showing how the hosts discussed it
-- mentionType: "recommendation" | "personal_use" (ONLY these two options — "recommendation" = they explicitly recommend it to others, "personal_use" = they use/own it themselves)
+- purchaseUrl: the best URL to buy/visit (prefer Amazon for physical products)
+- context: 2-3+ sentence DIRECT QUOTE from the transcript showing the full discussion context (CRITICAL — must be long enough to judge if it's an ad)
+- mentionType: "recommendation" | "personal_use"
+- category: "physical_product" | "service_or_tool" | "experience"
 
-Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if the host doesn't personally use, own, or love the product, DO NOT extract it.${trainingSection}`;
+Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
@@ -8464,10 +8460,10 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract ONLY products the hosts/guests personally use, own, or love from this transcript segment. Skip business discussions and company mentions.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). Include 2-3+ sentence quotes for context.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
-              max_tokens: 1500,
+              max_tokens: 2000,
               temperature: 0.2,
               response_format: { type: "json_object" },
             });
@@ -8503,6 +8499,9 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
             }
           }
 
+          const validCategories = ["physical_product", "service_or_tool", "experience"];
+          const category = validCategories.includes(p.category) ? p.category : "physical_product";
+
           const product = {
             name: p.name || "",
             company: p.company || null,
@@ -8510,6 +8509,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
             purchaseUrl: rawUrl || null,
             context: p.context || null,
             mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
+            category,
             episodeTitle: ep.episode_title,
             episodeSlug,
             podcastSlug: "myfirstmillion",
@@ -8521,23 +8521,23 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
           );
           if (existing.rows.length === 0) {
             const ins = await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, status)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending') RETURNING id`,
-              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.episodeTitle, product.episodeSlug, product.podcastSlug]
+              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending') RETURNING id`,
+              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.category, product.episodeTitle, product.episodeSlug, product.podcastSlug]
             );
             allProducts.push({ ...product, id: ins.rows[0].id, status: "pending" });
           }
         }
       }
 
-      if (totalUrlsSkipped > 0) console.log(`[ProductExtract] Total skipped ${totalUrlsSkipped} products with dead URLs`);
+      if (totalUrlsSkipped > 0) console.log(`[ProductExtract] Total skipped ${totalUrlsSkipped} items with dead URLs`);
 
       const coveragePct = totalCharsAvailable > 0
         ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
         : 0;
 
       const { rows: allSaved } = await pool.query(
-        `SELECT * FROM extracted_products WHERE category = 'physical_product' ORDER BY extracted_at DESC`
+        `SELECT * FROM extracted_products ORDER BY extracted_at DESC`
       );
 
       res.json({
@@ -8555,427 +8555,13 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
     }
   });
 
-  app.post("/api/admin/extract-services", async (req, res) => {
+  app.delete("/api/admin/products/all", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
-      const { rows: episodes } = await pool.query(
-        `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
-         FROM episode_transcripts
-         WHERE podcast_id = '1469759170'
-         ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 10`
-      );
-
-      if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
-
-      const OpenAI = (await import("openai")).default;
-      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const { processFullTranscript } = await import("./transcriptChunker");
-      const allProducts: any[] = [];
-
-      const { rows: approvedExamples } = await pool.query(
-        `SELECT name, company, description, mention_type FROM extracted_products WHERE status = 'approved' AND category = 'service_or_tool' ORDER BY reviewed_at DESC LIMIT 20`
-      );
-      const { rows: rejectedExamples } = await pool.query(
-        `SELECT name, company, rejection_reason FROM extracted_products WHERE status = 'rejected' AND category = 'service_or_tool' ORDER BY reviewed_at DESC LIMIT 30`
-      );
-
-      let trainingSection = "";
-      if (approvedExamples.length > 0 || rejectedExamples.length > 0) {
-        trainingSection = "\n\nLEARN FROM PAST DECISIONS:\n";
-        if (approvedExamples.length > 0) {
-          trainingSection += "These services/tools were APPROVED by our editor — extract similar ones:\n";
-          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} — ${p.description || ""}`).join("\n");
-          trainingSection += "\n";
-        }
-        if (rejectedExamples.length > 0) {
-          trainingSection += "These services/tools were REJECTED — do NOT extract ones like these:\n";
-          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""}${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
-          trainingSection += "\n";
-        }
-      }
-
-      const extractionPrompt = `You find SERVICES, TOOLS, APPS, and PLATFORMS mentioned in podcast transcripts — digital products and services that make professional or personal life easier or better.
-
-WHAT TO EXTRACT — named services and tools like:
-- Consumer apps & services: GoodRx, Match.com, Monarch (budgeting), Calm, Headspace, Duolingo, Noom
-- Financial tools: Mercury (banking), Brex, Ramp, Robinhood, Wealthfront, Betterment
-- Professional/B2B tools: Notion, Figma, Linear, Slack, Canva, Airtable, Zapier, Salesforce, HubSpot, Datadog
-- Health/wellness platforms: Hims, Roman, Talkiatry, BetterHelp, Peloton (digital)
-- Travel/lifestyle: Airbnb experiences, ClassPass, Uber, DoorDash
-- Business services: Stripe, Gusto, Deel, Carta, Shopify, QuickBooks, Rippling
-- Infrastructure/DevTools: AWS, Vercel, Cloudflare, Retool, Supabase, PlanetScale
-- Education: MasterClass, Skillshare, Coursera, Udemy
-- Entertainment: Spotify, Netflix, YouTube Premium, Disney+ (only when genuinely discussed, not just mentioned)
-- Marketplaces: Etsy, Poshmark, StockX, Reverb
-
-The KEY TEST: Is this a specific, named digital service or tool that someone could sign up for or use? If yes, extract it.
-
-A good service/tool to extract is:
-- A SPECIFIC NAMED SERVICE OR BRAND — must have a real brand name (not "budgeting apps" or "dating services")
-- The host/guest must EXPRESS GENUINE PERSONAL ENDORSEMENT — they personally use it, rely on it, love it, or strongly recommend it from direct experience
-- A service that makes life easier, better, more productive, or more enjoyable — for consumers OR professionals/businesses
-
-THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE of these:
-- "I use Mercury all the time" / "We run our business on Stripe" / "I switched to this and it changed everything"
-- "I've been a customer for years" / "We use this at our company" / "I love this app"
-- "I signed up for this and it's been amazing" / "This is my favorite tool"
-
-These DO NOT count as endorsements — DO NOT extract:
-- Discussing a company's business model or valuation: "Zapier bootstrapped, they raised one round..." — SKIP
-- Admiring how a company operates: "I'm really impressed with how Microsoft runs its company" — SKIP
-- Mentioning nice things a company does without personal use: "The nice things X company does" — SKIP
-- Discussing a company only as a business/investment case, not as a tool/service the host actually uses — SKIP
-- Mentioning a service exists or covering it as news without personal endorsement — SKIP
-
-ABSOLUTELY DO NOT extract any of these:
-- Generic categories without a specific brand name (e.g. "dating apps" or "budgeting tools" — SKIP)
-- Physical products (tracked separately — no gadgets, clothing, food items)
-- Books, ebooks, audiobooks (tracked separately)
-- Podcast sponsors/ads ("brought to you by...", "use code...", "thanks to our sponsor...")
-- Well-known megabrands mentioned casually without substance (just saying "Google" or "Apple" without discussing a specific service)
-- Stocks, ETFs, crypto, or investment vehicles (discussing a company's stock price is NOT the same as recommending their service)
-- Social media platforms used casually (Twitter/X, Instagram, TikTok, LinkedIn — unless the platform itself is genuinely discussed as a tool/service)
-- News outlets, media companies, or content platforms mentioned as sources
-- Companies mentioned only in a business/investment context with no discussion of the actual service/product
-- Heavily regulated services (gambling, weapons dealers)
-- Internal company tools not available to the public
-
-QUALITY BAR: We want 0-3 high-quality services/tools per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying services — that's perfectly fine. Only extract services you're confident a listener could go try or sign up for.
-
-For each qualifying service/tool, return:
-- name: the specific service name (e.g. "GoodRx" not just "prescription savings")
-- company: the company behind it (e.g. "GoodRx, Inc.")
-- description: 1 sentence explaining what it does and why it's interesting
-- purchaseUrl: the best URL to visit (the service's main website)
-- context: a direct quote or close paraphrase showing how the hosts discussed it
-- mentionType: "recommendation" | "personal_use" (ONLY these two options — "recommendation" = they explicitly recommend it, "personal_use" = they personally use it)
-
-Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if the host doesn't personally use, love, or recommend the service from direct experience, DO NOT extract it.${trainingSection}`;
-
-      let totalCharsProcessed = 0;
-      let totalCharsAvailable = 0;
-      let totalUrlsSkipped = 0;
-
-      for (const ep of episodes) {
-        const fullTranscript = (ep.transcript || "").trim();
-        if (!fullTranscript) continue;
-        totalCharsAvailable += fullTranscript.length;
-
-        const { rows: recapRows } = await pool.query(
-          `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
-          [ep.episode_title]
-        );
-        const episodeSlug = recapRows[0]?.episode_slug || null;
-
-        const { results: chunkProducts, coverage } = await processFullTranscript<any>(
-          fullTranscript,
-          async (chunk, chunkIndex, totalChunks) => {
-            const completion = await directOpenai.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [
-                { role: "system", content: extractionPrompt },
-                {
-                  role: "user",
-                  content: `Extract ONLY services/tools the hosts/guests personally use, love, or recommend from direct experience. Skip business discussions and company coverage.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
-                }
-              ],
-              max_tokens: 1500,
-              temperature: 0.2,
-              response_format: { type: "json_object" },
-            });
-
-            const raw = completion.choices[0]?.message?.content || "{}";
-            try {
-              const parsed = JSON.parse(raw);
-              return Array.isArray(parsed) ? parsed : (parsed.products || []);
-            } catch (e) {
-              console.error("[ServiceExtract] JSON parse error for episode chunk:", ep.episode_title, chunkIndex, e);
-              return [];
-            }
-          }
-        );
-        totalCharsProcessed += coverage.totalChars;
-
-        const deduped = new Map<string, any>();
-        for (const p of chunkProducts) {
-          const key = (p.name || "").toLowerCase().trim();
-          if (key && !deduped.has(key)) {
-            deduped.set(key, p);
-          }
-        }
-
-        for (const p of deduped.values()) {
-          const rawUrl = (p.purchaseUrl || "").trim();
-          if (rawUrl) {
-            const urlValid = await validateUrl(rawUrl);
-            if (!urlValid) {
-              console.log(`[ServiceExtract] Skipping "${p.name}" — URL dead: ${rawUrl}`);
-              totalUrlsSkipped++;
-              continue;
-            }
-          }
-
-          const product = {
-            name: p.name || "",
-            company: p.company || null,
-            description: p.description || null,
-            purchaseUrl: rawUrl || null,
-            context: p.context || null,
-            mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
-            episodeTitle: ep.episode_title,
-            episodeSlug,
-            podcastSlug: "myfirstmillion",
-          };
-
-          const existing = await pool.query(
-            `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND episode_title = $2 AND category = 'service_or_tool'`,
-            [product.name, product.episodeTitle]
-          );
-          if (existing.rows.length === 0) {
-            const ins = await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, category, status)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'service_or_tool','pending') RETURNING id`,
-              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.episodeTitle, product.episodeSlug, product.podcastSlug]
-            );
-            allProducts.push({ ...product, id: ins.rows[0].id, status: "pending", category: "service_or_tool" });
-          }
-        }
-      }
-
-      if (totalUrlsSkipped > 0) console.log(`[ServiceExtract] Total skipped ${totalUrlsSkipped} services with dead URLs`);
-
-      const coveragePct = totalCharsAvailable > 0
-        ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
-        : 0;
-
-      const { rows: allSaved } = await pool.query(
-        `SELECT * FROM extracted_products WHERE category = 'service_or_tool' ORDER BY extracted_at DESC`
-      );
-
-      res.json({
-        products: allSaved,
-        newCount: allProducts.length,
-        episodeCount: episodes.length,
-        transcriptCoverage: `${coveragePct}%`,
-        totalCharsProcessed,
-        totalCharsAvailable,
-        urlsSkipped: totalUrlsSkipped,
-      });
+      const { rowCount } = await pool.query(`DELETE FROM extracted_products`);
+      res.json({ message: `Deleted ${rowCount} products`, count: rowCount });
     } catch (err: any) {
-      console.error("[ServiceExtract] Error:", err);
-      res.status(500).json({ message: err?.message || "Failed to extract services" });
-    }
-  });
-
-  app.post("/api/admin/extract-experiences", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
-    try {
-      const { rows: episodes } = await pool.query(
-        `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
-         FROM episode_transcripts
-         WHERE podcast_id = '1469759170'
-         ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 10`
-      );
-
-      if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
-
-      const OpenAI = (await import("openai")).default;
-      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const { processFullTranscript } = await import("./transcriptChunker");
-      const allProducts: any[] = [];
-
-      const { rows: approvedExamples } = await pool.query(
-        `SELECT name, company, description, mention_type FROM extracted_products WHERE status = 'approved' AND category = 'experience' ORDER BY reviewed_at DESC LIMIT 20`
-      );
-      const { rows: rejectedExamples } = await pool.query(
-        `SELECT name, company, rejection_reason FROM extracted_products WHERE status = 'rejected' AND category = 'experience' ORDER BY reviewed_at DESC LIMIT 30`
-      );
-
-      let trainingSection = "";
-      if (approvedExamples.length > 0 || rejectedExamples.length > 0) {
-        trainingSection = "\n\nLEARN FROM PAST DECISIONS:\n";
-        if (approvedExamples.length > 0) {
-          trainingSection += "These experiences were APPROVED by our editor — extract similar ones:\n";
-          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} — ${p.description || ""}`).join("\n");
-          trainingSection += "\n";
-        }
-        if (rejectedExamples.length > 0) {
-          trainingSection += "These experiences were REJECTED — do NOT extract ones like these:\n";
-          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""}${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
-          trainingSection += "\n";
-        }
-      }
-
-      const extractionPrompt = `You find EXPERIENCES, ACTIVITIES, and UNIQUE DESTINATIONS mentioned in podcast transcripts — things you can do, visit, attend, or participate in.
-
-WHAT TO EXTRACT — named experiences and destinations like:
-- Unique accommodations: Bubble Hotel, Getaway House, Under Canvas, Treehouse hotels, Ice hotels
-- Travel experiences: Northern Lights tours, hot air balloon rides, glamping destinations, safari lodges
-- Restaurants & food experiences: Omakase Barn, Salt Bae's Nusr-Et, immersive dining (e.g. Alinea, noma)
-- Adventure activities: Tough Mudder, Spartan Race, heli-skiing at specific resorts, bungee jumping at specific bridges
-- Wellness retreats: Esalen Institute, Vipassana retreats, The Ranch Malibu, Canyon Ranch
-- Cultural experiences: Meow Wolf, Museum of Ice Cream, Sleep No More, Secret Cinema
-- Events & festivals: Burning Man, Art Basel, TED conferences, Formula 1 Grand Prix at specific tracks
-- Sporting experiences: Augusta National, specific golf courses, boxing gyms, surf camps
-- Education/workshops: Blacksmithing workshops, cooking classes at Le Cordon Bleu, pottery at specific studios
-- Memberships & clubs: Soho House, Zero Bond, exclusive social clubs
-
-The KEY TEST: Is this a specific, named experience/destination/activity that someone could book, visit, attend, or participate in? If yes, extract it.
-
-A good experience to extract is:
-- A SPECIFIC NAMED experience, destination, or activity — must have a real brand/venue name (not "glamping" or "spa retreats" generically)
-- The host/guest must EXPRESS GENUINE PERSONAL ENDORSEMENT — they've been there, done it, loved it, plan to go, or strongly recommend it from direct experience
-- Something that creates a memorable, unique experience — not everyday activities
-
-THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE of these:
-- "I went there and it was incredible" / "We stayed at [place] and I can't recommend it enough"
-- "I've done this three times" / "You have to try this" / "Best experience I've ever had"
-- "My family goes every year" / "I'm booking this for my birthday"
-
-These DO NOT count as endorsements — DO NOT extract:
-- Discussing a business concept: "He's creating a bubble hotel... it's like this cool version of camping" — SKIP (business discussion, not personal endorsement)
-- Mentioning an experience exists or covering it as a business story without the host personally vouching for it — SKIP
-- Admiring an experience from afar without having done it or planning to do it — SKIP
-
-ABSOLUTELY DO NOT extract any of these:
-- Generic categories without a specific brand name (e.g. "bubble hotels" generically or "spa retreats" — SKIP)
-- Physical products (tracked separately — no gadgets, clothing, food items)
-- Software, apps, or digital services (tracked separately)
-- Books, ebooks, audiobooks (tracked separately)
-- Podcast sponsors/ads ("brought to you by...", "use code...", "thanks to our sponsor...")
-- Well-known chains mentioned casually without substance (just saying "Marriott" or "Hilton" without discussing a specific unique experience)
-- Stocks, ETFs, crypto, or investment vehicles
-- Social media platforms
-- News outlets or media companies
-- Companies mentioned only in a business/investment context
-- Regular restaurants or hotels without something unique or noteworthy about the experience
-
-QUALITY BAR: We want 0-3 high-quality experiences per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying experiences — that's perfectly fine. Only extract experiences you're confident a listener would genuinely want to try.
-
-For each qualifying experience, return:
-- name: the specific experience/destination name (e.g. "Bubble Hotel" not just "glamping")
-- company: the company or brand behind it (e.g. "Sourceify" or "Getaway House Inc.")
-- description: 1 sentence explaining what the experience is and why it's interesting
-- purchaseUrl: the best URL to book or learn more
-- context: a direct quote or close paraphrase showing how the hosts discussed it
-- mentionType: "recommendation" | "personal_use" (ONLY these two options — "recommendation" = they explicitly recommend it, "personal_use" = they've actually done it)
-
-Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if the host hasn't personally experienced it or doesn't genuinely recommend it from direct experience, DO NOT extract it.${trainingSection}`;
-
-      let totalCharsProcessed = 0;
-      let totalCharsAvailable = 0;
-      let totalUrlsSkipped = 0;
-
-      for (const ep of episodes) {
-        const fullTranscript = (ep.transcript || "").trim();
-        if (!fullTranscript) continue;
-        totalCharsAvailable += fullTranscript.length;
-
-        const { rows: recapRows } = await pool.query(
-          `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
-          [ep.episode_title]
-        );
-        const episodeSlug = recapRows[0]?.episode_slug || null;
-
-        const { results: chunkProducts, coverage } = await processFullTranscript<any>(
-          fullTranscript,
-          async (chunk, chunkIndex, totalChunks) => {
-            const completion = await directOpenai.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [
-                { role: "system", content: extractionPrompt },
-                {
-                  role: "user",
-                  content: `Extract ONLY experiences the hosts/guests have personally done, visited, or genuinely recommend from direct experience. Skip business discussions.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
-                }
-              ],
-              max_tokens: 1500,
-              temperature: 0.2,
-              response_format: { type: "json_object" },
-            });
-
-            const raw = completion.choices[0]?.message?.content || "{}";
-            try {
-              const parsed = JSON.parse(raw);
-              return Array.isArray(parsed) ? parsed : (parsed.products || []);
-            } catch (e) {
-              console.error("[ExperienceExtract] JSON parse error for episode chunk:", ep.episode_title, chunkIndex, e);
-              return [];
-            }
-          }
-        );
-        totalCharsProcessed += coverage.totalChars;
-
-        const deduped = new Map<string, any>();
-        for (const p of chunkProducts) {
-          const key = (p.name || "").toLowerCase().trim();
-          if (key && !deduped.has(key)) {
-            deduped.set(key, p);
-          }
-        }
-
-        for (const p of deduped.values()) {
-          const rawUrl = (p.purchaseUrl || "").trim();
-          if (rawUrl) {
-            const urlValid = await validateUrl(rawUrl);
-            if (!urlValid) {
-              console.log(`[ExperienceExtract] Skipping "${p.name}" — URL dead: ${rawUrl}`);
-              totalUrlsSkipped++;
-              continue;
-            }
-          }
-
-          const product = {
-            name: p.name || "",
-            company: p.company || null,
-            description: p.description || null,
-            purchaseUrl: rawUrl || null,
-            context: p.context || null,
-            mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
-            episodeTitle: ep.episode_title,
-            episodeSlug,
-            podcastSlug: "myfirstmillion",
-          };
-
-          const existing = await pool.query(
-            `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND episode_title = $2 AND category = 'experience'`,
-            [product.name, product.episodeTitle]
-          );
-          if (existing.rows.length === 0) {
-            const ins = await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, category, status)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'experience','pending') RETURNING id`,
-              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.episodeTitle, product.episodeSlug, product.podcastSlug]
-            );
-            allProducts.push({ ...product, id: ins.rows[0].id, status: "pending", category: "experience" });
-          }
-        }
-      }
-
-      if (totalUrlsSkipped > 0) console.log(`[ExperienceExtract] Total skipped ${totalUrlsSkipped} experiences with dead URLs`);
-
-      const coveragePct = totalCharsAvailable > 0
-        ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
-        : 0;
-
-      const { rows: allSaved } = await pool.query(
-        `SELECT * FROM extracted_products WHERE category = 'experience' ORDER BY extracted_at DESC`
-      );
-
-      res.json({
-        products: allSaved,
-        newCount: allProducts.length,
-        episodeCount: episodes.length,
-        transcriptCoverage: `${coveragePct}%`,
-        totalCharsProcessed,
-        totalCharsAvailable,
-        urlsSkipped: totalUrlsSkipped,
-      });
-    } catch (err: any) {
-      console.error("[ExperienceExtract] Error:", err);
-      res.status(500).json({ message: err?.message || "Failed to extract experiences" });
+      res.status(500).json({ message: err?.message || "Failed to delete products" });
     }
   });
 
@@ -8983,10 +8569,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
       const filter = req.query.filter || "all";
-      const category = req.query.category || "physical_product";
-      const validCategories = ["physical_product", "service_or_tool", "experience"];
-      const safeCategory = validCategories.includes(category as string) ? category : "physical_product";
-      let conditions = [`category = '${safeCategory}'`];
+      let conditions: string[] = [];
       if (filter === "pending") conditions.push("status = 'pending'");
       else if (filter === "approved") conditions.push("status = 'approved'");
       else if (filter === "rejected") conditions.push("status = 'rejected'");
@@ -8995,10 +8578,8 @@ Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if t
       const { rows } = await pool.query(
         `SELECT * FROM extracted_products ${where} ORDER BY extracted_at DESC`
       );
-      const catFilter = category === "service_or_tool" ? "service_or_tool" : "physical_product";
       const { rows: statsRows } = await pool.query(
-        `SELECT status, COUNT(*)::int as count FROM extracted_products WHERE category = $1 GROUP BY status`,
-        [catFilter]
+        `SELECT status, COUNT(*)::int as count FROM extracted_products GROUP BY status`
       );
       const stats: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
       for (const r of statsRows) stats[r.status] = r.count;
