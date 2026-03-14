@@ -296,7 +296,7 @@ function RelatedBookCard({ book }: { book: RelatedBook }) {
       className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl p-3 transition-all hover:border-[#6366F1]/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.1)] block"
       data-testid={`related-book-${book.slug}`}
     >
-      <div className="w-full h-[88px] rounded-md mb-2 overflow-hidden flex items-center justify-center bg-[#F7F7FC]">
+      <div className="w-full aspect-[2/3] rounded-md mb-2 overflow-hidden flex items-center justify-center bg-[#F7F7FC]">
         <SharedBookCover
           title={book.name}
           slug={book.slug}
