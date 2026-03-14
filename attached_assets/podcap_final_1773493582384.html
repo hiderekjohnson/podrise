@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PodCap — 1984 by George Orwell</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F4F2EE; --white: #FFFFFF; --ink: #0D0D0D; --ink-mid: #444;
+    --ink-light: #777; --ink-hint: #AAA; --orange: #E8692A;
+    --orange-light: #FDF0E8; --orange-mid: #F0A070; --purple: #6B4EFF;
+    --border: rgba(0,0,0,0.08); --border-strong: rgba(0,0,0,0.15);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.07); --shadow: 0 2px 12px rgba(0,0,0,0.1);
+    --radius: 12px; --radius-sm: 8px; --radius-pill: 100px;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.65; min-height: 100vh; }
+
+  /* HEADER */
+  .site-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+  .logo-wrap { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; }
+  .logo-text { font-size: 17px; font-weight: 600; color: var(--ink); letter-spacing: -0.3px; }
+  .logo-text span { color: var(--orange); }
+  .nav { display: flex; align-items: center; gap: 6px; }
+  .nav a { text-decoration: none; font-size: 14px; font-weight: 500; color: var(--ink-mid); padding: 6px 14px; border-radius: var(--radius-pill); transition: background 0.15s; }
+  .nav a:hover { background: var(--bg); color: var(--ink); }
+  .nav a.active { color: var(--orange); }
+  .nav-beta { font-size: 10px; font-weight: 600; background: var(--orange-light); color: var(--orange); padding: 2px 6px; border-radius: 4px; margin-left: 2px; }
+  .nav-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-login { font-size: 14px; font-weight: 500; color: var(--ink-mid); text-decoration: none; padding: 7px 16px; border-radius: var(--radius-pill); }
+  .btn-started { font-size: 14px; font-weight: 500; color: var(--ink); background: var(--white); border: 1.5px solid var(--ink); padding: 7px 18px; border-radius: var(--radius-pill); text-decoration: none; }
+
+  /* PAGE */
+  .page { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 6rem; }
+  .breadcrumb { font-size: 13px; color: var(--ink-hint); margin-bottom: 1.6rem; display: flex; gap: 8px; align-items: center; }
+  .breadcrumb a { color: var(--ink-light); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--orange); }
+
+  /* HERO */
+  .hero { display: flex; gap: 1.4rem; align-items: stretch; margin-bottom: 1.4rem; }
+  .cover-book { width: 108px; min-height: 162px; height: 100%; border-radius: 3px 6px 6px 3px; background: linear-gradient(160deg, #1a1a2e 0%, #0f2145 60%, #0a1628 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px; text-align: center; position: relative; box-shadow: -2px 0 0 rgba(0,0,0,0.2), 3px 6px 20px rgba(0,0,0,0.18); flex-shrink: 0; }
+  .cover-book::before { content:''; position:absolute; left:0; top:0; bottom:0; width:9px; background:rgba(255,255,255,0.04); border-right:1px solid rgba(255,255,255,0.06); border-radius:3px 0 0 3px; }
+  .cover-main-title { font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #e2c27d; line-height: 1; margin-bottom: 7px; }
+  .cover-divider { width: 14px; height: 1px; background: rgba(226,194,125,0.3); margin: 0 auto 7px; }
+  .cover-author-name { font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(226,194,125,0.6); }
+
+  .hero-right { padding-top: 2px; flex: 1; }
+  .book-title-main { font-size: 30px; font-weight: 700; line-height: 1.05; letter-spacing: -0.8px; margin-bottom: 3px; }
+  .by-author { font-size: 15px; color: var(--ink-light); margin-bottom: 14px; }
+  .by-author a { color: var(--orange); text-decoration: none; font-weight: 500; }
+  .featured-on-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-hint); margin-bottom: 10px; }
+
+  /* ARTWORK TILES — replace background colors + text with real podcast artwork images */
+  .artwork-strip-hero { display: flex; gap: 10px; flex-wrap: wrap; }
+  .artwork-tile { flex-shrink: 0; cursor: pointer; transition: transform 0.15s; text-decoration: none; display: block; position: relative; }
+  .artwork-tile:hover { transform: scale(1.06); z-index: 10; }
+  .artwork-tile:hover .artwork-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .artwork-img { width: 88px; height: 88px; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
+  .artwork-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* Placeholder colors — replace with real artwork via iTunes Search API */
+  .art-jre  { background: #0d0d0d; color: #e2c27d; }
+  .art-mfm  { background: #0a2a5c; color: #f0c060; }
+  .art-lex  { background: #1c1c1c; color: #cccccc; }
+  .art-hibt { background: #1a3a1a; color: #80c880; }
+  .art-tim  { background: #7a1010; color: #f0b090; }
+  .art-hub  { background: #0a1a3a; color: #90b0e0; }
+  .art-fnd  { background: #2a1200; color: #d08050; }
+  .artwork-more { width: 88px; height: 88px; border-radius: 14px; background: var(--bg); border: 1.5px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink-light); font-weight: 600; }
+  .artwork-tooltip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(4px); background: var(--ink); color: #fff; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: none; z-index: 20; }
+  .artwork-tooltip::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:var(--ink); }
+
+  /* PODCAST SUMMARY BANNER */
+  .pod-summary-banner { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--orange); border-radius: 0 var(--radius) var(--radius) 0; padding: 18px 22px; margin-bottom: 1.8rem; box-shadow: var(--shadow-sm); }
+  .pod-summary-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--orange); margin-bottom: 8px; }
+  .pod-summary-text { font-size: 16px; color: var(--ink-mid); line-height: 1.75; }
+  .pod-summary-text strong { color: var(--ink); font-weight: 600; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.8rem 0; }
+
+  /* PODCAST APPEARANCE CARDS */
+  .section-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 1rem; }
+  .appearance-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; box-shadow: var(--shadow-sm); }
+  .appearance-card:hover { border-color: var(--orange-mid); box-shadow: var(--shadow); }
+  .app-header { display: flex; align-items: center; gap: 14px; padding: 14px 16px 12px; border-bottom: 1px solid var(--border); }
+  /* Podcast avatar — replace with <img> tag using real artwork */
+  .pod-ava { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; overflow: hidden; }
+  .pod-ava img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pod-info { flex: 1; min-width: 0; }
+  .pod-show { font-size: 15px; font-weight: 600; }
+  .pod-show a { color: var(--ink); text-decoration: none; }
+  .pod-show a:hover { color: var(--orange); text-decoration: underline; }
+  .pod-ep { font-size: 13px; color: var(--orange); margin-top: 2px; font-weight: 500; text-decoration: none; display: block; }
+  .pod-ep:hover { text-decoration: underline; }
+  .pod-when { font-size: 13px; color: var(--ink-hint); white-space: nowrap; align-self: flex-start; margin-top: 2px; }
+  .app-insight { padding: 16px; }
+  .insight-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--orange); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .insight-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .insight-text { font-size: 15px; color: var(--ink-mid); line-height: 1.85; }
+  .insight-text strong { color: var(--ink); font-weight: 600; }
+
+  .see-more { text-align: center; padding: 10px 0 4px; }
+  .see-more a { font-size: 14px; color: var(--orange); text-decoration: none; font-weight: 600; }
+
+  /* ALSO READ */
+  .also-title { font-size: 18px; font-weight: 700; margin-bottom: 1rem; }
+  .also-read-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+  .also-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; text-decoration: none; color: inherit; display: block; box-shadow: var(--shadow-sm); }
+  .also-card:hover { border-color: var(--orange-mid); box-shadow: var(--shadow); }
+  /* Book cover placeholder — replace with <img> using Google Books or Open Library cover URL */
+  .also-cover { width: 100%; height: 88px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-size: 13px; font-weight: 700; text-align: center; padding: 8px; line-height: 1.2; overflow: hidden; }
+  .also-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bc1 { background: linear-gradient(135deg,#2a0a0a,#6b1a1a); color: #f0b0b0; }
+  .bc2 { background: linear-gradient(135deg,#0a1a2a,#1a4060); color: #90c0e0; }
+  .bc3 { background: linear-gradient(135deg,#1a2a0a,#3a6020); color: #a0d080; }
+  .bc4 { background: linear-gradient(135deg,#2a1a0a,#5a3010); color: #e0b070; }
+  .also-book-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; line-height: 1.3; }
+  .also-book-author { font-size: 12px; color: var(--ink-light); }
+
+  /* ABOUT + DETAILS */
+  .section-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-hint); margin-bottom: 10px; }
+  .description-text { font-size: 15px; line-height: 1.85; color: var(--ink-mid); }
+  .details-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 1.5rem; }
+  .details-toggle-label { font-size: 14px; font-weight: 600; color: var(--ink-mid); }
+  .details-toggle-arrow { font-size: 11px; color: var(--ink-hint); transition: transform 0.2s; }
+  .details-toggle-arrow.open { transform: rotate(180deg); }
+  .details-body { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+  .details-body.open { max-height: 400px; }
+  .detail-row { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { color: var(--ink-light); }
+  .detail-val { font-weight: 500; }
+
+  /* FLOATING BUY BUTTON */
+  .float-buy { position: fixed; bottom: 24px; right: 24px; z-index: 999; background: var(--orange); color: #fff; border: none; border-radius: var(--radius-sm); padding: 13px 26px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; box-shadow: 0 4px 16px rgba(232,105,42,0.4); transition: background 0.15s; }
+  .float-buy:hover { background: #d05820; }
+
+  @media(max-width:640px){
+    .hero { flex-direction: column; }
+    .also-read-grid { grid-template-columns: repeat(2,1fr); }
+    .book-title-main { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="#" class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    </div>
+    <span class="logo-text">Pod<span>Cap</span></span>
+  </a>
+  <nav class="nav">
+    <a href="#">Explore ▾</a>
+    <a href="#">Trends</a>
+    <a href="#">Podcasts</a>
+    <a href="#" class="active">Bookstore <span class="nav-beta">BETA</span></a>
+  </nav>
+  <div class="nav-actions">
+    <a href="#" class="btn-login">Log in</a>
+    <a href="#" class="btn-started">Get started →</a>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="breadcrumb">
+    <a href="#">Home</a> › <a href="#">Bookstore</a> › <span>1984</span>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="cover-book">
+      <!-- Replace this placeholder with <img> tag using real book cover from Google Books API -->
+      <div class="cover-main-title">1984</div>
+      <div class="cover-divider"></div>
+      <div class="cover-author-name">George Orwell</div>
+    </div>
+    <div class="hero-right">
+      <h1 class="book-title-main">1984</h1>
+      <p class="by-author">by <a href="#">George Orwell</a></p>
+      <p class="featured-on-label">Featured on</p>
+
+      <!-- PODCAST ARTWORK STRIP
+           Pull artwork URLs from iTunes Search API:
+           https://itunes.apple.com/search?term=joe+rogan+experience&media=podcast&limit=1
+           Response includes artworkUrl600 field — use that as <img src>
+      -->
+      <div class="artwork-strip-hero">
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-jre">JRE</div>
+          <div class="artwork-tooltip">The Joe Rogan Experience</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-mfm">MFM</div>
+          <div class="artwork-tooltip">My First Million</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-lex">LEX</div>
+          <div class="artwork-tooltip">Lex Fridman Podcast</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-hibt">HIBT</div>
+          <div class="artwork-tooltip">How I Built This</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-tim">TIM</div>
+          <div class="artwork-tooltip">Tim Ferriss Show</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-hub">HUB</div>
+          <div class="artwork-tooltip">Huberman Lab</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-img art-fnd">FND</div>
+          <div class="artwork-tooltip">Founders Podcast</div>
+        </a>
+        <a href="#appearances" class="artwork-tile">
+          <div class="artwork-more">+23</div>
+          <div class="artwork-tooltip">23 more shows</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PODCAST SUMMARY BANNER -->
+  <div class="pod-summary-banner">
+    <div class="pod-summary-label">What top podcasters are saying</div>
+    <p class="pod-summary-text">From Joe Rogan to Lex Fridman to My First Million, the smartest voices in podcasting keep coming back to this book — not as a history lesson, but as a <strong>live map of the present</strong>. The recurring theme: Orwell didn't write fiction. He wrote an instruction manual that nobody listened to.</p>
+  </div>
+
+  <!-- PODCAST APPEARANCE CARDS
+       "Why they talked about it" text is AI-generated from the episode transcript.
+       No quotes — just a paragraph explaining the context and angle.
+  -->
+  <h2 class="section-title" id="appearances">What podcasters said about this book</h2>
+
+  <div class="appearance-card">
+    <div class="app-header">
+      <!-- Replace div with: <div class="pod-ava"><img src="[iTunes artworkUrl600]" alt="JRE"></div> -->
+      <div class="pod-ava art-jre">JRE</div>
+      <div class="pod-info">
+        <div class="pod-show"><a href="#">The Joe Rogan Experience</a></div>
+        <a href="#" class="pod-ep">Ep. #1891 · with Elon Musk</a>
+      </div>
+      <div class="pod-when">Nov 2023</div>
+    </div>
+    <div class="app-insight">
+      <div class="insight-label">Why they talked about it</div>
+      <div class="insight-text">Rogan and Musk used 1984 as the lens for a long conversation about modern censorship and platform power. The central argument: Orwell didn't write fiction — he wrote a <strong>warning about information control</strong> that Big Tech has quietly made real. They connected the book's concept of <em>Newspeak</em> — reducing language to limit thought — directly to how social media platforms narrow what ideas are amplifiable. For both of them, reading this book in their formative years was what made them permanently skeptical of any institution that controls what people are allowed to say.</div>
+    </div>
+  </div>
+
+  <div class="appearance-card">
+    <div class="app-header">
+      <div class="pod-ava art-mfm">MFM</div>
+      <div class="pod-info">
+        <div class="pod-show"><a href="#">My First Million</a></div>
+        <a href="#" class="pod-ep">Ep. #512 · Books that changed our lives</a>
+      </div>
+      <div class="pod-when">Mar 2024</div>
+    </div>
+    <div class="app-insight">
+      <div class="insight-label">Why they talked about it</div>
+      <div class="insight-text">The hosts framed 1984 as required reading for anyone building a company in the attention economy. Their core takeaway: <strong>narrative control is a business moat</strong>, and Orwell mapped the mechanics of it 75 years before it became a trillion-dollar industry. They argued that founders who haven't read this book are operating blind — unaware of how the platforms they depend on are making the same moves Orwell described.</div>
+    </div>
+  </div>
+
+  <div class="appearance-card">
+    <div class="app-header">
+      <div class="pod-ava art-lex">LEX</div>
+      <div class="pod-info">
+        <div class="pod-show"><a href="#">Lex Fridman Podcast</a></div>
+        <a href="#" class="pod-ep">Ep. #369 · with George Hotz</a>
+      </div>
+      <div class="pod-when">Jan 2024</div>
+    </div>
+    <div class="app-insight">
+      <div class="insight-label">Why they talked about it</div>
+      <div class="insight-text">In a conversation about AI and surveillance, 1984 came up as the foundational text for understanding what Hotz called <strong>"the permanent record problem"</strong> — the philosophical danger of a world where nothing is ever forgotten. A society with perfect memory is one where change becomes impossible, because your past is always more accessible than your present.</div>
+    </div>
+  </div>
+
+  <div class="appearance-card">
+    <div class="app-header">
+      <div class="pod-ava art-hibt">HIBT</div>
+      <div class="pod-info">
+        <div class="pod-show"><a href="#">How I Built This</a></div>
+        <a href="#" class="pod-ep">Ep. #441 · Founder reading list special</a>
+      </div>
+      <div class="pod-when">Sep 2023</div>
+    </div>
+    <div class="app-insight">
+      <div class="insight-label">Why they talked about it</div>
+      <div class="insight-text">Guy Raz included 1984 on his personal founder reading list — not for its politics, but for what it reveals about <strong>language as a tool of control</strong>. The discussion focused on <em>doublethink</em>: holding two contradictory beliefs simultaneously — a <strong>daily reality in corporate communications</strong> where leaders routinely say one thing internally and another externally.</div>
+    </div>
+  </div>
+
+  <div id="extra-cards"></div>
+  <div class="see-more">
+    <a href="#" id="load-more" onclick="loadMore(event)">See more podcast mentions ↓</a>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ALSO READ
+       Use Google Books API coverImage or Open Library:
+       https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg
+  -->
+  <div class="also-title">People who bought this also read</div>
+  <div class="also-read-grid">
+    <a href="#" class="also-card">
+      <div class="also-cover bc1">Brave New World</div>
+      <div class="also-book-title">Brave New World</div>
+      <div class="also-book-author">Aldous Huxley</div>
+    </a>
+    <a href="#" class="also-card">
+      <div class="also-cover bc2">Animal Farm</div>
+      <div class="also-book-title">Animal Farm</div>
+      <div class="also-book-author">George Orwell</div>
+    </a>
+    <a href="#" class="also-card">
+      <div class="also-cover bc3">The Road to Serfdom</div>
+      <div class="also-book-title">The Road to Serfdom</div>
+      <div class="also-book-author">F.A. Hayek</div>
+    </a>
+    <a href="#" class="also-card">
+      <div class="also-cover bc4">Fahrenheit 451</div>
+      <div class="also-book-title">Fahrenheit 451</div>
+      <div class="also-book-author">Ray Bradbury</div>
+    </a>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-eyebrow">About this book</p>
+  <p class="description-text">Written in 1948 and published a year later, George Orwell's <em>1984</em> remains one of the most influential novels ever written. Set in a totalitarian future England, the story follows Winston Smith as he secretly rebels against the omnipresent surveillance of Big Brother. A searing indictment of authoritarianism, propaganda, and the fragility of truth.</p>
+
+  <div>
+    <div class="details-toggle" onclick="toggleDetails()">
+      <span class="details-toggle-label">Book details &amp; price</span>
+      <span class="details-toggle-arrow" id="arrow">▼</span>
+    </div>
+    <div class="details-body" id="detailsBody">
+      <div style="padding-top:8px">
+        <div class="detail-row"><span class="detail-key">Publisher</span><span class="detail-val">Secker &amp; Warburg</span></div>
+        <div class="detail-row"><span class="detail-key">Published</span><span class="detail-val">June 8, 1949</span></div>
+        <div class="detail-row"><span class="detail-key">Pages</span><span class="detail-val">328</span></div>
+        <div class="detail-row"><span class="detail-key">Language</span><span class="detail-val">English</span></div>
+        <div class="detail-row"><span class="detail-key">ISBN-13</span><span class="detail-val">978-0451524935</span></div>
+        <div class="detail-row"><span class="detail-key">Price</span><span class="detail-val">From $12.99</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Single floating buy button — only CTA on the page -->
+<button class="float-buy">Buy on Amazon</button>
+
+<script>
+  function toggleDetails() {
+    document.getElementById('detailsBody').classList.toggle('open');
+    document.getElementById('arrow').classList.toggle('open');
+  }
+
+  var extraLoaded = false;
+  var extraCards = [
+    { cls: 'art-tim', label: 'TIM', show: 'The Tim Ferriss Show', ep: 'Ep. #627 · Books that defined me', when: 'Aug 2023', text: 'Ferriss included 1984 on his shortlist of books that fundamentally changed how he thinks about systems and power. He argued the book isn\'t really about politics — it\'s about <strong>how any institution can quietly reshape the reality of the people inside it</strong>. He recommended it for anyone in leadership who wants to stay honest about the culture they\'re actually creating.' },
+    { cls: 'art-hub', label: 'HUB', show: 'Huberman Lab', ep: 'Ep. #190 · The neuroscience of belief', when: 'Jul 2023', text: 'Huberman referenced 1984 in the context of how the brain forms and maintains beliefs under social pressure. The scientific angle: Orwell\'s <em>doublethink</em> isn\'t just a literary device — it\'s a <strong>neurologically accurate description of motivated reasoning</strong>. The brain\'s desire to belong to a group can override its ability to process conflicting information.' },
+    { cls: 'art-fnd', label: 'FND', show: 'Founders Podcast', ep: 'Ep. #311 · Lessons from Orwell', when: 'Jun 2023', text: 'Senra devoted a full episode to 1984, treating Orwell the way he treats every founder — as someone worth studying in forensic detail. His read: the book is a <strong>masterclass in how bureaucracies self-perpetuate</strong>. The Party doesn\'t exist to serve a goal — it exists to exist. Senra drew direct lines from Orwell\'s observations to modern corporate dysfunction.' }
+  ];
+
+  function loadMore(e) {
+    e.preventDefault();
+    if (extraLoaded) return;
+    extraLoaded = true;
+    var html = '';
+    extraCards.forEach(function(c) {
+      html += '<div class="appearance-card" style="opacity:0;transition:opacity 0.4s ease;">' +
+        '<div class="app-header">' +
+        '<div class="pod-ava ' + c.cls + '">' + c.label + '</div>' +
+        '<div class="pod-info">' +
+        '<div class="pod-show"><a href="#">' + c.show + '</a></div>' +
+        '<a href="#" class="pod-ep">' + c.ep + '</a>' +
+        '</div><div class="pod-when">' + c.when + '</div>' +
+        '</div><div class="app-insight">' +
+        '<div class="insight-label">Why they talked about it</div>' +
+        '<div class="insight-text">' + c.text + '</div>' +
+        '</div></div>';
+    });
+    document.getElementById('extra-cards').innerHTML = html;
+    document.getElementById('extra-cards').querySelectorAll('.appearance-card').forEach(function(c, i) {
+      setTimeout(function() { c.style.opacity = '1'; }, i * 80);
+    });
+    document.getElementById('load-more').style.display = 'none';
+  }
+</script>
+</body>
+</html>
