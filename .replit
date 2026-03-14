@@ -70,12 +70,12 @@ args = "npx tsx server/downloadAllTranscripts.ts"
 name = "Generate Recaps"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx tsx server/backgroundRecapGenerator.ts --limit=10"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx tsx server/backgroundRecapGenerator.ts --limit=500"
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "stripe:1.0.0", "resend:1.0.0", "spotify:1.0.0"]
