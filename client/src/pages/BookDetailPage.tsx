@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
-import { BookOpen, ExternalLink, ChevronDown, ShoppingCart, FileText } from "lucide-react";
+import { BookOpen, ExternalLink, ChevronDown, FileText } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -327,10 +327,9 @@ function StickyBuyBar({ book, visible }: { book: BookDetail; visible: boolean })
               href={book.amazonUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg px-4 py-2 text-[14px] font-semibold transition-colors flex items-center gap-1.5"
+              className="bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111] rounded-lg px-4 py-2 text-[14px] font-bold transition-colors flex items-center gap-1.5 shadow-sm"
               data-testid="sticky-buy-amazon"
             >
-              <ShoppingCart className="w-3.5 h-3.5" />
               Buy on Amazon
             </a>
           )}
@@ -465,32 +464,31 @@ export default function BookDetailPage() {
                 </p>
               )}
 
-              {book.amazonUrl && (
-                <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                {book.amazonUrl && (
                   <a
                     href={book.amazonUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg px-5 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2"
+                    className="bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111] rounded-lg px-5 py-2.5 text-[14px] font-bold transition-colors flex items-center gap-2 shadow-sm"
                     data-testid="button-buy-amazon-hero"
                   >
-                    <ShoppingCart className="w-4 h-4" />
                     Buy on Amazon
                   </a>
-                  {book.blinkistUrl && (
-                    <a
-                      href={book.blinkistUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="border border-[#E4E4E7] dark:border-white/[0.12] text-[#52525B] dark:text-[#A1A1AA] hover:border-[#6366F1]/40 hover:text-[#6366F1] rounded-lg px-4 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2"
-                      data-testid="button-blinkist-hero"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Blinkist Summary
-                    </a>
-                  )}
-                </div>
-              )}
+                )}
+                {book.blinkistUrl && (
+                  <a
+                    href={book.blinkistUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-[#E4E4E7] dark:border-white/[0.12] text-[#52525B] dark:text-[#A1A1AA] hover:border-[#6366F1]/40 hover:text-[#6366F1] rounded-lg px-4 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2"
+                    data-testid="button-blinkist-hero"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Blinkist Summary
+                  </a>
+                )}
+              </div>
 
               {featuredPodcasts.length > 0 && (
                 <>
