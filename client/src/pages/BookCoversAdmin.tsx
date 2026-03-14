@@ -214,7 +214,7 @@ export default function BookCoversAdmin() {
               >
                 <div className="flex gap-5">
                   <div className="w-[287px] shrink-0">
-                    <div className="w-[287px] h-[430px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
+                    <div className="w-[287px] h-[425px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
                       {book.hasFile ? (
                         <img
                           src={`/books/${book.slug}.jpg?t=1`}
