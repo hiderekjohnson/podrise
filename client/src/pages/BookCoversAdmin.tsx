@@ -95,9 +95,11 @@ export default function BookCoversAdmin() {
 
   const isReplacementView = filter === "replace" || filter === "rejected" || filter === "nocover";
 
+  const visibleBooks = books.slice(0, visibleCount);
+
   useEffect(() => {
-    if (!isReplacementView || !books.length) return;
-    const toFetch = books.filter(b => !candidatesMap[b.id] && !loadingCandidates.has(b.id) && !autoFetchedIds.has(b.id));
+    if (!isReplacementView || !visibleBooks.length) return;
+    const toFetch = visibleBooks.filter(b => !candidatesMap[b.id] && !loadingCandidates.has(b.id) && !autoFetchedIds.has(b.id));
     if (toFetch.length === 0) return;
     const batchSize = 3;
     const batch = toFetch.slice(0, batchSize);
@@ -107,13 +109,14 @@ export default function BookCoversAdmin() {
       return next;
     });
     batch.forEach(b => fetchCandidates(b.id));
-  }, [isReplacementView, books, candidatesMap, loadingCandidates, autoFetchedIds]);
+  }, [isReplacementView, visibleBooks, candidatesMap, loadingCandidates, autoFetchedIds]);
 
   useEffect(() => {
-    if (!isReplacementView || !books.length) return;
-    const fetched = books.filter(b => autoFetchedIds.has(b.id) && candidatesMap[b.id] !== undefined);
-    if (fetched.length < autoFetchedIds.size) return;
-    const remaining = books.filter(b => !autoFetchedIds.has(b.id) && !candidatesMap[b.id] && !loadingCandidates.has(b.id));
+    if (!isReplacementView || !visibleBooks.length) return;
+    const fetched = visibleBooks.filter(b => autoFetchedIds.has(b.id) && candidatesMap[b.id] !== undefined);
+    const pendingVisible = visibleBooks.filter(b => autoFetchedIds.has(b.id) && candidatesMap[b.id] === undefined);
+    if (pendingVisible.length > 0) return;
+    const remaining = visibleBooks.filter(b => !autoFetchedIds.has(b.id) && !candidatesMap[b.id] && !loadingCandidates.has(b.id));
     if (remaining.length === 0) return;
     const nextBatch = remaining.slice(0, 3);
     setAutoFetchedIds(prev => {
@@ -122,7 +125,7 @@ export default function BookCoversAdmin() {
       return next;
     });
     nextBatch.forEach(b => fetchCandidates(b.id));
-  }, [candidatesMap, autoFetchedIds]);
+  }, [candidatesMap, autoFetchedIds, visibleBooks]);
 
   const approveMutation = useMutation({
     mutationFn: async (ids: number[]) => {
