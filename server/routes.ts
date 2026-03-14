@@ -8236,36 +8236,52 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
         }
       }
 
-      const extractionPrompt = `You find DISCOVERY-WORTHY products in podcast transcripts — products that listeners would be excited to learn about and might actually buy.
+      const extractionPrompt = `You find PHYSICAL CONSUMER PRODUCTS mentioned in podcast transcripts — real, tangible things people can buy online and have shipped to them.
+
+WHAT TO EXTRACT — physical, shippable consumer products like:
+- Electronics: laptops, smartphones, tablets, smartwatches, wireless earbuds, portable chargers, webcams, keyboards, mice, dash cams, power banks
+- Fitness/Health: yoga mats, resistance bands, dumbbells, foam rollers, fitness trackers, water bottles, specific supplement brands (like AG1), vitamins
+- Kitchen/Home: air fryers, coffee makers, blenders, instant pots, electric kettles, knife sets, cookware
+- Beauty/Personal care: face serums, hair dryers, hair straighteners, moisturizers, sunscreen, makeup brushes, electric toothbrushes
+- Clothing/Accessories: t-shirts, hoodies, leggings, sneakers, sunglasses, watches, backpacks, baseball caps
+- Office/Stationery: pens, notebooks, desk organizers, standing desks, monitors
+- Outdoor/Sports: camping tents, sleeping bags, hiking boots, flashlights, multi-tools, bikes, drones, boats
+- Pets: dog leashes, cat trees, pet beds, automatic feeders
+- Auto: car phone mounts, jump starters, tire inflators
+- Kids: baby monitors, strollers, play mats, building blocks, board games
+- Tools: power drills, tool sets
+
+The KEY TEST: Could this product be ordered on Amazon (or should it be on Amazon)? If yes, extract it. If no, skip it.
 
 A good product to extract is:
-- Something a regular consumer can purchase (physical product, consumer app, consumer subscription, DTC brand)
+- A specific, named physical product or brand (not a generic category)
 - Genuinely discussed or recommended by the hosts — not just mentioned in passing
-- Interesting or surprising — something most listeners probably haven't heard of
-- Has a clear "wow factor" or compelling story behind it
+- Interesting or surprising — something listeners would want to check out
+- Something you could hold in your hands, wear, use, or consume physically
 
-DO NOT extract:
-- Books (tracked separately)
-- Podcast sponsors/ads (e.g. "brought to you by...", "use code...", "thanks to our sponsor...")
-- Well-known household brands everyone already knows (Google, Apple, Amazon, Netflix, Uber, Tesla, etc.)
-- Enterprise/B2B SaaS tools (Salesforce, HubSpot, Datadog, etc.) unless consumer-facing
+ABSOLUTELY DO NOT extract any of these:
+- Software, apps, websites, or digital platforms (no Notion, no ChatGPT, no Match.com, no apps of any kind)
+- SaaS tools, B2B software, enterprise tools
+- Books, ebooks, audiobooks (tracked separately)
+- Digital downloads, gift cards, software licenses, subscriptions to digital services
+- Podcast sponsors/ads ("brought to you by...", "use code...", "thanks to our sponsor...")
+- Well-known megabrands where no specific product is discussed (just saying "Apple" or "Nike" without a specific product)
 - Stocks, ETFs, crypto, or investment vehicles
-- Generic company mentions where no specific product is discussed
-- Free services or platforms with no purchase option
 - Social media platforms (Twitter/X, Instagram, TikTok, LinkedIn, etc.)
-- Payment processors, banks, or financial infrastructure (Stripe, Square, PayPal)
+- Payment processors, banks, or financial infrastructure
 - News outlets, media companies, or content platforms
-- Vague product categories ("AI tools", "supplements") without a specific named product
-- Products where the hosts are just reading a company name from a list or headline
-- Internal business tools the hosts use to run their own companies
+- Medications, weapons, alcohol, or heavily regulated items
+- Vague product categories ("supplements", "gadgets") without a specific named product
+- Free services or platforms
+- Companies mentioned only in a business/investment context, not as a product to buy
 
-QUALITY BAR: If you're unsure whether a product is discovery-worthy, skip it. We want 0-3 high-quality products per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying products — that's fine.
+QUALITY BAR: We want 0-3 high-quality physical products per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying products — that's perfectly fine. Only extract products you're confident a listener could go buy right now.
 
 For each qualifying product, return:
-- name: the specific product name
-- company: the company behind it
+- name: the specific product name (e.g. "Vitamix A3500" not just "blender")
+- company: the company/brand behind it
 - description: 1 sentence explaining what it is and why it's interesting
-- purchaseUrl: the best URL to buy/learn about it
+- purchaseUrl: the best URL to buy it (prefer Amazon links when possible)
 - context: a direct quote or close paraphrase showing how the hosts discussed it
 - mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
 

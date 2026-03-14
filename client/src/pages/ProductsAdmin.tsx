@@ -28,13 +28,15 @@ const MENTION_LABELS: Record<string, { label: string; color: string; icon: typeo
 };
 
 const REJECT_REASONS = [
-  { value: "not_consumer", label: "Not consumer product" },
+  { value: "software_or_app", label: "Software / app / website" },
+  { value: "not_physical", label: "Not a physical product" },
   { value: "too_well_known", label: "Too well known" },
   { value: "sponsor_ad", label: "Sponsor / ad" },
-  { value: "not_purchasable", label: "Not purchasable" },
   { value: "passing_mention", label: "Just a passing mention" },
-  { value: "enterprise_tool", label: "Enterprise / B2B tool" },
+  { value: "cant_buy_online", label: "Can't buy online" },
   { value: "not_interesting", label: "Not interesting enough" },
+  { value: "book_or_media", label: "Book / media / digital" },
+  { value: "enterprise_tool", label: "Enterprise / B2B" },
   { value: "other", label: "Other" },
 ];
 
