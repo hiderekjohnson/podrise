@@ -204,7 +204,7 @@ function HeroCover({ title, slug }: { title: string; slug: string }) {
 
   if (failed) {
     return (
-      <div className="w-[108px] min-h-[162px] h-full rounded-[3px_6px_6px_3px] bg-gradient-to-br from-[#1a1a2e] via-[#0f2145] to-[#0a1628] flex flex-col items-center justify-center p-3 text-center relative shrink-0 shadow-[_-2px_0_0_rgba(0,0,0,0.2),3px_6px_20px_rgba(0,0,0,0.18)]">
+      <div className="w-[108px] h-[162px] rounded-[3px_6px_6px_3px] bg-gradient-to-br from-[#1a1a2e] via-[#0f2145] to-[#0a1628] flex flex-col items-center justify-center p-3 text-center relative shrink-0 shadow-[_-2px_0_0_rgba(0,0,0,0.2),3px_6px_20px_rgba(0,0,0,0.18)]">
         <div className="absolute left-0 top-0 bottom-0 w-[9px] bg-white/[0.04] border-r border-white/[0.06] rounded-l-[3px]" />
         <div className="font-serif text-xl font-bold text-[#e2c27d] leading-none mb-2">{title.length > 30 ? title.substring(0, 28) + "…" : title}</div>
         <div className="w-3.5 h-px bg-[#e2c27d]/30 mx-auto mb-2" />
@@ -216,7 +216,7 @@ function HeroCover({ title, slug }: { title: string; slug: string }) {
     <img
       src={`/books/${slug}.jpg`}
       alt={title}
-      className="w-[108px] min-h-[162px] h-auto rounded-[3px_6px_6px_3px] object-cover shrink-0 shadow-[_-2px_0_0_rgba(0,0,0,0.2),3px_6px_20px_rgba(0,0,0,0.18)]"
+      className="w-[108px] h-[162px] rounded-[3px_6px_6px_3px] object-cover shrink-0 shadow-[_-2px_0_0_rgba(0,0,0,0.2),3px_6px_20px_rgba(0,0,0,0.18)]"
       onError={() => setFailed(true)}
     />
   );
@@ -408,7 +408,7 @@ export default function BookDetailPage() {
             <span>{book.name}</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-stretch mb-5" data-testid="section-hero">
+          <div className="flex flex-col sm:flex-row gap-5 items-start mb-5" data-testid="section-hero">
             <HeroCover title={book.name} slug={book.slug} />
             <div className="pt-0.5 flex-1 min-w-0">
               <h1 className="text-[24px] sm:text-[30px] font-bold leading-[1.05] tracking-tight text-[#09090B] dark:text-white mb-1" data-testid="heading-book-title">
