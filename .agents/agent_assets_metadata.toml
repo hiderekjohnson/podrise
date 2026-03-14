@@ -18,3 +18,9 @@ id = "VR6vx-PQiYE8aPvGJ5CQy"
 uri = "file://books_still_rejected_no_cover.csv"
 type = "table"
 title = "Books Still Without Covers (95 books)"
+
+[[outputs]]
+id = "c0zGriE7v3aFZJZc2LRJh"
+uri = "file://needs_review_books.csv"
+type = "table"
+title = "Needs Review Books (431 books)"
