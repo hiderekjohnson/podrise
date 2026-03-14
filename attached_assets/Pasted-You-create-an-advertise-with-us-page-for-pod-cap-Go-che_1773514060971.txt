@@ -1,0 +1,97 @@
+You create an advertise with us page for pod cap. Go check out the advertise with us pages on Morning Brew and The Hustle and use those for inspiration. To give you some context these will be ads that will be sent out in conjunction with the knowledge about podcasts that our users are learning from podcasts. We know our users' interests because of the podcast they listen to, the roles they have at their companies, and the industries that they work in, in addition to all the info about the podcast that they listen to. We should make a little note though: for users we don't sell any of your data. We essentially sell the ability, through us, to present to you amazing targeted highly valuable offers.
+
+
+
+Morning Brew
+
+https://morningbrewinc.com/advertise-with-us 
+
+
+
+theSkimm
+
+https://www.theskimm.com/advertise
+
+
+
+Axios
+
+https://www.axios.com/advertise/newsletters
+
+
+
+Marketing Brew
+
+https://www.marketingbrew.com/advertise
+
+
+
+Retail Brew
+
+https://www.retailbrew.com/advertise
+
+
+
+Milk Road
+
+https://milkroad.com/advertise
+
+
+
+Lenny’s Newsletter
+
+https://www.lennysnewsletter.com/sponsorships
+
+
+
+Not Boring
+
+https://www.notboring.co/advertise
+
+
+
+The Information
+
+https://www.theinformation.com/advertise
+
+
+
+Stacked Marketer
+
+https://www.stackedmarketer.com/advertise
+
+
+
+DemandH (DemandHacker / Demand Curve newsletter network)
+
+https://www.demandh.co/advertise
+
+
+
+The Gist
+
+https://advertising.thegistsports.com
+
+
+
+From the about Us page, remove the quote and the photo and info for Derek Johnson.
+
+
+
+Please update our terms and conditions and privacy policy if needed to make sure that we can run ads in the emails that we send to customers and that we allow advertisers to target based on non-identifiable information about our users in the emails and even podcasts that we produce in the future.
+
+
+
+Send an email to hiderekjohnson@gmail.com and let me know all of the features, even little tiny features that we haven't promoted on the What's New page yet that we've recently deployed.
+
+
+
+When I share some of our URLs, like the bookstore, it's just the URL that gets shared; there's no accompanying image. Can you update all of our URLs so they all have images when someone shares them on social media via SMS, WhatsApp, etc? 
+
+
+
+For the store how do we get product images into the store? Whatever is the best way to do this, how can you get this deployed for existing products and any new products that come in? We want the product images to be really enticing because we want them to click it and purchase so that we can earn affiliate revenue to keep the site running and to keep you employed.
+
+
+
+Can you make the Admin Panel and Dashboard mobile-optimized so I can use it from my phone on the go?

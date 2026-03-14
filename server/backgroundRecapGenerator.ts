@@ -191,33 +191,42 @@ async function publishCompletedRecaps(podcastSlug: string) {
 async function main() {
   const limitArg = process.argv.find(a => a.startsWith("--limit="));
   const podcastArg = process.argv.find(a => a.startsWith("--podcast="));
+  const perPodcastArg = process.argv.find(a => a.startsWith("--per-podcast="));
   const globalLimit = limitArg ? parseInt(limitArg.split("=")[1]) : undefined;
   const filterPodcast = podcastArg ? podcastArg.split("=")[1] : undefined;
+  const perPodcastLimit = perPodcastArg ? parseInt(perPodcastArg.split("=")[1]) : 20;
 
   console.log("[BgRecap] Starting background recap generation...");
-  console.log(`[BgRecap] Config: concurrency=${CONCURRENCY}, batch=${BATCH_SIZE}${globalLimit ? `, limit=${globalLimit}` : ""}${filterPodcast ? `, podcast=${filterPodcast}` : ""}`);
+  console.log(`[BgRecap] Config: concurrency=${CONCURRENCY}, batch=${BATCH_SIZE}, perPodcast=${perPodcastLimit}${globalLimit ? `, limit=${globalLimit}` : ""}${filterPodcast ? `, podcast=${filterPodcast}` : ""}`);
 
   const client = await pool.connect();
   try {
     let podcastFilter = "";
-    const params: any[] = [];
+    const params: any[] = [perPodcastLimit];
     if (filterPodcast) {
       params.push(filterPodcast);
       podcastFilter = ` AND et.podcast_id = $${params.length}`;
     }
 
     const { rows: episodes } = await client.query(
-      `SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
-              et.date_published, et.duration, et.audio_url, et.image_url
-       FROM episode_transcripts et
-       WHERE et.transcript IS NOT NULL AND et.transcript != ''
-         AND NOT EXISTS (
-           SELECT 1 FROM landing_page_recaps lpr
-           WHERE lpr.itunes_id = et.podcast_id
-             AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-               OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
-         )${podcastFilter}
-       ORDER BY et.date_published DESC NULLS LAST
+      `WITH ranked AS (
+         SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
+                et.date_published, et.duration, et.audio_url, et.image_url,
+                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC NULLS LAST) AS rn
+         FROM episode_transcripts et
+         WHERE et.transcript IS NOT NULL AND et.transcript != ''
+           AND NOT EXISTS (
+             SELECT 1 FROM landing_page_recaps lpr
+             WHERE lpr.itunes_id = et.podcast_id
+               AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+                 OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
+           )${podcastFilter}
+       )
+       SELECT id, podcast_id, episode_title, transcript, description,
+              date_published, duration, audio_url, image_url
+       FROM ranked
+       WHERE rn <= $1
+       ORDER BY date_published DESC NULLS LAST
        ${globalLimit ? `LIMIT ${globalLimit}` : ""}`,
       params
     );

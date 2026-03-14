@@ -14,7 +14,7 @@ export default function Terms() {
             Terms & Conditions
           </div>
           <h1 className="sr-only">Terms & Conditions</h1>
-          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground">Last updated: January 1, 2026</p>
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground">Last updated: March 14, 2026</p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-[#52525B]">
@@ -63,12 +63,25 @@ export default function Terms() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">8. Disclaimer of Warranties</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">8. Advertising and Sponsored Content</h2>
+            <p>The Service may include advertisements, sponsored content, and promotional materials from third-party advertisers within emails, on the website, and in any audio or video content we produce. By using the Service, you acknowledge and agree that:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>We may display advertisements and sponsored content within your daily podcast recap emails and other communications from PodCap</li>
+              <li>Advertisements may be targeted based on non-personally-identifiable information, including but not limited to your selected podcast preferences, indicated industries, professional roles, and general interest categories</li>
+              <li>We do not share your personal information (such as your name or email address) with advertisers. Targeting is based solely on aggregated, non-identifiable audience segments</li>
+              <li>We are not responsible for the content, accuracy, or practices of third-party advertisers. Interactions with advertisers, including purchases, are solely between you and the advertiser</li>
+              <li>Sponsored content will be clearly labeled or distinguished from editorial content</li>
+              <li>We may include advertisements in any podcasts, audio content, or video content we produce in the future</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-2">9. Disclaimer of Warranties</h2>
             <p>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. We do not warrant that the Service will be uninterrupted, error-free, or secure. AI-generated summaries may contain inaccuracies and should not be relied upon as a substitute for listening to the original podcast episodes.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">9. Limitation of Liability</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">10. Limitation of Liability</h2>
             <p>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL PODCAP, ITS OFFICERS, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES RESULTING FROM YOUR USE OF THE SERVICE.</p>
           </section>
 

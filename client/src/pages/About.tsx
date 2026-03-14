@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Headphones, Zap, CheckCircle2, Quote, Heart, Sparkles, Search, BookOpen, Globe, BarChart3, Building2, Briefcase, Users } from "lucide-react";
-import derekPhoto from "@assets/Derek_Johnson_nobg.png";
+import { ArrowRight, Headphones, Zap, CheckCircle2, Heart, Sparkles, Search, BookOpen, Globe, BarChart3, Building2, Briefcase, Users } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export default function About() {
@@ -182,29 +181,6 @@ export default function About() {
             <p className="text-[16px] text-foreground font-semibold mt-6 text-center">
               A trillion dollars of business insight, locked in audio that nobody has time to get through.
             </p>
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          data-testid="section-team-quote"
-        >
-          <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 md:p-12 shadow-sm">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
-            <Quote className="w-10 h-10 text-primary/10 mb-4" />
-            <blockquote className="text-xl sm:text-2xl font-display leading-relaxed text-foreground italic mb-8">
-              "The smartest people in every industry are sharing everything on podcasts. Founders explaining exactly how they built their companies. Scientists describing breakthroughs. Investors revealing how they really think. But nobody can keep up with all of it. We are building the intelligence layer that makes sure you never miss what matters — without having to listen to everything yourself."
-            </blockquote>
-            <div className="flex items-center gap-4">
-              <img src={derekPhoto} alt="Derek Johnson" className="w-14 h-14 rounded-full object-cover object-top bg-gradient-to-br from-primary/10 to-primary/5 ring-2 ring-primary/10 ring-offset-2 ring-offset-background" />
-              <div>
-                <p className="text-[16px] font-bold text-foreground">Derek Johnson</p>
-                <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Founder, PodCap</p>
-              </div>
-            </div>
           </div>
         </motion.section>
 

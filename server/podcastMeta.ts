@@ -37,13 +37,13 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Contact PodCap</h1><p>Have questions, feedback, or just want to say hello? We'd love to hear from you.</p><p>Email: <a href="mailto:hello@podcap.io">hello@podcap.io</a></p><a href="/">Back to Home</a></div>`,
   },
   "/about": {
-    title: "About PodCap - The Story Behind Your Daily Podcast Summaries",
-    description: "PodCap was built by Derek Johnson after 15 years running Tatango.com. Even semi-retired, he couldn't keep up with his favorite podcasts. So he built an AI-powered daily podcast summary service.",
+    title: "About PodCap - The Intelligence Layer for Podcasts",
+    description: "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.",
     image: "https://podcap.io/favicon.png",
     url: "https://podcap.io/about",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>About PodCap</h1><p>PodCap was built by Derek Johnson after 15 years running Tatango.com. Even semi-retired, he couldn't keep up with his favorite podcasts. So he built an AI-powered daily podcast summary service.</p><p>PodCap provides AI-powered recaps for 240+ top podcasts, delivering key insights, notable quotes, and actionable takeaways to your inbox every morning.</p><a href="/">Back to Home</a></article>`,
+    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>About PodCap</h1><p>PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.</p><p>PodCap provides AI-powered recaps for 240+ top podcasts, delivering key insights, notable quotes, and actionable takeaways to your inbox every morning.</p><a href="/">Back to Home</a></article>`,
   },
   "/leaderboard": () => {
     const podcastLinks = PODCAST_SEO.slice(0, 50).map((p, i) => `<li>${i + 1}. <a href="/podcasts/${escapeAttr(p.slug)}">${escapeAttr(p.name)}</a></li>`).join("");
