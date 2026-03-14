@@ -2708,7 +2708,7 @@ export async function registerRoutes(
       res.json({
         name: enrichment.book_title,
         author: enrichment.author,
-        description: enrichment.description,
+        description: enrichment.google_description || enrichment.description,
         podcastBuzz: enrichment.podcast_buzz,
         slug: enrichment.slug,
         asin: finalAsin,

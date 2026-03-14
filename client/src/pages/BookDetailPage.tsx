@@ -502,9 +502,11 @@ export default function BookDetailPage() {
           {book.description && (
             <>
               <p className="text-[12px] font-bold tracking-[1.5px] uppercase text-[#A1A1AA] mb-2.5">About this book</p>
-              <p className="text-[15px] leading-[1.85] text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-description">
-                {book.description}
-              </p>
+              <div
+                className="text-[15px] leading-[1.85] text-[#52525B] dark:text-[#A1A1AA] [&_b]:font-semibold [&_b]:text-[#18181B] dark:[&_b]:text-white [&_strong]:font-semibold [&_strong]:text-[#18181B] dark:[&_strong]:text-white [&_i]:italic"
+                data-testid="text-description"
+                dangerouslySetInnerHTML={{ __html: book.description.replace(/<(?!\/?(?:p|b|i|br|strong|em)\b)[^>]*>/gi, '') }}
+              />
             </>
           )}
 
