@@ -12,3 +12,9 @@ id = "n_-Is9KjAcMNYKGhrvFdy"
 uri = "file://rejected_covers.csv"
 type = "table"
 title = "Rejected Book Covers (433 books)"
+
+[[outputs]]
+id = "VR6vx-PQiYE8aPvGJ5CQy"
+uri = "file://books_still_rejected_no_cover.csv"
+type = "table"
+title = "Books Still Without Covers (95 books)"
