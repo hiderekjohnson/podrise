@@ -9405,6 +9405,13 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
     }
 
     try {
+      const { seedProductionProducts } = await import("./seedProductionProducts");
+      await seedProductionProducts();
+    } catch (err) {
+      console.error("[ProductSeed] Seed failed:", err);
+    }
+
+    try {
       console.log("[Cache] Pre-warming directory caches on startup...");
       const [peopleData, companiesData, topicsData] = await Promise.all([
         computePeopleData(),
