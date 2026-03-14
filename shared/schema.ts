@@ -405,6 +405,7 @@ export const extractedProducts = pgTable("extracted_products", {
   purchaseUrl: text("purchase_url"),
   context: text("context"),
   mentionType: text("mention_type"),
+  category: text("category").notNull().default("physical_product"),
   episodeTitle: text("episode_title").notNull(),
   episodeSlug: text("episode_slug"),
   podcastSlug: text("podcast_slug").notNull().default("myfirstmillion"),

@@ -8291,12 +8291,14 @@ WHAT TO EXTRACT — physical, shippable consumer products like:
 The KEY TEST: Could this product be ordered on Amazon (or should it be on Amazon)? If yes, extract it. If no, skip it.
 
 A good product to extract is:
-- A specific, named physical product or brand (not a generic category)
+- A specific, named physical product or brand (not a generic category like "liver supplements" or "gadgets")
+- Must have a SPECIFIC BRAND NAME — never extract generic product categories without a named brand
 - Genuinely discussed or recommended by the hosts — not just mentioned in passing
 - Interesting or surprising — something listeners would want to check out
 - Something you could hold in your hands, wear, use, or consume physically
 
 ABSOLUTELY DO NOT extract any of these:
+- Generic product categories without a specific brand (e.g. "liver supplements" by "Various Brands" — SKIP)
 - Software, apps, websites, or digital platforms (no Notion, no ChatGPT, no Match.com, no apps of any kind)
 - SaaS tools, B2B software, enterprise tools
 - Books, ebooks, audiobooks (tracked separately)
@@ -8308,7 +8310,6 @@ ABSOLUTELY DO NOT extract any of these:
 - Payment processors, banks, or financial infrastructure
 - News outlets, media companies, or content platforms
 - Medications, weapons, alcohol, or heavily regulated items
-- Vague product categories ("supplements", "gadgets") without a specific named product
 - Free services or platforms
 - Companies mentioned only in a business/investment context, not as a product to buy
 
@@ -8425,20 +8426,212 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
     }
   });
 
+  app.post("/api/admin/extract-services", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: episodes } = await pool.query(
+        `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
+         FROM episode_transcripts
+         WHERE podcast_id = '1469759170'
+         ORDER BY episode_title, date_published DESC NULLS LAST
+         LIMIT 25`
+      );
+
+      if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
+
+      const OpenAI = (await import("openai")).default;
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const { processFullTranscript } = await import("./transcriptChunker");
+      const allProducts: any[] = [];
+
+      const { rows: approvedExamples } = await pool.query(
+        `SELECT name, company, description, mention_type FROM extracted_products WHERE status = 'approved' AND category = 'service_or_tool' ORDER BY reviewed_at DESC LIMIT 20`
+      );
+      const { rows: rejectedExamples } = await pool.query(
+        `SELECT name, company, rejection_reason FROM extracted_products WHERE status = 'rejected' AND category = 'service_or_tool' ORDER BY reviewed_at DESC LIMIT 30`
+      );
+
+      let trainingSection = "";
+      if (approvedExamples.length > 0 || rejectedExamples.length > 0) {
+        trainingSection = "\n\nLEARN FROM PAST DECISIONS:\n";
+        if (approvedExamples.length > 0) {
+          trainingSection += "These services/tools were APPROVED by our editor — extract similar ones:\n";
+          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} — ${p.description || ""}`).join("\n");
+          trainingSection += "\n";
+        }
+        if (rejectedExamples.length > 0) {
+          trainingSection += "These services/tools were REJECTED — do NOT extract ones like these:\n";
+          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""}${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
+          trainingSection += "\n";
+        }
+      }
+
+      const extractionPrompt = `You find SERVICES, TOOLS, APPS, and PLATFORMS mentioned in podcast transcripts — digital products and services that make professional or personal life easier or better.
+
+WHAT TO EXTRACT — named services and tools like:
+- Consumer apps & services: GoodRx, Match.com, Monarch (budgeting), Calm, Headspace, Duolingo, Noom
+- Financial tools: Mercury (banking), Brex, Ramp, Robinhood, Wealthfront, Betterment
+- Professional/B2B tools: Notion, Figma, Linear, Slack, Canva, Airtable, Zapier, Salesforce, HubSpot, Datadog
+- Health/wellness platforms: Hims, Roman, Talkiatry, BetterHelp, Peloton (digital)
+- Travel/lifestyle: Airbnb experiences, ClassPass, Uber, DoorDash
+- Business services: Stripe, Gusto, Deel, Carta, Shopify, QuickBooks, Rippling
+- Infrastructure/DevTools: AWS, Vercel, Cloudflare, Retool, Supabase, PlanetScale
+- Education: MasterClass, Skillshare, Coursera, Udemy
+- Entertainment: Spotify, Netflix, YouTube Premium, Disney+ (only when genuinely discussed, not just mentioned)
+- Marketplaces: Etsy, Poshmark, StockX, Reverb
+
+The KEY TEST: Is this a specific, named digital service or tool that someone could sign up for or use? If yes, extract it.
+
+A good service/tool to extract is:
+- A SPECIFIC NAMED SERVICE OR BRAND — must have a real brand name (not "budgeting apps" or "dating services")
+- Genuinely discussed or recommended by the hosts — not just mentioned in passing
+- Interesting or surprising — something listeners would want to check out or try
+- A service that makes life easier, better, more productive, or more enjoyable — for consumers OR professionals/businesses
+
+ABSOLUTELY DO NOT extract any of these:
+- Generic categories without a specific brand name (e.g. "dating apps" or "budgeting tools" — SKIP)
+- Physical products (tracked separately — no gadgets, clothing, food items)
+- Books, ebooks, audiobooks (tracked separately)
+- Podcast sponsors/ads ("brought to you by...", "use code...", "thanks to our sponsor...")
+- Well-known megabrands mentioned casually without substance (just saying "Google" or "Apple" without discussing a specific service)
+- Stocks, ETFs, crypto, or investment vehicles (discussing a company's stock price is NOT the same as recommending their service)
+- Social media platforms used casually (Twitter/X, Instagram, TikTok, LinkedIn — unless the platform itself is genuinely discussed as a tool/service)
+- News outlets, media companies, or content platforms mentioned as sources
+- Companies mentioned only in a business/investment context with no discussion of the actual service/product
+- Heavily regulated services (gambling, weapons dealers)
+- Internal company tools not available to the public
+
+QUALITY BAR: We want 0-3 high-quality services/tools per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying services — that's perfectly fine. Only extract services you're confident a listener could go try or sign up for.
+
+For each qualifying service/tool, return:
+- name: the specific service name (e.g. "GoodRx" not just "prescription savings")
+- company: the company behind it (e.g. "GoodRx, Inc.")
+- description: 1 sentence explaining what it does and why it's interesting
+- purchaseUrl: the best URL to visit (the service's main website)
+- context: a direct quote or close paraphrase showing how the hosts discussed it
+- mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
+
+Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
+
+      let totalCharsProcessed = 0;
+      let totalCharsAvailable = 0;
+
+      for (const ep of episodes) {
+        const fullTranscript = (ep.transcript || "").trim();
+        if (!fullTranscript) continue;
+        totalCharsAvailable += fullTranscript.length;
+
+        const { rows: recapRows } = await pool.query(
+          `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
+          [ep.episode_title]
+        );
+        const episodeSlug = recapRows[0]?.episode_slug || null;
+
+        const { results: chunkProducts, coverage } = await processFullTranscript<any>(
+          fullTranscript,
+          async (chunk, chunkIndex, totalChunks) => {
+            const completion = await directOpenai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                { role: "system", content: extractionPrompt },
+                {
+                  role: "user",
+                  content: `Extract noteworthy services and tools from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                }
+              ],
+              max_tokens: 1500,
+              temperature: 0.2,
+              response_format: { type: "json_object" },
+            });
+
+            const raw = completion.choices[0]?.message?.content || "{}";
+            try {
+              const parsed = JSON.parse(raw);
+              return Array.isArray(parsed) ? parsed : (parsed.products || []);
+            } catch (e) {
+              console.error("[ServiceExtract] JSON parse error for episode chunk:", ep.episode_title, chunkIndex, e);
+              return [];
+            }
+          }
+        );
+        totalCharsProcessed += coverage.totalChars;
+
+        const deduped = new Map<string, any>();
+        for (const p of chunkProducts) {
+          const key = (p.name || "").toLowerCase().trim();
+          if (key && !deduped.has(key)) {
+            deduped.set(key, p);
+          }
+        }
+
+        for (const p of deduped.values()) {
+          const product = {
+            name: p.name || "",
+            company: p.company || null,
+            description: p.description || null,
+            purchaseUrl: p.purchaseUrl || null,
+            context: p.context || null,
+            mentionType: p.mentionType || "discussion",
+            episodeTitle: ep.episode_title,
+            episodeSlug,
+            podcastSlug: "myfirstmillion",
+          };
+
+          const existing = await pool.query(
+            `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND episode_title = $2 AND category = 'service_or_tool'`,
+            [product.name, product.episodeTitle]
+          );
+          if (existing.rows.length === 0) {
+            const ins = await pool.query(
+              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, category, status)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'service_or_tool','pending') RETURNING id`,
+              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.episodeTitle, product.episodeSlug, product.podcastSlug]
+            );
+            allProducts.push({ ...product, id: ins.rows[0].id, status: "pending", category: "service_or_tool" });
+          }
+        }
+      }
+
+      const coveragePct = totalCharsAvailable > 0
+        ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
+        : 0;
+
+      const { rows: allSaved } = await pool.query(
+        `SELECT * FROM extracted_products WHERE category = 'service_or_tool' ORDER BY extracted_at DESC`
+      );
+
+      res.json({
+        products: allSaved,
+        newCount: allProducts.length,
+        episodeCount: episodes.length,
+        transcriptCoverage: `${coveragePct}%`,
+        totalCharsProcessed,
+        totalCharsAvailable,
+      });
+    } catch (err: any) {
+      console.error("[ServiceExtract] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to extract services" });
+    }
+  });
+
   app.get("/api/admin/products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
       const filter = req.query.filter || "all";
-      let where = "";
-      if (filter === "pending") where = "WHERE status = 'pending'";
-      else if (filter === "approved") where = "WHERE status = 'approved'";
-      else if (filter === "rejected") where = "WHERE status = 'rejected'";
+      const category = req.query.category || "physical_product";
+      let conditions = [`category = '${category === "service_or_tool" ? "service_or_tool" : "physical_product"}'`];
+      if (filter === "pending") conditions.push("status = 'pending'");
+      else if (filter === "approved") conditions.push("status = 'approved'");
+      else if (filter === "rejected") conditions.push("status = 'rejected'");
 
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
       const { rows } = await pool.query(
         `SELECT * FROM extracted_products ${where} ORDER BY extracted_at DESC`
       );
+      const catFilter = category === "service_or_tool" ? "service_or_tool" : "physical_product";
       const { rows: statsRows } = await pool.query(
-        `SELECT status, COUNT(*)::int as count FROM extracted_products GROUP BY status`
+        `SELECT status, COUNT(*)::int as count FROM extracted_products WHERE category = $1 GROUP BY status`,
+        [catFilter]
       );
       const stats: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
       for (const r of statsRows) stats[r.status] = r.count;
