@@ -8803,6 +8803,13 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
 
   setTimeout(async () => {
     try {
+      const { seedProductionBooks } = await import("./seedProductionBooks");
+      await seedProductionBooks();
+    } catch (err) {
+      console.error("[BookSeed] Seed failed:", err);
+    }
+
+    try {
       console.log("[Cache] Pre-warming directory caches on startup...");
       const [peopleData, companiesData, topicsData] = await Promise.all([
         computePeopleData(),
