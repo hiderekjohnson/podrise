@@ -7674,6 +7674,89 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
     }
   });
 
+  app.post("/api/admin/extract-products", async (req, res) => {
+    if (!req.session?.adminAuthenticated) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: episodes } = await pool.query(
+        `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
+         FROM episode_transcripts
+         WHERE podcast_id = '1469759170'
+         ORDER BY episode_title, date_published DESC NULLS LAST
+         LIMIT 10`
+      );
+
+      if (!episodes.length) return res.json({ products: [], episodes: [] });
+
+      const { openai } = await import("./replit_integrations/image/client");
+      const allProducts: any[] = [];
+
+      for (const ep of episodes) {
+        const transcript = (ep.transcript || "").slice(0, 12000);
+        if (!transcript) continue;
+
+        const { rows: recapRows } = await pool.query(
+          `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
+          [ep.episode_title]
+        );
+        const episodeSlug = recapRows[0]?.episode_slug || null;
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You extract products mentioned in podcast transcripts. A "product" is something a consumer can purchase — a physical product, software tool, subscription service, supplement, gadget, app, or platform with a clear purchase path. 
+
+EXCLUDE:
+- Books (we track those separately)
+- Obvious ads/sponsors (e.g. "this episode is brought to you by...")
+- Generic company mentions without a specific product
+- Free services with no purchase option
+- Stocks or investment vehicles
+
+For each product, return:
+- name: the product name
+- company: the company that makes it (if known)
+- description: 1-sentence description of what it is based on context
+- purchaseUrl: the most likely URL where someone can buy it (Amazon link if physical product, or the company website)
+- context: a brief quote or paraphrase of how it was mentioned
+
+Return JSON array. If no products found, return [].`
+            },
+            {
+              role: "user",
+              content: `Extract purchasable products from this podcast episode transcript.\n\nEpisode: "${ep.episode_title}"\n\nTranscript (first 12000 chars):\n${transcript}`
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        });
+
+        const raw = completion.choices[0]?.message?.content || "{}";
+        try {
+          const parsed = JSON.parse(raw);
+          const products = Array.isArray(parsed) ? parsed : (parsed.products || []);
+          for (const p of products) {
+            allProducts.push({
+              ...p,
+              episodeTitle: ep.episode_title,
+              episodeSlug,
+              episodeId: ep.id,
+            });
+          }
+        } catch (e) {
+          console.error("[ProductExtract] JSON parse error for episode:", ep.episode_title, e);
+        }
+      }
+
+      res.json({ products: allProducts, episodeCount: episodes.length });
+    } catch (err: any) {
+      console.error("[ProductExtract] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to extract products" });
+    }
+  });
+
   app.post("/api/webhooks/taddy", async (req, res) => {
     try {
       const payload = req.body;
