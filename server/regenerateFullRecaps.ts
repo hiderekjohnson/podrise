@@ -98,6 +98,12 @@ async function enrichBook(client: any, bookName: string, author: string | null, 
   const amazonUrl = asin ? `https://www.amazon.com/dp/${asin}` : (url || null);
   const gbId = await lookupGoogleBooksId(bookName, author);
 
+  const { rows: blocked } = await client.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [bookKey]);
+  if (blocked.length > 0) {
+    console.log(`    ⊘ BLOCKED "${bookName}" (on blocklist)`);
+    return slug;
+  }
+
   await client.query(`
     INSERT INTO book_enrichments (book_key, book_title, author, description, slug, asin, amazon_url, google_books_id, topics)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, '{"business"}')

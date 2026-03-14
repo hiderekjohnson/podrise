@@ -150,6 +150,12 @@ export async function enrichAllBooks(limit?: number): Promise<{ processed: numbe
         slug = `${slug}-${Date.now().toString(36)}`;
       }
 
+      const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [book.bookKey]);
+      if (blocked.length > 0) {
+        console.log(`[BookEnrich] BLOCKED: "${book.name}" (on blocklist)`);
+        continue;
+      }
+
       await pool.query(
         `INSERT INTO book_enrichments (book_key, book_title, author, description, podcast_buzz, asin, amazon_url, slug)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)

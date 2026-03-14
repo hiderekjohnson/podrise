@@ -56,6 +56,12 @@ async function main() {
     const [key, book] = missing[i];
     const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
     
+    const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [key]);
+    if (blocked.length > 0) {
+      console.log(`[${i + 1}/${missing.length}] BLOCKED ${book.name}`);
+      continue;
+    }
+
     const gbId = await lookupGoogleBooksId(book.name, book.author);
     if (gbId) withGbid++;
 

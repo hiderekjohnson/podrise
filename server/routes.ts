@@ -2131,6 +2131,8 @@ export async function registerRoutes(
         book.isbn = info.isbn;
         book.hasCover = info.hasCover;
         const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+        const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [bookKey]);
+        if (blocked.length > 0) continue;
         pool.query(
           "UPDATE book_enrichments SET google_books_id = $1, isbn = COALESCE(isbn, $2), has_cover = COALESCE(has_cover, $3) WHERE book_key = $4 AND google_books_id IS NULL",
           [info.id, info.isbn, info.hasCover, bookKey]
@@ -4562,6 +4564,49 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/book-covers/remove-not-book", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "ids array required" });
+      }
+      const placeholders = ids.map((_: any, i: number) => `$${i + 1}`).join(",");
+      const { rows: books } = await pool.query(
+        `SELECT id, book_key, book_title, slug FROM book_enrichments WHERE id IN (${placeholders})`,
+        ids
+      );
+
+      let blocklisted = 0;
+      let deleted = 0;
+      for (const book of books) {
+        await pool.query(
+          `INSERT INTO book_blocklist (book_key, book_title, reason) VALUES ($1, $2, 'not_a_book') ON CONFLICT (book_key) DO NOTHING`,
+          [book.book_key, book.book_title]
+        );
+        blocklisted++;
+
+        if (book.slug) {
+          const filePath = (await import("path")).default.join((await import("path")).default.resolve("public/books"), `${book.slug}.jpg`);
+          const fsMod = await import("fs");
+          if (fsMod.default.existsSync(filePath)) {
+            fsMod.default.unlinkSync(filePath);
+          }
+        }
+
+        await pool.query(`DELETE FROM book_aliases WHERE canonical_key = $1 OR alias_key = $1`, [book.book_key]);
+        await pool.query(`DELETE FROM book_enrichments WHERE id = $1`, [book.id]);
+        deleted++;
+      }
+
+      res.json({ message: `Removed ${deleted} non-book entries, ${blocklisted} added to blocklist` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to remove entries" });
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -6560,6 +6605,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           if (existing.length === 0) {
             const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
             const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+            const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [bookKey]);
+            if (blocked.length > 0) continue;
             await pool.query(
               `INSERT INTO book_enrichments (book_key, book_title, author, slug, amazon_url, description)
                VALUES ($1, $2, $3, $4, $5, $6)

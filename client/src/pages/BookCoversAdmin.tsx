@@ -106,6 +106,18 @@ export default function BookCoversAdmin() {
     },
   });
 
+  const notBookMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await apiRequest("POST", "/api/admin/book-covers/remove-not-book", { ids });
+    },
+    onSuccess: (_, ids) => {
+      toast({ title: "Removed", description: `${ids.length} non-book entries permanently removed & blocklisted` });
+      setSelected(new Set());
+      lastClickedIndex.current = null;
+      refetch();
+    },
+  });
+
   const retryMutation = useMutation({
     mutationFn: async (mode: string) => {
       const res = await apiRequest("POST", "/api/admin/book-covers/retry-rejected", { mode });
@@ -318,6 +330,19 @@ export default function BookCoversAdmin() {
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Replace Cover
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Permanently remove ${selected.size} entries from the database and blocklist them?`)) {
+                  notBookMutation.mutate(Array.from(selected));
+                }
+              }}
+              disabled={notBookMutation.isPending}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-700 text-white hover:bg-zinc-800 transition-colors flex items-center gap-1"
+              data-testid="button-bulk-not-book"
+            >
+              <X className="w-3.5 h-3.5" />
+              Not a Book
             </button>
             <button
               onClick={() => { setSelected(new Set()); setBulkRejecting(false); setBulkReplacing(false); }}
@@ -550,6 +575,19 @@ export default function BookCoversAdmin() {
                         >
                           <RefreshCw className="w-4 h-4" />
                           Replace
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Permanently remove "${book.title}" from the database? It will be blocklisted and never re-added.`)) {
+                              notBookMutation.mutate([book.id]);
+                            }
+                          }}
+                          disabled={notBookMutation.isPending}
+                          className="px-4 py-2.5 rounded-lg text-sm font-bold bg-zinc-700 text-white hover:bg-zinc-800 transition-colors disabled:opacity-30 flex items-center gap-1.5"
+                          data-testid={`button-not-book-${book.id}`}
+                        >
+                          <X className="w-4 h-4" />
+                          Not a Book
                         </button>
                       </div>
                       {showRejectPicker && (
