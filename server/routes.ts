@@ -8001,15 +8001,55 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
          LIMIT 10`
       );
 
-      if (!episodes.length) return res.json({ products: [], episodes: [] });
+      if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
 
       const OpenAI = (await import("openai")).default;
       const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const allProducts: any[] = [];
+      const CHUNK_SIZE = 28000;
+
+      const extractionPrompt = `You find DISCOVERY-WORTHY products in podcast transcripts — products that listeners would be excited to learn about and might actually buy.
+
+A good product to extract is:
+- Something a regular consumer can purchase (physical product, consumer app, consumer subscription, DTC brand)
+- Genuinely discussed or recommended by the hosts — not just mentioned in passing
+- Interesting or surprising — something most listeners probably haven't heard of
+- Has a clear "wow factor" or compelling story behind it
+
+DO NOT extract:
+- Books (tracked separately)
+- Podcast sponsors/ads (e.g. "brought to you by...", "use code...", "thanks to our sponsor...")
+- Well-known household brands everyone already knows (Google, Apple, Amazon, Netflix, Uber, Tesla, etc.)
+- Enterprise/B2B SaaS tools (Salesforce, HubSpot, Datadog, etc.) unless consumer-facing
+- Stocks, ETFs, crypto, or investment vehicles
+- Generic company mentions where no specific product is discussed
+- Free services or platforms with no purchase option
+- Social media platforms (Twitter/X, Instagram, TikTok, LinkedIn, etc.)
+- Payment processors, banks, or financial infrastructure (Stripe, Square, PayPal)
+- News outlets, media companies, or content platforms
+- Vague product categories ("AI tools", "supplements") without a specific named product
+- Products where the hosts are just reading a company name from a list or headline
+- Internal business tools the hosts use to run their own companies
+
+QUALITY BAR: If you're unsure whether a product is discovery-worthy, skip it. We want 0-3 high-quality products per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying products — that's fine.
+
+For each qualifying product, return:
+- name: the specific product name
+- company: the company behind it
+- description: 1 sentence explaining what it is and why it's interesting
+- purchaseUrl: the best URL to buy/learn about it
+- context: a direct quote or close paraphrase showing how the hosts discussed it
+- mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
+
+Return JSON: {"products": [...]}. Empty array is completely fine.`;
+
+      let totalCharsProcessed = 0;
+      let totalCharsAvailable = 0;
 
       for (const ep of episodes) {
-        const transcript = (ep.transcript || "").slice(0, 12000);
-        if (!transcript) continue;
+        const fullTranscript = (ep.transcript || "").trim();
+        if (!fullTranscript) continue;
+        totalCharsAvailable += fullTranscript.length;
 
         const { rows: recapRows } = await pool.query(
           `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
@@ -8017,57 +8057,67 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
         );
         const episodeSlug = recapRows[0]?.episode_slug || null;
 
-        const completion = await directOpenai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You extract products mentioned in podcast transcripts. A "product" is something a consumer can purchase — a physical product, software tool, subscription service, supplement, gadget, app, or platform with a clear purchase path. 
+        const chunks: string[] = [];
+        for (let i = 0; i < fullTranscript.length; i += CHUNK_SIZE) {
+          chunks.push(fullTranscript.slice(i, i + CHUNK_SIZE));
+        }
+        totalCharsProcessed += fullTranscript.length;
 
-EXCLUDE:
-- Books (we track those separately)
-- Obvious ads/sponsors (e.g. "this episode is brought to you by...")
-- Generic company mentions without a specific product
-- Free services with no purchase option
-- Stocks or investment vehicles
+        const chunkProducts: any[] = [];
+        for (let ci = 0; ci < chunks.length; ci++) {
+          const completion = await directOpenai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: extractionPrompt },
+              {
+                role: "user",
+                content: `Extract discovery-worthy products from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${ci + 1} of ${chunks.length} (${chunks[ci].length} chars):\n\n${chunks[ci]}`
+              }
+            ],
+            max_tokens: 1500,
+            temperature: 0.2,
+            response_format: { type: "json_object" },
+          });
 
-For each product, return:
-- name: the product name
-- company: the company that makes it (if known)
-- description: 1-sentence description of what it is based on context
-- purchaseUrl: the most likely URL where someone can buy it (Amazon link if physical product, or the company website)
-- context: a brief quote or paraphrase of how it was mentioned
-
-Return JSON array. If no products found, return [].`
-            },
-            {
-              role: "user",
-              content: `Extract purchasable products from this podcast episode transcript.\n\nEpisode: "${ep.episode_title}"\n\nTranscript (first 12000 chars):\n${transcript}`
-            }
-          ],
-          max_tokens: 2000,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        });
-
-        const raw = completion.choices[0]?.message?.content || "{}";
-        try {
-          const parsed = JSON.parse(raw);
-          const products = Array.isArray(parsed) ? parsed : (parsed.products || []);
-          for (const p of products) {
-            allProducts.push({
-              ...p,
-              episodeTitle: ep.episode_title,
-              episodeSlug,
-              episodeId: ep.id,
-            });
+          const raw = completion.choices[0]?.message?.content || "{}";
+          try {
+            const parsed = JSON.parse(raw);
+            const products = Array.isArray(parsed) ? parsed : (parsed.products || []);
+            chunkProducts.push(...products);
+          } catch (e) {
+            console.error("[ProductExtract] JSON parse error for episode chunk:", ep.episode_title, ci, e);
           }
-        } catch (e) {
-          console.error("[ProductExtract] JSON parse error for episode:", ep.episode_title, e);
+        }
+
+        const deduped = new Map<string, any>();
+        for (const p of chunkProducts) {
+          const key = (p.name || "").toLowerCase().trim();
+          if (key && !deduped.has(key)) {
+            deduped.set(key, p);
+          }
+        }
+
+        for (const p of deduped.values()) {
+          allProducts.push({
+            ...p,
+            episodeTitle: ep.episode_title,
+            episodeSlug,
+            episodeId: ep.id,
+          });
         }
       }
 
-      res.json({ products: allProducts, episodeCount: episodes.length });
+      const coveragePct = totalCharsAvailable > 0
+        ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
+        : 0;
+
+      res.json({
+        products: allProducts,
+        episodeCount: episodes.length,
+        transcriptCoverage: `${coveragePct}%`,
+        totalCharsProcessed,
+        totalCharsAvailable,
+      });
     } catch (err: any) {
       console.error("[ProductExtract] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to extract products" });
