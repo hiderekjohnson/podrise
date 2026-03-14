@@ -4411,6 +4411,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
       else if (filter === "replace") query += " AND needs_replacement = true";
+      else if (filter === "nocover") query += " AND (has_cover IS NULL OR has_cover = false)";
       if (sort === "quality") query += " ORDER BY cover_quality_score DESC NULLS LAST, book_title ASC";
       else query += " ORDER BY book_title ASC";
 
@@ -4438,13 +4439,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         };
       });
 
-      const allRows = await pool.query("SELECT cover_approved, needs_replacement FROM book_enrichments WHERE slug IS NOT NULL");
+      const allRows = await pool.query("SELECT cover_approved, needs_replacement, has_cover FROM book_enrichments WHERE slug IS NOT NULL");
       const stats = {
         total: allRows.rows.length,
         approved: allRows.rows.filter((r: any) => r.cover_approved === true).length,
         rejected: allRows.rows.filter((r: any) => r.cover_approved === false).length,
         pending: allRows.rows.filter((r: any) => r.cover_approved === null).length,
         needsReplacement: allRows.rows.filter((r: any) => r.needs_replacement === true).length,
+        noCover: allRows.rows.filter((r: any) => !r.has_cover && r.has_cover !== true).length,
       };
 
       res.json({ books, stats });

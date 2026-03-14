@@ -27,9 +27,10 @@ interface CoverStats {
   rejected: number;
   pending: number;
   needsReplacement: number;
+  noCover: number;
 }
 
-type FilterMode = "all" | "pending" | "approved" | "rejected" | "replace";
+type FilterMode = "all" | "pending" | "approved" | "rejected" | "replace" | "nocover";
 type SortMode = "title" | "quality";
 type RejectReason = "blurry" | "wrong_book" | "wrong_edition" | "low_quality" | "other";
 
@@ -104,7 +105,7 @@ export default function BookCoversAdmin() {
   });
 
   const books = data?.books || [];
-  const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0, needsReplacement: 0 };
+  const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0, needsReplacement: 0, noCover: 0 };
 
   const handleCardClick = useCallback((index: number, e: React.MouseEvent) => {
     const id = books[index]?.id;
@@ -157,6 +158,7 @@ export default function BookCoversAdmin() {
     { mode: "approved", label: "Approved", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
     { mode: "rejected", label: "Rejected", icon: XCircle, color: "bg-red-100 text-red-700" },
     { mode: "replace", label: "Needs Replace", icon: RefreshCw, color: "bg-orange-100 text-orange-700" },
+    { mode: "nocover", label: "No Cover", icon: BookOpen, color: "bg-zinc-100 text-zinc-700" },
     { mode: "all", label: "All", icon: Filter, color: "bg-gray-100 text-gray-700" },
   ];
 
@@ -209,6 +211,11 @@ export default function BookCoversAdmin() {
           <RefreshCw className="w-3.5 h-3.5 text-orange-500" />
           <span className="text-sm font-bold text-orange-600">{stats.needsReplacement}</span>
           <span className="text-xs text-muted-foreground">needs replace</span>
+        </div>
+        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
+          <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+          <span className="text-sm font-bold text-zinc-500">{stats.noCover}</span>
+          <span className="text-xs text-muted-foreground">no cover</span>
         </div>
       </div>
 
