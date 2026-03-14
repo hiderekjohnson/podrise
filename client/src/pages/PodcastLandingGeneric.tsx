@@ -223,7 +223,6 @@ interface PodcastProduct {
 }
 
 function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: string }) {
-  const [sortBy, setSortBy] = useState<"mentions" | "alpha">("mentions");
   const [filterType, setFilterType] = useState<string>("all");
   const [visibleCount, setVisibleCount] = useState(20);
 
@@ -237,10 +236,7 @@ function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: stri
 
   const filtered = filterType === "all" ? products : products.filter(p => p.type === filterType);
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "alpha") return a.name.localeCompare(b.name);
-    return b.mentionCount - a.mentionCount;
-  });
+  const sorted = [...filtered].sort((a, b) => b.mentionCount - a.mentionCount);
 
   const visible = sorted.slice(0, visibleCount);
   const hasMore = visibleCount < sorted.length;
@@ -268,21 +264,6 @@ function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: stri
       </p>
 
       <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <button
-          onClick={() => setSortBy("mentions")}
-          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
-          data-testid="button-sort-mentions-products"
-        >
-          Most mentioned
-        </button>
-        <button
-          onClick={() => setSortBy("alpha")}
-          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
-          data-testid="button-sort-alpha-products"
-        >
-          A-Z
-        </button>
-        <span className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
         <button
           onClick={() => { setFilterType("all"); setVisibleCount(20); }}
           className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${filterType === "all" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-muted-foreground hover:text-foreground"}`}
@@ -355,12 +336,14 @@ function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: stri
                         {getTypeLabel(product.type)}
                       </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                      <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`product-mentions-${i}`}>
-                        <Mic className="w-3 h-3" />
-                        {product.mentionCount} {product.mentionCount === 1 ? "mention" : "mentions"}
-                      </span>
-                    </div>
+                    {product.mentionCount > 1 && (
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`product-mentions-${i}`}>
+                          <Mic className="w-3 h-3" />
+                          {product.mentionCount} mentions
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
