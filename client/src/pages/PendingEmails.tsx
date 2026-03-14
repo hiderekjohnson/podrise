@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail } from "lucide-react";
+import { Loader2, Clock, CheckCircle2, XCircle, Send, Eye, X, Ban, Zap, RefreshCw, Mail, MousePointerClick } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,6 +26,7 @@ interface PendingEmailEntry {
   sentAt: string | null;
   errorMessage: string | null;
   emailOpenedAt: string | null;
+  firstClickedAt: string | null;
   createdAt: string | null;
 }
 
@@ -295,10 +296,16 @@ export default function PendingEmails() {
                       <p className="text-xs text-muted-foreground/60 mt-0.5">{formatDateTime(email.sentAt)}</p>
                     )}
                     {email.status === "sent" && (
-                      <span className={`inline-flex items-center gap-1 text-xs mt-1 ${email.emailOpenedAt ? "text-[#6366F1]" : "text-muted-foreground/40"}`} data-testid={`badge-opened-${email.id}`}>
-                        <Mail className="w-3 h-3" />
-                        {email.emailOpenedAt ? `Opened ${formatDateTime(email.emailOpenedAt)}` : "Not opened"}
-                      </span>
+                      <div className="space-y-0.5 mt-1">
+                        <span className={`inline-flex items-center gap-1 text-xs ${email.emailOpenedAt ? "text-[#6366F1]" : "text-muted-foreground/40"}`} data-testid={`badge-opened-${email.id}`}>
+                          <Mail className="w-3 h-3" />
+                          {email.emailOpenedAt ? `Opened ${formatDateTime(email.emailOpenedAt)}` : "Not opened"}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 text-xs ${email.firstClickedAt ? "text-emerald-600" : "text-muted-foreground/40"}`} data-testid={`badge-clicked-${email.id}`}>
+                          <MousePointerClick className="w-3 h-3" />
+                          {email.firstClickedAt ? `Clicked ${formatDateTime(email.firstClickedAt)}` : "No clicks"}
+                        </span>
+                      </div>
                     )}
                   </td>
                   <td className="px-4 py-3">

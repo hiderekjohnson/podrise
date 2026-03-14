@@ -711,8 +711,12 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
     : "https://podcap.io";
+  const htmlWithClickTracking = freshHtml.replace(/href="(https?:\/\/[^"]+)"/g, (_match: string, url: string) => {
+    if (url.includes("/api/track/") || url.includes("unsubscribe") || url.includes("mailto:")) return `href="${url}"`;
+    return `href="${baseUrl}/api/track/click/${pending.id}?url=${encodeURIComponent(url)}"`;
+  });
   const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
-  const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
+  const htmlWithTracking = htmlWithClickTracking.replace("</body>", `${trackingPixel}</body>`);
 
   const { client, fromEmail } = await getUncachableResendClient();
   const freshSubject = emailCopy.subject;

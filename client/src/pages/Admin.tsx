@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, FileText, Inbox, Send, Eye, Rss, Key, Database, Settings, BookOpen, ShoppingBag, Library } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, Clock, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, Crown, X, FileText, Inbox, Send, Eye, Rss, Key, Database, Settings, BookOpen, ShoppingBag, Library, MousePointerClick } from "lucide-react";
 import { motion } from "framer-motion";
 const TranscriptLogs = lazy(() => import("./TranscriptLogs"));
 const PendingEmails = lazy(() => import("./PendingEmails"));
@@ -35,8 +35,8 @@ interface AnalyticsData {
   topPodcasts: { name: string; artworkUrl: string; count: number }[];
   userGrowth: { date: string; newUsers: number; totalUsers: number }[];
   emailActivity: { date: string; count: number }[];
-  emailOpenStats: { totalSent: number; totalOpened: number; openRate: number };
-  openRateTrend: { date: string; sent: number; opened: number; rate: number }[];
+  emailOpenStats: { totalSent: number; totalOpened: number; totalClicked: number; openRate: number; clickRate: number };
+  openRateTrend: { date: string; sent: number; opened: number; clicked: number; rate: number; clickRate: number }[];
 }
 
 function parsePodcastName(raw: string): string {
@@ -1198,7 +1198,7 @@ export default function Admin() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-tracked">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -1225,6 +1225,16 @@ export default function Admin() {
                           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Open Rate</span>
                         </div>
                         <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.openRate ?? 0}%</p>
+                      </div>
+                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-click-rate">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                            <MousePointerClick className="w-4.5 h-4.5 text-amber-500" />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Click Rate</span>
+                        </div>
+                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.clickRate ?? 0}%</p>
+                        <p className="text-xs text-muted-foreground mt-1">{analytics.emailOpenStats?.totalClicked ?? 0} clicked</p>
                       </div>
                     </div>
 
@@ -1265,7 +1275,7 @@ export default function Admin() {
                       <div className="glass-panel rounded-2xl p-6" data-testid="chart-open-rate-trend">
                         <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                           <Eye className="w-4 h-4 text-green-500" />
-                          Open Rate Trend
+                          Engagement Trend
                         </h3>
                         {!analytics.openRateTrend || analytics.openRateTrend.length === 0 ? (
                           <p className="text-sm text-muted-foreground italic">No tracking data yet</p>
@@ -1278,15 +1288,32 @@ export default function Admin() {
                                   <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
                                     {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                                   </span>
-                                  <div className="flex-1 h-2 bg-black/[0.04] rounded-full overflow-hidden">
-                                    <div
-                                      className={`h-full rounded-full transition-all ${point.rate >= 50 ? "bg-green-500/60" : point.rate >= 25 ? "bg-amber-500/60" : "bg-red-500/40"}`}
-                                      style={{ width: `${point.rate}%` }}
-                                    />
+                                  <div className="flex-1 space-y-0.5">
+                                    <div className="h-2 bg-black/[0.04] rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full transition-all ${point.rate >= 50 ? "bg-green-500/60" : point.rate >= 25 ? "bg-amber-500/60" : "bg-red-500/40"}`}
+                                        style={{ width: `${point.rate}%` }}
+                                      />
+                                    </div>
+                                    {point.clicked > 0 && (
+                                      <div className="h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full rounded-full transition-all bg-amber-500/60"
+                                          style={{ width: `${point.clickRate}%` }}
+                                        />
+                                      </div>
+                                    )}
                                   </div>
-                                  <span className="text-xs font-bold text-foreground w-20 text-right tabular-nums">
-                                    {point.rate}% ({point.opened}/{point.sent})
-                                  </span>
+                                  <div className="text-right w-28 shrink-0">
+                                    <span className="text-xs font-bold text-foreground tabular-nums">
+                                      {point.rate}% open
+                                    </span>
+                                    {point.clicked > 0 && (
+                                      <span className="text-xs text-amber-600 tabular-nums block">
+                                        {point.clickRate}% click
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               ));
                             })()}

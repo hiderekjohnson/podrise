@@ -151,11 +151,21 @@ export const pendingEmails = pgTable("pending_emails", {
   sentAt: timestamp("sent_at"),
   errorMessage: text("error_message"),
   emailOpenedAt: timestamp("email_opened_at"),
+  firstClickedAt: timestamp("first_clicked_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export type PendingEmail = typeof pendingEmails.$inferSelect;
 export type InsertPendingEmail = typeof pendingEmails.$inferInsert;
+
+export const emailClicks = pgTable("email_clicks", {
+  id: serial("id").primaryKey(),
+  emailId: integer("email_id").notNull(),
+  url: text("url").notNull(),
+  clickedAt: timestamp("clicked_at").defaultNow(),
+});
+
+export type EmailClick = typeof emailClicks.$inferSelect;
 
 export const transcriptLogs = pgTable("transcript_logs", {
   id: serial("id").primaryKey(),

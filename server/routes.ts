@@ -891,6 +891,17 @@ export async function registerRoutes(
     }
   });
 
+  function wrapLinksWithClickTracking(html: string, emailId: number): string {
+    const baseUrl = "https://podcap.io";
+    return html.replace(/href="(https?:\/\/[^"]+)"/g, (_match, url) => {
+      if (url.includes("/api/track/")) return `href="${url}"`;
+      if (url.includes("unsubscribe")) return `href="${url}"`;
+      if (url.includes("mailto:")) return `href="${url}"`;
+      const trackUrl = `${baseUrl}/api/track/click/${emailId}?url=${encodeURIComponent(url)}`;
+      return `href="${trackUrl}"`;
+    });
+  }
+
   const TRACKING_PIXEL = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
   app.get("/api/track/open/:id", async (req, res) => {
     try {
@@ -908,6 +919,39 @@ export async function registerRoutes(
       "Expires": "0",
     });
     res.end(TRACKING_PIXEL);
+  });
+
+  app.get("/api/track/click/:emailId", async (req, res) => {
+    const emailId = parseInt(req.params.emailId);
+    const url = req.query.url as string;
+    if (!url) return res.status(400).send("Missing url parameter");
+
+    let validatedUrl: string;
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return res.status(400).send("Invalid URL scheme");
+      }
+      validatedUrl = parsed.href;
+    } catch {
+      return res.status(400).send("Invalid URL");
+    }
+
+    try {
+      if (!isNaN(emailId)) {
+        await pool.query(
+          `INSERT INTO email_clicks (email_id, url) VALUES ($1, $2)`,
+          [emailId, validatedUrl]
+        );
+        await pool.query(
+          `UPDATE pending_emails SET first_clicked_at = COALESCE(first_clicked_at, NOW()) WHERE id = $1`,
+          [emailId]
+        );
+      }
+    } catch (e) {
+    }
+
+    res.redirect(302, validatedUrl);
   });
 
   app.get("/api/podcasts/directory", async (_req, res) => {
@@ -4224,6 +4268,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json(emails);
   });
 
+  app.get("/api/admin/email-clicks/:emailId", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    const emailId = parseInt(req.params.emailId);
+    if (isNaN(emailId)) return res.status(400).json({ message: "Invalid email ID" });
+    const { rows } = await pool.query(
+      `SELECT url, clicked_at FROM email_clicks WHERE email_id = $1 ORDER BY clicked_at DESC`,
+      [emailId]
+    );
+    res.json(rows);
+  });
+
   app.get("/api/admin/pending-emails/:id/html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -4291,8 +4346,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const freshSubject = emailCopy.subject;
       const freshHtml = markdownToEmailHtml(reorderedSendNow, pending.recipientEmail, epMeta2, emailCopy);
       const baseUrl = "https://podcap.io";
+      const htmlWithClickTracking = wrapLinksWithClickTracking(freshHtml, pending.id);
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
-      const htmlWithTracking = freshHtml.replace("</body>", `${trackingPixel}</body>`);
+      const htmlWithTracking = htmlWithClickTracking.replace("</body>", `${trackingPixel}</body>`);
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
@@ -6452,26 +6508,32 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const allPendingEmails = await storage.getPendingEmails();
       const sentEmails = allPendingEmails.filter(e => e.status === "sent");
       const openedEmails = sentEmails.filter(e => e.emailOpenedAt);
+      const clickedEmails = sentEmails.filter(e => e.firstClickedAt);
       const totalSent = sentEmails.length;
       const totalOpened = openedEmails.length;
+      const totalClicked = clickedEmails.length;
       const openRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
+      const clickRate = totalSent > 0 ? Math.round((totalClicked / totalSent) * 100) : 0;
 
-      const openRateByDay: Record<string, { sent: number; opened: number }> = {};
+      const openRateByDay: Record<string, { sent: number; opened: number; clicked: number }> = {};
       for (const email of sentEmails) {
         const date = email.sentAt
           ? new Date(email.sentAt).toISOString().split("T")[0]
           : email.recapDate;
-        if (!openRateByDay[date]) openRateByDay[date] = { sent: 0, opened: 0 };
+        if (!openRateByDay[date]) openRateByDay[date] = { sent: 0, opened: 0, clicked: 0 };
         openRateByDay[date].sent++;
         if (email.emailOpenedAt) openRateByDay[date].opened++;
+        if (email.firstClickedAt) openRateByDay[date].clicked++;
       }
       const openRateTrend = Object.entries(openRateByDay)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, { sent, opened }]) => ({
+        .map(([date, { sent, opened, clicked }]) => ({
           date,
           sent,
           opened,
+          clicked,
           rate: sent > 0 ? Math.round((opened / sent) * 100) : 0,
+          clickRate: sent > 0 ? Math.round((clicked / sent) * 100) : 0,
         }));
 
       res.json({
@@ -6483,7 +6545,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         topPodcasts,
         userGrowth: userGrowthCumulative,
         emailActivity,
-        emailOpenStats: { totalSent, totalOpened, openRate },
+        emailOpenStats: { totalSent, totalOpened, totalClicked, openRate, clickRate },
         openRateTrend,
       });
     } catch (err) {
