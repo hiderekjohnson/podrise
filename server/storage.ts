@@ -525,6 +525,7 @@ export class DatabaseStorage implements IStorage {
           guests: data.guests,
           sponsors: data.sponsors,
           resources: data.resources,
+          published: data.published,
         },
       })
       .returning();

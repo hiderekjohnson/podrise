@@ -218,6 +218,7 @@ export const landingPageRecaps = pgTable("landing_page_recaps", {
   guests: text("guests"),
   showNotes: text("show_notes"),
   resources: text("resources"),
+  published: boolean("published").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

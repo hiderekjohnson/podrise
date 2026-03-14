@@ -545,6 +545,226 @@ OTHER RULES:
   return null;
 }
 
+export async function generateRecapFromFullTranscript(
+  transcript: string,
+  podcastName: string,
+  episodeTitle: string,
+  showNotes?: string | null,
+): Promise<ParsedEpisode | null> {
+  const { processFullTranscript } = await import("./transcriptChunker");
+  const fullText = (transcript || "").trim();
+  if (!fullText) return null;
+
+  const CHUNK_SIZE = 28000;
+  const needsChunking = fullText.length > CHUNK_SIZE;
+
+  if (!needsChunking) {
+    console.log(`[RecapGenerator] Transcript is ${fullText.length} chars — single-pass (no chunking needed)`);
+    return generateRecapFromTranscript(transcript, podcastName, episodeTitle, showNotes);
+  }
+
+  console.log(`[RecapGenerator] Full-transcript mode: ${fullText.length} chars for "${episodeTitle}" — chunking...`);
+
+  const notesExtractionPrompt = `You are a meticulous podcast research assistant. Extract ALL noteworthy content from this transcript segment.
+
+Podcast: ${podcastName}
+Episode: "${episodeTitle}"
+
+For this segment, extract:
+1. KEY FACTS & INSIGHTS: Every specific claim, number, statistic, story, or insight. Include the actual substance — not "they discussed AI" but "GPT-4 costs 10x less than GPT-3 per token and processes images"
+2. BEST QUOTES: Any memorable, surprising, funny, or shareable lines — copy them VERBATIM with speaker attribution
+3. BOOKS MENTIONED: Any book title, author reference, or "read this" mention — even in passing
+4. GUESTS: Anyone introduced as a guest, interviewee, or joining the show — full name and title if mentioned
+5. SPONSORS: Any ad reads, sponsor mentions, coupon codes, or "brought to you by" segments
+6. RESOURCES: Tools, products, services, websites, companies discussed substantively (not just name-dropped)
+
+Respond with JSON:
+{
+  "notes": ["Specific fact or insight 1", "Specific fact or insight 2", ...],
+  "quotes": [{"text": "Verbatim quote", "speaker": "Name"}],
+  "books": [{"title": "Book Title", "author": "Author Name", "context": "Why/how it was mentioned"}],
+  "guests": [{"name": "Full Name", "title": "Their title/role"}],
+  "sponsors": [{"name": "Sponsor", "description": "What they do", "code": "COUPON or null", "url": "url or null"}],
+  "resources": [{"name": "Resource Name", "type": "tool|product|website", "description": "What it is", "url": "url or null", "context": "How it was mentioned"}]
+}
+
+Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much than miss something. Every paragraph of the transcript should yield at least one note.`;
+
+  const { results: chunkNotes, coverage } = await processFullTranscript<any>(
+    fullText,
+    async (chunk, chunkIndex, totalChunks) => {
+      try {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: notesExtractionPrompt },
+            { role: "user", content: `Extract all noteworthy content from this transcript segment.\n\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}` }
+          ],
+          max_tokens: 4096,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        });
+        const raw = completion.choices[0]?.message?.content || "{}";
+        const parsed = JSON.parse(raw);
+        return [parsed];
+      } catch (e) {
+        console.error(`[RecapGenerator] Notes extraction failed for chunk ${chunkIndex + 1}:`, e);
+        return [];
+      }
+    },
+    CHUNK_SIZE
+  );
+
+  console.log(`[RecapGenerator] Extracted notes from ${coverage.chunkCount} chunks (${coverage.totalChars} chars, ${coverage.coveragePct}% coverage)`);
+
+  const allNotes: string[] = [];
+  const allQuotes: any[] = [];
+  const allBooks: any[] = [];
+  const allGuests: any[] = [];
+  const allSponsors: any[] = [];
+  const allResources: any[] = [];
+
+  for (const cn of chunkNotes) {
+    if (cn.notes) allNotes.push(...cn.notes);
+    if (cn.quotes) allQuotes.push(...cn.quotes);
+    if (cn.books) allBooks.push(...cn.books);
+    if (cn.guests) allGuests.push(...cn.guests);
+    if (cn.sponsors) allSponsors.push(...cn.sponsors);
+    if (cn.resources) allResources.push(...cn.resources);
+  }
+
+  console.log(`[RecapGenerator] Merged: ${allNotes.length} notes, ${allQuotes.length} quotes, ${allBooks.length} books, ${allGuests.length} guests, ${allSponsors.length} sponsors`);
+
+  const showNotesSection = showNotes ? `\nShow Notes:\n${showNotes}\n` : "";
+
+  const synthesisPrompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. You have been given EXHAUSTIVE NOTES extracted from the FULL transcript of this episode (every word was read). Now synthesize them into a complete, high-quality recap.
+
+Podcast: ${podcastName}
+Episode: "${episodeTitle}"${showNotesSection}
+
+=== EXTRACTED NOTES FROM FULL TRANSCRIPT ===
+${allNotes.map((n, i) => `${i + 1}. ${n}`).join("\n")}
+
+=== BEST QUOTES ===
+${allQuotes.map(q => `"${q.text}" - ${q.speaker}`).join("\n") || "None extracted"}
+
+=== BOOKS MENTIONED ===
+${allBooks.map(b => `- "${b.title}" by ${b.author || "Unknown"}: ${b.context || ""}`).join("\n") || "None"}
+
+=== GUESTS ===
+${allGuests.map(g => `- ${g.name}${g.title ? ` (${g.title})` : ""}`).join("\n") || "None"}
+
+=== SPONSORS ===
+${allSponsors.map(s => `- ${s.name}: ${s.description || ""}${s.code ? ` (code: ${s.code})` : ""}${s.url ? ` ${s.url}` : ""}`).join("\n") || "None"}
+
+=== OTHER RESOURCES ===
+${allResources.map(r => `- ${r.name} (${r.type || "resource"}): ${r.description || ""} — ${r.context || ""}`).join("\n") || "None"}
+
+Respond ONLY with a valid JSON object:
+{
+  "podcastName": "${podcastName}",
+  "episodeTitle": "${episodeTitle}",
+  "tldl": "2-3 sentence summary of the core thesis.",
+  "whatHappened": "The episode recap. 6-8 paragraphs, each 2-4 sentences. Separate paragraphs with \\n\\n.",
+  "quote": "The single most surprising, counterintuitive, or shareable line. Must be from the quotes above.",
+  "quoteAttribution": "Speaker Name",
+  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
+  "topicContexts": {"slug": "Episode-specific description..."},
+  "topQuestions": [
+    {"question": "SEO question with entity name?", "answer": "2-3 sentence answer with facts."},
+    {"question": "Question 2?", "answer": "Answer 2."},
+    {"question": "Question 3?", "answer": "Answer 3."}
+  ],
+  "sponsors": [{"name": "Sponsor Name", "description": "What they do.", "couponCode": "CODE or null", "url": "url or null", "howToRedeem": "How to use or null"}],
+  "guests": [{"name": "Full Name", "title": "Title", "bio": "2-3 sentence bio.", "twitter": "@handle or null", "linkedin": "url or null", "instagram": "@handle or null", "website": "url or null", "topicsDiscussed": ["Topic"]}],
+  "resources": [{"name": "Name", "type": "book|tool|product", "description": "Brief description.", "url": "URL or null", "author": "Author or null", "context": "Episode-specific context."}]
+}
+
+RULES FOR whatHappened:
+- Give the reader the actual knowledge without needing to listen
+- Every paragraph must contain specific facts, numbers, or insights from the notes
+- Start with the most interesting idea, NOT "In this episode..."
+- 6-8 paragraphs, each 2-4 sentences
+- BANNED: "In this episode...", "The conversation explores...", "The hosts discuss...", "They also highlight...", discusses, explores, highlights, shares, emphasizes, explains, underscores, delves
+- No em dashes. Use regular dashes. No smart quotes - use straight quotes
+
+OTHER RULES:
+- quote: Pick the most SHAREABLE line from the quotes list above. Something surprising, counterintuitive, or profound
+- keyTopics: 4-6 specific phrases that read like search queries with specific names
+- topicContexts: Use ONLY these slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories genuinely discussed (typically 3-6)
+- topQuestions: 3 questions with specific entity names. Answers must be factual, 2-3 sentences
+- resources: Include ALL books from the books list above plus any other notable resources. For books, include Amazon URL if you know the ASIN`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: synthesisPrompt }],
+      max_tokens: 16384,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return null;
+
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith("```")) {
+      jsonContent = jsonContent.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+    }
+
+    const parsed = JSON.parse(jsonContent);
+    const whatHappened = (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n");
+
+    let keyInsights: string[] = [];
+    const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
+    if (pass2Insights.length === 4) {
+      keyInsights = pass2Insights;
+    } else if (Array.isArray(parsed.keyInsights)) {
+      keyInsights = parsed.keyInsights;
+    }
+
+    function sanitizeText(text: string): string {
+      if (!text) return text;
+      return text
+        .replace(/\u2014/g, " - ")
+        .replace(/\u2013/g, "-")
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"');
+    }
+    function sanitizeDeep(obj: any): any {
+      if (typeof obj === "string") return sanitizeText(obj);
+      if (Array.isArray(obj)) return obj.map(sanitizeDeep);
+      if (obj && typeof obj === "object") {
+        const out: any = {};
+        for (const [k, v] of Object.entries(obj)) out[k] = sanitizeDeep(v);
+        return out;
+      }
+      return obj;
+    }
+
+    console.log(`[RecapGenerator] Full-transcript recap complete for "${episodeTitle}" (${coverage.chunkCount} chunks, ${coverage.totalChars} chars)`);
+
+    return sanitizeDeep({
+      podcastName: parsed.podcastName || podcastName,
+      episodeTitle: parsed.episodeTitle || episodeTitle,
+      tldl: parsed.tldl || "",
+      whatHappened,
+      keyInsights,
+      quote: parsed.quote,
+      quoteAttribution: parsed.quoteAttribution,
+      keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
+      topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
+      topQuestions: Array.isArray(parsed.topQuestions) ? parsed.topQuestions : [],
+      sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
+      guests: Array.isArray(parsed.guests) ? parsed.guests : [],
+      resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+    });
+  } catch (err) {
+    console.error(`[RecapGenerator] Full-transcript synthesis failed for "${episodeTitle}":`, err);
+    return null;
+  }
+}
+
 export async function extractBooksFromTranscript(
   transcript: string,
   podcastName: string,

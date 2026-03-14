@@ -1489,7 +1489,7 @@ export async function registerRoutes(
     const client = await dbPool.connect();
     try {
       const { rows: allRecaps } = await client.query(
-        `SELECT slug, episode_slug, guests, episode_title, what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps`
+        `SELECT slug, episode_slug, guests, episode_title, what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps WHERE published = true`
       );
 
       const results = [];
@@ -1577,7 +1577,7 @@ export async function registerRoutes(
           return `\\m${escaped}\\M`;
         }), ...extraParams];
         const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE published = true AND guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
           guestParams
         );
 
@@ -1585,7 +1585,7 @@ export async function registerRoutes(
         const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
         const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
         const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE published = true AND (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
           mentionParams
         );
 
@@ -1884,7 +1884,7 @@ export async function registerRoutes(
     const client = await dbPool.connect();
     try {
       const { rows: allRecaps } = await client.query(
-        `SELECT what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps`
+        `SELECT what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps WHERE published = true`
       );
 
       const results = [];
@@ -1962,7 +1962,7 @@ export async function registerRoutes(
     const client = await dbPool.connect();
     try {
       const { rows: allRecaps } = await client.query(
-        `SELECT what_happened, tldl, key_insights::text as key_insights_text, episode_title, publish_date FROM landing_page_recaps`
+        `SELECT what_happened, tldl, key_insights::text as key_insights_text, episode_title, publish_date FROM landing_page_recaps WHERE published = true`
       );
 
       const results = [];
@@ -2158,7 +2158,7 @@ export async function registerRoutes(
       const { rows } = await pool.query(
         `SELECT episode_slug, episode_title, resources
          FROM landing_page_recaps
-         WHERE slug = $1 AND resources IS NOT NULL AND resources::text != '[]'`,
+         WHERE slug = $1 AND published = true AND resources IS NOT NULL AND resources::text != '[]'`,
         [slug]
       );
 
@@ -3503,7 +3503,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const recentResult = await client.query(`
           SELECT slug, episode_slug, episode_title, podcast_name, publish_date, artwork_url, tldl, hosts, created_at
           FROM landing_page_recaps
-          WHERE publish_date IS NOT NULL
+          WHERE publish_date IS NOT NULL AND published = true
           ORDER BY publish_date DESC, created_at DESC
           LIMIT 20
         `);
@@ -3516,7 +3516,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             COALESCE(pd.total_episodes, 0)::int as total_episodes
           FROM landing_page_recaps lpr
           LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
-          WHERE lpr.publish_date IS NOT NULL
+          WHERE lpr.publish_date IS NOT NULL AND lpr.published = true
           GROUP BY lpr.slug, lpr.podcast_name, pd.total_episodes
           ORDER BY MAX(lpr.publish_date) DESC
         `);
