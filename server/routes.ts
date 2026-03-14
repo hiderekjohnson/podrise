@@ -4405,11 +4405,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const path = await import("path");
       const coversDir = path.default.resolve("public/books");
 
-      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason FROM book_enrichments WHERE slug IS NOT NULL";
+      const sort = req.query.sort as string || "title";
+      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score FROM book_enrichments WHERE slug IS NOT NULL";
       if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
-      query += " ORDER BY book_title ASC";
+      if (sort === "quality") query += " ORDER BY cover_quality_score DESC NULLS LAST, book_title ASC";
+      else query += " ORDER BY book_title ASC";
 
       const { rows } = await pool.query(query);
 
@@ -4429,6 +4431,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           hasFile,
           amazonUrl,
           rejectionReason: r.rejection_reason,
+          qualityScore: r.cover_quality_score,
         };
       });
 

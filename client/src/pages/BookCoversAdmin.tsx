@@ -16,6 +16,7 @@ interface BookCoverItem {
   hasFile: boolean;
   amazonUrl: string | null;
   rejectionReason: string | null;
+  qualityScore: number | null;
 }
 
 interface CoverStats {
@@ -26,6 +27,7 @@ interface CoverStats {
 }
 
 type FilterMode = "all" | "pending" | "approved" | "rejected";
+type SortMode = "title" | "quality";
 type RejectReason = "blurry" | "wrong_book" | "wrong_edition" | "low_quality" | "other";
 
 const REJECT_REASONS: { value: RejectReason; label: string }[] = [
@@ -39,15 +41,16 @@ const REJECT_REASONS: { value: RejectReason; label: string }[] = [
 export default function BookCoversAdmin() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [sort, setSort] = useState<SortMode>("quality");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [bulkRejecting, setBulkRejecting] = useState(false);
   const lastClickedIndex = useRef<number | null>(null);
 
   const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
-    queryKey: ["/api/admin/book-covers", filter],
+    queryKey: ["/api/admin/book-covers", filter, sort],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/book-covers?filter=${filter}`, { credentials: "include" });
+      const res = await fetch(`/api/admin/book-covers?filter=${filter}&sort=${sort}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },
@@ -196,6 +199,25 @@ export default function BookCoversAdmin() {
             {label}
           </button>
         ))}
+        <span className="text-xs text-muted-foreground mx-1">|</span>
+        <button
+          onClick={() => { setSort("quality"); setSelected(new Set()); }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+            sort === "quality" ? "bg-indigo-100 text-indigo-700 ring-2 ring-offset-1 ring-indigo-400" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+          }`}
+          data-testid="sort-quality"
+        >
+          Best First
+        </button>
+        <button
+          onClick={() => { setSort("title"); setSelected(new Set()); }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+            sort === "title" ? "bg-indigo-100 text-indigo-700 ring-2 ring-offset-1 ring-indigo-400" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+          }`}
+          data-testid="sort-title"
+        >
+          A–Z
+        </button>
       </div>
 
       {selected.size > 0 && (
@@ -319,7 +341,7 @@ export default function BookCoversAdmin() {
                         <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{book.author}</p>
                       )}
 
-                      <div className="mt-3 flex flex-col gap-1.5">
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
                         {book.coverApproved === true && (
                           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600"><CheckCircle2 className="w-4 h-4" /> Approved</span>
                         )}
@@ -333,6 +355,15 @@ export default function BookCoversAdmin() {
                         )}
                         {book.coverApproved === null && (
                           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-yellow-600"><Clock className="w-4 h-4" /> Pending</span>
+                        )}
+                        {book.qualityScore !== null && book.hasFile && (
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            book.qualityScore >= 70 ? "bg-green-100 text-green-700" :
+                            book.qualityScore >= 40 ? "bg-yellow-100 text-yellow-700" :
+                            "bg-red-100 text-red-700"
+                          }`} data-testid={`quality-score-${book.id}`}>
+                            {book.qualityScore >= 70 ? "Good" : book.qualityScore >= 40 ? "Okay" : "Poor"} ({book.qualityScore})
+                          </span>
                         )}
                       </div>
 
