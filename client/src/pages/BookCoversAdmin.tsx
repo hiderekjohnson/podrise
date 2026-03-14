@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +42,7 @@ export default function BookCoversAdmin() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [bulkRejecting, setBulkRejecting] = useState(false);
+  const lastClickedIndex = useRef<number | null>(null);
 
   const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
     queryKey: ["/api/admin/book-covers", filter],
@@ -59,6 +60,7 @@ export default function BookCoversAdmin() {
     onSuccess: (_, ids) => {
       toast({ title: "Approved", description: `${ids.length} cover(s) approved` });
       setSelected(new Set());
+      lastClickedIndex.current = null;
       refetch();
     },
   });
@@ -70,6 +72,7 @@ export default function BookCoversAdmin() {
     onSuccess: () => {
       toast({ title: "Rejected", description: "Cover(s) rejected with reason saved" });
       setSelected(new Set());
+      lastClickedIndex.current = null;
       setRejectingId(null);
       setBulkRejecting(false);
       refetch();
@@ -79,14 +82,30 @@ export default function BookCoversAdmin() {
   const books = data?.books || [];
   const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0 };
 
-  const toggleSelect = (id: number) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  const handleCardClick = useCallback((index: number, e: React.MouseEvent) => {
+    const id = books[index]?.id;
+    if (!id) return;
+
+    if (e.shiftKey && lastClickedIndex.current !== null) {
+      const start = Math.min(lastClickedIndex.current, index);
+      const end = Math.max(lastClickedIndex.current, index);
+      setSelected(prev => {
+        const next = new Set(prev);
+        for (let i = start; i <= end; i++) {
+          next.add(books[i].id);
+        }
+        return next;
+      });
+    } else {
+      setSelected(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
+    lastClickedIndex.current = index;
+  }, [books]);
 
   const selectAll = () => {
     if (selected.size === books.length) {
@@ -236,6 +255,10 @@ export default function BookCoversAdmin() {
         >
           Select All With Covers
         </button>
+        <span className="text-xs text-muted-foreground">·</span>
+        <span className="text-xs text-muted-foreground italic">
+          Shift+click to select a range
+        </span>
         <span className="text-xs text-muted-foreground ml-auto">
           {books.length} books shown
         </span>
@@ -247,13 +270,17 @@ export default function BookCoversAdmin() {
         <div className="text-center py-10 text-muted-foreground text-sm">No books in this filter</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {books.map(book => {
+          {books.map((book, index) => {
             const isSelected = selected.has(book.id);
             const showRejectPicker = rejectingId === book.id;
             return (
               <div
                 key={book.id}
-                className={`relative rounded-2xl border-2 p-5 transition-all ${
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest("button, a")) return;
+                  handleCardClick(index, e);
+                }}
+                className={`relative rounded-2xl border-2 p-5 transition-all cursor-pointer select-none ${
                   isSelected
                     ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 shadow-md"
                     : book.coverApproved === true
@@ -336,7 +363,7 @@ export default function BookCoversAdmin() {
                     <div className="flex flex-col gap-2 mt-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <button
-                          onClick={(e) => { e.stopPropagation(); toggleSelect(book.id); }}
+                          onClick={(e) => { e.stopPropagation(); handleCardClick(index, e); }}
                           className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-1.5 ${
                             isSelected
                               ? "bg-indigo-500 text-white"
