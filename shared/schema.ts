@@ -397,6 +397,32 @@ export const insertEpisodeQuoteSchema = createInsertSchema(episodeQuotes).omit({
 export type EpisodeQuote = typeof episodeQuotes.$inferSelect;
 export type InsertEpisodeQuote = z.infer<typeof insertEpisodeQuoteSchema>;
 
+export const extractedProducts = pgTable("extracted_products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  company: text("company"),
+  description: text("description"),
+  purchaseUrl: text("purchase_url"),
+  context: text("context"),
+  mentionType: text("mention_type"),
+  episodeTitle: text("episode_title").notNull(),
+  episodeSlug: text("episode_slug"),
+  podcastSlug: text("podcast_slug").notNull().default("myfirstmillion"),
+  status: text("status").notNull().default("pending"),
+  rejectionReason: text("rejection_reason"),
+  extractedAt: timestamp("extracted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+});
+
+export const insertExtractedProductSchema = createInsertSchema(extractedProducts).omit({
+  id: true,
+  extractedAt: true,
+  reviewedAt: true,
+});
+
+export type ExtractedProduct = typeof extractedProducts.$inferSelect;
+export type InsertExtractedProduct = z.infer<typeof insertExtractedProductSchema>;
+
 export const topicPulses = pgTable("topic_pulses", {
   id: serial("id").primaryKey(),
   topicSlug: text("topic_slug").notNull(),

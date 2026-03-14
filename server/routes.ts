@@ -8008,6 +8008,28 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
       const { processFullTranscript } = await import("./transcriptChunker");
       const allProducts: any[] = [];
 
+      const { rows: approvedExamples } = await pool.query(
+        `SELECT name, company, description, mention_type FROM extracted_products WHERE status = 'approved' ORDER BY reviewed_at DESC LIMIT 20`
+      );
+      const { rows: rejectedExamples } = await pool.query(
+        `SELECT name, company, rejection_reason FROM extracted_products WHERE status = 'rejected' ORDER BY reviewed_at DESC LIMIT 30`
+      );
+
+      let trainingSection = "";
+      if (approvedExamples.length > 0 || rejectedExamples.length > 0) {
+        trainingSection = "\n\nLEARN FROM PAST DECISIONS:\n";
+        if (approvedExamples.length > 0) {
+          trainingSection += "These products were APPROVED by our editor — extract similar ones:\n";
+          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} — ${p.description || ""}`).join("\n");
+          trainingSection += "\n";
+        }
+        if (rejectedExamples.length > 0) {
+          trainingSection += "These products were REJECTED — do NOT extract products like these:\n";
+          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""}${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
+          trainingSection += "\n";
+        }
+      }
+
       const extractionPrompt = `You find DISCOVERY-WORTHY products in podcast transcripts — products that listeners would be excited to learn about and might actually buy.
 
 A good product to extract is:
@@ -8041,7 +8063,7 @@ For each qualifying product, return:
 - context: a direct quote or close paraphrase showing how the hosts discussed it
 - mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
 
-Return JSON: {"products": [...]}. Empty array is completely fine.`;
+Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
@@ -8095,12 +8117,30 @@ Return JSON: {"products": [...]}. Empty array is completely fine.`;
         }
 
         for (const p of deduped.values()) {
-          allProducts.push({
-            ...p,
+          const product = {
+            name: p.name || "",
+            company: p.company || null,
+            description: p.description || null,
+            purchaseUrl: p.purchaseUrl || null,
+            context: p.context || null,
+            mentionType: p.mentionType || "discussion",
             episodeTitle: ep.episode_title,
             episodeSlug,
-            episodeId: ep.id,
-          });
+            podcastSlug: "myfirstmillion",
+          };
+
+          const existing = await pool.query(
+            `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND episode_title = $2`,
+            [product.name, product.episodeTitle]
+          );
+          if (existing.rows.length === 0) {
+            const ins = await pool.query(
+              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, status)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending') RETURNING id`,
+              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.episodeTitle, product.episodeSlug, product.podcastSlug]
+            );
+            allProducts.push({ ...product, id: ins.rows[0].id, status: "pending" });
+          }
         }
       }
 
@@ -8108,8 +8148,13 @@ Return JSON: {"products": [...]}. Empty array is completely fine.`;
         ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
         : 0;
 
+      const { rows: allSaved } = await pool.query(
+        `SELECT * FROM extracted_products ORDER BY extracted_at DESC`
+      );
+
       res.json({
-        products: allProducts,
+        products: allSaved,
+        newCount: allProducts.length,
         episodeCount: episodes.length,
         transcriptCoverage: `${coveragePct}%`,
         totalCharsProcessed,
@@ -8118,6 +8163,59 @@ Return JSON: {"products": [...]}. Empty array is completely fine.`;
     } catch (err: any) {
       console.error("[ProductExtract] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to extract products" });
+    }
+  });
+
+  app.get("/api/admin/products", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const filter = req.query.filter || "all";
+      let where = "";
+      if (filter === "pending") where = "WHERE status = 'pending'";
+      else if (filter === "approved") where = "WHERE status = 'approved'";
+      else if (filter === "rejected") where = "WHERE status = 'rejected'";
+
+      const { rows } = await pool.query(
+        `SELECT * FROM extracted_products ${where} ORDER BY extracted_at DESC`
+      );
+      const { rows: statsRows } = await pool.query(
+        `SELECT status, COUNT(*)::int as count FROM extracted_products GROUP BY status`
+      );
+      const stats: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
+      for (const r of statsRows) stats[r.status] = r.count;
+      res.json({ products: rows, stats });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to load products" });
+    }
+  });
+
+  app.post("/api/admin/products/approve", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: "No ids provided" });
+      await pool.query(
+        `UPDATE extracted_products SET status = 'approved', reviewed_at = NOW() WHERE id = ANY($1)`,
+        [ids]
+      );
+      res.json({ message: `${ids.length} product(s) approved` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to approve" });
+    }
+  });
+
+  app.post("/api/admin/products/reject", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { ids, reason } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: "No ids provided" });
+      await pool.query(
+        `UPDATE extracted_products SET status = 'rejected', rejection_reason = $2, reviewed_at = NOW() WHERE id = ANY($1)`,
+        [ids, reason || "not_relevant"]
+      );
+      res.json({ message: `${ids.length} product(s) rejected` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to reject" });
     }
   });
 
