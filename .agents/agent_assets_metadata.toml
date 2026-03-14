@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "2FPfrYgRO7NutP-p07IC5"
+uri = "file://podcast_list.csv"
+type = "table"
+title = "PodCap Podcast List with iTunes URLs"
