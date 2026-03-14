@@ -90,6 +90,8 @@ function SEOHead() {
     setOrCreate("name", "description", description);
     setOrCreate("property", "og:title", title);
     setOrCreate("property", "og:description", description);
+    setOrCreate("property", "og:image", "https://podcap.io/og/og-trends.png");
+    setOrCreate("name", "twitter:card", "summary_large_image");
   }
   return null;
 }

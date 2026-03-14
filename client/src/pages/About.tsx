@@ -18,11 +18,11 @@ export default function About() {
     setMeta("property", "og:description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
-    setMeta("property", "og:image", "https://podcap.io/favicon.png");
-    setMeta("name", "twitter:card", "summary");
+    setMeta("property", "og:image", "https://podcap.io/og/og-podcasts.png");
+    setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", "About PodCap - The Intelligence Layer for Podcasts");
     setMeta("name", "twitter:description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
-    setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
+    setMeta("name", "twitter:image", "https://podcap.io/og/og-podcasts.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }

@@ -76,6 +76,8 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
+    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-people.png");
+    setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
   }
   return null;
 }

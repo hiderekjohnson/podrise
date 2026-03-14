@@ -54,6 +54,8 @@ function SEOHead({ title, description }: { title: string; description: string })
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", `${title} | PodCap`);
     setOrCreate('meta[property="og:description"]', "property", description);
+    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-podcasts.png");
+    setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
   }
   return null;
 }

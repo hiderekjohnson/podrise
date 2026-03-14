@@ -75,11 +75,11 @@ export default function Advertise() {
     setMeta("property", "og:description", desc);
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/advertise");
-    setMeta("property", "og:image", "https://podcap.io/favicon.png");
-    setMeta("name", "twitter:card", "summary");
+    setMeta("property", "og:image", "https://podcap.io/og/og-advertise.png");
+    setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", "Advertise with PodCap");
     setMeta("name", "twitter:description", desc);
-    setMeta("name", "twitter:image", "https://podcap.io/favicon.png");
+    setMeta("name", "twitter:image", "https://podcap.io/og/og-advertise.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }

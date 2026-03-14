@@ -231,6 +231,7 @@ export default function EpisodeTranscriptPage() {
     setMeta('meta[property="og:image"]', "content", meta.artworkUrl);
     setMeta('meta[property="og:url"]', "content", canonicalUrl);
     setMeta('meta[property="og:type"]', "content", "article");
+    setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
     setMeta('meta[name="twitter:title"]', "content", pageTitle);
     setMeta('meta[name="twitter:description"]', "content", pageDescription);
     setMeta('meta[name="twitter:image"]', "content", meta.artworkUrl);
