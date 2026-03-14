@@ -4681,7 +4681,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const page = parseInt(req.query.page as string || "1", 10);
       const pageSize = parseInt(req.query.pageSize as string || "25", 10);
       let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note, cover_source, cover_tried_sources FROM book_enrichments WHERE slug IS NOT NULL";
-      if (filter === "needs_review") query += " AND (cover_approved IS NULL OR cover_approved = false OR needs_replacement = true OR has_cover IS NULL OR has_cover = false)";
+      if (filter === "needs_review") query += " AND cover_approved IS NOT TRUE";
       else if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
@@ -4747,7 +4747,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return res.status(400).json({ message: "ids array required" });
       }
       await pool.query(
-        "UPDATE book_enrichments SET cover_approved = true, updated_at = NOW() WHERE id = ANY($1::int[])",
+        "UPDATE book_enrichments SET cover_approved = true, needs_replacement = false, updated_at = NOW() WHERE id = ANY($1::int[])",
         [ids]
       );
       res.json({ message: `Approved ${ids.length} covers` });
