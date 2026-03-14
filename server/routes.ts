@@ -1818,16 +1818,25 @@ export async function registerRoutes(
         let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; googleBooksId: string | null; isbn: string | null; hasCover: boolean | null; context: string; mentionCount: number; podcastCount: number }[] = [];
         if (bookMentionMap.size > 0) {
           const bookKeys = Array.from(bookMentionMap.keys());
-          const placeholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+          const aliasPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+          const { rows: aliasRows } = await client.query(
+            `SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders})`,
+            bookKeys
+          );
+          const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
+          const resolvedKeys = bookKeys.map(k => aliasMap.get(k) || k);
+          const uniqueKeys = [...new Set(resolvedKeys)];
+          const placeholders = uniqueKeys.map((_, i) => `$${i + 1}`).join(",");
           const { rows: enrichRows } = await client.query(
             `SELECT book_key, slug, author, asin, amazon_url, google_books_id, isbn, has_cover FROM book_enrichments WHERE book_key IN (${placeholders})`,
-            bookKeys
+            uniqueKeys
           );
           const enrichByKey = new Map(enrichRows.map((e: any) => [e.book_key, e]));
 
           recommendedBooks = Array.from(bookMentionMap.entries())
             .map(([key, b]) => {
-              const enrich = enrichByKey.get(key) as any;
+              const resolvedKey = aliasMap.get(key) || key;
+              const enrich = enrichByKey.get(resolvedKey) as any;
               const asin = enrich?.asin || extractAsinFromUrl(b.url);
               const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrich?.author ? ` ${enrich.author}` : ""} book`)}&tag=podcap-20`;
               return {
@@ -2566,15 +2575,24 @@ export async function registerRoutes(
           .sort((a, b) => b[1] - a[1])
           .slice(0, 30)
           .map(([k]) => k);
-        const placeholders = sortedRelKeys.map((_, i) => `$${i + 1}`).join(",");
+        const aliasPlaceholders2 = sortedRelKeys.map((_, i) => `$${i + 1}`).join(",");
+        const { rows: aliasRows2 } = await pool.query(
+          `SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders2})`,
+          sortedRelKeys
+        );
+        const aliasMap2 = new Map(aliasRows2.map((a: any) => [a.alias_key, a.canonical_key]));
+        const resolvedRelKeys = sortedRelKeys.map(k => aliasMap2.get(k) || k);
+        const uniqueRelKeys = [...new Set(resolvedRelKeys)];
+        const placeholders = uniqueRelKeys.map((_, i) => `$${i + 1}`).join(",");
         const { rows: relRows } = await pool.query(
           `SELECT book_key, book_title, author, slug, asin, topics, google_books_id, isbn, has_cover FROM book_enrichments WHERE book_key IN (${placeholders})`,
-          sortedRelKeys
+          uniqueRelKeys
         );
         const relMap = new Map(relRows.map((r: any) => [r.book_key, r]));
 
         for (const rk of sortedRelKeys) {
-          const rel = relMap.get(rk);
+          const resolvedRk = aliasMap2.get(rk) || rk;
+          const rel = relMap.get(resolvedRk);
           if (rel && rel.slug) {
             const existing = relatedBooks.find(b => b.slug === rel.slug);
             if (!existing) {
