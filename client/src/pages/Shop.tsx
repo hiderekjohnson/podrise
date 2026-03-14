@@ -95,83 +95,78 @@ function getTypeColor(type: string) {
 function ProductCard({ product, index }: { product: ShopProduct; index: number }) {
   const skipAnim = prefersReducedMotion || index > 11;
   const [imgError, setImgError] = useState(false);
+  const hasImage = product.imageUrl && !imgError;
 
   return (
     <motion.div
       initial={skipAnim ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={skipAnim ? { duration: 0 } : { duration: 0.3, delay: Math.min(index * 0.02, 0.3) }}
-      className="group bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200"
+      className="group bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200 flex flex-col"
       data-testid={`product-card-${index}`}
     >
-      <div className="p-5">
-        <div className="flex gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/[0.08] flex items-center justify-center shrink-0 overflow-hidden">
-            {product.imageUrl && !imgError ? (
-              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-1.5" loading="lazy" onError={() => setImgError(true)} />
-            ) : (
-              <ShoppingBag className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-[17px] font-bold text-[#09090B] dark:text-white leading-snug" data-testid={`product-name-${index}`}>
-                {product.name}
-              </h3>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${getTypeColor(product.type)}`}>
-                {getTypeLabel(product.type)}
-              </span>
-            </div>
-            {product.company && product.company !== product.name && (
-              <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
-                by {product.company}
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              {product.mentionCount > 1 && (
-                <span className="inline-flex items-center gap-1 text-[14px] font-semibold text-[#6366F1] bg-[#6366F1]/[0.08] px-2 py-0.5 rounded-full shrink-0" data-testid={`product-mentions-${index}`}>
-                  <Mic className="w-3 h-3" />
-                  {product.mentionCount} mentions
-                </span>
-              )}
-              {product.podcastCount > 1 && (
-                <span className="text-[14px] text-[#A1A1AA]" data-testid={`product-podcasts-${index}`}>
-                  {product.podcastCount} podcasts
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+      <div className={`relative w-full flex items-center justify-center overflow-hidden bg-[#FAFAFA] dark:bg-white/[0.02] ${hasImage ? "aspect-[16/10]" : "h-28"}`}>
+        {hasImage ? (
+          <img
+            src={product.imageUrl!}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <ShoppingBag className="w-10 h-10 text-[#A1A1AA]/40" />
+        )}
+        <span className={`absolute top-3 left-3 text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md backdrop-blur-sm ${hasImage ? "bg-white/80 dark:bg-black/50" : ""} ${getTypeColor(product.type)}`}>
+          {getTypeLabel(product.type)}
+        </span>
+      </div>
+
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="text-[16px] font-bold text-[#09090B] dark:text-white leading-snug" data-testid={`product-name-${index}`}>
+          {product.name}
+        </h3>
+        {product.company && product.company !== product.name && (
+          <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
+            {product.company}
+          </p>
+        )}
 
         {product.description && (
-          <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mt-3 line-clamp-2" data-testid={`product-description-${index}`}>
+          <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mt-2 line-clamp-2 flex-1" data-testid={`product-description-${index}`}>
             {product.description}
           </p>
         )}
 
-        <div className="mt-3 pt-3 border-t border-[#F0F0F2] dark:border-white/[0.04] flex items-center justify-between gap-2">
-          <p className="text-[12px] text-[#A1A1AA] truncate flex-1 min-w-0">
-            <span className="font-medium text-[#52525B] dark:text-[#A1A1AA]">Heard on </span>
-            {product.podcastNames.slice(0, 2).join(", ")}
-            {product.podcastNames.length > 2 && ` + ${product.podcastNames.length - 2} more`}
-          </p>
-          {product.url && (
-            <a
-              href={product.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-1.5 text-[14px] font-semibold transition-colors shrink-0 ${
-                product.isAmazon
-                  ? "text-[#FF9900] hover:text-[#E88B00]"
-                  : "text-[#6366F1] hover:text-[#4F46E5]"
-              }`}
-              data-testid={`product-link-${index}`}
-            >
-              {product.isAmazon ? "Amazon" : "Visit"}
-              <ExternalLink className="w-3 h-3 opacity-40" />
-            </a>
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          {product.mentionCount > 1 && (
+            <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#6366F1] bg-[#6366F1]/[0.08] px-2 py-0.5 rounded-full" data-testid={`product-mentions-${index}`}>
+              <Mic className="w-3 h-3" />
+              {product.mentionCount} mentions
+            </span>
           )}
+          <span className="text-[12px] text-[#A1A1AA]">
+            Heard on {product.podcastNames.slice(0, 2).join(", ")}
+            {product.podcastNames.length > 2 && ` +${product.podcastNames.length - 2}`}
+          </span>
         </div>
+
+        {product.url && (
+          <a
+            href={product.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-[14px] font-semibold transition-all ${
+              product.isAmazon
+                ? "bg-[#FF9900]/10 text-[#FF9900] hover:bg-[#FF9900]/20"
+                : "bg-[#6366F1]/[0.08] text-[#6366F1] hover:bg-[#6366F1]/[0.15]"
+            }`}
+            data-testid={`product-link-${index}`}
+          >
+            {product.isAmazon ? "View on Amazon" : "Visit Website"}
+            <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+          </a>
+        )}
       </div>
     </motion.div>
   );
@@ -626,7 +621,7 @@ export default function Shop() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="grid-products">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="grid-products">
                 {visibleProducts.map((product, i) => (
                   <ProductCard key={`${product.name}-${i}`} product={product} index={i} />
                 ))}

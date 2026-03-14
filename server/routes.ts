@@ -8642,6 +8642,63 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
     }
   }
 
+  async function resolveProductImage(purchaseUrl: string): Promise<string | null> {
+    try {
+      const domain = new URL(purchaseUrl).hostname.replace(/^www\./, "");
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(purchaseUrl, {
+        signal: controller.signal,
+        redirect: "follow",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+      });
+      clearTimeout(timeout);
+
+      if (resp.ok) {
+        const html = await resp.text();
+        const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+          || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+
+        if (ogMatch?.[1]) {
+          let ogUrl = ogMatch[1].trim();
+          if (ogUrl.startsWith("//")) ogUrl = "https:" + ogUrl;
+          else if (ogUrl.startsWith("/")) ogUrl = `https://${domain}${ogUrl}`;
+          ogUrl = ogUrl.replace(/^http:\/\//, "https://");
+
+          if (ogUrl.startsWith("http") && ogUrl.length < 500) {
+            try {
+              const imgCheck = await fetch(ogUrl, { method: "HEAD", signal: AbortSignal.timeout(5000), redirect: "follow" });
+              const ct = imgCheck.headers.get("content-type") || "";
+              if (imgCheck.ok && ct.startsWith("image/")) {
+                console.log(`[ProductImage] OG image found for ${domain}: ${ogUrl.substring(0, 80)}`);
+                return ogUrl;
+              }
+            } catch {}
+          }
+        }
+      }
+
+      const logoDevKey = process.env.LOGO_DEV_PUBLIC_KEY;
+      if (logoDevKey) {
+        const logoUrl = `https://img.logo.dev/${domain}?token=${logoDevKey}&format=png&size=128`;
+        try {
+          const logoCheck = await fetch(logoUrl, { method: "HEAD", signal: AbortSignal.timeout(5000), redirect: "follow" });
+          if (logoCheck.ok) {
+            console.log(`[ProductImage] Logo.dev fallback for ${domain}`);
+            return logoUrl;
+          }
+        } catch {}
+      }
+
+      console.log(`[ProductImage] No image found for ${domain}`);
+      return null;
+    } catch (err) {
+      console.error(`[ProductImage] Error resolving image for ${purchaseUrl}:`, err);
+      return null;
+    }
+  }
+
   app.post("/api/admin/extract-products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
@@ -8885,17 +8942,22 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             podcastSlug,
           };
 
+          let imageUrl: string | null = null;
+          if (product.purchaseUrl) {
+            imageUrl = await resolveProductImage(product.purchaseUrl);
+          }
+
           const existing = await pool.query(
             `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND episode_title = $2`,
             [product.name, product.episodeTitle]
           );
           if (existing.rows.length === 0) {
             const ins = await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending') RETURNING id`,
-              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.category, product.episodeTitle, product.episodeSlug, product.podcastSlug]
+              `INSERT INTO extracted_products (name, company, description, purchase_url, image_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending') RETURNING id`,
+              [product.name, product.company, product.description, product.purchaseUrl, imageUrl, product.context, product.mentionType, product.category, product.episodeTitle, product.episodeSlug, product.podcastSlug]
             );
-            allProducts.push({ ...product, id: ins.rows[0].id, status: "pending" });
+            allProducts.push({ ...product, id: ins.rows[0].id, imageUrl, status: "pending" });
           }
         }
       }
@@ -8922,6 +8984,27 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
     } catch (err: any) {
       console.error("[ProductExtract] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to extract products" });
+    }
+  });
+
+  app.post("/api/admin/products/backfill-images", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, name, purchase_url FROM extracted_products WHERE image_url IS NULL AND purchase_url IS NOT NULL AND purchase_url != ''`
+      );
+      let updated = 0;
+      for (const row of rows) {
+        const imageUrl = await resolveProductImage(row.purchase_url);
+        if (imageUrl) {
+          await pool.query(`UPDATE extracted_products SET image_url = $1 WHERE id = $2`, [imageUrl, row.id]);
+          updated++;
+        }
+      }
+      shopCache.invalidate();
+      res.json({ message: `Backfilled images for ${updated}/${rows.length} products`, updated, total: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to backfill images" });
     }
   });
 
