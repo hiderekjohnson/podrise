@@ -157,7 +157,7 @@ function HeroCover({ title, slug, size = "default" }: { title: string; slug: str
   const [failed, setFailed] = useState(false);
   const dims = size === "sticky"
     ? "w-[28px] h-[42px]"
-    : "w-[160px] h-[240px] sm:w-[180px] sm:h-[270px]";
+    : "w-[200px] h-[380px] sm:w-[220px] sm:h-[410px]";
   const radius = size === "sticky" ? "rounded-[2px_3px_3px_2px]" : "rounded-[4px_8px_8px_4px]";
   const shadow = size === "sticky"
     ? "shadow-sm"
