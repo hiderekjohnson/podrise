@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye, RefreshCw } from "lucide-react";
+import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye, RefreshCw, Loader2, RotateCcw } from "lucide-react";
 
 interface BookCoverItem {
   id: number;
@@ -19,6 +19,8 @@ interface BookCoverItem {
   qualityScore: number | null;
   needsReplacement: boolean;
   replacementNote: string | null;
+  coverSource: string | null;
+  triedSources: string[];
 }
 
 interface CoverStats {
@@ -101,6 +103,16 @@ export default function BookCoversAdmin() {
       setBulkReplacing(false);
       setReplaceNote("");
       refetch();
+    },
+  });
+
+  const retryMutation = useMutation({
+    mutationFn: async (mode: string) => {
+      const res = await apiRequest("POST", "/api/admin/book-covers/retry-rejected", { mode });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Retry Started", description: data.message || "Running in background..." });
     },
   });
 
@@ -216,6 +228,26 @@ export default function BookCoversAdmin() {
           <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
           <span className="text-sm font-bold text-zinc-500">{stats.noCover}</span>
           <span className="text-xs text-muted-foreground">no cover</span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            data-testid="button-retry-rejected"
+            onClick={() => retryMutation.mutate("rejected")}
+            disabled={retryMutation.isPending}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {retryMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+            Retry Rejected
+          </button>
+          <button
+            data-testid="button-retry-nocover"
+            onClick={() => retryMutation.mutate("nocover")}
+            disabled={retryMutation.isPending}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-500 text-white hover:bg-zinc-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {retryMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+            Find No Cover
+          </button>
         </div>
       </div>
 
@@ -437,6 +469,16 @@ export default function BookCoversAdmin() {
                         {book.needsReplacement && (
                           <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                             <RefreshCw className="w-3 h-3" /> Needs Replace
+                          </span>
+                        )}
+                        {book.coverSource && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
+                            {book.coverSource.replace(/_/g, " ")}
+                          </span>
+                        )}
+                        {book.coverApproved === false && book.triedSources && book.triedSources.length > 0 && (
+                          <span className="text-xs text-zinc-400" title={book.triedSources.join(", ")}>
+                            tried {book.triedSources.length}/4 sources
                           </span>
                         )}
                       </div>

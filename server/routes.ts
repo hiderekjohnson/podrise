@@ -4406,7 +4406,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const coversDir = path.default.resolve("public/books");
 
       const sort = req.query.sort as string || "title";
-      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note FROM book_enrichments WHERE slug IS NOT NULL";
+      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note, cover_source, cover_tried_sources FROM book_enrichments WHERE slug IS NOT NULL";
       if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
@@ -4436,6 +4436,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           qualityScore: r.cover_quality_score,
           needsReplacement: r.needs_replacement || false,
           replacementNote: r.replacement_note,
+          coverSource: r.cover_source || null,
+          triedSources: r.cover_tried_sources || [],
         };
       });
 
@@ -4524,6 +4526,39 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       res.json({ message: `Flagged ${ids.length} covers for replacement` });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to flag covers" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/retry-rejected", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { spawn } = await import("child_process");
+      const mode = (req.body?.mode as string) || "rejected";
+      const validModes = ["rejected", "nocover", "pending"];
+      if (!validModes.includes(mode)) {
+        return res.status(400).json({ message: "Invalid mode" });
+      }
+
+      const child = spawn("npx", ["tsx", "server/downloadBookCoversRetry.ts", mode], {
+        cwd: process.cwd(),
+        env: process.env as any,
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+
+      let output = "";
+      child.stdout.on("data", (d: Buffer) => { output += d.toString(); });
+      child.stderr.on("data", (d: Buffer) => { output += d.toString(); });
+
+      child.on("close", (code: number) => {
+        console.log(`[BookCovers] Retry script (${mode}) finished with code ${code}`);
+        console.log(output);
+      });
+
+      res.json({ message: `Cover retry started in background (mode: ${mode})`, pid: child.pid });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to start retry" });
     }
   });
 
