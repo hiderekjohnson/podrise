@@ -18,6 +18,16 @@ export interface EpisodeStats {
   details: { podcast: string; status: "included" | "no_new_episode" | "error"; episodeCount?: number; errorMessage?: string }[];
 }
 
+export interface ExtractedProduct {
+  name: string;
+  company: string;
+  description: string;
+  purchaseUrl: string;
+  context: string;
+  mentionType: "recommendation" | "personal_use";
+  category: "physical_product" | "service_or_tool" | "experience";
+}
+
 export interface ParsedEpisode {
   podcastName: string;
   episodeTitle: string;
@@ -34,6 +44,7 @@ export interface ParsedEpisode {
   sponsors?: { name: string; description: string; couponCode?: string; url?: string; howToRedeem?: string }[];
   guests?: { name: string; title: string; bio: string; twitter?: string; linkedin?: string; instagram?: string; website?: string; photoUrl?: string; topicsDiscussed: string[] }[];
   resources?: { name: string; type: string; description: string; url?: string; author?: string; context?: string }[];
+  products?: ExtractedProduct[];
 }
 
 interface RecapResult {
@@ -420,6 +431,9 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
   ],
   "resources": [
     {"name": "Resource Name", "type": "book|tool|product", "description": "Brief description of the item.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "How it was mentioned in the episode."}
+  ],
+  "products": [
+    {"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "8-12 sentences VERBATIM from transcript showing natural endorsement", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}
   ]
 }
 
@@ -445,6 +459,7 @@ OTHER RULES:
 - topQuestions: exactly 3 questions phrased like real Google searches. Each question MUST contain at least one of: the podcast name, a guest name, or a specific named entity (person, company, framework, book). NEVER generic questions. BAD: "What is the best way to find your passion?" GOOD: "What does Bill Gurley say about finding your passion on My First Million?" Each answer should be 2-3 sentences maximum that deliver the ACTUAL answer with specific facts or claims from the episode. Answers must follow the same rules as the recap: no speaker attribution patterns ("[Person] emphasizes/highlights/explains..."), no banned words, just the substance. BAD answer: "Bill Gurley emphasizes the importance of frameworks like regret minimization." GOOD answer: "The regret minimization framework asks you to imagine your 80-year-old self looking back - what would that person regret not trying? Jeff Bezos used exactly this thought experiment to decide to leave his hedge fund job and start Amazon."
 - sponsors: Extract ALL sponsors/advertisers. Include coupon codes and URLs when mentioned. Return empty array [] if none
 - guests: Extract ALL guests (NOT regular hosts). CRITICAL: Use FULL NAME (first AND last). Search the entire transcript for last names. A guest is anyone who is interviewed, joins the conversation, or is introduced on the show - even if they only appear briefly. Look for introductions like "joining us", "our guest", "we have", "[Name] is here", or any person who speaks who is not a regular host. If the episode title mentions a person by name or title (e.g. "$450M VC", "$100B Founder"), that person is almost certainly a guest - find their full name. Return empty array [] ONLY if the episode truly has no guests (e.g. hosts-only discussion episodes)
+- products: Extract GENUINE personal endorsements of products, services, tools, apps, experiences — NOT sponsors/ads. The speaker must have personal experience ("I use this", "I bought one", "Game changer for me"). SKIP anything near "sponsored by", "use code", "promo code", "brought to you by", "quick break". SKIP books (tracked in resources), stocks/crypto, social media platforms, generic categories without brand names. 0-5 items per episode is normal. Context must be 8-12 sentences VERBATIM from transcript
 - resources: Extract ALL books mentioned - even briefly. Include full title and author name. The "context" field is the MOST IMPORTANT part - it must be 3-5 sentences of RICH, EPISODE-SPECIFIC detail: WHO mentioned this book, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported. Include concrete details like names, numbers, and anecdotes from the actual conversation. Write as if explaining to a friend why this book came up in this specific episode. BAD context: "Daniel H. Pink explores how embracing regret can improve decision-making." BAD context: "Mentioned as a recommended read." GOOD context: "Bill Gurley brought up Pink's research when making his central argument that 6 out of 10 people regret their career choices. He cited Pink's finding that regrets of inaction outweigh regrets of mistakes as the foundation for his 'Runnin' Down a Dream' lecture, which he's given to Stanford students for the past decade. Sacks pushed back asking whether that stat is inflated by survivorship bias, but Gurley argued the data holds across income levels." Do NOT include sponsors, SaaS products, or abstract concepts. Return empty array [] if none`;
 
   console.log(`[RecapGenerator] Pass 1: Generating recap + structured data for "${episodeTitle}"...`);
@@ -518,6 +533,27 @@ OTHER RULES:
         return obj;
       }
 
+      const rawProducts = Array.isArray(parsed.products) ? parsed.products : [];
+      const validProducts: ExtractedProduct[] = [];
+      const seenNames = new Set<string>();
+      for (const p of rawProducts) {
+        if (!p.name || typeof p.name !== "string") continue;
+        const key = p.name.toLowerCase().trim();
+        if (seenNames.has(key)) continue;
+        seenNames.add(key);
+        const validCategories = ["physical_product", "service_or_tool", "experience"];
+        const validMentionTypes = ["recommendation", "personal_use"];
+        validProducts.push({
+          name: p.name,
+          company: p.company || "",
+          description: p.description || "",
+          purchaseUrl: p.purchaseUrl || "",
+          context: p.context || "",
+          mentionType: validMentionTypes.includes(p.mentionType) ? p.mentionType : "personal_use",
+          category: validCategories.includes(p.category) ? p.category : "service_or_tool",
+        });
+      }
+
       return sanitizeDeep({
         podcastName: parsed.podcastName || podcastName,
         episodeTitle: parsed.episodeTitle || episodeTitle,
@@ -532,6 +568,7 @@ OTHER RULES:
         sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
         guests: Array.isArray(parsed.guests) ? parsed.guests : [],
         resources,
+        products: validProducts,
       });
     } catch (err) {
       if (attempt < maxAttempts) {
@@ -577,6 +614,16 @@ For this segment, extract:
 4. GUESTS: Anyone introduced as a guest, interviewee, or joining the show — full name and title if mentioned
 5. SPONSORS: Any ad reads, sponsor mentions, coupon codes, or "brought to you by" segments
 6. RESOURCES: Tools, products, services, websites, companies discussed substantively (not just name-dropped)
+7. GENUINE PRODUCT ENDORSEMENTS: Products, services, tools, apps, or experiences that hosts/guests genuinely endorse from personal experience (NOT sponsors/ads)
+
+PRODUCT ENDORSEMENT RULES:
+- ONLY extract products where the speaker has PERSONAL EXPERIENCE: "I use this", "I bought one", "We use this at our company", "Game changer for me"
+- NEVER extract items that are clearly ads/sponsors — look for phrases like "this episode is sponsored by", "use code", "promo code", "brought to you by", "quick word from our sponsor", "let's take a quick break", "special offer", "free trial"
+- NEVER extract books (tracked separately), stocks/ETFs/crypto, social media platforms, or companies discussed only as business cases
+- NEVER extract generic categories without specific brand names ("standing desks" vs "FlexiSpot standing desk")
+- The context field is critical: copy 8-12 sentences of VERBATIM transcript around the mention
+- Categories: "physical_product" (tangible items), "service_or_tool" (digital/SaaS/apps), "experience" (places, events, memberships)
+- 0-5 genuine products per segment is normal. Many segments will have ZERO — that's fine.
 
 Respond with JSON:
 {
@@ -585,7 +632,8 @@ Respond with JSON:
   "books": [{"title": "Book Title", "author": "Author Name", "context": "Why/how it was mentioned"}],
   "guests": [{"name": "Full Name", "title": "Their title/role"}],
   "sponsors": [{"name": "Sponsor", "description": "What they do", "code": "COUPON or null", "url": "url or null"}],
-  "resources": [{"name": "Resource Name", "type": "tool|product|website", "description": "What it is", "url": "url or null", "context": "How it was mentioned"}]
+  "resources": [{"name": "Resource Name", "type": "tool|product|website", "description": "What it is", "url": "url or null", "context": "How it was mentioned"}],
+  "products": [{"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "8-12 sentences VERBATIM from transcript showing natural endorsement", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}]
 }
 
 Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much than miss something. Every paragraph of the transcript should yield at least one note.`;
@@ -623,6 +671,7 @@ Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much
   const allGuests: any[] = [];
   const allSponsors: any[] = [];
   const allResources: any[] = [];
+  const allProducts: ExtractedProduct[] = [];
 
   for (const cn of chunkNotes) {
     if (cn.notes) allNotes.push(...cn.notes);
@@ -631,9 +680,36 @@ Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much
     if (cn.guests) allGuests.push(...cn.guests);
     if (cn.sponsors) allSponsors.push(...cn.sponsors);
     if (cn.resources) allResources.push(...cn.resources);
+    if (cn.products && Array.isArray(cn.products)) {
+      for (const p of cn.products) {
+        if (p.name && typeof p.name === "string") {
+          const validCategories = ["physical_product", "service_or_tool", "experience"];
+          const validMentionTypes = ["recommendation", "personal_use"];
+          allProducts.push({
+            name: p.name,
+            company: p.company || "",
+            description: p.description || "",
+            purchaseUrl: p.purchaseUrl || "",
+            context: p.context || "",
+            mentionType: validMentionTypes.includes(p.mentionType) ? p.mentionType : "personal_use",
+            category: validCategories.includes(p.category) ? p.category : "service_or_tool",
+          });
+        }
+      }
+    }
   }
 
-  console.log(`[RecapGenerator] Merged: ${allNotes.length} notes, ${allQuotes.length} quotes, ${allBooks.length} books, ${allGuests.length} guests, ${allSponsors.length} sponsors`);
+  const dedupedProducts: ExtractedProduct[] = [];
+  const seenProductNames = new Set<string>();
+  for (const p of allProducts) {
+    const key = p.name.toLowerCase().trim();
+    if (!seenProductNames.has(key)) {
+      seenProductNames.add(key);
+      dedupedProducts.push(p);
+    }
+  }
+
+  console.log(`[RecapGenerator] Merged: ${allNotes.length} notes, ${allQuotes.length} quotes, ${allBooks.length} books, ${allGuests.length} guests, ${allSponsors.length} sponsors, ${dedupedProducts.length} products`);
 
   const showNotesSection = showNotes ? `\nShow Notes:\n${showNotes}\n` : "";
 
@@ -758,6 +834,7 @@ OTHER RULES:
       sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
       guests: Array.isArray(parsed.guests) ? parsed.guests : [],
       resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+      products: dedupedProducts,
     });
   } catch (err) {
     console.error(`[RecapGenerator] Full-transcript synthesis failed for "${episodeTitle}":`, err);

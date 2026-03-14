@@ -8642,62 +8642,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
     }
   }
 
-  async function resolveProductImage(purchaseUrl: string): Promise<string | null> {
-    try {
-      const domain = new URL(purchaseUrl).hostname.replace(/^www\./, "");
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      const resp = await fetch(purchaseUrl, {
-        signal: controller.signal,
-        redirect: "follow",
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
-      });
-      clearTimeout(timeout);
-
-      if (resp.ok) {
-        const html = await resp.text();
-        const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-          || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-
-        if (ogMatch?.[1]) {
-          let ogUrl = ogMatch[1].trim();
-          if (ogUrl.startsWith("//")) ogUrl = "https:" + ogUrl;
-          else if (ogUrl.startsWith("/")) ogUrl = `https://${domain}${ogUrl}`;
-          ogUrl = ogUrl.replace(/^http:\/\//, "https://");
-
-          if (ogUrl.startsWith("http") && ogUrl.length < 500) {
-            try {
-              const imgCheck = await fetch(ogUrl, { method: "HEAD", signal: AbortSignal.timeout(5000), redirect: "follow" });
-              const ct = imgCheck.headers.get("content-type") || "";
-              if (imgCheck.ok && ct.startsWith("image/")) {
-                console.log(`[ProductImage] OG image found for ${domain}: ${ogUrl.substring(0, 80)}`);
-                return ogUrl;
-              }
-            } catch {}
-          }
-        }
-      }
-
-      const logoDevKey = process.env.LOGO_DEV_PUBLIC_KEY;
-      if (logoDevKey) {
-        const logoUrl = `https://img.logo.dev/${domain}?token=${logoDevKey}&format=png&size=128`;
-        try {
-          const logoCheck = await fetch(logoUrl, { method: "HEAD", signal: AbortSignal.timeout(5000), redirect: "follow" });
-          if (logoCheck.ok) {
-            console.log(`[ProductImage] Logo.dev fallback for ${domain}`);
-            return logoUrl;
-          }
-        } catch {}
-      }
-
-      console.log(`[ProductImage] No image found for ${domain}`);
-      return null;
-    } catch (err) {
-      console.error(`[ProductImage] Error resolving image for ${purchaseUrl}:`, err);
-      return null;
-    }
-  }
+  const { resolveProductImage } = await import("./productImageResolver");
 
   app.post("/api/admin/extract-products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
@@ -9206,6 +9151,31 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
               ]
             );
             console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+
+            if (recap.products && recap.products.length > 0) {
+              let productsSaved = 0;
+              for (const p of recap.products) {
+                if (!p.name || !p.context) continue;
+                try {
+                  const { rows: existingProd } = await pool.query(
+                    `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
+                    [p.name, podcast.slug, epTitle]
+                  );
+                  if (existingProd.length > 0) continue;
+                  let imageUrl: string | null = null;
+                  if (p.purchaseUrl) {
+                    try { imageUrl = await resolveProductImage(p.purchaseUrl); } catch {}
+                  }
+                  await pool.query(
+                    `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, image_url)
+                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending',$11) ON CONFLICT DO NOTHING`,
+                    [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcast.slug, imageUrl]
+                  );
+                  productsSaved++;
+                } catch {}
+              }
+              if (productsSaved > 0) console.log(`[TaddyWebhook] Saved ${productsSaved} products for "${epTitle.slice(0, 60)}"`);
+            }
 
             try {
               const { postProcessRecap } = await import("./postProcessRecap");

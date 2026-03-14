@@ -1,5 +1,5 @@
 import { pool } from "./db";
-import { generateRecapFromFullTranscript, extractQuotesFromTranscript } from "./recapGenerator";
+import { generateRecapFromFullTranscript, extractQuotesFromTranscript, ExtractedProduct } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const CONCURRENCY = 2;
@@ -154,6 +154,40 @@ async function processEpisode(
         }
       } catch (quoteErr: any) {
         console.warn(`[BgRecap] Quote extraction failed for "${epTitle.slice(0, 50)}": ${quoteErr.message}`);
+      }
+
+      if (recap.products && recap.products.length > 0) {
+        let productsSaved = 0;
+        for (const p of recap.products) {
+          if (!p.name || !p.context) continue;
+          try {
+            const { rows: existing } = await pool.query(
+              `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
+              [p.name, podcastSlug, epTitle]
+            );
+            if (existing.length > 0) continue;
+
+            let imageUrl: string | null = null;
+            if (p.purchaseUrl) {
+              try {
+                const { resolveProductImage } = await import("./productImageResolver");
+                imageUrl = await resolveProductImage(p.purchaseUrl);
+              } catch {}
+            }
+
+            await pool.query(
+              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, image_url)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending',$11) ON CONFLICT DO NOTHING`,
+              [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcastSlug, imageUrl]
+            );
+            productsSaved++;
+          } catch (prodErr: any) {
+            console.warn(`[BgRecap] Product save failed for "${p.name}": ${prodErr.message}`);
+          }
+        }
+        if (productsSaved > 0) {
+          console.log(`[BgRecap] Saved ${productsSaved} products for "${epTitle.slice(0, 50)}"`);
+        }
       }
 
       const qa = validateRecap(recap, epTitle, quoteCount);

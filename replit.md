@@ -41,6 +41,8 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Advertise Page**: `/advertise` page for advertising inquiries. Highlights audience targeting by podcast preferences, professional roles, industries, and interest categories. Ad formats: email sponsorships (available), podcast ads and website sponsorships (coming soon). Privacy-first messaging: "We never sell your data." Contact via `advertise@podcap.io`.
 - **Admin Mobile Optimization**: Tab navigation uses horizontal scrolling (`overflow-x-auto`) with `shrink-0 whitespace-nowrap` tab buttons for mobile compatibility.
 - **Recap Generator Per-Podcast Cap**: `server/backgroundRecapGenerator.ts` defaults to 20 most recent episodes per podcast (`--per-podcast=N` flag). Uses `ROW_NUMBER() OVER (PARTITION BY podcast_id)` to distribute recaps evenly.
+- **Product Image Resolution**: `server/productImageResolver.ts` exports `resolveProductImage(purchaseUrl)` — shared by routes.ts, backgroundRecapGenerator.ts, and Taddy webhook handler. Chain: OG image → Logo.dev fallback.
+- **Taddy Webhook Product Extraction**: When a new episode arrives via Taddy webhook and a recap is generated, any products from the recap are automatically saved to `extracted_products` table (same logic as backgroundRecapGenerator).
 
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
