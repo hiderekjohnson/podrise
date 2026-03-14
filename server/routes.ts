@@ -4397,6 +4397,170 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/bookstore", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { rows } = await pool.query(
+        `SELECT * FROM book_enrichments WHERE slug IS NOT NULL ORDER BY book_title ASC`
+      );
+      res.json({ books: rows });
+    } catch (err: any) {
+      console.error("[Bookstore] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to load books" });
+    }
+  });
+
+  app.post("/api/admin/bookstore/enrich", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { id } = req.body;
+      if (!id) return res.status(400).json({ message: "id required" });
+
+      const { rows } = await pool.query(`SELECT * FROM book_enrichments WHERE id = $1`, [id]);
+      if (!rows.length) return res.status(404).json({ message: "Book not found" });
+      const book = rows[0];
+
+      const updates: Record<string, any> = {};
+
+      let googleBooksId = book.google_books_id;
+      if (!googleBooksId) {
+        try {
+          const q = encodeURIComponent(book.book_title + (book.author ? `+inauthor:${book.author}` : ""));
+          const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`);
+          if (gbRes.ok) {
+            const gbData = await gbRes.json();
+            if (gbData.items?.[0]?.id) {
+              googleBooksId = gbData.items[0].id;
+              updates.google_books_id = googleBooksId;
+            }
+          }
+        } catch {}
+      }
+
+      if (googleBooksId) {
+        try {
+          const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes/${googleBooksId}`);
+          if (gbRes.ok) {
+            const gb = await gbRes.json();
+            const vi = gb.volumeInfo || {};
+            if (vi.subtitle) updates.subtitle = vi.subtitle;
+            if (vi.publisher) updates.publisher = vi.publisher;
+            if (vi.publishedDate) updates.published_date = vi.publishedDate;
+            if (vi.pageCount && !book.page_count) updates.page_count = vi.pageCount;
+            if (vi.description && !book.google_description) updates.google_description = vi.description;
+            if (vi.language) updates.language = vi.language;
+            if (vi.categories) updates.categories = vi.categories;
+            if (vi.maturityRating) updates.maturity_rating = vi.maturityRating;
+            if (vi.printType) updates.print_type = vi.printType;
+            if (vi.previewLink) updates.google_preview_link = vi.previewLink;
+            if (vi.infoLink) updates.google_info_link = vi.infoLink;
+            if (vi.industryIdentifiers) {
+              for (const ii of vi.industryIdentifiers) {
+                if (ii.type === "ISBN_10") updates.isbn_10 = ii.identifier;
+                if (ii.type === "ISBN_13") {
+                  updates.isbn_13 = ii.identifier;
+                  if (!book.isbn) updates.isbn = ii.identifier;
+                }
+              }
+            }
+            if (vi.publishedDate && !book.publish_year) {
+              const year = parseInt(vi.publishedDate);
+              if (year > 1000) updates.publish_year = year;
+            }
+            if (vi.authors?.length && !book.author) {
+              updates.author = vi.authors.join(", ");
+            }
+          }
+        } catch (e) {
+          console.warn("[Bookstore] Google Books fetch failed:", e);
+        }
+      }
+
+      try {
+        const q = encodeURIComponent(book.book_title + (book.author ? ` ${book.author}` : ""));
+        const olRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=5&fields=key,title,author_name,isbn,publisher,publish_date,number_of_pages_median,first_publish_year,subject,language,edition_count,ebook_count_i,cover_i,ratings_average,ratings_count,want_to_read_count,currently_reading_count,already_read_count,first_sentence,subtitle`);
+        if (olRes.ok) {
+          const olData = await olRes.json();
+          const titleLower = book.book_title.toLowerCase();
+          const doc = (olData.docs || []).find((d: any) =>
+            d.title?.toLowerCase().includes(titleLower) || titleLower.includes(d.title?.toLowerCase())
+          ) || olData.docs?.[0];
+
+          if (doc) {
+            if (doc.key) updates.ol_work_key = doc.key;
+            if (doc.subject?.length) updates.ol_subjects = doc.subject;
+            if (doc.language?.length) updates.ol_languages = doc.language;
+            if (doc.edition_count) updates.ol_edition_count = doc.edition_count;
+            if (doc.ebook_count_i !== undefined) updates.ol_ebook_count = doc.ebook_count_i;
+            if (doc.cover_i) updates.ol_cover_id = doc.cover_i;
+            if (doc.ratings_average) updates.ol_ratings_average = doc.ratings_average;
+            if (doc.ratings_count) updates.ol_ratings_count = doc.ratings_count;
+            if (doc.want_to_read_count !== undefined) updates.ol_want_to_read = doc.want_to_read_count;
+            if (doc.currently_reading_count !== undefined) updates.ol_currently_reading = doc.currently_reading_count;
+            if (doc.already_read_count !== undefined) updates.ol_already_read = doc.already_read_count;
+            if (doc.first_publish_year && !book.publish_year && !updates.publish_year) updates.publish_year = doc.first_publish_year;
+            if (doc.first_publish_year) updates.ol_first_publish_year = doc.first_publish_year;
+            if (doc.publisher?.length) updates.ol_publishers = doc.publisher;
+            if (doc.number_of_pages_median) {
+              updates.ol_number_of_pages = doc.number_of_pages_median;
+              if (!book.page_count && !updates.page_count) updates.page_count = doc.number_of_pages_median;
+            }
+            if (doc.first_sentence?.length) updates.ol_first_sentence = typeof doc.first_sentence === 'string' ? doc.first_sentence : doc.first_sentence[0];
+            if (doc.subtitle) {
+              if (!updates.subtitle) updates.subtitle = doc.subtitle;
+            }
+
+            if (!book.isbn && !updates.isbn && doc.isbn?.length) {
+              const isbn13 = doc.isbn.find((i: string) => i.length === 13);
+              const isbn10 = doc.isbn.find((i: string) => i.length === 10);
+              if (isbn13) { updates.isbn = isbn13; updates.isbn_13 = isbn13; }
+              if (isbn10 && !updates.isbn_10) updates.isbn_10 = isbn10;
+              if (!updates.isbn && isbn10) updates.isbn = isbn10;
+            }
+
+            if (doc.ratings_average && (!book.rating || book.rating === null)) {
+              updates.rating = doc.ratings_average;
+            }
+            if (doc.ratings_count && (!book.rating_count || book.rating_count === null)) {
+              updates.rating_count = doc.ratings_count;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[Bookstore] Open Library fetch failed:", e);
+      }
+
+      updates.last_api_fetch = new Date();
+
+      const setClauses: string[] = [];
+      const vals: any[] = [];
+      let paramIdx = 1;
+      for (const [key, val] of Object.entries(updates)) {
+        setClauses.push(`${key} = $${paramIdx}`);
+        vals.push(val);
+        paramIdx++;
+      }
+      vals.push(id);
+
+      if (setClauses.length > 0) {
+        await pool.query(
+          `UPDATE book_enrichments SET ${setClauses.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx}`,
+          vals
+        );
+      }
+
+      const { rows: updated } = await pool.query(`SELECT * FROM book_enrichments WHERE id = $1`, [id]);
+      res.json({ book: updated[0], fieldsUpdated: Object.keys(updates).length });
+    } catch (err: any) {
+      console.error("[Bookstore] Enrich error:", err);
+      res.status(500).json({ message: err?.message || "Failed to enrich book" });
+    }
+  });
+
   app.get("/api/admin/book-covers", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
