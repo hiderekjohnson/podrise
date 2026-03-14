@@ -8458,12 +8458,19 @@ DO NOT EXTRACT:
 - Companies mentioned only because of their founder or business story
 - Medications, weapons, alcohol, or heavily regulated items
 
-CONTEXT REQUIREMENT — CRITICAL:
-For the "context" field, you MUST provide a LONG direct quote from the transcript — at least 4-6 full sentences that capture the COMPLETE surrounding conversation. The human reviewer needs enough context to clearly judge whether this is a genuine mention or a hidden ad. Include dialogue BEFORE and AFTER the core mention so the reviewer can see how the topic came up and whether it feels organic.
+CONTEXT REQUIREMENT — THIS IS THE MOST IMPORTANT FIELD:
+For the "context" field, you MUST provide a VERY LONG direct quote from the transcript — at least 8-12 full sentences. Copy a large block of the surrounding transcript verbatim. The human reviewer needs to read the FULL conversation flow to judge if this is genuine. Include:
+- How the topic came up (what were they talking about before?)
+- The complete discussion of the product/service/experience
+- What they said after (did they move on naturally or transition back from an ad break?)
 
-BAD context (way too short): "I can see the clients' whole history: calls, support tickets, emails"
-MEDIOCRE context (still too short): "So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails."
-GOOD context (full picture — this is the minimum length): "We were talking about scaling ops and Sam goes 'dude just get a CRM.' So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails, and here's a task from three days ago I totally missed. Before that we were using spreadsheets like idiots. It's like forty bucks a month, totally worth it. The onboarding took maybe two hours and our team was up and running."
+The context should be so long that a reader feels like they listened to that part of the podcast. When in doubt, include MORE transcript, not less. We'd rather have too much context than too little.
+
+BAD context (way too short — NEVER do this): "I can see the clients' whole history: calls, support tickets, emails"
+
+STILL TOO SHORT (this is NOT enough): "We were talking about scaling ops and Sam goes 'dude just get a CRM.' So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails."
+
+MINIMUM ACCEPTABLE LENGTH: "So we were talking about how hard it is to keep track of everything when you're scaling a team, right? And Sam goes 'dude just get a CRM, we wasted like six months trying to do it with spreadsheets.' So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails, and here's a task from three days ago I totally missed. Before that we were using spreadsheets like idiots. It's like forty bucks a month, totally worth it. The onboarding took maybe two hours and our team was up and running. And then the cool part is it integrates with Slack so you get pinged when a deal moves stages. Sam was saying his close rate went up like 15% just from the follow-up reminders alone. Anyway, so that's been a game changer for us on the ops side. But going back to what you were saying about hiring..."
 
 QUALITY BAR: We want 0-5 high-quality items per episode across ALL categories. Many episodes will have ZERO qualifying items — that's perfectly fine. Only extract items you're confident are genuine endorsements, not ads.
 
@@ -8472,7 +8479,7 @@ For each qualifying item, return:
 - company: the company/brand behind it
 - description: 1 sentence explaining what it is and why it's interesting
 - purchaseUrl: the best URL to buy/visit (prefer Amazon for physical products)
-- context: 4-6 sentence DIRECT QUOTE from the transcript showing the FULL surrounding conversation (CRITICAL — must include how the topic came up, the actual endorsement, and the transition out. Must be long enough for a human to confidently judge if it's an ad)
+- context: 8-12 sentence VERBATIM TRANSCRIPT QUOTE — copy a large block of the conversation. Must include how the topic came up, the full product discussion, and what was said after. The longer the better. This is the most important field.
 - mentionType: "recommendation" | "personal_use"
 - category: "physical_product" | "service_or_tool" | "experience"
 
@@ -8502,10 +8509,10 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). Include 4-6 sentence quotes showing the full surrounding conversation for context.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). For the context field, copy 8-12 sentences of VERBATIM transcript — include how the topic came up, the full discussion, and what was said after. The longer the context the better.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
-              max_tokens: 3000,
+              max_tokens: 4500,
               temperature: 0.2,
               response_format: { type: "json_object" },
             });
