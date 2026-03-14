@@ -138,7 +138,14 @@ export default function BackfillTracker() {
                 className="border-t border-[#F0F0F2] hover:bg-[#F7F7FC]/50 transition-colors"
               >
                 <td className="px-4 py-2.5 text-sm font-medium text-[#09090B]" data-testid={`name-${p.itunesId}`}>
-                  {p.name}
+                  <a
+                    href={`https://podcasts.apple.com/us/podcast/id${p.itunesId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#6366F1] hover:underline transition-colors"
+                  >
+                    {p.name}
+                  </a>
                 </td>
                 <td className="px-4 py-2.5 text-center text-sm text-[#52525B]" data-testid={`episodes-${p.itunesId}`}>
                   {p.totalEpisodes > 0 ? p.totalEpisodes.toLocaleString() : "—"}
