@@ -1,11 +1,12 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Mic, ArrowRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight, Clock, Users, X, Flame, Zap, Star, Play, ArrowUpRight, Headphones, Filter } from "lucide-react";
+import { Search, Mic, ArrowRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight, Clock, Users, X, Flame, Zap, Star, Play, ArrowUpRight, Headphones, Filter, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
 
 interface PodcastStat {
   slug: string;
@@ -270,6 +271,7 @@ export default function PodcastsExplorer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
   const [activePromptIdx, setActivePromptIdx] = useState<number | null>(null);
+  const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -708,18 +710,32 @@ export default function PodcastsExplorer() {
 
         {(isSearching || isFiltering) && filteredPodcasts.length === 0 && (
           <div className="text-center py-20">
-            <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-lg font-semibold text-foreground mb-1" data-testid="text-no-results">No podcasts found</p>
-            <p className="text-[14px] text-muted-foreground mb-4">
-              {isSearching ? `Nothing matched "${searchQuery}". Try a different search.` : "Try a different filter."}
+            <Mic className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-lg font-semibold text-foreground mb-1" data-testid="text-no-results">
+              {isSearching ? "We don't track this podcast yet" : "No podcasts found"}
             </p>
-            <button
-              onClick={clearFilters}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[14px] font-semibold text-primary hover:bg-primary/[0.06] rounded-lg transition-colors"
-              data-testid="button-clear-and-browse"
-            >
-              Clear and browse all
-            </button>
+            <p className="text-[14px] text-muted-foreground mb-4">
+              {isSearching ? "But we could! Send us a message about why it's worth tracking." : "Try a different filter."}
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              {isSearching && (
+                <button
+                  onClick={() => setShowRequestDialog(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold bg-[#6366F1] text-white rounded-xl hover:bg-[#6366F1]/90 transition-all active:scale-[0.98]"
+                  data-testid="button-request-podcast-explorer"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  Request this podcast
+                </button>
+              )}
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-[14px] font-semibold text-primary hover:bg-primary/[0.06] rounded-xl transition-colors"
+                data-testid="button-clear-and-browse"
+              >
+                Clear and browse all
+              </button>
+            </div>
           </div>
         )}
 
@@ -731,6 +747,11 @@ export default function PodcastsExplorer() {
       </main>
 
       <Footer />
+      <RequestPodcastDialog
+        open={showRequestDialog}
+        onClose={() => setShowRequestDialog(false)}
+        searchQuery={searchQuery}
+      />
     </div>
   );
 }

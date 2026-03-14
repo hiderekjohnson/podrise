@@ -493,6 +493,36 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/podcast-request", async (req, res) => {
+    const { podcastName, reason, email } = req.body;
+    if (!podcastName || !reason) {
+      return res.status(400).json({ message: "Podcast name and reason are required" });
+    }
+    try {
+      const { client, fromEmail } = await getUncachableResendClient();
+      await client.emails.send({
+        from: `PodCap <${fromEmail}>`,
+        to: "hiderekjohnson@gmail.com",
+        replyTo: email || undefined,
+        subject: `Podcast Request: ${podcastName}`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 520px; padding: 24px;">
+            <h2 style="margin: 0 0 16px; font-size: 18px; color: #1a1a1a;">New Podcast Request</h2>
+            <div style="background: #f8f8f8; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <p style="margin: 0 0 8px; font-size: 14px;"><strong>Podcast:</strong> ${podcastName.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+              ${email ? `<p style="margin: 0 0 8px; font-size: 14px;"><strong>From:</strong> ${email}</p>` : ""}
+              <p style="margin: 0; font-size: 14px; white-space: pre-wrap;"><strong>Why track it:</strong><br/>${reason.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+            </div>
+          </div>
+        `,
+      });
+      res.json({ message: "Request sent" });
+    } catch (err) {
+      console.error("[PodcastRequest] Failed to send request email:", err);
+      res.status(500).json({ message: "Failed to send request" });
+    }
+  });
+
   const PgStore = connectPgSimple(session);
 
   app.set("trust proxy", 1);

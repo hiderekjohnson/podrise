@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Search, X, Plus, Loader2, Podcast, Crown } from "lucide-react";
+import { Search, X, Plus, Loader2, Podcast, Crown, Mic, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
+import { RequestPodcastDialog } from "./RequestPodcastDialog";
 
 interface PodcastResult {
   id: string;
@@ -29,6 +30,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
   const [results, setResults] = useState<PodcastResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showRequestDialog, setShowRequestDialog] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
@@ -210,15 +212,29 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
                     ))}
                 </div>
               ) : (
-                <div className="px-6 py-10 text-center">
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">No podcasts found</p>
-                  <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-1">Try a different search term</p>
+                <div className="px-6 py-8 text-center">
+                  <Mic className="w-8 h-8 text-[#A1A1AA] mx-auto mb-2" />
+                  <p className="text-base font-semibold text-foreground mb-1" data-testid="text-no-results-dashboard">We don't track this podcast yet</p>
+                  <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">But we could! Let us know why it's worth adding.</p>
+                  <button
+                    onClick={() => setShowRequestDialog(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold bg-[#6366F1] text-white hover:bg-[#6366F1]/90 transition-all active:scale-[0.98]"
+                    data-testid="button-request-podcast"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Request this podcast
+                  </button>
                 </div>
               )}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+      <RequestPodcastDialog
+        open={showRequestDialog}
+        onClose={() => setShowRequestDialog(false)}
+        searchQuery={searchQuery}
+      />
     </div>
   );
 }
