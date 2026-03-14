@@ -55,6 +55,33 @@ export async function seedProductionProducts() {
       }
     }
 
+    try {
+      const { rows: missingImages } = await pool.query(
+        `SELECT id, name, company, purchase_url FROM extracted_products WHERE status = 'approved' AND (image_url IS NULL OR image_url = '')`
+      );
+      if (missingImages.length > 0) {
+        console.log(`[ProductSeed] Resolving images for ${missingImages.length} approved products missing images...`);
+        const { resolveProductImage } = await import("./productImageResolver");
+        let resolved = 0;
+        for (const p of missingImages) {
+          try {
+            if (p.purchase_url) {
+              const url = p.purchase_url.startsWith("http") ? p.purchase_url : `https://${p.purchase_url}`;
+              const imageUrl = await resolveProductImage(url);
+              if (imageUrl) {
+                await pool.query(`UPDATE extracted_products SET image_url = $1 WHERE id = $2`, [imageUrl, p.id]);
+                resolved++;
+                console.log(`[ProductSeed] Resolved image for "${p.name}": ${imageUrl.slice(0, 60)}...`);
+              }
+            }
+          } catch {}
+        }
+        if (resolved > 0) console.log(`[ProductSeed] Resolved ${resolved}/${missingImages.length} product images`);
+      }
+    } catch (err) {
+      console.warn("[ProductSeed] Image resolution failed:", err);
+    }
+
     const { rows: [{ count: hostCount }] } = await pool.query(
       "SELECT COUNT(*) as count FROM podcast_hosts"
     );
