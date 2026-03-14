@@ -8204,7 +8204,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
          FROM episode_transcripts
          WHERE podcast_id = '1469759170'
          ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 10`
+         LIMIT 25`
       );
 
       if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
