@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye, RefreshCw, Loader2, RotateCcw, Search, ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, BookOpen, CheckCircle2, Clock, Search, Loader2, ChevronLeft, ChevronRight, ExternalLink, Eye, RotateCcw } from "lucide-react";
 
 interface BookCoverItem {
   id: number;
@@ -26,10 +26,7 @@ interface BookCoverItem {
 interface CoverStats {
   total: number;
   approved: number;
-  rejected: number;
-  pending: number;
-  needsReplacement: number;
-  noCover: number;
+  needsReview: number;
 }
 
 interface CoverCandidate {
@@ -41,18 +38,7 @@ interface CoverCandidate {
   url: string;
 }
 
-type FilterMode = "all" | "pending" | "approved" | "rejected" | "replace" | "nocover";
-type SortMode = "title" | "quality";
-type RejectReason = "blurry" | "wrong_book" | "wrong_edition" | "low_quality" | "wrong_format" | "other";
-
-const REJECT_REASONS: { value: RejectReason; label: string }[] = [
-  { value: "blurry", label: "Too blurry" },
-  { value: "wrong_book", label: "Wrong book" },
-  { value: "wrong_edition", label: "Wrong edition" },
-  { value: "low_quality", label: "Low quality" },
-  { value: "wrong_format", label: "Wrong format" },
-  { value: "other", label: "Other" },
-];
+type TabMode = "needs_review" | "approved";
 
 const SOURCE_LABELS: Record<string, string> = {
   google_books: "Google Books",
@@ -63,14 +49,9 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export default function BookCoversAdmin() {
   const { toast } = useToast();
-  const [filter, setFilter] = useState<FilterMode>("all");
-  const [sort, setSort] = useState<SortMode>("quality");
+  const [tab, setTab] = useState<TabMode>("needs_review");
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [rejectingId, setRejectingId] = useState<number | null>(null);
-  const [bulkRejecting, setBulkRejecting] = useState(false);
-  const [replacingId, setReplacingId] = useState<number | null>(null);
-  const [bulkReplacing, setBulkReplacing] = useState(false);
-  const [replaceNote, setReplaceNote] = useState("");
   const lastClickedIndex = useRef<number | null>(null);
   const [candidatesMap, setCandidatesMap] = useState<Record<number, CoverCandidate[]>>({});
   const [loadingCandidates, setLoadingCandidates] = useState<Set<number>>(new Set());
@@ -79,44 +60,46 @@ export default function BookCoversAdmin() {
   const [candidateIndex, setCandidateIndex] = useState<Record<number, number>>({});
   const [candidateFetchTime, setCandidateFetchTime] = useState<Record<number, number>>({});
   const [autoFetchedIds, setAutoFetchedIds] = useState<Set<number>>(new Set());
-  const [visibleCount, setVisibleCount] = useState(20);
+  const PAGE_SIZE = 25;
 
-  const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
-    queryKey: ["/api/admin/book-covers", filter, sort],
+  const { data, isLoading, refetch } = useQuery<{
+    books: BookCoverItem[];
+    stats: CoverStats;
+    totalFiltered: number;
+    page: number;
+    totalPages: number;
+  }>({
+    queryKey: ["/api/admin/book-covers", tab, page],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/book-covers?filter=${filter}&sort=${sort}`, { credentials: "include" });
+      const res = await fetch(`/api/admin/book-covers?filter=${tab}&sort=quality&page=${page}&pageSize=${PAGE_SIZE}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },
   });
 
   const books = data?.books || [];
-  const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0, needsReplacement: 0, noCover: 0 };
-
-  const isReplacementView = filter === "replace" || filter === "rejected" || filter === "nocover";
-
-  const visibleBooks = books.slice(0, visibleCount);
+  const stats = data?.stats || { total: 0, approved: 0, needsReview: 0 };
+  const totalPages = data?.totalPages || 1;
+  const totalFiltered = data?.totalFiltered || 0;
 
   useEffect(() => {
-    if (!isReplacementView || !visibleBooks.length) return;
-    const toFetch = visibleBooks.filter(b => !candidatesMap[b.id] && !loadingCandidates.has(b.id) && !autoFetchedIds.has(b.id));
+    if (tab !== "needs_review" || !books.length) return;
+    const toFetch = books.filter(b => !candidatesMap[b.id] && !loadingCandidates.has(b.id) && !autoFetchedIds.has(b.id));
     if (toFetch.length === 0) return;
-    const batchSize = 3;
-    const batch = toFetch.slice(0, batchSize);
+    const batch = toFetch.slice(0, 3);
     setAutoFetchedIds(prev => {
       const next = new Set(prev);
       batch.forEach(b => next.add(b.id));
       return next;
     });
     batch.forEach(b => fetchCandidates(b.id));
-  }, [isReplacementView, visibleBooks, candidatesMap, loadingCandidates, autoFetchedIds]);
+  }, [tab, books, candidatesMap, loadingCandidates, autoFetchedIds]);
 
   useEffect(() => {
-    if (!isReplacementView || !visibleBooks.length) return;
-    const fetched = visibleBooks.filter(b => autoFetchedIds.has(b.id) && candidatesMap[b.id] !== undefined);
-    const pendingVisible = visibleBooks.filter(b => autoFetchedIds.has(b.id) && candidatesMap[b.id] === undefined);
+    if (tab !== "needs_review" || !books.length) return;
+    const pendingVisible = books.filter(b => autoFetchedIds.has(b.id) && candidatesMap[b.id] === undefined);
     if (pendingVisible.length > 0) return;
-    const remaining = visibleBooks.filter(b => !autoFetchedIds.has(b.id) && !candidatesMap[b.id] && !loadingCandidates.has(b.id));
+    const remaining = books.filter(b => !autoFetchedIds.has(b.id) && !candidatesMap[b.id] && !loadingCandidates.has(b.id));
     if (remaining.length === 0) return;
     const nextBatch = remaining.slice(0, 3);
     setAutoFetchedIds(prev => {
@@ -125,7 +108,7 @@ export default function BookCoversAdmin() {
       return next;
     });
     nextBatch.forEach(b => fetchCandidates(b.id));
-  }, [candidatesMap, autoFetchedIds, visibleBooks]);
+  }, [candidatesMap, autoFetchedIds, books]);
 
   const approveMutation = useMutation({
     mutationFn: async (ids: number[]) => {
@@ -135,35 +118,6 @@ export default function BookCoversAdmin() {
       toast({ title: "Approved", description: `${ids.length} cover(s) approved` });
       setSelected(new Set());
       lastClickedIndex.current = null;
-      refetch();
-    },
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: async ({ ids, reason }: { ids: number[]; reason: string }) => {
-      await apiRequest("POST", "/api/admin/book-covers/reject", { ids, reason });
-    },
-    onSuccess: () => {
-      toast({ title: "Rejected", description: "Cover(s) rejected with reason saved" });
-      setSelected(new Set());
-      lastClickedIndex.current = null;
-      setRejectingId(null);
-      setBulkRejecting(false);
-      refetch();
-    },
-  });
-
-  const replaceMutation = useMutation({
-    mutationFn: async ({ ids, note }: { ids: number[]; note: string }) => {
-      await apiRequest("POST", "/api/admin/book-covers/flag-replace", { ids, note });
-    },
-    onSuccess: (_, { ids }) => {
-      toast({ title: "Flagged", description: `${ids.length} cover(s) flagged for replacement` });
-      setSelected(new Set());
-      lastClickedIndex.current = null;
-      setReplacingId(null);
-      setBulkReplacing(false);
-      setReplaceNote("");
       refetch();
     },
   });
@@ -218,7 +172,7 @@ export default function BookCoversAdmin() {
         source: candidate.source,
         filename: candidate.filename,
       });
-      toast({ title: "Cover Selected", description: `Applied ${SOURCE_LABELS[candidate.source] || candidate.source} cover and approved` });
+      toast({ title: "Cover Approved", description: `Applied ${SOURCE_LABELS[candidate.source] || candidate.source} cover` });
       setCandidatesMap(prev => {
         const next = { ...prev };
         delete next[bookId];
@@ -237,26 +191,15 @@ export default function BookCoversAdmin() {
     }
   };
 
-  const dismissCandidates = (bookId: number) => {
-    setCandidatesMap(prev => {
-      const next = { ...prev };
-      delete next[bookId];
-      return next;
-    });
-  };
-
   const handleCardClick = useCallback((index: number, e: React.MouseEvent) => {
     const id = books[index]?.id;
     if (!id) return;
-
     if (e.shiftKey && lastClickedIndex.current !== null) {
       const start = Math.min(lastClickedIndex.current, index);
       const end = Math.max(lastClickedIndex.current, index);
       setSelected(prev => {
         const next = new Set(prev);
-        for (let i = start; i <= end; i++) {
-          next.add(books[i].id);
-        }
+        for (let i = start; i <= end; i++) next.add(books[i].id);
         return next;
       });
     } else {
@@ -271,19 +214,8 @@ export default function BookCoversAdmin() {
   }, [books]);
 
   const selectAll = () => {
-    if (selected.size === books.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(books.map(b => b.id)));
-    }
-  };
-
-  const selectAllWithCovers = () => {
-    setSelected(new Set(books.filter(b => b.hasFile).map(b => b.id)));
-  };
-
-  const handleReject = (ids: number[], reason: RejectReason) => {
-    rejectMutation.mutate({ ids, reason });
+    if (selected.size === books.length) setSelected(new Set());
+    else setSelected(new Set(books.map(b => b.id)));
   };
 
   const amazonSearchUrl = (title: string, author: string | null) => {
@@ -291,39 +223,15 @@ export default function BookCoversAdmin() {
     return `https://www.amazon.com/s?k=${q}&i=stripbooks`;
   };
 
-  const filterButtons: { mode: FilterMode; label: string; icon: typeof Clock; color: string }[] = [
-    { mode: "pending", label: "Pending", icon: Clock, color: "bg-yellow-100 text-yellow-700" },
-    { mode: "approved", label: "Approved", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
-    { mode: "rejected", label: "Rejected", icon: XCircle, color: "bg-red-100 text-red-700" },
-    { mode: "replace", label: "Needs Replace", icon: RefreshCw, color: "bg-orange-100 text-orange-700" },
-    { mode: "nocover", label: "No Cover", icon: BookOpen, color: "bg-zinc-100 text-zinc-700" },
-    { mode: "all", label: "All", icon: Filter, color: "bg-gray-100 text-gray-700" },
-  ];
+  const switchTab = (newTab: TabMode) => {
+    setTab(newTab);
+    setPage(1);
+    setSelected(new Set());
+    setAutoFetchedIds(new Set());
+    setCandidatesMap({});
+  };
 
-  const RejectReasonPicker = ({ onPick, onCancel }: { onPick: (reason: RejectReason) => void; onCancel: () => void }) => (
-    <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-red-50 border border-red-200">
-      <span className="text-xs font-bold text-red-700 mr-1">Reason:</span>
-      {REJECT_REASONS.map(r => (
-        <button
-          key={r.value}
-          onClick={() => onPick(r.value)}
-          className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
-          data-testid={`reject-reason-${r.value}`}
-        >
-          {r.label}
-        </button>
-      ))}
-      <button
-        onClick={onCancel}
-        className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors ml-1"
-        data-testid="reject-cancel"
-      >
-        Cancel
-      </button>
-    </div>
-  );
-
-  const ReplacementCard = ({ book, index }: { book: BookCoverItem; index: number }) => {
+  const ReviewCard = ({ book, index }: { book: BookCoverItem; index: number }) => {
     const candidates = candidatesMap[book.id];
     const isLoadingCands = loadingCandidates.has(book.id);
     const isSelecting = selectingCandidate.has(book.id);
@@ -345,26 +253,26 @@ export default function BookCoversAdmin() {
     return (
       <div
         onClick={(e) => {
-          if ((e.target as HTMLElement).closest("button, a, .candidate-picker")) return;
+          if ((e.target as HTMLElement).closest("button, a")) return;
           handleCardClick(index, e);
         }}
         className={`relative rounded-2xl border-2 p-5 transition-all cursor-pointer select-none ${
           isSelected
             ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 shadow-md"
-            : "border-orange-200 bg-orange-50/20"
+            : "border-border hover:border-muted-foreground/30"
         }`}
         data-testid={`book-cover-card-${book.id}`}
       >
         <div className="flex gap-5">
-          <div className="w-[287px] shrink-0">
+          <div className="w-[200px] shrink-0">
             {isLoadingCands ? (
-              <div className="w-[287px] h-[425px] rounded-xl bg-muted/30 flex flex-col items-center justify-center gap-3">
+              <div className="w-[200px] h-[300px] rounded-xl bg-muted/30 flex flex-col items-center justify-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
                 <span className="text-sm text-muted-foreground">Finding covers...</span>
               </div>
             ) : hasCandidates && currentCandidate ? (
               <div className="relative">
-                <div className="w-[287px] h-[425px] rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg border-2 border-indigo-200">
+                <div className="w-[200px] h-[300px] rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg border border-indigo-200">
                   <img
                     src={`${currentCandidate.url}?t=${fetchTs}`}
                     alt={`${currentCandidate.source} candidate`}
@@ -375,32 +283,29 @@ export default function BookCoversAdmin() {
                   <>
                     <button
                       onClick={goPrev}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                      className="absolute left-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
                       data-testid={`candidate-prev-${book.id}`}
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={goNext}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
                       data-testid={`candidate-next-${book.id}`}
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-3 py-2 rounded-b-xl flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-white">{SOURCE_LABELS[currentCandidate.source] || currentCandidate.source}</span>
-                    <span className="text-[10px] text-white/60 ml-2">{currentCandidate.width}x{currentCandidate.height || "?"} · {Math.round(currentCandidate.size / 1024)}KB</span>
-                  </div>
-                  <span className="text-xs text-white/60">{currentIdx + 1} / {candidates.length}</span>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2.5 py-1.5 rounded-b-xl flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-white">{SOURCE_LABELS[currentCandidate.source] || currentCandidate.source}</span>
+                  <span className="text-[10px] text-white/60">{currentIdx + 1}/{candidates.length}</span>
                 </div>
               </div>
             ) : candidates !== undefined ? (
-              <div className="w-[287px] h-[425px] rounded-xl bg-muted/30 flex flex-col items-center justify-center gap-3">
-                <XCircle className="w-8 h-8 text-zinc-300" />
-                <span className="text-sm text-muted-foreground">No candidates found</span>
+              <div className="w-[200px] h-[300px] rounded-xl bg-muted/30 flex flex-col items-center justify-center gap-3">
+                <X className="w-8 h-8 text-zinc-300" />
+                <span className="text-sm text-muted-foreground text-center">No covers found</span>
                 <button
                   onClick={() => fetchCandidates(book.id)}
                   className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors flex items-center gap-1.5"
@@ -409,39 +314,35 @@ export default function BookCoversAdmin() {
                   <Search className="w-3.5 h-3.5" /> Try Again
                 </button>
               </div>
+            ) : book.hasFile ? (
+              <div className="w-[200px] h-[300px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
+                <img
+                  src={`/books/${book.slug}.jpg?v=${coverVersion[book.id] || 1}`}
+                  alt={book.title}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                />
+              </div>
             ) : (
-              <div className="w-[287px] h-[425px] rounded-xl bg-muted/30 flex flex-col items-center justify-center gap-3">
-                <Search className="w-8 h-8 text-zinc-300" />
-                <span className="text-sm text-muted-foreground">Waiting to search...</span>
+              <div className="w-[200px] h-[300px] rounded-xl bg-muted/30 flex flex-col items-center justify-center gap-3">
+                <BookOpen className="w-8 h-8 text-zinc-300" />
+                <span className="text-sm text-muted-foreground">No cover</span>
+                <span className="text-[10px] text-zinc-400">Searching...</span>
               </div>
             )}
           </div>
 
           <div className="flex-1 min-w-0 flex flex-col justify-between">
             <div>
-              <h3 className="text-base font-bold text-foreground leading-tight line-clamp-3" data-testid={`text-book-title-${book.id}`}>
+              <h3 className="text-base font-bold text-foreground leading-tight line-clamp-2" data-testid={`text-book-title-${book.id}`}>
                 {book.title}
               </h3>
               {book.author && (
-                <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{book.author}</p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
               )}
 
               {book.replacementNote && (
                 <p className="mt-2 text-xs text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg italic">{book.replacementNote}</p>
-              )}
-
-              {book.hasFile && (
-                <div className="mt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Old cover</span>
-                  <div className="mt-1 w-[60px] h-[90px] rounded-lg overflow-hidden bg-muted/30 border border-zinc-200 opacity-50">
-                    <img
-                      src={`/books/${book.slug}.jpg?v=${coverVersion[book.id] || 1}`}
-                      alt={`Old: ${book.title}`}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
               )}
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -449,61 +350,70 @@ export default function BookCoversAdmin() {
                   href={book.amazonUrl || amazonSearchUrl(book.title, book.author)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
                   data-testid={`link-amazon-${book.id}`}
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3 h-3" />
                   Amazon
                 </a>
                 <a
                   href={`/books/${book.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
                   data-testid={`link-podcap-${book.id}`}
                 >
-                  <Eye className="w-3.5 h-3.5" />
-                  PodCap Page
+                  <Eye className="w-3 h-3" />
+                  Page
                 </a>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 mt-4">
-              <div className="flex flex-wrap items-center gap-2">
-                {hasCandidates && currentCandidate && (
-                  <button
-                    onClick={() => selectCandidate(book.id, currentCandidate)}
-                    disabled={isSelecting}
-                    className="px-5 py-2.5 rounded-lg text-sm font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                    data-testid={`button-use-cover-${book.id}`}
-                  >
-                    {isSelecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    {isSelecting ? "Applying..." : "Use This Cover"}
-                  </button>
-                )}
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              {hasCandidates && currentCandidate && (
                 <button
-                  onClick={() => fetchCandidates(book.id)}
-                  disabled={isLoadingCands}
-                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                  data-testid={`button-find-covers-${book.id}`}
+                  onClick={() => selectCandidate(book.id, currentCandidate)}
+                  disabled={isSelecting}
+                  className="px-4 py-2 rounded-lg text-sm font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  data-testid={`button-approve-${book.id}`}
                 >
-                  {isLoadingCands ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  {isLoadingCands ? "Searching..." : "Re-Search"}
+                  {isSelecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {isSelecting ? "Applying..." : "Approve"}
                 </button>
+              )}
+              {!hasCandidates && book.hasFile && (
                 <button
-                  onClick={() => {
-                    if (confirm(`Permanently remove "${book.title}" from the database? It will be blocklisted and never re-added.`)) {
-                      notBookMutation.mutate([book.id]);
-                    }
-                  }}
-                  disabled={notBookMutation.isPending}
-                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-zinc-700 text-white hover:bg-zinc-800 transition-colors disabled:opacity-30 flex items-center gap-1.5"
-                  data-testid={`button-not-book-${book.id}`}
+                  onClick={() => approveMutation.mutate([book.id])}
+                  disabled={approveMutation.isPending}
+                  className="px-4 py-2 rounded-lg text-sm font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  data-testid={`button-approve-current-${book.id}`}
                 >
-                  <X className="w-4 h-4" />
-                  Not a Book
+                  <Check className="w-4 h-4" />
+                  Approve Current
                 </button>
-              </div>
+              )}
+              <button
+                onClick={() => fetchCandidates(book.id)}
+                disabled={isLoadingCands}
+                className="px-3 py-2 rounded-lg text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                data-testid={`button-find-covers-${book.id}`}
+              >
+                {isLoadingCands ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                {isLoadingCands ? "Searching..." : "Find Covers"}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm(`Permanently remove "${book.title}" from the database? It will be blocklisted.`)) {
+                    notBookMutation.mutate([book.id]);
+                  }
+                }}
+                disabled={notBookMutation.isPending}
+                className="px-3 py-2 rounded-lg text-sm font-bold bg-zinc-600 text-white hover:bg-zinc-700 transition-colors disabled:opacity-30 flex items-center gap-1.5"
+                data-testid={`button-not-book-${book.id}`}
+              >
+                <X className="w-4 h-4" />
+                Not a Book
+              </button>
             </div>
           </div>
         </div>
@@ -511,32 +421,15 @@ export default function BookCoversAdmin() {
     );
   };
 
-  const StandardCard = ({ book, index }: { book: BookCoverItem; index: number }) => {
-    const isSelected = selected.has(book.id);
-    const showRejectPicker = rejectingId === book.id;
-    const candidates = candidatesMap[book.id];
-    const isLoadingCands = loadingCandidates.has(book.id);
-
+  const ApprovedCard = ({ book, index }: { book: BookCoverItem; index: number }) => {
     return (
       <div
-        onClick={(e) => {
-          if ((e.target as HTMLElement).closest("button, a, .candidate-picker")) return;
-          handleCardClick(index, e);
-        }}
-        className={`relative rounded-2xl border-2 p-5 transition-all cursor-pointer select-none ${
-          isSelected
-            ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 shadow-md"
-            : book.coverApproved === true
-              ? "border-green-200 bg-green-50/30"
-              : book.coverApproved === false
-                ? "border-red-200 bg-red-50/30"
-                : "border-border hover:border-muted-foreground/30"
-        }`}
+        className="relative rounded-2xl border-2 border-green-200 bg-green-50/30 p-4 transition-all"
         data-testid={`book-cover-card-${book.id}`}
       >
-        <div className="flex gap-5">
-          <div className="w-[287px] shrink-0">
-            <div className="w-[287px] h-[425px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
+        <div className="flex gap-4">
+          <div className="w-[120px] shrink-0">
+            <div className="w-[120px] h-[180px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow">
               {book.hasFile ? (
                 <img
                   src={`/books/${book.slug}.jpg?v=${coverVersion[book.id] || 1}`}
@@ -545,206 +438,24 @@ export default function BookCoversAdmin() {
                   loading="lazy"
                 />
               ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <BookOpen className="w-10 h-10 text-amber-400/50" />
-                  <span className="text-sm text-muted-foreground">No cover</span>
-                </div>
+                <BookOpen className="w-8 h-8 text-zinc-300" />
               )}
             </div>
           </div>
-
-          <div className="flex-1 min-w-0 flex flex-col justify-between">
-            <div>
-              <h3 className="text-base font-bold text-foreground leading-tight line-clamp-3" data-testid={`text-book-title-${book.id}`}>
-                {book.title}
-              </h3>
-              {book.author && (
-                <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{book.author}</p>
-              )}
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {book.coverApproved === true && (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600"><CheckCircle2 className="w-4 h-4" /> Approved</span>
-                )}
-                {book.coverApproved === false && (
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600"><XCircle className="w-4 h-4" /> Rejected</span>
-                    {book.rejectionReason && (
-                      <span className="ml-2 text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded-full">{book.rejectionReason.replace(/_/g, " ")}</span>
-                    )}
-                  </div>
-                )}
-                {book.coverApproved === null && (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-yellow-600"><Clock className="w-4 h-4" /> Pending</span>
-                )}
-                {book.qualityScore !== null && book.hasFile && (
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    book.qualityScore >= 70 ? "bg-green-100 text-green-700" :
-                    book.qualityScore >= 40 ? "bg-yellow-100 text-yellow-700" :
-                    "bg-red-100 text-red-700"
-                  }`} data-testid={`quality-score-${book.id}`}>
-                    {book.qualityScore >= 70 ? "Good" : book.qualityScore >= 40 ? "Okay" : "Poor"} ({book.qualityScore})
-                  </span>
-                )}
-                {book.needsReplacement && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                    <RefreshCw className="w-3 h-3" /> Needs Replace
-                  </span>
-                )}
-                {book.coverSource && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
-                    {book.coverSource.replace(/_/g, " ")}
-                  </span>
-                )}
-                {book.coverApproved === false && book.triedSources && book.triedSources.length > 0 && (
-                  <span className="text-xs text-zinc-400" title={book.triedSources.join(", ")}>
-                    tried {book.triedSources.length}/4 sources
-                  </span>
-                )}
-              </div>
-              {book.replacementNote && (
-                <p className="mt-1.5 text-xs text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg italic">{book.replacementNote}</p>
-              )}
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a
-                  href={book.amazonUrl || amazonSearchUrl(book.title, book.author)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
-                  data-testid={`link-amazon-${book.id}`}
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Amazon
-                </a>
-                <a
-                  href={`/books/${book.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
-                  data-testid={`link-podcap-${book.id}`}
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  PodCap Page
-                </a>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 mt-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleCardClick(index, e); }}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-1.5 ${
-                    isSelected
-                      ? "bg-indigo-500 text-white"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                  data-testid={`checkbox-${book.id}`}
-                >
-                  <Check className="w-4 h-4" />
-                  {isSelected ? "Selected" : "Select"}
-                </button>
-                <button
-                  onClick={() => approveMutation.mutate([book.id])}
-                  disabled={approveMutation.isPending || book.coverApproved === true || !book.hasFile}
-                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-30 flex items-center gap-1.5"
-                  data-testid={`button-approve-${book.id}`}
-                >
-                  <Check className="w-4 h-4" />
-                  Approve
-                </button>
-                <button
-                  onClick={() => setRejectingId(showRejectPicker ? null : book.id)}
-                  disabled={rejectMutation.isPending}
-                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-30 flex items-center gap-1.5"
-                  data-testid={`button-reject-${book.id}`}
-                >
-                  <X className="w-4 h-4" />
-                  Reject
-                </button>
-                <button
-                  onClick={() => fetchCandidates(book.id)}
-                  disabled={isLoadingCands}
-                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                  data-testid={`button-find-covers-${book.id}`}
-                >
-                  {isLoadingCands ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4" />
-                  )}
-                  {isLoadingCands ? "Searching..." : "Find Covers"}
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`Permanently remove "${book.title}" from the database? It will be blocklisted and never re-added.`)) {
-                      notBookMutation.mutate([book.id]);
-                    }
-                  }}
-                  disabled={notBookMutation.isPending}
-                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-zinc-700 text-white hover:bg-zinc-800 transition-colors disabled:opacity-30 flex items-center gap-1.5"
-                  data-testid={`button-not-book-${book.id}`}
-                >
-                  <X className="w-4 h-4" />
-                  Not a Book
-                </button>
-              </div>
-              {showRejectPicker && (
-                <RejectReasonPicker
-                  onPick={(reason) => handleReject([book.id], reason)}
-                  onCancel={() => setRejectingId(null)}
-                />
-              )}
-              {candidates !== undefined && (
-                <div className="candidate-picker">
-                  <div className="mt-3 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-indigo-700">
-                        {candidates.length} cover{candidates.length !== 1 ? "s" : ""} found — click to use
-                      </span>
-                      <button
-                        onClick={() => dismissCandidates(book.id)}
-                        className="text-xs text-zinc-400 hover:text-zinc-600"
-                        data-testid={`button-dismiss-candidates-${book.id}`}
-                      >
-                        Dismiss
-                      </button>
-                    </div>
-                    {candidates.length === 0 ? (
-                      <p className="text-xs text-zinc-500 italic">No covers found from any source.</p>
-                    ) : (
-                      <div className="flex gap-3 overflow-x-auto pb-1">
-                        {candidates.map((c) => (
-                          <button
-                            key={c.source}
-                            onClick={() => selectCandidate(book.id, c)}
-                            disabled={selectingCandidate.has(book.id)}
-                            className="flex-shrink-0 group relative rounded-xl overflow-hidden border-2 border-transparent hover:border-indigo-500 transition-all disabled:opacity-50"
-                            data-testid={`candidate-${book.id}-${c.source}`}
-                          >
-                            <img
-                              src={`${c.url}?t=${candidateFetchTime[book.id] || 1}`}
-                              alt={`${c.source} cover`}
-                              className="w-[120px] h-[180px] object-contain bg-white"
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
-                              <Check className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1 text-center">
-                              <span className="text-[10px] font-bold text-white">{SOURCE_LABELS[c.source] || c.source}</span>
-                              <span className="text-[9px] text-white/60 block">{c.width}x{c.height || "?"} · {Math.round(c.size / 1024)}KB</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {selectingCandidate.has(book.id) && (
-                      <div className="flex items-center gap-2 mt-2 text-xs text-indigo-600">
-                        <Loader2 className="w-3 h-3 animate-spin" /> Applying cover...
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <h3 className="text-sm font-bold text-foreground leading-tight line-clamp-2" data-testid={`text-book-title-${book.id}`}>
+              {book.title}
+            </h3>
+            {book.author && (
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{book.author}</p>
+            )}
+            <div className="flex items-center gap-1.5 mt-2">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+              <span className="text-xs font-medium text-green-600">Approved</span>
+              {book.coverSource && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 ml-1">
+                  {book.coverSource.replace(/_/g, " ")}
+                </span>
               )}
             </div>
           </div>
@@ -755,230 +466,148 @@ export default function BookCoversAdmin() {
 
   return (
     <div className="space-y-4" data-testid="book-covers-admin">
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Total:</span>
-          <span className="text-sm font-bold">{stats.total}</span>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-1 bg-muted/50 rounded-xl p-1">
+          <button
+            onClick={() => switchTab("needs_review")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
+              tab === "needs_review"
+                ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-testid="tab-needs-review"
+          >
+            <Clock className="w-4 h-4" />
+            Needs Review
+            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">
+              {stats.needsReview}
+            </span>
+          </button>
+          <button
+            onClick={() => switchTab("approved")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
+              tab === "approved"
+                ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-testid="tab-approved"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Approved
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
+              {stats.approved}
+            </span>
+          </button>
         </div>
-        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
-          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-          <span className="text-sm font-bold text-green-600">{stats.approved}</span>
-          <span className="text-xs text-muted-foreground">approved</span>
-        </div>
-        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
-          <Clock className="w-3.5 h-3.5 text-yellow-500" />
-          <span className="text-sm font-bold text-yellow-600">{stats.pending}</span>
-          <span className="text-xs text-muted-foreground">pending</span>
-        </div>
-        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
-          <XCircle className="w-3.5 h-3.5 text-red-500" />
-          <span className="text-sm font-bold text-red-600">{stats.rejected}</span>
-          <span className="text-xs text-muted-foreground">rejected</span>
-        </div>
-        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
-          <RefreshCw className="w-3.5 h-3.5 text-orange-500" />
-          <span className="text-sm font-bold text-orange-600">{stats.needsReplacement}</span>
-          <span className="text-xs text-muted-foreground">needs replace</span>
-        </div>
-        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
-          <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
-          <span className="text-sm font-bold text-zinc-500">{stats.noCover}</span>
-          <span className="text-xs text-muted-foreground">no cover</span>
-        </div>
+
+        <span className="text-xs text-muted-foreground">
+          {stats.total} total books
+        </span>
+
         <div className="ml-auto flex items-center gap-2">
           <button
-            data-testid="button-retry-rejected"
-            onClick={() => retryMutation.mutate("rejected")}
+            data-testid="button-retry-all"
+            onClick={() => retryMutation.mutate("nocover")}
             disabled={retryMutation.isPending}
             className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
             {retryMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
-            Retry Rejected
-          </button>
-          <button
-            data-testid="button-retry-nocover"
-            onClick={() => retryMutation.mutate("nocover")}
-            disabled={retryMutation.isPending}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-500 text-white hover:bg-zinc-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-          >
-            {retryMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
-            Find No Cover
+            Re-scan Missing Covers
           </button>
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        {filterButtons.map(({ mode, label, icon: Icon, color }) => (
-          <button
-            key={mode}
-            onClick={() => { setFilter(mode); setSelected(new Set()); setAutoFetchedIds(new Set()); setVisibleCount(20); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-              filter === mode ? color + " ring-2 ring-offset-1 ring-current" : "bg-muted/50 text-muted-foreground hover:bg-muted"
-            }`}
-            data-testid={`filter-${mode}`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
-        <span className="text-xs text-muted-foreground mx-1">|</span>
-        <button
-          onClick={() => { setSort("quality"); setSelected(new Set()); setVisibleCount(20); }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-            sort === "quality" ? "bg-indigo-100 text-indigo-700 ring-2 ring-offset-1 ring-indigo-400" : "bg-muted/50 text-muted-foreground hover:bg-muted"
-          }`}
-          data-testid="sort-quality"
-        >
-          Best First
-        </button>
-        <button
-          onClick={() => { setSort("title"); setSelected(new Set()); setVisibleCount(20); }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-            sort === "title" ? "bg-indigo-100 text-indigo-700 ring-2 ring-offset-1 ring-indigo-400" : "bg-muted/50 text-muted-foreground hover:bg-muted"
-          }`}
-          data-testid="sort-title"
-        >
-          A–Z
-        </button>
       </div>
 
       {selected.size > 0 && (
-        <div className="sticky top-0 z-10 glass-panel rounded-xl p-3 flex flex-col gap-2 border border-indigo-200 bg-indigo-50/80 dark:bg-indigo-950/50">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
-              {selected.size} selected
-            </span>
-            <button
-              onClick={() => approveMutation.mutate(Array.from(selected))}
-              disabled={approveMutation.isPending}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-1"
-              data-testid="button-bulk-approve"
-            >
-              <Check className="w-3.5 h-3.5" />
-              Approve Selected
-            </button>
-            <button
-              onClick={() => setBulkRejecting(true)}
-              disabled={rejectMutation.isPending}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-1"
-              data-testid="button-bulk-reject"
-            >
-              <X className="w-3.5 h-3.5" />
-              Reject Selected
-            </button>
-            <button
-              onClick={() => setBulkReplacing(true)}
-              disabled={replaceMutation.isPending}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-1"
-              data-testid="button-bulk-replace"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Replace Cover
-            </button>
-            <button
-              onClick={() => {
-                if (confirm(`Permanently remove ${selected.size} entries from the database and blocklist them?`)) {
-                  notBookMutation.mutate(Array.from(selected));
-                }
-              }}
-              disabled={notBookMutation.isPending}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-700 text-white hover:bg-zinc-800 transition-colors flex items-center gap-1"
-              data-testid="button-bulk-not-book"
-            >
-              <X className="w-3.5 h-3.5" />
-              Not a Book
-            </button>
-            <button
-              onClick={() => { setSelected(new Set()); setBulkRejecting(false); setBulkReplacing(false); }}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-              data-testid="button-clear-selection"
-            >
-              Clear
-            </button>
-          </div>
-          {bulkRejecting && (
-            <RejectReasonPicker
-              onPick={(reason) => handleReject(Array.from(selected), reason)}
-              onCancel={() => setBulkRejecting(false)}
-            />
-          )}
-          {bulkReplacing && (
-            <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl bg-orange-50 border border-orange-200">
-              <span className="text-xs font-bold text-orange-700">Note (optional):</span>
-              <input
-                type="text"
-                value={replaceNote}
-                onChange={(e) => setReplaceNote(e.target.value)}
-                placeholder="e.g. Use newer edition cover, audiobook cover shown"
-                className="flex-1 min-w-[200px] px-3 py-1.5 rounded-lg text-xs border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                data-testid="input-replace-note"
-              />
-              <button
-                onClick={() => replaceMutation.mutate({ ids: Array.from(selected), note: replaceNote })}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                data-testid="button-confirm-replace"
-              >
-                Flag for Replacement
-              </button>
-              <button
-                onClick={() => { setBulkReplacing(false); setReplaceNote(""); }}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+        <div className="sticky top-0 z-10 glass-panel rounded-xl p-3 flex items-center gap-3 border border-indigo-200 bg-indigo-50/80 dark:bg-indigo-950/50">
+          <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
+            {selected.size} selected
+          </span>
+          <button
+            onClick={() => approveMutation.mutate(Array.from(selected))}
+            disabled={approveMutation.isPending}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-1"
+            data-testid="button-bulk-approve"
+          >
+            <Check className="w-3.5 h-3.5" />
+            Approve Selected
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Permanently remove ${selected.size} entries and blocklist them?`)) {
+                notBookMutation.mutate(Array.from(selected));
+              }
+            }}
+            disabled={notBookMutation.isPending}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-700 text-white hover:bg-zinc-800 transition-colors flex items-center gap-1"
+            data-testid="button-bulk-not-book"
+          >
+            <X className="w-3.5 h-3.5" />
+            Not a Book
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            data-testid="button-clear-selection"
+          >
+            Clear
+          </button>
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-2">
-        <button
-          onClick={selectAll}
-          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-          data-testid="button-select-all"
-        >
-          {selected.size === books.length ? "Deselect All" : "Select All"}
-        </button>
-        <span className="text-xs text-muted-foreground">·</span>
-        <button
-          onClick={selectAllWithCovers}
-          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-          data-testid="button-select-with-covers"
-        >
-          Select All With Covers
-        </button>
-        <span className="text-xs text-muted-foreground">·</span>
-        <span className="text-xs text-muted-foreground italic">
-          Shift+click to select a range
-        </span>
-        <span className="text-xs text-muted-foreground ml-auto">
-          {Math.min(visibleCount, books.length)} of {books.length} books shown
-        </span>
-      </div>
+      {tab === "needs_review" && (
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={selectAll}
+            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+            data-testid="button-select-all"
+          >
+            {selected.size === books.length && books.length > 0 ? "Deselect All" : "Select All"}
+          </button>
+          <span className="text-xs text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground italic">Shift+click to select a range</span>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-center py-10 text-muted-foreground text-sm">Loading covers...</div>
       ) : books.length === 0 ? (
-        <div className="text-center py-10 text-muted-foreground text-sm">No books in this filter</div>
+        <div className="text-center py-10 text-muted-foreground text-sm">
+          {tab === "needs_review" ? "All books have been reviewed!" : "No approved covers yet"}
+        </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {books.slice(0, visibleCount).map((book, index) => (
-              isReplacementView ? (
-                <ReplacementCard key={book.id} book={book} index={index} />
+          <div className={tab === "needs_review" ? "grid grid-cols-1 lg:grid-cols-2 gap-5" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"}>
+            {books.map((book, index) => (
+              tab === "needs_review" ? (
+                <ReviewCard key={book.id} book={book} index={index} />
               ) : (
-                <StandardCard key={book.id} book={book} index={index} />
+                <ApprovedCard key={book.id} book={book} index={index} />
               )
             ))}
           </div>
-          {visibleCount < books.length && (
-            <div className="flex justify-center pt-6 pb-2">
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-6 pb-2">
               <button
-                onClick={() => setVisibleCount(prev => prev + 20)}
-                className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
-                data-testid="button-show-more-books"
+                onClick={() => { setPage(p => Math.max(1, p - 1)); setSelected(new Set()); setAutoFetchedIds(new Set()); setCandidatesMap({}); }}
+                disabled={page <= 1}
+                className="px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-zinc-800 border border-border hover:bg-muted transition-colors disabled:opacity-30 flex items-center gap-1.5"
+                data-testid="button-prev-page"
               >
-                Show More ({books.length - visibleCount} remaining)
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages} ({totalFiltered} books)
+              </span>
+              <button
+                onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setSelected(new Set()); setAutoFetchedIds(new Set()); setCandidatesMap({}); }}
+                disabled={page >= totalPages}
+                className="px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-zinc-800 border border-border hover:bg-muted transition-colors disabled:opacity-30 flex items-center gap-1.5"
+                data-testid="button-next-page"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           )}

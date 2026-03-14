@@ -4678,8 +4678,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const coversDir = path.default.resolve("public/books");
 
       const sort = req.query.sort as string || "title";
+      const page = parseInt(req.query.page as string || "1", 10);
+      const pageSize = parseInt(req.query.pageSize as string || "25", 10);
       let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note, cover_source, cover_tried_sources FROM book_enrichments WHERE slug IS NOT NULL";
-      if (filter === "pending") query += " AND (cover_approved IS NULL)";
+      if (filter === "needs_review") query += " AND (cover_approved IS NULL OR cover_approved = false OR needs_replacement = true OR has_cover IS NULL OR has_cover = false)";
+      else if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
       else if (filter === "replace") query += " AND needs_replacement = true";
@@ -4717,13 +4720,18 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const stats = {
         total: allRows.rows.length,
         approved: allRows.rows.filter((r: any) => r.cover_approved === true).length,
+        needsReview: allRows.rows.filter((r: any) => r.cover_approved !== true).length,
         rejected: allRows.rows.filter((r: any) => r.cover_approved === false).length,
         pending: allRows.rows.filter((r: any) => r.cover_approved === null).length,
         needsReplacement: allRows.rows.filter((r: any) => r.needs_replacement === true).length,
         noCover: allRows.rows.filter((r: any) => !r.has_cover && r.has_cover !== true).length,
       };
 
-      res.json({ books, stats });
+      const offset = (page - 1) * pageSize;
+      const paginatedBooks = books.slice(offset, offset + pageSize);
+      const totalPages = Math.ceil(books.length / pageSize);
+
+      res.json({ books: paginatedBooks, stats, totalFiltered: books.length, page, pageSize, totalPages });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to load book covers" });
     }
