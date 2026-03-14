@@ -4387,7 +4387,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const path = await import("path");
       const coversDir = path.default.resolve("public/books");
 
-      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved FROM book_enrichments WHERE slug IS NOT NULL";
+      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason FROM book_enrichments WHERE slug IS NOT NULL";
       if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
@@ -4398,6 +4398,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const books = rows.map((r: any) => {
         const filePath = path.default.join(coversDir, `${r.slug}.jpg`);
         const hasFile = fs.default.existsSync(filePath);
+        const amazonUrl = r.amazon_url || (r.asin ? `https://www.amazon.com/dp/${r.asin}` : null);
         return {
           id: r.id,
           title: r.book_title,
@@ -4408,6 +4409,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           hasCover: r.has_cover,
           coverApproved: r.cover_approved,
           hasFile,
+          amazonUrl,
+          rejectionReason: r.rejection_reason,
         };
       });
 
@@ -4449,7 +4452,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
-      const { ids } = req.body;
+      const { ids, reason } = req.body;
       if (!Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ message: "ids array required" });
       }
@@ -4469,8 +4472,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       await pool.query(
-        "UPDATE book_enrichments SET cover_approved = false, has_cover = false, updated_at = NOW() WHERE id = ANY($1::int[])",
-        [ids]
+        "UPDATE book_enrichments SET cover_approved = false, has_cover = false, rejection_reason = $2, updated_at = NOW() WHERE id = ANY($1::int[])",
+        [ids, reason || null]
       );
       res.json({ message: `Rejected ${ids.length} covers, files removed` });
     } catch (err: any) {
