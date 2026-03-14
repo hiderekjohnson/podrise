@@ -42,7 +42,8 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Admin Mobile Optimization**: Tab navigation uses horizontal scrolling (`overflow-x-auto`) with `shrink-0 whitespace-nowrap` tab buttons for mobile compatibility.
 - **Recap Generator Per-Podcast Cap**: `server/backgroundRecapGenerator.ts` defaults to 20 most recent episodes per podcast (`--per-podcast=N` flag). Uses `ROW_NUMBER() OVER (PARTITION BY podcast_id)` to distribute recaps evenly.
 - **Product Image Resolution**: `server/productImageResolver.ts` exports `resolveProductImage(purchaseUrl)` — shared by routes.ts, backgroundRecapGenerator.ts, and Taddy webhook handler. Chain: OG image → Logo.dev fallback.
-- **Taddy Webhook Product Extraction**: When a new episode arrives via Taddy webhook and a recap is generated, any products from the recap are automatically saved to `extracted_products` table (same logic as backgroundRecapGenerator).
+- **Product Sponsor Filter**: `server/productFilter.ts` exports `isLikelySponsorProduct(product)` — auto-rejects known podcast sponsors/ads (AG1, Eight Sleep, BetterHelp, Squarespace, etc.), products with sponsor context keywords ("promo code", "brought to you by"), affiliate tracking URLs, generic non-brand products (Amazon search links), and investment-context mentions. Used by backgroundRecapGenerator.ts, Taddy webhook handler, and admin product extraction. Rejected products are saved with `status='rejected'` and appropriate `rejection_reason`.
+- **Taddy Webhook Product Extraction**: When a new episode arrives via Taddy webhook and a recap is generated, any products from the recap are automatically saved to `extracted_products` table (same logic as backgroundRecapGenerator), with sponsor filter applied.
 
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.

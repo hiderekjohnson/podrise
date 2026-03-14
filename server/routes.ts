@@ -8887,8 +8887,12 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             podcastSlug,
           };
 
+          const { isLikelySponsorProduct } = await import("./productFilter");
+          const filterResult = isLikelySponsorProduct(product);
+          const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
+
           let imageUrl: string | null = null;
-          if (product.purchaseUrl) {
+          if (!filterResult.isFiltered && product.purchaseUrl) {
             imageUrl = await resolveProductImage(product.purchaseUrl);
           }
 
@@ -8898,11 +8902,11 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
           );
           if (existing.rows.length === 0) {
             const ins = await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, image_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending') RETURNING id`,
-              [product.name, product.company, product.description, product.purchaseUrl, imageUrl, product.context, product.mentionType, product.category, product.episodeTitle, product.episodeSlug, product.podcastSlug]
+              `INSERT INTO extracted_products (name, company, description, purchase_url, image_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
+              [product.name, product.company, product.description, product.purchaseUrl, imageUrl, product.context, product.mentionType, product.category, product.episodeTitle, product.episodeSlug, product.podcastSlug, initialStatus, filterResult.reason]
             );
-            allProducts.push({ ...product, id: ins.rows[0].id, imageUrl, status: "pending" });
+            allProducts.push({ ...product, id: ins.rows[0].id, imageUrl, status: initialStatus });
           }
         }
       }
@@ -9154,8 +9158,12 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
 
             if (recap.products && recap.products.length > 0) {
               let productsSaved = 0;
+              let productsFiltered = 0;
+              const { isLikelySponsorProduct } = await import("./productFilter");
               for (const p of recap.products) {
                 if (!p.name || !p.context) continue;
+                const filterResult = isLikelySponsorProduct(p);
+                const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
                 try {
                   const { rows: existingProd } = await pool.query(
                     `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
@@ -9163,18 +9171,19 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                   );
                   if (existingProd.length > 0) continue;
                   let imageUrl: string | null = null;
-                  if (p.purchaseUrl) {
+                  if (!filterResult.isFiltered && p.purchaseUrl) {
                     try { imageUrl = await resolveProductImage(p.purchaseUrl); } catch {}
                   }
                   await pool.query(
-                    `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, image_url)
-                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending',$11) ON CONFLICT DO NOTHING`,
-                    [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcast.slug, imageUrl]
+                    `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
+                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
+                    [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcast.slug, initialStatus, filterResult.reason, imageUrl]
                   );
-                  productsSaved++;
+                  if (filterResult.isFiltered) productsFiltered++;
+                  else productsSaved++;
                 } catch {}
               }
-              if (productsSaved > 0) console.log(`[TaddyWebhook] Saved ${productsSaved} products for "${epTitle.slice(0, 60)}"`);
+              if (productsSaved > 0 || productsFiltered > 0) console.log(`[TaddyWebhook] Products for "${epTitle.slice(0, 60)}": ${productsSaved} saved, ${productsFiltered} auto-filtered`);
             }
 
             try {

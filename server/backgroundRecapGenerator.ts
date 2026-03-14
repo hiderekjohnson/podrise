@@ -1,6 +1,7 @@
 import { pool } from "./db";
 import { generateRecapFromFullTranscript, extractQuotesFromTranscript, ExtractedProduct } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
+import { isLikelySponsorProduct } from "./productFilter";
 
 const CONCURRENCY = 2;
 const BATCH_SIZE = 50;
@@ -158,8 +159,14 @@ async function processEpisode(
 
       if (recap.products && recap.products.length > 0) {
         let productsSaved = 0;
+        let productsFiltered = 0;
         for (const p of recap.products) {
           if (!p.name || !p.context) continue;
+
+          const filterResult = isLikelySponsorProduct(p);
+          const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
+          const rejectionReason = filterResult.reason;
+
           try {
             const { rows: existing } = await pool.query(
               `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
@@ -168,7 +175,7 @@ async function processEpisode(
             if (existing.length > 0) continue;
 
             let imageUrl: string | null = null;
-            if (p.purchaseUrl) {
+            if (!filterResult.isFiltered && p.purchaseUrl) {
               try {
                 const { resolveProductImage } = await import("./productImageResolver");
                 imageUrl = await resolveProductImage(p.purchaseUrl);
@@ -176,17 +183,21 @@ async function processEpisode(
             }
 
             await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, image_url)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending',$11) ON CONFLICT DO NOTHING`,
-              [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcastSlug, imageUrl]
+              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
+              [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
             );
-            productsSaved++;
+            if (filterResult.isFiltered) {
+              productsFiltered++;
+            } else {
+              productsSaved++;
+            }
           } catch (prodErr: any) {
             console.warn(`[BgRecap] Product save failed for "${p.name}": ${prodErr.message}`);
           }
         }
-        if (productsSaved > 0) {
-          console.log(`[BgRecap] Saved ${productsSaved} products for "${epTitle.slice(0, 50)}"`);
+        if (productsSaved > 0 || productsFiltered > 0) {
+          console.log(`[BgRecap] Products for "${epTitle.slice(0, 50)}": ${productsSaved} saved, ${productsFiltered} auto-filtered`);
         }
       }
 
