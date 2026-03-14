@@ -1,0 +1,51 @@
+#,Book Title,Author,ISBN-13
+1,A Century of Plenty,"Sven Smit, et al.",9798993907505
+2,Am I Overthinking This?,Michelle Rial,9781797200660
+3,Bert and the Broken Teapot,Tish Rabe,9780593094740
+4,Build a Large Language Model (From Scratch),Sebastian Raschka,9781633437166
+5,Charisma on Command,Charlie Houpert,9781947200005
+6,Day Trading Attention,Gary Vaynerchuk,9780062885000
+7,Days Can Be Sunny for Bunnies and Money,Tish Rabe,9780593095090
+8,Discipline Equals Freedom,Jocko Willink,9781250156945
+9,Dominion,Chad Ripperger,9798416012076
+10,Economic Possibilities for Our Grandchildren,John Maynard Keynes,9781614270520
+11,Entertaining,Martha Stewart,9780307464878
+12,Ford vs. Ferrari: The Battle for Supremacy,Preston Lerner,9781611688230
+13,Generative AI and Stochastic Thermodynamics,Max Welling,Research Paper/Notes
+14,Intro to the Science of Mental Health,Chad Ripperger,9780974541945
+15,"Jab, Jab, Jab, Right Hook",Gary Vaynerchuk,9780062273062
+16,Killers of Roe,Amy Littlefield,9781538769041
+17,"Kindness is Caring, Friendship is Sharing",Tish Rabe,9780593095083
+18,Learn Python the Hard Way,Zed A. Shaw,9780134692883
+19,The Wim Hof Method (Living with the Seal),"Wim Hof, Koen de Jong",9781683647966
+20,"Maker's Schedule, Manager's Schedule",Paul Graham,Essay/Online
+21,Minister Without Portfolio,Humayun Majid,9781838493103
+22,Myers-Briggs Type Indicator Manual,Isabel Briggs Myers,9780891061304
+23,Mystic by the Sea,Tish Rabe,9780593095113
+24,The Almanack of Naval Ravikant,Eric Jorgenson,9781544514215
+25,Occult Feminism,Rachel Wilson,9798784157546
+26,"Ready, Fire, Aim",Michael Masterson,9780470182024
+27,Rose and Tulip Quilts,Gwen Marston,9780891459378
+28,Simple But Not Easy,Richard Oldfield,9780857192011
+29,Stuck in Space,Butch Wilmore,Pending Release
+30,Sweet Dreams,Tish Rabe,9780593095106
+31,Tax Strategies (Savvy RE Investor),Amanda Han,9781941529188
+32,The Beato Book,Rick Beato,Direct Purchase
+33,The Billion Dollar Creator,Nathan Barry,9781734569032
+34,The Brus,John Barbour,9780862416812
+35,The Dark Knight Manual,Brandon T. Snider,9781608871049
+36,The Hybrid Athlete,Alex Viada,9781938818240
+37,The Mars and Hershey Wars,Joël Glenn Brenner,9780375754456
+38,The Math Academy Way,Justin Skycak,9798339120155
+39,The New Attachment Theory,Thais Gibson,9780593433621
+40,Paradox of Declining Female Happiness,Stevenson & Wolfers,Research Paper
+41,Sol Price: Retail Revolutionary,Robert E. Price,9780988680609
+42,The Rolex Story,Gisbert L. Brunner,9780764350313
+43,The Sheikh CEO,Dr. Yasar Jarrar,9781786121431
+44,Triggers,Joe Sugarman,9781613390429
+45,Unabridged,Stefan Fatsis,9780062082237
+46,Understanding Media,Marshall McLuhan,9781584230731
+47,Understanding the Matthew Effect,Mark Wilburn,9798985716801
+48,Uneducated,Francis Foster,9781399723046
+49,Ungifted,Scott Barry Kaufman,9780465066964
+50,Unleash the Power Within,Tony Robbins,9781797111612

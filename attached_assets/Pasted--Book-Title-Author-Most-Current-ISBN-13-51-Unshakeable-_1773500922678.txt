@@ -1,0 +1,46 @@
+#,Book Title,Author,Most Current ISBN-13
+51,Unshakeable: Your Financial Freedom Playbook,Tony Robbins,9781501164583
+52,Vaccines and Men,Aaron Siri,9798341629851
+53,Vaccines: Amen,Aaron Siri,9798341629851
+54,Vec As In Wreck,Bill Veeck,9780226852188
+55,Vibe Coding,Steve Yegge and Gene Kim,(Tech Concept/Blog)
+56,War Games,David Bischoff,9781948244978
+57,War of Art,Steven Pressfield,9781936891023
+58,War of the Worlds,H.G. Wells,9780141441030
+59,Warhammer: The Horus Heresy (Horus Rising),Games Workshop,9781844162949
+60,Worn: A People's History of Clothing,Sofi Thanhauser,9780525566731
+61,Warren Buffett and the Interpretation of Financial Statements,Mary Buffett and David Clark,9781416573180
+62,We Are the Bad Guys,Michael Lester,9798999255600
+63,Wealthy Barber,David Chilton,9780771019944
+64,Weapons of Mass Instruction,John Taylor Gatto,9780865716315
+65,Well Endowed,Vivian Tu,9780063452343
+66,Werewolves in Their Youth,Michael Chabon,9780312254384
+67,What Would Charles Darwin Think About Clean Slate Architectures?,Unknown,(Tech Talk Title)
+68,What to Make of a Life,Jim Collins,9780063567375
+69,Where Are the Customers’ Yachts?,Fred Schwed Jr.,9780471770893
+70,Where We Keep the Light,Josh Shapiro,9780063463905
+71,Who Killed Jane Stanford?,Richard White,9781324007135
+72,Who Moved My Cheese?,Spencer Johnson,9780399144462
+73,Why Fish Don’t Exist,Lulu Miller,9781501160349
+74,Wild Problems,Russ Roberts,9780593418253
+75,Windswept House: A Vatican Novel,Malachi Martin,9780385492317
+76,Winning,Tim Grover,9781982132488
+77,Wisdom Wide and Deep,Shaila Catherine,9780861716234
+78,"Witches, Feminism, and the Fall of the West",Edward Dutton,9781593680794
+79,Words That Work,Frank Luntz,9781401309299
+80,Worn: A People's History of Clothing,Sofi Thanhauser,9780525566731
+81,You Can Be a Stock Market Genius,Joel Greenblatt,9780684840070
+82,You Can't Teach Hungry,John Morgan,9781119640805
+83,You Can't Teach Vision,John Morgan,9781941007389
+84,You Could Be Having Better Sex,Dr. Nicole McNichols,9781668053775
+85,You Have More Influence Than You Think,Vanessa Bohns,9781324005711
+86,You Need a Budget,Jesse Mecham,9781941529000
+87,You to the Power of Two,"Joseph Bradley, Don Tapscott",9781637747841
+88,Young Forever,Mark Hyman,9780316453189
+89,Young Man in a Hurry,Gavin Newsom,9781984881939
+90,Your Individual Empire,Gary Vaynerchuk,9780063317642
+91,Your Life in Weeks,Tim Urban,(Visual Poster/Tool)
+92,Your Personal Paleo Code (The Paleo Cure),Chris Kresser,9780316322836
+93,Zeckendorf (Developing: My Life),William Zeckendorf,9780991026357
+94,Zero to One,Peter Thiel,9780804139298
+95,iGen,Jean M. Twenge,9781501151972

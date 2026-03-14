@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import {
   BookOpen, Search, ExternalLink, Mic, X, Star, ChevronRight,
-  ChevronDown, Sparkles
+  ChevronDown, Sparkles, TrendingUp, Flame, Filter
 } from "lucide-react";
 import { BookCover } from "@/components/BookCover";
 import { Footer } from "@/components/Footer";
@@ -61,11 +61,11 @@ function AuthorWithLinks({ author }: { author: string }) {
 }
 
 const SORT_OPTIONS = [
+  { value: "popular", label: "Most Popular" },
   { value: "newest", label: "Newest to Oldest" },
   { value: "oldest", label: "Oldest to Newest" },
   { value: "alpha", label: "A to Z" },
   { value: "alpha-desc", label: "Z to A" },
-  { value: "rating", label: "Highest Rated" },
 ] as const;
 
 type SortOption = typeof SORT_OPTIONS[number]["value"];
@@ -306,14 +306,163 @@ function DropdownSelect({ label, value, options, onChange, testId }: {
   );
 }
 
+function PodcastFilterDropdown({ value, podcasts, podcastArtwork, onChange, testId }: {
+  value: string | null;
+  podcasts: { value: string; label: string }[];
+  podcastArtwork: Map<string, string>;
+  onChange: (val: string | null) => void;
+  testId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (open && inputRef.current) inputRef.current.focus();
+  }, [open]);
+
+  const filtered = query.trim()
+    ? podcasts.filter(p => p.value.toLowerCase().includes(query.toLowerCase()))
+    : podcasts;
+
+  const selectedArt = value ? podcastArtwork.get(value) : null;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[14px] font-medium border transition-colors whitespace-nowrap ${
+          value
+            ? "bg-[#6366F1]/[0.08] text-[#6366F1] border-[#6366F1]/20"
+            : "bg-white dark:bg-white/[0.04] text-[#52525B] dark:text-[#A1A1AA] border-[#E4E4E7] dark:border-white/[0.12] hover:border-[#6366F1]/30"
+        }`}
+        data-testid={testId}
+      >
+        {selectedArt && (
+          <img src={selectedArt} alt="" className="w-5 h-5 rounded-[4px] object-cover" />
+        )}
+        <Filter className="w-3.5 h-3.5" />
+        {value || "Filter by Podcast"}
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 bg-white dark:bg-[#18181B] border border-[#E4E4E7] dark:border-white/[0.12] rounded-xl shadow-lg z-50 w-[320px] py-1 max-h-[400px] flex flex-col">
+          <div className="px-2 pt-1 pb-1">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A1A1AA]" />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search podcasts..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 text-[14px] bg-[#F7F7FC] dark:bg-white/[0.04] border border-[#E4E4E7] dark:border-white/[0.08] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#6366F1]/30"
+                data-testid={`${testId}-search`}
+              />
+            </div>
+          </div>
+          {value && (
+            <button
+              onClick={() => { onChange(null); setOpen(false); setQuery(""); }}
+              className="w-full px-3 py-2 text-left text-[14px] text-[#A1A1AA] hover:bg-[#F7F7FC] dark:hover:bg-white/[0.04] transition-colors border-b border-[#F0F0F2] dark:border-white/[0.06]"
+              data-testid={`${testId}-clear`}
+            >
+              Show all podcasts
+            </button>
+          )}
+          <div className="overflow-y-auto flex-1">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-4 text-[14px] text-[#A1A1AA] text-center">No podcasts found</div>
+            ) : (
+              filtered.map(p => {
+                const art = podcastArtwork.get(p.value);
+                return (
+                  <button
+                    key={p.value}
+                    onClick={() => { onChange(p.value); setOpen(false); setQuery(""); }}
+                    className={`w-full px-3 py-2 text-left text-[14px] transition-colors flex items-center gap-2.5 ${
+                      value === p.value
+                        ? "text-[#6366F1] font-semibold bg-[#6366F1]/[0.04]"
+                        : "text-[#09090B] dark:text-white hover:bg-[#F7F7FC] dark:hover:bg-white/[0.04]"
+                    }`}
+                    data-testid={`${testId}-option-${p.value.replace(/\s+/g, '-').toLowerCase()}`}
+                  >
+                    {art ? (
+                      <img src={art} alt={p.value} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-[#F0F0F2] dark:bg-white/[0.06] flex items-center justify-center shrink-0">
+                        <Mic className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                      </div>
+                    )}
+                    <span className="truncate">{p.label}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ShelfRow({ books, keyPrefix }: { books: BookstoreBook[]; keyPrefix: string }) {
+  return (
+    <div className="flex gap-5 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
+      {books.slice(0, 10).map((book, i) => {
+        const inner = (
+          <div className="w-[160px] shrink-0 group/shelf">
+            <div className="mb-2.5">
+              <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
+            </div>
+            <p className="text-[15px] font-semibold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover/shelf:text-[#6366F1] transition-colors">
+              {book.name}
+            </p>
+            {book.author && book.author !== "null" && (
+              <p className="text-[14px] text-[#A1A1AA] mt-0.5 line-clamp-1">{book.author}</p>
+            )}
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <span className="text-[12px] text-[#6366F1] font-medium flex items-center gap-0.5">
+                <Mic className="w-3 h-3 inline" />
+                {book.podcastCount} {book.podcastCount === 1 ? "podcast" : "podcasts"}
+              </span>
+            </div>
+          </div>
+        );
+        const testId = `shelf-${keyPrefix}-${(book.slug || book.name.toLowerCase().replace(/\s+/g, '-').slice(0, 30))}-${i}`;
+        return book.slug ? (
+          <Link href={`/bookstore/${book.slug}`} className="block shrink-0" key={`${keyPrefix}-${book.name}-${i}`} data-testid={testId}>
+            {inner}
+          </Link>
+        ) : (
+          <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="block shrink-0" key={`${keyPrefix}-${book.name}-${i}`} data-testid={testId}>
+            {inner}
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Bookstore() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedLength, setSelectedLength] = useState<LengthFilter>(null);
   const [selectedPodcast, setSelectedPodcast] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data, isLoading } = useQuery<BookstoreData>({
     queryKey: ["/api/bookstore"],
@@ -321,7 +470,7 @@ export default function Bookstore() {
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [searchQuery, sortBy, selectedTopic, selectedLength, selectedPodcast]);
+  }, [sortBy, selectedTopic, selectedLength, selectedPodcast, searchQuery]);
 
   const availableTopics = useMemo(() => {
     if (!data?.books) return [];
@@ -343,7 +492,7 @@ export default function Bookstore() {
       }
     }
     return [...counts.entries()]
-      .filter(([, count]) => count >= 3)
+      .filter(([, count]) => count >= 2)
       .sort((a, b) => b[1] - a[1])
       .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
   }, [data]);
@@ -356,7 +505,30 @@ export default function Bookstore() {
     return map;
   }, []);
 
-  const hasActiveFilters = !!selectedTopic || !!selectedLength || !!searchQuery || !!selectedPodcast;
+  const shelves = useMemo(() => {
+    if (!data?.books) return { mostRecommended: [], newTrending: [], recentlyPopular: [] };
+    const allBooks = data.books;
+    const currentYear = new Date().getFullYear();
+
+    const mostRecommended = [...allBooks]
+      .filter(b => b.mentionCount >= 3 && b.podcastCount >= 2)
+      .sort((a, b) => b.podcastCount - a.podcastCount)
+      .slice(0, 10);
+
+    const newTrending = [...allBooks]
+      .filter(b => b.publishYear && b.publishYear >= currentYear - 3)
+      .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0) || b.mentionCount - a.mentionCount)
+      .slice(0, 10);
+
+    const recentlyPopular = [...allBooks]
+      .filter(b => b.podcastBuzz && b.podcastCount >= 2)
+      .sort((a, b) => b.mentionCount - a.mentionCount)
+      .slice(0, 10);
+
+    return { mostRecommended, newTrending, recentlyPopular };
+  }, [data]);
+
+  const hasActiveFilters = !!selectedTopic || !!selectedLength || !!selectedPodcast || !!searchQuery;
 
   const filteredBooks = useMemo(() => {
     if (!data?.books) return [];
@@ -391,12 +563,12 @@ export default function Bookstore() {
       }
     }
 
-    if (sortBy === "alpha") {
+    if (sortBy === "popular") {
+      result.sort((a, b) => b.podcastCount - a.podcastCount || b.mentionCount - a.mentionCount);
+    } else if (sortBy === "alpha") {
       result.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === "alpha-desc") {
       result.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortBy === "rating") {
-      result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sortBy === "newest") {
       result.sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0));
     } else if (sortBy === "oldest") {
@@ -414,7 +586,7 @@ export default function Bookstore() {
     setSelectedLength(null);
     setSelectedPodcast(null);
     setSearchQuery("");
-    setSortBy("newest");
+    setSortBy("popular");
   };
 
   return (
@@ -429,148 +601,32 @@ export default function Bookstore() {
               The reading list behind the world's best podcasts
             </h1>
             <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] max-w-2xl leading-relaxed" data-testid="text-bookstore-subtitle">
-              Discover what hosts and guests actually recommend reading — and why.
+              Discover what hosts and guests actually recommend reading — and why. Browse all books or filter by your favorite podcast.
             </p>
           </motion.div>
         </section>
       </div>
 
       {!isLoading && (
-        <>
-          <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-            <div className="flex items-center gap-3 mb-4">
-              <Sparkles className="w-4.5 h-4.5 text-[#6366F1]" />
-              <h2 className="text-xl font-bold text-[#09090B] dark:text-white">Recommended Across the Most Podcasts</h2>
-            </div>
-            <div className="flex gap-5 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
-              {data?.books
-                .filter(b => b.mentionCount >= 3 && b.podcastCount >= 2)
-                .sort((a, b) => b.podcastCount - a.podcastCount)
-                .slice(0, 10)
-                .map((book, i) => {
-                  const inner = (
-                    <div className="w-[160px] shrink-0 group/shelf" key={`${book.name}-${i}`}>
-                      <div className="mb-2.5">
-                        <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
-                      </div>
-                      <p className="text-[15px] font-semibold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover/shelf:text-[#6366F1] transition-colors">
-                        {book.name}
-                      </p>
-                      {book.author && book.author !== "null" && (
-                        <p className="text-[14px] text-[#A1A1AA] mt-0.5 line-clamp-1">{book.author}</p>
-                      )}
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <span className="text-[12px] text-[#6366F1] font-medium flex items-center gap-0.5">
-                          <Mic className="w-3 h-3 inline" />
-                          {book.podcastCount} {book.podcastCount === 1 ? "podcast" : "podcasts"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                  const testId = `shelf-book-${(book.slug || book.name.toLowerCase().replace(/\s+/g, '-').slice(0, 30))}-${i}`;
-                  return book.slug ? (
-                    <Link href={`/bookstore/${book.slug}`} className="block shrink-0" key={`${book.name}-${i}`} data-testid={testId}>
-                      {inner}
-                    </Link>
-                  ) : (
-                    <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="block shrink-0" key={`${book.name}-${i}`} data-testid={testId}>
-                      {inner}
-                    </a>
-                  );
-                })}
-            </div>
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+          <div className="flex items-center gap-3 mb-4">
+            <Sparkles className="w-4.5 h-4.5 text-[#6366F1]" />
+            <h2 className="text-xl font-bold text-[#09090B] dark:text-white">Most Recommended on Podcasts</h2>
+          </div>
+          <ShelfRow books={shelves.mostRecommended} keyPrefix="recommended" />
 
-            <div className="flex items-center gap-3 mb-4 mt-10">
-              <Sparkles className="w-4.5 h-4.5 text-[#6366F1]" />
-              <h2 className="text-xl font-bold text-[#09090B] dark:text-white">Just Published & Already Buzzing</h2>
-            </div>
-            <div className="flex gap-5 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
-              {data?.books
-                .filter(b => b.publishYear && b.publishYear >= new Date().getFullYear() - 3)
-                .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0))
-                .slice(0, 10)
-                .map((book, i) => {
-                  const inner = (
-                    <div className="w-[160px] shrink-0 group/shelf" key={`new-${book.name}-${i}`}>
-                      <div className="mb-2.5">
-                        <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
-                      </div>
-                      <p className="text-[15px] font-semibold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover/shelf:text-[#6366F1] transition-colors">
-                        {book.name}
-                      </p>
-                      {book.author && book.author !== "null" && (
-                        <p className="text-[14px] text-[#A1A1AA] mt-0.5 line-clamp-1">{book.author}</p>
-                      )}
-                    </div>
-                  );
-                  const testId = `shelf-new-${(book.slug || book.name.toLowerCase().replace(/\s+/g, '-').slice(0, 30))}-${i}`;
-                  return book.slug ? (
-                    <Link href={`/bookstore/${book.slug}`} className="block shrink-0" key={`new-${book.name}-${i}`} data-testid={testId}>
-                      {inner}
-                    </Link>
-                  ) : (
-                    <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="block shrink-0" key={`new-${book.name}-${i}`} data-testid={testId}>
-                      {inner}
-                    </a>
-                  );
-                })}
-            </div>
+          <div className="flex items-center gap-3 mb-4 mt-10">
+            <TrendingUp className="w-4.5 h-4.5 text-[#6366F1]" />
+            <h2 className="text-xl font-bold text-[#09090B] dark:text-white">New & Trending on Podcasts</h2>
+          </div>
+          <ShelfRow books={shelves.newTrending} keyPrefix="trending" />
 
-            <div className="flex items-center gap-3 mb-4 mt-10">
-              <Sparkles className="w-4.5 h-4.5 text-[#6366F1]" />
-              <h2 className="text-xl font-bold text-[#09090B] dark:text-white">Written by Women</h2>
-            </div>
-            <div className="flex gap-5 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
-              {data?.books
-                .filter(b => {
-                  if (!b.author || b.author === "null") return false;
-                  const WOMEN_AUTHORS = new Set([
-                    "alison gopnik", "alison roman", "allegra goodman", "amanda han", "amy purdy",
-                    "amy shaw", "angela duckworth", "anne-laure le cunff", "annie duke", "annie jacobsen",
-                    "barbara kingsolver", "bethany joy lenz", "bronnie ware", "byron katie",
-                    "carole hooven", "hilary allen", "ina park", "iva layla",
-                    "j.d. robb", "jane ann krentz", "jenna fischer", "jessie inchauspé",
-                    "julia boyd", "julia shaw", "julie fenster", "juliet macur",
-                    "kathryn paige harden", "laura vanderkam", "leslie john", "linda hill",
-                    "maya shankar", "mel robbins", "nicole mcnichols", "rachel e. gross",
-                    "rachel wilson", "rebecca solnit", "sarah adams", "sarah gray",
-                    "sarah j. maas", "sarah paine", "sasha hamdani", "tanya janca",
-                    "tayari jones", "thais gibson", "tish rabe", "vivian tu",
-                  ]);
-                  const lower = b.author.toLowerCase().trim();
-                  if (WOMEN_AUTHORS.has(lower)) return true;
-                  return lower.split(/,\s*| and /).some(p => WOMEN_AUTHORS.has(p.trim()));
-                })
-                .sort((a, b) => b.podcastCount - a.podcastCount)
-                .slice(0, 10)
-                .map((book, i) => {
-                  const inner = (
-                    <div className="w-[160px] shrink-0 group/shelf" key={`women-${book.name}-${i}`}>
-                      <div className="mb-2.5">
-                        <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
-                      </div>
-                      <p className="text-[15px] font-semibold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover/shelf:text-[#6366F1] transition-colors">
-                        {book.name}
-                      </p>
-                      {book.author && book.author !== "null" && (
-                        <p className="text-[14px] text-[#A1A1AA] mt-0.5 line-clamp-1">{book.author}</p>
-                      )}
-                    </div>
-                  );
-                  const testId = `shelf-women-${(book.slug || book.name.toLowerCase().replace(/\s+/g, '-').slice(0, 30))}-${i}`;
-                  return book.slug ? (
-                    <Link href={`/bookstore/${book.slug}`} className="block shrink-0" key={`women-${book.name}-${i}`} data-testid={testId}>
-                      {inner}
-                    </Link>
-                  ) : (
-                    <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="block shrink-0" key={`women-${book.name}-${i}`} data-testid={testId}>
-                      {inner}
-                    </a>
-                  );
-                })}
-            </div>
-          </section>
-        </>
+          <div className="flex items-center gap-3 mb-4 mt-10">
+            <Flame className="w-4.5 h-4.5 text-[#6366F1]" />
+            <h2 className="text-xl font-bold text-[#09090B] dark:text-white">Recently Popular on Podcasts</h2>
+          </div>
+          <ShelfRow books={shelves.recentlyPopular} keyPrefix="popular" />
+        </section>
       )}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20 pt-10">
@@ -579,7 +635,7 @@ export default function Bookstore() {
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-[#6366F1]" />
               <h2 className="text-[14px] font-bold uppercase tracking-[0.12em] text-[#09090B] dark:text-white" data-testid="heading-browse">
-                {searchQuery ? "Search Results" : selectedTopic ? selectedTopic : selectedPodcast ? `Books from ${selectedPodcast}` : "Browse All Books"}
+                {selectedPodcast ? `Books from ${selectedPodcast}` : searchQuery ? "Search Results" : selectedTopic ? selectedTopic : "Browse All Books"}
               </h2>
               {hasActiveFilters && (
                 <span className="text-[14px] font-mono text-[#52525B] ml-1">
@@ -590,15 +646,14 @@ export default function Bookstore() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-5">
-            <div className="relative flex-1 min-w-[200px] max-w-[360px]">
+            <div className="relative min-w-[180px] max-w-[280px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
               <input
-                ref={searchInputRef}
                 type="text"
                 placeholder="Search by title or author..."
                 aria-label="Search books"
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); if (e.target.value) { setSelectedTopic(null); setSelectedLength(null); setSelectedPodcast(null); } }}
+                onChange={(e) => { setSearchQuery(e.target.value); if (e.target.value) { setSelectedTopic(null); setSelectedLength(null); } }}
                 className="w-full pl-9 pr-8 py-2 text-[14px] bg-white dark:bg-white/[0.04] border border-[#E4E4E7] dark:border-white/[0.12] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1]/40 transition-all"
                 data-testid="input-search"
               />
@@ -616,10 +671,10 @@ export default function Bookstore() {
             <div className="h-5 w-px bg-[#E4E4E7] dark:bg-white/[0.08] hidden sm:block" />
 
             <DropdownSelect
-              label="Sort"
+              label="Most Popular"
               value={sortBy}
               options={SORT_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
-              onChange={(v) => setSortBy((v as SortOption) || "newest")}
+              onChange={(v) => setSortBy((v as SortOption) || "popular")}
               testId="dropdown-sort"
             />
 
@@ -639,10 +694,10 @@ export default function Bookstore() {
               testId="dropdown-length"
             />
 
-            <DropdownSelect
-              label="Podcast"
+            <PodcastFilterDropdown
               value={selectedPodcast}
-              options={availablePodcasts}
+              podcasts={availablePodcasts}
+              podcastArtwork={podcastArtwork}
               onChange={setSelectedPodcast}
               testId="dropdown-podcast"
             />
