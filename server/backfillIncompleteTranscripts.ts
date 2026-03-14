@@ -5,7 +5,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 const DELAY_MS = 600;
 const EPISODES_PER_PAGE = 25;
-const MAX_PAGES = 12;
+const MAX_PAGES = 25;
 const BATCH_SIZE = 5;
 const BATCH_PAUSE_MS = 10000;
 
@@ -99,11 +99,21 @@ async function main() {
       for (let page = 1; page <= MAX_PAGES; page++) {
         if (fixed >= incompleteEps.length) break;
 
+        console.log(`  Fetching page ${page}...`);
         const query = `{ getPodcastSeries(uuid: "${p.taddy_uuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: ${EPISODES_PER_PAGE}, page: ${page}) { uuid name description subtitle datePublished duration imageUrl audioUrl seasonNumber episodeNumber episodeType } } }`;
 
-        const data = await taddyRequest(query);
+        let data: any;
+        try {
+          data = await taddyRequest(query);
+        } catch (err: any) {
+          console.error(`  Taddy API error on page ${page}: ${err.message}`);
+          break;
+        }
         const episodes = data?.data?.getPodcastSeries?.episodes;
-        if (!episodes || !Array.isArray(episodes) || episodes.length === 0) break;
+        if (!episodes || !Array.isArray(episodes) || episodes.length === 0) {
+          console.log(`  No episodes returned on page ${page}, stopping.`);
+          break;
+        }
         pagesSearched++;
 
         for (const ep of episodes) {
@@ -135,7 +145,7 @@ async function main() {
               guidSet.delete(ep.uuid);
               if (ep.name) titleMap.delete(ep.name.toLowerCase());
             } catch (err: any) {
-              // continue on error
+              console.error(`    DB update error for "${ep.name}": ${err.message}`);
             }
           }
         }
@@ -171,4 +181,4 @@ async function main() {
   await pool.end();
 }
 
-main().catch(err => { console.error("Fatal:", err); process.exit(1); });
+main().catch(err => { console.error("Fatal:", err.message, err.stack); process.exit(1); });
