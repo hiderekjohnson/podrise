@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
-  Megaphone, Target, Mail, BarChart3, Users, Briefcase, Building2,
-  Headphones, Globe, ArrowRight, Shield, Sparkles, TrendingUp, Zap
+  Megaphone, Target, Mail, BarChart3, Briefcase, Building2,
+  Headphones, Globe, ArrowRight, Shield, TrendingUp, Zap
 } from "lucide-react";
 
 const STATS = [

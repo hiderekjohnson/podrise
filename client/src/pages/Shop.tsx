@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  ShoppingBag, Search, ExternalLink, Mic, X, ChevronRight,
+  ShoppingBag, Search, ExternalLink, Mic, X,
   ChevronDown, Filter, ArrowUpDown
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
