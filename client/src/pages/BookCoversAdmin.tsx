@@ -27,7 +27,7 @@ type FilterMode = "all" | "pending" | "approved" | "rejected";
 
 export default function BookCoversAdmin() {
   const { toast } = useToast();
-  const [filter, setFilter] = useState<FilterMode>("pending");
+  const [filter, setFilter] = useState<FilterMode>("all");
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
