@@ -215,7 +215,7 @@ function SearchToggle({ value, onChange }: { value: string; onChange: (v: string
         aria-label="Search products"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-[240px] pl-9 pr-8 py-2 text-[14px] bg-white dark:bg-white/[0.04] border border-[#E4E4E7] dark:border-white/[0.12] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1]/40 transition-all"
+        className="w-full sm:w-[240px] pl-9 pr-8 py-2 text-[14px] bg-white dark:bg-white/[0.04] border border-[#E4E4E7] dark:border-white/[0.12] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1]/40 transition-all"
         data-testid="input-search"
       />
       {value && (
@@ -350,7 +350,7 @@ function PodcastFilterDropdown({ value, podcasts, podcastArtwork, onChange, test
         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-[#18181B] border border-[#E4E4E7] dark:border-white/[0.12] rounded-xl shadow-lg z-50 w-[320px] py-1 max-h-[400px] flex flex-col">
+        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-[#18181B] border border-[#E4E4E7] dark:border-white/[0.12] rounded-xl shadow-lg z-50 w-[calc(100vw-2rem)] sm:w-[320px] py-1 max-h-[400px] flex flex-col">
           <div className="px-2 pt-1 pb-1">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A1A1AA]" />
@@ -573,12 +573,14 @@ export default function Shop() {
               </button>
             )}
 
-            <div className="flex-1" />
+            <div className="hidden sm:block flex-1" />
 
-            <SearchToggle
-              value={searchQuery}
-              onChange={(v) => { setSearchQuery(v); if (v) { setSelectedCategory(null); } }}
-            />
+            <div className="w-full sm:w-auto">
+              <SearchToggle
+                value={searchQuery}
+                onChange={(v) => { setSearchQuery(v); if (v) { setSelectedCategory(null); } }}
+              />
+            </div>
           </div>
 
           {selectedPodcast && podcastArtwork.get(selectedPodcast) && (

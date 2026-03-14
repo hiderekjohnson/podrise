@@ -549,20 +549,20 @@ export default function CompaniesDirectory() {
                 transition={{ duration: 0.3 }}
                 key="directory"
               >
-                <div className="flex flex-wrap items-center gap-3 mb-5">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-5">
                   <div className="flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-primary" />
                     <h2 className="text-[16px] font-semibold uppercase tracking-[0.12em] text-foreground" data-testid="heading-all-companies">
                       {isSearching ? "Search Results" : "All Companies"}
                     </h2>
                   </div>
-                  <div className="flex-1" />
-                  <div className="flex items-center bg-card border border-border rounded-lg overflow-hidden" data-testid="sort-control">
+                  <div className="hidden sm:block flex-1" />
+                  <div className="flex items-center bg-card border border-border rounded-lg overflow-hidden shrink-0" data-testid="sort-control">
                     {([["total", "Top"], ["trending", "Trending"]] as const).map(([val, label]) => (
                       <button
                         key={val}
                         onClick={() => setSortBy(val)}
-                        className={`px-3 py-1.5 text-[16px] font-medium transition-all ${sortBy === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`px-3 py-1.5 text-[14px] sm:text-[16px] font-medium transition-all ${sortBy === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
                         data-testid={`sort-${val}`}
                       >
                         {label}

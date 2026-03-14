@@ -257,17 +257,18 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
     return (
       <button
         onClick={() => { setCurrentEntity(null); setMessages([]); setInput(""); setIsOpen(true); }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all"
         data-testid="open-ai-chat-fab"
       >
         <Sparkles className="w-4 h-4" />
-        <span className="text-[16px] font-semibold">Ask AI about this episode</span>
+        <span className="hidden sm:inline text-[16px] font-semibold">Ask AI about this episode</span>
+        <span className="sm:hidden text-[16px] font-semibold">Ask AI</span>
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-background shadow-2xl shadow-black/[0.12] flex flex-col overflow-hidden" data-testid="ai-chat-panel">
+    <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-[380px] sm:max-w-[calc(100vw-2rem)] rounded-t-2xl sm:rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-background shadow-2xl shadow-black/[0.12] flex flex-col overflow-hidden max-h-[85vh] sm:max-h-none" data-testid="ai-chat-panel">
       <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06] dark:border-white/[0.08] bg-primary/[0.03]">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
