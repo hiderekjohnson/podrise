@@ -213,8 +213,8 @@ export default function BookCoversAdmin() {
                 data-testid={`book-cover-card-${book.id}`}
               >
                 <div className="flex gap-5">
-                  <div className="w-[280px] shrink-0">
-                    <div className="w-[280px] h-[420px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
+                  <div className="w-[287px] shrink-0">
+                    <div className="w-[287px] h-[430px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
                       {book.hasFile ? (
                         <img
                           src={`/books/${book.slug}.jpg?t=1`}
