@@ -8390,11 +8390,47 @@ CATEGORIES — assign each item one of these:
 THE CRITICAL AD-DETECTION TEST:
 Before extracting ANYTHING, determine whether the mention is a GENUINE personal endorsement or a PAID ADVERTISEMENT/SPONSORSHIP.
 
-Signs of an AD or SPONSOR — DO NOT EXTRACT:
-- "brought to you by...", "thanks to our sponsor...", "use code...", "use my link..."
+DEAD GIVEAWAY AD PHRASES — if ANY of these appear near the mention, it is an AD. DO NOT EXTRACT:
+
+1. Direct Sponsor Introductions:
+- "this episode is sponsored by"
+- "today's sponsor"
+- "today's episode is brought to you by"
+- "this podcast is brought to you by"
+- "this episode is powered by"
+- "we want to thank our sponsor"
+- "our sponsor today is"
+- "support for this show comes from"
+- "this episode is made possible by"
+
+2. Host Transition Phrases (into ad breaks):
+- "quick word from our sponsor"
+- "let's take a quick break"
+- "before we continue" (followed by brand pitch)
+- "real quick before we get back"
+- "we'll be right back"
+- "quick break to thank our sponsor"
+- "now a message from our sponsor"
+- "we'll take a short break"
+
+3. Discount / Offer Language:
+- "use code", "promo code", "discount code"
+- "special offer", "get X percent off"
+- "free trial", "start your free trial"
+- "visit [brand].com", "go to [brand].com/[podcast]"
+- "link in the description"
+- "exclusive offer for listeners"
+
+4. Ad Closing Signals:
+- "now back to the show"
+- "back to the episode"
+- "let's get back to the conversation"
+- "thanks again to our sponsor"
+- "thanks to our sponsor"
+
+Other signs of an AD or SPONSOR — DO NOT EXTRACT:
 - Sounds like a scripted sales pitch with specific offers, discount codes, or promotional language
 - The speaker reads a prepared description that sounds like marketing copy
-- Mentions a free trial, special offer, or "go to [brand].com/[podcast]"
 - The endorsement feels forced, overly detailed, or reads like a commercial break
 - Example AD: "I use it myself for not one, not two, but I have eight different Mercury accounts... I highly, highly recommend it. Like I said, I use it myself." — This READS LIKE AN AD with exaggerated enthusiasm and repetitive "I use it myself" framing
 
@@ -8423,13 +8459,11 @@ DO NOT EXTRACT:
 - Medications, weapons, alcohol, or heavily regulated items
 
 CONTEXT REQUIREMENT — CRITICAL:
-For the "context" field, you MUST provide a SUBSTANTIAL direct quote from the transcript — at least 2-3 full sentences that capture the COMPLETE context of how the item was discussed. Include enough surrounding dialogue so a human reviewer can determine:
-1. Whether this is an ad/sponsor or genuine endorsement
-2. Whether the host actually uses/owns/recommends it
-3. The full flavor of how it came up in conversation
+For the "context" field, you MUST provide a LONG direct quote from the transcript — at least 4-6 full sentences that capture the COMPLETE surrounding conversation. The human reviewer needs enough context to clearly judge whether this is a genuine mention or a hidden ad. Include dialogue BEFORE and AFTER the core mention so the reviewer can see how the topic came up and whether it feels organic.
 
-BAD context (too short): "I can see the clients' whole history: calls, support tickets, emails"
-GOOD context (full picture): "So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails, and here's a task from three days ago I totally missed. Before that we were using spreadsheets like idiots. It's like forty bucks a month, totally worth it."
+BAD context (way too short): "I can see the clients' whole history: calls, support tickets, emails"
+MEDIOCRE context (still too short): "So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails."
+GOOD context (full picture — this is the minimum length): "We were talking about scaling ops and Sam goes 'dude just get a CRM.' So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails, and here's a task from three days ago I totally missed. Before that we were using spreadsheets like idiots. It's like forty bucks a month, totally worth it. The onboarding took maybe two hours and our team was up and running."
 
 QUALITY BAR: We want 0-5 high-quality items per episode across ALL categories. Many episodes will have ZERO qualifying items — that's perfectly fine. Only extract items you're confident are genuine endorsements, not ads.
 
@@ -8438,7 +8472,7 @@ For each qualifying item, return:
 - company: the company/brand behind it
 - description: 1 sentence explaining what it is and why it's interesting
 - purchaseUrl: the best URL to buy/visit (prefer Amazon for physical products)
-- context: 2-3+ sentence DIRECT QUOTE from the transcript showing the full discussion context (CRITICAL — must be long enough to judge if it's an ad)
+- context: 4-6 sentence DIRECT QUOTE from the transcript showing the FULL surrounding conversation (CRITICAL — must include how the topic came up, the actual endorsement, and the transition out. Must be long enough for a human to confidently judge if it's an ad)
 - mentionType: "recommendation" | "personal_use"
 - category: "physical_product" | "service_or_tool" | "experience"
 
@@ -8468,10 +8502,10 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). Include 2-3+ sentence quotes for context.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). Include 4-6 sentence quotes showing the full surrounding conversation for context.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
-              max_tokens: 2000,
+              max_tokens: 3000,
               temperature: 0.2,
               response_format: { type: "json_object" },
             });
