@@ -9076,128 +9076,173 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
 
   app.post("/api/webhooks/taddy", async (req, res) => {
     try {
-      const payload = req.body;
-      console.log("[TaddyWebhook] Received:", JSON.stringify(payload).slice(0, 500));
+      const webhookSecret = process.env.TADDY_WEBHOOK_SECRET;
+      if (webhookSecret) {
+        const headerSecret = req.headers["x-taddy-webhook-secret"];
+        if (headerSecret !== webhookSecret) {
+          console.warn("[TaddyWebhook] Invalid webhook secret, rejecting");
+          return res.status(401).json({ error: "Invalid webhook secret" });
+        }
+      }
 
-      if (payload?.action === "webhook_url_validation") {
-        console.log("[TaddyWebhook] Verification request received");
+      const payload = req.body;
+      const { taddyType, action, data } = payload || {};
+      console.log(`[TaddyWebhook] Received: taddyType=${taddyType} action=${action} uuid=${data?.uuid?.slice(0, 12)}...`);
+
+      if (!taddyType || !action || !data) {
         return res.status(200).json({ success: true });
       }
 
-      const podcastUuid = payload?.podcastSeriesUuid || payload?.podcastSeries?.uuid;
-      const action = payload?.action;
+      if (taddyType === "podcastepisode" && action === "created") {
+        const epData = data;
+        const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
+        const seriesUuid = epData.podcastSeries?.uuid || "";
 
-      if (action === "new_episodes_released" && podcastUuid) {
-        console.log(`[TaddyWebhook] New episodes for podcast UUID: ${podcastUuid}`);
-
-        const { rows: [podcast] } = await pool.query(
-          `SELECT name, slug, itunes_id, taddy_uuid FROM podcast_directory WHERE taddy_uuid = $1`,
-          [podcastUuid]
-        );
-
-        if (!podcast) {
-          console.log(`[TaddyWebhook] Unknown podcast UUID: ${podcastUuid}, ignoring`);
+        if (!seriesItunesId && !seriesUuid) {
+          console.log("[TaddyWebhook] No podcast identifier in episode event, ignoring");
           return res.status(200).json({ success: true });
         }
 
-        console.log(`[TaddyWebhook] Processing new episodes for ${podcast.name}`);
+        const { rows: [podcast] } = await pool.query(
+          `SELECT name, slug, itunes_id, taddy_uuid, hosts, artwork_url FROM podcast_directory WHERE itunes_id = $1 OR taddy_uuid = $2 LIMIT 1`,
+          [seriesItunesId, seriesUuid]
+        );
 
-        const { getRecentEpisodesWithTranscripts, getEpisodeTranscriptSegments } = await import("./taddyClient");
-        const { generateRecapFromTranscript } = await import("./recapGenerator");
-        const { slugifyEpisodeTitle } = await import("./emailScheduler");
+        if (!podcast) {
+          console.log(`[TaddyWebhook] Episode for untracked podcast (iTunes ${seriesItunesId}), ignoring`);
+          return res.status(200).json({ success: true });
+        }
+
+        if (!podcast.taddy_uuid && seriesUuid) {
+          await pool.query(`UPDATE podcast_directory SET taddy_uuid = $1 WHERE itunes_id = $2`, [seriesUuid, podcast.itunes_id]);
+        }
+
+        const epTitle = epData.name || "";
+        const epUuid = epData.uuid || "";
+        console.log(`[TaddyWebhook] New episode: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+
+        res.status(200).json({ success: true, podcast: podcast.name, episode: epTitle.slice(0, 60) });
 
         (async () => {
           try {
-            const episodes = await getRecentEpisodesWithTranscripts(podcastUuid, 5);
-            let downloaded = 0, recapsGenerated = 0;
-
-            for (const ep of episodes) {
-              if (!ep.name) continue;
-
-              const { rows: existing } = await pool.query(
-                `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
-                [podcast.itunes_id, ep.name]
-              );
-              if (existing.length > 0) continue;
-
-              const segments = await getEpisodeTranscriptSegments(ep.uuid);
-              if (!segments || segments.length === 0) continue;
-
-              const lines: string[] = [];
-              for (const seg of segments) {
-                const speaker = seg.speaker ? `[${seg.speaker}] ` : "";
-                lines.push(`${speaker}${seg.text}`);
-              }
-              const transcript = lines.join("\n");
-
-              await pool.query(
-                `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, date_published)
-                 VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`,
-                [podcast.itunes_id, ep.uuid, ep.name, transcript, ep.datePublished || null]
-              );
-              downloaded++;
-              console.log(`[TaddyWebhook] Downloaded transcript: ${podcast.name} - "${ep.name.slice(0, 60)}"`);
-
-              try {
-                const { parseTranscriptToSegments } = await import("./emailScheduler");
-                const epSlug = slugifyEpisodeTitle(ep.name);
-                const segs = parseTranscriptToSegments(transcript, podcast.slug, epSlug, ep.uuid);
-                if (segs.length > 0) {
-                  await storage.saveTranscriptSegments(segs);
-                }
-              } catch {}
-
-              const epSlug = slugifyEpisodeTitle(ep.name);
-              const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
-              if (!existingRecap) {
-                const recap = await generateRecapFromTranscript(transcript, podcast.name, ep.name);
-                if (recap) {
-                  const durationSec = ep.duration || 0;
-                  const durationMin = Math.round(durationSec / 60);
-                  const durationStr = durationMin >= 60
-                    ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
-                    : `${durationMin} min`;
-                  const publishDate = ep.datePublished
-                    ? new Date(ep.datePublished * 1000).toISOString().split("T")[0]
-                    : new Date().toISOString().split("T")[0];
-
-                  await pool.query(
-                    `INSERT INTO landing_page_recaps
-                     (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
-                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
-                     ON CONFLICT (slug, episode_slug) DO UPDATE SET
-                       tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
-                       quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
-                       topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-                       sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
-                    [
-                      podcast.slug, podcast.itunes_id, podcast.name, ep.name, epSlug, publishDate,
-                      durationStr, ep.image_url || "", podcast.hosts || "",
-                      recap.tldl, recap.whatHappened, recap.keyInsights,
-                      recap.quote, recap.quoteAttribution, recap.keyTopics,
-                      recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
-                      recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
-                      ep.audio_url || "",
-                      recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
-                      recap.guests ? JSON.stringify(recap.guests) : "[]",
-                      recap.resources ? JSON.stringify(recap.resources) : "[]",
-                    ]
-                  );
-                  recapsGenerated++;
-                  console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${ep.name.slice(0, 60)}"`);
-                }
-              }
-
-              await new Promise(r => setTimeout(r, 1000));
+            const { rows: existing } = await pool.query(
+              `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR lower(trim(episode_title)) = lower(trim($3))) LIMIT 1`,
+              [podcast.itunes_id, epUuid, epTitle]
+            );
+            if (existing.length > 0) {
+              console.log(`[TaddyWebhook] Episode already exists, skipping: "${epTitle.slice(0, 60)}"`);
+              return;
             }
 
-            console.log(`[TaddyWebhook] Done for ${podcast.name}: ${downloaded} transcripts, ${recapsGenerated} recaps`);
+            const { getEpisodeTranscript } = await import("./taddyClient");
+            const transcript = await getEpisodeTranscript(epUuid);
+            if (!transcript) {
+              console.log(`[TaddyWebhook] No transcript available yet for "${epTitle.slice(0, 60)}"`);
+              return;
+            }
+
+            const isComplete = !!(epData.description && epData.datePublished && epData.duration && epData.audioUrl);
+            await pool.query(
+              `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) ON CONFLICT DO NOTHING`,
+              [podcast.itunes_id, epUuid, epTitle, transcript, epData.description || null, epData.subtitle || null,
+               epData.datePublished || null, epData.duration || null, epData.audioUrl || null, epData.imageUrl || null,
+               epData.seasonNumber || null, epData.episodeNumber || null, epData.episodeType || null, isComplete]
+            );
+            console.log(`[TaddyWebhook] Saved transcript: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+
+            try {
+              const { slugifyEpisodeTitle, parseTranscriptToSegments } = await import("./emailScheduler");
+              const epSlug = slugifyEpisodeTitle(epTitle);
+              const segs = parseTranscriptToSegments(transcript, podcast.slug, epSlug, epUuid);
+              if (segs.length > 0) await storage.saveTranscriptSegments(segs);
+            } catch {}
+
+            const { generateRecapFromTranscript } = await import("./recapGenerator");
+            const { slugifyEpisodeTitle } = await import("./emailScheduler");
+            const epSlug = slugifyEpisodeTitle(epTitle);
+
+            const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
+            if (existingRecap) {
+              console.log(`[TaddyWebhook] Recap already exists for "${epTitle.slice(0, 60)}"`);
+              return;
+            }
+
+            const recap = await generateRecapFromTranscript(transcript, podcast.name, epTitle);
+            if (!recap) {
+              console.log(`[TaddyWebhook] Failed to generate recap for "${epTitle.slice(0, 60)}"`);
+              return;
+            }
+
+            const durationSec = epData.duration || 0;
+            const durationMin = Math.round(durationSec / 60);
+            const durationStr = durationMin >= 60
+              ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
+              : `${durationMin} min`;
+            const publishDate = epData.datePublished
+              ? new Date(epData.datePublished * 1000).toISOString().split("T")[0]
+              : new Date().toISOString().split("T")[0];
+
+            await pool.query(
+              `INSERT INTO landing_page_recaps
+               (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+               ON CONFLICT (slug, episode_slug) DO UPDATE SET
+                 tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
+                 quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
+                 topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
+                 sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
+              [
+                podcast.slug, podcast.itunes_id, podcast.name, epTitle, epSlug, publishDate,
+                durationStr, epData.imageUrl || podcast.artwork_url || "", podcast.hosts || "",
+                recap.tldl, recap.whatHappened, recap.keyInsights,
+                recap.quote, recap.quoteAttribution, recap.keyTopics,
+                recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+                recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+                epData.audioUrl || "",
+                recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+                recap.guests ? JSON.stringify(recap.guests) : "[]",
+                recap.resources ? JSON.stringify(recap.resources) : "[]",
+              ]
+            );
+            console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+
+            try {
+              const { postProcessRecap } = await import("./postProcessRecap");
+              await postProcessRecap(podcast.slug, epSlug);
+              console.log(`[TaddyWebhook] Post-processed: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+            } catch (ppErr) {
+              console.error(`[TaddyWebhook] Post-process error:`, ppErr);
+            }
           } catch (err) {
-            console.error(`[TaddyWebhook] Error processing ${podcast.name}:`, err);
+            console.error(`[TaddyWebhook] Background error for "${epTitle.slice(0, 60)}":`, err);
           }
         })();
 
-        return res.status(200).json({ success: true, podcast: podcast.name });
+        return;
+      }
+
+      if (taddyType === "podcastepisode" && action === "updated") {
+        const epData = data;
+        const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
+        if (seriesItunesId && epData.uuid) {
+          await pool.query(
+            `UPDATE episode_transcripts SET description = COALESCE($1, description), duration = COALESCE($2, duration), audio_url = COALESCE($3, audio_url), image_url = COALESCE($4, image_url), subtitle = COALESCE($5, subtitle) WHERE podcast_id = $6 AND episode_guid = $7`,
+            [epData.description, epData.duration, epData.audioUrl, epData.imageUrl, epData.subtitle, seriesItunesId, epData.uuid]
+          );
+        }
+        return res.status(200).json({ success: true });
+      }
+
+      if (taddyType === "podcastseries" && action === "updated") {
+        const seriesData = data;
+        if (seriesData.itunesId) {
+          await pool.query(
+            `UPDATE podcast_directory SET artwork_url = COALESCE($1, artwork_url), description = COALESCE($2, description) WHERE itunes_id = $3`,
+            [seriesData.imageUrl, seriesData.description, String(seriesData.itunesId)]
+          );
+        }
+        return res.status(200).json({ success: true });
       }
 
       res.status(200).json({ success: true });
