@@ -8670,12 +8670,216 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
     }
   });
 
+  app.post("/api/admin/extract-experiences", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: episodes } = await pool.query(
+        `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
+         FROM episode_transcripts
+         WHERE podcast_id = '1469759170'
+         ORDER BY episode_title, date_published DESC NULLS LAST
+         LIMIT 25`
+      );
+
+      if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
+
+      const OpenAI = (await import("openai")).default;
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const { processFullTranscript } = await import("./transcriptChunker");
+      const allProducts: any[] = [];
+
+      const { rows: approvedExamples } = await pool.query(
+        `SELECT name, company, description, mention_type FROM extracted_products WHERE status = 'approved' AND category = 'experience' ORDER BY reviewed_at DESC LIMIT 20`
+      );
+      const { rows: rejectedExamples } = await pool.query(
+        `SELECT name, company, rejection_reason FROM extracted_products WHERE status = 'rejected' AND category = 'experience' ORDER BY reviewed_at DESC LIMIT 30`
+      );
+
+      let trainingSection = "";
+      if (approvedExamples.length > 0 || rejectedExamples.length > 0) {
+        trainingSection = "\n\nLEARN FROM PAST DECISIONS:\n";
+        if (approvedExamples.length > 0) {
+          trainingSection += "These experiences were APPROVED by our editor — extract similar ones:\n";
+          trainingSection += approvedExamples.map(p => `  ✓ ${p.name}${p.company ? ` (${p.company})` : ""} — ${p.description || ""}`).join("\n");
+          trainingSection += "\n";
+        }
+        if (rejectedExamples.length > 0) {
+          trainingSection += "These experiences were REJECTED — do NOT extract ones like these:\n";
+          trainingSection += rejectedExamples.map(p => `  ✗ ${p.name}${p.company ? ` (${p.company})` : ""}${p.rejection_reason ? ` [reason: ${p.rejection_reason}]` : ""}`).join("\n");
+          trainingSection += "\n";
+        }
+      }
+
+      const extractionPrompt = `You find EXPERIENCES, ACTIVITIES, and UNIQUE DESTINATIONS mentioned in podcast transcripts — things you can do, visit, attend, or participate in.
+
+WHAT TO EXTRACT — named experiences and destinations like:
+- Unique accommodations: Bubble Hotel, Getaway House, Under Canvas, Treehouse hotels, Ice hotels
+- Travel experiences: Northern Lights tours, hot air balloon rides, glamping destinations, safari lodges
+- Restaurants & food experiences: Omakase Barn, Salt Bae's Nusr-Et, immersive dining (e.g. Alinea, noma)
+- Adventure activities: Tough Mudder, Spartan Race, heli-skiing at specific resorts, bungee jumping at specific bridges
+- Wellness retreats: Esalen Institute, Vipassana retreats, The Ranch Malibu, Canyon Ranch
+- Cultural experiences: Meow Wolf, Museum of Ice Cream, Sleep No More, Secret Cinema
+- Events & festivals: Burning Man, Art Basel, TED conferences, Formula 1 Grand Prix at specific tracks
+- Sporting experiences: Augusta National, specific golf courses, boxing gyms, surf camps
+- Education/workshops: Blacksmithing workshops, cooking classes at Le Cordon Bleu, pottery at specific studios
+- Memberships & clubs: Soho House, Zero Bond, exclusive social clubs
+
+The KEY TEST: Is this a specific, named experience/destination/activity that someone could book, visit, attend, or participate in? If yes, extract it.
+
+A good experience to extract is:
+- A SPECIFIC NAMED experience, destination, or activity — must have a real brand/venue name (not "glamping" or "spa retreats" generically)
+- Genuinely discussed or recommended by the hosts — not just mentioned in passing
+- Interesting or surprising — something listeners would want to try or visit
+- Something that creates a memorable, unique experience — not everyday activities
+
+ABSOLUTELY DO NOT extract any of these:
+- Generic categories without a specific brand name (e.g. "bubble hotels" generically or "spa retreats" — SKIP)
+- Physical products (tracked separately — no gadgets, clothing, food items)
+- Software, apps, or digital services (tracked separately)
+- Books, ebooks, audiobooks (tracked separately)
+- Podcast sponsors/ads ("brought to you by...", "use code...", "thanks to our sponsor...")
+- Well-known chains mentioned casually without substance (just saying "Marriott" or "Hilton" without discussing a specific unique experience)
+- Stocks, ETFs, crypto, or investment vehicles
+- Social media platforms
+- News outlets or media companies
+- Companies mentioned only in a business/investment context
+- Regular restaurants or hotels without something unique or noteworthy about the experience
+
+QUALITY BAR: We want 0-3 high-quality experiences per episode, not 10 mediocre ones. Many episodes will have ZERO qualifying experiences — that's perfectly fine. Only extract experiences you're confident a listener would genuinely want to try.
+
+For each qualifying experience, return:
+- name: the specific experience/destination name (e.g. "Bubble Hotel" not just "glamping")
+- company: the company or brand behind it (e.g. "Sourceify" or "Getaway House Inc.")
+- description: 1 sentence explaining what the experience is and why it's interesting
+- purchaseUrl: the best URL to book or learn more
+- context: a direct quote or close paraphrase showing how the hosts discussed it
+- mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
+
+Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
+
+      let totalCharsProcessed = 0;
+      let totalCharsAvailable = 0;
+      let totalUrlsSkipped = 0;
+
+      for (const ep of episodes) {
+        const fullTranscript = (ep.transcript || "").trim();
+        if (!fullTranscript) continue;
+        totalCharsAvailable += fullTranscript.length;
+
+        const { rows: recapRows } = await pool.query(
+          `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
+          [ep.episode_title]
+        );
+        const episodeSlug = recapRows[0]?.episode_slug || null;
+
+        const { results: chunkProducts, coverage } = await processFullTranscript<any>(
+          fullTranscript,
+          async (chunk, chunkIndex, totalChunks) => {
+            const completion = await directOpenai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                { role: "system", content: extractionPrompt },
+                {
+                  role: "user",
+                  content: `Extract noteworthy experiences and activities from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                }
+              ],
+              max_tokens: 1500,
+              temperature: 0.2,
+              response_format: { type: "json_object" },
+            });
+
+            const raw = completion.choices[0]?.message?.content || "{}";
+            try {
+              const parsed = JSON.parse(raw);
+              return Array.isArray(parsed) ? parsed : (parsed.products || []);
+            } catch (e) {
+              console.error("[ExperienceExtract] JSON parse error for episode chunk:", ep.episode_title, chunkIndex, e);
+              return [];
+            }
+          }
+        );
+        totalCharsProcessed += coverage.totalChars;
+
+        const deduped = new Map<string, any>();
+        for (const p of chunkProducts) {
+          const key = (p.name || "").toLowerCase().trim();
+          if (key && !deduped.has(key)) {
+            deduped.set(key, p);
+          }
+        }
+
+        for (const p of deduped.values()) {
+          const rawUrl = (p.purchaseUrl || "").trim();
+          if (rawUrl) {
+            const urlValid = await validateUrl(rawUrl);
+            if (!urlValid) {
+              console.log(`[ExperienceExtract] Skipping "${p.name}" — URL dead: ${rawUrl}`);
+              totalUrlsSkipped++;
+              continue;
+            }
+          }
+
+          const product = {
+            name: p.name || "",
+            company: p.company || null,
+            description: p.description || null,
+            purchaseUrl: rawUrl || null,
+            context: p.context || null,
+            mentionType: p.mentionType || "discussion",
+            episodeTitle: ep.episode_title,
+            episodeSlug,
+            podcastSlug: "myfirstmillion",
+          };
+
+          const existing = await pool.query(
+            `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND episode_title = $2 AND category = 'experience'`,
+            [product.name, product.episodeTitle]
+          );
+          if (existing.rows.length === 0) {
+            const ins = await pool.query(
+              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, category, status)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'experience','pending') RETURNING id`,
+              [product.name, product.company, product.description, product.purchaseUrl, product.context, product.mentionType, product.episodeTitle, product.episodeSlug, product.podcastSlug]
+            );
+            allProducts.push({ ...product, id: ins.rows[0].id, status: "pending", category: "experience" });
+          }
+        }
+      }
+
+      if (totalUrlsSkipped > 0) console.log(`[ExperienceExtract] Total skipped ${totalUrlsSkipped} experiences with dead URLs`);
+
+      const coveragePct = totalCharsAvailable > 0
+        ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
+        : 0;
+
+      const { rows: allSaved } = await pool.query(
+        `SELECT * FROM extracted_products WHERE category = 'experience' ORDER BY extracted_at DESC`
+      );
+
+      res.json({
+        products: allSaved,
+        newCount: allProducts.length,
+        episodeCount: episodes.length,
+        transcriptCoverage: `${coveragePct}%`,
+        totalCharsProcessed,
+        totalCharsAvailable,
+        urlsSkipped: totalUrlsSkipped,
+      });
+    } catch (err: any) {
+      console.error("[ExperienceExtract] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to extract experiences" });
+    }
+  });
+
   app.get("/api/admin/products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
       const filter = req.query.filter || "all";
       const category = req.query.category || "physical_product";
-      let conditions = [`category = '${category === "service_or_tool" ? "service_or_tool" : "physical_product"}'`];
+      const validCategories = ["physical_product", "service_or_tool", "experience"];
+      const safeCategory = validCategories.includes(category as string) ? category : "physical_product";
+      let conditions = [`category = '${safeCategory}'`];
       if (filter === "pending") conditions.push("status = 'pending'");
       else if (filter === "approved") conditions.push("status = 'approved'");
       else if (filter === "rejected") conditions.push("status = 'rejected'");

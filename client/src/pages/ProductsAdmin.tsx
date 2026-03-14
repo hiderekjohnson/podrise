@@ -22,7 +22,7 @@ interface Product {
   reviewed_at: string | null;
 }
 
-type CategoryMode = "physical_product" | "service_or_tool";
+type CategoryMode = "physical_product" | "service_or_tool" | "experience";
 
 const MENTION_LABELS: Record<string, { label: string; color: string; icon: typeof Star }> = {
   recommendation: { label: "Recommended", color: "bg-green-100 text-green-700", icon: ThumbsUp },
@@ -54,6 +54,19 @@ const SERVICE_REJECT_REASONS = [
   { value: "investment_context", label: "Investment context only" },
   { value: "social_media", label: "Social media platform" },
   { value: "book_or_media", label: "Book / media content" },
+  { value: "not_available", label: "Not publicly available" },
+  { value: "other", label: "Other" },
+];
+
+const EXPERIENCE_REJECT_REASONS = [
+  { value: "not_specific_brand", label: "No specific brand/name" },
+  { value: "physical_product", label: "Physical product (wrong category)" },
+  { value: "service_or_tool", label: "Service/tool (wrong category)" },
+  { value: "too_well_known", label: "Too well known / obvious" },
+  { value: "sponsor_ad", label: "Sponsor / ad" },
+  { value: "passing_mention", label: "Just a passing mention" },
+  { value: "not_bookable", label: "Can't book or buy" },
+  { value: "not_interesting", label: "Not interesting enough" },
   { value: "not_available", label: "Not publicly available" },
   { value: "other", label: "Other" },
 ];
@@ -103,7 +116,7 @@ export default function ProductsAdmin() {
     setExtracting(true);
     setExtractError(null);
     try {
-      const endpoint = category === "service_or_tool" ? "/api/admin/extract-services" : "/api/admin/extract-products";
+      const endpoint = category === "experience" ? "/api/admin/extract-experiences" : category === "service_or_tool" ? "/api/admin/extract-services" : "/api/admin/extract-products";
       const res = await apiRequest("POST", endpoint);
       const result = await res.json();
       setLastExtraction({
@@ -139,9 +152,10 @@ export default function ProductsAdmin() {
   ];
 
   const isServices = category === "service_or_tool";
-  const rejectReasons = isServices ? SERVICE_REJECT_REASONS : PRODUCT_REJECT_REASONS;
-  const categoryLabel = isServices ? "Services & Tools" : "Physical Products";
-  const extractLabel = isServices ? "Extract New Services" : "Extract New Products";
+  const isExperiences = category === "experience";
+  const rejectReasons = isExperiences ? EXPERIENCE_REJECT_REASONS : isServices ? SERVICE_REJECT_REASONS : PRODUCT_REJECT_REASONS;
+  const categoryLabel = isExperiences ? "Experiences" : isServices ? "Services & Tools" : "Physical Products";
+  const extractLabel = isExperiences ? "Extract New Experiences" : isServices ? "Extract New Services" : "Extract New Products";
 
   return (
     <div className="space-y-4">
@@ -166,16 +180,28 @@ export default function ProductsAdmin() {
           <Globe className="w-4 h-4" />
           Services & Tools
         </button>
+        <button
+          onClick={() => { setCategory("experience"); setFilter("pending"); setLastExtraction(null); setExtractError(null); }}
+          className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
+            category === "experience" ? "bg-white dark:bg-zinc-800 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+          data-testid="tab-experiences"
+        >
+          <Star className="w-4 h-4" />
+          Experiences
+        </button>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold flex items-center gap-2" data-testid="text-products-title">
-            {isServices ? <Globe className="w-5 h-5 text-primary" /> : <ShoppingBag className="w-5 h-5 text-primary" />}
-            {isServices ? "Service & Tool Discovery" : "Product Discovery Engine"}
+            {isExperiences ? <Star className="w-5 h-5 text-primary" /> : isServices ? <Globe className="w-5 h-5 text-primary" /> : <ShoppingBag className="w-5 h-5 text-primary" />}
+            {isExperiences ? "Experience Discovery" : isServices ? "Service & Tool Discovery" : "Product Discovery Engine"}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {isServices
+            {isExperiences
+              ? "Approve or reject experiences to train the AI. It learns from your decisions."
+              : isServices
               ? "Approve or reject services & tools to train the AI. It learns from your decisions."
               : "Approve or reject products to train the AI. It learns from your decisions."}
           </p>
@@ -226,7 +252,7 @@ export default function ProductsAdmin() {
         <div className="p-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-3" data-testid="text-extraction-result">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>
-            Found {lastExtraction.newCount} new {isServices ? "services/tools" : "products"} ({lastExtraction.coverage} transcript coverage)
+            Found {lastExtraction.newCount} new {isExperiences ? "experiences" : isServices ? "services/tools" : "products"} ({lastExtraction.coverage} transcript coverage)
             {lastExtraction.urlsSkipped ? ` · ${lastExtraction.urlsSkipped} skipped (dead URLs)` : ""}
           </span>
         </div>
