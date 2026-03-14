@@ -97,7 +97,7 @@ export const ITUNES_ID_TO_SLUG: Record<string, string> = {
   "906218859": "100mba",
   "366931951": "startupsfortherestofus",
   "325757845": "tropicalmba",
-  "1138869817": "marketingschool",
+  "1568207777": "marketingschool",
   "348690336": "mixergy",
   "1368888880": "youngandprofiting",
   "594703545": "amyporterfield",
