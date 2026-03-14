@@ -45,6 +45,15 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     replaceFavicon: false,
     ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>About PodCap</h1><p>PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.</p><p>PodCap provides AI-powered recaps for 240+ top podcasts, delivering key insights, notable quotes, and actionable takeaways to your inbox every morning.</p><a href="/">Back to Home</a></article>`,
   },
+  "/advertise": {
+    title: "Advertise with PodCap - Reach Podcast Listeners at Scale",
+    description: "Reach highly engaged podcast listeners through targeted email sponsorships. PodCap delivers precision targeting by podcast, role, industry, and interest — without selling user data.",
+    image: "https://podcap.io/favicon.png",
+    url: "https://podcap.io/advertise",
+    twitterCard: "summary",
+    replaceFavicon: false,
+    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Advertise with PodCap</h1><p>Reach highly engaged podcast listeners through targeted email sponsorships. PodCap delivers precision targeting by podcast, role, industry, and interest — without selling user data.</p><h2>Targeting Options</h2><ul><li>Podcast Preferences</li><li>Professional Roles</li><li>Industries</li><li>Interest Categories</li></ul><h2>Ad Formats</h2><ul><li>Sponsored Email Placements (Available Now)</li><li>Podcast Ad Spots (Coming Soon)</li><li>Website Sponsorships (Coming Soon)</li></ul><p>Contact: <a href="mailto:advertise@podcap.io">advertise@podcap.io</a></p><a href="/">Back to Home</a></article>`,
+  },
   "/leaderboard": () => {
     const podcastLinks = PODCAST_SEO.slice(0, 50).map((p, i) => `<li>${i + 1}. <a href="/podcasts/${escapeAttr(p.slug)}">${escapeAttr(p.name)}</a></li>`).join("");
     return {

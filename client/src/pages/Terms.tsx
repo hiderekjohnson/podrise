@@ -17,7 +17,7 @@ export default function Terms() {
           <p className="text-base text-[#52525B] dark:text-[#A1A1AA] dark:text-muted-foreground">Last updated: March 14, 2026</p>
         </div>
 
-        <div className="prose prose-sm max-w-none space-y-6 text-[#52525B]">
+        <div className="prose prose-sm max-w-none space-y-6 text-[#52525B] dark:text-[#A1A1AA]">
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">1. Acceptance of Terms</h2>
             <p>By accessing or using PodCap ("the Service"), operated at podcap.io, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you may not access or use the Service. These Terms constitute a legally binding agreement between you and PodCap ("we," "our," or "us").</p>
@@ -86,27 +86,27 @@ export default function Terms() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">10. Indemnification</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">11. Indemnification</h2>
             <p>You agree to indemnify, defend, and hold harmless PodCap and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, and expenses, including reasonable attorney's fees, arising out of or in any way connected with your access to or use of the Service or your violation of these Terms.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">11. Termination</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">12. Termination</h2>
             <p>We reserve the right to suspend or terminate your account and access to the Service at our sole discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties, or for any other reason. Upon termination, your right to use the Service will immediately cease.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">12. Governing Law</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">13. Governing Law</h2>
             <p>These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to its conflict of law provisions. Any disputes arising under these Terms shall be resolved in the courts of competent jurisdiction.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">13. Changes to Terms</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">14. Changes to Terms</h2>
             <p>We reserve the right to modify these Terms at any time. We will notify you of material changes by posting the updated Terms on this page and updating the "Last updated" date. Your continued use of the Service after any changes constitutes your acceptance of the revised Terms.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">14. Contact Us</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">15. Contact Us</h2>
             <p>If you have any questions about these Terms, please <a href="/support" className="text-primary hover:underline">contact us</a>.</p>
           </section>
         </div>

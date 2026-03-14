@@ -114,6 +114,11 @@ export function Footer() {
                   Enterprise
                 </Link>
               </li>
+              <li>
+                <Link href="/advertise" className={linkClass} data-testid="link-advertise">
+                  Advertise
+                </Link>
+              </li>
             </ul>
           </div>
 

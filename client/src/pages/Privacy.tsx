@@ -14,10 +14,10 @@ export default function Privacy() {
             Privacy Policy
           </div>
           <h1 className="sr-only">Privacy Policy</h1>
-          <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Last updated: January 1, 2026</p>
+          <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">Last updated: March 14, 2026</p>
         </div>
 
-        <div className="prose prose-sm max-w-none space-y-6 text-[#52525B]">
+        <div className="prose prose-sm max-w-none space-y-6 text-[#52525B] dark:text-[#A1A1AA]">
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">1. Introduction</h2>
             <p>PodCap ("we," "our," or "us") operates the website podcap.io (the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our Service. By using the Service, you agree to the collection and use of information in accordance with this policy.</p>
@@ -69,7 +69,18 @@ export default function Privacy() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">8. Your Rights</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">8. Advertising and Sponsored Content</h2>
+            <p>The Service may include advertisements and sponsored content within emails, on the website, and in any audio or video content we produce. In connection with advertising:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><strong>We do not sell your personal information to advertisers.</strong> We do not share your name, email address, or any individually identifiable information with advertising partners</li>
+              <li><strong>Audience-based targeting:</strong> Advertisements may be targeted based on aggregated, non-personally-identifiable audience segments derived from your podcast preferences, selected industries, professional roles, and interest categories. Advertisers select audience segments — they never receive individual user data</li>
+              <li><strong>Click tracking:</strong> When you click on a link in our emails, we may record that a click occurred for aggregate analytics purposes (such as measuring overall campaign performance). This data is used internally and is not shared with advertisers in a personally identifiable form</li>
+              <li><strong>Third-party advertiser practices:</strong> If you interact with an advertisement and visit a third-party website, that third party's privacy policy will govern their collection and use of your data. We encourage you to review their policies before providing any information</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-2">9. Your Rights</h2>
             <p>Depending on your jurisdiction, you may have the right to:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Access the personal information we hold about you</li>
@@ -82,17 +93,17 @@ export default function Privacy() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">9. Children's Privacy</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">10. Children's Privacy</h2>
             <p>Our Service is not directed to individuals under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">10. Changes to This Policy</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">11. Changes to This Policy</h2>
             <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the updated policy on this page and updating the "Last updated" date. Your continued use of the Service after any changes constitutes your acceptance of the revised policy.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">11. Contact Us</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">12. Contact Us</h2>
             <p>If you have any questions about this Privacy Policy, please <a href="/support" className="text-primary hover:underline">contact us</a>.</p>
           </section>
         </div>

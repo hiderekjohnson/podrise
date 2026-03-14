@@ -44,6 +44,7 @@ const Shop = lazy(() => import("./pages/Shop"));
 const TrendsPage = lazy(() => import("./pages/TrendsPage"));
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
+const Advertise = lazy(() => import("./pages/Advertise"));
 
 function PageLoader() {
   return (
@@ -76,6 +77,7 @@ function Router() {
         <Route path="/updates" component={FeatureRequests} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
+        <Route path="/advertise" component={Advertise} />
         <Route path="/we-heart-podcasters" component={WeHeartPodcasters} />
         <Route path="/people/:slug" component={PersonDetailPage} />
         <Route path="/people" component={PeopleDirectory} />
