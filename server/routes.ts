@@ -2462,7 +2462,7 @@ export async function registerRoutes(
       if (cached) return res.json(cached);
 
       const { rows } = await pool.query(
-        `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
+        `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.image_url, ep.context,
                 ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
          FROM extracted_products ep
          WHERE ep.status = 'approved'
@@ -2475,6 +2475,7 @@ export async function registerRoutes(
         type: string;
         description: string;
         url: string;
+        imageUrl: string | null;
         mentionCount: number;
         podcastSlugs: Set<string>;
         podcastNames: string[];
@@ -2498,6 +2499,7 @@ export async function registerRoutes(
           }
           if (!existing.url && row.purchase_url) existing.url = row.purchase_url;
           if (!existing.description && row.description) existing.description = row.description;
+          if (!existing.imageUrl && row.image_url) existing.imageUrl = row.image_url;
         } else {
           productMap.set(key, {
             name: row.name,
@@ -2505,6 +2507,7 @@ export async function registerRoutes(
             type: row.category || "product",
             description: row.description || "",
             url: row.purchase_url || "",
+            imageUrl: row.image_url || null,
             mentionCount: 1,
             podcastSlugs: new Set([row.podcast_slug]),
             podcastNames: [],
@@ -2520,6 +2523,7 @@ export async function registerRoutes(
         description: p.description,
         url: isAmazonUrl(p.url) ? ensureAffiliateTag(p.url) : addUtmParams(p.url),
         isAmazon: isAmazonUrl(p.url),
+        imageUrl: p.imageUrl,
         mentionCount: p.mentionCount,
         podcastCount: p.podcastSlugs.size,
         podcastNames: [...p.podcastSlugs].map(s => slugToName[s] || s),

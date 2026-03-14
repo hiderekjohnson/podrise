@@ -16,6 +16,7 @@ interface ShopProduct {
   description: string;
   url: string;
   isAmazon: boolean;
+  imageUrl: string | null;
   mentionCount: number;
   podcastCount: number;
   podcastNames: string[];
@@ -93,6 +94,7 @@ function getTypeColor(type: string) {
 
 function ProductCard({ product, index }: { product: ShopProduct; index: number }) {
   const skipAnim = prefersReducedMotion || index > 11;
+  const [imgError, setImgError] = useState(false);
 
   return (
     <motion.div
@@ -104,8 +106,12 @@ function ProductCard({ product, index }: { product: ShopProduct; index: number }
     >
       <div className="p-5">
         <div className="flex gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/[0.08] flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/[0.08] flex items-center justify-center shrink-0 overflow-hidden">
+            {product.imageUrl && !imgError ? (
+              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-1.5" loading="lazy" onError={() => setImgError(true)} />
+            ) : (
+              <ShoppingBag className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">

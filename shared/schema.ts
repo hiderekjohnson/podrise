@@ -414,6 +414,7 @@ export const extractedProducts = pgTable("extracted_products", {
   company: text("company"),
   description: text("description"),
   purchaseUrl: text("purchase_url"),
+  imageUrl: text("image_url"),
   context: text("context"),
   mentionType: text("mention_type"),
   category: text("category").notNull().default("physical_product"),

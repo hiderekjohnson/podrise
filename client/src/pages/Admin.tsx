@@ -766,12 +766,12 @@ export default function Admin() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent max-w-full">
                 <button
                   data-testid="tab-backfill"
                   onClick={() => { setActiveTab("backfill"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "backfill"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -783,7 +783,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-pending"
                   onClick={() => { setActiveTab("pending"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "pending"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -795,7 +795,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-users"
                   onClick={() => { setActiveTab("users"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "users"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -810,7 +810,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-analytics"
                   onClick={() => { setActiveTab("analytics"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "analytics"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -822,7 +822,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-transcripts"
                   onClick={() => { setActiveTab("transcripts"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "transcripts"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -834,7 +834,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-directory"
                   onClick={() => { setActiveTab("directory"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "directory"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -846,7 +846,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-rss"
                   onClick={() => { setActiveTab("rss"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "rss"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -858,7 +858,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-hosts"
                   onClick={() => { setActiveTab("hosts"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "hosts"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -870,7 +870,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-updates"
                   onClick={() => { setActiveTab("updates"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "updates"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -882,7 +882,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-covers"
                   onClick={() => { setActiveTab("covers"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "covers"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -894,7 +894,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-bookstore"
                   onClick={() => { setActiveTab("bookstore"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "bookstore"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
@@ -906,7 +906,7 @@ export default function Admin() {
                 <button
                   data-testid="tab-products"
                   onClick={() => { setActiveTab("products"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "products"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
