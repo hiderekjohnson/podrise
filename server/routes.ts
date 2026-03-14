@@ -7710,7 +7710,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
   });
 
   app.post("/api/admin/extract-products", async (req, res) => {
-    if (!req.session?.adminAuthenticated) return res.status(401).json({ message: "Not authorized" });
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
       const { rows: episodes } = await pool.query(
         `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
