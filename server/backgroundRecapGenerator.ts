@@ -1,5 +1,5 @@
 import { pool } from "./db";
-import { generateRecapFromFullTranscript } from "./recapGenerator";
+import { generateRecapFromFullTranscript, extractQuotesFromTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const CONCURRENCY = 2;
@@ -96,7 +96,36 @@ async function processEpisode(
         ]
       );
 
-      const quoteCount = 0;
+      let quoteCount = 0;
+      try {
+        const guestsJson = recap.guests ? JSON.stringify(recap.guests) : null;
+        const extractedQuotes = await extractQuotesFromTranscript(
+          ep.transcript,
+          podcastName,
+          epTitle,
+          hosts || null,
+          guestsJson,
+        );
+        if (extractedQuotes.length > 0) {
+          await pool.query(
+            `DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
+            [podcastSlug, epSlug]
+          );
+          for (let qi = 0; qi < extractedQuotes.length; qi++) {
+            const q = extractedQuotes[qi];
+            await pool.query(
+              `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+              [podcastSlug, epSlug, q.speakerName, q.speakerRole || "", q.quoteText, q.context || "", q.quoteType || "Tweetable", qi]
+            );
+          }
+          quoteCount = extractedQuotes.length;
+          console.log(`[BgRecap] Extracted ${quoteCount} quotes for "${epTitle.slice(0, 50)}"`);
+        }
+      } catch (quoteErr: any) {
+        console.warn(`[BgRecap] Quote extraction failed for "${epTitle.slice(0, 50)}": ${quoteErr.message}`);
+      }
+
       const qa = validateRecap(recap, epTitle, quoteCount);
       if (!qa.passed) {
         const criticals = qa.issues.filter(i => i.severity === "critical");
