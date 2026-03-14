@@ -195,13 +195,13 @@ export default function BookCoversAdmin() {
       ) : books.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground text-sm">No books in this filter</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {books.map(book => {
             const isSelected = selected.has(book.id);
             return (
               <div
                 key={book.id}
-                className={`relative rounded-2xl border-2 p-4 transition-all ${
+                className={`relative rounded-2xl border-2 p-5 transition-all ${
                   isSelected
                     ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 shadow-md"
                     : book.coverApproved === true
@@ -212,20 +212,20 @@ export default function BookCoversAdmin() {
                 }`}
                 data-testid={`book-cover-card-${book.id}`}
               >
-                <div className="flex gap-4">
-                  <div className="w-[180px] shrink-0">
-                    <div className="w-[180px] h-[270px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-md">
+                <div className="flex gap-5">
+                  <div className="w-[280px] shrink-0">
+                    <div className="w-[280px] h-[420px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
                       {book.hasFile ? (
                         <img
                           src={`/books/${book.slug}.jpg?t=1`}
                           alt={book.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           loading="lazy"
                         />
                       ) : (
                         <div className="flex flex-col items-center gap-2">
-                          <BookOpen className="w-8 h-8 text-amber-400/50" />
-                          <span className="text-xs text-muted-foreground">No cover</span>
+                          <BookOpen className="w-10 h-10 text-amber-400/50" />
+                          <span className="text-sm text-muted-foreground">No cover</span>
                         </div>
                       )}
                     </div>
@@ -233,45 +233,45 @@ export default function BookCoversAdmin() {
 
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
-                      <h3 className="text-sm font-bold text-foreground leading-tight line-clamp-3" data-testid={`text-book-title-${book.id}`}>
+                      <h3 className="text-base font-bold text-foreground leading-tight line-clamp-3" data-testid={`text-book-title-${book.id}`}>
                         {book.title}
                       </h3>
                       {book.author && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
+                        <p className="text-sm text-muted-foreground mt-1.5 line-clamp-1">{book.author}</p>
                       )}
-                      <div className="mt-2">
+                      <div className="mt-3">
                         {book.coverApproved === true && (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600"><CheckCircle2 className="w-3.5 h-3.5" /> Approved</span>
+                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600"><CheckCircle2 className="w-4 h-4" /> Approved</span>
                         )}
                         {book.coverApproved === false && (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600"><XCircle className="w-3.5 h-3.5" /> Rejected</span>
+                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600"><XCircle className="w-4 h-4" /> Rejected</span>
                         )}
                         {book.coverApproved === null && (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-yellow-600"><Clock className="w-3.5 h-3.5" /> Pending</span>
+                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-yellow-600"><Clock className="w-4 h-4" /> Pending</span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex flex-wrap items-center gap-2 mt-4">
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleSelect(book.id); }}
-                        className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                        className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-1.5 ${
                           isSelected
                             ? "bg-indigo-500 text-white"
                             : "bg-muted text-muted-foreground hover:bg-muted/80"
                         }`}
                         data-testid={`checkbox-${book.id}`}
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-4 h-4" />
                         {isSelected ? "Selected" : "Select"}
                       </button>
                       <button
                         onClick={() => approveMutation.mutate([book.id])}
                         disabled={approveMutation.isPending || book.coverApproved === true || !book.hasFile}
-                        className="px-3 py-2 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-30 flex items-center gap-1"
+                        className="px-4 py-2.5 rounded-lg text-sm font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-30 flex items-center gap-1.5"
                         data-testid={`button-approve-${book.id}`}
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-4 h-4" />
                         Approve
                       </button>
                       <button
@@ -279,10 +279,10 @@ export default function BookCoversAdmin() {
                           if (confirm("Reject this cover?")) rejectMutation.mutate([book.id]);
                         }}
                         disabled={rejectMutation.isPending || (book.coverApproved === false && !book.hasFile)}
-                        className="px-3 py-2 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-30 flex items-center gap-1"
+                        className="px-4 py-2.5 rounded-lg text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-30 flex items-center gap-1.5"
                         data-testid={`button-reject-${book.id}`}
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-4 h-4" />
                         Reject
                       </button>
                     </div>
