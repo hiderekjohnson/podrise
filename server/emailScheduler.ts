@@ -1243,6 +1243,131 @@ export async function bulkDownloadTranscripts() {
   }
 }
 
+let dailyTranscriptRefreshRunning = false;
+
+export async function refreshNewTranscripts() {
+  if (dailyTranscriptRefreshRunning) {
+    console.log("[DailyTranscripts] Already running, skipping");
+    return;
+  }
+  dailyTranscriptRefreshRunning = true;
+
+  try {
+    const { pool: dbPool } = await import("./db");
+    const taddyUserId = process.env.TADDY_USER_ID;
+    const taddyApiKey = process.env.TADDY_API_KEY;
+    if (!taddyUserId || !taddyApiKey) {
+      console.log("[DailyTranscripts] Taddy credentials not configured, skipping");
+      return;
+    }
+
+    const allDir = await storage.getPodcastDirectory();
+    const landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.taddyUuid && p.itunesId);
+
+    const client = await dbPool.connect();
+    let existingGuids: Set<string>;
+    try {
+      const { rows } = await client.query("SELECT episode_guid FROM episode_transcripts");
+      existingGuids = new Set(rows.map((r: any) => r.episode_guid));
+    } finally {
+      client.release();
+    }
+
+    console.log(`[DailyTranscripts] Checking ${landingPodcasts.length} podcasts for new episodes (${existingGuids.size} transcripts already stored)`);
+
+    let totalDownloaded = 0;
+    let totalChecked = 0;
+    const BATCH_SIZE = 20;
+
+    for (const podcast of landingPodcasts) {
+      totalChecked++;
+      try {
+        const seriesRes = await fetch("https://api.taddy.org", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+          body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: 5) { uuid name description datePublished duration audioUrl imageUrl seasonNumber episodeNumber episodeType subtitle } } }` }),
+          signal: AbortSignal.timeout(20000),
+        });
+        if (seriesRes.status === 429) {
+          console.log("[DailyTranscripts] Rate limited, pausing 30s...");
+          await new Promise(r => setTimeout(r, 30000));
+          continue;
+        }
+        const seriesData = await seriesRes.json();
+        const episodes = seriesData?.data?.getPodcastSeries?.episodes;
+        if (!episodes || !Array.isArray(episodes) || episodes.length === 0) {
+          await new Promise(r => setTimeout(r, 300));
+          continue;
+        }
+
+        let downloaded = 0;
+        for (const ep of episodes) {
+          if (existingGuids.has(ep.uuid)) continue;
+
+          try {
+            const tRes = await fetch("https://api.taddy.org", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
+              body: JSON.stringify({ query: `{ getEpisodeTranscript(uuid: "${ep.uuid}") { text speaker } }` }),
+              signal: AbortSignal.timeout(30000),
+            });
+            if (tRes.status === 429) {
+              console.log("[DailyTranscripts] Rate limited on transcript, pausing 30s...");
+              await new Promise(r => setTimeout(r, 30000));
+              continue;
+            }
+            const tData = await tRes.json();
+            const segments = tData?.data?.getEpisodeTranscript;
+            if (segments && Array.isArray(segments) && segments.length > 0) {
+              const text = segments.map((s: any) => (s.speaker ? `[${s.speaker}] ` : "") + s.text).join("\n");
+              if (text.length > 100) {
+                await storage.saveTranscript({
+                  podcastId: podcast.itunesId,
+                  episodeGuid: ep.uuid,
+                  episodeTitle: ep.name || "Untitled",
+                  transcript: text,
+                  description: ep.description || undefined,
+                  subtitle: ep.subtitle || undefined,
+                  datePublished: ep.datePublished || undefined,
+                  duration: ep.duration || undefined,
+                  audioUrl: ep.audioUrl || undefined,
+                  imageUrl: ep.imageUrl || undefined,
+                  seasonNumber: ep.seasonNumber || undefined,
+                  episodeNumber: ep.episodeNumber || undefined,
+                  episodeType: ep.episodeType || undefined,
+                });
+                existingGuids.add(ep.uuid);
+                downloaded++;
+                totalDownloaded++;
+              }
+            }
+          } catch {}
+          await new Promise(r => setTimeout(r, 400));
+        }
+
+        if (downloaded > 0) {
+          console.log(`[DailyTranscripts] ${podcast.name}: ${downloaded} new transcript(s)`);
+        }
+      } catch (err: any) {
+        if (err?.name !== "AbortError" && err?.name !== "TimeoutError") {
+          console.warn(`[DailyTranscripts] Error for ${podcast.name}:`, err?.message?.slice(0, 100));
+        }
+      }
+      await new Promise(r => setTimeout(r, 400));
+
+      if (totalChecked % BATCH_SIZE === 0 && totalChecked < landingPodcasts.length) {
+        await new Promise(r => setTimeout(r, 5000));
+      }
+    }
+
+    console.log(`[DailyTranscripts] Complete: ${totalDownloaded} new transcripts across ${landingPodcasts.length} podcasts`);
+  } catch (err) {
+    console.error("[DailyTranscripts] Fatal error:", err);
+  } finally {
+    dailyTranscriptRefreshRunning = false;
+  }
+}
+
 export async function enrichPodcastMetadata(singleItunesId?: string) {
   const { openai } = await import("./replit_integrations/image/client");
   const { pool: dbPool } = await import("./db");
@@ -1731,6 +1856,7 @@ export function startEmailScheduler() {
     const etHour = parseInt(now.toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false, hour: "2-digit" }));
     if (etHour === 5) {
       refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Refresh error:", err));
+      refreshNewTranscripts().catch(err => console.error("[DailyTranscripts] Refresh error:", err));
     }
   }, 15 * 60 * 1000);
 
@@ -1747,6 +1873,7 @@ export function startEmailScheduler() {
     }
     refreshLandingPageRecaps()
       .then(() => bulkDownloadTranscripts())
+      .then(() => refreshNewTranscripts())
       .catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
   }, 30000);
 }
