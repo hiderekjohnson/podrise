@@ -35,6 +35,7 @@ interface CoverStats {
 interface CoverCandidate {
   source: string;
   width: number;
+  height: number;
   size: number;
   filename: string;
   url: string;
@@ -318,7 +319,7 @@ export default function BookCoversAdmin() {
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1 text-center">
                   <span className="text-[10px] font-bold text-white">{SOURCE_LABELS[c.source] || c.source}</span>
-                  <span className="text-[9px] text-white/60 block">{c.width}px · {Math.round(c.size / 1024)}KB</span>
+                  <span className="text-[9px] text-white/60 block">{c.width}x{c.height || "?"} · {Math.round(c.size / 1024)}KB</span>
                 </div>
               </button>
             ))}

@@ -17,27 +17,43 @@ function isPlaceholder(buf: Buffer): boolean {
   return false;
 }
 
-function jpegWidth(buf: Buffer): number {
+function jpegDimensions(buf: Buffer): { w: number; h: number } {
   let i = 2;
   while (i < buf.length - 8) {
-    if (buf[i] !== 0xff) return 0;
+    if (buf[i] !== 0xff) return { w: 0, h: 0 };
     const marker = buf[i + 1];
-    if (marker === 0xc0 || marker === 0xc2) return buf.readUInt16BE(i + 7);
+    if (marker === 0xc0 || marker === 0xc2) {
+      return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+    }
     const len = buf.readUInt16BE(i + 2);
     i += 2 + len;
   }
-  return 0;
+  return { w: 0, h: 0 };
 }
 
-function pngWidth(buf: Buffer): number {
-  if (buf.length < 24) return 0;
-  return buf.readUInt32BE(16);
+function pngDimensions(buf: Buffer): { w: number; h: number } {
+  if (buf.length < 24) return { w: 0, h: 0 };
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
+
+function getDimensions(buf: Buffer): { w: number; h: number } {
+  if (buf[0] === 0xff && buf[1] === 0xd8) return jpegDimensions(buf);
+  if (buf[0] === 0x89 && buf[1] === 0x50) return pngDimensions(buf);
+  return { w: 0, h: 0 };
 }
 
 function getWidth(buf: Buffer): number {
-  if (buf[0] === 0xff && buf[1] === 0xd8) return jpegWidth(buf);
-  if (buf[0] === 0x89 && buf[1] === 0x50) return pngWidth(buf);
-  return 0;
+  return getDimensions(buf).w;
+}
+
+function looksLikeDocument(buf: Buffer): boolean {
+  const { w, h } = getDimensions(buf);
+  if (w === 0 || h === 0) return false;
+  const ratio = w / h;
+  if (ratio > 0.75) return true;
+  if (ratio < 0.45) return true;
+  if (h > w * 2) return true;
+  return false;
 }
 
 async function downloadFromGoogleBooks(googleBooksId: string): Promise<Buffer | null> {
@@ -48,6 +64,7 @@ async function downloadFromGoogleBooks(googleBooksId: string): Promise<Buffer | 
       if (!res.ok) continue;
       const buf = Buffer.from(await res.arrayBuffer());
       if (isPlaceholder(buf)) continue;
+      if (looksLikeDocument(buf)) continue;
       const w = getWidth(buf);
       if (w >= MIN_WIDTH) return buf;
       if (zoom === 1 && w > 0) return buf;
@@ -63,6 +80,7 @@ async function downloadFromOpenLibrary(isbn: string): Promise<Buffer | null> {
     if (!res.ok) return null;
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length < 1000) return null;
+    if (looksLikeDocument(buf)) return null;
     return buf;
   } catch { return null; }
 }
@@ -81,6 +99,7 @@ async function downloadFromAmazon(isbn: string): Promise<Buffer | null> {
       const buf = Buffer.from(await res.arrayBuffer());
       if (isPlaceholder(buf)) continue;
       if (buf.length < 2000) continue;
+      if (looksLikeDocument(buf)) continue;
       const w = getWidth(buf);
       if (w > 0) return buf;
     } catch {}
@@ -102,6 +121,7 @@ async function downloadFromOpenLibraryByTitle(title: string, author?: string): P
         if (!res.ok) continue;
         const buf = Buffer.from(await res.arrayBuffer());
         if (buf.length < 1000) continue;
+        if (looksLikeDocument(buf)) continue;
         const w = getWidth(buf);
         if (w >= MIN_WIDTH || w > 0) return buf;
       }
