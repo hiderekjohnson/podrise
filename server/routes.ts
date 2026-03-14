@@ -4406,10 +4406,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const coversDir = path.default.resolve("public/books");
 
       const sort = req.query.sort as string || "title";
-      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score FROM book_enrichments WHERE slug IS NOT NULL";
+      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note FROM book_enrichments WHERE slug IS NOT NULL";
       if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
+      else if (filter === "replace") query += " AND needs_replacement = true";
       if (sort === "quality") query += " ORDER BY cover_quality_score DESC NULLS LAST, book_title ASC";
       else query += " ORDER BY book_title ASC";
 
@@ -4432,15 +4433,18 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           amazonUrl,
           rejectionReason: r.rejection_reason,
           qualityScore: r.cover_quality_score,
+          needsReplacement: r.needs_replacement || false,
+          replacementNote: r.replacement_note,
         };
       });
 
-      const allRows = await pool.query("SELECT cover_approved FROM book_enrichments WHERE slug IS NOT NULL");
+      const allRows = await pool.query("SELECT cover_approved, needs_replacement FROM book_enrichments WHERE slug IS NOT NULL");
       const stats = {
         total: allRows.rows.length,
         approved: allRows.rows.filter((r: any) => r.cover_approved === true).length,
         rejected: allRows.rows.filter((r: any) => r.cover_approved === false).length,
         pending: allRows.rows.filter((r: any) => r.cover_approved === null).length,
+        needsReplacement: allRows.rows.filter((r: any) => r.needs_replacement === true).length,
       };
 
       res.json({ books, stats });
@@ -4499,6 +4503,25 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       res.json({ message: `Rejected ${ids.length} covers, files removed` });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to reject covers" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/flag-replace", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ids, note } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "ids array required" });
+      }
+      await pool.query(
+        "UPDATE book_enrichments SET needs_replacement = true, replacement_note = $2, updated_at = NOW() WHERE id = ANY($1::int[])",
+        [ids, note || null]
+      );
+      res.json({ message: `Flagged ${ids.length} covers for replacement` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to flag covers" });
     }
   });
 

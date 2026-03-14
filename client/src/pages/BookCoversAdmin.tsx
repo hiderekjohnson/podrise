@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye } from "lucide-react";
+import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye, RefreshCw } from "lucide-react";
 
 interface BookCoverItem {
   id: number;
@@ -17,6 +17,8 @@ interface BookCoverItem {
   amazonUrl: string | null;
   rejectionReason: string | null;
   qualityScore: number | null;
+  needsReplacement: boolean;
+  replacementNote: string | null;
 }
 
 interface CoverStats {
@@ -24,9 +26,10 @@ interface CoverStats {
   approved: number;
   rejected: number;
   pending: number;
+  needsReplacement: number;
 }
 
-type FilterMode = "all" | "pending" | "approved" | "rejected";
+type FilterMode = "all" | "pending" | "approved" | "rejected" | "replace";
 type SortMode = "title" | "quality";
 type RejectReason = "blurry" | "wrong_book" | "wrong_edition" | "low_quality" | "other";
 
@@ -45,6 +48,9 @@ export default function BookCoversAdmin() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [bulkRejecting, setBulkRejecting] = useState(false);
+  const [replacingId, setReplacingId] = useState<number | null>(null);
+  const [bulkReplacing, setBulkReplacing] = useState(false);
+  const [replaceNote, setReplaceNote] = useState("");
   const lastClickedIndex = useRef<number | null>(null);
 
   const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
@@ -82,8 +88,23 @@ export default function BookCoversAdmin() {
     },
   });
 
+  const replaceMutation = useMutation({
+    mutationFn: async ({ ids, note }: { ids: number[]; note: string }) => {
+      await apiRequest("POST", "/api/admin/book-covers/flag-replace", { ids, note });
+    },
+    onSuccess: (_, { ids }) => {
+      toast({ title: "Flagged", description: `${ids.length} cover(s) flagged for replacement` });
+      setSelected(new Set());
+      lastClickedIndex.current = null;
+      setReplacingId(null);
+      setBulkReplacing(false);
+      setReplaceNote("");
+      refetch();
+    },
+  });
+
   const books = data?.books || [];
-  const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0 };
+  const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0, needsReplacement: 0 };
 
   const handleCardClick = useCallback((index: number, e: React.MouseEvent) => {
     const id = books[index]?.id;
@@ -135,6 +156,7 @@ export default function BookCoversAdmin() {
     { mode: "pending", label: "Pending", icon: Clock, color: "bg-yellow-100 text-yellow-700" },
     { mode: "approved", label: "Approved", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
     { mode: "rejected", label: "Rejected", icon: XCircle, color: "bg-red-100 text-red-700" },
+    { mode: "replace", label: "Needs Replace", icon: RefreshCw, color: "bg-orange-100 text-orange-700" },
     { mode: "all", label: "All", icon: Filter, color: "bg-gray-100 text-gray-700" },
   ];
 
@@ -182,6 +204,11 @@ export default function BookCoversAdmin() {
           <XCircle className="w-3.5 h-3.5 text-red-500" />
           <span className="text-sm font-bold text-red-600">{stats.rejected}</span>
           <span className="text-xs text-muted-foreground">rejected</span>
+        </div>
+        <div className="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
+          <RefreshCw className="w-3.5 h-3.5 text-orange-500" />
+          <span className="text-sm font-bold text-orange-600">{stats.needsReplacement}</span>
+          <span className="text-xs text-muted-foreground">needs replace</span>
         </div>
       </div>
 
@@ -245,7 +272,16 @@ export default function BookCoversAdmin() {
               Reject Selected
             </button>
             <button
-              onClick={() => { setSelected(new Set()); setBulkRejecting(false); }}
+              onClick={() => setBulkReplacing(true)}
+              disabled={replaceMutation.isPending}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-1"
+              data-testid="button-bulk-replace"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Replace Cover
+            </button>
+            <button
+              onClick={() => { setSelected(new Set()); setBulkRejecting(false); setBulkReplacing(false); }}
               className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
               data-testid="button-clear-selection"
             >
@@ -257,6 +293,32 @@ export default function BookCoversAdmin() {
               onPick={(reason) => handleReject(Array.from(selected), reason)}
               onCancel={() => setBulkRejecting(false)}
             />
+          )}
+          {bulkReplacing && (
+            <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl bg-orange-50 border border-orange-200">
+              <span className="text-xs font-bold text-orange-700">Note (optional):</span>
+              <input
+                type="text"
+                value={replaceNote}
+                onChange={(e) => setReplaceNote(e.target.value)}
+                placeholder="e.g. Use newer edition cover, audiobook cover shown"
+                className="flex-1 min-w-[200px] px-3 py-1.5 rounded-lg text-xs border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                data-testid="input-replace-note"
+              />
+              <button
+                onClick={() => replaceMutation.mutate({ ids: Array.from(selected), note: replaceNote })}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                data-testid="button-confirm-replace"
+              >
+                Flag for Replacement
+              </button>
+              <button
+                onClick={() => { setBulkReplacing(false); setReplaceNote(""); }}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -365,7 +427,15 @@ export default function BookCoversAdmin() {
                             {book.qualityScore >= 70 ? "Good" : book.qualityScore >= 40 ? "Okay" : "Poor"} ({book.qualityScore})
                           </span>
                         )}
+                        {book.needsReplacement && (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                            <RefreshCw className="w-3 h-3" /> Needs Replace
+                          </span>
+                        )}
                       </div>
+                      {book.replacementNote && (
+                        <p className="mt-1.5 text-xs text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg italic">{book.replacementNote}</p>
+                      )}
 
                       <div className="mt-3 flex flex-wrap gap-2">
                         <a
@@ -423,12 +493,46 @@ export default function BookCoversAdmin() {
                           <X className="w-4 h-4" />
                           Reject
                         </button>
+                        <button
+                          onClick={() => setReplacingId(replacingId === book.id ? null : book.id)}
+                          disabled={replaceMutation.isPending}
+                          className="px-4 py-2.5 rounded-lg text-sm font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-30 flex items-center gap-1.5"
+                          data-testid={`button-replace-${book.id}`}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Replace
+                        </button>
                       </div>
                       {showRejectPicker && (
                         <RejectReasonPicker
                           onPick={(reason) => handleReject([book.id], reason)}
                           onCancel={() => setRejectingId(null)}
                         />
+                      )}
+                      {replacingId === book.id && (
+                        <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl bg-orange-50 border border-orange-200">
+                          <input
+                            type="text"
+                            value={replaceNote}
+                            onChange={(e) => setReplaceNote(e.target.value)}
+                            placeholder="Note: e.g. audiobook cover, use newer edition"
+                            className="flex-1 min-w-[150px] px-3 py-1.5 rounded-lg text-xs border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            data-testid={`input-replace-note-${book.id}`}
+                          />
+                          <button
+                            onClick={() => replaceMutation.mutate({ ids: [book.id], note: replaceNote })}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                            data-testid={`button-confirm-replace-${book.id}`}
+                          >
+                            Flag
+                          </button>
+                          <button
+                            onClick={() => { setReplacingId(null); setReplaceNote(""); }}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
