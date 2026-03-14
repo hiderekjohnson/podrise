@@ -1,5 +1,4 @@
 import { Link } from "wouter";
-import { SiX } from "react-icons/si";
 import { PodCapWordmark } from "./PodCapHeader";
 import { INDUSTRIES, INTERESTS, ROLES } from "@/data/topicData";
 
@@ -150,20 +149,7 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col items-center">
-          <div className="w-full flex items-center gap-6 mb-6">
-            <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
-            <a
-              href="https://x.com/podcap_io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground transition-colors p-2"
-              data-testid="link-social-x"
-              aria-label="Follow PodCap on X"
-            >
-              <SiX className="w-[22px] h-[22px]" />
-            </a>
-            <div className="flex-1 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
-          </div>
+          <div className="w-full h-px bg-black/[0.06] dark:bg-white/[0.06] mb-6" />
 
           <PodCapWordmark />
           <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mt-3">
