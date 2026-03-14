@@ -363,6 +363,32 @@ export async function getEpisodeTranscript(episodeUuid: string): Promise<string 
   return lines.join("\n");
 }
 
+export async function registerWebhook(endpointUrl: string, events: string[] = ["new_episodes_released"]): Promise<any> {
+  const eventsStr = events.map(e => `"${e}"`).join(", ");
+  const query = `mutation { addWebhookUrlForUser(endpointUrl: "${endpointUrl}", webhookEvents: [${eventsStr}]) { id endpointUrl isVerified isActive webhookSecret events } }`;
+  const data = await taddyRequest(query);
+  return data?.data?.addWebhookUrlForUser;
+}
+
+export async function addWebhookFilter(webhookId: string, filter: { eventType: string; includedUuids?: string[] }): Promise<any> {
+  const uuidsStr = filter.includedUuids ? `[${filter.includedUuids.map(u => `"${u}"`).join(", ")}]` : "[]";
+  const query = `mutation { addWebhookFilter(webhookId: "${webhookId}", filter: { eventType: "${filter.eventType}", includedUuids: ${uuidsStr} }) { uuid eventType hasIncludedUuids includedUuids } }`;
+  const data = await taddyRequest(query);
+  return data?.data?.addWebhookFilter;
+}
+
+export async function getMyWebhooks(): Promise<any> {
+  const query = `{ getMyDeveloperWebhooks { userId webhooks { id endpointUrl isVerified isActive events webhookSecret filters { uuid eventType hasIncludedUuids includedUuids } } } }`;
+  const data = await taddyRequest(query);
+  return data?.data?.getMyDeveloperWebhooks;
+}
+
+export async function deleteWebhook(webhookId: string): Promise<any> {
+  const query = `mutation { deleteWebhookForUser(id: "${webhookId}") { id } }`;
+  const data = await taddyRequest(query);
+  return data?.data?.deleteWebhookForUser;
+}
+
 async function taddyRequest(query: string): Promise<any> {
   const userId = process.env.TADDY_USER_ID;
   const apiKey = process.env.TADDY_API_KEY;
