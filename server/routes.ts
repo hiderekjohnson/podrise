@@ -872,14 +872,18 @@ export async function registerRoutes(
       return res.json({ results: [] });
     }
     try {
-      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast&entity=podcast&limit=8`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const results = (data.results || []).map((item: any) => ({
-        id: String(item.collectionId),
-        name: item.collectionName,
-        artistName: item.artistName,
-        artworkUrl: (item.artworkUrl600 || item.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb"),
+      const { rows } = await pool.query(
+        `SELECT itunes_id, name, artwork_url FROM podcast_directory
+         WHERE has_landing_page = true
+           AND (name ILIKE $1 OR slug ILIKE $1)
+         ORDER BY name ASC LIMIT 8`,
+        [`%${term.trim()}%`]
+      );
+      const results = rows.map((r: any) => ({
+        id: String(r.itunes_id),
+        name: r.name,
+        artistName: "",
+        artworkUrl: r.artwork_url || "",
       }));
       res.json({ results });
     } catch {
