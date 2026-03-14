@@ -4564,6 +4564,225 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/book-covers/fetch-candidates", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { id } = req.body;
+      if (!id) return res.status(400).json({ message: "id required" });
+
+      const { rows } = await pool.query(
+        `SELECT id, slug, google_books_id, isbn, asin, book_title, author FROM book_enrichments WHERE id = $1`,
+        [id]
+      );
+      if (!rows.length) return res.status(404).json({ message: "Book not found" });
+      const book = rows[0];
+
+      const fsMod = await import("fs");
+      const pathMod = await import("path");
+      const candidatesDir = pathMod.default.resolve("public/books/candidates");
+      if (!fsMod.default.existsSync(candidatesDir)) {
+        fsMod.default.mkdirSync(candidatesDir, { recursive: true });
+      }
+
+      const MIN_WIDTH = 200;
+
+      function isPlaceholder(buf: Buffer): boolean {
+        if (buf.length < 1000) return true;
+        const isPng = buf[0] === 0x89 && buf[1] === 0x50;
+        if (isPng && (buf.length === 15567 || buf.length === 1269)) return true;
+        return false;
+      }
+      function jpegWidth(buf: Buffer): number {
+        let i = 2;
+        while (i < buf.length - 8) {
+          if (buf[i] !== 0xff) return 0;
+          const marker = buf[i + 1];
+          if (marker === 0xc0 || marker === 0xc2) return buf.readUInt16BE(i + 7);
+          const len = buf.readUInt16BE(i + 2);
+          i += 2 + len;
+        }
+        return 0;
+      }
+      function pngWidth(buf: Buffer): number {
+        if (buf.length < 24) return 0;
+        return buf.readUInt32BE(16);
+      }
+      function getWidth(buf: Buffer): number {
+        if (buf[0] === 0xff && buf[1] === 0xd8) return jpegWidth(buf);
+        if (buf[0] === 0x89 && buf[1] === 0x50) return pngWidth(buf);
+        return 0;
+      }
+
+      type CandidateResult = { source: string; width: number; size: number; filename: string; url: string } | null;
+
+      async function tryGoogleBooks(googleBooksId: string, slug: string): Promise<CandidateResult> {
+        for (const zoom of [3, 2, 1]) {
+          const url = `https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`;
+          try {
+            const r = await fetch(url);
+            if (!r.ok) continue;
+            const buf = Buffer.from(await r.arrayBuffer());
+            if (isPlaceholder(buf)) continue;
+            const w = getWidth(buf);
+            if (w >= MIN_WIDTH || (zoom === 1 && w > 0)) {
+              const filename = `${slug}_google_books.jpg`;
+              fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
+              return { source: "google_books", width: w, size: buf.length, filename, url: `/books/candidates/${filename}` };
+            }
+          } catch {}
+        }
+        return null;
+      }
+
+      async function tryOpenLibrary(isbn: string, slug: string): Promise<CandidateResult> {
+        const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
+        try {
+          const r = await fetch(url);
+          if (!r.ok) return null;
+          const buf = Buffer.from(await r.arrayBuffer());
+          if (buf.length < 1000) return null;
+          const w = getWidth(buf);
+          const filename = `${slug}_openlibrary.jpg`;
+          fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
+          return { source: "openlibrary", width: w, size: buf.length, filename, url: `/books/candidates/${filename}` };
+        } catch { return null; }
+      }
+
+      async function tryAmazon(isbn: string, slug: string): Promise<CandidateResult> {
+        const urls = [
+          `https://images-na.ssl-images-amazon.com/images/P/${isbn}.01._SCLZZZZZZZ_.jpg`,
+          `https://images.amazon.com/images/P/${isbn}.01.LZZZZZZZ.jpg`,
+        ];
+        for (const u of urls) {
+          try {
+            const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" } });
+            if (!r.ok) continue;
+            const buf = Buffer.from(await r.arrayBuffer());
+            if (isPlaceholder(buf)) continue;
+            if (buf.length < 2000) continue;
+            const w = getWidth(buf);
+            if (w > 0) {
+              const filename = `${slug}_amazon.jpg`;
+              fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
+              return { source: "amazon_isbn", width: w, size: buf.length, filename, url: `/books/candidates/${filename}` };
+            }
+          } catch {}
+        }
+        return null;
+      }
+
+      async function tryOpenLibrarySearch(title: string, author: string | null, slug: string): Promise<CandidateResult> {
+        const q = encodeURIComponent(title + (author ? ` ${author}` : ""));
+        try {
+          const searchRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=3`);
+          if (!searchRes.ok) return null;
+          const data = await searchRes.json();
+          const docs = data.docs || [];
+          for (const doc of docs) {
+            if (doc.cover_i) {
+              const coverUrl = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg?default=false`;
+              const r = await fetch(coverUrl);
+              if (!r.ok) continue;
+              const buf = Buffer.from(await r.arrayBuffer());
+              if (buf.length < 1000) continue;
+              const w = getWidth(buf);
+              if (w >= MIN_WIDTH || w > 0) {
+                const filename = `${slug}_ol_search.jpg`;
+                fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
+                return { source: "openlibrary_search", width: w, size: buf.length, filename, url: `/books/candidates/${filename}` };
+              }
+            }
+          }
+        } catch {}
+        return null;
+      }
+
+      const promises: Promise<CandidateResult>[] = [];
+      if (book.google_books_id) promises.push(tryGoogleBooks(book.google_books_id, book.slug));
+      else promises.push(Promise.resolve(null));
+      if (book.isbn) promises.push(tryOpenLibrary(book.isbn, book.slug));
+      else promises.push(Promise.resolve(null));
+      if (book.isbn) promises.push(tryAmazon(book.isbn, book.slug));
+      else promises.push(Promise.resolve(null));
+      promises.push(tryOpenLibrarySearch(book.book_title, book.author, book.slug));
+
+      const results = await Promise.all(promises);
+      const candidates = results.filter((r): r is NonNullable<CandidateResult> => r !== null);
+
+      res.json({ candidates, bookId: book.id, slug: book.slug, title: book.book_title });
+    } catch (err: any) {
+      console.error("[BookCovers] Fetch candidates error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch candidates" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/select-candidate", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { id, source, filename } = req.body;
+      if (!id || !source || !filename) return res.status(400).json({ message: "id, source, filename required" });
+
+      const validSources = ["google_books", "openlibrary", "amazon_isbn", "openlibrary_search"];
+      if (!validSources.includes(source)) return res.status(400).json({ message: "Invalid source" });
+
+      const { rows } = await pool.query(
+        `SELECT id, slug, cover_tried_sources FROM book_enrichments WHERE id = $1`,
+        [id]
+      );
+      if (!rows.length) return res.status(404).json({ message: "Book not found" });
+      const book = rows[0];
+
+      const suffixMap: Record<string, string> = {
+        google_books: "google_books", openlibrary: "openlibrary",
+        amazon_isbn: "amazon", openlibrary_search: "ol_search",
+      };
+      const expectedFilename = `${book.slug}_${suffixMap[source]}.jpg`;
+      if (filename !== expectedFilename) {
+        return res.status(400).json({ message: "Filename does not match expected pattern" });
+      }
+
+      const fsMod = await import("fs");
+      const pathMod = await import("path");
+      const candidatesDir = pathMod.default.resolve("public/books/candidates");
+      const coversDir = pathMod.default.resolve("public/books");
+
+      const srcPath = pathMod.default.join(candidatesDir, expectedFilename);
+      const destPath = pathMod.default.join(coversDir, `${book.slug}.jpg`);
+
+      if (!fsMod.default.existsSync(srcPath)) {
+        return res.status(404).json({ message: "Candidate file not found" });
+      }
+
+      fsMod.default.copyFileSync(srcPath, destPath);
+
+      const triedSources = book.cover_tried_sources || [];
+      const newTried = [...new Set([...triedSources, source])];
+
+      await pool.query(
+        `UPDATE book_enrichments 
+         SET has_cover = true, cover_approved = true, cover_source = $1, 
+             cover_tried_sources = $2, cover_quality_score = NULL,
+             needs_replacement = false, replacement_note = NULL
+         WHERE id = $3`,
+        [source, newTried, id]
+      );
+
+      const candidateFiles = fsMod.default.readdirSync(candidatesDir).filter(f => f.startsWith(`${book.slug}_`));
+      for (const f of candidateFiles) {
+        try { fsMod.default.unlinkSync(pathMod.default.join(candidatesDir, f)); } catch {}
+      }
+
+      res.json({ message: "Cover selected and approved", source });
+    } catch (err: any) {
+      console.error("[BookCovers] Select candidate error:", err);
+      res.status(500).json({ message: err?.message || "Failed to select candidate" });
+    }
+  });
+
   app.post("/api/admin/book-covers/remove-not-book", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

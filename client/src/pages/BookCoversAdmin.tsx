@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye, RefreshCw, Loader2, RotateCcw } from "lucide-react";
+import { Check, X, BookOpen, CheckCircle2, XCircle, Clock, Filter, ExternalLink, Eye, RefreshCw, Loader2, RotateCcw, Search, ImageIcon } from "lucide-react";
 
 interface BookCoverItem {
   id: number;
@@ -32,6 +32,14 @@ interface CoverStats {
   noCover: number;
 }
 
+interface CoverCandidate {
+  source: string;
+  width: number;
+  size: number;
+  filename: string;
+  url: string;
+}
+
 type FilterMode = "all" | "pending" | "approved" | "rejected" | "replace" | "nocover";
 type SortMode = "title" | "quality";
 type RejectReason = "blurry" | "wrong_book" | "wrong_edition" | "low_quality" | "other";
@@ -44,6 +52,13 @@ const REJECT_REASONS: { value: RejectReason; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+const SOURCE_LABELS: Record<string, string> = {
+  google_books: "Google Books",
+  openlibrary: "OpenLibrary",
+  amazon_isbn: "Amazon",
+  openlibrary_search: "OL Search",
+};
+
 export default function BookCoversAdmin() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterMode>("all");
@@ -55,6 +70,10 @@ export default function BookCoversAdmin() {
   const [bulkReplacing, setBulkReplacing] = useState(false);
   const [replaceNote, setReplaceNote] = useState("");
   const lastClickedIndex = useRef<number | null>(null);
+  const [candidatesMap, setCandidatesMap] = useState<Record<number, CoverCandidate[]>>({});
+  const [loadingCandidates, setLoadingCandidates] = useState<Set<number>>(new Set());
+  const [selectingCandidate, setSelectingCandidate] = useState<Set<number>>(new Set());
+  const [coverVersion, setCoverVersion] = useState<Record<number, number>>({});
 
   const { data, isLoading, refetch } = useQuery<{ books: BookCoverItem[]; stats: CoverStats }>({
     queryKey: ["/api/admin/book-covers", filter, sort],
@@ -127,6 +146,58 @@ export default function BookCoversAdmin() {
       toast({ title: "Retry Started", description: data.message || "Running in background..." });
     },
   });
+
+  const fetchCandidates = async (bookId: number) => {
+    setLoadingCandidates(prev => new Set(prev).add(bookId));
+    try {
+      const res = await apiRequest("POST", "/api/admin/book-covers/fetch-candidates", { id: bookId });
+      const data = await res.json();
+      setCandidatesMap(prev => ({ ...prev, [bookId]: data.candidates || [] }));
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to fetch candidates", variant: "destructive" });
+    } finally {
+      setLoadingCandidates(prev => {
+        const next = new Set(prev);
+        next.delete(bookId);
+        return next;
+      });
+    }
+  };
+
+  const selectCandidate = async (bookId: number, candidate: CoverCandidate) => {
+    setSelectingCandidate(prev => new Set(prev).add(bookId));
+    try {
+      await apiRequest("POST", "/api/admin/book-covers/select-candidate", {
+        id: bookId,
+        source: candidate.source,
+        filename: candidate.filename,
+      });
+      toast({ title: "Cover Selected", description: `Applied ${SOURCE_LABELS[candidate.source] || candidate.source} cover and approved` });
+      setCandidatesMap(prev => {
+        const next = { ...prev };
+        delete next[bookId];
+        return next;
+      });
+      setCoverVersion(prev => ({ ...prev, [bookId]: Date.now() }));
+      refetch();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to select candidate", variant: "destructive" });
+    } finally {
+      setSelectingCandidate(prev => {
+        const next = new Set(prev);
+        next.delete(bookId);
+        return next;
+      });
+    }
+  };
+
+  const dismissCandidates = (bookId: number) => {
+    setCandidatesMap(prev => {
+      const next = { ...prev };
+      delete next[bookId];
+      return next;
+    });
+  };
 
   const books = data?.books || [];
   const stats = data?.stats || { total: 0, approved: 0, rejected: 0, pending: 0, needsReplacement: 0, noCover: 0 };
@@ -208,6 +279,59 @@ export default function BookCoversAdmin() {
       </button>
     </div>
   );
+
+  const CandidatePicker = ({ bookId, candidates }: { bookId: number; candidates: CoverCandidate[] }) => {
+    const isSelecting = selectingCandidate.has(bookId);
+    return (
+      <div className="mt-3 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold text-indigo-700">
+            {candidates.length} cover{candidates.length !== 1 ? "s" : ""} found — click to use
+          </span>
+          <button
+            onClick={() => dismissCandidates(bookId)}
+            className="text-xs text-zinc-400 hover:text-zinc-600"
+            data-testid={`button-dismiss-candidates-${bookId}`}
+          >
+            Dismiss
+          </button>
+        </div>
+        {candidates.length === 0 ? (
+          <p className="text-xs text-zinc-500 italic">No covers found from any source.</p>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {candidates.map((c) => (
+              <button
+                key={c.source}
+                onClick={() => selectCandidate(bookId, c)}
+                disabled={isSelecting}
+                className="flex-shrink-0 group relative rounded-xl overflow-hidden border-2 border-transparent hover:border-indigo-500 transition-all disabled:opacity-50"
+                data-testid={`candidate-${bookId}-${c.source}`}
+              >
+                <img
+                  src={`${c.url}?t=${Date.now()}`}
+                  alt={`${c.source} cover`}
+                  className="w-[120px] h-[180px] object-contain bg-white"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                  <Check className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1 text-center">
+                  <span className="text-[10px] font-bold text-white">{SOURCE_LABELS[c.source] || c.source}</span>
+                  <span className="text-[9px] text-white/60 block">{c.width}px · {Math.round(c.size / 1024)}KB</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {isSelecting && (
+          <div className="flex items-center gap-2 mt-2 text-xs text-indigo-600">
+            <Loader2 className="w-3 h-3 animate-spin" /> Applying cover...
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4" data-testid="book-covers-admin">
@@ -421,11 +545,13 @@ export default function BookCoversAdmin() {
           {books.map((book, index) => {
             const isSelected = selected.has(book.id);
             const showRejectPicker = rejectingId === book.id;
+            const candidates = candidatesMap[book.id];
+            const isLoadingCandidates = loadingCandidates.has(book.id);
             return (
               <div
                 key={book.id}
                 onClick={(e) => {
-                  if ((e.target as HTMLElement).closest("button, a")) return;
+                  if ((e.target as HTMLElement).closest("button, a, .candidate-picker")) return;
                   handleCardClick(index, e);
                 }}
                 className={`relative rounded-2xl border-2 p-5 transition-all cursor-pointer select-none ${
@@ -444,7 +570,7 @@ export default function BookCoversAdmin() {
                     <div className="w-[287px] h-[425px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-lg">
                       {book.hasFile ? (
                         <img
-                          src={`/books/${book.slug}.jpg?t=1`}
+                          src={`/books/${book.slug}.jpg?v=${coverVersion[book.id] || 1}`}
                           alt={book.title}
                           className="w-full h-full object-contain"
                           loading="lazy"
@@ -568,13 +694,17 @@ export default function BookCoversAdmin() {
                           Reject
                         </button>
                         <button
-                          onClick={() => setReplacingId(replacingId === book.id ? null : book.id)}
-                          disabled={replaceMutation.isPending}
-                          className="px-4 py-2.5 rounded-lg text-sm font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-30 flex items-center gap-1.5"
-                          data-testid={`button-replace-${book.id}`}
+                          onClick={() => fetchCandidates(book.id)}
+                          disabled={isLoadingCandidates}
+                          className="px-4 py-2.5 rounded-lg text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                          data-testid={`button-find-covers-${book.id}`}
                         >
-                          <RefreshCw className="w-4 h-4" />
-                          Replace
+                          {isLoadingCandidates ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Search className="w-4 h-4" />
+                          )}
+                          {isLoadingCandidates ? "Searching..." : "Find Covers"}
                         </button>
                         <button
                           onClick={() => {
@@ -596,29 +726,9 @@ export default function BookCoversAdmin() {
                           onCancel={() => setRejectingId(null)}
                         />
                       )}
-                      {replacingId === book.id && (
-                        <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl bg-orange-50 border border-orange-200">
-                          <input
-                            type="text"
-                            value={replaceNote}
-                            onChange={(e) => setReplaceNote(e.target.value)}
-                            placeholder="Note: e.g. audiobook cover, use newer edition"
-                            className="flex-1 min-w-[150px] px-3 py-1.5 rounded-lg text-xs border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                            data-testid={`input-replace-note-${book.id}`}
-                          />
-                          <button
-                            onClick={() => replaceMutation.mutate({ ids: [book.id], note: replaceNote })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                            data-testid={`button-confirm-replace-${book.id}`}
-                          >
-                            Flag
-                          </button>
-                          <button
-                            onClick={() => { setReplacingId(null); setReplaceNote(""); }}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                          >
-                            Cancel
-                          </button>
+                      {candidates !== undefined && (
+                        <div className="candidate-picker">
+                          <CandidatePicker bookId={book.id} candidates={candidates} />
                         </div>
                       )}
                     </div>
