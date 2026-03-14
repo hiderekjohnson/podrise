@@ -8338,7 +8338,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
          FROM episode_transcripts
          WHERE podcast_id = '1469759170'
          ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 25`
+         LIMIT 10`
       );
 
       if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
@@ -8390,9 +8390,27 @@ The KEY TEST: Could this product be ordered on Amazon (or should it be on Amazon
 A good product to extract is:
 - A specific, named physical product or brand (not a generic category like "liver supplements" or "gadgets")
 - Must have a SPECIFIC BRAND NAME — never extract generic product categories without a named brand
-- Genuinely discussed or recommended by the hosts — not just mentioned in passing
-- Interesting or surprising — something listeners would want to check out
+- The host/guest must EXPRESS GENUINE PERSONAL ENDORSEMENT — they personally use it, own it, love it, bought it, or their family uses it
 - Something you could hold in your hands, wear, use, or consume physically
+
+THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE of these:
+- "I use this" / "I bought one" / "I actually have this" / "I've been using this for months"
+- "My wife loves her [product]" / "We use [product] at home" / "I carry it everywhere"
+- "I really like this" / "These are great" / "I'm obsessed with this"
+- "I just got one and it's amazing" / "Game changer for me personally"
+
+These DO NOT count as endorsements — DO NOT extract:
+- Discussing a company's business model or success: "Yeti made coolers sexy" — SKIP
+- Admiring a company's innovation: "I know those guys, he was always doing little internet checks" — SKIP
+- Mentioning a product exists or someone else made it: "Marshawn Lynch has Beast Mode Apparel, which is a Shopify store" — SKIP
+- Discussing as an investment or business case: "Gymshark raised money, a PE firm bought 20% for $1.3 billion" — SKIP
+- Talking about how cool or innovative a company/product CONCEPT is without personal use: "He's creating a bubble hotel... it's like this cool version of camping" — SKIP
+- Mentioning a brand only because of its founder or business story, not because the host actually uses the product — SKIP
+
+GOOD examples that PASS the test:
+- "Jim Huffman sent us something pretty cool that I liked. Ex-Nike guy decided to make shoes for nurses. They are good looking. I like them a lot." — EXTRACT (personal positive reaction to product)
+- "I actually use this, I've used this for a few months now, and it's this machine with a touchscreen and 3D sensor for strength training." — EXTRACT (personal use)
+- "I just bought one of these paper tablets... it's been great because I literally carry it around with me all the time." — EXTRACT (personal purchase + daily use)
 
 ABSOLUTELY DO NOT extract any of these:
 - Generic product categories without a specific brand (e.g. "liver supplements" by "Various Brands" — SKIP)
@@ -8418,9 +8436,9 @@ For each qualifying product, return:
 - description: 1 sentence explaining what it is and why it's interesting
 - purchaseUrl: the best URL to buy it (prefer Amazon links when possible)
 - context: a direct quote or close paraphrase showing how the hosts discussed it
-- mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
+- mentionType: "recommendation" | "personal_use" (ONLY these two options — "recommendation" = they explicitly recommend it to others, "personal_use" = they use/own it themselves)
 
-Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
+Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if the host doesn't personally use, own, or love the product, DO NOT extract it.${trainingSection}`;
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
@@ -8446,7 +8464,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract discovery-worthy products from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract ONLY products the hosts/guests personally use, own, or love from this transcript segment. Skip business discussions and company mentions.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
               max_tokens: 1500,
@@ -8491,7 +8509,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             description: p.description || null,
             purchaseUrl: rawUrl || null,
             context: p.context || null,
-            mentionType: p.mentionType || "discussion",
+            mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
             episodeTitle: ep.episode_title,
             episodeSlug,
             podcastSlug: "myfirstmillion",
@@ -8545,7 +8563,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
          FROM episode_transcripts
          WHERE podcast_id = '1469759170'
          ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 25`
+         LIMIT 10`
       );
 
       if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
@@ -8595,9 +8613,20 @@ The KEY TEST: Is this a specific, named digital service or tool that someone cou
 
 A good service/tool to extract is:
 - A SPECIFIC NAMED SERVICE OR BRAND — must have a real brand name (not "budgeting apps" or "dating services")
-- Genuinely discussed or recommended by the hosts — not just mentioned in passing
-- Interesting or surprising — something listeners would want to check out or try
+- The host/guest must EXPRESS GENUINE PERSONAL ENDORSEMENT — they personally use it, rely on it, love it, or strongly recommend it from direct experience
 - A service that makes life easier, better, more productive, or more enjoyable — for consumers OR professionals/businesses
+
+THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE of these:
+- "I use Mercury all the time" / "We run our business on Stripe" / "I switched to this and it changed everything"
+- "I've been a customer for years" / "We use this at our company" / "I love this app"
+- "I signed up for this and it's been amazing" / "This is my favorite tool"
+
+These DO NOT count as endorsements — DO NOT extract:
+- Discussing a company's business model or valuation: "Zapier bootstrapped, they raised one round..." — SKIP
+- Admiring how a company operates: "I'm really impressed with how Microsoft runs its company" — SKIP
+- Mentioning nice things a company does without personal use: "The nice things X company does" — SKIP
+- Discussing a company only as a business/investment case, not as a tool/service the host actually uses — SKIP
+- Mentioning a service exists or covering it as news without personal endorsement — SKIP
 
 ABSOLUTELY DO NOT extract any of these:
 - Generic categories without a specific brand name (e.g. "dating apps" or "budgeting tools" — SKIP)
@@ -8620,9 +8649,9 @@ For each qualifying service/tool, return:
 - description: 1 sentence explaining what it does and why it's interesting
 - purchaseUrl: the best URL to visit (the service's main website)
 - context: a direct quote or close paraphrase showing how the hosts discussed it
-- mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
+- mentionType: "recommendation" | "personal_use" (ONLY these two options — "recommendation" = they explicitly recommend it, "personal_use" = they personally use it)
 
-Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
+Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if the host doesn't personally use, love, or recommend the service from direct experience, DO NOT extract it.${trainingSection}`;
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
@@ -8648,7 +8677,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract noteworthy services and tools from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract ONLY services/tools the hosts/guests personally use, love, or recommend from direct experience. Skip business discussions and company coverage.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
               max_tokens: 1500,
@@ -8693,7 +8722,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             description: p.description || null,
             purchaseUrl: rawUrl || null,
             context: p.context || null,
-            mentionType: p.mentionType || "discussion",
+            mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
             episodeTitle: ep.episode_title,
             episodeSlug,
             podcastSlug: "myfirstmillion",
@@ -8747,7 +8776,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
          FROM episode_transcripts
          WHERE podcast_id = '1469759170'
          ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT 25`
+         LIMIT 10`
       );
 
       if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
@@ -8797,9 +8826,18 @@ The KEY TEST: Is this a specific, named experience/destination/activity that som
 
 A good experience to extract is:
 - A SPECIFIC NAMED experience, destination, or activity — must have a real brand/venue name (not "glamping" or "spa retreats" generically)
-- Genuinely discussed or recommended by the hosts — not just mentioned in passing
-- Interesting or surprising — something listeners would want to try or visit
+- The host/guest must EXPRESS GENUINE PERSONAL ENDORSEMENT — they've been there, done it, loved it, plan to go, or strongly recommend it from direct experience
 - Something that creates a memorable, unique experience — not everyday activities
+
+THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE of these:
+- "I went there and it was incredible" / "We stayed at [place] and I can't recommend it enough"
+- "I've done this three times" / "You have to try this" / "Best experience I've ever had"
+- "My family goes every year" / "I'm booking this for my birthday"
+
+These DO NOT count as endorsements — DO NOT extract:
+- Discussing a business concept: "He's creating a bubble hotel... it's like this cool version of camping" — SKIP (business discussion, not personal endorsement)
+- Mentioning an experience exists or covering it as a business story without the host personally vouching for it — SKIP
+- Admiring an experience from afar without having done it or planning to do it — SKIP
 
 ABSOLUTELY DO NOT extract any of these:
 - Generic categories without a specific brand name (e.g. "bubble hotels" generically or "spa retreats" — SKIP)
@@ -8822,9 +8860,9 @@ For each qualifying experience, return:
 - description: 1 sentence explaining what the experience is and why it's interesting
 - purchaseUrl: the best URL to book or learn more
 - context: a direct quote or close paraphrase showing how the hosts discussed it
-- mentionType: "recommendation" | "discussion" | "personal_use" (how the hosts engaged with it)
+- mentionType: "recommendation" | "personal_use" (ONLY these two options — "recommendation" = they explicitly recommend it, "personal_use" = they've actually done it)
 
-Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
+Return JSON: {"products": [...]}. Empty array is completely fine. Remember: if the host hasn't personally experienced it or doesn't genuinely recommend it from direct experience, DO NOT extract it.${trainingSection}`;
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
@@ -8850,7 +8888,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract noteworthy experiences and activities from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract ONLY experiences the hosts/guests have personally done, visited, or genuinely recommend from direct experience. Skip business discussions.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
               max_tokens: 1500,
@@ -8895,7 +8933,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             description: p.description || null,
             purchaseUrl: rawUrl || null,
             context: p.context || null,
-            mentionType: p.mentionType || "discussion",
+            mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
             episodeTitle: ep.episode_title,
             episodeSlug,
             podcastSlug: "myfirstmillion",
