@@ -7769,7 +7769,8 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
 
       if (!episodes.length) return res.json({ products: [], episodes: [] });
 
-      const { openai } = await import("./replit_integrations/image/client");
+      const OpenAI = (await import("openai")).default;
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const allProducts: any[] = [];
 
       for (const ep of episodes) {
@@ -7782,7 +7783,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
         );
         const episodeSlug = recapRows[0]?.episode_slug || null;
 
-        const completion = await openai.chat.completions.create({
+        const completion = await directOpenai.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [
             {
