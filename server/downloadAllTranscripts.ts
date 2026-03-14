@@ -10,7 +10,7 @@ const BATCH_PAUSE_MS = 15000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 const TARGET_MIN = 100;
-const MAX_PAGES = 8;
+const MAX_PAGES = 25;
 
 const backfillPool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
