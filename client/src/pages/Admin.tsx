@@ -502,9 +502,15 @@ export default function Admin() {
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean }>({
+  const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean } | null>({
     queryKey: ["/api/admin/me"],
     retry: false,
+    queryFn: async () => {
+      const res = await fetch("/api/admin/me", { credentials: "include" });
+      if (res.status === 401) return null;
+      if (!res.ok) throw new Error("Failed to check admin auth");
+      return res.json();
+    },
   });
 
   const isAdmin = adminAuth?.isAdmin === true;
