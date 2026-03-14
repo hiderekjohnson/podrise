@@ -2241,6 +2241,7 @@ export async function registerRoutes(
             hasCover: enrichment?.has_cover ?? null,
           };
         })
+        .filter(b => !!b.slug)
         .sort((a, b) => b.mentionCount - a.mentionCount);
 
       enrichMissingGoogleBooksIds(books).catch(() => {});
@@ -2273,8 +2274,9 @@ export async function registerRoutes(
       );
       const map: Record<string, any> = {};
       for (const r of rows) {
+        if (!r.slug) continue;
         map[r.book_key] = {
-          slug: r.slug || null,
+          slug: r.slug,
           rating: r.rating ? parseFloat(r.rating) : null,
           pageCount: r.page_count || null,
           publishYear: r.publish_year || null,
@@ -2285,6 +2287,12 @@ export async function registerRoutes(
           isbn: r.isbn || null,
           hasCover: r.has_cover ?? null,
         };
+      }
+      const { rows: aliases } = await pool.query(`SELECT alias_key, canonical_key FROM book_aliases`);
+      for (const a of aliases) {
+        if (!map[a.alias_key] && map[a.canonical_key]) {
+          map[a.alias_key] = map[a.canonical_key];
+        }
       }
       res.setHeader("Cache-Control", "public, max-age=3600");
       res.json(map);
@@ -2402,6 +2410,7 @@ export async function registerRoutes(
             mentionCount: b.mentionCount,
           };
         })
+        .filter(b => !!b.slug)
         .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
 
       const result = { books, total: books.length };

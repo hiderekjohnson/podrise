@@ -773,7 +773,11 @@ export default function EpisodeRecapPage() {
   let books: BookResource[] = [];
   try {
     const allResources: BookResource[] = episode.resources ? (typeof episode.resources === "string" ? JSON.parse(episode.resources) : episode.resources) : [];
-    books = allResources.filter(r => r.type === "book" && r.name);
+    books = allResources.filter(r => r.type === "book" && r.name && r.name !== '_books_checked')
+      .filter(r => {
+        const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+        return !!bookSlugMap[key]?.slug;
+      });
   } catch { books = []; }
 
   let sponsors: Sponsor[] = [];
@@ -1209,7 +1213,7 @@ export default function EpisodeRecapPage() {
             <div className="px-4 sm:px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(showAllBooks ? books : books.slice(0, INITIAL_SHOW)).map((book, i) => {
-                  const bookKey = book.name.toLowerCase().trim();
+                  const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
                   const enrichment = bookSlugMap[bookKey];
                   const bookSlug = enrichment?.slug;
                   const asin = enrichment?.asin || extractAsin(book.url || "");
