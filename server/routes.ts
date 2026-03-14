@@ -2382,6 +2382,86 @@ export async function registerRoutes(
     }
   });
 
+  const shopCache = new DataCache<any>("shop", 24 * 60 * 60 * 1000);
+  app.get("/api/shop", async (_req, res) => {
+    try {
+      const cached = shopCache.get();
+      if (cached) return res.json(cached);
+
+      const { rows } = await pool.query(
+        `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
+                ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
+         FROM extracted_products ep
+         WHERE ep.status = 'approved'
+         ORDER BY ep.name`
+      );
+
+      const productMap = new Map<string, {
+        name: string;
+        company: string | null;
+        type: string;
+        description: string;
+        url: string;
+        mentionCount: number;
+        podcastSlugs: Set<string>;
+        podcastNames: string[];
+        episodes: { slug: string; title: string; podcastSlug: string }[];
+      }>();
+
+      const slugToName: Record<string, string> = {};
+      const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
+      for (const p of pdRows) slugToName[p.slug] = p.name;
+
+      for (const row of rows) {
+        const key = normalizeProductKey(row.name || "");
+        if (!key) continue;
+        const epSlug = row.episode_slug || row.episode_title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "";
+        const existing = productMap.get(key);
+        if (existing) {
+          existing.mentionCount++;
+          existing.podcastSlugs.add(row.podcast_slug);
+          if (!existing.episodes.find(e => e.slug === epSlug && e.podcastSlug === row.podcast_slug)) {
+            existing.episodes.push({ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug });
+          }
+          if (!existing.url && row.purchase_url) existing.url = row.purchase_url;
+          if (!existing.description && row.description) existing.description = row.description;
+        } else {
+          productMap.set(key, {
+            name: row.name,
+            company: row.company || null,
+            type: row.category || "product",
+            description: row.description || "",
+            url: row.purchase_url || "",
+            mentionCount: 1,
+            podcastSlugs: new Set([row.podcast_slug]),
+            podcastNames: [],
+            episodes: [{ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug }],
+          });
+        }
+      }
+
+      const products = Array.from(productMap.values()).map(p => ({
+        name: p.name,
+        company: p.company,
+        type: p.type,
+        description: p.description,
+        url: isAmazonUrl(p.url) ? ensureAffiliateTag(p.url) : addUtmParams(p.url),
+        isAmazon: isAmazonUrl(p.url),
+        mentionCount: p.mentionCount,
+        podcastCount: p.podcastSlugs.size,
+        podcastNames: [...p.podcastSlugs].map(s => slugToName[s] || s),
+        episodes: p.episodes,
+      })).sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
+
+      const result = { products, total: products.length };
+      shopCache.set(result);
+      res.json(result);
+    } catch (err) {
+      console.error("Shop error:", err);
+      res.status(500).json({ message: "Failed to load shop products" });
+    }
+  });
+
   function extractAsinFromUrl(url: string): string | null {
     if (!url) return null;
     const patterns = [
@@ -8471,13 +8551,30 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
       const episodeLimit = parseInt(req.body.episodeLimit as string) || 25;
+      const podcastSlug = (req.body.podcastSlug as string) || "myfirstmillion";
+
+      const SLUG_TO_ITUNES: Record<string, string> = {
+        myfirstmillion: "1469759170",
+        allin: "1502871393",
+        biggerpockets: "594419649",
+        callherdaddy: "1418960261",
+        hubermanlab: "1545953110",
+        pivot: "1073226719",
+        garyvee: "928159684",
+        peterattia: "1400828889",
+        timferriss: "863897795",
+        ultimatehuman: "1709740887",
+      };
+      const itunesId = SLUG_TO_ITUNES[podcastSlug];
+      if (!itunesId) return res.status(400).json({ message: `Unknown podcast slug: ${podcastSlug}` });
+
       const { rows: episodes } = await pool.query(
         `SELECT DISTINCT ON (episode_title) id, episode_title, transcript, date_published
          FROM episode_transcripts
-         WHERE podcast_id = '1469759170'
+         WHERE podcast_id = $1
          ORDER BY episode_title, date_published DESC NULLS LAST
-         LIMIT $1`,
-        [episodeLimit]
+         LIMIT $2`,
+        [itunesId, episodeLimit]
       );
 
       if (!episodes.length) return res.json({ products: [], episodes: [], transcriptCoverage: "0%" });
@@ -8624,8 +8721,8 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         totalCharsAvailable += fullTranscript.length;
 
         const { rows: recapRows } = await pool.query(
-          `SELECT episode_slug FROM landing_page_recaps WHERE slug = 'myfirstmillion' AND episode_title = $1 LIMIT 1`,
-          [ep.episode_title]
+          `SELECT episode_slug FROM landing_page_recaps WHERE slug = $1 AND episode_title = $2 LIMIT 1`,
+          [podcastSlug, ep.episode_title]
         );
         const episodeSlug = recapRows[0]?.episode_slug || null;
 
@@ -8690,7 +8787,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             category,
             episodeTitle: ep.episode_title,
             episodeSlug,
-            podcastSlug: "myfirstmillion",
+            podcastSlug,
           };
 
           const existing = await pool.query(
@@ -8776,6 +8873,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         `UPDATE extracted_products SET status = 'approved', reviewed_at = NOW() WHERE id = ANY($1)`,
         [ids]
       );
+      shopCache.invalidate();
       res.json({ message: `${ids.length} product(s) approved` });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to approve" });
@@ -8791,6 +8889,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         `UPDATE extracted_products SET status = 'rejected', rejection_reason = $2, reviewed_at = NOW() WHERE id = ANY($1)`,
         [ids, reason || "not_relevant"]
       );
+      shopCache.invalidate();
       res.json({ message: `${ids.length} product(s) rejected` });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to reject" });

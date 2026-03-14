@@ -40,6 +40,7 @@ const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
 const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const Bookstore = lazy(() => import("./pages/Bookstore"));
 const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
+const Shop = lazy(() => import("./pages/Shop"));
 const TrendsPage = lazy(() => import("./pages/TrendsPage"));
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
@@ -63,6 +64,7 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/bookstore" component={Bookstore} />
         <Route path="/bookstore/:bookSlug" component={BookDetailPage} />
+        <Route path="/shop" component={Shop} />
         <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />

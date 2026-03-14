@@ -37,6 +37,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Episode Quotes System**: Extracts 3-5 editorial quotes per episode with speaker details and quote type for shareable cards.
 - **Recap Post-Processing**: `postProcessRecap()` handles transcript segment parsing, quote extraction, and book enrichment after every recap generation/update.
 - **Podcaster System**: Allows podcasters to claim shows, manage bylines, and view detected sponsors via a dedicated dashboard with magic link authentication.
+- **Shop Page**: Product discovery at `/shop` showing products, tools, and services genuinely endorsed across podcasts. Products are extracted from transcripts via AI (`extracted_products` table, status workflow: pending → approved/rejected). Shop API at `GET /api/shop` aggregates approved products with mention counts, podcast attribution, and affiliate link handling (Amazon tag: `podcap-20`, non-Amazon: UTM params). Frontend features search, category filters (Tools & Services, Physical Products, Experiences), podcast filter, sort options. Admin endpoints at `/api/admin/products/approve` and `/api/admin/products/reject` invalidate the 24h shop cache. Product extraction endpoint at `POST /api/admin/extract-products` supports podcast slug-to-iTunes ID mapping for 10 podcasts.
 
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
