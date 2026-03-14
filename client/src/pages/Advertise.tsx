@@ -4,16 +4,10 @@ import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
-  Megaphone, Target, Mail, BarChart3, Briefcase, Building2,
+  Megaphone, Target, Mail, Briefcase, Building2,
   Headphones, Globe, ArrowRight, Shield, TrendingUp, Zap
 } from "lucide-react";
 
-const STATS = [
-  { label: "Podcasts tracked", value: "275+", icon: Headphones },
-  { label: "Episodes analyzed", value: "36,000+", icon: BarChart3 },
-  { label: "Topics monitored", value: "50+", icon: Globe },
-  { label: "Daily email digests", value: "Thousands", icon: Mail },
-];
 
 const TARGETING_OPTIONS = [
   {
@@ -126,26 +120,6 @@ export default function Advertise() {
           </a>
         </motion.section>
 
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-16" data-testid="section-stats">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {STATS.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-5 text-center"
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}
-              >
-                <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
-                <div className="text-2xl font-display font-extrabold tracking-tight mb-1">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
 
         <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-20" data-testid="section-why-podcap">
           <motion.div
