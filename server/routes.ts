@@ -8233,6 +8233,34 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
     }
   });
 
+  async function validateUrl(url: string): Promise<boolean> {
+    if (!url || !url.startsWith("http")) return false;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(url, {
+        method: "HEAD",
+        signal: controller.signal,
+        redirect: "follow",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+      });
+      clearTimeout(timeout);
+      if (res.ok) return true;
+      if (res.status === 405) {
+        const getRes = await fetch(url, {
+          method: "GET",
+          signal: AbortSignal.timeout(5000),
+          redirect: "follow",
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+        });
+        return getRes.ok;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   app.post("/api/admin/extract-products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
@@ -8327,6 +8355,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
+      let totalUrlsSkipped = 0;
 
       for (const ep of episodes) {
         const fullTranscript = (ep.transcript || "").trim();
@@ -8377,11 +8406,21 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         }
 
         for (const p of deduped.values()) {
+          const rawUrl = (p.purchaseUrl || "").trim();
+          if (rawUrl) {
+            const urlValid = await validateUrl(rawUrl);
+            if (!urlValid) {
+              console.log(`[ProductExtract] Skipping "${p.name}" — URL dead: ${rawUrl}`);
+              totalUrlsSkipped++;
+              continue;
+            }
+          }
+
           const product = {
             name: p.name || "",
             company: p.company || null,
             description: p.description || null,
-            purchaseUrl: p.purchaseUrl || null,
+            purchaseUrl: rawUrl || null,
             context: p.context || null,
             mentionType: p.mentionType || "discussion",
             episodeTitle: ep.episode_title,
@@ -8404,12 +8443,14 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         }
       }
 
+      if (totalUrlsSkipped > 0) console.log(`[ProductExtract] Total skipped ${totalUrlsSkipped} products with dead URLs`);
+
       const coveragePct = totalCharsAvailable > 0
         ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
         : 0;
 
       const { rows: allSaved } = await pool.query(
-        `SELECT * FROM extracted_products ORDER BY extracted_at DESC`
+        `SELECT * FROM extracted_products WHERE category = 'physical_product' ORDER BY extracted_at DESC`
       );
 
       res.json({
@@ -8419,6 +8460,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         transcriptCoverage: `${coveragePct}%`,
         totalCharsProcessed,
         totalCharsAvailable,
+        urlsSkipped: totalUrlsSkipped,
       });
     } catch (err: any) {
       console.error("[ProductExtract] Error:", err);
@@ -8515,6 +8557,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
 
       let totalCharsProcessed = 0;
       let totalCharsAvailable = 0;
+      let totalUrlsSkipped = 0;
 
       for (const ep of episodes) {
         const fullTranscript = (ep.transcript || "").trim();
@@ -8565,11 +8608,21 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         }
 
         for (const p of deduped.values()) {
+          const rawUrl = (p.purchaseUrl || "").trim();
+          if (rawUrl) {
+            const urlValid = await validateUrl(rawUrl);
+            if (!urlValid) {
+              console.log(`[ServiceExtract] Skipping "${p.name}" — URL dead: ${rawUrl}`);
+              totalUrlsSkipped++;
+              continue;
+            }
+          }
+
           const product = {
             name: p.name || "",
             company: p.company || null,
             description: p.description || null,
-            purchaseUrl: p.purchaseUrl || null,
+            purchaseUrl: rawUrl || null,
             context: p.context || null,
             mentionType: p.mentionType || "discussion",
             episodeTitle: ep.episode_title,
@@ -8592,6 +8645,8 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         }
       }
 
+      if (totalUrlsSkipped > 0) console.log(`[ServiceExtract] Total skipped ${totalUrlsSkipped} services with dead URLs`);
+
       const coveragePct = totalCharsAvailable > 0
         ? Math.round((totalCharsProcessed / totalCharsAvailable) * 100)
         : 0;
@@ -8607,6 +8662,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
         transcriptCoverage: `${coveragePct}%`,
         totalCharsProcessed,
         totalCharsAvailable,
+        urlsSkipped: totalUrlsSkipped,
       });
     } catch (err: any) {
       console.error("[ServiceExtract] Error:", err);

@@ -66,7 +66,7 @@ export default function ProductsAdmin() {
   const [filter, setFilter] = useState<FilterMode>("pending");
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
-  const [lastExtraction, setLastExtraction] = useState<{ newCount: number; coverage: string } | null>(null);
+  const [lastExtraction, setLastExtraction] = useState<{ newCount: number; coverage: string; urlsSkipped?: number } | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery<{ products: Product[]; stats: Record<string, number> }>({
@@ -109,6 +109,7 @@ export default function ProductsAdmin() {
       setLastExtraction({
         newCount: result.newCount || 0,
         coverage: result.transcriptCoverage || "100%",
+        urlsSkipped: result.urlsSkipped || 0,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
       setFilter("pending");
@@ -224,7 +225,10 @@ export default function ProductsAdmin() {
       {lastExtraction && !extracting && (
         <div className="p-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-3" data-testid="text-extraction-result">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>Found {lastExtraction.newCount} new {isServices ? "services/tools" : "products"} ({lastExtraction.coverage} transcript coverage)</span>
+          <span>
+            Found {lastExtraction.newCount} new {isServices ? "services/tools" : "products"} ({lastExtraction.coverage} transcript coverage)
+            {lastExtraction.urlsSkipped ? ` · ${lastExtraction.urlsSkipped} skipped (dead URLs)` : ""}
+          </span>
         </div>
       )}
 
