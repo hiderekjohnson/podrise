@@ -7478,6 +7478,153 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         console.warn(`[PostProcess] Book enrichment failed for "${episodeTitle}":`, err);
       }
     }
+
+    if (opts.recapId && transcript) {
+      try {
+        const { rows: cacheCheck } = await pool.query(
+          `SELECT entity_contexts_cache FROM landing_page_recaps WHERE id = $1`,
+          [opts.recapId]
+        );
+        if (cacheCheck.length > 0 && !cacheCheck[0].entity_contexts_cache) {
+          let sponsorNames: string[] = [];
+          try {
+            const { rows: recapRow } = await pool.query(
+              `SELECT sponsors FROM landing_page_recaps WHERE id = $1`, [opts.recapId]
+            );
+            if (recapRow[0]?.sponsors) {
+              const sponsors = typeof recapRow[0].sponsors === "string" ? JSON.parse(recapRow[0].sponsors) : recapRow[0].sponsors;
+              sponsorNames = sponsors.map((s: any) => (s.name || "").toLowerCase()).filter(Boolean);
+            }
+          } catch {}
+
+          const podcastHosts = await storage.getHostsByPodcastSlug(podcastSlug);
+          const hostNameSet = new Set(podcastHosts.map(h => h.name.toLowerCase().trim()));
+
+          const RECAP_AMBIGUOUS_TERMS = new Set([
+            "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
+            "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
+            "The Information", "The Economist",
+            "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway",
+            "Cursor", "Box", "Circle"
+          ]);
+
+          function ppCountMentions(text: string, terms: string[], ambiguous?: Set<string>): number {
+            let total = 0;
+            for (const term of terms) {
+              const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const flags = (ambiguous && ambiguous.has(term)) ? 'g' : 'gi';
+              const regex = new RegExp(`\\b${escaped}\\b`, flags);
+              const matches = text.match(regex);
+              if (matches) total += matches.length;
+            }
+            return total;
+          }
+
+          function ppExtractSnippets(text: string, terms: string[], count: number = 3): string[] {
+            const snippets: string[] = [];
+            for (const term of terms) {
+              const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+              let match;
+              while ((match = regex.exec(text)) !== null && snippets.length < count) {
+                const start = Math.max(0, match.index - 120);
+                const end = Math.min(text.length, match.index + term.length + 120);
+                snippets.push(text.slice(start, end).replace(/\n/g, ' ').trim());
+              }
+              if (snippets.length >= count) break;
+            }
+            return snippets;
+          }
+
+          const matchedPeopleSlugs = ENTITY_PEOPLE.filter(p => {
+            const nameLower = p.name.toLowerCase();
+            if (hostNameSet.has(nameLower)) return false;
+            if (p.searchTerms.some(term => hostNameSet.has(term.toLowerCase()))) return false;
+            if (p.hostedSlugs.includes(podcastSlug)) return false;
+            return ppCountMentions(transcript, p.searchTerms) >= 2;
+          }).map(p => p.slug);
+
+          const matchedCompanySlugs = ENTITY_COMPANIES.filter(c => {
+            if (sponsorNames.includes(c.name.toLowerCase())) return false;
+            const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
+            return ppCountMentions(transcript, allTerms, RECAP_AMBIGUOUS_TERMS) >= 2;
+          }).map(c => c.slug);
+
+          const allMatchedSlugs = [...matchedPeopleSlugs, ...matchedCompanySlugs];
+          if (allMatchedSlugs.length > 0) {
+            const entityList: { slug: string; name: string; type: string; snippets: string[] }[] = [];
+            for (const slug of matchedPeopleSlugs) {
+              const person = ENTITY_PEOPLE.find(p => p.slug === slug);
+              if (person) {
+                entityList.push({ slug, name: person.name, type: "person", snippets: ppExtractSnippets(transcript, person.searchTerms) });
+              }
+            }
+            for (const slug of matchedCompanySlugs) {
+              const company = ENTITY_COMPANIES.find(c => c.slug === slug);
+              if (company) {
+                const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
+                entityList.push({ slug, name: company.name, type: "company", snippets: ppExtractSnippets(transcript, allTerms) });
+              }
+            }
+
+            if (entityList.length > 0) {
+              try {
+                const { openai } = await import("./replit_integrations/image/client");
+                const entityDescriptions = entityList.map(e =>
+                  `- ${e.name} (${e.type}): "${e.snippets.join('" | "')}"`
+                ).join('\n');
+
+                const aiResp = await openai.chat.completions.create({
+                  model: "gpt-4o-mini",
+                  messages: [{
+                    role: "user",
+                    content: `For each person/company below, write ONE sentence describing the specific claim, argument, or story from this episode about them. Do NOT describe who they are or what their company does generically. Write what was said about them in this episode specifically. If you cannot find something specific from the excerpts, write the most specific contextual claim possible.
+
+Since transcripts are not speaker-tagged, do NOT attribute claims to specific hosts or guests by name. Instead use passive or general terms: "was cited," "was highlighted," "was referenced," "was discussed," "was held up as."
+
+Good examples:
+- "Mark Zuckerberg was cited as an example of how radically different paths -- dropping out, building in a dorm -- can lead to the same outcome as more conventional routes taken by Gates or Bezos."
+- "OpenAI was highlighted as one of the best companies to join as an early employee in 2026, with significant stock option upside for the right roles."
+
+Bad examples (too generic):
+- "Discussed as an example of varied paths to success."
+- "Referenced for his unique approach to angel investing."
+
+Podcast: ${podcastName}
+Episode: "${episodeTitle}"
+
+Entities with transcript excerpts:
+${entityDescriptions}
+
+Respond with JSON: { "slug": "summary sentence", ... }
+Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
+                  }],
+                  max_tokens: 2000,
+                  temperature: 0.3,
+                  response_format: { type: "json_object" },
+                });
+
+                const content = aiResp.choices[0]?.message?.content;
+                if (content) {
+                  const entityContexts = JSON.parse(content);
+                  if (Object.keys(entityContexts).length > 0) {
+                    await pool.query(
+                      `UPDATE landing_page_recaps SET entity_contexts_cache = $1 WHERE id = $2`,
+                      [JSON.stringify(entityContexts), opts.recapId]
+                    );
+                    console.log(`[PostProcess] Cached entity contexts for "${episodeTitle}" (${Object.keys(entityContexts).length} entities)`);
+                  }
+                }
+              } catch (err) {
+                console.warn(`[PostProcess] Entity context generation failed for "${episodeTitle}":`, err);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`[PostProcess] Entity cache check failed for "${episodeTitle}":`, err);
+      }
+    }
   }
 
   async function processOneEpisode(
@@ -7528,7 +7675,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
           : `${durationMin} minutes`;
 
-        await client.query(
+        const insertResult = await client.query(
           `INSERT INTO landing_page_recaps
            (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
@@ -7536,7 +7683,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
              tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
              quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
              topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-             sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
+             sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources
+           RETURNING id`,
           [
             podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
             durationStr, t.image_url || podcastArtwork, hosts,
@@ -7551,6 +7699,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             recap.resources ? JSON.stringify(recap.resources) : "[]",
           ]
         );
+        const newRecapId = insertResult.rows[0]?.id;
 
         await postProcessRecap({
           transcript: t.transcript,
@@ -7558,6 +7707,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           itunesId, hosts,
           guests: recap.guests || null,
           resources: recap.resources || null,
+          recapId: newRecapId,
         });
 
         const quoteCount = (await storage.getEpisodeQuotes(podcastSlug, epSlug)).length;
@@ -8217,6 +8367,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               itunesId: row.itunes_id, hosts: row.hosts || null,
               guests: recap.guests || null,
               resources: recap.resources || null,
+              recapId: row.id,
             });
 
             epGenState.generated++;
@@ -9187,8 +9338,22 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             }
 
             try {
-              const { postProcessRecap } = await import("./postProcessRecap");
-              await postProcessRecap(podcast.slug, epSlug);
+              const { rows: recapIdRows } = await pool.query(
+                `SELECT id FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
+                [podcast.slug, epSlug]
+              );
+              await postProcessRecap({
+                transcript: fullTranscript,
+                podcastSlug: podcast.slug,
+                episodeSlug: epSlug,
+                podcastName: podcast.name,
+                episodeTitle: epTitle,
+                itunesId: podcast.itunes_id,
+                hosts: podcast.hosts || "",
+                guests: recap.guests || null,
+                resources: recap.resources || null,
+                recapId: recapIdRows[0]?.id,
+              });
               console.log(`[TaddyWebhook] Post-processed: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
             } catch (ppErr) {
               console.error(`[TaddyWebhook] Post-process error:`, ppErr);

@@ -533,7 +533,7 @@ export default function CompaniesDirectory() {
                           </div>
                           <span className="text-[16px] font-mono text-foreground font-medium">{company.recentMentions}</span>
                           <span className="hidden sm:block text-[16px] font-mono text-muted-foreground">{company.mentionCount}</span>
-                          <TrendBadge trend={company.trend} changePercent={company.changePercent} />
+                          <span className="hidden sm:block"><TrendBadge trend={company.trend} changePercent={company.changePercent} /></span>
                         </div>
                       </Link>
                     );

@@ -747,12 +747,14 @@ export default function Bookstore() {
               </button>
             )}
 
-            <div className="flex-1" />
+            <div className="hidden sm:block flex-1" />
 
-            <SearchToggle
-              value={searchQuery}
-              onChange={(v) => { setSearchQuery(v); if (v) { setSelectedTopic(null); setSelectedLength(null); } }}
-            />
+            <div className="w-full sm:w-auto">
+              <SearchToggle
+                value={searchQuery}
+                onChange={(v) => { setSearchQuery(v); if (v) { setSelectedTopic(null); setSelectedLength(null); } }}
+              />
+            </div>
           </div>
 
           {selectedPodcast && podcastArtwork.get(selectedPodcast) && (

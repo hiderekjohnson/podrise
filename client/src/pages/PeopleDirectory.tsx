@@ -571,7 +571,7 @@ export default function PeopleDirectory() {
                           </div>
                           <span className="text-[16px] font-mono text-foreground font-medium">{person.recentMentions}</span>
                           <span className="hidden sm:block text-[16px] font-mono text-muted-foreground">{person.mentionCount + person.guestCount}</span>
-                          <TrendBadge trend={person.trend} changePercent={person.changePercent} />
+                          <span className="hidden sm:block"><TrendBadge trend={person.trend} changePercent={person.changePercent} /></span>
                         </div>
                       </Link>
                     );

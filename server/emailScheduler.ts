@@ -63,12 +63,52 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
           "doordash": "DoorDash", "youtube": "YouTube", "linkedin": "LinkedIn", "deepmind": "DeepMind",
           "ibm": "IBM", "sba": "SBA", "tsmc": "TSMC", "bmw": "BMW",
         };
+
+        let entityCacheData = row.entity_contexts_cache;
+        if (!entityCacheData && row.episode_slug) {
+          try {
+            const recapIdRes = await client.query(
+              `SELECT id, sponsors FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
+              [canonicalSlug, row.episode_slug]
+            );
+            if (recapIdRes.rows[0]?.id) {
+              const transcriptRes = await client.query(
+                `SELECT et.transcript FROM episode_transcripts et
+                 JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+                 WHERE pd.slug = $1 AND et.episode_title = (SELECT episode_title FROM landing_page_recaps WHERE id = $2)
+                 LIMIT 1`,
+                [canonicalSlug, recapIdRes.rows[0].id]
+              );
+              if (transcriptRes.rows[0]?.transcript) {
+                let sponsorNames: string[] = [];
+                try {
+                  const sponsors = recapIdRes.rows[0].sponsors
+                    ? (typeof recapIdRes.rows[0].sponsors === "string" ? JSON.parse(recapIdRes.rows[0].sponsors) : recapIdRes.rows[0].sponsors)
+                    : [];
+                  sponsorNames = sponsors.map((s: any) => (s.name || "")).filter(Boolean);
+                } catch {}
+
+                const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
+                const generated = await generateEntityContextsForRecap(
+                  recapIdRes.rows[0].id, canonicalSlug, name,
+                  row.episode_slug, transcriptRes.rows[0].transcript, sponsorNames
+                );
+                if (Object.keys(generated).length > 0) {
+                  entityCacheData = JSON.stringify(generated);
+                }
+              }
+            }
+          } catch (err) {
+            console.warn(`[EmailScheduler] Entity context generation failed for ${canonicalSlug}:`, err);
+          }
+        }
+
         const companyNames: string[] = [];
         const personNames: string[] = [];
         let companiesCount = 0;
         let peopleCount = 0;
-        if (row.entity_contexts_cache) {
-          const cache = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+        if (entityCacheData) {
+          const cache = typeof entityCacheData === "string" ? JSON.parse(entityCacheData) : entityCacheData;
           for (const key of Object.keys(cache)) {
             const isLikelyPerson = /^[a-z]+-[a-z]+(-[a-z]+)?$/.test(key) && !["openai", "anthropic", "nvidia", "google", "amazon", "spacex", "airbnb", "spotify", "amd", "apple", "microsoft", "meta", "tesla", "stripe", "shopify", "uber", "lyft", "doordash", "robinhood", "coinbase", "palantir", "databricks", "snowflake", "figma", "notion", "discord", "slack", "zoom", "netflix", "disney", "hulu", "warner", "paramount", "sony", "samsung", "intel", "qualcomm", "broadcom", "oracle", "salesforce", "adobe", "twilio", "snap", "pinterest", "reddit", "tiktok", "bytedance", "alibaba", "tencent", "baidu", "huawei"].includes(key);
             const displayName = knownNames[key] || key.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -127,8 +167,8 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
         let mentionTeaserBooks = "";
 
         const entityContexts: Record<string, string> = {};
-        if (row.entity_contexts_cache) {
-          const cache = typeof row.entity_contexts_cache === "string" ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+        if (entityCacheData) {
+          const cache = typeof entityCacheData === "string" ? JSON.parse(entityCacheData) : entityCacheData;
           if (cache && typeof cache === "object") {
             for (const [slug, ctx] of Object.entries(cache)) {
               if (typeof ctx === "string" && ctx) entityContexts[slug] = ctx;
