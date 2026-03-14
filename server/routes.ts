@@ -8005,8 +8005,8 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
 
       const OpenAI = (await import("openai")).default;
       const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const { processFullTranscript } = await import("./transcriptChunker");
       const allProducts: any[] = [];
-      const CHUNK_SIZE = 28000;
 
       const extractionPrompt = `You find DISCOVERY-WORTHY products in podcast transcripts — products that listeners would be excited to learn about and might actually buy.
 
@@ -8057,37 +8057,34 @@ Return JSON: {"products": [...]}. Empty array is completely fine.`;
         );
         const episodeSlug = recapRows[0]?.episode_slug || null;
 
-        const chunks: string[] = [];
-        for (let i = 0; i < fullTranscript.length; i += CHUNK_SIZE) {
-          chunks.push(fullTranscript.slice(i, i + CHUNK_SIZE));
-        }
-        totalCharsProcessed += fullTranscript.length;
+        const { results: chunkProducts, coverage } = await processFullTranscript<any>(
+          fullTranscript,
+          async (chunk, chunkIndex, totalChunks) => {
+            const completion = await directOpenai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                { role: "system", content: extractionPrompt },
+                {
+                  role: "user",
+                  content: `Extract discovery-worthy products from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                }
+              ],
+              max_tokens: 1500,
+              temperature: 0.2,
+              response_format: { type: "json_object" },
+            });
 
-        const chunkProducts: any[] = [];
-        for (let ci = 0; ci < chunks.length; ci++) {
-          const completion = await directOpenai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-              { role: "system", content: extractionPrompt },
-              {
-                role: "user",
-                content: `Extract discovery-worthy products from this podcast transcript segment.\n\nEpisode: "${ep.episode_title}"\nSegment ${ci + 1} of ${chunks.length} (${chunks[ci].length} chars):\n\n${chunks[ci]}`
-              }
-            ],
-            max_tokens: 1500,
-            temperature: 0.2,
-            response_format: { type: "json_object" },
-          });
-
-          const raw = completion.choices[0]?.message?.content || "{}";
-          try {
-            const parsed = JSON.parse(raw);
-            const products = Array.isArray(parsed) ? parsed : (parsed.products || []);
-            chunkProducts.push(...products);
-          } catch (e) {
-            console.error("[ProductExtract] JSON parse error for episode chunk:", ep.episode_title, ci, e);
+            const raw = completion.choices[0]?.message?.content || "{}";
+            try {
+              const parsed = JSON.parse(raw);
+              return Array.isArray(parsed) ? parsed : (parsed.products || []);
+            } catch (e) {
+              console.error("[ProductExtract] JSON parse error for episode chunk:", ep.episode_title, chunkIndex, e);
+              return [];
+            }
           }
-        }
+        );
+        totalCharsProcessed += coverage.totalChars;
 
         const deduped = new Map<string, any>();
         for (const p of chunkProducts) {
