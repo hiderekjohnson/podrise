@@ -48,6 +48,21 @@ const REJECT_REASONS = [
 
 type FilterMode = "all" | "pending" | "approved" | "rejected";
 
+function highlightTerms(text: string, terms: string[]): (string | JSX.Element)[] {
+  const validTerms = terms.filter(t => t && t.length > 1).sort((a, b) => b.length - a.length);
+  if (validTerms.length === 0) return [text];
+  const escaped = validTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const regex = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(regex);
+  const lowerTerms = validTerms.map(t => t.toLowerCase());
+  return parts.map((part, i) => {
+    if (lowerTerms.some(t => part.toLowerCase() === t)) {
+      return <mark key={i} className="bg-yellow-200 dark:bg-yellow-700/50 text-inherit rounded-sm px-0.5 font-semibold">{part}</mark>;
+    }
+    return part;
+  });
+}
+
 export default function ProductsAdmin() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterMode>("pending");
@@ -327,11 +342,11 @@ export default function ProductsAdmin() {
                             )}
                           </div>
                           {p.description && (
-                            <p className="text-sm text-muted-foreground mb-2">{p.description}</p>
+                            <p className="text-sm text-muted-foreground mb-2">{highlightTerms(p.description, [p.name, p.company || ""])}</p>
                           )}
                           {p.context && (
                             <div className="border-l-3 border-indigo-300 pl-4 mb-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-r-lg py-3 pr-3">
-                              <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">"{p.context}"</p>
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">"{highlightTerms(p.context, [p.name, p.company || ""])}"</p>
                             </div>
                           )}
 
