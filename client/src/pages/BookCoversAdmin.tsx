@@ -43,8 +43,8 @@ export default function BookCoversAdmin() {
     mutationFn: async (ids: number[]) => {
       await apiRequest("POST", "/api/admin/book-covers/approve", { ids });
     },
-    onSuccess: () => {
-      toast({ title: "Approved", description: `${selected.size} cover(s) approved` });
+    onSuccess: (_, ids) => {
+      toast({ title: "Approved", description: `${ids.length} cover(s) approved` });
       setSelected(new Set());
       refetch();
     },
@@ -195,61 +195,102 @@ export default function BookCoversAdmin() {
       ) : books.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground text-sm">No books in this filter</div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-          {books.map(book => (
-            <div
-              key={book.id}
-              onClick={() => toggleSelect(book.id)}
-              className={`relative rounded-xl border-2 p-2 cursor-pointer transition-all hover:shadow-md ${
-                selected.has(book.id)
-                  ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30"
-                  : book.coverApproved === true
-                    ? "border-green-200 bg-green-50/30"
-                    : book.coverApproved === false
-                      ? "border-red-200 bg-red-50/30"
-                      : "border-border"
-              }`}
-              data-testid={`book-cover-card-${book.id}`}
-            >
-              {selected.has(book.id) && (
-                <div className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-white" />
-                </div>
-              )}
-              {book.coverApproved === true && !selected.has(book.id) && (
-                <div className="absolute top-1 right-1 z-10">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                </div>
-              )}
-              {book.coverApproved === false && !selected.has(book.id) && (
-                <div className="absolute top-1 right-1 z-10">
-                  <XCircle className="w-4 h-4 text-red-500" />
-                </div>
-              )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {books.map(book => {
+            const isSelected = selected.has(book.id);
+            return (
+              <div
+                key={book.id}
+                className={`relative rounded-2xl border-2 p-4 transition-all ${
+                  isSelected
+                    ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 shadow-md"
+                    : book.coverApproved === true
+                      ? "border-green-200 bg-green-50/30"
+                      : book.coverApproved === false
+                        ? "border-red-200 bg-red-50/30"
+                        : "border-border hover:border-muted-foreground/30"
+                }`}
+                data-testid={`book-cover-card-${book.id}`}
+              >
+                <div className="flex gap-4">
+                  <div className="w-[180px] shrink-0">
+                    <div className="w-[180px] h-[270px] rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shadow-md">
+                      {book.hasFile ? (
+                        <img
+                          src={`/books/${book.slug}.jpg?t=1`}
+                          alt={book.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <BookOpen className="w-8 h-8 text-amber-400/50" />
+                          <span className="text-xs text-muted-foreground">No cover</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center mb-2">
-                {book.hasFile ? (
-                  <img
-                    src={`/books/${book.slug}.jpg?t=${Date.now()}`}
-                    alt={book.title}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <BookOpen className="w-6 h-6 text-amber-400/50" />
-                )}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground leading-tight line-clamp-3" data-testid={`text-book-title-${book.id}`}>
+                        {book.title}
+                      </h3>
+                      {book.author && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
+                      )}
+                      <div className="mt-2">
+                        {book.coverApproved === true && (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600"><CheckCircle2 className="w-3.5 h-3.5" /> Approved</span>
+                        )}
+                        {book.coverApproved === false && (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600"><XCircle className="w-3.5 h-3.5" /> Rejected</span>
+                        )}
+                        {book.coverApproved === null && (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-yellow-600"><Clock className="w-3.5 h-3.5" /> Pending</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleSelect(book.id); }}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-indigo-500 text-white"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }`}
+                        data-testid={`checkbox-${book.id}`}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        {isSelected ? "Selected" : "Select"}
+                      </button>
+                      <button
+                        onClick={() => approveMutation.mutate([book.id])}
+                        disabled={approveMutation.isPending || book.coverApproved === true || !book.hasFile}
+                        className="px-3 py-2 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-30 flex items-center gap-1"
+                        data-testid={`button-approve-${book.id}`}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("Reject this cover?")) rejectMutation.mutate([book.id]);
+                        }}
+                        disabled={rejectMutation.isPending || (book.coverApproved === false && !book.hasFile)}
+                        className="px-3 py-2 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-30 flex items-center gap-1"
+                        data-testid={`button-reject-${book.id}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <p className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2" data-testid={`text-book-title-${book.id}`}>
-                {book.title}
-              </p>
-              {book.author && (
-                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 line-clamp-1">
-                  {book.author}
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
