@@ -34,9 +34,9 @@ const PLACEHOLDER_ICON_SIZE: Record<BookCoverSize, string> = {
 function isGoogleBooksPlaceholder(img: HTMLImageElement): boolean {
   const w = img.naturalWidth;
   const h = img.naturalHeight;
-  if (w === 575 && h === 750) return true;
-  if (w === 1 && h === 1) return true;
   if (w < 10 || h < 10) return true;
+  if (w <= 200 && h <= 300) return true;
+  if (w === 575 && h === 750) return true;
   return false;
 }
 
