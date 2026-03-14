@@ -42,6 +42,10 @@ args = "Start application"
 task = "workflow.run"
 args = "Backfill Transcripts"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Generate Recaps"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -61,6 +65,17 @@ outputType = "console"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx tsx server/downloadAllTranscripts.ts"
+
+[[workflows.workflow]]
+name = "Generate Recaps"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx tsx server/backgroundRecapGenerator.ts --limit=10"
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "stripe:1.0.0", "resend:1.0.0", "spotify:1.0.0"]
