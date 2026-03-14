@@ -2213,10 +2213,18 @@ export async function registerRoutes(
 
       const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
 
+      const bookKeys = [...new Set(Array.from(bookMap.values()).map(b => normalizeBookKey(b.name)))];
+      const aliasPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+      const { rows: aliasRows } = bookKeys.length > 0 
+        ? await pool.query(`SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders})`, bookKeys)
+        : { rows: [] };
+      const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
+
       const books = Array.from(bookMap.values())
         .map(b => {
           const key = normalizeBookKey(b.name);
-          const enrichment = enrichMap.get(key) as any;
+          const resolvedKey = aliasMap.get(key) || key;
+          const enrichment = enrichMap.get(resolvedKey) as any;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichment?.asin || originalAsin;
           return {
@@ -2356,10 +2364,18 @@ export async function registerRoutes(
 
       const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
 
+      const bookKeys = [...new Set(Array.from(bookMap.values()).map(b => normalizeBookKey(b.name)))];
+      const aliasPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+      const { rows: aliasRows } = bookKeys.length > 0
+        ? await pool.query(`SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders})`, bookKeys)
+        : { rows: [] };
+      const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
+
       const books = Array.from(bookMap.values())
         .map(b => {
           const key = normalizeBookKey(b.name);
-          const enrichment = enrichMap.get(key) as any;
+          const resolvedKey = aliasMap.get(key) || key;
+          const enrichment = enrichMap.get(resolvedKey) as any;
           const enrichedAsin = enrichment?.asin || null;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichedAsin || originalAsin;
@@ -2410,6 +2426,12 @@ export async function registerRoutes(
       }
       const enrichment = enrichRows[0];
       const bookKey = enrichment.book_key;
+
+      const { rows: bookAliasRows } = await pool.query(
+        `SELECT alias_key FROM book_aliases WHERE canonical_key = $1`,
+        [bookKey]
+      );
+      const bookKeyVariants = new Set([bookKey, ...bookAliasRows.map((a: any) => a.alias_key)]);
 
       const { rows } = await pool.query(
         `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.resources,
@@ -2472,7 +2494,7 @@ export async function registerRoutes(
         for (const r of resources) {
           if (!r || r.type !== 'book' || !r.name) continue;
           const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
-          if (rKey === bookKey) {
+          if (bookKeyVariants.has(rKey)) {
             foundInEpisode = true;
             bookContext = r.context || "";
           } else if (r.name !== '_books_checked') {
