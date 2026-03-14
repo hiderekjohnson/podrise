@@ -1855,8 +1855,9 @@ export function startEmailScheduler() {
     const now = new Date();
     const etHour = parseInt(now.toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false, hour: "2-digit" }));
     if (etHour === 5) {
-      refreshLandingPageRecaps().catch(err => console.error("[LandingRecaps] Refresh error:", err));
-      refreshNewTranscripts().catch(err => console.error("[DailyTranscripts] Refresh error:", err));
+      refreshNewTranscripts()
+        .then(() => refreshLandingPageRecaps())
+        .catch(err => console.error("[DailyRefresh] Error:", err));
     }
   }, 15 * 60 * 1000);
 
@@ -1871,10 +1872,10 @@ export function startEmailScheduler() {
     } catch (err) {
       console.error("[TranscriptBackfill] Backfill error:", err);
     }
-    refreshLandingPageRecaps()
+    refreshNewTranscripts()
+      .then(() => refreshLandingPageRecaps())
       .then(() => bulkDownloadTranscripts())
-      .then(() => refreshNewTranscripts())
-      .catch(err => console.error("[LandingRecaps] Initial refresh error:", err));
+      .catch(err => console.error("[InitialRefresh] Error:", err));
   }, 30000);
 }
 
