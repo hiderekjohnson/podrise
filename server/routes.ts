@@ -4714,19 +4714,61 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return null;
       }
 
+      let isbn = book.isbn;
+      if (!isbn) {
+        try {
+          const q = encodeURIComponent(book.book_title + (book.author ? ` ${book.author}` : ""));
+          const olRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=3&fields=key,title,isbn`);
+          if (olRes.ok) {
+            const olData = await olRes.json();
+            for (const doc of (olData.docs || [])) {
+              const isbns = [...(doc.isbn || [])];
+              const isbn13 = isbns.find((i: string) => i.length === 13);
+              const isbn10 = isbns.find((i: string) => i.length === 10);
+              if (isbn13 || isbn10) {
+                isbn = isbn13 || isbn10;
+                await pool.query(`UPDATE book_enrichments SET isbn = $1 WHERE id = $2 AND isbn IS NULL`, [isbn, book.id]);
+                console.log(`[BookCovers] Auto-enriched ISBN for "${book.book_title}": ${isbn}`);
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn(`[BookCovers] ISBN enrichment failed for "${book.book_title}":`, e);
+        }
+      }
+
+      let googleBooksId = book.google_books_id;
+      if (!googleBooksId) {
+        try {
+          const q = encodeURIComponent(book.book_title + (book.author ? `+inauthor:${book.author}` : ""));
+          const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`);
+          if (gbRes.ok) {
+            const gbData = await gbRes.json();
+            if (gbData.items?.[0]?.id) {
+              googleBooksId = gbData.items[0].id;
+              await pool.query(`UPDATE book_enrichments SET google_books_id = $1 WHERE id = $2 AND google_books_id IS NULL`, [googleBooksId, book.id]);
+              console.log(`[BookCovers] Auto-enriched Google Books ID for "${book.book_title}": ${googleBooksId}`);
+            }
+          }
+        } catch (e) {
+          console.warn(`[BookCovers] Google Books ID enrichment failed for "${book.book_title}":`, e);
+        }
+      }
+
       const promises: Promise<CandidateResult>[] = [];
-      if (book.google_books_id) promises.push(tryGoogleBooks(book.google_books_id, book.slug));
+      if (googleBooksId) promises.push(tryGoogleBooks(googleBooksId, book.slug));
       else promises.push(Promise.resolve(null));
-      if (book.isbn) promises.push(tryOpenLibrary(book.isbn, book.slug));
+      if (isbn) promises.push(tryOpenLibrary(isbn, book.slug));
       else promises.push(Promise.resolve(null));
-      if (book.isbn) promises.push(tryAmazon(book.isbn, book.slug));
+      if (isbn) promises.push(tryAmazon(isbn, book.slug));
       else promises.push(Promise.resolve(null));
       promises.push(tryOpenLibrarySearch(book.book_title, book.author, book.slug));
 
       const results = await Promise.all(promises);
       const candidates = results.filter((r): r is NonNullable<CandidateResult> => r !== null);
 
-      res.json({ candidates, bookId: book.id, slug: book.slug, title: book.book_title });
+      res.json({ candidates, bookId: book.id, slug: book.slug, title: book.book_title, isbnEnriched: isbn && !book.isbn ? isbn : null });
     } catch (err: any) {
       console.error("[BookCovers] Fetch candidates error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch candidates" });
