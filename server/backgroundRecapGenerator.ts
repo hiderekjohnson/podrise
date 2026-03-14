@@ -29,6 +29,28 @@ function makeEpisodeSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 }
 
+async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string): Promise<string> {
+  try {
+    const url = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=30`;
+    const resp = await fetch(url);
+    if (!resp.ok) return "";
+    const data = await resp.json();
+    const results = data.results || [];
+    const titleLower = episodeTitle.toLowerCase().trim();
+    for (const ep of results) {
+      if (ep.wrapperType === "podcastEpisode") {
+        const epTitle = (ep.trackName || "").toLowerCase().trim();
+        if (epTitle === titleLower || epTitle.includes(titleLower) || titleLower.includes(epTitle)) {
+          return ep.trackViewUrl || ep.collectionViewUrl || "";
+        }
+      }
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
 async function processEpisode(
   ep: EpisodeRow,
   podcastSlug: string,
@@ -70,16 +92,21 @@ async function processEpisode(
         return "failed";
       }
 
+      const appleEpisodeUrl = await lookupAppleEpisodeUrl(itunesId, epTitle);
+      const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
+      const showNotes = ep.description || null;
+
       await pool.query(
         `INSERT INTO landing_page_recaps
-         (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, published)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+         (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, published, apple_episode_url, spotify_episode_url, show_notes)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
          ON CONFLICT (slug, episode_slug) DO UPDATE SET
            tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
            quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
            topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
            sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
-           published = EXCLUDED.published`,
+           published = EXCLUDED.published, apple_episode_url = EXCLUDED.apple_episode_url,
+           spotify_episode_url = EXCLUDED.spotify_episode_url, show_notes = EXCLUDED.show_notes`,
         [
           podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
           durationStr, ep.image_url || podcastArtwork, hosts,
@@ -93,6 +120,9 @@ async function processEpisode(
           recap.guests ? JSON.stringify(recap.guests) : "[]",
           recap.resources ? JSON.stringify(recap.resources) : "[]",
           false,
+          appleEpisodeUrl || null,
+          spotifyEpisodeUrl,
+          showNotes,
         ]
       );
 
