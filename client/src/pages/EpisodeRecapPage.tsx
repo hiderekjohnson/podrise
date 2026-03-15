@@ -13,11 +13,6 @@ import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-interface TopQuestion {
-  question: string;
-  answer: string;
-}
-
 interface BookResource {
   name: string;
   type: string;
@@ -774,11 +769,6 @@ export default function EpisodeRecapPage() {
   }
 
   const whatHappenedParagraphs = episode.whatHappened.split("\n\n").filter(Boolean);
-  let topQuestions: TopQuestion[] = [];
-  try {
-    topQuestions = episode.topQuestions ? (typeof episode.topQuestions === "string" ? JSON.parse(episode.topQuestions) : episode.topQuestions) : [];
-  } catch { topQuestions = []; }
-
   let books: BookResource[] = [];
   try {
     const allResources: BookResource[] = episode.resources ? (typeof episode.resources === "string" ? JSON.parse(episode.resources) : episode.resources) : [];
@@ -801,7 +791,6 @@ export default function EpisodeRecapPage() {
     }
   } catch { sponsors = []; }
 
-  const hasTopQuestions = topQuestions.length > 0;
   const hasBooks = books.length > 0;
   const hasShopProducts = shopProducts.length > 0;
   const INITIAL_SHOW = 6;
@@ -1397,26 +1386,6 @@ export default function EpisodeRecapPage() {
               )}
             </div>
           </section>
-        )}
-
-        {hasTopQuestions && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": topQuestions.slice(0, 3).map(item => ({
-                  "@type": "Question",
-                  "name": item.question,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": item.answer,
-                  },
-                })),
-              }),
-            }}
-          />
         )}
 
         {hasQuotes && (

@@ -1,0 +1,93 @@
+For the "Generate Recaps" workflow, when looking for books or products, we need to extract context around how and why the episode recommended the books and products they did. This way we don’t have to go re look at the full transcript to get the data we need for the bookstore or shopping page, right? Some good examples are below. 
+
+Young and Profiting with Hala Taha
+Young and Profiting with Hala Taha
+The Money Reset Series: How to Build Financial Habits That Stick | Finance | E2 | Presented by Experian
+Mar 2026
+Why they talked about it
+Hala Taha frames the conversation around "Atomic Habits" by James Clear as a transformative approach to financial well-being, emphasizing that **lasting change is less about sheer discipline and more about the direction of one’s habits**. She highlights Clear's concept of focusing on trajectory rather than current position, arguing that small, consistent improvements can lead to significant long-term results. By connecting financial habits to Clear's idea of getting 1% better each day, Taha posits that even modest daily gains can compound over time, ultimately shaping a more prosperous future. This perspective encourages listeners to shift their mindset from immediate results to the power of incremental progress in achieving their financial goals.
+The Money Guy Show
+The Money Guy Show
+3 Big 401(k) Updates That Could Impact Your Future
+Feb 2026
+Why they talked about it
+The hosts of The Money Guy Show, Brian Preston and Bo Hanson, leverage the principles from James Clear's "Atomic Habits" to emphasize the significance of automating financial behaviors for wealth accumulation. They argue that just as Clear advocates for making good habits easy and bad habits difficult, utilizing a 401(k) allows individuals to effortlessly cultivate the positive habit of saving. The hosts highlight the concept of "set it and forget it," illustrating that automatic investments facilitate compound growth without requiring constant decision-making. They assert that this automation not only simplifies the path to wealth but also maximizes the benefits of employer contributions and compounding returns, leading to the potential for significant financial gains with minimal effort.
+The Mel Robbins Podcast
+The Mel Robbins Podcast
+The 24-Hour Turnaround to Get Your Life Back on Track
+Feb 2026
+Why they talked about it
+Mel Robbins emphasizes the importance of environment in behavior change, referencing James Clear's "Atomic Habits" to support her argument. She highlights the concept that making a habit easier to engage with is crucial for success, stating that **"behavior follows the path of least resistance."** Robbins illustrates this with a personal anecdote about a rowing machine placed in an inconvenient location, demonstrating how physical friction can derail intentions. By simply moving the machine to a more accessible spot, the individual increased their chances of regular use, underscoring Clear's principle that visibility and ease can significantly influence habit formation.
+My First Million
+My First Million
+10 Years of Money Wisdom in 51 Minutes | Morgan Housel
+Jan 2026
+Why they talked about it
+Morgan Housel highlights James Clear's unique approach to authorship, framing him not merely as an author but as an entrepreneur who treats his books as products. This perspective shifts the conversation from traditional writing to the strategic elements of launching and marketing a book, which is essential for achieving unbelievable, generational success. Housel admires Clear's scientific thinking in structuring "Atomic Habits," emphasizing how Clear meticulously crafted the table of contents to enhance reader engagement. The discussion underscores Clear's humility and generosity, showcasing how his personal characteristics complement his professional achievements, making him a standout figure in the nonfiction landscape.
+The Knowledge Project
+The Knowledge Project
+How to Build Good Habits & Break Bad Ones | James Clear
+Jan 2026
+Why they talked about it
+James Clear emphasizes the significance of identity in habit formation during his discussion with Shane Parrish. The hosts highlight the idea that every small action is a vote for the type of person one wishes to become, illustrating this with the concept of the two-minute rule — scaling habits down to manageable actions. Clear shares an anecdote about a reader who lost over 100 pounds by committing to just five minutes at the gym, demonstrating that establishing the habit is crucial before improvement. The conversation also delves into the importance of patience and accumulation, comparing habit building to heating an ice cube: small, consistent efforts lead to a tipping point where change occurs, reinforcing the notion that every action contributes to a larger identity and outcome.
+The Peter Attia Drive
+The Peter Attia Drive
+Building & Changing Habits | James Clear (#183 rebroadcast)
+Dec 2025
+Why they talked about it
+Peter Attia and James Clear delve into the transformative power of habits, framing the conversation around Clear's four components of habit formation. They emphasize the critical idea that understanding the mechanics of habit formation allows individuals to take control of their behaviors and make intentional changes. Clear highlights that nearly half of our daily behaviors are automatic, often established without conscious thought, which underscores the importance of being proactive in habit development. They also discuss how minor, consistent improvements can accumulate into significant life changes, reinforcing the notion that habits serve as foundational elements of personal identity, shaping how individuals perceive themselves and wish to be perceived by others.
+BG2 Pod
+BG2 Pod
+AI Bubble, Stablecoin Boom, and Runnin' Down a Dream | BG2 w/ Bill Gurley and Brad Gerstner
+Oct 2025
+Why they talked about it
+Bill Gurley and Brad Gerstner connect the principles from James Clear's "Atomic Habits" to their discussion about personal development and career choices, emphasizing the importance of incremental progress. They highlight how Clear’s framework of small, consistent changes can lead to significant transformations, especially in a society where many feel disengaged from their work. The hosts argue that fostering a mindset of continuous improvement is crucial for individuals navigating the pressures of modern career paths, particularly when 70% of people express regret about their career choices. This perspective resonates with Gurley's insights on the need for individuals to pursue their passions, challenging the traditional narrative of relentless grinding without purpose.
+My First Million
+My First Million
+5 Genius Business Tactics Turning Broke Authors Into Millionaires
+Mar 2024
+Why they talked about it
+The hosts of My First Million highlight James Clear's "Atomic Habits" as a prime example of the power of incremental growth, framing Clear's success as a meteoric rise from modest beginnings to a staggering $150 million in sales. They connect this achievement to the core principle of the book: the idea that small, consistent changes can lead to significant results over time. **Clear's trajectory demonstrates the effectiveness of building habits that compound, showcasing how a simple idea transformed into a massive success story.** The conversation emphasizes the contrast between Clear's explosive sales and those of other authors, underscoring the impact of habit formation on both personal and professional growth.
+
+The following are bad examples:
+
+Accidental Tech Podcast
+Accidental Tech Podcast
+681: The Price of Your Nightmares
+Mar 2026
+Why they talked about it
+Mentioned in the Masterclass ad as a course offered.
+My First Million
+My First Million
+I spent 48 Hours With 10 Billionaires. Here’s What I Learned.
+Feb 2026
+Why they talked about it
+James Clear was mentioned as being at the event, and his book 'Atomic Habits' was referenced as an example of successful nonfiction that resonated globally due to its focus on habits rather than deliberate practice.
+My First Million
+My First Million
+if you didn't make progress in 2025, listen to the first 10 minutes
+Dec 2025
+Why they talked about it
+James Clear's concept of 'we fall to the level of our systems' was referenced to emphasize the importance of systems in achieving success.
+The Psychology Podcast
+The Psychology Podcast
+End of an Era — Reflections on 11 Years of The Psychology Podcast w/ Annie Murphy Paul
+Dec 2025
+Why they talked about it
+James Clear's work on habits was referenced as an example of how long-lasting change depends on systems and repeated behaviors.
+My First Million
+My First Million
+Masterclass: How to go from founder to CEO (without imploding)
+Oct 2025
+Why they talked about it
+The hosts referenced 'Atomic Habits' when discussing the concept of marginal gains and how small improvements can accumulate to create substantial results.
+My First Million
+My First Million
+The Fastest Way To Get Promoted (Career Cheat Codes)
+Feb 2024
+Why they talked about it
+James Clear's newsletter format, specifically the '3-2-1' structure, was referenced as inspiration for creating an internal company newsletter to build relationships and communicate effectively.
+
+
+
+
