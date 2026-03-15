@@ -12,6 +12,10 @@ const EpisodePagesTracker = lazy(() => import("./EpisodePagesTracker"));
 const BookCoversAdmin = lazy(() => import("./BookCoversAdmin"));
 const ProductsAdmin = lazy(() => import("./ProductsAdmin"));
 const BookstoreAdmin = lazy(() => import("./BookstoreAdmin"));
+const AnalyticsAcquisition = lazy(() => import("./AnalyticsAcquisition"));
+const AnalyticsAffiliates = lazy(() => import("./AnalyticsAffiliates"));
+const AnalyticsGrowth = lazy(() => import("./AnalyticsGrowth"));
+const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -26,18 +30,6 @@ interface AdminUser {
   createdAt: string | null;
 }
 
-interface AnalyticsData {
-  totalUsers: number;
-  totalRecaps: number;
-  totalEmailsSent: number;
-  proUsers: number;
-  totalRuntimeMinutes: number;
-  topPodcasts: { name: string; artworkUrl: string; count: number }[];
-  userGrowth: { date: string; newUsers: number; totalUsers: number }[];
-  emailActivity: { date: string; count: number }[];
-  emailOpenStats: { totalSent: number; totalOpened: number; totalClicked: number; openRate: number; clickRate: number };
-  openRateTrend: { date: string; sent: number; opened: number; clicked: number; rate: number; clickRate: number }[];
-}
 
 function parsePodcastName(raw: string): string {
   try {
@@ -502,6 +494,7 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"users" | "analytics" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "covers" | "products">("backfill");
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -559,11 +552,6 @@ export default function Admin() {
 
   const { data: users, isLoading: usersLoading } = useQuery<AdminUser[]>({
     queryKey: ["/api/admin/users"],
-    enabled: isAdmin,
-  });
-
-  const { data: analytics, isLoading: analyticsLoading } = useQuery<AnalyticsData>({
-    queryKey: ["/api/admin/analytics"],
     enabled: isAdmin,
   });
 
@@ -1056,274 +1044,41 @@ export default function Admin() {
             )}
 
             {activeTab === "analytics" && (
-              <>
-                {analyticsLoading ? (
+              <div className="space-y-6">
+                <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.06] rounded-xl p-1" data-testid="analytics-sub-tabs">
+                  {([
+                    { key: "acquisition" as const, label: "User Acquisition", icon: Users },
+                    { key: "affiliates" as const, label: "Affiliates", icon: MousePointerClick },
+                    { key: "growth" as const, label: "User Growth", icon: TrendingUp },
+                    { key: "email" as const, label: "Email", icon: Mail },
+                  ]).map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      data-testid={`analytics-tab-${key}`}
+                      onClick={() => setAnalyticsSubTab(key)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                        analyticsSubTab === key
+                          ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <Suspense fallback={
                   <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
-                ) : analytics ? (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-total-users">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                            <Users className="w-4.5 h-4.5 text-primary" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Users</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.totalUsers}</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-pro-users">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                            <Crown className="w-4.5 h-4.5 text-amber-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pro</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.proUsers}</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-total-recaps">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
-                            <TrendingUp className="w-4.5 h-4.5 text-green-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recaps</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.totalRecaps}</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-sent">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                            <Mail className="w-4.5 h-4.5 text-blue-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Emails</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.totalEmailsSent}</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-total-runtime">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                            <Headphones className="w-4.5 h-4.5 text-purple-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Runtime</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">
-                          {analytics.totalRuntimeMinutes >= 60
-                            ? `${Math.floor(analytics.totalRuntimeMinutes / 60)}h ${analytics.totalRuntimeMinutes % 60}m`
-                            : `${analytics.totalRuntimeMinutes}m`}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-top-podcasts">
-                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                          <Podcast className="w-4 h-4 text-primary" />
-                          Top Podcasts by Users
-                        </h3>
-                        {analytics.topPodcasts.length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic">No data yet</p>
-                        ) : (
-                          <div className="space-y-3">
-                            {analytics.topPodcasts.map((podcast, i) => {
-                              const maxCount = analytics.topPodcasts[0]?.count || 1;
-                              return (
-                                <div key={i} className="flex items-center gap-3" data-testid={`podcast-rank-${i}`}>
-                                  <span className="text-xs font-bold text-muted-foreground w-5 text-right">{i + 1}</span>
-                                  {podcast.artworkUrl ? (
-                                    <img
-                                      src={podcast.artworkUrl}
-                                      alt=""
-                                      className="w-8 h-8 rounded-lg object-cover shrink-0"
-                                    />
-                                  ) : (
-                                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                      <Podcast className="w-4 h-4 text-primary" />
-                                    </div>
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-foreground truncate">{podcast.name}</p>
-                                    <div className="mt-1 h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
-                                      <div
-                                        className="h-full bg-primary/60 rounded-full transition-all"
-                                        style={{ width: `${(podcast.count / maxCount) * 100}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                  <span className="text-sm font-bold text-foreground shrink-0 tabular-nums">
-                                    {podcast.count} {podcast.count === 1 ? "user" : "users"}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-user-growth">
-                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-green-500" />
-                          User Growth
-                        </h3>
-                        {analytics.userGrowth.length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic">No data yet</p>
-                        ) : (
-                          <div className="space-y-1">
-                            {(() => {
-                              const maxTotal = Math.max(...analytics.userGrowth.map(d => d.totalUsers), 1);
-                              return analytics.userGrowth.map((point, i) => (
-                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`growth-row-${i}`}>
-                                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                                    {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                  </span>
-                                  <div className="flex-1 h-2 bg-black/[0.04] rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-green-500/60 rounded-full transition-all"
-                                      style={{ width: `${(point.totalUsers / maxTotal) * 100}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
-                                    {point.totalUsers} total
-                                  </span>
-                                  {point.newUsers > 0 && (
-                                    <span className="text-xs font-semibold text-green-600 w-12 text-right">
-                                      +{point.newUsers}
-                                    </span>
-                                  )}
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-tracked">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                            <Send className="w-4.5 h-4.5 text-blue-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sent</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.totalSent ?? 0}</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-emails-opened">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
-                            <Eye className="w-4.5 h-4.5 text-green-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Opened</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.totalOpened ?? 0}</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-open-rate">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                            <TrendingUp className="w-4.5 h-4.5 text-emerald-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Open Rate</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.openRate ?? 0}%</p>
-                      </div>
-                      <div className="glass-panel rounded-2xl p-5" data-testid="stat-click-rate">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                            <MousePointerClick className="w-4.5 h-4.5 text-amber-500" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Click Rate</span>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{analytics.emailOpenStats?.clickRate ?? 0}%</p>
-                        <p className="text-xs text-muted-foreground mt-1">{analytics.emailOpenStats?.totalClicked ?? 0} clicked</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-email-activity">
-                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-blue-500" />
-                          Email Activity
-                        </h3>
-                        {analytics.emailActivity.length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic">No emails sent yet</p>
-                        ) : (
-                          <div className="space-y-1">
-                            {(() => {
-                              const maxEmails = Math.max(...analytics.emailActivity.map(d => d.count), 1);
-                              const recent = analytics.emailActivity.slice(-14);
-                              return recent.map((point, i) => (
-                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`email-day-${i}`}>
-                                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                                    {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                  </span>
-                                  <div className="flex-1 h-2 bg-black/[0.04] rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-blue-500/60 rounded-full transition-all"
-                                      style={{ width: `${(point.count / maxEmails) * 100}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
-                                    {point.count} sent
-                                  </span>
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-6" data-testid="chart-open-rate-trend">
-                        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                          <Eye className="w-4 h-4 text-green-500" />
-                          Engagement Trend
-                        </h3>
-                        {!analytics.openRateTrend || analytics.openRateTrend.length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic">No tracking data yet</p>
-                        ) : (
-                          <div className="space-y-1">
-                            {(() => {
-                              const recent = analytics.openRateTrend.slice(-14);
-                              return recent.map((point, i) => (
-                                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`open-rate-day-${i}`}>
-                                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                                    {new Date(point.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                  </span>
-                                  <div className="flex-1 space-y-0.5">
-                                    <div className="h-2 bg-black/[0.04] rounded-full overflow-hidden">
-                                      <div
-                                        className={`h-full rounded-full transition-all ${point.rate >= 50 ? "bg-green-500/60" : point.rate >= 25 ? "bg-amber-500/60" : "bg-red-500/40"}`}
-                                        style={{ width: `${point.rate}%` }}
-                                      />
-                                    </div>
-                                    {point.clicked > 0 && (
-                                      <div className="h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
-                                        <div
-                                          className="h-full rounded-full transition-all bg-amber-500/60"
-                                          style={{ width: `${point.clickRate}%` }}
-                                        />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="text-right w-28 shrink-0">
-                                    <span className="text-xs font-bold text-foreground tabular-nums">
-                                      {point.rate}% open
-                                    </span>
-                                    {point.clicked > 0 && (
-                                      <span className="text-xs text-amber-600 tabular-nums block">
-                                        {point.clickRate}% click
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-              </>
+                }>
+                  {analyticsSubTab === "acquisition" && <AnalyticsAcquisition />}
+                  {analyticsSubTab === "affiliates" && <AnalyticsAffiliates />}
+                  {analyticsSubTab === "growth" && <AnalyticsGrowth />}
+                  {analyticsSubTab === "email" && <AnalyticsEmail />}
+                </Suspense>
+              </div>
             )}
 
             {activeTab === "transcripts" && (

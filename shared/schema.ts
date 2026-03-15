@@ -17,8 +17,25 @@ export const users = pgTable("users", {
   plan: text("plan").notNull().default("free"),
   vacationUntil: text("vacation_until"),
   emailVerified: boolean("email_verified").notNull().default(false),
+  signupSource: text("signup_source"),
+  signupSourceDetail: text("signup_source_detail"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  deviceType: text("device_type"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const affiliateClicks = pgTable("affiliate_clicks", {
+  id: serial("id").primaryKey(),
+  productType: text("product_type").notNull(),
+  productName: text("product_name").notNull(),
+  productId: integer("product_id"),
+  destinationUrl: text("destination_url").notNull(),
+  referrerPage: text("referrer_page"),
+  clickedAt: timestamp("clicked_at").defaultNow(),
+});
+
+export type AffiliateClick = typeof affiliateClicks.$inferSelect;
 
 export const emailVerificationTokens = pgTable("email_verification_tokens", {
   id: serial("id").primaryKey(),
@@ -33,6 +50,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   emailVerified: true,
+  signupSource: true,
+  signupSourceDetail: true,
+  ipAddress: true,
+  userAgent: true,
+  deviceType: true,
 }).extend({
   email: z.string().email("Please enter a valid email address"),
   podcasts: z.array(z.string()).min(1, "Select at least one podcast"),

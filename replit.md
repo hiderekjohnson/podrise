@@ -17,7 +17,9 @@ PodCap is a full-stack web application designed to provide personalized daily po
 - **Email System**: Resend handles email delivery, including scheduled daily recaps. Email templates are hardcoded for consistency.
 - **Newsletter Subscriptions**: Users can subscribe to podcasts, industries, interests, and roles. A quick-subscribe endpoint facilitates account creation and subscription management.
 - **Conversion System**: Utilizes `PageConversionContext` to provide contextual email CTAs (Exit Intent Popup, Inline Email CTA, Sticky Email Bar) across various page types.
-- **Admin Tools**: A dashboard for user management, episode generation status, podcast expansion, data backfilling, and cache management.
+- **Admin Tools**: A dashboard for user management, episode generation status, podcast expansion, data backfilling, and cache management. Includes a comprehensive analytics hub with four sub-dashboards: User Acquisition, Affiliate Performance, User Growth, and Email Marketing — each with time-range filtering and granularity controls.
+- **Signup Tracking**: New users have their signup source, source detail, IP address, user-agent, and device type captured silently on registration and quick-subscribe.
+- **Affiliate Click Tracking**: A redirect endpoint (`/api/track/affiliate-click`) logs web-based clicks on affiliate/product links to the `affiliate_clicks` table.
 - **Directory Caching**: A 24-hour in-memory cache pre-warms and manages heavy directory endpoints.
 - **Trends Page**: A unified `/trends` dashboard for people, companies, and topics, featuring "Biggest Movers" and data visualizations.
 - **Podcast Features**: Directory with landing pages, AI recaps, host info, enhanced show notes, and podcast-level AI Q&A. Discovery includes "Just Dropped" and "Hot Right Now."

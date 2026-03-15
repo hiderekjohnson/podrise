@@ -217,6 +217,31 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`CREATE TABLE IF NOT EXISTS affiliate_clicks (
+            id SERIAL PRIMARY KEY,
+            product_type TEXT NOT NULL DEFAULT 'product',
+            product_name TEXT NOT NULL DEFAULT 'Unknown',
+            product_id INTEGER,
+            destination_url TEXT NOT NULL,
+            referrer_page TEXT,
+            clicked_at TIMESTAMP DEFAULT NOW()
+          )`);
+          const cols = [
+            { name: "signup_source", type: "TEXT" },
+            { name: "signup_source_detail", type: "TEXT" },
+            { name: "ip_address", type: "TEXT" },
+            { name: "user_agent", type: "TEXT" },
+            { name: "device_type", type: "TEXT" },
+          ];
+          for (const col of cols) {
+            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`).catch(() => {});
+          }
+          console.log("Analytics schema ready");
+        } catch (err) {
+          console.warn("Analytics schema migration skipped:", err);
+        }
+
+        try {
           const artworkFix1 = await pool.query(`UPDATE landing_page_recaps SET artwork_url = REPLACE(artwork_url, '100x100bb', '1200x1200bb') WHERE artwork_url LIKE '%100x100bb%'`);
           const artworkFix2 = await pool.query(`UPDATE landing_page_recaps SET artwork_url = REPLACE(artwork_url, '600x600bb', '1200x1200bb') WHERE artwork_url LIKE '%600x600bb%'`);
           const artworkFix3 = await pool.query(`UPDATE podcast_directory SET artwork_url = REPLACE(artwork_url, '100x100bb', '1200x1200bb') WHERE artwork_url LIKE '%100x100bb%'`);

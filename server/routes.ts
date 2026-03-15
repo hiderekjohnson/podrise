@@ -91,6 +91,57 @@ async function getLocationFromIp(ip: string): Promise<string> {
   return "Unknown";
 }
 
+function extractSignupMetadata(req: any, signupSource?: string, signupSourceDetail?: string) {
+  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket?.remoteAddress || null;
+  const ua = req.headers["user-agent"] || null;
+  let deviceType: string | null = null;
+  if (ua) {
+    if (/tablet|ipad/i.test(ua)) deviceType = "tablet";
+    else if (/mobile|android|iphone|ipod/i.test(ua)) deviceType = "mobile";
+    else deviceType = "desktop";
+  }
+  let rawSource = signupSource || req.headers["referer"] || null;
+  if (rawSource) {
+    try {
+      const parsed = new URL(rawSource);
+      rawSource = parsed.pathname;
+    } catch {
+      const qIdx = rawSource.indexOf("?");
+      const hIdx = rawSource.indexOf("#");
+      const cutIdx = Math.min(qIdx >= 0 ? qIdx : Infinity, hIdx >= 0 ? hIdx : Infinity);
+      if (cutIdx < Infinity) rawSource = rawSource.substring(0, cutIdx);
+    }
+  }
+  let source = rawSource;
+  if (rawSource) {
+    if (rawSource === "/") source = "homepage";
+    else if (rawSource === "/login") source = "login_page";
+    else if (rawSource === "/leaderboard") source = "leaderboard";
+    else if (rawSource === "/get-started") source = "get_started";
+    else if (rawSource === "/register") source = "register_page";
+    else if (rawSource.startsWith("/podcasts/") && rawSource.includes("/episodes/")) source = "episode_page";
+    else if (rawSource.startsWith("/podcasts/")) source = "podcast_page";
+    else if (rawSource.startsWith("/industry/")) source = "industry_page";
+    else if (rawSource.startsWith("/role/")) source = "role_page";
+    else if (rawSource.startsWith("/interest/")) source = "interest_page";
+    else if (rawSource.startsWith("quick-subscribe-podcast")) source = "podcast_page";
+    else if (rawSource.startsWith("quick-subscribe-industry")) source = "industry_page";
+    else if (rawSource.startsWith("quick-subscribe-interest")) source = "interest_page";
+    else if (rawSource.startsWith("quick-subscribe-role")) source = "role_page";
+  }
+  let detail = signupSourceDetail || null;
+  if (!detail && rawSource) {
+    const podcastMatch = rawSource.match(/^\/podcasts\/([^/]+)/);
+    if (podcastMatch) detail = podcastMatch[1];
+    const categoryMatch = rawSource.match(/^\/(industry|role|interest)\/([^/]+)/);
+    if (categoryMatch) detail = categoryMatch[2];
+    if (rawSource.startsWith("quick-subscribe-")) {
+      detail = req.body?.slug || null;
+    }
+  }
+  return { ipAddress: ip, userAgent: ua, deviceType, signupSource: source, signupSourceDetail: detail };
+}
+
 async function sendNewUserNotification(user: any, req: any, signupSource?: string) {
   const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "Unknown";
   const location = await getLocationFromIp(ip);
@@ -600,6 +651,13 @@ export async function registerRoutes(
 
       const user = await storage.createUser(input);
       req.session.userId = user.id;
+
+      const meta = extractSignupMetadata(req, req.body.signupSource, req.body.signupSourceDetail);
+      pool.query(
+        `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5 WHERE id = $6`,
+        [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, user.id]
+      ).catch(e => console.error("[SignupMeta] Failed:", e));
+
       res.status(201).json(user);
 
       if (input.podcasts && input.podcasts.length > 0) {
@@ -707,6 +765,12 @@ export async function registerRoutes(
             topicFrequencies: { [input.slug]: "daily" },
           });
           isNew = true;
+
+          const qsMeta = extractSignupMetadata(req, `quick-subscribe-${input.type}`, input.slug);
+          pool.query(
+            `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5 WHERE id = $6`,
+            [qsMeta.signupSource, qsMeta.signupSourceDetail, qsMeta.ipAddress, qsMeta.userAgent, qsMeta.deviceType, user.id]
+          ).catch(e => console.error("[SignupMeta] Failed:", e));
 
           sendNewUserNotification(user, req, `quick-subscribe-${input.type}`).catch((err) =>
             console.error("[NewUserNotify] Failed:", err)
@@ -954,6 +1018,332 @@ export async function registerRoutes(
     }
 
     res.redirect(302, validatedUrl);
+  });
+
+  const ALLOWED_AFFILIATE_DOMAINS = [
+    "amazon.com", "www.amazon.com", "amzn.to",
+    "amazon.co.uk", "www.amazon.co.uk",
+    "amazon.ca", "www.amazon.ca",
+    "amazon.de", "www.amazon.de",
+    "blinkist.com", "www.blinkist.com",
+    "go.blinkist.com",
+    "audible.com", "www.audible.com",
+    "bookshop.org", "www.bookshop.org",
+    "barnesandnoble.com", "www.barnesandnoble.com",
+    "target.com", "www.target.com",
+    "walmart.com", "www.walmart.com",
+    "apple.com", "www.apple.com", "apps.apple.com",
+    "open.spotify.com",
+    "podcasts.apple.com",
+  ];
+
+  app.get("/api/track/affiliate-click", async (req, res) => {
+    const url = req.query.url as string;
+    const productName = (req.query.name as string) || "Unknown";
+    const productType = (req.query.type as string) || "product";
+    const productId = req.query.pid ? parseInt(req.query.pid as string) : null;
+    const referrerPage = req.query.ref as string || req.headers["referer"] || null;
+
+    if (!url) return res.status(400).send("Missing url parameter");
+
+    let validatedUrl: string;
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return res.status(400).send("Invalid URL scheme");
+      }
+      const hostname = parsed.hostname.toLowerCase();
+      if (!ALLOWED_AFFILIATE_DOMAINS.some(d => hostname === d || hostname.endsWith("." + d))) {
+        return res.status(403).send("Redirect destination not allowed");
+      }
+      validatedUrl = parsed.href;
+    } catch {
+      return res.status(400).send("Invalid URL");
+    }
+
+    try {
+      await pool.query(
+        `INSERT INTO affiliate_clicks (product_type, product_name, product_id, destination_url, referrer_page) VALUES ($1, $2, $3, $4, $5)`,
+        [productType, productName, productId, validatedUrl, referrerPage]
+      );
+    } catch (e) {
+      console.error("[AffiliateClick] Failed to record click:", e);
+    }
+
+    res.redirect(302, validatedUrl);
+  });
+
+  app.get("/api/admin/analytics/acquisition", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = req.query.startDate as string || null;
+      const endDate = req.query.endDate as string || null;
+      const granularity = (req.query.granularity as string) || "daily";
+
+      let dateFilter = "";
+      const params: any[] = [];
+      if (startDate) { params.push(startDate); dateFilter += ` AND created_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); dateFilter += ` AND created_at <= $${params.length}::timestamp`; }
+
+      const truncMap: Record<string, string> = { daily: "day", weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" };
+      const trunc = truncMap[granularity] || "day";
+
+      const bySourceResult = await pool.query(
+        `SELECT COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE 1=1${dateFilter} GROUP BY source ORDER BY count DESC`,
+        params
+      );
+
+      const params2 = [...params];
+      const byPodcastResult = await pool.query(
+        `SELECT COALESCE(signup_source_detail, 'unknown') as detail, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE signup_source IN ('podcast_page', 'episode_page')${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY detail, source ORDER BY count DESC LIMIT 20`,
+        params2
+      );
+
+      const params3 = [...params];
+      const overTimeResult = await pool.query(
+        `SELECT date_trunc('${trunc}', created_at) as period, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period, source ORDER BY period ASC`,
+        params3
+      );
+
+      const params4 = [...params];
+      const recentSignupsResult = await pool.query(
+        `SELECT id, email, signup_source, signup_source_detail, device_type, created_at FROM users WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} ORDER BY created_at DESC LIMIT 50`,
+        params4
+      );
+
+      const params5 = [...params];
+      const totalResult = await pool.query(
+        `SELECT COUNT(*) as count FROM users WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}`,
+        params5
+      );
+
+      res.json({
+        totalSignups: parseInt(totalResult.rows[0]?.count || "0"),
+        bySource: bySourceResult.rows.map(r => ({ source: r.source, count: parseInt(r.count) })),
+        byPodcast: byPodcastResult.rows.map(r => ({ detail: r.detail, source: r.source, count: parseInt(r.count) })),
+        overTime: overTimeResult.rows.map(r => ({ period: r.period, source: r.source, count: parseInt(r.count) })),
+        recentSignups: recentSignupsResult.rows,
+      });
+    } catch (err) {
+      console.error("Acquisition analytics error:", err);
+      res.status(500).json({ message: "Failed to load acquisition analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/affiliates", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = req.query.startDate as string || null;
+      const endDate = req.query.endDate as string || null;
+      const granularity = (req.query.granularity as string) || "daily";
+      const category = req.query.category as string || null;
+
+      let dateFilter = "";
+      const params: any[] = [];
+      if (startDate) { params.push(startDate); dateFilter += ` AND clicked_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); dateFilter += ` AND clicked_at <= $${params.length}::timestamp`; }
+
+      let catFilter = "";
+      if (category && category !== "all") {
+        params.push(category);
+        catFilter = ` AND product_type = $${params.length}`;
+      }
+
+      const truncMap: Record<string, string> = { daily: "day", weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" };
+      const trunc = truncMap[granularity] || "day";
+
+      const totalResult = await pool.query(
+        `SELECT COUNT(*) as count FROM affiliate_clicks WHERE 1=1${dateFilter}${catFilter}`,
+        params
+      );
+
+      const p2 = [...params];
+      const byProductResult = await pool.query(
+        `SELECT product_name, product_type, product_id, COUNT(*) as clicks, MAX(clicked_at) as last_clicked FROM affiliate_clicks WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}${catFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY product_name, product_type, product_id ORDER BY clicks DESC LIMIT 100`,
+        p2
+      );
+
+      const p3 = [...params];
+      const byCategoryResult = await pool.query(
+        `SELECT product_type, COUNT(*) as count FROM affiliate_clicks WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}${catFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY product_type ORDER BY count DESC`,
+        p3
+      );
+
+      const p4 = [...params];
+      const overTimeResult = await pool.query(
+        `SELECT date_trunc('${trunc}', clicked_at) as period, COUNT(*) as count FROM affiliate_clicks WHERE clicked_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}${catFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period ORDER BY period ASC`,
+        p4
+      );
+
+      res.json({
+        totalClicks: parseInt(totalResult.rows[0]?.count || "0"),
+        uniqueProducts: byProductResult.rows.length,
+        topProduct: byProductResult.rows[0]?.product_name || null,
+        byProduct: byProductResult.rows.map(r => ({ name: r.product_name, type: r.product_type, productId: r.product_id, clicks: parseInt(r.clicks), lastClicked: r.last_clicked })),
+        byCategory: byCategoryResult.rows.map(r => ({ type: r.product_type, count: parseInt(r.count) })),
+        overTime: overTimeResult.rows.map(r => ({ period: r.period, count: parseInt(r.count) })),
+      });
+    } catch (err) {
+      console.error("Affiliate analytics error:", err);
+      res.status(500).json({ message: "Failed to load affiliate analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/growth", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = req.query.startDate as string || null;
+      const endDate = req.query.endDate as string || null;
+      const granularity = (req.query.granularity as string) || "daily";
+
+      const truncMap: Record<string, string> = { daily: "day", weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" };
+      const trunc = truncMap[granularity] || "day";
+
+      const totalResult = await pool.query(`SELECT COUNT(*) as count FROM users`);
+      const totalUsers = parseInt(totalResult.rows[0]?.count || "0");
+
+      let dateFilter = "";
+      const params: any[] = [];
+      if (startDate) { params.push(startDate); dateFilter += ` AND created_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); dateFilter += ` AND created_at <= $${params.length}::timestamp`; }
+
+      const periodResult = await pool.query(
+        `SELECT COUNT(*) as count FROM users WHERE 1=1${dateFilter}`,
+        params
+      );
+      const periodSignups = parseInt(periodResult.rows[0]?.count || "0");
+
+      const p2 = [...params];
+      const overTimeResult = await pool.query(
+        `SELECT date_trunc('${trunc}', created_at) as period, COUNT(*) as count FROM users WHERE created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period ORDER BY period ASC`,
+        p2
+      );
+
+      const priorParams: any[] = [];
+      let priorFilter = "";
+      if (startDate) { priorParams.push(startDate); priorFilter = ` AND created_at < $${priorParams.length}::timestamp`; }
+      const priorResult = startDate ? await pool.query(
+        `SELECT COUNT(*) as count FROM users WHERE created_at IS NOT NULL${priorFilter}`,
+        priorParams
+      ) : null;
+      let cumulative = priorResult ? parseInt(priorResult.rows[0]?.count || "0") : 0;
+
+      const growthData = overTimeResult.rows.map(r => {
+        cumulative += parseInt(r.count);
+        return { period: r.period, newUsers: parseInt(r.count), totalUsers: cumulative };
+      });
+
+      let growthRate = 0;
+      if (growthData.length >= 2) {
+        const prev = growthData[growthData.length - 2].totalUsers;
+        const curr = growthData[growthData.length - 1].totalUsers;
+        growthRate = prev > 0 ? Math.round(((curr - prev) / prev) * 100 * 10) / 10 : 0;
+      }
+
+      res.json({
+        totalUsers,
+        periodSignups,
+        growthRate,
+        overTime: growthData,
+      });
+    } catch (err) {
+      console.error("Growth analytics error:", err);
+      res.status(500).json({ message: "Failed to load growth analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/email", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = req.query.startDate as string || null;
+      const endDate = req.query.endDate as string || null;
+      const granularity = (req.query.granularity as string) || "daily";
+
+      const truncMap: Record<string, string> = { daily: "day", weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" };
+      const trunc = truncMap[granularity] || "day";
+
+      let dateFilter = "";
+      const params: any[] = [];
+      if (startDate) { params.push(startDate); dateFilter += ` AND sent_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); dateFilter += ` AND sent_at <= $${params.length}::timestamp`; }
+
+      const sentResult = await pool.query(
+        `SELECT COUNT(*) as total_sent,
+                SUM(CASE WHEN email_opened_at IS NOT NULL THEN 1 ELSE 0 END) as total_opened,
+                SUM(CASE WHEN first_clicked_at IS NOT NULL THEN 1 ELSE 0 END) as total_clicked,
+                AVG(CASE WHEN email_opened_at IS NOT NULL THEN EXTRACT(EPOCH FROM (email_opened_at - sent_at)) END) as avg_time_to_open
+         FROM pending_emails WHERE status = 'sent'${dateFilter}`,
+        params
+      );
+
+      const stats = sentResult.rows[0];
+      const totalSent = parseInt(stats?.total_sent || "0");
+      const totalOpened = parseInt(stats?.total_opened || "0");
+      const totalClicked = parseInt(stats?.total_clicked || "0");
+      const openRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 1000) / 10 : 0;
+      const clickRate = totalSent > 0 ? Math.round((totalClicked / totalSent) * 1000) / 10 : 0;
+      const avgTimeToOpen = stats?.avg_time_to_open ? Math.round(parseFloat(stats.avg_time_to_open) / 60) : null;
+
+      const p2 = [...params];
+      const trendResult = await pool.query(
+        `SELECT date_trunc('${trunc}', sent_at) as period,
+                COUNT(*) as sent,
+                SUM(CASE WHEN email_opened_at IS NOT NULL THEN 1 ELSE 0 END) as opened,
+                SUM(CASE WHEN first_clicked_at IS NOT NULL THEN 1 ELSE 0 END) as clicked
+         FROM pending_emails WHERE status = 'sent' AND sent_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}
+         GROUP BY period ORDER BY period ASC`,
+        p2
+      );
+
+      const p3 = [...params];
+      const perEmailResult = await pool.query(
+        `SELECT id, recipient_email, subject, sent_at, email_opened_at, first_clicked_at,
+                recap_date
+         FROM pending_emails WHERE status = 'sent'${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}
+         ORDER BY sent_at DESC LIMIT 100`,
+        p3
+      );
+
+      const p4 = [...params];
+      const topLinksResult = await pool.query(
+        `SELECT ec.url, COUNT(*) as clicks
+         FROM email_clicks ec
+         JOIN pending_emails pe ON ec.email_id = pe.id
+         WHERE pe.status = 'sent'${dateFilter.replace(/sent_at/g, 'pe.sent_at').replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}
+         GROUP BY ec.url ORDER BY clicks DESC LIMIT 20`,
+        p4
+      );
+
+      res.json({
+        totalSent,
+        totalOpened,
+        totalClicked,
+        openRate,
+        clickRate,
+        avgTimeToOpenMinutes: avgTimeToOpen,
+        trend: trendResult.rows.map(r => ({
+          period: r.period,
+          sent: parseInt(r.sent),
+          opened: parseInt(r.opened),
+          clicked: parseInt(r.clicked),
+          openRate: parseInt(r.sent) > 0 ? Math.round((parseInt(r.opened) / parseInt(r.sent)) * 1000) / 10 : 0,
+          clickRate: parseInt(r.sent) > 0 ? Math.round((parseInt(r.clicked) / parseInt(r.sent)) * 1000) / 10 : 0,
+        })),
+        perEmail: perEmailResult.rows.map(r => ({
+          id: r.id,
+          recipientEmail: r.recipient_email,
+          subject: r.subject,
+          sentAt: r.sent_at,
+          openedAt: r.email_opened_at,
+          clickedAt: r.first_clicked_at,
+          recapDate: r.recap_date,
+        })),
+        topLinks: topLinksResult.rows.map(r => ({ url: r.url, clicks: parseInt(r.clicks) })),
+      });
+    } catch (err) {
+      console.error("Email analytics error:", err);
+      res.status(500).json({ message: "Failed to load email analytics" });
+    }
   });
 
   app.get("/api/podcasts/directory", async (_req, res) => {

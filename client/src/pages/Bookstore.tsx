@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { trackAffiliateUrl } from "@/lib/utils";
 
 interface BookstoreBook {
   name: string;
@@ -163,7 +164,7 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
               <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="lg" />
             </Link>
           ) : (
-            <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0" data-testid={`book-cover-link-${index}`}>
+            <a href={trackAffiliateUrl(book.amazonUrl, book.name, "book")} target="_blank" rel="sponsored noopener noreferrer" className="shrink-0" data-testid={`book-cover-link-${index}`}>
               <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="lg" />
             </a>
           )}
@@ -175,7 +176,7 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
                 </h3>
               </Link>
             ) : (
-              <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="block group/title" data-testid={`book-title-link-${index}`}>
+              <a href={trackAffiliateUrl(book.amazonUrl, book.name, "book")} target="_blank" rel="sponsored noopener noreferrer" className="block group/title" data-testid={`book-title-link-${index}`}>
                 <h3 className="text-[17px] font-bold text-[#09090B] dark:text-white leading-snug group-hover/title:text-[#6366F1] transition-colors" data-testid={`book-title-${index}`}>
                   {book.name}
                 </h3>
@@ -227,7 +228,7 @@ function DiscoveryCard({ book, index }: { book: BookstoreBook; index: number }) 
               </Link>
             ) : (
               <a
-                href={book.amazonUrl}
+                href={trackAffiliateUrl(book.amazonUrl, book.name, "book")}
                 target="_blank"
                 rel="sponsored noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#6366F1] hover:text-[#4F46E5] transition-colors"
@@ -511,7 +512,7 @@ function ShelfRow({ books, keyPrefix }: { books: BookstoreBook[]; keyPrefix: str
             {inner}
           </Link>
         ) : (
-          <a href={book.amazonUrl} target="_blank" rel="sponsored noopener noreferrer" className="block shrink-0" key={`${keyPrefix}-${book.name}-${i}`} data-testid={testId}>
+          <a href={trackAffiliateUrl(book.amazonUrl, book.name, "book")} target="_blank" rel="sponsored noopener noreferrer" className="block shrink-0" key={`${keyPrefix}-${book.name}-${i}`} data-testid={testId}>
             {inner}
           </a>
         );

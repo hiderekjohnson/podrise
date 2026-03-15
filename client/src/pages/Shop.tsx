@@ -8,6 +8,7 @@ import {
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { trackAffiliateUrl } from "@/lib/utils";
 
 interface ShopProduct {
   name: string;
@@ -156,7 +157,7 @@ function ProductCard({ product, index }: { product: ShopProduct; index: number }
 
         {product.url && (
           <a
-            href={product.url}
+            href={trackAffiliateUrl(product.url, product.name, "product")}
             target="_blank"
             rel="noopener noreferrer"
             className={`mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-[14px] font-semibold transition-all ${

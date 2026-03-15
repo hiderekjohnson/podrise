@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
+import { trackAffiliateUrl } from "@/lib/utils";
 
 const PEOPLE_SLUG_MAP: Record<string, string> = {};
 PEOPLE_DIRECTORY.forEach(p => { PEOPLE_SLUG_MAP[p.name.toLowerCase()] = p.slug; });
@@ -314,7 +315,7 @@ function StickyBuyBar({ book, visible }: { book: BookDetail; visible: boolean })
         <div className="flex items-center gap-2 shrink-0">
           {book.blinkistUrl && (
             <a
-              href={book.blinkistUrl}
+              href={trackAffiliateUrl(book.blinkistUrl, book.name, "book")}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-1.5 text-[14px] font-semibold text-[#52525B] hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:text-white transition-colors"
@@ -326,7 +327,7 @@ function StickyBuyBar({ book, visible }: { book: BookDetail; visible: boolean })
           )}
           {book.amazonUrl && (
             <a
-              href={book.amazonUrl}
+              href={trackAffiliateUrl(book.amazonUrl, book.name, "book")}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111] rounded-lg px-4 py-2 text-[14px] font-bold transition-colors flex items-center gap-1.5 shadow-sm"
@@ -469,7 +470,7 @@ export default function BookDetailPage() {
               <div className="flex items-center gap-3 mb-5">
                 {book.amazonUrl && (
                   <a
-                    href={book.amazonUrl}
+                    href={trackAffiliateUrl(book.amazonUrl, book.name, "book")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111] rounded-lg px-5 py-2.5 text-[14px] font-bold transition-colors flex items-center gap-2 shadow-sm"
@@ -480,7 +481,7 @@ export default function BookDetailPage() {
                 )}
                 {book.blinkistUrl && (
                   <a
-                    href={book.blinkistUrl}
+                    href={trackAffiliateUrl(book.blinkistUrl, book.name, "book")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="border border-[#E4E4E7] dark:border-white/[0.12] text-[#52525B] dark:text-[#A1A1AA] hover:border-[#6366F1]/40 hover:text-[#6366F1] rounded-lg px-4 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2"
@@ -604,7 +605,7 @@ export default function BookDetailPage() {
                   {book.amazonUrl && (
                     <div className="flex justify-between text-sm py-2">
                       <span className="text-[#A1A1AA]">Buy</span>
-                      <a href={book.amazonUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-[#6366F1] hover:underline" data-testid="link-amazon-details">
+                      <a href={trackAffiliateUrl(book.amazonUrl, book.name, "book")} target="_blank" rel="noopener noreferrer" className="font-medium text-[#6366F1] hover:underline" data-testid="link-amazon-details">
                         Amazon →
                       </a>
                     </div>
