@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -72,6 +72,10 @@ export interface IStorage {
   getTopicPulseByDate(topicSlug: string, publishDate: string): Promise<TopicPulse | undefined>;
   getRecentPulsesAcrossTopics(excludeSlug: string, limit?: number): Promise<TopicPulse[]>;
   upsertTopicPulse(data: InsertTopicPulse): Promise<TopicPulse>;
+  getAdvertisers(): Promise<Advertiser[]>;
+  createAdvertiser(data: InsertAdvertiser): Promise<Advertiser>;
+  updateAdvertiser(id: number, data: InsertAdvertiser): Promise<Advertiser>;
+  deleteAdvertiser(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -687,6 +691,24 @@ export class DatabaseStorage implements IStorage {
     }
     const [created] = await db.insert(topicPulses).values(data).returning();
     return created;
+  }
+
+  async getAdvertisers(): Promise<Advertiser[]> {
+    return db.select().from(advertisers).orderBy(desc(advertisers.createdAt));
+  }
+
+  async createAdvertiser(data: InsertAdvertiser): Promise<Advertiser> {
+    const [created] = await db.insert(advertisers).values(data).returning();
+    return created;
+  }
+
+  async updateAdvertiser(id: number, data: InsertAdvertiser): Promise<Advertiser> {
+    const [updated] = await db.update(advertisers).set(data).where(eq(advertisers.id, id)).returning();
+    return updated;
+  }
+
+  async deleteAdvertiser(id: number): Promise<void> {
+    await db.delete(advertisers).where(eq(advertisers.id, id));
   }
 }
 

@@ -11135,6 +11135,69 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.get("/api/admin/advertisers", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const list = await storage.getAdvertisers();
+      res.json(list);
+    } catch (err) {
+      console.error("[Advertisers] List error:", err);
+      res.status(500).json({ error: "Failed to fetch advertisers" });
+    }
+  });
+
+  app.post("/api/admin/advertisers", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { insertAdvertiserSchema } = await import("@shared/schema");
+      const sanitizeHtml = (await import("sanitize-html")).default;
+      const parsed = insertAdvertiserSchema.parse(req.body);
+      parsed.message = sanitizeHtml(parsed.message, {
+        allowedTags: ["b", "strong", "i", "em", "a", "p", "br"],
+        allowedAttributes: { a: ["href", "target", "rel"] },
+        allowedSchemes: ["http", "https"],
+      });
+      const created = await storage.createAdvertiser(parsed);
+      res.json(created);
+    } catch (err: any) {
+      if (err?.issues) return res.status(400).json({ error: "Validation failed", details: err.issues });
+      console.error("[Advertisers] Create error:", err);
+      res.status(500).json({ error: "Failed to create advertiser" });
+    }
+  });
+
+  app.patch("/api/admin/advertisers/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { insertAdvertiserSchema } = await import("@shared/schema");
+      const sanitizeHtml = (await import("sanitize-html")).default;
+      const parsed = insertAdvertiserSchema.parse(req.body);
+      parsed.message = sanitizeHtml(parsed.message, {
+        allowedTags: ["b", "strong", "i", "em", "a", "p", "br"],
+        allowedAttributes: { a: ["href", "target", "rel"] },
+        allowedSchemes: ["http", "https"],
+      });
+      const updated = await storage.updateAdvertiser(Number(req.params.id), parsed);
+      if (!updated) return res.status(404).json({ error: "Advertiser not found" });
+      res.json(updated);
+    } catch (err: any) {
+      if (err?.issues) return res.status(400).json({ error: "Validation failed", details: err.issues });
+      console.error("[Advertisers] Update error:", err);
+      res.status(500).json({ error: "Failed to update advertiser" });
+    }
+  });
+
+  app.delete("/api/admin/advertisers/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      await storage.deleteAdvertiser(Number(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[Advertisers] Delete error:", err);
+      res.status(500).json({ error: "Failed to delete advertiser" });
+    }
+  });
+
   setTimeout(async () => {
     try {
       const { seedProductionBooks } = await import("./seedProductionBooks");
