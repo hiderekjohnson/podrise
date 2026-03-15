@@ -2,6 +2,7 @@ import { useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen } from "lucide-react";
 import { BookCoverFill } from "@/components/BookCover";
+import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Footer } from "@/components/Footer";
@@ -557,7 +558,7 @@ export default function TopicDetailPage() {
                   Recommended Reading
                 </h3>
               </div>
-              <Link href="/bookstore" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+              <Link href="/shop" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
                 All books <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -569,7 +570,7 @@ export default function TopicDetailPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: Math.min(i * 0.03, 0.3) }}
                 >
-                  <Link href={`/bookstore/${book.slug}`} data-testid={`card-topic-book-${book.slug}`}>
+                  <Link href={`/shop/${book.slug}`} data-testid={`card-topic-book-${book.slug}`}>
                     <div className="group bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-3 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full flex flex-col">
                       <div className="w-full aspect-[2/3] bg-muted rounded-lg mb-3 overflow-hidden flex items-center justify-center">
                         <BookCoverFill title={book.title} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
@@ -578,8 +579,10 @@ export default function TopicDetailPage() {
                         {book.title}
                       </h4>
                       <p className="text-[14px] text-muted-foreground mt-1">{book.author || "Unknown"}</p>
-                      {book.mentionCount && (
-                        <p className="text-[12px] text-amber-600 dark:text-amber-400 font-medium mt-1.5">Mentioned {book.mentionCount}x on podcasts</p>
+                      {book.podcastCount > 0 && (
+                        <div className="mt-1.5">
+                          <PodcastMicBadge count={book.podcastCount} size="sm" />
+                        </div>
                       )}
                     </div>
                   </Link>

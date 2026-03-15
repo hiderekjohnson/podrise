@@ -47,7 +47,7 @@ function normalizeLink(href: string): string {
   if (cleaned.startsWith("javascript:") || cleaned.startsWith("data:") || cleaned.startsWith("vbscript:")) {
     return "#";
   }
-  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/bookstore/") || cleaned.startsWith("/insights/") || cleaned.startsWith("/industries/") || cleaned.startsWith("/interests/") || cleaned.startsWith("/roles/")) {
+  if (cleaned.startsWith("/podcasts/") || cleaned.startsWith("/people/") || cleaned.startsWith("/companies/") || cleaned.startsWith("/topics/") || cleaned.startsWith("/shop/") || cleaned.startsWith("/insights/") || cleaned.startsWith("/industries/") || cleaned.startsWith("/interests/") || cleaned.startsWith("/roles/")) {
     return cleaned;
   }
   const match = cleaned.match(/(?:https?:\/\/[^/]*)?(\/?podcasts\/[^\s)]+)/);

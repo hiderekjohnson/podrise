@@ -439,7 +439,7 @@ LINKING RULES:
 - Podcast names: [Podcast Name](/podcasts/slug)
 - People: [Person Name](/people/first-last)
 - Companies: [Company Name](/companies/slug)
-- Books mentioned in context: [Book Title](/bookstore/book-slug-in-kebab-case)
+- Books mentioned in context: [Book Title](/shop/book-slug-in-kebab-case)
 - Links MUST start with / (relative paths)
 - Link a name once, leave later mentions unlinked
 

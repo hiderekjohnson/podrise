@@ -74,7 +74,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Bookstore search by podcast",
     description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Bookstore by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
-    link: { url: "/bookstore", label: "Search books by podcast" },
+    link: { url: "/shop", label: "Search books by podcast" },
     emoji: "📖",
     date: "Feb 27, 2026",
   },
@@ -116,7 +116,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Curated book recommendations from episodes",
     description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. We built a dedicated Bookstore with curated shelves, ratings, and host context so you can discover your next great read from the podcasts you already love — no more scrambling to remember that title someone mentioned at minute 47.",
-    link: { url: "/bookstore", label: "Browse the Bookstore" },
+    link: { url: "/shop", label: "Browse the Shop" },
     emoji: "📚",
     date: "Feb 15, 2026",
   },

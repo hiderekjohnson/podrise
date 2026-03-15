@@ -1,9 +1,9 @@
-// See BRAND.md for all typography, color, spacing, and accessibility rules.
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { BookOpen, ExternalLink, ChevronDown, FileText } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
+import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
@@ -91,7 +91,7 @@ function SEOHead({ book }: { book: BookDetail }) {
     setOrCreate("name", "description", description);
     setOrCreate("property", "og:title", title);
     setOrCreate("property", "og:description", description);
-    setOrCreate("property", "og:url", `https://podcap.io/bookstore/${book.slug}`);
+    setOrCreate("property", "og:url", `https://podcap.io/shop/${book.slug}`);
     setOrCreate("property", "og:type", "book");
     setOrCreate("name", "twitter:card", "summary");
     setOrCreate("name", "twitter:title", title);
@@ -103,7 +103,7 @@ function SEOHead({ book }: { book: BookDetail }) {
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-    canonical.href = `https://podcap.io/bookstore/${book.slug}`;
+    canonical.href = `https://podcap.io/shop/${book.slug}`;
 
     let schemaScript = document.querySelector('script[data-book-schema]') as HTMLScriptElement;
     if (!schemaScript) {
@@ -118,10 +118,9 @@ function SEOHead({ book }: { book: BookDetail }) {
       name: book.name,
       ...(book.author ? { author: { "@type": "Person", name: book.author } } : {}),
       ...(book.description ? { description: book.description } : {}),
-      ...(book.rating ? { aggregateRating: { "@type": "AggregateRating", ratingValue: book.rating, bestRating: 5, ...(book.ratingCount ? { ratingCount: book.ratingCount } : {}) } } : {}),
       ...(book.publishYear ? { datePublished: String(book.publishYear) } : {}),
       ...(book.pageCount ? { numberOfPages: book.pageCount } : {}),
-      url: `https://podcap.io/bookstore/${book.slug}`,
+      url: `https://podcap.io/shop/${book.slug}`,
     });
   }
   return null;
@@ -272,7 +271,7 @@ function AppearanceCard({ ep, podcastArtwork }: { ep: BookEpisode; podcastArtwor
 function RelatedBookCard({ book }: { book: RelatedBook }) {
   return (
     <Link
-      href={`/bookstore/${book.slug}`}
+      href={`/shop/${book.slug}`}
       className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl p-3 transition-all hover:border-[#6366F1]/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.1)] block"
       data-testid={`related-book-${book.slug}`}
     >
@@ -343,8 +342,8 @@ function StickyBuyBar({ book, visible }: { book: BookDetail; visible: boolean })
 }
 
 export default function BookDetailPage() {
-  const [, params] = useRoute("/bookstore/:bookSlug");
-  const bookSlug = params?.bookSlug;
+  const [, params] = useRoute("/shop/:slug");
+  const bookSlug = params?.slug;
   const { data: book, isLoading, error } = useQuery<BookDetail>({
     queryKey: ["/api/bookstore", bookSlug],
     enabled: !!bookSlug,
@@ -410,7 +409,6 @@ export default function BookDetailPage() {
   if (book) {
     if (book.publishYear) metaItems.push({ label: "Published", value: String(book.publishYear) });
     if (book.pageCount) metaItems.push({ label: "Pages", value: String(book.pageCount) });
-    if (book.rating) metaItems.push({ label: "Rating", value: `${book.rating.toFixed(1)}${book.ratingCount ? ` (${book.ratingCount.toLocaleString()} reviews)` : ""}` });
   }
 
   if (isLoading) {
@@ -431,7 +429,7 @@ export default function BookDetailPage() {
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <BookOpen className="w-12 h-12 text-[#A1A1AA]/30" />
           <h1 className="text-xl font-bold text-[#09090B] dark:text-white">Book not found</h1>
-          <Link href="/bookstore" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-bookstore">Back to Bookstore</Link>
+          <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
         </div>
         <Footer />
       </div>
@@ -450,7 +448,7 @@ export default function BookDetailPage() {
           <div className="text-[13px] text-[#A1A1AA] mb-6 flex items-center gap-2" data-testid="breadcrumb">
             <Link href="/" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Home</Link>
             <span>›</span>
-            <Link href="/bookstore" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Bookstore</Link>
+            <Link href="/shop" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Shop</Link>
             <span>›</span>
             <span>{book.name}</span>
           </div>
@@ -462,10 +460,14 @@ export default function BookDetailPage() {
                 {book.name}
               </h1>
               {book.author && (
-                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mb-4" data-testid="text-book-author">
+                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mb-3" data-testid="text-book-author">
                   by <AuthorWithLinks author={book.author} />
                 </p>
               )}
+
+              <div className="mb-4">
+                <PodcastMicBadge count={book.podcastCount} size="lg" />
+              </div>
 
               <div className="flex items-center gap-3 mb-5">
                 {book.amazonUrl && (
@@ -515,6 +517,12 @@ export default function BookDetailPage() {
             </div>
           </div>
 
+          <div className="bg-[#6366F1]/[0.03] dark:bg-[#6366F1]/[0.06] border border-[#6366F1]/[0.08] rounded-xl px-5 py-3 mb-7" data-testid="affiliate-disclosure">
+            <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
+              Some links are affiliate links — they help keep PodCap free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
+              <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
+            </p>
+          </div>
 
           {book.podcastBuzz && (
             <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] border-l-[3px] border-l-[#6366F1] rounded-[0_12px_12px_0] px-5 py-4 mb-7 shadow-[0_1px_3px_rgba(0,0,0,0.07)]" data-testid="section-podcast-buzz">

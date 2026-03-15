@@ -1,8 +1,9 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, Star, ArrowUp, Mail, Clock, ShoppingBag } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
+import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
@@ -543,7 +544,7 @@ export default function EpisodeRecapPage() {
     enabled: !!podcastSlug && !!episodeSlug,
   });
 
-  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null; googleBooksId: string | null }>>({
+  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null; googleBooksId: string | null; podcastCount: number | null }>>({
     queryKey: ["/api/book-slugs"],
     queryFn: async () => {
       const res = await fetch("/api/book-slugs");
@@ -721,7 +722,6 @@ export default function EpisodeRecapPage() {
       "section-what-happened",
       "section-guests",
       "section-mentions",
-      "section-books",
       "section-shop",
       "section-quotes",
     ];
@@ -883,22 +883,15 @@ export default function EpisodeRecapPage() {
               Mentions
             </button>
           )}
-          {hasBooks && (
-            <button
-              onClick={() => scrollTo("section-books")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-books" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-books"
-            >
-              Books
-            </button>
-          )}
-          {hasShopProducts && (
+          {(hasBooks || hasShopProducts) && (
             <button
               onClick={() => scrollTo("section-shop")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
               data-testid="nav-shop"
             >
+              <ShoppingBag className="w-4 h-4" />
               Shop
+              <span className="ml-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
             </button>
           )}
           {hasQuotes && (
@@ -1211,15 +1204,22 @@ export default function EpisodeRecapPage() {
 
 
 
-        {hasBooks && (
-          <section id="section-books" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-books">
-            <div className="px-4 sm:px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
+        {(hasBooks || hasShopProducts) && (
+          <section id="section-shop" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-shop">
+            <div className="px-4 sm:px-6 py-4 bg-[#6366F1]/[0.04] border-b border-[#6366F1]/[0.08]">
               <div className="flex items-center gap-2.5">
-                <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
-                <h2 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned in This Episode</h2>
+                <ShoppingBag className="w-4 h-4 text-[#6366F1] shrink-0" />
+                <h2 className="text-base font-bold text-[#6366F1] dark:text-[#A5B4FC] uppercase tracking-wider m-0">Shop</h2>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
               </div>
             </div>
             <div className="px-4 sm:px-6 py-5">
+              {hasBooks && (
+              <>
+              <div className="flex items-center gap-2.5 mb-5">
+                <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
+                <h3 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned</h3>
+              </div>
               <div className="flex flex-col gap-5">
                 {(showAllBooks ? books : books.slice(0, INITIAL_SHOW)).map((book, i) => {
                   const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
@@ -1238,7 +1238,7 @@ export default function EpisodeRecapPage() {
                     >
                       <div className="flex gap-4">
                         {bookSlug ? (
-                          <Link href={`/bookstore/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
+                          <Link href={`/shop/${bookSlug}`} className="shrink-0" data-testid={`book-cover-link-${i}`}>
                             <BookCover title={book.name} asin={asin} slug={bookSlug} googleBooksId={enrichment?.googleBooksId} isbn={enrichment?.isbn} hasCover={enrichment?.hasCover} testId={`book-cover-${i}`} />
                           </Link>
                         ) : (
@@ -1246,7 +1246,7 @@ export default function EpisodeRecapPage() {
                         )}
                         <div className="flex-1 min-w-0">
                           {bookSlug ? (
-                            <Link href={`/bookstore/${bookSlug}`} className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                            <Link href={`/shop/${bookSlug}`} className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
                               {book.name}
                             </Link>
                           ) : (
@@ -1260,11 +1260,8 @@ export default function EpisodeRecapPage() {
                             </p>
                           )}
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            {enrichment?.rating && (
-                              <span className="inline-flex items-center gap-0.5 text-[16px] font-semibold text-amber-600 dark:text-amber-400">
-                                <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                                {enrichment.rating.toFixed(1)}
-                              </span>
+                            {enrichment?.podcastCount && enrichment.podcastCount > 0 && (
+                              <PodcastMicBadge count={enrichment.podcastCount} size="sm" />
                             )}
                             {enrichment?.pageCount && (
                               <span className="text-[16px] text-muted-foreground">{enrichment.pageCount}p</span>
@@ -1290,7 +1287,7 @@ export default function EpisodeRecapPage() {
                       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
                         {bookSlug && (
                           <Link
-                            href={`/bookstore/${bookSlug}`}
+                            href={`/shop/${bookSlug}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 transition-colors"
                             data-testid={`book-detail-link-${i}`}
                           >
@@ -1310,19 +1307,15 @@ export default function EpisodeRecapPage() {
                 </button>
               )}
             </div>
-          </section>
-        )}
-
-        {hasShopProducts && (
-          <section id="section-shop" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-shop">
-            <div className="px-4 sm:px-6 py-4 bg-emerald-500/[0.04] border-b border-emerald-500/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <ShoppingBag className="w-4 h-4 text-emerald-600 shrink-0" />
-                <h2 className="text-base font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider m-0">Products & Tools Mentioned</h2>
-              </div>
-            </div>
-            <div className="px-4 sm:px-6 py-5">
-              <div className="flex flex-col gap-5">
+            </>
+            )}
+            {hasShopProducts && (
+              <div className="mt-8 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+                <div className="flex items-center gap-2.5 mb-5">
+                  <ShoppingBag className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <h3 className="text-base font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider m-0">Products & Tools Mentioned</h3>
+                </div>
+                <div className="flex flex-col gap-5">
                 {(showAllProducts ? shopProducts : shopProducts.slice(0, INITIAL_SHOW)).map((product: any, i: number) => {
                   const typeLabel = product.type === "service_or_tool" ? "Tool" :
                     product.type === "physical_product" ? "Product" :
@@ -1407,6 +1400,14 @@ export default function EpisodeRecapPage() {
                   {showAllProducts ? "Show Less" : `Show ${shopProducts.length - INITIAL_SHOW} More`}
                 </button>
               )}
+              </div>
+            )}
+            </div>
+            <div className="px-4 sm:px-6 pb-4">
+              <p className="text-[12px] text-[#A1A1AA] leading-relaxed" data-testid="affiliate-disclosure-shop">
+                Some links are affiliate links — they help keep PodCap free. We only feature products recommended by podcasters, never random picks.{" "}
+                <Link href="/disclosure" className="text-[#6366F1] hover:underline">Learn more</Link>
+              </p>
             </div>
           </section>
         )}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, CheckCircle2, XCircle, Filter, Clock, Trash2, AlertTriangle, FileText, Bot, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
+import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, CheckCircle2, XCircle, Filter, Clock, Trash2, AlertTriangle, FileText, Bot, ChevronDown, ChevronUp, ArrowUpDown, Image, Upload, Sparkles } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +21,7 @@ interface Product {
   extracted_at: string;
   reviewed_at: string | null;
   image_url: string | null;
+  image_status: string;
 }
 
 const MENTION_LABELS: Record<string, { label: string; color: string; icon: typeof Star }> = {
@@ -613,6 +614,244 @@ export default function ProductsAdmin() {
                     )}
                   </div>
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <hr className="border-t border-border my-6" />
+      <ImageApprovalPanel />
+    </div>
+  );
+}
+
+type ImageFilterMode = "all" | "pending" | "approved" | "rejected";
+
+interface ImageProduct {
+  id: number;
+  name: string;
+  company: string | null;
+  image_url: string | null;
+  image_status: string;
+  purchase_url: string | null;
+  category: string;
+}
+
+function ImageApprovalPanel() {
+  const { toast } = useToast();
+  const [imageFilter, setImageFilter] = useState<ImageFilterMode>("pending");
+  const [editingImageId, setEditingImageId] = useState<number | null>(null);
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [summarizing, setSummarizing] = useState(false);
+
+  const { data, isLoading } = useQuery<{ products: ImageProduct[]; stats: Record<string, number> }>({
+    queryKey: ["/api/admin/products/images", imageFilter],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/products/images?filter=${imageFilter}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load");
+      return res.json();
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await apiRequest("POST", "/api/admin/products/image-approve", { ids });
+    },
+    onSuccess: (_, ids) => {
+      toast({ title: "Image Approved", description: `${ids.length} image(s) approved` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products/images"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await apiRequest("POST", "/api/admin/products/image-reject", { ids });
+    },
+    onSuccess: (_, ids) => {
+      toast({ title: "Image Rejected", description: `${ids.length} image(s) rejected — product hidden from shop` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products/images"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, imageUrl }: { id: number; imageUrl: string }) => {
+      await apiRequest("POST", "/api/admin/products/image-update", { id, imageUrl });
+    },
+    onSuccess: () => {
+      toast({ title: "Image Updated", description: "New image saved and approved" });
+      setEditingImageId(null);
+      setNewImageUrl("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products/images"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+    },
+  });
+
+  const runSummarize = async () => {
+    setSummarizing(true);
+    try {
+      const res = await apiRequest("POST", "/api/admin/products/summarize-contexts", {});
+      const result = await res.json();
+      toast({ title: "Summarization Complete", description: result.message });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to summarize", variant: "destructive" });
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
+  const products = data?.products || [];
+  const stats = data?.stats || { pending: 0, approved: 0, rejected: 0 };
+
+  const filterButtons: { mode: ImageFilterMode; label: string; color: string }[] = [
+    { mode: "pending", label: `Needs Review (${stats.pending})`, color: "bg-yellow-100 text-yellow-700" },
+    { mode: "approved", label: `Approved (${stats.approved})`, color: "bg-green-100 text-green-700" },
+    { mode: "rejected", label: `Rejected (${stats.rejected})`, color: "bg-red-100 text-red-700" },
+    { mode: "all", label: "All", color: "bg-gray-100 text-gray-700" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold flex items-center gap-2" data-testid="text-image-approval-title">
+            <Image className="w-5 h-5 text-primary" />
+            Product Image Approval
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Approve, replace, or reject product images. Products with rejected/pending images are hidden from the shop.
+          </p>
+        </div>
+        <button
+          onClick={runSummarize}
+          disabled={summarizing}
+          className="px-4 py-2.5 rounded-xl text-sm font-bold bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors flex items-center gap-2 border border-violet-200 disabled:opacity-50"
+          data-testid="button-summarize-contexts"
+        >
+          {summarizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+          {summarizing ? "Summarizing..." : "AI Summarize Contexts"}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {filterButtons.map(({ mode, label, color }) => (
+          <button
+            key={mode}
+            onClick={() => setImageFilter(mode)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+              imageFilter === mode ? color + " ring-2 ring-offset-1 ring-current" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            }`}
+            data-testid={`filter-images-${mode}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-10 text-muted-foreground text-sm">Loading images...</div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-10">
+          <Image className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">No products in this category.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {products.map((p) => {
+            const isEditing = editingImageId === p.id;
+            const statusColor = p.image_status === "approved" ? "border-green-300 bg-green-50/50" :
+                               p.image_status === "rejected" ? "border-red-300 bg-red-50/50" :
+                               "border-yellow-300 bg-yellow-50/50";
+
+            return (
+              <div key={p.id} className={`rounded-xl border p-3 ${statusColor}`} data-testid={`image-card-${p.id}`}>
+                <div className="w-full aspect-square rounded-lg mb-2 overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                      <Image className="w-8 h-8 opacity-30" />
+                      <span className="text-[10px]">No image</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-sm font-bold truncate" data-testid={`image-product-name-${p.id}`}>{p.name}</div>
+                {p.company && <div className="text-[11px] text-muted-foreground truncate">{p.company}</div>}
+
+                <div className="flex items-center gap-1 mt-1 mb-2">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    p.image_status === "approved" ? "bg-green-100 text-green-700" :
+                    p.image_status === "rejected" ? "bg-red-100 text-red-700" :
+                    "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {p.image_status === "approved" ? "✓ Approved" : p.image_status === "rejected" ? "✗ Rejected" : "⏳ Pending"}
+                  </span>
+                </div>
+
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="Paste new image URL..."
+                      className="w-full px-2.5 py-1.5 rounded-lg text-xs border bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-primary focus:outline-none"
+                      data-testid={`input-image-url-${p.id}`}
+                    />
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => {
+                          if (newImageUrl.trim()) updateMutation.mutate({ id: p.id, imageUrl: newImageUrl.trim() });
+                        }}
+                        disabled={!newImageUrl.trim() || updateMutation.isPending}
+                        className="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-1"
+                        data-testid={`button-save-image-${p.id}`}
+                      >
+                        {updateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                        Save
+                      </button>
+                      <button
+                        onClick={() => { setEditingImageId(null); setNewImageUrl(""); }}
+                        className="px-2 py-1.5 rounded-lg text-xs font-bold bg-muted text-muted-foreground hover:bg-muted/80"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-1.5">
+                    {p.image_status !== "approved" && p.image_url && (
+                      <button
+                        onClick={() => approveMutation.mutate([p.id])}
+                        disabled={approveMutation.isPending}
+                        className="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-1"
+                        data-testid={`button-approve-image-${p.id}`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" /> Approve
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { setEditingImageId(p.id); setNewImageUrl(p.image_url || ""); }}
+                      className="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 flex items-center justify-center gap-1"
+                      data-testid={`button-edit-image-${p.id}`}
+                    >
+                      <Upload className="w-3 h-3" /> Replace
+                    </button>
+                    {p.image_status !== "rejected" && (
+                      <button
+                        onClick={() => rejectMutation.mutate([p.id])}
+                        disabled={rejectMutation.isPending}
+                        className="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 flex items-center justify-center gap-1"
+                        data-testid={`button-reject-image-${p.id}`}
+                      >
+                        <XCircle className="w-3 h-3" /> Reject
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Mic, Users, Star, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Mic, Users, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
+import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -139,7 +140,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                 >
                   <div className="flex gap-4">
                     {bookSlug ? (
-                      <Link href={`/bookstore/${bookSlug}`} className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      <Link href={`/shop/${bookSlug}`} className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
                         <BookCoverFill title={book.name} slug={bookSlug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
                       </Link>
                     ) : (
@@ -150,7 +151,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
 
                     <div className="flex-1 min-w-0">
                       {bookSlug ? (
-                        <Link href={`/bookstore/${bookSlug}`} className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
+                        <Link href={`/shop/${bookSlug}`} className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors leading-snug" data-testid={`book-title-${i}`}>
                           {book.name}
                         </Link>
                       ) : (
@@ -164,16 +165,7 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
                         </p>
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`book-mentions-${i}`}>
-                          <Mic className="w-3 h-3" />
-                          {book.mentionCount} {book.mentionCount === 1 ? "mention" : "mentions"}
-                        </span>
-                        {book.rating && (
-                          <span className="inline-flex items-center gap-0.5 text-[16px] font-semibold text-amber-600 dark:text-amber-400">
-                            <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                            {book.rating.toFixed(1)}
-                          </span>
-                        )}
+                        <PodcastMicBadge count={book.podcastCount} size="sm" />
                         {book.pageCount && (
                           <span className="text-[16px] text-muted-foreground">{book.pageCount} pages</span>
                         )}
@@ -336,12 +328,9 @@ function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: stri
                         {getTypeLabel(product.type)}
                       </span>
                     </div>
-                    {product.mentionCount > 1 && (
+                    {product.podcastCount > 0 && (
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        <span className="inline-flex items-center gap-1 text-[16px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/[0.08] px-2 py-0.5 rounded-full" data-testid={`product-mentions-${i}`}>
-                          <Mic className="w-3 h-3" />
-                          {product.mentionCount} mentions
-                        </span>
+                        <PodcastMicBadge count={product.podcastCount} size="sm" />
                       </div>
                     )}
                   </div>
@@ -404,7 +393,7 @@ export default function PodcastLandingGeneric() {
       const sectionMap: Record<string, string> = {
         episodes: "section-episodes",
         discover: "section-discover",
-        books: "section-books",
+        books: "section-shop",
         shop: "section-shop",
       };
       const sectionId = sectionMap[urlTab];
@@ -785,11 +774,8 @@ export default function PodcastLandingGeneric() {
           )}
         </section>
 
-        <div id="section-books" data-testid="section-books">
-          <PodcastBooksTab slug={slug} podcastName={config.name} />
-        </div>
-
         <div id="section-shop" data-testid="section-shop">
+          <PodcastBooksTab slug={slug} podcastName={config.name} />
           <PodcastShopTab slug={slug} podcastName={config.name} />
         </div>
 

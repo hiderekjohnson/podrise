@@ -69,7 +69,6 @@ export function PodcastPageLayout({
     const sectionIds = [
       "section-episodes",
       "section-discover",
-      "section-books",
       "section-shop",
     ];
 
@@ -135,11 +134,10 @@ export function PodcastPageLayout({
     doRegister(stickyEmail);
   };
 
-  const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean; action?: () => void }[] = [
+  const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean; action?: () => void; beta?: boolean }[] = [
     { id: "section-episodes", label: "Episode Recaps", icon: Mic },
     { id: "section-discover", label: "Discover", icon: Compass },
-    { id: "section-books", label: "Reading", icon: BookOpen },
-    { id: "section-shop", label: "Shop", icon: ShoppingBag },
+    { id: "section-shop", label: "Shop", icon: ShoppingBag, beta: true },
     { id: "get-recaps-modal", label: "Get Recaps", icon: Mail, accent: true, action: () => setShowRecapsModal(true) },
   ];
 
@@ -276,6 +274,11 @@ export function PodcastPageLayout({
               >
                 <item.icon className="w-4 h-4" />
                 {item.label}
+                {item.beta && (
+                  <span className="ml-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">
+                    Beta
+                  </span>
+                )}
               </button>
             ))}
           </nav>

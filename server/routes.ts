@@ -248,8 +248,7 @@ const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/podcasts", priority: "0.9", changefreq: "daily" },
   { path: "/trends", priority: "0.9", changefreq: "daily" },
-  { path: "/bookstore", priority: "0.8", changefreq: "weekly" },
-  { path: "/shop", priority: "0.7", changefreq: "weekly" },
+  { path: "/shop", priority: "0.8", changefreq: "weekly" },
   { path: "/people", priority: "0.8", changefreq: "weekly" },
   { path: "/companies", priority: "0.8", changefreq: "weekly" },
   { path: "/industries", priority: "0.8", changefreq: "weekly" },
@@ -357,7 +356,7 @@ async function buildSitemap(): Promise<string> {
     const bookRows = await pool.query(`SELECT slug FROM book_enrichments WHERE slug IS NOT NULL`);
     for (const row of bookRows.rows) {
       xml += `  <url>\n`;
-      xml += `    <loc>${DOMAIN}/bookstore/${row.slug}</loc>\n`;
+      xml += `    <loc>${DOMAIN}/shop/${row.slug}</loc>\n`;
       xml += `    <lastmod>${today}</lastmod>\n`;
       xml += `    <changefreq>monthly</changefreq>\n`;
       xml += `    <priority>0.6</priority>\n`;
@@ -365,6 +364,27 @@ async function buildSitemap(): Promise<string> {
     }
   } catch (err) {
     console.error("[Sitemap] Error generating book URLs:", err);
+  }
+
+  try {
+    const { rows: prodRows } = await pool.query(
+      `SELECT DISTINCT name, company FROM extracted_products WHERE status = 'approved' AND image_status = 'approved' ORDER BY name`
+    );
+    const seenSlugs = new Set<string>();
+    for (const row of prodRows) {
+      const parts = [row.name, row.company].filter(Boolean).join("-");
+      const pSlug = parts.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+      if (!pSlug || seenSlugs.has(pSlug)) continue;
+      seenSlugs.add(pSlug);
+      xml += `  <url>\n`;
+      xml += `    <loc>${DOMAIN}/shop/${pSlug}</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>monthly</changefreq>\n`;
+      xml += `    <priority>0.5</priority>\n`;
+      xml += `  </url>\n`;
+    }
+  } catch (err) {
+    console.error("[Sitemap] Error generating product URLs:", err);
   }
 
   xml += `</urlset>`;
@@ -429,6 +449,14 @@ export async function registerRoutes(
 
   app.get("/topics/:slug", (req, res) => {
     res.redirect(301, `/insights/${req.params.slug}`);
+  });
+
+  app.get("/bookstore", (_req, res) => {
+    res.redirect(301, "/shop");
+  });
+
+  app.get("/bookstore/:bookSlug", (req, res) => {
+    res.redirect(301, `/shop/${req.params.bookSlug}`);
   });
 
   function escapeXml(str: string): string {
@@ -2777,6 +2805,22 @@ export async function registerRoutes(
         : { rows: [] };
       const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
 
+      const { rows: allRecaps } = await pool.query(
+        `SELECT slug, resources FROM landing_page_recaps WHERE published = true AND resources IS NOT NULL AND resources::text != '[]'`
+      );
+      const globalPodcastCounts = new Map<string, Set<string>>();
+      for (const row of allRecaps) {
+        let resources: any[];
+        try { resources = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources; } catch { continue; }
+        if (!Array.isArray(resources)) continue;
+        for (const r of resources) {
+          if (r.type !== 'book' || !r.name) continue;
+          const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          if (!globalPodcastCounts.has(rKey)) globalPodcastCounts.set(rKey, new Set());
+          globalPodcastCounts.get(rKey)!.add(row.slug);
+        }
+      }
+
       const books = Array.from(bookMap.values())
         .map(b => {
           const key = normalizeBookKey(b.name);
@@ -2784,6 +2828,7 @@ export async function registerRoutes(
           const enrichment = enrichMap.get(resolvedKey) as any;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichment?.asin || originalAsin;
+          const bKey = b.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
           return {
             ...b,
             description: enrichment?.description || b.description,
@@ -2796,6 +2841,7 @@ export async function registerRoutes(
             googleBooksId: enrichment?.google_books_id || null,
             isbn: enrichment?.isbn || null,
             hasCover: enrichment?.has_cover ?? null,
+            podcastCount: globalPodcastCounts.get(bKey)?.size || 1,
           };
         })
         .filter(b => !!b.slug)
@@ -2850,7 +2896,7 @@ export async function registerRoutes(
         `SELECT ep.id, ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
                 ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
          FROM extracted_products ep
-         WHERE ep.podcast_slug = $1 AND ep.status = 'approved'
+         WHERE ep.podcast_slug = $1 AND ep.status = 'approved' AND ep.image_status = 'approved'
          ORDER BY ep.name`,
         [slug]
       );
@@ -2893,11 +2939,22 @@ export async function registerRoutes(
         }
       }
 
+      const { rows: allProductRows } = await pool.query(
+        `SELECT name, podcast_slug FROM extracted_products WHERE status = 'approved' AND image_status = 'approved'`
+      );
+      const globalProductPodcasts = new Map<string, Set<string>>();
+      for (const row of allProductRows) {
+        const key = normalizeProductKey(row.name);
+        if (!globalProductPodcasts.has(key)) globalProductPodcasts.set(key, new Set());
+        globalProductPodcasts.get(key)!.add(row.podcast_slug);
+      }
+
       const products = Array.from(productMap.values())
         .map(p => ({
           ...p,
           url: isAmazonUrl(p.url) ? ensureAffiliateTag(p.url) : addUtmParams(p.url),
           isAmazon: isAmazonUrl(p.url),
+          podcastCount: globalProductPodcasts.get(normalizeProductKey(p.name))?.size || 1,
         }))
         .sort((a, b) => b.mentionCount - a.mentionCount);
 
@@ -2915,7 +2972,7 @@ export async function registerRoutes(
         `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
                 ep.mention_type, ep.category
          FROM extracted_products ep
-         WHERE ep.podcast_slug = $1 AND ep.status = 'approved'
+         WHERE ep.podcast_slug = $1 AND ep.status = 'approved' AND ep.image_status = 'approved'
            AND (ep.episode_slug = $2 OR lower(regexp_replace(trim(ep.episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $2)
          ORDER BY ep.name`,
         [slug, episodeSlug]
@@ -2940,16 +2997,26 @@ export async function registerRoutes(
   });
 
   const shopCache = new DataCache<any>("shop", 24 * 60 * 60 * 1000);
+
+  function generateItemSlug(name: string, brandOrAuthor: string | null): string {
+    const parts = [name, brandOrAuthor].filter(Boolean).join("-");
+    return parts.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+  }
+
   app.get("/api/shop", async (_req, res) => {
     try {
       const cached = shopCache.get();
       if (cached) return res.json(cached);
 
-      const { rows } = await pool.query(
+      const slugToName: Record<string, string> = {};
+      const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
+      for (const p of pdRows) slugToName[p.slug] = p.name;
+
+      const { rows: productRows } = await pool.query(
         `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.image_url, ep.context,
                 ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
          FROM extracted_products ep
-         WHERE ep.status = 'approved'
+         WHERE ep.status = 'approved' AND ep.image_status = 'approved'
          ORDER BY ep.name`
       );
 
@@ -2962,15 +3029,10 @@ export async function registerRoutes(
         imageUrl: string | null;
         mentionCount: number;
         podcastSlugs: Set<string>;
-        podcastNames: string[];
         episodes: { slug: string; title: string; podcastSlug: string }[];
       }>();
 
-      const slugToName: Record<string, string> = {};
-      const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
-      for (const p of pdRows) slugToName[p.slug] = p.name;
-
-      for (const row of rows) {
+      for (const row of productRows) {
         const key = normalizeProductKey(row.name || "");
         if (!key) continue;
         const epSlug = row.episode_slug || row.episode_title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "";
@@ -2994,7 +3056,6 @@ export async function registerRoutes(
             imageUrl: row.image_url || null,
             mentionCount: 1,
             podcastSlugs: new Set([row.podcast_slug]),
-            podcastNames: [],
             episodes: [{ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug }],
           });
         }
@@ -3003,23 +3064,128 @@ export async function registerRoutes(
       const products = Array.from(productMap.values()).map(p => ({
         name: p.name,
         company: p.company,
+        category: p.type === "service_or_tool" ? "tool" : p.type === "physical_product" ? "physical_product" : p.type === "experience" ? "experience" : "tool",
         type: p.type,
         description: p.description,
         url: isAmazonUrl(p.url) ? ensureAffiliateTag(p.url) : addUtmParams(p.url),
         isAmazon: isAmazonUrl(p.url),
         imageUrl: p.imageUrl,
+        slug: generateItemSlug(p.name, p.company),
         mentionCount: p.mentionCount,
         podcastCount: p.podcastSlugs.size,
         podcastNames: [...p.podcastSlugs].map(s => slugToName[s] || s),
         episodes: p.episodes,
+        itemType: "product" as const,
       })).sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
 
-      const result = { products, total: products.length };
+      const { rows: bookRecapRows } = await pool.query(
+        `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.resources, pd.name as podcast_name
+         FROM landing_page_recaps lpr
+         JOIN podcast_directory pd ON pd.slug = lpr.slug
+         WHERE lpr.resources IS NOT NULL AND lpr.resources::text != '[]'`
+      );
+
+      const bookMap = new Map<string, {
+        name: string;
+        author: string | null;
+        description: string;
+        url: string;
+        context: string[];
+        podcasts: Map<string, string>;
+        episodes: { podcastSlug: string; episodeSlug: string; episodeTitle: string }[];
+        mentionCount: number;
+      }>();
+
+      for (const row of bookRecapRows) {
+        let resources: any[];
+        try {
+          const parsed = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources;
+          if (!Array.isArray(parsed)) continue;
+          resources = parsed;
+        } catch { continue; }
+
+        for (const r of resources) {
+          if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
+          const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          const existing = bookMap.get(key);
+          if (existing) {
+            existing.mentionCount++;
+            if (r.context && !existing.context.includes(r.context)) existing.context.push(r.context);
+            if (!existing.episodes.find(e => e.episodeSlug === row.episode_slug && e.podcastSlug === row.slug)) {
+              existing.episodes.push({ podcastSlug: row.slug, episodeSlug: row.episode_slug, episodeTitle: row.episode_title });
+            }
+            existing.podcasts.set(row.slug, row.podcast_name);
+            if (!existing.author && r.author) existing.author = r.author;
+            if (!existing.url && r.url) existing.url = r.url;
+            if (r.url && r.url.includes('/dp/') && !existing.url?.includes('/dp/')) existing.url = r.url;
+          } else {
+            const podcasts = new Map<string, string>();
+            podcasts.set(row.slug, row.podcast_name);
+            bookMap.set(key, {
+              name: r.name,
+              author: r.author || null,
+              description: r.description || "",
+              url: r.url || "",
+              context: r.context ? [r.context] : [],
+              podcasts,
+              episodes: [{ podcastSlug: row.slug, episodeSlug: row.episode_slug, episodeTitle: row.episode_title }],
+              mentionCount: 1,
+            });
+          }
+        }
+      }
+
+      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
+      const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
+      const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+
+      const bookKeys = [...new Set(Array.from(bookMap.values()).map(b => normalizeBookKey(b.name)))];
+      const aliasPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+      const { rows: aliasRows } = bookKeys.length > 0
+        ? await pool.query(`SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders})`, bookKeys)
+        : { rows: [] };
+      const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
+
+      const books = Array.from(bookMap.values())
+        .map(b => {
+          const key = normalizeBookKey(b.name);
+          const resolvedKey = aliasMap.get(key) || key;
+          const enrichment = enrichMap.get(resolvedKey) as any;
+          const enrichedAsin = enrichment?.asin || null;
+          const originalAsin = extractAsinFromUrl(b.url);
+          const finalAsin = enrichedAsin || originalAsin;
+          const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrichment?.author || b.author ? ` ${enrichment?.author || b.author}` : ""} book`)}&tag=podcap-20`;
+
+          return {
+            name: b.name,
+            author: enrichment?.author || b.author,
+            description: enrichment?.description || b.description,
+            podcastBuzz: enrichment?.podcast_buzz || null,
+            amazonUrl,
+            asin: finalAsin,
+            slug: enrichment?.slug || null,
+            googleBooksId: enrichment?.google_books_id || null,
+            isbn: enrichment?.isbn || null,
+            hasCover: enrichment?.has_cover ?? null,
+            topics: enrichment?.topics || [],
+            pageCount: enrichment?.page_count || null,
+            publishYear: enrichment?.publish_year || null,
+            category: "book" as const,
+            podcastCount: b.podcasts.size,
+            podcastNames: Array.from(b.podcasts.values()),
+            mentionCount: b.mentionCount,
+            itemType: "book" as const,
+          };
+        })
+        .filter(b => !!b.slug)
+        .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
+
+      const result = { items: [...books, ...products], books, products, total: books.length + products.length };
       shopCache.set(result);
       res.json(result);
     } catch (err) {
       console.error("Shop error:", err);
-      res.status(500).json({ message: "Failed to load shop products" });
+      res.status(500).json({ message: "Failed to load shop" });
     }
   });
 
@@ -3042,6 +3208,23 @@ export async function registerRoutes(
       const { rows } = await pool.query(
         `SELECT book_key, slug, rating, page_count, publish_year, asin, description, author, google_books_id, isbn, has_cover FROM book_enrichments`
       );
+
+      const { rows: allRecaps } = await pool.query(
+        `SELECT slug AS podcast_slug, resources FROM landing_page_recaps WHERE published = true AND resources IS NOT NULL AND resources::text != '[]'`
+      );
+      const globalBookPodcasts = new Map<string, Set<string>>();
+      for (const row of allRecaps) {
+        let resources: any[];
+        try { resources = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources; } catch { continue; }
+        if (!Array.isArray(resources)) continue;
+        for (const r of resources) {
+          if (r.type !== 'book' || !r.name) continue;
+          const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          if (!globalBookPodcasts.has(rKey)) globalBookPodcasts.set(rKey, new Set());
+          globalBookPodcasts.get(rKey)!.add(row.podcast_slug);
+        }
+      }
+
       const map: Record<string, any> = {};
       for (const r of rows) {
         if (!r.slug) continue;
@@ -3056,6 +3239,7 @@ export async function registerRoutes(
           googleBooksId: r.google_books_id || null,
           isbn: r.isbn || null,
           hasCover: r.has_cover ?? null,
+          podcastCount: globalBookPodcasts.get(r.book_key)?.size || 0,
         };
       }
       const { rows: aliases } = await pool.query(`SELECT alias_key, canonical_key FROM book_aliases`);
@@ -3189,6 +3373,136 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Bookstore error:", err);
       res.status(500).json({ message: "Failed to load bookstore" });
+    }
+  });
+
+  app.get("/api/shop/product/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+
+      const slugToName: Record<string, string> = {};
+      const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
+      for (const p of pdRows) slugToName[p.slug] = p.name;
+
+      const { rows: productRows } = await pool.query(
+        `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.image_url, ep.context, ep.context_summary,
+                ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
+         FROM extracted_products ep
+         WHERE ep.status = 'approved'
+         ORDER BY ep.name`
+      );
+
+      const productMap = new Map<string, {
+        name: string;
+        company: string | null;
+        type: string;
+        description: string;
+        url: string;
+        imageUrl: string | null;
+        contexts: string[];
+        contextSummaries: string[];
+        mentionCount: number;
+        podcastSlugs: Set<string>;
+        episodes: { slug: string; title: string; podcastSlug: string; context: string | null; contextSummary: string | null }[];
+      }>();
+
+      for (const row of productRows) {
+        const key = normalizeProductKey(row.name || "");
+        if (!key) continue;
+        const epSlug = row.episode_slug || row.episode_title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "";
+        const existing = productMap.get(key);
+        if (existing) {
+          existing.mentionCount++;
+          existing.podcastSlugs.add(row.podcast_slug);
+          if (!existing.episodes.find(e => e.slug === epSlug && e.podcastSlug === row.podcast_slug)) {
+            existing.episodes.push({ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug, context: row.context || null, contextSummary: row.context_summary || null });
+          }
+          if (row.context && !existing.contexts.includes(row.context)) existing.contexts.push(row.context);
+          if (row.context_summary && !existing.contextSummaries.includes(row.context_summary)) existing.contextSummaries.push(row.context_summary);
+          if (!existing.url && row.purchase_url) existing.url = row.purchase_url;
+          if (!existing.description && row.description) existing.description = row.description;
+          if (!existing.imageUrl && row.image_url) existing.imageUrl = row.image_url;
+        } else {
+          productMap.set(key, {
+            name: row.name,
+            company: row.company || null,
+            type: row.category || "product",
+            description: row.description || "",
+            url: row.purchase_url || "",
+            imageUrl: row.image_url || null,
+            contexts: row.context ? [row.context] : [],
+            contextSummaries: row.context_summary ? [row.context_summary] : [],
+            mentionCount: 1,
+            podcastSlugs: new Set([row.podcast_slug]),
+            episodes: [{ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug, context: row.context || null, contextSummary: row.context_summary || null }],
+          });
+        }
+      }
+
+      type ProductEntry = typeof productMap extends Map<string, infer V> ? V : never;
+      let matchedProduct: ProductEntry | null = null;
+      for (const [, p] of productMap) {
+        const pSlug = generateItemSlug(p.name, p.company);
+        if (pSlug === slug) {
+          matchedProduct = p;
+          break;
+        }
+      }
+
+      if (!matchedProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      const p = matchedProduct;
+
+      const relatedProducts = Array.from(productMap.values())
+        .filter(rp => rp.name !== p.name && rp.imageUrl)
+        .filter(rp => {
+          for (const ps of p.podcastSlugs) {
+            if (rp.podcastSlugs.has(ps)) return true;
+          }
+          return false;
+        })
+        .map(rp => ({
+          name: rp.name,
+          company: rp.company,
+          type: rp.type,
+          slug: generateItemSlug(rp.name, rp.company),
+          imageUrl: rp.imageUrl,
+          mentionCount: rp.mentionCount,
+          podcastCount: rp.podcastSlugs.size,
+        }))
+        .sort((a, b) => b.mentionCount - a.mentionCount)
+        .slice(0, 6);
+
+      const result = {
+        name: p.name,
+        company: p.company,
+        type: p.type,
+        description: p.description,
+        url: isAmazonUrl(p.url) ? ensureAffiliateTag(p.url) : addUtmParams(p.url),
+        isAmazon: isAmazonUrl(p.url),
+        imageUrl: p.imageUrl,
+        slug,
+        contexts: p.contexts,
+        contextSummaries: p.contextSummaries,
+        mentionCount: p.mentionCount,
+        podcastCount: p.podcastSlugs.size,
+        podcastNames: [...p.podcastSlugs].map(s => slugToName[s] || s),
+        episodes: p.episodes.map(e => ({
+          podcastSlug: e.podcastSlug,
+          podcastName: slugToName[e.podcastSlug] || e.podcastSlug,
+          episodeSlug: e.slug,
+          episodeTitle: e.title,
+          context: e.contextSummary || e.context || null,
+        })),
+        relatedProducts,
+      };
+
+      res.json(result);
+    } catch (err) {
+      console.error("Product detail error:", err);
+      res.status(500).json({ message: "Failed to load product" });
     }
   });
 
@@ -4174,9 +4488,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       };
       const searchTopics = topicMapping[slug] || [slug];
       const result = await pool.query(
-        `SELECT book_title, author, slug, google_books_id, isbn, has_cover FROM book_enrichments WHERE topics && $1::text[] ORDER BY rating DESC NULLS LAST, rating_count DESC NULLS LAST LIMIT 8`,
+        `SELECT book_title, author, slug, google_books_id, isbn, has_cover, book_key FROM book_enrichments WHERE topics && $1::text[] ORDER BY rating DESC NULLS LAST, rating_count DESC NULLS LAST LIMIT 8`,
         [searchTopics]
       );
+
+      const { rows: allRecaps } = await pool.query(
+        `SELECT slug AS podcast_slug, resources FROM landing_page_recaps WHERE published = true AND resources IS NOT NULL AND resources::text != '[]'`
+      );
+      const globalBookPodcasts = new Map<string, Set<string>>();
+      for (const row of allRecaps) {
+        let resources: any[];
+        try { resources = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources; } catch { continue; }
+        if (!Array.isArray(resources)) continue;
+        for (const r of resources) {
+          if (r.type !== 'book' || !r.name) continue;
+          const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          if (!globalBookPodcasts.has(rKey)) globalBookPodcasts.set(rKey, new Set());
+          globalBookPodcasts.get(rKey)!.add(row.podcast_slug);
+        }
+      }
+
       const books = result.rows.map((row: any) => ({
         title: row.book_title,
         author: row.author,
@@ -4184,6 +4515,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         googleBooksId: row.google_books_id || null,
         isbn: row.isbn || null,
         hasCover: row.has_cover ?? null,
+        podcastCount: globalBookPodcasts.get(row.book_key)?.size || 0,
       }));
       res.json(books);
     } catch (err: any) {
@@ -9757,14 +10089,19 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
 
       const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
       const { rows } = await pool.query(
-        `SELECT * FROM extracted_products ${where} ORDER BY extracted_at DESC`
+        `SELECT *, image_status FROM extracted_products ${where} ORDER BY extracted_at DESC`
       );
       const { rows: statsRows } = await pool.query(
         `SELECT status, COUNT(*)::int as count FROM extracted_products GROUP BY status`
       );
       const stats: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
       for (const r of statsRows) stats[r.status] = r.count;
-      res.json({ products: rows, stats });
+      const { rows: imgStatsRows } = await pool.query(
+        `SELECT image_status, COUNT(*)::int as count FROM extracted_products WHERE status = 'approved' GROUP BY image_status`
+      );
+      const imageStats: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
+      for (const r of imgStatsRows) imageStats[r.image_status] = r.count;
+      res.json({ products: rows, stats, imageStats });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to load products" });
     }
@@ -9966,6 +10303,137 @@ Respond with JSON: {"verdict": "genuine"|"ad"|"brief_mention", "confidence": 0.0
       }
     } catch (err: any) {
       res.json({ verdict: "unknown", confidence: 0, reason: "AI check failed — try again" });
+    }
+  });
+
+  app.get("/api/admin/products/images", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const imageFilter = req.query.filter || "all";
+      let conditions: string[] = ["status = 'approved'"];
+      if (imageFilter === "pending") conditions.push("image_status = 'pending'");
+      else if (imageFilter === "approved") conditions.push("image_status = 'approved'");
+      else if (imageFilter === "rejected") conditions.push("image_status = 'rejected'");
+
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+      const { rows } = await pool.query(
+        `SELECT id, name, company, image_url, image_status, purchase_url, category FROM extracted_products ${where} ORDER BY name`
+      );
+      const { rows: statsRows } = await pool.query(
+        `SELECT image_status, COUNT(*)::int as count FROM extracted_products WHERE status = 'approved' GROUP BY image_status`
+      );
+      const stats: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
+      for (const r of statsRows) stats[r.image_status] = r.count;
+      res.json({ products: rows, stats });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to load product images" });
+    }
+  });
+
+  app.post("/api/admin/products/image-approve", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: "No ids provided" });
+      const { rowCount } = await pool.query(
+        `UPDATE extracted_products SET image_status = 'approved' WHERE id = ANY($1) AND image_url IS NOT NULL AND image_url != ''`,
+        [ids]
+      );
+      shopCache.invalidate();
+      res.json({ message: `${rowCount} product image(s) approved (skipped ${ids.length - (rowCount || 0)} without images)` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to approve images" });
+    }
+  });
+
+  app.post("/api/admin/products/image-reject", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: "No ids provided" });
+      await pool.query(
+        `UPDATE extracted_products SET image_status = 'rejected' WHERE id = ANY($1)`,
+        [ids]
+      );
+      shopCache.invalidate();
+      res.json({ message: `${ids.length} product image(s) rejected` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to reject images" });
+    }
+  });
+
+  app.post("/api/admin/products/image-update", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { id, imageUrl } = req.body;
+      if (!id || !imageUrl) return res.status(400).json({ message: "id and imageUrl required" });
+      await pool.query(
+        `UPDATE extracted_products SET image_url = $1, image_status = 'approved' WHERE id = $2`,
+        [imageUrl, id]
+      );
+      shopCache.invalidate();
+      res.json({ message: "Product image updated and approved" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to update image" });
+    }
+  });
+
+  app.post("/api/admin/products/summarize-contexts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, name, company, context, episode_title, podcast_slug FROM extracted_products
+         WHERE status = 'approved' AND context IS NOT NULL AND context != '' AND (context_summary IS NULL OR btrim(context_summary) = '')
+         ORDER BY id LIMIT 20`
+      );
+
+      if (rows.length === 0) {
+        return res.json({ message: "No products need summarization", summarized: 0 });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      let summarized = 0;
+
+      for (const product of rows) {
+        try {
+          const aiResp = await directOpenai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [{
+              role: "system",
+              content: `You are a podcast editorial writer. Summarize why a podcast host talked about a product/service. Write in third person, editorial style. Be concise (2-4 sentences). Focus on WHY they recommended it and what makes it valuable. Do NOT use quotes from the transcript. Write as if for a product page describing what podcasters say about it. Highlight key benefits mentioned.`
+            }, {
+              role: "user",
+              content: `Product: ${product.name}${product.company ? ` by ${product.company}` : ''}
+Podcast: ${product.podcast_slug}
+Episode: ${product.episode_title}
+
+Raw transcript context:
+"${(product.context || "").slice(0, 2000)}"
+
+Write a polished 2-4 sentence editorial summary of why the podcast host recommended/discussed this product.`
+            }],
+            max_tokens: 300,
+            temperature: 0.4,
+          });
+
+          const summary = aiResp.choices[0]?.message?.content?.trim();
+          if (summary) {
+            await pool.query(
+              `UPDATE extracted_products SET context_summary = $1 WHERE id = $2`,
+              [summary, product.id]
+            );
+            summarized++;
+          }
+        } catch (err: any) {
+          console.warn(`[ContextSummary] Failed for product ${product.id} (${product.name}):`, err.message);
+        }
+      }
+
+      shopCache.invalidate();
+      res.json({ message: `Summarized ${summarized}/${rows.length} product contexts`, summarized, total: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to summarize contexts" });
     }
   });
 

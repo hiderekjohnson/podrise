@@ -690,11 +690,11 @@ export default function TrendsPage() {
                       testId="link-explore-companies"
                     />
                     <GatewayCard
-                      href="/bookstore"
+                      href="/shop"
                       icon={BookOpen}
-                      title="Podcast Bookstore"
-                      description="Discover books that the world's smartest podcasters keep recommending"
-                      testId="link-explore-bookstore"
+                      title="Podcast Shop"
+                      description="Discover books and products that the world's smartest podcasters keep recommending"
+                      testId="link-explore-shop"
                     />
                   </div>
                 </motion.div>

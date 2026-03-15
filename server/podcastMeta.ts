@@ -24,7 +24,7 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
       url: "https://podcap.io",
       twitterCard: "summary",
       replaceFavicon: false,
-      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/bookstore">Bookstore</a></li><li><a href="/trends">Trends</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Shop</a></li><li><a href="/trends">Trends</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
     };
   },
   "/contact": {
@@ -515,22 +515,31 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     cleanUrl = cleanUrl.slice(0, -1);
   }
 
-  if (cleanUrl === "/bookstore") {
+  if (cleanUrl === "/shop") {
     let ssrHtml = "";
     try {
       const { rows: books } = await pool.query(
         `SELECT slug, book_title, author FROM book_enrichments WHERE slug IS NOT NULL ORDER BY book_title LIMIT 200`
       );
-      if (books.length > 0) {
-        const bookLinks = books.map(b => `<li><a href="/bookstore/${escapeAttr(b.slug)}">${escapeAttr(b.book_title)}</a>${b.author ? ` by ${escapeAttr(b.author)}` : ""}</li>`).join("");
-        ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Bookstore</h1><p>Books recommended, discussed, and mentioned across the world's top podcasts.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${bookLinks}</ul><a href="/">Back to Home</a></div>`;
-      }
-    } catch (err) { console.error("[SSR] bookstore listing error:", err); }
+      const { rows: products } = await pool.query(
+        `SELECT DISTINCT name, company, category FROM extracted_products WHERE status = 'approved' AND image_status = 'approved' ORDER BY name LIMIT 100`
+      );
+      const bookLinks = books.map(b => `<li><a href="/shop/${escapeAttr(b.slug)}">${escapeAttr(b.book_title)}</a>${b.author ? ` by ${escapeAttr(b.author)}` : ""}</li>`).join("");
+      const productLinks = products.map(p => {
+        const parts = [p.name, p.company].filter(Boolean).join("-");
+        const pSlug = parts.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+        return `<li><a href="/shop/${escapeAttr(pSlug)}">${escapeAttr(p.name)}</a> <small>(${escapeAttr(p.category || "product")})</small></li>`;
+      }).join("");
+      ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Shop</h1><p>Books, tools, and products recommended on the world's top podcasts.</p>`;
+      if (bookLinks) ssrHtml += `<h2>Books</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${bookLinks}</ul>`;
+      if (productLinks) ssrHtml += `<h2>Tools &amp; Products</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${productLinks}</ul>`;
+      ssrHtml += `<a href="/">Back to Home</a></div>`;
+    } catch (err) { console.error("[SSR] shop listing error:", err); }
     return replaceMetaTags(html, {
-      title: "Podcast Bookstore - Books Recommended on Top Podcasts | PodCap",
-      description: "Browse books recommended, discussed, and mentioned across the world's top podcasts. Find your next read from trusted podcast hosts and guests.",
+      title: "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodCap",
+      description: "Browse books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why.",
       image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io/bookstore",
+      url: "https://podcap.io/shop",
       twitterCard: "summary",
       replaceFavicon: false,
       ssrHtml,
@@ -657,7 +666,7 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     }
   }
 
-  const bookMatch = cleanUrl.match(/^\/bookstore\/([a-zA-Z0-9_-]+)$/);
+  const bookMatch = cleanUrl.match(/^\/shop\/([a-zA-Z0-9_-]+)$/);
   if (bookMatch) {
     const bookSlug = bookMatch[1].toLowerCase();
     try {
@@ -686,20 +695,52 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
             ssrHtml += `</ul>`;
           }
         } catch (err) { console.error("[SSR] book mentions error:", err); }
-        ssrHtml += `<a href="/bookstore">Browse All Books</a></article>`;
+        ssrHtml += `<a href="/shop">Browse All Items</a></article>`;
         return replaceMetaTags(html, {
           title: `${book.book_title} by ${book.author || "Unknown"} - Podcast Book Recommendation | PodCap`,
           description: book.description
             ? truncateAtWord(book.description, 150)
             : `${book.book_title} was recommended on podcasts. See which episodes mention this book and what hosts said about it.`,
           image: "https://podcap.io/favicon.png",
-          url: `https://podcap.io/bookstore/${bookSlug}`,
+          url: `https://podcap.io/shop/${bookSlug}`,
           twitterCard: "summary",
           replaceFavicon: false,
           ssrHtml,
         });
       }
     } catch (err) { console.error("[SSR] book detail error:", err); }
+
+    try {
+      const { rows: prodRows } = await pool.query(
+        `SELECT name, company, description, image_url, category FROM extracted_products WHERE status = 'approved' AND image_status = 'approved' ORDER BY name`
+      );
+      const productMap = new Map<string, { name: string; company: string | null; description: string; imageUrl: string | null; type: string }>();
+      for (const row of prodRows) {
+        const key = row.name?.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+        if (!key || productMap.has(key)) continue;
+        productMap.set(key, { name: row.name, company: row.company, description: row.description || "", imageUrl: row.image_url, type: row.category || "product" });
+      }
+      for (const [, p] of productMap) {
+        const parts = [p.name, p.company].filter(Boolean).join("-");
+        const pSlug = parts.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+        if (pSlug === bookMatch[1].toLowerCase()) {
+          const title = `${p.name}${p.company && p.company !== p.name ? ` by ${p.company}` : ""} — Podcast Recommendation | PodCap`;
+          const description = p.description
+            ? truncateAtWord(p.description, 150)
+            : `${p.name} has been recommended on podcasts. See why podcasters love this product.`;
+          const ssrHtml = `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(p.name)}</h1>${p.company ? `<p><strong>By:</strong> ${escapeAttr(p.company)}</p>` : ""}${p.description ? `<p>${escapeAttr(p.description)}</p>` : ""}<a href="/shop">Browse All Items</a></article>`;
+          return replaceMetaTags(html, {
+            title,
+            description,
+            image: p.imageUrl || "https://podcap.io/favicon.png",
+            url: `https://podcap.io/shop/${pSlug}`,
+            twitterCard: "summary",
+            replaceFavicon: false,
+            ssrHtml,
+          });
+        }
+      }
+    } catch (err) { console.error("[SSR] product detail error:", err); }
   }
 
   const insightMatch = cleanUrl.match(/^\/insights\/([a-zA-Z0-9_-]+)$/);

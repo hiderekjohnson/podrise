@@ -158,11 +158,11 @@ export function SiteHeader() {
             Podcasts
           </Link>
           <Link
-            href="/bookstore"
+            href="/shop"
             className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1.5"
-            data-testid="nav-bookstore"
+            data-testid="nav-shop"
           >
-            Bookstore
+            Shop
             <span className="text-[12px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
           </Link>
           {user ? (
@@ -236,8 +236,8 @@ export function SiteHeader() {
             <div className="border-t border-black/[0.06] dark:border-white/[0.06] pt-2 space-y-1">
               <Link href="/trends" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-trends">Trends</Link>
               <Link href="/podcasts" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-podcasts">Podcasts</Link>
-              <Link href="/bookstore" className="flex items-center gap-2 text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-bookstore">
-                Bookstore
+              <Link href="/shop" className="flex items-center gap-2 text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-shop">
+                Shop
                 <span className="text-[12px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
               </Link>
               <Link href="/people" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-people">People</Link>

@@ -261,6 +261,15 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS context_summary TEXT`).catch(() => {});
+          await pool.query(`ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS image_status TEXT NOT NULL DEFAULT 'pending'`).catch(() => {});
+          await pool.query(`UPDATE extracted_products SET image_status = 'approved' WHERE image_url IS NOT NULL AND image_url != '' AND image_status = 'pending'`).catch(() => {});
+          console.log("Product columns migration ready");
+        } catch (err) {
+          console.warn("Product columns migration skipped:", err);
+        }
+
+        try {
           const existingHosts = await pool.query(`SELECT COUNT(*) FROM podcast_hosts WHERE podcast_slug = 'myfirstmillion'`);
           if (parseInt(existingHosts.rows[0].count) === 0) {
             await pool.query(`

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles, BookOpen } from "lucide-react";
+import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { Footer } from "@/components/Footer";
@@ -941,18 +942,18 @@ export default function PersonDetailPage() {
                       Books Discussed by {person.name}
                     </h2>
                     <Link
-                      href="/bookstore"
+                      href="/shop"
                       className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
-                      data-testid="link-browse-bookstore"
+                      data-testid="link-browse-shop"
                     >
-                      Browse Bookstore <ArrowRight className="w-3 h-3" />
+                      Browse Shop <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {person.recommendedBooks.slice(0, 8).map((book) => (
                       <Link
                         key={book.slug}
-                        href={`/bookstore/${book.slug}`}
+                        href={`/shop/${book.slug}`}
                         className="block group"
                         data-testid={`book-card-${book.slug}`}
                       >
@@ -966,10 +967,10 @@ export default function PersonDetailPage() {
                           {book.author && (
                             <p className="text-[16px] text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
                           )}
-                          {book.mentionCount >= 2 && (
-                            <p className="text-[16px] text-amber-600 dark:text-amber-400 font-medium mt-1">
-                              {book.mentionCount} mentions
-                            </p>
+                          {book.podcastCount >= 1 && (
+                            <div className="mt-1.5">
+                              <PodcastMicBadge count={book.podcastCount} size="sm" />
+                            </div>
                           )}
                         </div>
                       </Link>

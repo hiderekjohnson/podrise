@@ -48,7 +48,7 @@ const AD_FORMATS = [
   {
     icon: Globe,
     title: "Website Sponsorships",
-    description: "Sponsored placements across podcast pages, episode recaps, topic hubs, and the bookstore. High-visibility positions where readers explore and discover.",
+    description: "Sponsored placements across podcast pages, episode recaps, topic hubs, and the shop. High-visibility positions where readers explore and discover.",
     available: false,
   },
 ];
