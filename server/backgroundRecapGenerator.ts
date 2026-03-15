@@ -1,5 +1,5 @@
 import { pool } from "./db";
-import { generateRecapFromFullTranscript, extractQuotesFromTranscript, ExtractedProduct } from "./recapGenerator";
+import { generateRecapFromFullTranscript, ExtractedProduct } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { isLikelySponsorProduct } from "./productFilter";
 
@@ -129,14 +129,7 @@ async function processEpisode(
 
       let quoteCount = 0;
       try {
-        const guestsJson = recap.guests ? JSON.stringify(recap.guests) : null;
-        const extractedQuotes = await extractQuotesFromTranscript(
-          ep.transcript,
-          podcastName,
-          epTitle,
-          hosts || null,
-          guestsJson,
-        );
+        const extractedQuotes = recap.extractedQuotes || [];
         if (extractedQuotes.length > 0) {
           await pool.query(
             `DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,

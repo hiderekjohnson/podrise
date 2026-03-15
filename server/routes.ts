@@ -7409,6 +7409,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     guests: any[] | null;
     resources: any[] | null;
     recapId?: number;
+    extractedQuotes?: any[] | null;
   }) {
     const { transcript, podcastSlug, episodeSlug, podcastName, episodeTitle, itunesId, hosts, guests, resources } = opts;
 
@@ -7429,13 +7430,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       const existingQuotes = await storage.getEpisodeQuotes(podcastSlug, episodeSlug);
       if (existingQuotes.length === 0) {
-        const { extractQuotesFromTranscript } = await import("./recapGenerator");
-        const extractedQuotes = await extractQuotesFromTranscript(
-          transcript, podcastName, episodeTitle, hosts,
-          guests ? JSON.stringify(guests) : null
-        );
-        if (extractedQuotes.length > 0) {
-          const quotesToSave = extractedQuotes.map((q) => ({
+        const inlineQuotes = opts.extractedQuotes || [];
+        if (inlineQuotes.length > 0) {
+          const quotesToSave = inlineQuotes.map((q: any) => ({
             podcastSlug,
             episodeSlug,
             speakerName: q.speakerName,
@@ -7445,7 +7442,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             quoteType: q.quoteType,
           }));
           await storage.saveEpisodeQuotes(quotesToSave);
-          console.log(`[PostProcess] Extracted ${extractedQuotes.length} quotes for "${episodeTitle}"`);
+          console.log(`[PostProcess] Saved ${inlineQuotes.length} inline quotes for "${episodeTitle}"`);
+        } else {
+          const { extractQuotesFromTranscript } = await import("./recapGenerator");
+          const extractedQuotes = await extractQuotesFromTranscript(
+            transcript, podcastName, episodeTitle, hosts,
+            guests ? JSON.stringify(guests) : null
+          );
+          if (extractedQuotes.length > 0) {
+            const quotesToSave = extractedQuotes.map((q) => ({
+              podcastSlug,
+              episodeSlug,
+              speakerName: q.speakerName,
+              speakerRole: q.speakerRole || null,
+              quoteText: q.quoteText,
+              context: q.context,
+              quoteType: q.quoteType,
+            }));
+            await storage.saveEpisodeQuotes(quotesToSave);
+            console.log(`[PostProcess] Extracted ${extractedQuotes.length} quotes for "${episodeTitle}"`);
+          }
         }
       }
     } catch (err) {
@@ -7708,6 +7724,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           guests: recap.guests || null,
           resources: recap.resources || null,
           recapId: newRecapId,
+          extractedQuotes: recap.extractedQuotes || null,
         });
 
         const quoteCount = (await storage.getEpisodeQuotes(podcastSlug, epSlug)).length;
@@ -8368,6 +8385,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               guests: recap.guests || null,
               resources: recap.resources || null,
               recapId: row.id,
+              extractedQuotes: recap.extractedQuotes || null,
             });
 
             epGenState.generated++;
@@ -9353,6 +9371,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 guests: recap.guests || null,
                 resources: recap.resources || null,
                 recapId: recapIdRows[0]?.id,
+                extractedQuotes: recap.extractedQuotes || null,
               });
               console.log(`[TaddyWebhook] Post-processed: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
             } catch (ppErr) {
