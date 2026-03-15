@@ -22,7 +22,7 @@ export function useAuth() {
 
 export function useRegister() {
   return useMutation({
-    mutationFn: async (data: { email: string; podcasts: string[] }) => {
+    mutationFn: async (data: { email: string; podcasts: string[]; signupContext?: string }) => {
       let detectedTimezone = "America/New_York";
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;

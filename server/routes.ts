@@ -25,6 +25,7 @@ declare module "express-session" {
     originalUserId?: number;
     podcasterEmail?: string;
     oauthState?: string;
+    signupContext?: string;
   }
 }
 
@@ -682,6 +683,9 @@ export async function registerRoutes(
 
       const user = await storage.createUser(input);
       req.session.userId = user.id;
+      if (req.body.signupContext) {
+        req.session.signupContext = req.body.signupContext;
+      }
 
       const meta = extractSignupMetadata(req, req.body.signupSource, req.body.signupSourceDetail);
       pool.query(
@@ -812,6 +816,7 @@ export async function registerRoutes(
           );
 
           req.session.userId = user.id;
+          req.session.signupContext = `${input.type}:${input.slug}`;
         } catch (createErr: any) {
           if (createErr.code === "23505") {
             user = await storage.getUserByEmail(input.email);
@@ -939,7 +944,7 @@ export async function registerRoutes(
     }
 
     req.session.save(() => {
-      res.redirect("/dashboard");
+      res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
     });
   });
 
@@ -1041,11 +1046,17 @@ export async function registerRoutes(
         sendNewUserNotification(user, req, "google_oauth").catch((err) =>
           console.error("[NewUserNotify] Failed:", err)
         );
+
+        req.session.userId = user.id;
+        req.session.save(() => {
+          res.redirect("/onboarding");
+        });
+        return;
       }
 
       req.session.userId = user.id;
       req.session.save(() => {
-        res.redirect("/dashboard");
+        res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
       });
     } catch (err) {
       console.error("[GoogleAuth] Callback error:", err);
@@ -5091,6 +5102,171 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err) {
       console.error("Podcasts discovery error:", err);
       res.status(500).json({ message: "Failed to fetch discovery data" });
+    }
+  });
+
+  app.get("/api/onboarding/suggestions", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const contextRaw = (req.query.context as string) || req.session.signupContext || "";
+      const [contextType, contextSlug] = contextRaw.includes(":") ? contextRaw.split(":", 2) : ["", ""];
+
+      let suggestedPodcasts: any[] = [];
+
+      if (contextType === "podcast" && contextSlug) {
+        const sourceResult = await pool.query(
+          `SELECT category, related_slugs FROM podcast_directory WHERE slug = $1 LIMIT 1`,
+          [contextSlug]
+        );
+        const source = sourceResult.rows[0];
+        if (source) {
+          const relatedSlugs: string[] = source.related_slugs || [];
+          if (relatedSlugs.length > 0) {
+            const relatedResult = await pool.query(
+              `SELECT slug, name, artwork_url, category, description, followers
+               FROM podcast_directory
+               WHERE slug = ANY($1) AND slug != $2
+               ORDER BY followers DESC NULLS LAST
+               LIMIT 12`,
+              [relatedSlugs, contextSlug]
+            );
+            suggestedPodcasts = relatedResult.rows;
+          }
+          if (suggestedPodcasts.length < 8 && source.category) {
+            const catResult = await pool.query(
+              `SELECT slug, name, artwork_url, category, description, followers
+               FROM podcast_directory
+               WHERE category = $1 AND slug != $2 AND slug != ALL($3)
+               ORDER BY followers DESC NULLS LAST
+               LIMIT $4`,
+              [source.category, contextSlug, suggestedPodcasts.map((p: any) => p.slug), 12 - suggestedPodcasts.length]
+            );
+            suggestedPodcasts = [...suggestedPodcasts, ...catResult.rows];
+          }
+        }
+      }
+
+      if (suggestedPodcasts.length < 8) {
+        const existingSlugs = suggestedPodcasts.map((p: any) => p.slug);
+        const userPodcastSlugs: string[] = [];
+        if (user.podcasts && user.podcasts.length > 0) {
+          const itunesIds = user.podcasts.map((p: string) => {
+            try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
+          });
+          if (itunesIds.length > 0) {
+            const slugResult = await pool.query(
+              `SELECT slug FROM podcast_directory WHERE itunes_id::text = ANY($1)`,
+              [itunesIds]
+            );
+            userPodcastSlugs.push(...slugResult.rows.map((r: any) => r.slug));
+          }
+        }
+        const excludeSlugs = [...existingSlugs, ...userPodcastSlugs, contextSlug].filter(Boolean);
+        const popularResult = await pool.query(
+          `SELECT slug, name, artwork_url, category, description, followers
+           FROM podcast_directory
+           WHERE has_landing_page = true
+             AND slug != ALL($1)
+           ORDER BY followers DESC NULLS LAST
+           LIMIT $2`,
+          [excludeSlugs, 12 - suggestedPodcasts.length]
+        );
+        suggestedPodcasts = [...suggestedPodcasts, ...popularResult.rows];
+      }
+
+      const podcasts = suggestedPodcasts.map((p: any) => ({
+        slug: p.slug,
+        name: p.name,
+        artworkUrl: p.artwork_url,
+        category: p.category,
+        description: p.description ? (p.description.length > 120 ? p.description.slice(0, 120) + "..." : p.description) : null,
+        followers: p.followers,
+      }));
+
+      const userFollowedSlugs: string[] = [];
+      if (user.podcasts && user.podcasts.length > 0) {
+        const itunesIds = user.podcasts.map((p: string) => {
+          try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
+        });
+        if (itunesIds.length > 0) {
+          const slugResult = await pool.query(
+            `SELECT slug FROM podcast_directory WHERE itunes_id::text = ANY($1)`,
+            [itunesIds]
+          );
+          userFollowedSlugs.push(...slugResult.rows.map((r: any) => r.slug));
+        }
+      }
+
+      res.json({
+        podcasts,
+        followedSlugs: userFollowedSlugs,
+        followedTopics: {
+          industries: user.industries || [],
+          interests: user.interests || [],
+          roles: user.roles || [],
+        },
+        context: contextRaw,
+        needsOnboarding: !user.onboardingCompleted,
+      });
+    } catch (err) {
+      console.error("Onboarding suggestions error:", err);
+      res.status(500).json({ message: "Failed to load suggestions" });
+    }
+  });
+
+  app.post("/api/onboarding/complete", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { podcasts, industries, interests, roles } = req.body;
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const existingPodcasts = user.podcasts || [];
+      const existingIndustries = user.industries || [];
+      const existingInterests = user.interests || [];
+      const existingRoles = user.roles || [];
+
+      let newPodcasts = [...existingPodcasts];
+      if (podcasts && podcasts.length > 0) {
+        for (const slug of podcasts) {
+          const pdResult = await pool.query(
+            `SELECT itunes_id, name, artwork_url FROM podcast_directory WHERE slug = $1 LIMIT 1`,
+            [slug]
+          );
+          const pd = pdResult.rows[0];
+          if (pd) {
+            const podJson = JSON.stringify({ id: pd.itunes_id?.toString() || slug, name: pd.name, artworkUrl: pd.artwork_url || "" });
+            if (!newPodcasts.some((p: string) => {
+              try { const parsed = JSON.parse(p); return parsed.id === pd.itunes_id?.toString(); } catch { return p === slug; }
+            })) {
+              newPodcasts.push(podJson);
+            }
+          }
+        }
+      }
+
+      const mergedIndustries = [...new Set([...existingIndustries, ...(industries || [])])];
+      const mergedInterests = [...new Set([...existingInterests, ...(interests || [])])];
+      const mergedRoles = [...new Set([...existingRoles, ...(roles || [])])];
+
+      await pool.query(
+        `UPDATE users SET podcasts = $1, industries = $2, interests = $3, roles = $4, onboarding_completed = true WHERE id = $5`,
+        [newPodcasts, mergedIndustries, mergedInterests, mergedRoles, user.id]
+      );
+
+      delete req.session.signupContext;
+      const updatedUser = await storage.getUserById(user.id);
+      res.json(updatedUser);
+    } catch (err) {
+      console.error("Onboarding complete error:", err);
+      res.status(500).json({ message: "Failed to complete onboarding" });
     }
   });
 

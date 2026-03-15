@@ -13,6 +13,8 @@ export default function Register() {
   const { mutate: register, isPending } = useRegister();
 
   const [email, setEmail] = useState("");
+  const searchParams = new URLSearchParams(window.location.search);
+  const signupContext = searchParams.get("context") || undefined;
 
   useEffect(() => {
     document.title = "Create Your Free Account | PodCap";
@@ -29,6 +31,8 @@ export default function Register() {
   if (user) {
     if (!user.emailVerified) {
       navigate("/verify-email");
+    } else if (!user.onboardingCompleted) {
+      navigate("/onboarding");
     } else {
       navigate("/dashboard");
     }
@@ -44,7 +48,7 @@ export default function Register() {
     }
 
     register(
-      { email: email.trim(), podcasts: [] },
+      { email: email.trim(), podcasts: [], signupContext },
       {
         onSuccess: () => navigate("/verify-email"),
         onError: (err) => {

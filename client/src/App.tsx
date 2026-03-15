@@ -45,6 +45,7 @@ const ShopDetailRouter = lazy(() => import("./pages/ShopDetailRouter"));
 const FeedPage = lazy(() => import("./pages/FeedPage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
@@ -65,6 +66,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
+        <Route path="/onboarding" component={Onboarding} />
         <Route path="/dashboard" component={FeedPage} />
         <Route path="/dashboard/legacy" component={Dashboard} />
         <Route path="/discover" component={DiscoverPage} />

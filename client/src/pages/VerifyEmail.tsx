@@ -170,10 +170,10 @@ export default function VerifyEmail() {
 
               <button
                 data-testid="button-go-dashboard"
-                onClick={() => navigate("/dashboard?welcome=true")}
+                onClick={() => navigate("/onboarding")}
                 className="w-full h-[48px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
               >
-                Go to Dashboard
+                Set up your feed
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

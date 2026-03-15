@@ -29,6 +29,7 @@ const userResponseSchema = z.object({
   stripeSubscriptionId: z.string().nullable().optional(),
   vacationUntil: z.string().nullable().optional(),
   emailVerified: z.boolean().optional(),
+  onboardingCompleted: z.boolean().optional(),
   createdAt: z.string().nullable(),
 });
 

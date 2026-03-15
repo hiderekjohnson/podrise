@@ -46,7 +46,7 @@ export default function Login() {
   }, []);
 
   if (user) {
-    navigate("/dashboard");
+    navigate(user.onboardingCompleted === false ? "/onboarding" : "/dashboard");
     return null;
   }
 

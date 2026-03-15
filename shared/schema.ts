@@ -23,6 +23,7 @@ export const users = pgTable("users", {
   userAgent: text("user_agent"),
   deviceType: text("device_type"),
   googleId: text("google_id"),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -57,9 +58,10 @@ export const insertUserSchema = createInsertSchema(users).omit({
   userAgent: true,
   deviceType: true,
   googleId: true,
+  onboardingCompleted: true,
 }).extend({
   email: z.string().email("Please enter a valid email address"),
-  podcasts: z.array(z.string()).min(1, "Select at least one podcast"),
+  podcasts: z.array(z.string()),
   deliveryTime: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format").optional(),
   deliveryTimezone: z.string().optional(),
   industries: z.array(z.string()).optional(),
