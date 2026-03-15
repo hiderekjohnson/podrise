@@ -13,7 +13,7 @@ import { generateRecap } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
 import { activeEpGenItunesIds } from "./epGenState";
-import { readFileSync, mkdirSync, copyFileSync, unlinkSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync } from "fs";
 import multer from "multer";
 import path from "path";
 
@@ -11187,6 +11187,335 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     } catch (err: any) {
       console.error("[ShopItems] Upload error:", err);
       res.status(500).json({ message: err?.message || "Failed to upload image" });
+    }
+  });
+
+  app.get("/api/admin/shop/queue", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1);
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+      const offset = (page - 1) * limit;
+
+      const { rows: productRows } = await pool.query(
+        `SELECT id, 'product' as source_type, name, company, description, purchase_url as url,
+                image_url, context, context_summary, mention_type, category, episode_title, podcast_slug,
+                status, image_status, extracted_at as created_at
+         FROM extracted_products WHERE status = 'pending'
+         ORDER BY extracted_at DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+
+      const { rows: bookRows } = await pool.query(
+        `SELECT id, 'book' as source_type, book_title as name, author as company, description,
+                amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
+                NULL as context, NULL as context_summary, 'book_mention' as mention_type,
+                'book' as category, NULL as episode_title, NULL as podcast_slug,
+                CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
+                'pending' as image_status, created_at
+         FROM book_enrichments WHERE cover_approved IS NULL
+         ORDER BY created_at DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+
+      const items = [...productRows, ...bookRows].sort((a, b) =>
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      ).slice(0, limit);
+
+      const { rows: statsRows } = await pool.query(
+        `SELECT
+          (SELECT COUNT(*)::int FROM extracted_products WHERE status = 'pending') as products_pending,
+          (SELECT COUNT(*)::int FROM extracted_products WHERE status = 'approved') as products_approved,
+          (SELECT COUNT(*)::int FROM extracted_products WHERE status = 'rejected') as products_rejected,
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved IS NULL) as books_pending,
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = true) as books_approved`
+      );
+      const s = statsRows[0];
+      const stats = {
+        pending: s.products_pending + s.books_pending,
+        approved: s.products_approved + s.books_approved,
+        rejected: s.products_rejected,
+      };
+
+      res.json({ items, stats, page, limit });
+    } catch (err: any) {
+      console.error("[ShopQueue] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to load queue" });
+    }
+  });
+
+  app.get("/api/admin/shop/approved", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const search = (req.query.search as string || "").trim().toLowerCase();
+      const page = Math.max(1, parseInt(req.query.page as string) || 1);
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+      const offset = (page - 1) * limit;
+
+      let productWhere = "status = 'approved'";
+      let bookWhere = "cover_approved = true";
+      const productVals: any[] = [limit, offset];
+      const bookVals: any[] = [limit, offset];
+      if (search) {
+        productWhere += ` AND (LOWER(name) LIKE $3 OR LOWER(company) LIKE $3 OR LOWER(description) LIKE $3)`;
+        productVals.push(`%${search}%`);
+        bookWhere += ` AND (LOWER(book_title) LIKE $3 OR LOWER(author) LIKE $3 OR LOWER(description) LIKE $3)`;
+        bookVals.push(`%${search}%`);
+      }
+
+      const { rows: productRows } = await pool.query(
+        `SELECT id, 'product' as source_type, name, company, description, purchase_url as url,
+                image_url, context, context_summary, mention_type, category, episode_title, podcast_slug,
+                status, image_status, extracted_at as created_at
+         FROM extracted_products WHERE ${productWhere}
+         ORDER BY name ASC
+         LIMIT $1 OFFSET $2`,
+        productVals
+      );
+
+      const { rows: bookRows } = await pool.query(
+        `SELECT id, 'book' as source_type, book_title as name, author as company, description,
+                amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
+                NULL as context, NULL as context_summary, 'book_mention' as mention_type,
+                'book' as category, NULL as episode_title, NULL as podcast_slug,
+                'approved' as status, 'approved' as image_status, created_at
+         FROM book_enrichments WHERE ${bookWhere}
+         ORDER BY book_title ASC
+         LIMIT $1 OFFSET $2`,
+        bookVals
+      );
+
+      const items = [...productRows, ...bookRows].sort((a, b) =>
+        (a.name || "").localeCompare(b.name || "")
+      );
+
+      const { rows: countRows } = await pool.query(
+        `SELECT
+          (SELECT COUNT(*)::int FROM extracted_products WHERE ${productWhere.replace(/\$3/g, `$${productVals.length === 3 ? 1 : 999}`)}) as pc,
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE ${bookWhere.replace(/\$3/g, `$${bookVals.length === 3 ? 1 : 999}`)}) as bc`,
+        search ? [`%${search}%`] : []
+      );
+
+      res.json({ items, total: (countRows[0]?.pc || 0) + (countRows[0]?.bc || 0), page, limit });
+    } catch (err: any) {
+      console.error("[ShopApproved] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to load approved items" });
+    }
+  });
+
+  app.post("/api/admin/shop/:sourceType/:id/approve", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { sourceType, id } = req.params;
+      const numId = parseInt(id, 10);
+      if (!numId) return res.status(400).json({ message: "Invalid id" });
+
+      if (sourceType === "product") {
+        await pool.query(
+          `UPDATE extracted_products SET status = 'approved', image_status = CASE WHEN image_url IS NOT NULL AND image_url != '' THEN 'approved' ELSE image_status END, reviewed_at = NOW() WHERE id = $1`,
+          [numId]
+        );
+      } else if (sourceType === "book") {
+        await pool.query(
+          `UPDATE book_enrichments SET cover_approved = true, updated_at = NOW() WHERE id = $1`,
+          [numId]
+        );
+      } else {
+        return res.status(400).json({ message: "Invalid source type" });
+      }
+      shopCache.invalidate();
+      res.json({ message: "Product approved" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to approve" });
+    }
+  });
+
+  app.post("/api/admin/shop/:sourceType/:id/reject", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { sourceType, id } = req.params;
+      const numId = parseInt(id, 10);
+      const { reason } = req.body || {};
+      if (!numId) return res.status(400).json({ message: "Invalid id" });
+
+      if (sourceType === "product") {
+        await pool.query(
+          `UPDATE extracted_products SET status = 'rejected', rejection_reason = $2, reviewed_at = NOW() WHERE id = $1`,
+          [numId, reason || "not_relevant"]
+        );
+      } else if (sourceType === "book") {
+        await pool.query(
+          `UPDATE book_enrichments SET cover_approved = false, updated_at = NOW() WHERE id = $1`,
+          [numId]
+        );
+      } else {
+        return res.status(400).json({ message: "Invalid source type" });
+      }
+      shopCache.invalidate();
+      res.json({ message: "Product rejected" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to reject" });
+    }
+  });
+
+  app.post("/api/admin/shop/:sourceType/:id/update", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { sourceType, id } = req.params;
+      const numId = parseInt(id, 10);
+      const { name, description, url, imageUrl } = req.body;
+      if (!numId) return res.status(400).json({ message: "Invalid id" });
+
+      if (sourceType === "product") {
+        const sets: string[] = [];
+        const vals: any[] = [];
+        let idx = 1;
+        if (name !== undefined) { sets.push(`name = $${idx++}`); vals.push(name); }
+        if (description !== undefined) { sets.push(`description = $${idx++}`); vals.push(description); }
+        if (url !== undefined) { sets.push(`purchase_url = $${idx++}`); vals.push(url); }
+        if (imageUrl !== undefined) {
+          sets.push(`image_url = $${idx++}`); vals.push(imageUrl);
+          sets.push(`image_status = 'approved'`);
+        }
+        if (sets.length > 0) {
+          vals.push(numId);
+          await pool.query(`UPDATE extracted_products SET ${sets.join(", ")} WHERE id = $${idx}`, vals);
+        }
+      } else if (sourceType === "book") {
+        const sets: string[] = [];
+        const vals: any[] = [];
+        let idx = 1;
+        if (name !== undefined) { sets.push(`book_title = $${idx++}`); vals.push(name); }
+        if (description !== undefined) { sets.push(`description = $${idx++}`); vals.push(description); }
+        if (url !== undefined) { sets.push(`amazon_url = $${idx++}`); vals.push(url); }
+        if (imageUrl !== undefined) {
+          const { rows: bookRows } = await pool.query(`SELECT slug FROM book_enrichments WHERE id = $1`, [numId]);
+          if (bookRows.length > 0) {
+            const slug = bookRows[0].slug;
+            try {
+              const imgResp = await fetch(imageUrl, { signal: AbortSignal.timeout(8000), redirect: "follow" });
+              if (imgResp.ok) {
+                const buffer = Buffer.from(await imgResp.arrayBuffer());
+                const destPath = path.resolve("public/books", `${slug}.jpg`);
+                writeFileSync(destPath, buffer);
+                sets.push(`has_cover = true`);
+              }
+            } catch (e) {
+              console.log("[ShopUpdate] Could not download book image:", e);
+            }
+          }
+        }
+        if (sets.length > 0) {
+          sets.push(`updated_at = NOW()`);
+          vals.push(numId);
+          await pool.query(`UPDATE book_enrichments SET ${sets.join(", ")} WHERE id = $${idx}`, vals);
+        }
+      }
+      shopCache.invalidate();
+      res.json({ message: "Product updated" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to update" });
+    }
+  });
+
+  app.get("/api/admin/shop/:sourceType/:id/find-images", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { sourceType, id } = req.params;
+      const numId = parseInt(id, 10);
+      if (!numId) return res.status(400).json({ message: "Invalid id" });
+
+      let purchaseUrl = "";
+      let productName = "";
+      let company = "";
+
+      if (sourceType === "product") {
+        const { rows } = await pool.query(`SELECT name, company, purchase_url FROM extracted_products WHERE id = $1`, [numId]);
+        if (rows.length === 0) return res.status(404).json({ message: "Product not found" });
+        purchaseUrl = rows[0].purchase_url || "";
+        productName = rows[0].name || "";
+        company = rows[0].company || "";
+      } else if (sourceType === "book") {
+        const { rows } = await pool.query(`SELECT book_title, author, amazon_url FROM book_enrichments WHERE id = $1`, [numId]);
+        if (rows.length === 0) return res.status(404).json({ message: "Book not found" });
+        purchaseUrl = rows[0].amazon_url || "";
+        productName = rows[0].book_title || "";
+        company = rows[0].author || "";
+      }
+
+      const images: string[] = [];
+
+      if (purchaseUrl) {
+        try {
+          const normalizedUrl = purchaseUrl.match(/^https?:\/\//) ? purchaseUrl : `https://${purchaseUrl}`;
+          const parsedUrl = new URL(normalizedUrl);
+          if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") throw new Error("Invalid protocol");
+          const hostname = parsedUrl.hostname;
+          if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0" || hostname.startsWith("192.168.") || hostname.startsWith("10.") || hostname.startsWith("172.") || hostname === "[::1]" || hostname.endsWith(".internal") || hostname.endsWith(".local")) {
+            throw new Error("Private/internal URL not allowed");
+          }
+          const domain = hostname.replace(/^www\./, "");
+
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+          const resp = await fetch(normalizedUrl, {
+            signal: controller.signal,
+            redirect: "follow",
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+          });
+          clearTimeout(timeout);
+
+          if (resp.ok) {
+            const html = await resp.text();
+            const ogMatches = [
+              ...html.matchAll(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi),
+              ...html.matchAll(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/gi),
+            ];
+            for (const m of ogMatches) {
+              let url = m[1].trim();
+              if (url.startsWith("//")) url = "https:" + url;
+              else if (url.startsWith("/")) url = `https://${domain}${url}`;
+              if (url.startsWith("http") && !images.includes(url)) images.push(url);
+            }
+            const twitterMatches = [
+              ...html.matchAll(/<meta[^>]+(?:name|property)=["']twitter:image["'][^>]+content=["']([^"']+)["']/gi),
+              ...html.matchAll(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:name|property)=["']twitter:image["']/gi),
+            ];
+            for (const m of twitterMatches) {
+              let url = m[1].trim();
+              if (url.startsWith("//")) url = "https:" + url;
+              else if (url.startsWith("/")) url = `https://${domain}${url}`;
+              if (url.startsWith("http") && !images.includes(url)) images.push(url);
+            }
+            const imgTagMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)];
+            for (const m of imgTagMatches) {
+              let url = m[1].trim();
+              if (url.startsWith("data:")) continue;
+              if (url.startsWith("//")) url = "https:" + url;
+              else if (url.startsWith("/")) url = `https://${domain}${url}`;
+              if (url.startsWith("http") && !images.includes(url) && url.length < 500) {
+                images.push(url);
+              }
+              if (images.length >= 20) break;
+            }
+          }
+
+          const logoDevPubKey = process.env.LOGO_DEV_PUBLIC_KEY;
+          if (logoDevPubKey) {
+            const logoUrl = `https://img.logo.dev/${domain}?token=${logoDevPubKey}&format=png&size=128`;
+            if (!images.includes(logoUrl)) images.push(logoUrl);
+          }
+        } catch (e) {
+          console.log("[FindImages] Error scraping URL:", e);
+        }
+      }
+
+      res.json({ images, productName, company });
+    } catch (err: any) {
+      console.error("[FindImages] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to find images" });
     }
   });
 

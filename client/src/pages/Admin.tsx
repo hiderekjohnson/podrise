@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, BookOpen, ShoppingBag, Library, MousePointerClick, DollarSign, Megaphone, Wrench } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench } from "lucide-react";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
@@ -8,11 +8,8 @@ const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
 const HostsManager = lazy(() => import("./HostsManager"));
 const BackfillTracker = lazy(() => import("./BackfillTracker"));
 const EpisodePagesTracker = lazy(() => import("./EpisodePagesTracker"));
-const BookCoversAdmin = lazy(() => import("./BookCoversAdmin"));
-const ProductsAdmin = lazy(() => import("./ProductsAdmin"));
-const BookstoreAdmin = lazy(() => import("./BookstoreAdmin"));
 const AnalyticsAcquisition = lazy(() => import("./AnalyticsAcquisition"));
-const ShopManagement = lazy(() => import("./ShopManagement"));
+const AdminShopManagement = lazy(() => import("./AdminShopManagement"));
 const AnalyticsAffiliates = lazy(() => import("./AnalyticsAffiliates"));
 const AnalyticsGrowth = lazy(() => import("./AnalyticsGrowth"));
 const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
@@ -202,11 +199,10 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "covers" | "products" | "shop" | "advertisers" | "admin-users" | "advanced">("advanced");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "advanced">("advanced");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
-  const [productsSubTab, setProductsSubTab] = useState<"products" | "books">("products");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean } | null>({
@@ -519,30 +515,6 @@ export default function Admin() {
                   Podcasts
                 </button>
                 <button
-                  data-testid="tab-covers"
-                  onClick={() => { setActiveTab("covers"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "covers"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Covers
-                </button>
-                <button
-                  data-testid="tab-products"
-                  onClick={() => { setActiveTab("products"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "products"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Products
-                </button>
-                <button
                   data-testid="tab-shop"
                   onClick={() => { setActiveTab("shop"); setSearchTerm(""); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
@@ -551,8 +523,8 @@ export default function Admin() {
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
                   }`}
                 >
-                  <Settings className="w-4 h-4" />
-                  Shop Mgmt
+                  <ShoppingBag className="w-4 h-4" />
+                  Shop
                 </button>
                 <button
                   data-testid="tab-advertisers"
@@ -1067,48 +1039,9 @@ export default function Admin() {
                 )}
               </div>
             )}
-            {activeTab === "covers" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <BookCoversAdmin />
-              </Suspense>
-            )}
-            {activeTab === "products" && (
-              <div>
-                <div className="flex items-center gap-1 mb-5 bg-black/[0.03] rounded-xl p-1" data-testid="products-sub-tabs">
-                  <button
-                    data-testid="products-subtab-products"
-                    onClick={() => setProductsSubTab("products")}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                      productsSubTab === "products"
-                        ? "bg-white text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                    Products
-                  </button>
-                  <button
-                    data-testid="products-subtab-books"
-                    onClick={() => setProductsSubTab("books")}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                      productsSubTab === "books"
-                        ? "bg-white text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Library className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                    Books
-                  </button>
-                </div>
-                <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                  {productsSubTab === "products" && <ProductsAdmin />}
-                  {productsSubTab === "books" && <BookstoreAdmin />}
-                </Suspense>
-              </div>
-            )}
             {activeTab === "shop" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <ShopManagement />
+                <AdminShopManagement />
               </Suspense>
             )}
             {activeTab === "advertisers" && (
