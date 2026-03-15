@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, Check, X, Filter, Clock, CheckCircle2, XCircle, Trash2, AlertTriangle } from "lucide-react";
+import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, CheckCircle2, XCircle, Filter, Clock, Trash2, AlertTriangle, FileText, Bot, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +20,7 @@ interface Product {
   rejection_reason: string | null;
   extracted_at: string;
   reviewed_at: string | null;
+  image_url: string | null;
 }
 
 const MENTION_LABELS: Record<string, { label: string; color: string; icon: typeof Star }> = {
@@ -47,6 +48,7 @@ const REJECT_REASONS = [
 ];
 
 type FilterMode = "all" | "pending" | "approved" | "rejected";
+type SortMode = "newest" | "genuine_first" | "ads_first";
 
 function highlightTerms(text: string, terms: string[]): (string | JSX.Element)[] {
   const validTerms = terms.filter(t => t && t.length > 1).sort((a, b) => b.length - a.length);
@@ -63,15 +65,140 @@ function highlightTerms(text: string, terms: string[]): (string | JSX.Element)[]
   });
 }
 
+const AD_KEYWORDS = [
+  "sponsored by", "brought to you by", "use code", "promo code", "coupon code",
+  "special offer", "free trial", "sign up at", "go to ", "discount", "% off",
+  "our sponsor", "quick break", "word from", "affiliate"
+];
+
+function computeAdScore(product: Product): number {
+  let score = 50;
+  const contextLower = (product.context || "").toLowerCase();
+  for (const kw of AD_KEYWORDS) {
+    if (contextLower.includes(kw)) score += 15;
+  }
+  if (!product.purchase_url) score += 10;
+  if (product.mention_type === "personal_use") score -= 20;
+  if (product.mention_type === "recommendation") score -= 10;
+  return Math.max(0, Math.min(100, score));
+}
+
+interface TranscriptExcerpt {
+  excerpt: string | null;
+  matchedTerm?: string;
+  productName?: string;
+  company?: string;
+  message?: string;
+}
+
+interface AiCheckResult {
+  verdict: "genuine" | "ad" | "brief_mention" | "unknown";
+  confidence: number;
+  reason: string;
+}
+
+function TranscriptExcerptPanel({ productId, productName, company }: { productId: number; productName: string; company: string | null }) {
+  const { data, isLoading } = useQuery<TranscriptExcerpt>({
+    queryKey: ["/api/admin/products", productId, "transcript-excerpt"],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/products/${productId}/transcript-excerpt`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  if (isLoading) return (
+    <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+      <Loader2 className="w-4 h-4 animate-spin" /> Loading transcript...
+    </div>
+  );
+
+  if (!data?.excerpt) return (
+    <div className="py-3 text-sm text-muted-foreground italic">
+      {data?.message || "Transcript excerpt not available"}
+    </div>
+  );
+
+  const highlightWords = [productName, company].filter(Boolean) as string[];
+
+  return (
+    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/50 dark:bg-amber-900/10 dark:border-amber-800 p-4 max-h-[400px] overflow-y-auto">
+      <div className="flex items-center gap-2 mb-2">
+        <FileText className="w-4 h-4 text-amber-600" />
+        <span className="text-xs font-bold text-amber-700 dark:text-amber-400">Transcript Excerpt</span>
+      </div>
+      <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono">
+        ...{highlightTerms(data.excerpt, highlightWords)}...
+      </p>
+    </div>
+  );
+}
+
+function AiCheckButton({ productId }: { productId: number }) {
+  const [result, setResult] = useState<AiCheckResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const runCheck = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/products/${productId}/ai-check`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      setResult(data.verdict ? data : { verdict: "unknown" as const, confidence: 0, reason: data.message || "Check failed" });
+    } catch {
+      setResult({ verdict: "unknown" as const, confidence: 0, reason: "Network error — try again" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (result) {
+    const colors = {
+      genuine: "bg-green-100 text-green-700 border-green-300",
+      ad: "bg-red-100 text-red-700 border-red-300",
+      brief_mention: "bg-yellow-100 text-yellow-700 border-yellow-300",
+      unknown: "bg-gray-100 text-gray-600 border-gray-300",
+    };
+    const labels = { genuine: "Genuine", ad: "Ad/Sponsor", brief_mention: "Brief Mention", unknown: "Unknown" };
+    return (
+      <div className={`inline-flex flex-col gap-1 px-3 py-2 rounded-lg text-xs border ${colors[result.verdict]}`}>
+        <div className="flex items-center gap-1.5">
+          <Bot className="w-3.5 h-3.5" />
+          <span className="font-bold">{labels[result.verdict]}</span>
+          <span className="opacity-70">({Math.round(result.confidence * 100)}%)</span>
+        </div>
+        <span className="text-[11px] opacity-80">{result.reason}</span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={runCheck}
+      disabled={loading}
+      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors flex items-center gap-1.5 disabled:opacity-50 border border-violet-200"
+      data-testid={`button-ai-check-${productId}`}
+    >
+      {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Bot className="w-3 h-3" />}
+      AI Check
+    </button>
+  );
+}
+
 export default function ProductsAdmin() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterMode>("pending");
+  const [sortMode, setSortMode] = useState<SortMode>("genuine_first");
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
   const [lastExtraction, setLastExtraction] = useState<{ newCount: number; coverage: string; urlsSkipped?: number; episodeCount?: number } | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [expandedTranscripts, setExpandedTranscripts] = useState<Set<number>>(new Set());
 
   const { data, isLoading } = useQuery<{ products: Product[]; stats: Record<string, number> }>({
     queryKey: ["/api/admin/products", filter],
@@ -87,7 +214,7 @@ export default function ProductsAdmin() {
       await apiRequest("POST", "/api/admin/products/approve", { ids });
     },
     onSuccess: (_, ids) => {
-      toast({ title: "Approved", description: `${ids.length} item(s) approved — AI will learn from this` });
+      toast({ title: "Approved", description: `${ids.length} item(s) approved` });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
     },
   });
@@ -97,7 +224,7 @@ export default function ProductsAdmin() {
       await apiRequest("POST", "/api/admin/products/reject", { ids, reason });
     },
     onSuccess: (_, { ids }) => {
-      toast({ title: "Rejected", description: `${ids.length} item(s) rejected — AI will avoid similar ones` });
+      toast({ title: "Rejected", description: `${ids.length} item(s) rejected` });
       setRejectingId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
     },
@@ -139,22 +266,46 @@ export default function ProductsAdmin() {
     }
   };
 
-  const products = data?.products || [];
+  const toggleTranscript = (id: number) => {
+    setExpandedTranscripts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const rawProducts = data?.products || [];
   const stats = data?.stats || { pending: 0, approved: 0, rejected: 0 };
   const totalReviewed = stats.approved + stats.rejected;
 
-  const grouped = products.reduce((acc, p) => {
-    const key = p.episode_title;
-    if (!acc[key]) acc[key] = { episodeSlug: p.episode_slug, products: [] };
-    acc[key].products.push(p);
-    return acc;
-  }, {} as Record<string, { episodeSlug: string | null; products: Product[] }>);
+  const products = [...rawProducts]
+    .filter(p => {
+      if (filter === "pending" && !p.purchase_url) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortMode === "newest") {
+        return new Date(b.extracted_at).getTime() - new Date(a.extracted_at).getTime();
+      }
+      const scoreA = computeAdScore(a);
+      const scoreB = computeAdScore(b);
+      if (sortMode === "genuine_first") return scoreA - scoreB;
+      return scoreB - scoreA;
+    });
+
+  const noUrlCount = filter === "pending" ? rawProducts.filter(p => !p.purchase_url).length : 0;
 
   const filterButtons: { mode: FilterMode; label: string; icon: typeof Clock; color: string }[] = [
     { mode: "pending", label: `Pending (${stats.pending})`, icon: Clock, color: "bg-yellow-100 text-yellow-700" },
     { mode: "approved", label: `Approved (${stats.approved})`, icon: CheckCircle2, color: "bg-green-100 text-green-700" },
     { mode: "rejected", label: `Rejected (${stats.rejected})`, icon: XCircle, color: "bg-red-100 text-red-700" },
     { mode: "all", label: "All", icon: Filter, color: "bg-gray-100 text-gray-700" },
+  ];
+
+  const sortButtons: { mode: SortMode; label: string }[] = [
+    { mode: "genuine_first", label: "Genuine first" },
+    { mode: "ads_first", label: "Likely ads first" },
+    { mode: "newest", label: "Most recent" },
   ];
 
   return (
@@ -166,7 +317,7 @@ export default function ProductsAdmin() {
             Product & Service Discovery
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            All products, services, tools, and experiences from podcast episodes — approve or reject to train the AI.
+            Review extracted products. Items without a website/URL are auto-hidden.
           </p>
           {totalReviewed > 0 && (
             <p className="text-xs text-indigo-600 mt-1 font-medium">
@@ -255,21 +406,44 @@ export default function ProductsAdmin() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {filterButtons.map(({ mode, label, icon: Icon, color }) => (
-          <button
-            key={mode}
-            onClick={() => setFilter(mode)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-              filter === mode ? color + " ring-2 ring-offset-1 ring-current" : "bg-muted/50 text-muted-foreground hover:bg-muted"
-            }`}
-            data-testid={`filter-products-${mode}`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2 justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          {filterButtons.map(({ mode, label, icon: Icon, color }) => (
+            <button
+              key={mode}
+              onClick={() => setFilter(mode)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                filter === mode ? color + " ring-2 ring-offset-1 ring-current" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+              data-testid={`filter-products-${mode}`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+          {sortButtons.map(({ mode, label }) => (
+            <button
+              key={mode}
+              onClick={() => setSortMode(mode)}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                sortMode === mode ? "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+              data-testid={`sort-products-${mode}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {noUrlCount > 0 && filter === "pending" && (
+        <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+          {noUrlCount} item{noUrlCount > 1 ? "s" : ""} hidden (no website/URL — too generic to review)
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-center py-10 text-muted-foreground text-sm">Loading items...</div>
@@ -284,137 +458,164 @@ export default function ProductsAdmin() {
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([title, { episodeSlug, products: eps }]) => (
-            <div key={title} className="glass-panel rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-bold text-sm">{title}</h4>
-                {episodeSlug && (
-                  <a
-                    href={`/myfirstmillion/${episodeSlug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-                    data-testid={`link-episode-${episodeSlug}`}
-                  >
-                    PodCap Page <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-              <div className="space-y-3">
-                {eps.map((p) => {
-                  const mention = MENTION_LABELS[p.mention_type || "discussion"] || MENTION_LABELS.discussion;
-                  const MentionIcon = mention.icon;
-                  const catInfo = CATEGORY_LABELS[p.category] || CATEGORY_LABELS.physical_product;
-                  const CatIcon = catInfo.icon;
-                  const showRejectPicker = rejectingId === p.id;
+        <div className="space-y-3">
+          {products.map((p) => {
+            const mention = MENTION_LABELS[p.mention_type || "discussion"] || MENTION_LABELS.discussion;
+            const MentionIcon = mention.icon;
+            const catInfo = CATEGORY_LABELS[p.category] || CATEGORY_LABELS.physical_product;
+            const CatIcon = catInfo.icon;
+            const showRejectPicker = rejectingId === p.id;
+            const adScore = computeAdScore(p);
+            const isTranscriptExpanded = expandedTranscripts.has(p.id);
 
-                  return (
-                    <div key={p.id} className={`rounded-xl border p-4 transition-all ${
-                      p.status === "approved" ? "bg-green-50/50 border-green-200" :
-                      p.status === "rejected" ? "bg-red-50/30 border-red-200 opacity-60" :
-                      "bg-white dark:bg-zinc-900 border-border"
-                    }`} data-testid={`card-product-${p.id}`}>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className="font-bold text-sm" data-testid={`text-product-name-${p.id}`}>{p.name}</span>
-                            {p.company && (
-                              <span className="text-xs text-muted-foreground">by {p.company}</span>
-                            )}
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${catInfo.color}`}>
-                              <CatIcon className="w-2.5 h-2.5" />
-                              {catInfo.label}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${mention.color}`}>
-                              <MentionIcon className="w-2.5 h-2.5" />
-                              {mention.label}
-                            </span>
-                            {p.status === "approved" && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-                                <CheckCircle2 className="w-2.5 h-2.5" /> Approved
-                              </span>
-                            )}
-                            {p.status === "rejected" && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                                <XCircle className="w-2.5 h-2.5" /> Rejected{p.rejection_reason ? `: ${p.rejection_reason.replace(/_/g, " ")}` : ""}
-                              </span>
-                            )}
-                          </div>
-                          {p.description && (
-                            <p className="text-sm text-muted-foreground mb-2">{highlightTerms(p.description, [p.name, p.company || ""])}</p>
-                          )}
-                          {p.context && (
-                            <div className="border-l-3 border-indigo-300 pl-4 mb-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-r-lg py-3 pr-3">
-                              <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">"{highlightTerms(p.context, [p.name, p.company || ""])}"</p>
-                            </div>
-                          )}
-
-                          <div className="flex flex-wrap items-center gap-2">
-                            {p.status === "pending" && (
-                              <>
-                                <button
-                                  onClick={() => approveMutation.mutate([p.id])}
-                                  disabled={approveMutation.isPending}
-                                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                                  data-testid={`button-approve-product-${p.id}`}
-                                >
-                                  <ThumbsUp className="w-3 h-3" />
-                                  Feature This
-                                </button>
-                                <button
-                                  onClick={() => setRejectingId(showRejectPicker ? null : p.id)}
-                                  disabled={rejectMutation.isPending}
-                                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                                  data-testid={`button-reject-product-${p.id}`}
-                                >
-                                  <ThumbsDown className="w-3 h-3" />
-                                  Not a Fit
-                                </button>
-                              </>
-                            )}
-                            {p.purchase_url && (
-                              <a
-                                href={p.purchase_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors flex items-center gap-1 whitespace-nowrap"
-                                data-testid={`link-purchase-${p.id}`}
-                              >
-                                {p.purchase_url.includes("amazon") ? "Amazon" : "Website"} <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </div>
-
-                          {showRejectPicker && (
-                            <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-red-50 border border-red-200 mt-2">
-                              <span className="text-xs font-bold text-red-700 mr-1">Why?</span>
-                              {REJECT_REASONS.map(r => (
-                                <button
-                                  key={r.value}
-                                  onClick={() => rejectMutation.mutate({ ids: [p.id], reason: r.value })}
-                                  className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
-                                  data-testid={`reject-reason-${r.value}-${p.id}`}
-                                >
-                                  {r.label}
-                                </button>
-                              ))}
-                              <button
-                                onClick={() => setRejectingId(null)}
-                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors ml-1"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+            return (
+              <div key={p.id} className={`rounded-xl border p-4 transition-all ${
+                p.status === "approved" ? "bg-green-50/50 border-green-200" :
+                p.status === "rejected" ? "bg-red-50/30 border-red-200 opacity-60" :
+                adScore >= 65 ? "bg-red-50/20 border-red-100" :
+                adScore <= 35 ? "bg-green-50/20 border-green-100" :
+                "bg-white dark:bg-zinc-900 border-border"
+              }`} data-testid={`card-product-${p.id}`}>
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="font-bold text-sm" data-testid={`text-product-name-${p.id}`}>{p.name}</span>
+                      {p.company && (
+                        <span className="text-xs text-muted-foreground">by {p.company}</span>
+                      )}
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${catInfo.color}`}>
+                        <CatIcon className="w-2.5 h-2.5" />
+                        {catInfo.label}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${mention.color}`}>
+                        <MentionIcon className="w-2.5 h-2.5" />
+                        {mention.label}
+                      </span>
+                      {adScore >= 65 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                          ⚠ Likely ad
+                        </span>
+                      )}
+                      {adScore <= 35 && p.status === "pending" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-600">
+                          ✓ Likely genuine
+                        </span>
+                      )}
+                      {p.status === "approved" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                          <CheckCircle2 className="w-2.5 h-2.5" /> Approved
+                        </span>
+                      )}
+                      {p.status === "rejected" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                          <XCircle className="w-2.5 h-2.5" /> Rejected{p.rejection_reason ? `: ${p.rejection_reason.replace(/_/g, " ")}` : ""}
+                        </span>
+                      )}
                     </div>
-                  );
-                })}
+
+                    <div className="text-[11px] text-muted-foreground mb-2">
+                      {p.podcast_slug} · {p.episode_title?.substring(0, 80)}{(p.episode_title?.length || 0) > 80 ? "..." : ""}
+                      {p.episode_slug && (
+                        <a
+                          href={`/podcasts/${p.podcast_slug}/${p.episode_slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-primary hover:underline inline-flex items-center gap-0.5"
+                          data-testid={`link-episode-${p.id}`}
+                        >
+                          View <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      )}
+                    </div>
+
+                    {p.description && (
+                      <p className="text-sm text-muted-foreground mb-2">{p.description}</p>
+                    )}
+
+                    {p.context && (
+                      <div className="border-l-3 border-indigo-300 pl-4 mb-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-r-lg py-3 pr-3">
+                        <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">Why they recommend it</span>
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap mt-1">{highlightTerms(p.context, [p.name, p.company || ""])}</p>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => toggleTranscript(p.id)}
+                      className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1 mb-2"
+                      data-testid={`button-show-transcript-${p.id}`}
+                    >
+                      <FileText className="w-3 h-3" />
+                      {isTranscriptExpanded ? "Hide" : "Show"} Transcript
+                      {isTranscriptExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
+
+                    {isTranscriptExpanded && (
+                      <TranscriptExcerptPanel productId={p.id} productName={p.name} company={p.company} />
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                      {p.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => approveMutation.mutate([p.id])}
+                            disabled={approveMutation.isPending}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                            data-testid={`button-approve-product-${p.id}`}
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                            Feature This
+                          </button>
+                          <button
+                            onClick={() => setRejectingId(showRejectPicker ? null : p.id)}
+                            disabled={rejectMutation.isPending}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                            data-testid={`button-reject-product-${p.id}`}
+                          >
+                            <ThumbsDown className="w-3 h-3" />
+                            Not a Fit
+                          </button>
+                          <AiCheckButton productId={p.id} />
+                        </>
+                      )}
+                      {p.purchase_url && (
+                        <a
+                          href={p.purchase_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors flex items-center gap-1 whitespace-nowrap"
+                          data-testid={`link-purchase-${p.id}`}
+                        >
+                          {p.purchase_url.includes("amazon") ? "Amazon" : "Website"} <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+
+                    {showRejectPicker && (
+                      <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-red-50 border border-red-200 mt-2">
+                        <span className="text-xs font-bold text-red-700 mr-1">Why?</span>
+                        {REJECT_REASONS.map(r => (
+                          <button
+                            key={r.value}
+                            onClick={() => rejectMutation.mutate({ ids: [p.id], reason: r.value })}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+                            data-testid={`reject-reason-${r.value}-${p.id}`}
+                          >
+                            {r.label}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => setRejectingId(null)}
+                          className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors ml-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

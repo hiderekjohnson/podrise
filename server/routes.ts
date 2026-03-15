@@ -9218,6 +9218,173 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
     }
   });
 
+  app.get("/api/admin/products/:id/transcript-excerpt", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const productId = parseInt(req.params.id);
+      if (!Number.isFinite(productId) || productId <= 0) return res.status(400).json({ message: "Invalid product ID" });
+      const { rows } = await pool.query(
+        `SELECT ep.name, ep.company, ep.episode_title, ep.episode_slug, ep.podcast_slug
+         FROM extracted_products ep WHERE ep.id = $1`, [productId]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Product not found" });
+      const product = rows[0];
+
+      let transcriptRows: any[] = [];
+      const { rows: r1 } = await pool.query(
+        `SELECT et.transcript FROM episode_transcripts et
+         JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+         WHERE pd.slug = $1 AND et.episode_title = $2 LIMIT 1`,
+        [product.podcast_slug, product.episode_title]
+      );
+      transcriptRows = r1;
+
+      if (transcriptRows.length === 0 && product.episode_slug) {
+        const { rows: r2 } = await pool.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND LOWER(et.episode_title) LIKE $2 LIMIT 1`,
+          [product.podcast_slug, `%${product.episode_slug.replace(/-/g, '%')}%`]
+        );
+        transcriptRows = r2;
+      }
+
+      if (transcriptRows.length === 0) {
+        const { rows: r3 } = await pool.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND LOWER(et.episode_title) LIKE LOWER($2) LIMIT 1`,
+          [product.podcast_slug, `%${product.episode_title.substring(0, 40)}%`]
+        );
+        transcriptRows = r3;
+      }
+
+      if (transcriptRows.length === 0) return res.json({ excerpt: null, message: "Transcript not found" });
+
+      const transcript = transcriptRows[0].transcript || "";
+      const searchTerms = [product.name, product.company].filter(Boolean);
+      let bestStart = -1;
+      let matchedTerm = "";
+      for (const term of searchTerms) {
+        const idx = transcript.toLowerCase().indexOf(term.toLowerCase());
+        if (idx !== -1 && (bestStart === -1 || idx < bestStart)) {
+          bestStart = idx;
+          matchedTerm = term;
+        }
+      }
+      if (bestStart === -1) return res.json({ excerpt: null, message: "Product mention not found in transcript" });
+
+      const contextChars = 1500;
+      const start = Math.max(0, bestStart - contextChars);
+      const end = Math.min(transcript.length, bestStart + matchedTerm.length + contextChars);
+      const excerpt = transcript.slice(start, end);
+      res.json({ excerpt, matchedTerm, startOffset: start, productName: product.name, company: product.company });
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to fetch excerpt" });
+    }
+  });
+
+  app.post("/api/admin/products/:id/ai-check", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const productId = parseInt(req.params.id);
+      if (!Number.isFinite(productId) || productId <= 0) return res.status(400).json({ message: "Invalid product ID" });
+      const { rows } = await pool.query(
+        `SELECT ep.name, ep.company, ep.context, ep.episode_title, ep.episode_slug, ep.podcast_slug
+         FROM extracted_products ep WHERE ep.id = $1`, [productId]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Product not found" });
+      const product = rows[0];
+
+      let transcriptRows: any[] = [];
+      const { rows: r1 } = await pool.query(
+        `SELECT et.transcript FROM episode_transcripts et
+         JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+         WHERE pd.slug = $1 AND et.episode_title = $2 LIMIT 1`,
+        [product.podcast_slug, product.episode_title]
+      );
+      transcriptRows = r1;
+
+      if (transcriptRows.length === 0 && product.episode_slug) {
+        const { rows: r2 } = await pool.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND LOWER(et.episode_title) LIKE $2 LIMIT 1`,
+          [product.podcast_slug, `%${product.episode_slug.replace(/-/g, '%')}%`]
+        );
+        transcriptRows = r2;
+      }
+
+      if (transcriptRows.length === 0) {
+        const { rows: r3 } = await pool.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND LOWER(et.episode_title) LIKE LOWER($2) LIMIT 1`,
+          [product.podcast_slug, `%${product.episode_title.substring(0, 40)}%`]
+        );
+        transcriptRows = r3;
+      }
+
+      let excerptForAI = product.context || "";
+      if (transcriptRows.length > 0) {
+        const transcript = transcriptRows[0].transcript || "";
+        const searchTerms = [product.name, product.company].filter(Boolean);
+        for (const term of searchTerms) {
+          const idx = transcript.toLowerCase().indexOf(term.toLowerCase());
+          if (idx !== -1) {
+            const start = Math.max(0, idx - 800);
+            const end = Math.min(transcript.length, idx + term.length + 800);
+            excerptForAI = transcript.slice(start, end);
+            break;
+          }
+        }
+      }
+
+      if (!excerptForAI) {
+        return res.json({ verdict: "unknown", confidence: 0, reason: "No transcript or context available to analyze" });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const aiResp = await directOpenai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{
+          role: "user",
+          content: `Analyze this transcript excerpt and determine if the mention of "${product.name}"${product.company ? ` by ${product.company}` : ''} is:
+1. A GENUINE recommendation/endorsement (the speaker personally uses or loves it)
+2. A PAID AD/SPONSOR read (includes phrases like "sponsored by", "use code", "promo code", "brought to you by", "special offer", discount codes, affiliate links)
+3. A BRIEF MENTION (just mentioned in passing, not a real endorsement)
+
+Transcript excerpt:
+"${excerptForAI}"
+
+Respond with JSON: {"verdict": "genuine"|"ad"|"brief_mention", "confidence": 0.0-1.0, "reason": "1-2 sentence explanation"}`
+        }],
+        max_tokens: 200,
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+      });
+
+      const content = aiResp.choices[0]?.message?.content;
+      if (content) {
+        try {
+          const parsed = JSON.parse(content.trim());
+          const validVerdicts = ["genuine", "ad", "brief_mention"];
+          const verdict = validVerdicts.includes(parsed.verdict) ? parsed.verdict : "unknown";
+          const confidence = typeof parsed.confidence === "number" ? Math.max(0, Math.min(1, parsed.confidence)) : 0.5;
+          const reason = typeof parsed.reason === "string" ? parsed.reason.substring(0, 300) : "No explanation provided";
+          res.json({ verdict, confidence, reason });
+        } catch {
+          res.json({ verdict: "unknown", confidence: 0, reason: "AI returned an unparseable response" });
+        }
+      } else {
+        res.json({ verdict: "unknown", confidence: 0, reason: "AI did not return a response" });
+      }
+    } catch (err: any) {
+      res.json({ verdict: "unknown", confidence: 0, reason: "AI check failed — try again" });
+    }
+  });
+
   app.post("/api/webhooks/taddy", async (req, res) => {
     try {
       const webhookSecret = process.env.TADDY_WEBHOOK_SECRET;
