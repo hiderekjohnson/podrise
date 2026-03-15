@@ -343,6 +343,69 @@ export function mergeExtractedBooks(
   return merged;
 }
 
+async function generateKeyInsightsFromRecap(
+  recap: string,
+  podcastName: string,
+  episodeTitle: string,
+): Promise<string[]> {
+  console.log(`[RecapGenerator] Pass 2: Generating key takeaways from recap for "${episodeTitle}"...`);
+  const prompt = `You are PodCap's Key Insights writer. You read a finished episode recap and extract the 4 most interesting, specific, standalone takeaways.
+
+Your audience: smart, curious professionals who will never listen to this episode. Each takeaway should feel like discovering a surprising fact or idea worth sharing.
+
+Episode: "${episodeTitle}" from ${podcastName}
+
+RECAP:
+${recap}
+
+Write exactly 4 key takeaways. Each must:
+- Teach the reader something specific they did not know
+- Be 2-3 tight sentences that could be read completely out of context and still be worth reading
+- Include concrete details (a name, a number, a company, a mechanism) woven into the insight naturally
+- Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong"
+- Be specific to THIS episode - if you swapped in a different episode title it should not make sense
+
+BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing, crucial, critical, essential, important
+BANNED PATTERNS: "[Person] [verb] [topic]" (never start with a speaker name followed by a verb), "The importance of X", "[Company] is [verb]ing [industry] by [marketing speak]", "X is crucial/critical/essential for Y"
+
+LITMUS TEST: "If I texted this to a smart friend with zero context, would they find it interesting?" If not, rewrite.
+
+BAD: "Bill Gurley discusses the transformative impact of AI on the workplace." (starts with a name + verb)
+BAD: "David Placek's naming strategy involves generating 2,000 names." (starts with a name, just describes what he does)
+BAD: "ZuruTech is revolutionizing home construction by leveraging advanced robotics." (marketing speak)
+BAD: "Scaling a business successfully often comes down to influencer marketing." (vague, no specifics)
+BAD: "A company's name is its most enduring asset, making it crucial for long-term success." (generic truism)
+BAD: "Sound symbolism plays a pivotal role in brand naming." (vague, tells you nothing)
+
+GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice."
+GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads. The playbook was simple - find creators whose audiences already want what you sell, and pay per result, not per post."
+GOOD: "Swiffer is a $5 billion brand. Clorox's Ready Mop does a couple hundred million. The products are nearly identical - the difference is almost entirely the name. The team generated over 2,000 candidate names before landing on one that was short, surprising, and sounded like the motion of mopping."
+GOOD: "Letters like K, P, and Z are perceived as fast and powerful by the human brain - a concept called sound symbolism. This is why 'BlackBerry' works as a tech brand name despite having nothing to do with phones, and why 'ReadyMop' lost to 'Swiffer' even though the products were basically identical."
+
+Respond ONLY with a JSON object: {"keyInsights": ["insight1", "insight2", "insight3", "insight4"]}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 2000,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    });
+    const content = completion.choices[0]?.message?.content;
+    if (content) {
+      const parsed = JSON.parse(content.trim());
+      if (Array.isArray(parsed.keyInsights) && parsed.keyInsights.length === 4) {
+        console.log(`[RecapGenerator] Pass 2 complete: 4 key takeaways generated from recap`);
+        return parsed.keyInsights;
+      }
+    }
+  } catch (err) {
+    console.warn(`[RecapGenerator] Pass 2 failed for "${episodeTitle}", falling back to inline insights:`, err);
+  }
+  return [];
+}
+
 export async function generateRecapFromTranscript(
   transcript: string,
   podcastName: string,
@@ -505,12 +568,15 @@ OTHER RULES:
           quoteType: q.quoteType,
         }));
 
+      const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
+      const finalInsights = pass2Insights.length === 4 ? pass2Insights : keyInsights;
+
       return sanitizeDeep({
         podcastName: parsed.podcastName || podcastName,
         episodeTitle: parsed.episodeTitle || episodeTitle,
         tldl: parsed.tldl || "",
         whatHappened,
-        keyInsights,
+        keyInsights: finalInsights,
         quote: parsed.quote,
         quoteAttribution: parsed.quoteAttribution,
         keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
@@ -712,17 +778,32 @@ Respond ONLY with a valid JSON object:
   ]
 }
 
-RULES FOR whatHappened:
-- Give the reader the actual knowledge without needing to listen
-- Every paragraph must contain specific facts, numbers, or insights from the notes
-- Start with the most interesting idea, NOT "In this episode..."
-- 6-8 paragraphs, each 2-4 sentences
-- BANNED: "In this episode...", "The conversation explores...", "The hosts discuss...", "They also highlight...", discusses, explores, highlights, shares, emphasizes, explains, underscores, delves
-- No em dashes. Use regular dashes. No smart quotes - use straight quotes
+RULES FOR whatHappened (THE RECAP - MOST IMPORTANT OUTPUT):
+- The recap has one job: give the reader the actual knowledge from the episode without them needing to listen
+- Write like a well-informed friend walking you through the best parts of the conversation
+- Every paragraph must contain at least one specific idea, fact, number, or insight from the notes
+- If a paragraph only describes what was talked about without saying what was actually said, delete it and rewrite with the real content
+- Start with the most interesting idea, NOT with "In this episode of [show name]..."
+- 6-8 paragraphs, each 2-4 sentences, flowing naturally from one idea to the next
+- ALWAYS use speakers' full names. NEVER say "the guest", "the host", "the speaker", "the duo", "the group" - always use their actual name
+- BANNED PHRASES: "In this episode...", "The conversation explores/shifts/turns to...", "The hosts discuss/touch on/delve into...", "The discussion shifts to...", "They also highlight/emphasize/underscore...", "The episode wraps up with...", "Ultimately, the episode...", "The duo reflects on...", "Later, the group...", "A memorable segment explores...", "[Person] shares/reveals/explains that...", "broader themes like...", "actionable insights on...", "The guest highlights...", "The host notes..."
+- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, underscores, delves, touches on, reflects on, recounts, acknowledges, showcases, illustrates, demonstrates, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
+- BANNED CHARACTERS: Never use em dashes. Use regular dashes (-) instead. Never use curly/smart quotes. Use straight quotes (' ") instead
+- BAD PARAGRAPH: "The conversation shifts to AI, where the guest maps out the landscape. He identifies key players like OpenAI, Anthropic, and Google, analyzing their strategies."
+- BAD PARAGRAPH: "The guest highlights that legal constraints on naming can actually aid the process."
+- GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
+- GOOD PARAGRAPH: "Legal constraints on naming turn out to be an unexpected ally. About 80% of candidate names get killed by trademark conflicts, which forces the team toward stranger, more distinctive options - exactly the kind that tend to win in the market."
 
 OTHER RULES:
 - quote: Pick the most SHAREABLE line from the quotes list above. Something surprising, counterintuitive, or profound
-- keyInsights: Exactly 4 standalone insights. Each must teach the reader something specific they did not know. 2-3 tight sentences that could be read completely out of context. Include concrete details (a name, a number, a company). Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong." BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, leveraging, revolutionizing, groundbreaking. BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X". BAD: "Bill Gurley discusses the transformative impact of AI." GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice."
+- keyInsights: THE MOST IMPORTANT FIELD. Exactly 4 standalone insights a reader walks away having LEARNED. Each must be 2-3 tight sentences that could be texted to a smart friend with zero context and they would find it genuinely interesting. Each insight must contain at least one concrete detail (a specific number, company name, dollar amount, person, mechanism, or framework). The insight must have a POINT OF VIEW or TENSION - not "X is important" but "X works because of Y, which most people get wrong." NEVER start an insight with a person's name followed by a verb. NEVER describe what someone said - instead deliver the actual knowledge. LITMUS TEST: "If I removed the podcast name and episode title, would this insight still be worth reading on its own?" If not, rewrite it.
+  BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing, crucial, critical, essential, important
+  BANNED PATTERNS: "[Person] [verb] [topic]" (NEVER start with a speaker name), "The importance of X", "[Company] is [verb]ing [industry]", "X is crucial/critical/essential for Y"
+  BAD: "David's three-step naming formula focuses on capturing attention, holding it, and ensuring the name is surprising yet memorable." (just describes what was said)
+  BAD: "A company's name is its most enduring asset, used more frequently than any other brand element, making it crucial for long-term success." (generic, no specifics, uses 'crucial')
+  BAD: "Trademarking and legal constraints are critical in the naming process." (vague, no substance)
+  GOOD: "Swiffer is a $5 billion brand. Clorox's Ready Mop does a couple hundred million. The products are nearly identical - the difference is almost entirely the name. The team behind Swiffer generated over 2,000 candidate names before landing on one that was short, surprising, and sounded like the motion of mopping."
+  GOOD: "The most counterintuitive part of naming a billion-dollar brand is that legal constraints actually help. Roughly 80% of candidate names get killed by trademark conflicts, which forces the team toward stranger, more distinctive options - exactly the kind that tend to win in the market."
 - extractedQuotes: 3-5 quotes from the BEST QUOTES above. Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim. context must start with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (their actual title, not "Guest")
 - keyTopics: 4-6 specific phrases that read like search queries with specific names
 - topicContexts: Use ONLY these slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories genuinely discussed (typically 3-6)
@@ -782,12 +863,15 @@ OTHER RULES:
 
     console.log(`[RecapGenerator] Full-transcript recap complete for "${episodeTitle}" (${coverage.chunkCount} chunks, ${coverage.totalChars} chars)`);
 
+    const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
+    const finalInsights = pass2Insights.length === 4 ? pass2Insights : keyInsights;
+
     return sanitizeDeep({
       podcastName: parsed.podcastName || podcastName,
       episodeTitle: parsed.episodeTitle || episodeTitle,
       tldl: parsed.tldl || "",
       whatHappened,
-      keyInsights,
+      keyInsights: finalInsights,
       quote: parsed.quote,
       quoteAttribution: parsed.quoteAttribution,
       keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
