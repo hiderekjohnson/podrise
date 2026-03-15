@@ -5315,6 +5315,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
                  lr.quote, lr.quote_attribution, lr.duration,
+                 lr.what_happened, lr.guests, lr.key_topics,
                  pd.slug as pd_slug
           FROM landing_page_recaps lr
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
@@ -5333,6 +5334,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
                  lr.quote, lr.quote_attribution, lr.duration,
+                 lr.what_happened, lr.guests, lr.key_topics,
                  pd.slug as pd_slug
           FROM landing_page_recaps lr
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
@@ -5347,21 +5349,35 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const result = await pool.query(query, params);
-      const items = result.rows.map((r: any) => ({
-        id: r.id,
-        podcastSlug: r.slug,
-        podcastName: r.podcast_name,
-        episodeTitle: r.episode_title,
-        episodeSlug: r.episode_slug,
-        publishDate: r.publish_date,
-        artworkUrl: r.artwork_url,
-        tldl: r.tldl,
-        keyInsights: r.key_insights,
-        quote: r.quote,
-        quoteAttribution: r.quote_attribution,
-        duration: r.duration,
-        isFollowing: userPodcastSlugs.includes(r.slug),
-      }));
+      const items = result.rows.map((r: any) => {
+        let parsedGuests: string[] = [];
+        if (r.guests) {
+          try {
+            const raw = typeof r.guests === 'string' ? JSON.parse(r.guests) : r.guests;
+            if (Array.isArray(raw)) {
+              parsedGuests = raw.map((g: any) => typeof g === 'string' ? g : (g?.name || ''));
+            }
+          } catch { parsedGuests = []; }
+        }
+        return {
+          id: r.id,
+          podcastSlug: r.slug,
+          podcastName: r.podcast_name,
+          episodeTitle: r.episode_title,
+          episodeSlug: r.episode_slug,
+          publishDate: r.publish_date,
+          artworkUrl: r.artwork_url,
+          tldl: r.tldl,
+          whatHappened: r.what_happened || null,
+          keyInsights: r.key_insights,
+          quote: r.quote,
+          quoteAttribution: r.quote_attribution,
+          duration: r.duration,
+          guests: parsedGuests,
+          keyTopics: r.key_topics || [],
+          isFollowing: userPodcastSlugs.includes(r.slug),
+        };
+      });
 
       const nextCursor = items.length === limit ? items[items.length - 1].id : null;
 

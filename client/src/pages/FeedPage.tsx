@@ -18,10 +18,13 @@ interface FeedItem {
   publishDate: string;
   artworkUrl: string;
   tldl: string;
+  whatHappened: string | null;
   keyInsights: string[] | null;
   quote: string | null;
   quoteAttribution: string | null;
   duration: string | null;
+  guests: string[];
+  keyTopics: string[];
   isFollowing: boolean;
 }
 
@@ -51,8 +54,14 @@ function hiResArtwork(url: string): string {
 
 function RecapCard({ item, onFollowToggle }: { item: FeedItem; onFollowToggle: (slug: string, follow: boolean) => void }) {
   const [expanded, setExpanded] = useState(false);
-  const tldlPreview = item.tldl && item.tldl.length > 200 ? item.tldl.slice(0, 200) + "..." : item.tldl;
-  const hasMore = item.tldl && item.tldl.length > 200;
+
+  const previewInsights = item.keyInsights?.slice(0, 2) || [];
+  const allInsights = item.keyInsights || [];
+  const hasFullRecap = !!(item.whatHappened || (allInsights.length > previewInsights.length) || item.quote || (item.guests && item.guests.length > 0) || (item.keyTopics && item.keyTopics.length > 0));
+
+  const whatHappenedParagraphs = item.whatHappened
+    ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim())
+    : [];
 
   return (
     <article
@@ -108,18 +117,62 @@ function RecapCard({ item, onFollowToggle }: { item: FeedItem; onFollowToggle: (
         </div>
 
         <div className="mt-2.5 ml-[52px]">
-          <div className="text-[15px] text-[#0F0F0F] leading-[1.5]">
-            {expanded ? (
-              <>
-                <p>{item.tldl}</p>
-                {item.keyInsights && item.keyInsights.length > 0 && (
-                  <div className="mt-3 rounded-xl bg-[#F8F8FC] border border-[#EDEDF3] p-3.5">
+          <p className="text-[15px] text-[#3F3F46] leading-[1.55]">{item.tldl}</p>
+
+          {!expanded && previewInsights.length > 0 && (
+            <div className="mt-2.5 space-y-1.5">
+              {previewInsights.map((insight, i) => (
+                <div key={i} className="flex gap-2 text-[14px] text-[#52525B] leading-[1.45]">
+                  <span className="text-[#6366F1] mt-[3px] flex-shrink-0 text-[10px]">●</span>
+                  <span>{insight}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!expanded && item.quote && (
+            <div className="mt-2.5 pl-3.5 border-l-[3px] border-[#6366F1]/30 py-0.5">
+              <p className="text-[14px] text-[#52525B] italic leading-[1.5] line-clamp-2">"{item.quote}"</p>
+              {item.quoteAttribution && (
+                <p className="text-[12px] text-[#A1A1AA] mt-0.5 not-italic font-medium">— {item.quoteAttribution}</p>
+              )}
+            </div>
+          )}
+
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                {item.guests && item.guests.length > 0 && (
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wide">Guests</span>
+                    {item.guests.map((guest, i) => (
+                      <span key={i} className="text-[13px] font-medium text-[#09090B] bg-[#F4F4F5] px-2.5 py-1 rounded-full">{typeof guest === 'string' ? guest : (guest as any).name || ''}</span>
+                    ))}
+                  </div>
+                )}
+
+                {whatHappenedParagraphs.length > 0 && (
+                  <div className="mt-3 space-y-2.5">
+                    {whatHappenedParagraphs.map((para, i) => (
+                      <p key={i} className="text-[14px] text-[#3F3F46] leading-[1.6]">{para}</p>
+                    ))}
+                  </div>
+                )}
+
+                {allInsights.length > 0 && (
+                  <div className="mt-3.5 rounded-xl bg-[#F8F8FC] border border-[#EDEDF3] p-3.5">
                     <div className="flex items-center gap-1.5 mb-2">
                       <Zap className="w-3.5 h-3.5 text-[#6366F1]" />
                       <span className="text-[12px] font-bold text-[#6366F1] uppercase tracking-wide">Key Insights</span>
                     </div>
                     <ul className="space-y-2">
-                      {item.keyInsights.map((insight, i) => (
+                      {allInsights.map((insight, i) => (
                         <li key={i} className="text-[14px] text-[#3F3F46] flex gap-2 leading-[1.45]">
                           <span className="text-[#6366F1] mt-[3px] flex-shrink-0 text-[10px]">●</span>
                           <span>{insight}</span>
@@ -128,6 +181,7 @@ function RecapCard({ item, onFollowToggle }: { item: FeedItem; onFollowToggle: (
                     </ul>
                   </div>
                 )}
+
                 {item.quote && (
                   <div className="mt-3 pl-3.5 border-l-[3px] border-[#6366F1]/40 py-1">
                     <p className="text-[14px] text-[#52525B] italic leading-[1.5]">"{item.quote}"</p>
@@ -136,24 +190,34 @@ function RecapCard({ item, onFollowToggle }: { item: FeedItem; onFollowToggle: (
                     )}
                   </div>
                 )}
-              </>
-            ) : (
-              <p className="text-[#3F3F46]">{tldlPreview}</p>
-            )}
-          </div>
 
-          {hasMore && (
+                {item.keyTopics && item.keyTopics.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {item.keyTopics.map((topic, i) => (
+                      <span key={i} className="text-[12px] font-medium text-[#6366F1] bg-[#6366F1]/[0.08] px-2.5 py-1 rounded-full">{topic}</span>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {hasFullRecap && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="text-[#6366F1] text-[14px] font-semibold mt-1 hover:underline"
+              className="flex items-center gap-1 text-[#6366F1] text-[14px] font-semibold mt-2 hover:underline"
               data-testid={`feed-expand-${item.id}`}
             >
-              {expanded ? "Show less" : "Show more"}
+              {expanded ? (
+                <>Show less<ChevronDown className="w-3.5 h-3.5 rotate-180 transition-transform" /></>
+              ) : (
+                <>Show more<ChevronDown className="w-3.5 h-3.5 transition-transform" /></>
+              )}
             </button>
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-2.5 ml-[52px] pb-2.5">
+        <div className="flex items-center justify-between mt-2 ml-[52px] pb-2.5">
           <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
             <span className="flex items-center gap-1.5 text-[#71717A] hover:text-[#6366F1] transition-colors group" data-testid={`feed-viewfull-${item.id}`}>
               <MessageCircle className="w-[18px] h-[18px] group-hover:text-[#6366F1]" />
