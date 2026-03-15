@@ -63,7 +63,7 @@ export default function GetStarted() {
   const handleAdd = (podcast: SelectedPodcast) => {
     const updated = [...selectedPodcasts, podcast];
     setSelectedPodcasts(updated);
-    if (updated.length >= 3) {
+    if (updated.length >= 1) {
       setTimeout(() => {
         emailSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         setTimeout(() => emailRef.current?.focus(), 400);
@@ -136,15 +136,15 @@ export default function GetStarted() {
                 <span className="flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold shrink-0 mt-0.5 bg-primary text-primary-foreground">1</span>
                 <div className="flex-1">
                   <h2 className="text-lg font-display font-bold text-foreground">Choose podcasts to follow</h2>
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">Pick up to 3 to start. You can add or remove podcasts anytime.</p>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-1">Pick the podcasts you want to follow. You can add or remove them anytime.</p>
                 </div>
               </div>
 
               <div className="pl-10 space-y-5">
-                <PodcastSearch selectedPodcasts={selectedPodcasts} onAdd={handleAdd} onRemove={handleRemove} maxSelection={3} />
+                <PodcastSearch selectedPodcasts={selectedPodcasts} onAdd={handleAdd} />
                 {selectedPodcasts.length > 0 && (
                   <div>
-                    <p className="text-base font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length}/3)</span></p>
+                    <p className="text-base font-semibold text-foreground mb-2">Selected podcasts <span className="text-muted-foreground font-semibold">({selectedPodcasts.length})</span></p>
                     <div className="grid grid-cols-3 gap-3">
                       {selectedPodcasts.map((podcast) => (
                         <div key={podcast.id} className="bg-white border border-black/[0.06] rounded-2xl p-3 pb-3.5 relative group">

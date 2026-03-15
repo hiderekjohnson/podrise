@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { Search, X, Plus, Loader2, Podcast, Crown, Mic, Send } from "lucide-react";
+import { Search, X, Plus, Loader2, Podcast, Mic, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLocation } from "wouter";
 import { RequestPodcastDialog } from "./RequestPodcastDialog";
 
 interface PodcastResult {
@@ -16,25 +14,22 @@ interface SelectedPodcast {
   id: string;
   name: string;
   artworkUrl: string;
+  artist?: string;
 }
 
 interface PodcastSearchProps {
   selectedPodcasts: SelectedPodcast[];
   onAdd: (podcast: SelectedPodcast) => void;
-  maxSelection?: number;
 }
 
-export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: PodcastSearchProps) {
-  const [, navigate] = useLocation();
+export function PodcastSearch({ selectedPodcasts, onAdd }: PodcastSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<PodcastResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
-  const atLimit = maxSelection != null && selectedPodcasts.length >= maxSelection;
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -67,10 +62,6 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
   const filteredResults = results.filter((r) => !selectedIdSet.has(r.id));
 
   const handleAddClick = (podcast: PodcastResult) => {
-    if (atLimit) {
-      setShowUpgradeModal(true);
-      return;
-    }
     onAdd({
       id: podcast.id,
       name: podcast.name,
@@ -83,61 +74,6 @@ export function PodcastSearch({ selectedPodcasts, onAdd, maxSelection }: Podcast
 
   return (
     <div>
-      {createPortal(
-        <AnimatePresence>
-          {showUpgradeModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-              onClick={(e) => { if (e.target === e.currentTarget) setShowUpgradeModal(false); }}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 8 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
-                data-testid="modal-upgrade"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Crown className="w-7 h-7 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-upgrade-title">
-                    Free plan limit reached
-                  </h3>
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-                    You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
-                  </p>
-                </div>
-                <div className="w-full space-y-2.5">
-                  <button
-                    data-testid="button-upgrade-modal"
-                    onClick={() => { setShowUpgradeModal(false); navigate("/dashboard?tab=plan"); }}
-                    className="w-full min-h-[52px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
-                  >
-                    <Crown className="w-5 h-5" />
-                    Upgrade to Pro - $9.99/month
-                  </button>
-                  <button
-                    data-testid="button-dismiss-upgrade"
-                    onClick={() => setShowUpgradeModal(false)}
-                    className="w-full min-h-[44px] flex items-center justify-center rounded-xl text-base font-semibold text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.03] transition-colors"
-                  >
-                    Not now
-                  </button>
-                </div>
-                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA]">Cancel anytime. No questions asked.</p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-
       <div className="relative">
         <div className="relative group flex items-center gap-2">
           <div className="relative flex-1">

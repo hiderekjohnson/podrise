@@ -71,15 +71,7 @@ export default function Support() {
     },
     {
       question: "How many podcasts can I follow with PodCap?",
-      answer: "Free users can follow up to 3 podcasts and receive daily podcast summaries for each. Pro subscribers get unlimited podcast selections and access to longer, more detailed AI-powered recaps that go deeper into each episode's key takeaways.",
-    },
-    {
-      question: "What does the PodCap Pro plan include?",
-      answer: "The Pro plan ($9.99/month) unlocks unlimited podcast selections, longer and more detailed daily podcast recaps with richer episode summaries, and priority support. You can upgrade anytime from your dashboard and start receiving enhanced podcast digests immediately.",
-    },
-    {
-      question: "How do I cancel my Pro subscription?",
-      answer: "You can manage your subscription from your dashboard. Click the \"Manage Subscription\" button to access Stripe's customer portal where you can cancel anytime. Your Pro benefits - including unlimited podcast summaries - continue until the end of your billing period.",
+      answer: "PodCap is completely free with no limits. You can follow as many podcasts as you want and receive daily AI-powered summaries for each one.",
     },
     {
       question: "How does PodCap create such accurate podcast recaps?",

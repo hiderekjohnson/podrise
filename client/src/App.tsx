@@ -11,7 +11,6 @@ import { PageConversionProvider } from "@/contexts/PageConversionContext";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Admin = lazy(() => import("./pages/Admin"));
 const PodcastRouter = lazy(() => import("./pages/PodcastRouter"));
 const PodcastSubRouter = lazy(() => import("./pages/PodcastSubRouter"));
@@ -62,7 +61,6 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/dashboard" component={Dashboard} />
-        <Route path="/upgrade" component={Upgrade} />
         <Route path="/admin" component={Admin} />
         <Route path="/shop" component={ShopPage} />
         <Route path="/shop/:slug" component={ShopDetailRouter} />

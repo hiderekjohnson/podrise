@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, Link } from "wouter";
-import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Crown, CreditCard, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Receipt, Trash2, AlertTriangle, Tag, Brain, Rocket, Lightbulb, BarChart3, Wallet, Users, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Hammer, Briefcase } from "lucide-react";
+import { Loader2, LogOut, Clock, Globe, Settings, FileText, Eye, X, Podcast, Mail, Shield, Check, Palmtree, CalendarOff, PartyPopper, Plus, Sparkles, TrendingUp, HelpCircle, ExternalLink, Trash2, AlertTriangle, Tag, Brain, Rocket, Lightbulb, BarChart3, Wallet, Crown, Users, Megaphone, Handshake, Zap, GitFork, Cpu, LineChart, Building2, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Hammer, Briefcase } from "lucide-react";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,7 +45,7 @@ interface LeaderboardPodcast {
   genres: string[];
 }
 
-type TabKey = "podcasts" | "topics" | "settings" | "recaps" | "plan";
+type TabKey = "podcasts" | "topics" | "settings" | "recaps";
 
 function parsePodcasts(raw: string[]): SelectedPodcast[] {
   return raw.map((item) => {
@@ -85,7 +85,6 @@ const TABS: { key: TabKey; label: string; icon: typeof Podcast }[] = [
   { key: "topics", label: "Topics", icon: Tag },
   { key: "recaps", label: "Recaps", icon: FileText },
   { key: "settings", label: "Settings", icon: Settings },
-  { key: "plan", label: "Your Plan", icon: CreditCard },
 ];
 
 export default function Dashboard() {
@@ -158,8 +157,6 @@ export default function Dashboard() {
     }
   }, [autoSave]);
 
-  const isPro = user?.plan === "pro";
-
   const { data: impersonationStatus } = useQuery<{ impersonating: boolean; userId?: number }>({
     queryKey: ["/api/auth/impersonation-status"],
   });
@@ -178,21 +175,6 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const { data: subscriptionData } = useQuery<{ subscription: any; plan: string }>({
-    queryKey: ["/api/stripe/subscription"],
-    enabled: !!user && isPro,
-  });
-
-  const { data: paymentMethodData } = useQuery<{ paymentMethod: { brand: string; last4: string; expMonth: number; expYear: number } | null }>({
-    queryKey: ["/api/stripe/payment-method"],
-    enabled: !!user && isPro,
-  });
-
-  const { data: invoicesData } = useQuery<{ invoices: { id: string; date: number; amount: number; currency: string; status: string; invoiceUrl: string | null }[] }>({
-    queryKey: ["/api/stripe/invoices"],
-    enabled: !!user && isPro,
-  });
-
   const { data: leaderboardData } = useQuery<LeaderboardPodcast[]>({
     queryKey: ["/api/leaderboard"],
     enabled: !!user,
@@ -203,59 +185,6 @@ export default function Dashboard() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [isCanceling, setIsCanceling] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-
-  const handleCancelSubscription = async () => {
-    setIsCanceling(true);
-    try {
-      const res = await apiRequest("POST", "/api/stripe/cancel-subscription");
-      const data = await res.json();
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/stripe/subscription"] });
-        setShowCancelModal(false);
-        toast({ title: "Subscription canceled", description: "You're now on the free plan." });
-      } else {
-        toast({ title: "Cannot cancel", description: data.message, variant: "destructive" });
-      }
-    } catch {
-      toast({ title: "Error", description: "Failed to cancel subscription.", variant: "destructive" });
-    } finally {
-      setIsCanceling(false);
-    }
-  };
-
-  const handleSubscribe = async () => {
-    setIsCheckingOut(true);
-    try {
-      const res = await apiRequest("POST", "/api/stripe/create-checkout");
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast({ title: "Error", description: "Could not start checkout.", variant: "destructive" });
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to start checkout", variant: "destructive" });
-    } finally {
-      setIsCheckingOut(false);
-    }
-  };
-
-  const handleManageBilling = async () => {
-    try {
-      const res = await apiRequest("POST", "/api/stripe/portal");
-      const data = await res.json();
-      if (data.url) {
-        window.open(data.url, "_blank");
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to open billing portal", variant: "destructive" });
-    }
-  };
 
   const sendEmail = useMutation({
     mutationFn: (recapId: number) => apiRequest("POST", "/api/recaps/send-email", { recapId }),
@@ -283,21 +212,9 @@ export default function Dashboard() {
       setShowWelcome(true);
       window.history.replaceState({}, "", "/dashboard");
     }
-    if (params.get("upgraded") === "true" && user) {
-      apiRequest("POST", "/api/stripe/sync-subscription")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.plan === "pro") {
-            queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-            toast({ title: "Welcome to Pro!", description: "You now have unlimited podcast summaries." });
-          }
-        })
-        .catch(() => {});
-      window.history.replaceState({}, "", "/dashboard");
-    }
     if (params.get("tab")) {
       const t = params.get("tab") as TabKey;
-      if (["podcasts", "topics", "settings", "recaps", "plan"].includes(t)) setActiveTab(t);
+      if (["podcasts", "topics", "settings", "recaps"].includes(t)) setActiveTab(t);
       window.history.replaceState({}, "", "/dashboard");
     }
   }, [user]);
@@ -357,10 +274,6 @@ export default function Dashboard() {
   };
 
   const handleSuggestionAdd = (podcast: { id: string; name: string; artworkUrl: string; artist?: string }) => {
-    if (!isPro && podcasts.length >= 3) {
-      setShowUpgradeModal(true);
-      return;
-    }
     handleAdd(podcast);
   };
 
@@ -375,9 +288,6 @@ export default function Dashboard() {
     const d = new Date(dateStr + "T00:00:00");
     return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   };
-
-  const podcastsOverLimit = podcasts.length > 3;
-  const podcastsToRemove = podcasts.length - 3;
 
   const selectedIds = new Set(podcasts.map(p => p.id));
   const popularPodcasts = (leaderboardData || []).filter(p => !selectedIds.has(p.id)).slice(0, 6);
@@ -397,122 +307,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9fb]">
       <AnimatePresence>
-        {showCancelModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-            onClick={(e) => { if (e.target === e.currentTarget) setShowCancelModal(false); }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
-              data-testid="modal-cancel-subscription"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
-                <CreditCard className="w-7 h-7 text-red-500" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-display font-extrabold text-xl text-foreground" data-testid="modal-cancel-title">
-                  Cancel your subscription?
-                </h3>
-                {podcastsOverLimit ? (
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-                    The free plan supports up to 3 podcasts. You currently have <span className="font-semibold text-foreground">{podcasts.length}</span> selected.
-                    Please remove {podcastsToRemove} podcast{podcastsToRemove > 1 ? "s" : ""} before canceling.
-                  </p>
-                ) : (
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-                    You'll lose access to unlimited podcasts and be moved to the free plan (up to 3 podcasts).
-                  </p>
-                )}
-              </div>
-              <div className="w-full space-y-2.5">
-                {podcastsOverLimit ? (
-                  <button
-                    data-testid="button-remove-podcasts-first"
-                    onClick={() => { setShowCancelModal(false); setActiveTab("podcasts"); }}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
-                  >
-                    Remove podcasts first
-                  </button>
-                ) : (
-                  <button
-                    data-testid="button-confirm-cancel"
-                    onClick={handleCancelSubscription}
-                    disabled={isCanceling}
-                    className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-display font-bold text-base bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all active:scale-[0.98]"
-                  >
-                    {isCanceling ? (<><Loader2 className="w-4 h-4 animate-spin" />Canceling...</>) : "Yes, cancel subscription"}
-                  </button>
-                )}
-                <button
-                  data-testid="button-keep-subscription"
-                  onClick={() => setShowCancelModal(false)}
-                  className="w-full h-10 flex items-center justify-center rounded-2xl text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
-                >
-                  {podcastsOverLimit ? "Never mind" : "Keep my subscription"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {showUpgradeModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-            onClick={(e) => { if (e.target === e.currentTarget) setShowUpgradeModal(false); }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl shadow-2xl shadow-black/20 w-full max-w-sm p-8 flex flex-col items-center gap-5 text-center"
-              data-testid="modal-upgrade-dashboard"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Crown className="w-7 h-7 text-primary" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-display font-extrabold text-xl text-foreground">
-                  Free plan limit reached
-                </h3>
-                <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-                  You're currently on the <span className="font-semibold text-foreground">free plan</span>, which includes up to 3 podcasts. Upgrade to Pro for unlimited podcast recaps.
-                </p>
-              </div>
-              <div className="w-full space-y-2.5">
-                <button
-                  data-testid="button-upgrade-modal-dashboard"
-                  onClick={() => { setShowUpgradeModal(false); setActiveTab("plan"); }}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
-                >
-                  <Crown className="w-4 h-4" />
-                  Upgrade to Pro - $9.99/month
-                </button>
-                <button
-                  data-testid="button-dismiss-upgrade-dashboard"
-                  onClick={() => setShowUpgradeModal(false)}
-                  className="w-full h-10 flex items-center justify-center rounded-xl text-base font-semibold text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-colors"
-                >
-                  Not now
-                </button>
-              </div>
-              <p className="text-[15px] text-muted-foreground/60">Cancel anytime. No questions asked.</p>
-            </motion.div>
-          </motion.div>
-        )}
-
         {showWelcome && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -634,11 +428,6 @@ export default function Dashboard() {
                     <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-your-podcasts">
                       Your Podcasts
                     </h2>
-                    {!isPro && (
-                      <span className="text-[15px] font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-full" data-testid="text-podcast-count">
-                        {podcasts.length}/3
-                      </span>
-                    )}
                   </div>
                 </div>
                 {podcasts.length > 0 ? (
@@ -683,20 +472,6 @@ export default function Dashboard() {
                           </motion.div>
                         ))}
                       </AnimatePresence>
-                      {!isPro && podcasts.length < 3 && (
-                        Array.from({ length: 3 - podcasts.length }).map((_, i) => (
-                          <button
-                            key={`empty-${i}`}
-                            onClick={() => discoverRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                            className="flex flex-col items-center gap-2 shrink-0 w-20 group/slot"
-                          >
-                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] group-hover/slot:border-primary/30 flex items-center justify-center transition-colors">
-                              <Plus className="w-5 h-5 text-muted-foreground/30 group-hover/slot:text-primary/50 transition-colors" />
-                            </div>
-                            <p className="text-[15px] text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
-                          </button>
-                        ))
-                      )}
                     </div>
                   </div>
                 ) : (
@@ -734,7 +509,6 @@ export default function Dashboard() {
                   <PodcastSearch
                     selectedPodcasts={podcasts}
                     onAdd={handleAdd}
-                    maxSelection={isPro ? undefined : 3}
                   />
                 </div>
 
@@ -1167,17 +941,15 @@ export default function Dashboard() {
                 )}
               </AnimatePresence>
 
-              {!isPro && (
-                <div className="mt-6 pt-5 border-t border-border">
-                  <button
-                    data-testid="button-delete-account"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-red-500 transition-colors"
-                  >
-                    Delete account
-                  </button>
-                </div>
-              )}
+              <div className="mt-6 pt-5 border-t border-border">
+                <button
+                  data-testid="button-delete-account"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-red-500 transition-colors"
+                >
+                  Delete account
+                </button>
+              </div>
 
               {showDeleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}>
@@ -1230,188 +1002,6 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          {activeTab === "plan" && (
-            <motion.div
-              key="plan"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15 }}
-            >
-              {isPro ? (
-                <div className="space-y-4">
-                  <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Crown className="w-4.5 h-4.5 text-primary" />
-                        </div>
-                        <div>
-                          <h2 className="text-base font-display font-bold text-foreground">Pro Plan</h2>
-                          <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">$9.99/month - unlimited podcasts</p>
-                        </div>
-                      </div>
-                      <span className="text-[15px] bg-[#EEF2FF] text-[#6366F1] font-semibold px-2.5 py-1 rounded-full" data-testid="badge-plan-active">Active</span>
-                    </div>
-                    {subscriptionData?.subscription?.current_period_end && (
-                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-4">
-                        Next bill: <span className="font-semibold text-foreground">{new Date(
-                          typeof subscriptionData.subscription.current_period_end === "number"
-                            ? subscriptionData.subscription.current_period_end * 1000
-                            : subscriptionData.subscription.current_period_end
-                        ).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
-                          <CreditCard className="w-4.5 h-4.5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="text-base font-semibold text-foreground">Payment Method</h3>
-                          {paymentMethodData?.paymentMethod ? (
-                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">
-                              {paymentMethodData.paymentMethod.brand.charAt(0).toUpperCase() + paymentMethodData.paymentMethod.brand.slice(1)} ending in {paymentMethodData.paymentMethod.last4}
-                              <span className="text-[15px] ml-2">Exp {paymentMethodData.paymentMethod.expMonth.toString().padStart(2, "0")}/{paymentMethodData.paymentMethod.expYear}</span>
-                            </p>
-                          ) : (
-                            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">No card on file</p>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        data-testid="button-update-card"
-                        onClick={handleManageBilling}
-                        className="text-base font-semibold text-primary hover:text-primary/80 transition-colors"
-                      >
-                        Update
-                      </button>
-                    </div>
-                  </div>
-
-                  {invoicesData?.invoices && invoicesData.invoices.length > 0 && (
-                    <div className="bg-white border border-black/[0.06] rounded-2xl p-6">
-                      <div className="flex items-center gap-2.5 mb-4">
-                        <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
-                          <Receipt className="w-4.5 h-4.5 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-base font-semibold text-foreground">Billing History</h3>
-                      </div>
-                      <div className="divide-y divide-black/[0.04]">
-                        {invoicesData.invoices.map((inv) => (
-                          <div key={inv.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0" data-testid={`invoice-${inv.id}`}>
-                            <div>
-                              <p className="text-base font-medium text-foreground">
-                                ${(inv.amount / 100).toFixed(2)} {inv.currency.toUpperCase()}
-                              </p>
-                              <p className="text-[15px] text-muted-foreground">
-                                {new Date(inv.date * 1000).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className={`text-[15px] font-semibold px-2 py-0.5 rounded-full ${inv.status === "paid" ? "bg-[#EEF2FF] text-[#6366F1]" : "bg-amber-100 text-amber-700"}`}>
-                                {inv.status === "paid" ? "Paid" : inv.status}
-                              </span>
-                              {inv.invoiceUrl && (
-                                <a
-                                  href={inv.invoiceUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-muted-foreground hover:text-foreground transition-colors"
-                                  data-testid={`link-invoice-${inv.id}`}
-                                >
-                                  <ExternalLink className="w-4 h-4" />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-2">
-                    <button
-                      data-testid="button-cancel-subscription"
-                      onClick={() => setShowCancelModal(true)}
-                      className="text-base font-medium text-red-500 hover:text-red-600 transition-colors"
-                    >
-                      Cancel subscription
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-white border border-black/[0.06] ring-2 ring-primary/20 rounded-2xl overflow-hidden flex flex-col">
-                    <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-9 h-9 rounded-lg bg-black/[0.04] flex items-center justify-center">
-                            <Podcast className="w-4.5 h-4.5 text-muted-foreground" />
-                          </div>
-                          <h2 className="text-base font-display font-bold text-foreground">Free</h2>
-                        </div>
-                        <span className="text-[15px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full" data-testid="badge-current-plan">Current</span>
-                      </div>
-                      <div className="mb-5">
-                        <span className="text-3xl font-display font-extrabold text-foreground">$0</span>
-                        <span className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">/month</span>
-                      </div>
-                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed flex-1">
-                        Get daily recaps from up to <span className="font-semibold text-foreground">3 podcasts</span>.
-                      </p>
-                    </div>
-                    <div className="px-6 pb-6">
-                      <div className="space-y-2">
-                        <div className="w-full h-11 flex items-center justify-center rounded-xl text-base font-semibold text-muted-foreground bg-black/[0.03] border border-black/[0.06]">
-                          Your current plan
-                        </div>
-                        <p className="text-center text-[15px] text-muted-foreground invisible">placeholder</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] border border-primary/10 rounded-2xl overflow-hidden flex flex-col">
-                    <div className="px-6 pt-6 pb-5 flex-1 flex flex-col">
-                      <div className="flex items-center gap-2.5 mb-4">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Crown className="w-4.5 h-4.5 text-primary" />
-                        </div>
-                        <h2 className="text-base font-display font-bold text-foreground">Pro</h2>
-                      </div>
-                      <div className="mb-5">
-                        <span className="text-3xl font-display font-extrabold text-foreground">$9.99</span>
-                        <span className="text-base text-[#52525B] dark:text-[#A1A1AA] font-medium">/month</span>
-                      </div>
-                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed flex-1">
-                        Get daily recaps from <span className="font-semibold text-foreground">unlimited podcasts</span>.
-                      </p>
-                    </div>
-                    <div className="px-6 pb-6">
-                      <div className="space-y-2">
-                        <button
-                          data-testid="button-subscribe"
-                          onClick={handleSubscribe}
-                          disabled={isCheckingOut}
-                          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-[0.99] disabled:opacity-60"
-                        >
-                          {isCheckingOut ? (
-                            <><Loader2 className="w-4 h-4 animate-spin" />Redirecting...</>
-                          ) : (
-                            <><Crown className="w-4 h-4" />Upgrade to Pro</>
-                          )}
-                        </button>
-                        <p className="text-center text-[15px] text-muted-foreground">Cancel anytime.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
         </AnimatePresence>
       </main>
 
