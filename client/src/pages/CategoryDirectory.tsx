@@ -5,8 +5,6 @@ import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { INDUSTRIES, INTERESTS, ROLES, type TopicCategory } from "@/data/topicData";
 import { SiteHeader } from "@/components/SiteHeader";
-import { InlineEmailCTA } from "@/components/InlineEmailCTA";
-import { StickyEmailBar } from "@/components/StickyEmailBar";
 import { useSetConversion } from "@/contexts/PageConversionContext";
 
 const ICON_MAP: Record<string, any> = {
@@ -129,15 +127,6 @@ export default function CategoryDirectory() {
           })}
         </div>
 
-        <div className="mt-12 mb-12">
-          <InlineEmailCTA
-            type={meta.category}
-            slug={pathKey}
-            name={meta.title}
-            variant="gradient"
-          />
-        </div>
-
         <div className="mt-16 pt-8 border-t border-black/[0.06] dark:border-white/[0.06]">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Also explore</h2>
           <div className="flex flex-wrap gap-3">
@@ -157,12 +146,6 @@ export default function CategoryDirectory() {
       </main>
 
       <Footer />
-
-      <StickyEmailBar
-        type={meta.category}
-        slug={pathKey}
-        name={meta.title}
-      />
     </div>
   );
 }
