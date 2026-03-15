@@ -27,6 +27,21 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const podcastLists = pgTable("podcast_lists", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  podcastSlugs: text("podcast_slugs").array().notNull().default([]),
+  category: text("category"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type PodcastList = typeof podcastLists.$inferSelect;
+export type InsertPodcastList = typeof podcastLists.$inferInsert;
+
 export const affiliateClicks = pgTable("affiliate_clicks", {
   id: serial("id").primaryKey(),
   productType: text("product_type").notNull(),

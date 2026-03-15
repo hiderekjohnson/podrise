@@ -12412,6 +12412,111 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.get("/api/admin/lists", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query("SELECT * FROM podcast_lists ORDER BY category, sort_order, name");
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[Lists] Fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch lists" });
+    }
+  });
+
+  app.post("/api/admin/lists", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { name, slug, description, podcastSlugs, category, sortOrder } = req.body;
+      if (!name || typeof name !== "string") return res.status(400).json({ error: "Name is required" });
+      if (!slug || typeof slug !== "string") return res.status(400).json({ error: "Slug is required" });
+      if (podcastSlugs && !Array.isArray(podcastSlugs)) return res.status(400).json({ error: "podcastSlugs must be an array" });
+      const result = await pool.query(
+        `INSERT INTO podcast_lists (name, slug, description, podcast_slugs, category, sort_order) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [name.trim(), slug.trim(), description || null, podcastSlugs || [], category || null, Number(sortOrder) || 0]
+      );
+      res.json(result.rows[0]);
+    } catch (err: any) {
+      if (err.code === "23505") return res.status(409).json({ error: "A list with this slug already exists" });
+      console.error("[Lists] Create error:", err);
+      res.status(500).json({ error: "Failed to create list" });
+    }
+  });
+
+  app.patch("/api/admin/lists/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "Invalid list ID" });
+      const { name, slug, description, podcastSlugs, category, sortOrder } = req.body;
+      const fields: string[] = [];
+      const values: any[] = [];
+      let idx = 1;
+      if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
+      if (slug !== undefined) { fields.push(`slug = $${idx++}`); values.push(slug); }
+      if (description !== undefined) { fields.push(`description = $${idx++}`); values.push(description); }
+      if (podcastSlugs !== undefined) { fields.push(`podcast_slugs = $${idx++}`); values.push(podcastSlugs); }
+      if (category !== undefined) { fields.push(`category = $${idx++}`); values.push(category); }
+      if (sortOrder !== undefined) { fields.push(`sort_order = $${idx++}`); values.push(sortOrder); }
+      fields.push(`updated_at = NOW()`);
+      values.push(id);
+      const result = await pool.query(
+        `UPDATE podcast_lists SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
+        values
+      );
+      if (result.rows.length === 0) return res.status(404).json({ error: "List not found" });
+      res.json(result.rows[0]);
+    } catch (err: any) {
+      if (err.code === "23505") return res.status(409).json({ error: "A list with this slug already exists" });
+      console.error("[Lists] Update error:", err);
+      res.status(500).json({ error: "Failed to update list" });
+    }
+  });
+
+  app.delete("/api/admin/lists/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "Invalid list ID" });
+      const result = await pool.query("DELETE FROM podcast_lists WHERE id = $1", [id]);
+      if (result.rowCount === 0) return res.status(404).json({ error: "List not found" });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[Lists] Delete error:", err);
+      res.status(500).json({ error: "Failed to delete list" });
+    }
+  });
+
+  app.get("/api/lists", async (_req, res) => {
+    try {
+      const result = await pool.query("SELECT id, name, slug, description, podcast_slugs, category FROM podcast_lists ORDER BY category, sort_order, name");
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[Lists] Public fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch lists" });
+    }
+  });
+
+  app.get("/api/lists/:slug", async (req, res) => {
+    try {
+      const result = await pool.query("SELECT * FROM podcast_lists WHERE slug = $1", [req.params.slug]);
+      if (result.rows.length === 0) return res.status(404).json({ error: "List not found" });
+      const list = result.rows[0];
+      const podcastSlugs = list.podcast_slugs || [];
+      let podcasts: any[] = [];
+      if (podcastSlugs.length > 0) {
+        const podcastResult = await pool.query(
+          "SELECT slug, name, artwork_url, description, category FROM podcast_directory WHERE slug = ANY($1) ORDER BY array_position($1::text[], slug)",
+          [podcastSlugs]
+        );
+        podcasts = podcastResult.rows;
+      }
+      res.json({ ...list, podcasts });
+    } catch (err) {
+      console.error("[Lists] Fetch single error:", err);
+      res.status(500).json({ error: "Failed to fetch list" });
+    }
+  });
+
   setTimeout(async () => {
     try {
       const { seedProductionBooks } = await import("./seedProductionBooks");

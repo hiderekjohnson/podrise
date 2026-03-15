@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List } from "lucide-react";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
@@ -16,6 +16,7 @@ const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
 const ApiUsageDashboard = lazy(() => import("./ApiUsageDashboard"));
 const AdvertisersAdmin = lazy(() => import("./AdvertisersAdmin"));
 const AdminUsersManager = lazy(() => import("./AdminUsersManager"));
+const AdminListsManager = lazy(() => import("./AdminListsManager"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -199,7 +200,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "advanced">("advanced");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced">("advanced");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
@@ -525,6 +526,18 @@ export default function Admin() {
                 >
                   <ShoppingBag className="w-4 h-4" />
                   Shop
+                </button>
+                <button
+                  data-testid="tab-lists"
+                  onClick={() => { setActiveTab("lists"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
+                    activeTab === "lists"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                  Lists
                 </button>
                 <button
                   data-testid="tab-advertisers"
@@ -1052,6 +1065,11 @@ export default function Admin() {
             {activeTab === "admin-users" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
                 <AdminUsersManager />
+              </Suspense>
+            )}
+            {activeTab === "lists" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <AdminListsManager />
               </Suspense>
             )}
           </motion.div>
