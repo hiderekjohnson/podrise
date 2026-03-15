@@ -342,7 +342,7 @@ export function mergeExtractedBooks(
   return merged;
 }
 
-async function generateKeyInsightsFromRecap(
+export async function generateKeyInsightsFromRecap(
   recap: string,
   podcastName: string,
   episodeTitle: string,

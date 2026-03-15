@@ -1,13 +1,12 @@
 import { pool } from "./db";
-import { openai } from "./replit_integrations/image/client";
-import { extractBooksFromTranscript, mergeExtractedBooks, extractQuotesFromTranscript } from "./recapGenerator";
-import { TOPICS } from "../client/src/data/topicData";
+import {
+  generateRecapFromTranscript,
+  extractQuotesFromTranscript,
+} from "./recapGenerator";
 import https from "https";
 import http from "http";
 import fs from "fs";
 import path from "path";
-
-const CURATED_TOPIC_SLUGS = TOPICS.map(t => t.slug);
 
 function makeSlug(title: string, author: string | null): string {
   const base = (title + (author && author !== "null" ? " " + author : ""))
@@ -48,7 +47,7 @@ function downloadFile(url: string, dest: string): Promise<boolean> {
         if (buf[0] === 0xFF && buf[1] === 0xD8) {
           fs.writeFileSync(dest, buf);
           resolve(true);
-        } else if (buf[0] === 0x89 && buf.toString("ascii", 1, 4) === "PNG") {
+        } else if (buf[0] === 0x89 && buf[1] === 0x50) {
           fs.writeFileSync(dest, buf);
           resolve(true);
         } else {
@@ -119,169 +118,6 @@ async function enrichBook(client: any, bookName: string, author: string | null, 
   return slug;
 }
 
-async function generateKeyInsightsFromRecap(recap: string, podcastName: string, episodeTitle: string): Promise<string[]> {
-  console.log(`  Pass 2: Generating key takeaways from recap...`);
-  const prompt = `You write the "Key Takeaways" section for a podcast recap site. Each takeaway delivers a concrete fact or insight the reader didn't know before.
-
-Your reader will never listen to this episode. These 4 takeaways are the only thing they'll read. Make each one deliver real knowledge.
-
-Episode: "${episodeTitle}" from ${podcastName}
-
-RECAP:
-${recap}
-
-WHAT MAKES A GREAT TAKEAWAY:
-- It delivers a SPECIFIC FACT the reader can walk away with. A number, a mechanism, a strategy, a company name, a concrete result.
-- It is 2-3 sentences of straight-to-the-point information. No hooks, no setup, no "here's the twist" framing.
-- It stands completely alone - no "in this episode" or "the guest explained" framing needed.
-- It reads like a briefing note, not a conversation. Professional, direct, informative.
-
-NEVER start a takeaway with a person's name. Lead with the insight, not the attribution.
-
-TONE RULES - CRITICAL:
-- Write in a NEUTRAL, INFORMATIVE tone. Like a news brief or research summary.
-- NEVER use conversational hooks: "Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out...", "The kicker?", "The takeaway?", "The strategy?", "The result?", "The secret?", "What's wild is..."
-- NEVER address the reader with "you" or use rhetorical questions
-- NEVER use exclamation marks
-- NEVER editorialize with "proving that...", "showing that...", "a reminder that..."
-
-EXAMPLES OF GREAT TAKEAWAYS:
-- "Cal AI hit $30M in annual revenue before its founder turned 20, primarily through performance-based influencer marketing rather than traditional ads. The company paid fitness creators per conversion, not per post, which kept customer acquisition costs low while scaling rapidly."
-- "Seagrass captures carbon 35 times faster than rainforests, but it's disappearing at a rate of about 7% per year globally due to coastal development and pollution. Ocean-based carbon sequestration may be more impactful than land-based reforestation for climate goals."
-- "SailDrone deploys autonomous sailboats that stay at sea for months collecting ocean data for NOAA and the U.S. Navy. The company has mapped more of the ocean floor than any organization in history, covering areas that manned vessels cannot economically reach."
-
-EXAMPLES OF BAD TAKEAWAYS (never write these):
-- "Dude, did you know seagrass captures carbon 35 times more effectively than rainforests?" (conversational hook)
-- "Here's a twist: while space gets the glamour, ocean defense is the real deal." (hook + editorial)
-- "Imagine being 19 and selling your AI app to MyFitnessPal after being rejected by Ivy League schools!" (hook + exclamation)
-- "Zach's decision-making secret? He used expected value." (rhetorical question hook)
-- "Sound symbolism plays a vital role in brand naming." (vague, no specifics)
-- "Zach's journey shows the importance of perseverance." (generic motivational filler)
-
-BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, reveals, showcases, illustrates, demonstrates, underscores, stresses, crucial, critical, essential, pivotal, important, innovative, groundbreaking, game-changing, leveraging, revolutionizing
-BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "The takeaway", "The strategy?", "The secret?", "proving that", "showing that", "a reminder that"
-
-Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1", "takeaway2", "takeaway3", "takeaway4"]}`;
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 2000,
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    });
-    const content = completion.choices[0]?.message?.content;
-    if (content) {
-      const parsed = JSON.parse(content.trim());
-      if (Array.isArray(parsed.keyInsights) && parsed.keyInsights.length === 4) {
-        console.log(`  Pass 2 complete: 4 key takeaways generated from recap`);
-        return parsed.keyInsights;
-      }
-    }
-  } catch (err) {
-    console.warn(`  Pass 2 failed, falling back to Pass 1 insights:`, err);
-  }
-  return [];
-}
-
-async function generateRecap(transcript: string, podcastName: string, episodeTitle: string, showNotes?: string | null) {
-  const showNotesSection = showNotes ? `\nShow Notes:\n${showNotes}\n` : "";
-  console.log(`  Pass 1: Generating recap + structured data...`);
-  const prompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
-
-All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content.
-
-Podcast: ${podcastName}
-Episode: "${episodeTitle}"${showNotesSection}
-Transcript:
-${transcript}
-
-Respond ONLY with a valid JSON object (no markdown, no code fences):
-
-{
-  "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "The episode recap. 6-8 paragraphs, each 2-4 sentences. Separate paragraphs with \\n\\n.",
-  "quote": "The single most surprising, counterintuitive, or shareable line from the transcript.",
-  "quoteAttribution": "Speaker Name",
-  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
-  "topicContexts": {"slug": "Episode-specific description..."},
-  "sponsors": [{"name": "Name", "description": "Desc", "couponCode": null, "url": null, "howToRedeem": null}],
-  "guests": [{"name": "Full Name", "title": "Title", "bio": "Bio.", "twitter": null, "linkedin": null, "instagram": null, "website": null, "topicsDiscussed": ["T1"]}],
-  "resources": [{"name": "Name", "type": "book", "description": "Desc", "url": "URL", "author": "Author", "context": "Context"}]
-}
-
-RULES FOR whatHappened (THE RECAP):
-- The recap has one job: give the reader the actual knowledge from the episode without them needing to listen
-- Write like a well-informed friend walking you through the best parts of the conversation
-- Every paragraph must contain at least one specific idea, fact, number, or insight
-- If a paragraph only describes what was talked about without saying what was actually said, delete it and rewrite with the real content
-- Start with the most interesting idea, NOT with "In this episode of [show name]..."
-- 6-8 paragraphs, each 2-4 sentences, flowing naturally from one idea to the next
-- BANNED PHRASES: "In this episode...", "The conversation explores/shifts/turns to...", "The hosts discuss/touch on/delve into...", "They also highlight/emphasize/underscore...", "The episode wraps up with...", "Ultimately, the episode...", "[Person] shares/reveals/explains that...", "broader themes like...", "actionable insights on..."
-- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, underscores, delves, touches on, reflects on, recounts, acknowledges, showcases, illustrates, demonstrates, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
-- BAD PARAGRAPH: "The conversation shifts to AI, where the guest maps out the landscape. He identifies key players like OpenAI, Anthropic, and Google, analyzing their strategies."
-- GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
-
-OTHER RULES:
-- All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), resources
-- keyTopics: 4-6 specific search-query-style phrases with named entities
-- topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
-- quote: Find the single most SHAREABLE line from the transcript - surprising, counterintuitive, provocative, funny, or profound. Must be verbatim. Avoid generic motivational statements. quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
-- guests: Extract guests only (NOT hosts). Use FULL NAME. Empty array if none
-- BOOKS: Include books that are genuinely discussed, recommended, or referenced for their content. Do NOT extract a book if the speaker merely uses the book title as a concept, metaphor, or adjective (e.g., "you need grit" is NOT a reference to Angela Duckworth's "Grit"; "have more range" is NOT about David Epstein's "Range"). Only extract when the actual book, its author, or its thesis/content is specifically discussed
-- resources: Books and purchasable items only. "context" must be 3-5 sentences answering WHO mentioned it, WHY they brought it up, and what SPECIFIC argument it supported. Do NOT describe generically. Empty array ONLY if truly none
-- sponsors: All sponsors/advertisers. Empty array if none`;
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 16384,
-    temperature: 0.7,
-    response_format: { type: "json_object" },
-  });
-
-  const content = completion.choices[0]?.message?.content;
-  if (!content) return null;
-
-  const parsed = JSON.parse(content.trim());
-  let resources: any[] = Array.isArray(parsed.resources) ? parsed.resources : [];
-
-  try {
-    resources = mergeExtractedBooks(
-      resources,
-      await extractBooksFromTranscript(transcript, podcastName, episodeTitle),
-      "[RegenerateRecaps]"
-    );
-  } catch (err) {
-    console.warn(`[RegenerateRecaps] Book post-processing failed for "${episodeTitle}":`, err);
-  }
-
-  const whatHappened = (parsed.whatHappened || "").replace(/\\n\\n/g, "\n\n").replace(/\\n/g, "\n");
-
-  let keyInsights: string[] = [];
-  const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
-  if (pass2Insights.length === 4) {
-    keyInsights = pass2Insights;
-  } else if (Array.isArray(parsed.keyInsights)) {
-    keyInsights = parsed.keyInsights;
-    console.warn(`  Using Pass 1 fallback insights`);
-  }
-
-  return {
-    tldl: parsed.tldl || "",
-    whatHappened,
-    keyInsights,
-    quote: parsed.quote,
-    quoteAttribution: parsed.quoteAttribution,
-    keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
-    topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
-    sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
-    guests: Array.isArray(parsed.guests) ? parsed.guests : [],
-    resources,
-  };
-}
-
 async function run() {
   const targetIds = process.argv.slice(2).map(Number).filter(n => n > 0);
   if (targetIds.length === 0) {
@@ -320,15 +156,21 @@ async function run() {
       );
       if (!tRes.rows[0]?.transcript) { console.log("  ⚠ No transcript, skipping regeneration"); continue; }
 
-      console.log(`  Transcript: ${tRes.rows[0].transcript.length} chars, generating...`);
-      const recap = await generateRecap(tRes.rows[0].transcript, row.podcast_name, row.episode_title, row.show_notes);
-      if (!recap) { console.log("  ✗ Failed"); continue; }
+      const transcript = tRes.rows[0].transcript;
+      console.log(`  Transcript: ${transcript.length} chars, generating...`);
 
-      console.log(`  ✓ ${recap.keyInsights.length} insights, ${recap.guests.length} guests, ${recap.resources.length} resources`);
-      recap.keyInsights.forEach((i, idx) => console.log(`    ${idx + 1}. ${i.slice(0, 140)}`));
+      const parsed = await generateRecapFromTranscript(transcript, row.podcast_name, row.episode_title, row.show_notes);
+      if (!parsed) { console.log("  ✗ Failed"); continue; }
 
-      if (recap.resources.length > 0) {
-        const newBooks = recap.resources.filter((r: any) => r.type === "book" && r.name);
+      const whatHappened = parsed.whatHappened || "";
+      const keyInsights = parsed.keyInsights || [];
+      const finalResources = Array.isArray(parsed.resources) ? parsed.resources : [];
+
+      console.log(`  ✓ ${keyInsights.length} insights, ${(parsed.guests || []).length} guests, ${finalResources.length} resources`);
+      keyInsights.forEach((i: string, idx: number) => console.log(`    ${idx + 1}. ${i.slice(0, 140)}`));
+
+      if (finalResources.length > 0) {
+        const newBooks = finalResources.filter((r: any) => r.type === "book" && r.name);
         if (newBooks.length > 0) {
           console.log(`  Enriching ${newBooks.length} newly generated book(s)...`);
           for (const book of newBooks) {
@@ -343,20 +185,20 @@ async function run() {
           key_topics = $6, topic_contexts = $7, sponsors = $8, guests = $9, resources = $10
         WHERE id = $11
       `, [
-        recap.tldl, recap.whatHappened, recap.keyInsights, recap.quote, recap.quoteAttribution,
-        recap.keyTopics, JSON.stringify(recap.topicContexts),
-        JSON.stringify(recap.sponsors), JSON.stringify(recap.guests), JSON.stringify(recap.resources), id
+        parsed.tldl, whatHappened, keyInsights, parsed.quote, parsed.quoteAttribution,
+        parsed.keyTopics, JSON.stringify(parsed.topicContexts || {}),
+        JSON.stringify(parsed.sponsors || []), JSON.stringify(parsed.guests || []), JSON.stringify(finalResources), id
       ]);
       console.log("  ✓ Saved");
 
       try {
-        await client.query(`DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [row.slug, row.episode_slug]);
         const extractedQuotes = await extractQuotesFromTranscript(
-          tRes.rows[0].transcript, row.podcast_name, row.episode_title,
+          transcript, row.podcast_name, row.episode_title,
           row.hosts || null,
-          recap.guests ? JSON.stringify(recap.guests) : null
+          parsed.guests ? JSON.stringify(parsed.guests) : null
         );
         if (extractedQuotes.length > 0) {
+          await client.query(`DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [row.slug, row.episode_slug]);
           for (let i = 0; i < extractedQuotes.length; i++) {
             const q = extractedQuotes[i];
             await client.query(
@@ -374,4 +216,4 @@ async function run() {
   } finally { client.release(); }
 }
 
-run().catch(console.error).finally(() => process.exit(0));
+run().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); });

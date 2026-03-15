@@ -13,7 +13,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 **Authentication**: Session-based, secure email magic link login.
 **Core Features**:
 - **Pages**: Includes marketing landing, 2-step signup, user dashboards, podcast and episode recap pages, archives, and entity/category directories (Industries, Interests, Roles) with dedicated `/pulse` AI briefings.
-- **AI Integration**: Uses OpenAI (GPT-4o) for a 2-pass recap generation process (full recap + key takeaways) and an episode chat panel (GPT-4o-mini). Curated `topicContexts` ensure consistency in AI-generated insights.
+- **AI Integration**: Uses OpenAI (GPT-4o) for a 2-pass recap generation process (full recap + key takeaways) and an episode chat panel (GPT-4o-mini). Curated `topicContexts` ensure consistency in AI-generated insights. All AI prompt logic lives in `server/recapGenerator.ts` as the single source of truth — `regenerateFullRecaps.ts` and `backgroundRecapGenerator.ts` both import and call shared functions from it.
 - **Email System**: Resend handles email delivery, including scheduled daily recaps. Email templates are hardcoded for consistency.
 - **Newsletter Subscriptions**: Users can subscribe to podcasts, industries, interests, and roles. A quick-subscribe endpoint facilitates account creation and subscription management.
 - **Conversion System**: Utilizes `PageConversionContext` to provide contextual email CTAs (Exit Intent Popup, Inline Email CTA, Sticky Email Bar) across various page types.
