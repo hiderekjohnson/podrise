@@ -517,7 +517,7 @@ export type InsertApiUsageLog = z.infer<typeof insertApiUsageLogSchema>;
 export const advertisers = pgTable("advertisers", {
   id: serial("id").primaryKey(),
   message: text("message").notNull(),
-  link: text("link").notNull(),
+  link: text("link").default(""),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -526,7 +526,7 @@ export const insertAdvertiserSchema = createInsertSchema(advertisers).omit({
   createdAt: true,
 }).extend({
   message: z.string().min(1, "Message is required").max(2000, "Message HTML too long"),
-  link: z.string().url("Must be a valid URL"),
+  link: z.string().optional().default(""),
 });
 
 export type Advertiser = typeof advertisers.$inferSelect;

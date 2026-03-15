@@ -375,30 +375,24 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
                   transition={{ duration: 0.5 }}
                   className="px-6 sm:px-10 pt-8 sm:pt-10 pb-6 sm:pb-8 border-b border-black/[0.04] dark:border-white/[0.06]"
                 >
-                  <div className="flex items-center gap-2.5 mb-5">
+                  <div className="flex items-center gap-2.5 mb-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-sm" data-testid="icon-pulse-brand">
                       <Activity className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-[13px] font-bold uppercase tracking-wider text-primary/70">The Pulse</span>
                   </div>
 
+                  <div className="flex items-center gap-1 text-[13px] text-[#71717A] dark:text-[#A1A1AA] mb-5" data-testid="nav-pulse-context">
+                    <Link href={basePath} className="hover:text-foreground transition-colors">{getCategoryLabel(basePath)}</Link>
+                    <ChevronRightSmall className="w-3 h-3 shrink-0" />
+                    <Link href={`${basePath}/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
+                    <ChevronRightSmall className="w-3 h-3 shrink-0" />
+                    <span className="text-foreground/70 font-medium">The Pulse</span>
+                  </div>
+
                   <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em] mb-3" data-testid="heading-pulse">
                     {pulse.headline}
                   </h1>
-
-                  <time
-                    dateTime={formatDateISO(pulse.publishDate)}
-                    className="flex items-center gap-1.5 text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5"
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    {formatDateLong(pulse.publishDate)}
-                  </time>
-
-                  {pulse.summary && (
-                    <p className="text-[17px] sm:text-[19px] text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed font-medium mb-5" data-testid="text-pulse-summary">
-                      {pulse.summary}
-                    </p>
-                  )}
 
                   <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
                 </motion.header>

@@ -111,11 +111,11 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
                     : `Get free ${name} recaps in your inbox`
                   : `Get the daily ${name.toLowerCase()} ${label}`}
               </h3>
-              <p className="text-[14px] text-muted-foreground mt-1">
-                {isPodcast
-                  ? `A 5-minute recap every time a new episode drops.`
-                  : `Key insights from top podcasts, synthesized daily.`}
-              </p>
+              {isPodcast && (
+                <p className="text-[14px] text-muted-foreground mt-1">
+                  A 5-minute recap every time a new episode drops.
+                </p>
+              )}
             </div>
           </div>
           <form onSubmit={handleSubmit} className="flex gap-2 mt-4" data-testid="form-inline-cta">

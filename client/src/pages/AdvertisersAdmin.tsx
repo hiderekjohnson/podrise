@@ -128,7 +128,6 @@ export default function AdvertisersAdmin() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [messageHtml, setMessageHtml] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
   const MAX_CHARS = 300;
 
   const charCount = stripHtml(messageHtml).length;
@@ -138,7 +137,7 @@ export default function AdvertisersAdmin() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { message: string; link: string }) =>
+    mutationFn: (data: { message: string }) =>
       apiRequest("POST", "/api/admin/advertisers", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/advertisers"] });
@@ -151,7 +150,7 @@ export default function AdvertisersAdmin() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { message: string; link: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: { message: string } }) =>
       apiRequest("PATCH", `/api/admin/advertisers/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/advertisers"] });
@@ -178,13 +177,11 @@ export default function AdvertisersAdmin() {
     setShowForm(false);
     setEditingId(null);
     setMessageHtml("");
-    setLinkUrl("");
   };
 
   const startEdit = (ad: Advertiser) => {
     setEditingId(ad.id);
     setMessageHtml(ad.message);
-    setLinkUrl(ad.link);
     setShowForm(true);
   };
 
@@ -198,18 +195,7 @@ export default function AdvertisersAdmin() {
       toast({ title: "Validation", description: `Message exceeds ${MAX_CHARS} characters.`, variant: "destructive" });
       return;
     }
-    if (!linkUrl.trim()) {
-      toast({ title: "Validation", description: "Link URL is required.", variant: "destructive" });
-      return;
-    }
-    try {
-      new URL(linkUrl);
-    } catch {
-      toast({ title: "Validation", description: "Please enter a valid URL.", variant: "destructive" });
-      return;
-    }
-
-    const payload = { message: messageHtml, link: linkUrl };
+    const payload = { message: messageHtml };
     if (editingId) {
       updateMutation.mutate({ id: editingId, data: payload });
     } else {
@@ -261,24 +247,11 @@ export default function AdvertisersAdmin() {
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
-              Link URL
-            </label>
-            <input
-              type="url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="https://example.com"
-              className="w-full h-10 px-3 bg-white dark:bg-black/20 border border-black/[0.08] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-              data-testid="input-advertiser-link"
-            />
-          </div>
 
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={handleSubmit}
-              disabled={isSaving || charCount > MAX_CHARS || charCount === 0 || !linkUrl.trim()}
+              disabled={isSaving || charCount > MAX_CHARS || charCount === 0}
               className="px-4 py-2 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
               data-testid="button-save-advertiser"
             >
@@ -323,18 +296,20 @@ export default function AdvertisersAdmin() {
                   dangerouslySetInnerHTML={{ __html: ad.message }}
                   data-testid={`text-advertiser-message-${ad.id}`}
                 />
-                <div className="flex items-center gap-1.5 mt-2">
-                  <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
-                  <a
-                    href={ad.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline truncate"
-                    data-testid={`link-advertiser-url-${ad.id}`}
-                  >
-                    {ad.link}
-                  </a>
-                </div>
+                {ad.link && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
+                    <a
+                      href={ad.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline truncate"
+                      data-testid={`link-advertiser-url-${ad.id}`}
+                    >
+                      {ad.link}
+                    </a>
+                  </div>
+                )}
                 {ad.createdAt && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Created {new Date(ad.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
