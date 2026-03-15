@@ -1,0 +1,22 @@
+Let’s add the following to /updates and maybe make each tile feel a little more substantial like a blog about what we’re building. And on jan 1 say we launched the company, then as we continue to add new features, put the ones below more towards the top but adjust the dates for every new feature so it seems like every few days we’re deploying something new since jan 1. And be sure when writing about each feature, this is for the users, how will this make the users use of the site better, or increase the amount and quality of knowledge that they’ll be able to pull out of podcasts.
+
+
+	1	1	Shop page (/shop) — A whole product discovery page showing tools, products, and services recommended by podcast hosts. Has filtering by podcast, category, search, and Amazon links. This is a big feature with no changelog entry.
+	2	Trends / Discovery Radar (/trends) — Surfaces the fastest-rising people, companies, and topics across podcasts with momentum scores and trend badges. Not in the changelog.
+	3	Topic Pulse pages — AI-synthesized daily intelligence briefings per topic (e.g., "AI Pulse") with source episode links and archives. Not in the changelog.
+	4	Advertise page (/advertise) — A full page explaining ad formats, targeting options, and a contact form for advertisers. Not in the changelog.
+	5	Enterprise page (/enterprise) — Positioned for teams (VC, consulting, PR) with SSO, Slack, and custom briefings. Not in the changelog.
+	6	Podcaster claim flow (/podcaster/claim) — Podcasters can actually claim and verify their shows, set custom bylines, and manage sponsors from a dashboard. The Jan 27 entry covers the "we heart podcasters" info page, but not this actual tool.
+	7	Mobile layout improvements — Recent commits show significant mobile responsiveness work. Not in the changelog.
+
+We added new search functionality for the bookstore to search books by podcast
+
+We added industries
+We added topics
+We aded roles (lets make each one of these a new feature)
+
+And for each one of these we added a The Pulse to sign up to get updates about that one industry, topic or role.
+
+Say we removed sponsored ads through an ai algo from the shopping functionality, sorry AG1 haha
+
+Make sure for each of these to link to examples or the page for internal linking seo
