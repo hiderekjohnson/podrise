@@ -348,42 +348,45 @@ async function generateKeyInsightsFromRecap(
   episodeTitle: string,
 ): Promise<string[]> {
   console.log(`[RecapGenerator] Pass 2: Generating key takeaways from recap for "${episodeTitle}"...`);
-  const prompt = `You write the "Key Takeaways" section for a podcast recap site. Each takeaway is a mini-story that makes the reader feel like they learned something worth sharing.
+  const prompt = `You write the "Key Takeaways" section for a podcast recap site. Each takeaway delivers a concrete fact or insight the reader didn't know before.
 
-Your reader will never listen to this episode. These 4 takeaways are the only thing they'll read. Make each one count.
+Your reader will never listen to this episode. These 4 takeaways are the only thing they'll read. Make each one deliver real knowledge.
 
 Episode: "${episodeTitle}" from ${podcastName}
 
 RECAP:
 ${recap}
 
-THE FORMULA FOR A GREAT TAKEAWAY:
-1. Open with the most surprising or specific fact (a number, a name, a comparison, a contradiction)
-2. Add the "why" or "how" - the mechanism, the story, the context that makes it click
-3. Land on a punchline - the twist, the implication, the "here's why this matters to you"
-
-Each takeaway should be 2-3 sentences. It should read like something you'd text a smart friend starting with "dude, did you know..."
-
-WHAT MAKES THEM GREAT:
-- They tell a STORY, not state a fact. "Swiffer is a $5B brand while Clorox's ReadyMop does a few hundred million - and the products are nearly identical" is a story. "A good name is important for brand success" is a fact.
-- They have a TWIST or TENSION. Something counterintuitive, ironic, or unexpected.
-- They include at least one SPECIFIC detail (a dollar amount, a percentage, a company name, a mechanism).
-- They stand completely alone - no "in this episode" or "the guest explained" framing needed.
+WHAT MAKES A GREAT TAKEAWAY:
+- It delivers a SPECIFIC FACT the reader can walk away with. A number, a mechanism, a strategy, a company name, a concrete result.
+- It is 2-3 sentences of straight-to-the-point information. No hooks, no setup, no "here's the twist" framing.
+- It stands completely alone - no "in this episode" or "the guest explained" framing needed.
+- It reads like a briefing note, not a conversation. Professional, direct, informative.
 
 NEVER start a takeaway with a person's name. Lead with the insight, not the attribution.
 
+TONE RULES - CRITICAL:
+- Write in a NEUTRAL, INFORMATIVE tone. Like a news brief or research summary.
+- NEVER use conversational hooks: "Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out...", "The kicker?", "The takeaway?", "The strategy?", "The result?", "The secret?", "What's wild is..."
+- NEVER address the reader with "you" or use rhetorical questions
+- NEVER use exclamation marks
+- NEVER editorialize with "proving that...", "showing that...", "a reminder that..."
+
 EXAMPLES OF GREAT TAKEAWAYS:
-- "Rejected by every Ivy League school including Stanford despite a 4.0 GPA and running a multimillion-dollar company, Zach turned his setback into a viral success on Twitter. The unexpected twist connected him with influential figures like the Mayor of Miami, proving that sometimes failure is the best networking tool."
-- "Cal AI's remarkable $5.7M revenue in January was largely driven by influencer marketing and performance ads. The strategy? Partner with fitness creators whose audiences already crave what you're selling, and pay based on the results, not just the exposure."
-- "After an undervalued initial offer from MyFitnessPal, Zach switched gears and built Cal AI as a long-term, cash-flowing business rather than chasing a quick exit. This increased its appeal to buyers, leading MyFitnessPal to re-engage and acquire the company at a higher valuation."
+- "Cal AI hit $30M in annual revenue before its founder turned 20, primarily through performance-based influencer marketing rather than traditional ads. The company paid fitness creators per conversion, not per post, which kept customer acquisition costs low while scaling rapidly."
+- "Seagrass captures carbon 35 times faster than rainforests, but it's disappearing at a rate of about 7% per year globally due to coastal development and pollution. Ocean-based carbon sequestration may be more impactful than land-based reforestation for climate goals."
+- "SailDrone deploys autonomous sailboats that stay at sea for months collecting ocean data for NOAA and the U.S. Navy. The company has mapped more of the ocean floor than any organization in history, covering areas that manned vessels cannot economically reach."
 
 EXAMPLES OF BAD TAKEAWAYS (never write these):
-- "David's naming strategy hinges on the first 90 to 120 days." (clinical, no story)
+- "Dude, did you know seagrass captures carbon 35 times more effectively than rainforests?" (conversational hook)
+- "Here's a twist: while space gets the glamour, ocean defense is the real deal." (hook + editorial)
+- "Imagine being 19 and selling your AI app to MyFitnessPal after being rejected by Ivy League schools!" (hook + exclamation)
+- "Zach's decision-making secret? He used expected value." (rhetorical question hook)
 - "Sound symbolism plays a vital role in brand naming." (vague, no specifics)
-- "Legal constraints force creativity in naming, with 80% eliminated." (just states a fact, no twist)
 - "Zach's journey shows the importance of perseverance." (generic motivational filler)
 
 BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, reveals, showcases, illustrates, demonstrates, underscores, stresses, crucial, critical, essential, pivotal, important, innovative, groundbreaking, game-changing, leveraging, revolutionizing
+BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "The takeaway", "The strategy?", "The secret?", "proving that", "showing that", "a reminder that"
 
 Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1", "takeaway2", "takeaway3", "takeaway4"]}`;
 
@@ -448,7 +451,7 @@ Respond ONLY with a valid JSON object (no markdown, no code fences):
     {"name": "Resource Name", "type": "book|tool|product", "description": "Brief description of the item.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "3-5 sentences: WHO mentioned it, WHY they brought it up, what SPECIFIC argument or story it supported."}
   ],
   "products": [
-    {"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "8-12 sentences VERBATIM from transcript showing natural endorsement", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}
+    {"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "3-5 sentence editorial summary of why they use/recommend it", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}
   ],
   "extractedQuotes": [
     {"speakerName": "Full Name", "speakerRole": "Their title (e.g. CEO of Acme)", "quoteText": "Verbatim quote from transcript", "context": "On why...", "quoteType": "Hero Quote|Hot Take|Prediction|Spicy|Tweetable"}
@@ -470,9 +473,9 @@ RULES FOR whatHappened (THE RECAP):
 
 OTHER RULES:
 - All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), keyInsights (exactly 4), extractedQuotes (3-5), resources (search the ENTIRE transcript for every book mentioned)
-- BOOKS ARE CRITICAL: Before writing resources, scan the FULL transcript word by word for ANY book title, author name, or phrase like "this book", "read this", "his book", "her book", "the book called", "a book by", "I read", "have you read", "recommended reading". Even if a book is mentioned once in passing, include it. Missing a book is a serious error
+- BOOKS ARE CRITICAL: Before writing resources, scan the FULL transcript for genuine book references. Include books that are discussed, recommended, or referenced for their content. IMPORTANT: Do NOT extract a book if the speaker merely uses the book title as a concept, metaphor, or adjective (e.g., "you need grit" is NOT a reference to Angela Duckworth's book "Grit"; "have more range" is NOT a reference to David Epstein's "Range"). Only extract when the actual book, its author, or its thesis/content is specifically discussed
 - quote: Find the single most SHAREABLE line from the transcript. Look for something surprising, counterintuitive, provocative, funny, or profound - the kind of line someone would screenshot and post. It MUST be verbatim from the transcript. Prefer lines with a strong point of view, a vivid metaphor, or a surprising claim. Avoid generic motivational statements like "believe in yourself" or "hard work pays off." The quote should make someone curious about the episode. BAD: "I think self-belief has gotten me so far." GOOD: "Six out of ten people would choose a completely different career if they could start over. Six out of ten." quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
-- keyInsights: Exactly 4 standalone insights. Each must teach the reader something specific they did not know. 2-3 tight sentences that could be read completely out of context and still be worth reading. Include concrete details (a name, a number, a company, a mechanism). Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong." BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing. BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X". BAD: "Bill Gurley discusses the transformative impact of AI on the workplace." BAD: "Scaling a business successfully often comes down to influencer marketing." GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice." GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads. The playbook was simple - find creators whose audiences already want what you sell, and pay per result, not per post."
+- keyInsights: Exactly 4 standalone insights. Each must teach the reader something specific they did not know. 2-3 tight sentences of straight-to-the-point information. Include concrete details (a name, a number, a company, a mechanism). NEVER start with a person's name. Write in a NEUTRAL, INFORMATIVE tone like a news brief. NEVER use conversational hooks ("Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out..."). NEVER address the reader with "you" or rhetorical questions. NEVER use exclamation marks. NEVER editorialize with "proving that...", "showing that...", "a reminder that...". BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing. BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X". BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "proving that", "showing that", "a reminder that". BAD: "Dude, did you know a $500,000 ad with Mr. Beast initially tanked?" BAD: "Here's a twist: ocean defense is the real deal." BAD: "Imagine being 19 and selling your AI app!" GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice." GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads. The playbook was simple - find creators whose audiences already want what you sell, and pay per result, not per post."
 - extractedQuotes: 3-5 verbatim quotes from the transcript. QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. If it could be said in any conversation about any topic, it is NOT a quote worth extracting.
   SPEAKER IDENTIFICATION IS MANDATORY: "Unknown" is NEVER acceptable as a speakerName. Use context clues: who was just introduced, who is the guest vs host, who has the expertise being discussed, whose perspective is being shared. The podcast hosts are mentioned in the episode metadata - any non-host speaker is likely the guest. If the episode title names a person, most quotes likely come from them.
   Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim from transcript. context must be a short phrase starting with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (not just "Guest" or "Episode Host" - use their actual title like "CEO of Acme" or "Venture Capitalist").
@@ -489,7 +492,7 @@ OTHER RULES:
 - topicContexts: DO NOT create slugs from keyTopics. Instead, identify which of these predefined broad categories apply to this episode, and write a 1-2 sentence episode-specific description for each relevant one. ONLY use these exact slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories that are genuinely discussed in the episode (typically 3-6). Reference specific points, people, or perspectives from this episode. Write like a sharp analyst, not generic marketing copy
 - sponsors: Extract ALL sponsors/advertisers. Include coupon codes and URLs when mentioned. Return empty array [] if none
 - guests: Extract ALL guests (NOT regular hosts). CRITICAL: Use FULL NAME (first AND last). Search the entire transcript for last names. A guest is anyone who is interviewed, joins the conversation, or is introduced on the show - even if they only appear briefly. Look for introductions like "joining us", "our guest", "we have", "[Name] is here", or any person who speaks who is not a regular host. If the episode title mentions a person by name or title (e.g. "$450M VC", "$100B Founder"), that person is almost certainly a guest - find their full name. Return empty array [] ONLY if the episode truly has no guests (e.g. hosts-only discussion episodes)
-- products: Extract GENUINE personal endorsements of products, services, tools, apps, experiences — NOT sponsors/ads. The speaker must have personal experience ("I use this", "I bought one", "Game changer for me"). SKIP anything near "sponsored by", "use code", "promo code", "brought to you by", "quick break". SKIP books (tracked in resources), stocks/crypto, social media platforms, generic categories without brand names. 0-5 items per episode is normal. Context must be 8-12 sentences VERBATIM from transcript
+- products: Extract GENUINE personal endorsements of products, services, tools, apps, experiences — NOT sponsors/ads. The speaker must have personal experience ("I use this", "I bought one", "Game changer for me"). SKIP anything near "sponsored by", "use code", "promo code", "brought to you by", "quick break". SKIP books (tracked in resources), stocks/crypto, social media platforms, generic categories without brand names. 0-5 items per episode is normal. Context must be 3-5 sentences summarizing WHY they use/recommend it, what problem it solves, and what makes it stand out - written as an editorial summary, NOT a raw transcript pull. BAD context: "Yeah, yeah. My friend's got a very, very interesting startup called Wild Type, which is like sustainable sushi grade salmon." (raw transcript). GOOD context: "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing or farming. The hosts were drawn to it as a solution to overfishing and ocean ecosystem damage, noting that cultivated seafood could let people enjoy sushi without the environmental cost. The company's first product is already being served at select restaurants."
 - resources: Extract ALL books mentioned - even briefly. Include full title and author name. THE CONTEXT FIELD IS THE MOST IMPORTANT PART OF EVERY BOOK ENTRY. Each context MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail. MINIMUM 3 full sentences per book - one-sentence contexts are a SERIOUS ERROR. It must answer: (1) WHO specifically mentioned this book (full name), (2) WHY they brought it up - what argument they were making, (3) What SPECIFIC story, anecdote, statistic, or claim from the book they referenced.
   NEVER start context with "Referenced to...", "Mentioned as...", "Discussed in the context of...", "Highlighted as...", "Brought up to...". ALWAYS start with a speaker's full name.
   BAD context (too short, generic): "Mentioned as a recommended read."
@@ -657,7 +660,7 @@ Episode: "${episodeTitle}"
 For this segment, extract:
 1. KEY FACTS & INSIGHTS: Every specific claim, number, statistic, story, or insight. Include the actual substance — not "they discussed AI" but "GPT-4 costs 10x less than GPT-3 per token and processes images"
 2. BEST QUOTES: Memorable, surprising, or shareable lines — copy them VERBATIM with speaker attribution (use full name, NEVER "Unknown"). Each quote must be at least 15 words and contain a specific claim, opinion, number, or insight. SKIP conversational filler like "That's amazing", compliments like "Your biggest skill is your audacity", and reactions like "I'm impressed". If the episode title names a person, that person is likely the guest — attribute their quotes to them by name
-3. BOOKS MENTIONED: Any book title, author reference, or "read this" mention — even in passing. For each book, extract rich context: WHO mentioned it, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported
+3. BOOKS MENTIONED: Books that are genuinely discussed, recommended, or referenced for their content. For each book, extract rich context: WHO mentioned it, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported. CRITICAL: Do NOT extract a book if the speaker is merely using the book's title as a concept, metaphor, or adjective rather than actually talking about the book itself. For example, if someone says "you need grit to succeed" they are using the word "grit" as a concept, NOT recommending Angela Duckworth's book. Only extract it if they specifically reference the book, the author, or the book's content/thesis
 4. GUESTS: Anyone introduced as a guest, interviewee, or joining the show — full name and title if mentioned
 5. SPONSORS: Any ad reads, sponsor mentions, coupon codes, or "brought to you by" segments
 6. RESOURCES: Tools, products, services, websites, companies discussed substantively (not just name-dropped)
@@ -668,7 +671,7 @@ PRODUCT ENDORSEMENT RULES:
 - NEVER extract items that are clearly ads/sponsors — look for phrases like "this episode is sponsored by", "use code", "promo code", "brought to you by", "quick word from our sponsor", "let's take a quick break", "special offer", "free trial"
 - NEVER extract books (tracked separately), stocks/ETFs/crypto, social media platforms, or companies discussed only as business cases
 - NEVER extract generic categories without specific brand names ("standing desks" vs "FlexiSpot standing desk")
-- The context field is critical: copy 8-12 sentences of VERBATIM transcript around the mention
+- The context field must be 3-5 sentences summarizing WHY they use/recommend it, what problem it solves, and what makes it stand out. Write as an editorial summary, NOT a raw transcript pull. Do not copy verbatim transcript text - rewrite it cleanly.
 - Categories: "physical_product" (tangible items), "service_or_tool" (digital/SaaS/apps), "experience" (places, events, memberships)
 - 0-5 genuine products per segment is normal. Many segments will have ZERO — that's fine.
 
@@ -680,7 +683,7 @@ Respond with JSON:
   "guests": [{"name": "Full Name", "title": "Their title/role"}],
   "sponsors": [{"name": "Sponsor", "description": "What they do", "code": "COUPON or null", "url": "url or null"}],
   "resources": [{"name": "Resource Name", "type": "tool|product|website", "description": "What it is", "url": "url or null", "context": "How it was mentioned"}],
-  "products": [{"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "8-12 sentences VERBATIM from transcript showing natural endorsement", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}]
+  "products": [{"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "3-5 sentence editorial summary of why they use/recommend it", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}]
 }
 
 Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much than miss something. Every paragraph of the transcript should yield at least one note.`;
@@ -820,12 +823,20 @@ RULES FOR whatHappened (THE RECAP - MOST IMPORTANT OUTPUT):
 
 OTHER RULES:
 - quote: Pick the most SHAREABLE line from the quotes list above. Something surprising, counterintuitive, or profound
-- keyInsights: THE MOST IMPORTANT FIELD. Exactly 4 standalone insights a reader walks away having LEARNED. Each must be 2-3 tight sentences that could be texted to a smart friend with zero context and they would find it genuinely interesting. Each insight must contain at least one concrete detail (a specific number, company name, dollar amount, person, mechanism, or framework). The insight must have a POINT OF VIEW or TENSION - not "X is important" but "X works because of Y, which most people get wrong." NEVER start an insight with a person's name followed by a verb. NEVER describe what someone said - instead deliver the actual knowledge. LITMUS TEST: "If I removed the podcast name and episode title, would this insight still be worth reading on its own?" If not, rewrite it.
+- keyInsights: THE MOST IMPORTANT FIELD. Exactly 4 standalone insights a reader walks away having LEARNED. Each must be 2-3 tight sentences of straight-to-the-point information. Each insight must contain at least one concrete detail (a specific number, company name, dollar amount, person, mechanism, or framework). NEVER start an insight with a person's name followed by a verb. NEVER describe what someone said - instead deliver the actual knowledge. LITMUS TEST: "If I removed the podcast name and episode title, would this insight still be worth reading on its own?" If not, rewrite it.
+  TONE RULES - CRITICAL:
+  - Write in a NEUTRAL, INFORMATIVE tone. Like a news brief or research summary.
+  - NEVER use conversational hooks: "Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out...", "The kicker?", "The takeaway?", "The strategy?", "The result?", "The secret?", "What's wild is..."
+  - NEVER address the reader with "you" or use rhetorical questions
+  - NEVER use exclamation marks
+  - NEVER editorialize with "proving that...", "showing that...", "a reminder that...", "it's closer than you think", "it's not what you'd expect"
   BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing, crucial, critical, essential, important
   BANNED PATTERNS: "[Person] [verb] [topic]" (NEVER start with a speaker name), "The importance of X", "[Company] is [verb]ing [industry]", "X is crucial/critical/essential for Y"
-  BAD: "David's three-step naming formula focuses on capturing attention, holding it, and ensuring the name is surprising yet memorable." (just describes what was said)
-  BAD: "A company's name is its most enduring asset, used more frequently than any other brand element, making it crucial for long-term success." (generic, no specifics, uses 'crucial')
-  BAD: "Trademarking and legal constraints are critical in the naming process." (vague, no substance)
+  BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "The takeaway", "The strategy?", "The secret?", "proving that", "showing that", "a reminder that"
+  BAD: "Dude, did you know a $500,000 ad with Mr. Beast initially tanked?" (conversational hook)
+  BAD: "Here's a twist: while space gets the glamour, ocean defense is the real deal." (hook + editorial)
+  BAD: "Imagine being 19 and selling your AI app after being rejected by Ivy League schools!" (hook + exclamation)
+  BAD: "Lab-grown seafood could be the future - it's closer than you think." (editorial punchline)
   GOOD: "Swiffer is a $5 billion brand. Clorox's Ready Mop does a couple hundred million. The products are nearly identical - the difference is almost entirely the name. The team behind Swiffer generated over 2,000 candidate names before landing on one that was short, surprising, and sounded like the motion of mopping."
   GOOD: "The most counterintuitive part of naming a billion-dollar brand is that legal constraints actually help. Roughly 80% of candidate names get killed by trademark conflicts, which forces the team toward stranger, more distinctive options - exactly the kind that tend to win in the market."
 - extractedQuotes: 3-5 quotes from the BEST QUOTES above. QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. Conversational filler, compliments, and reactions are NOT quotes.
@@ -835,7 +846,7 @@ OTHER RULES:
   GOOD QUOTES: Lines with specific numbers, contrarian claims, vivid metaphors, or predictions that someone would screenshot and share
 - keyTopics: 4-6 specific phrases that read like search queries with specific names
 - topicContexts: Use ONLY these slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories genuinely discussed (typically 3-6)
-- resources: You MUST include EVERY book from the === BOOKS MENTIONED === section above. Dropping a book is a CRITICAL ERROR. Each book's context MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail. It must answer THREE questions: (1) WHO specifically mentioned this book (use their full name), (2) WHY did they bring it up - what argument were they making, (3) What SPECIFIC story, anecdote, statistic, or claim from the book did they reference.
+- resources: Include books from the === BOOKS MENTIONED === section above ONLY if the speaker genuinely discussed the book, its author, or its content. Do NOT include a book if the title was merely used as a concept, metaphor, or adjective (e.g., "you need grit" is using the word, not referencing Angela Duckworth's book; "have more range" is a general concept, not a reference to David Epstein's "Range"). Each book's context MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail. It must answer THREE questions: (1) WHO specifically mentioned this book (use their full name), (2) WHY did they bring it up - what argument were they making, (3) What SPECIFIC story, anecdote, statistic, or claim from the book did they reference.
   CONTEXT QUALITY RULES:
   - MINIMUM 3 full sentences per book. One-sentence contexts are a SERIOUS ERROR.
   - NEVER start with "Referenced to...", "Mentioned as...", "Discussed in the context of...", "Highlighted as...", "Brought up to..."
@@ -954,12 +965,17 @@ Episode: "${episodeTitle}"
 Transcript:
 ${transcript}
 
-Find ALL books mentioned in any context:
+Find books that are GENUINELY discussed, recommended, or referenced for their content:
 - Books explicitly recommended ("you should read...", "I loved this book...")
 - Books quoted or referenced ("as [author] wrote in [book]...")
-- Books discussed at length or briefly
-- Books mentioned in passing ("that reminds me of [book]...")
-- Textbooks, memoirs, novels, business books, self-help - any published book
+- Books discussed at length or briefly for their actual content/thesis
+- Books mentioned in passing but clearly referring to the actual book ("that reminds me of [book]...")
+
+CRITICAL: Do NOT extract a book if the speaker is merely using the book's title as a common word, concept, metaphor, or adjective. Examples:
+- "you need grit to succeed" = using "grit" as a common word, NOT a reference to Angela Duckworth's book
+- "have more range in your skills" = using "range" as a common word, NOT a reference to David Epstein's book
+- "that takes mastery" = using "mastery" as a common word, NOT a reference to Robert Greene's book
+ONLY extract when the speaker specifically references the book itself, its author, or its thesis/content
 
 For each book, provide:
 - name: The exact book title
@@ -976,7 +992,8 @@ Respond ONLY with a valid JSON object:
 }
 
 RULES:
-- Include EVERY book mentioned, no matter how briefly
+- Include books that are genuinely discussed or referenced for their content
+- Do NOT extract books where the title is used as a common word/concept/adjective rather than a reference to the actual book
 - Do NOT include podcasts, newsletters, websites, apps, SaaS products, or abstract concepts
 - Do NOT fabricate books that weren't mentioned in the transcript
 - If no books are mentioned, return {"books": []}

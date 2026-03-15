@@ -121,30 +121,47 @@ async function enrichBook(client: any, bookName: string, author: string | null, 
 
 async function generateKeyInsightsFromRecap(recap: string, podcastName: string, episodeTitle: string): Promise<string[]> {
   console.log(`  Pass 2: Generating key takeaways from recap...`);
-  const prompt = `You extract the 4 best standalone insights from a podcast episode recap.
+  const prompt = `You write the "Key Takeaways" section for a podcast recap site. Each takeaway delivers a concrete fact or insight the reader didn't know before.
 
-Your goal: a reader who never listens to the episode walks away having actually learned something from each takeaway.
+Your reader will never listen to this episode. These 4 takeaways are the only thing they'll read. Make each one deliver real knowledge.
 
-Here is the recap for "${episodeTitle}" from ${podcastName}:
+Episode: "${episodeTitle}" from ${podcastName}
 
+RECAP:
 ${recap}
 
-Write exactly 4 key takeaways. Each must:
-- Teach the reader something specific they did not know
-- Be 2-3 tight sentences that could be read completely out of context and still be worth reading
-- Include concrete details (a name, a number, a company, a mechanism) woven into the insight naturally
-- Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong"
-- Be specific to THIS episode - if you swapped in a different episode title it should not make sense
+WHAT MAKES A GREAT TAKEAWAY:
+- It delivers a SPECIFIC FACT the reader can walk away with. A number, a mechanism, a strategy, a company name, a concrete result.
+- It is 2-3 sentences of straight-to-the-point information. No hooks, no setup, no "here's the twist" framing.
+- It stands completely alone - no "in this episode" or "the guest explained" framing needed.
+- It reads like a briefing note, not a conversation. Professional, direct, informative.
 
-BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
-BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X", "[Company] is [verb]ing [industry] by [marketing speak]"
+NEVER start a takeaway with a person's name. Lead with the insight, not the attribution.
 
-LITMUS TEST: "If I texted this to a smart friend with zero context, would they find it interesting?" If not, rewrite.
+TONE RULES - CRITICAL:
+- Write in a NEUTRAL, INFORMATIVE tone. Like a news brief or research summary.
+- NEVER use conversational hooks: "Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out...", "The kicker?", "The takeaway?", "The strategy?", "The result?", "The secret?", "What's wild is..."
+- NEVER address the reader with "you" or use rhetorical questions
+- NEVER use exclamation marks
+- NEVER editorialize with "proving that...", "showing that...", "a reminder that..."
 
-BAD: "Bill Gurley discusses the transformative impact of AI on the workplace."
-GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice."
+EXAMPLES OF GREAT TAKEAWAYS:
+- "Cal AI hit $30M in annual revenue before its founder turned 20, primarily through performance-based influencer marketing rather than traditional ads. The company paid fitness creators per conversion, not per post, which kept customer acquisition costs low while scaling rapidly."
+- "Seagrass captures carbon 35 times faster than rainforests, but it's disappearing at a rate of about 7% per year globally due to coastal development and pollution. Ocean-based carbon sequestration may be more impactful than land-based reforestation for climate goals."
+- "SailDrone deploys autonomous sailboats that stay at sea for months collecting ocean data for NOAA and the U.S. Navy. The company has mapped more of the ocean floor than any organization in history, covering areas that manned vessels cannot economically reach."
 
-Respond ONLY with a JSON object: {"keyInsights": ["insight1", "insight2", "insight3", "insight4"]}`;
+EXAMPLES OF BAD TAKEAWAYS (never write these):
+- "Dude, did you know seagrass captures carbon 35 times more effectively than rainforests?" (conversational hook)
+- "Here's a twist: while space gets the glamour, ocean defense is the real deal." (hook + editorial)
+- "Imagine being 19 and selling your AI app to MyFitnessPal after being rejected by Ivy League schools!" (hook + exclamation)
+- "Zach's decision-making secret? He used expected value." (rhetorical question hook)
+- "Sound symbolism plays a vital role in brand naming." (vague, no specifics)
+- "Zach's journey shows the importance of perseverance." (generic motivational filler)
+
+BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, reveals, showcases, illustrates, demonstrates, underscores, stresses, crucial, critical, essential, pivotal, important, innovative, groundbreaking, game-changing, leveraging, revolutionizing
+BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "The takeaway", "The strategy?", "The secret?", "proving that", "showing that", "a reminder that"
+
+Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1", "takeaway2", "takeaway3", "takeaway4"]}`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -212,8 +229,8 @@ OTHER RULES:
 - topicContexts: Use ONLY these slugs: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Write episode-specific descriptions for relevant ones (3-6)
 - quote: Find the single most SHAREABLE line from the transcript - surprising, counterintuitive, provocative, funny, or profound. Must be verbatim. Avoid generic motivational statements. quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
 - guests: Extract guests only (NOT hosts). Use FULL NAME. Empty array if none
-- BOOKS ARE CRITICAL: Scan the FULL transcript for ANY book mention. Missing a book is a serious error
-- resources: Books and purchasable items only. "context" must answer why this book was mentioned and what argument it supported. Do NOT describe generically. Empty array ONLY if truly none
+- BOOKS: Include books that are genuinely discussed, recommended, or referenced for their content. Do NOT extract a book if the speaker merely uses the book title as a concept, metaphor, or adjective (e.g., "you need grit" is NOT a reference to Angela Duckworth's "Grit"; "have more range" is NOT about David Epstein's "Range"). Only extract when the actual book, its author, or its thesis/content is specifically discussed
+- resources: Books and purchasable items only. "context" must be 3-5 sentences answering WHO mentioned it, WHY they brought it up, and what SPECIFIC argument it supported. Do NOT describe generically. Empty array ONLY if truly none
 - sponsors: All sponsors/advertisers. Empty array if none`;
 
   const completion = await openai.chat.completions.create({

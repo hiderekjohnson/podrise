@@ -8951,18 +8951,11 @@ DO NOT EXTRACT:
 - Medications, weapons, alcohol, or heavily regulated items
 
 CONTEXT REQUIREMENT — THIS IS THE MOST IMPORTANT FIELD:
-For the "context" field, you MUST provide a VERY LONG direct quote from the transcript — at least 8-12 full sentences. Copy a large block of the surrounding transcript verbatim. The human reviewer needs to read the FULL conversation flow to judge if this is genuine. Include:
-- How the topic came up (what were they talking about before?)
-- The complete discussion of the product/service/experience
-- What they said after (did they move on naturally or transition back from an ad break?)
+For the "context" field, write a 3-5 sentence editorial summary of WHY they use or recommend this product, what problem it solves, and what makes it stand out. Do NOT copy raw transcript text. Rewrite it as a clean, professional summary that a reader can understand without hearing the episode.
 
-The context should be so long that a reader feels like they listened to that part of the podcast. When in doubt, include MORE transcript, not less. We'd rather have too much context than too little.
+BAD context (raw transcript copy): "Yeah, yeah. My friend's got a very, very interesting startup called Wild Type, which is like sustainable sushi grade salmon. So basically that's like cultivated seafood."
 
-BAD context (way too short — NEVER do this): "I can see the clients' whole history: calls, support tickets, emails"
-
-STILL TOO SHORT (this is NOT enough): "We were talking about scaling ops and Sam goes 'dude just get a CRM.' So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails."
-
-MINIMUM ACCEPTABLE LENGTH: "So we were talking about how hard it is to keep track of everything when you're scaling a team, right? And Sam goes 'dude just get a CRM, we wasted like six months trying to do it with spreadsheets.' So we started using this CRM last year and honestly it changed how we run support. I can see the clients' whole history: calls, support tickets, emails, and here's a task from three days ago I totally missed. Before that we were using spreadsheets like idiots. It's like forty bucks a month, totally worth it. The onboarding took maybe two hours and our team was up and running. And then the cool part is it integrates with Slack so you get pinged when a deal moves stages. Sam was saying his close rate went up like 15% just from the follow-up reminders alone. Anyway, so that's been a game changer for us on the ops side. But going back to what you were saying about hiring..."
+GOOD context (editorial summary): "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing or farming. The hosts were drawn to it as a solution to overfishing and ocean ecosystem damage, noting that cultivated seafood could let consumers enjoy sushi without the ecological cost. The company's first product is already being served at select restaurants."
 
 QUALITY BAR: We want 0-5 high-quality items per episode across ALL categories. Many episodes will have ZERO qualifying items — that's perfectly fine. Only extract items you're confident are genuine endorsements, not ads.
 
@@ -8971,7 +8964,7 @@ For each qualifying item, return:
 - company: the company/brand behind it
 - description: 1 sentence explaining what it is and why it's interesting
 - purchaseUrl: the best URL to buy/visit (prefer Amazon for physical products)
-- context: 8-12 sentence VERBATIM TRANSCRIPT QUOTE — copy a large block of the conversation. Must include how the topic came up, the full product discussion, and what was said after. The longer the better. This is the most important field.
+- context: 3-5 sentence editorial summary of why they use/recommend it, what problem it solves, and what makes it stand out. Written as a professional summary, not raw transcript.
 - mentionType: "recommendation" | "personal_use"
 - category: "physical_product" | "service_or_tool" | "experience"
 
@@ -9001,7 +8994,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). For the context field, copy 8-12 sentences of VERBATIM transcript — include how the topic came up, the full discussion, and what was said after. The longer the context the better.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). For the context field, write a 3-5 sentence editorial summary of WHY they use/recommend it, what problem it solves, and what makes it stand out. Do NOT copy raw transcript text - rewrite it as a clean, professional summary.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
               max_tokens: 4500,
