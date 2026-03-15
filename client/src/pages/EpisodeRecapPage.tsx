@@ -1220,20 +1220,20 @@ export default function EpisodeRecapPage() {
               </div>
             </div>
             <div className="px-4 sm:px-6 py-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-5">
                 {(showAllBooks ? books : books.slice(0, INITIAL_SHOW)).map((book, i) => {
                   const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
                   const enrichment = bookSlugMap[bookKey];
                   const bookSlug = enrichment?.slug;
                   const asin = enrichment?.asin || extractAsin(book.url || "");
-                  const blinkistUrl = getBlinkistUrl(book);
                   const displayAuthor = enrichment?.author || book.author;
-                  const displayDescription = book.context || enrichment?.description;
+                  const bookContext = book.context && book.context.length > 20 ? book.context : null;
+                  const fallbackDescription = enrichment?.description || book.description;
 
                   return (
                     <div
                       key={i}
-                      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-amber-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all flex flex-col"
+                      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-amber-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all"
                       data-testid={`book-card-${i}`}
                     >
                       <div className="flex gap-4">
@@ -1276,13 +1276,28 @@ export default function EpisodeRecapPage() {
                         </div>
                       </div>
 
-                      {displayDescription && (
-                        <p className="text-[16px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
-                          {displayDescription.length > 180 ? displayDescription.slice(0, 180).replace(/\s+\S*$/, "") + "." : displayDescription}
+                      {bookContext ? (
+                        <div className="mt-3 pt-3 border-t border-amber-500/[0.08]">
+                          <p className="text-[13px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1.5">Why they talked about it</p>
+                          <div className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.85] [&_strong]:text-[#18181B] dark:[&_strong]:text-white [&_strong]:font-semibold" data-testid={`book-context-${i}`} dangerouslySetInnerHTML={{ __html: bookContext.replace(/<strong[^>]*>/gi, '<strong>').replace(/<(?!\/?strong>)[^>]*>/gi, '') }} />
+                        </div>
+                      ) : fallbackDescription ? (
+                        <p className="text-[15px] text-muted-foreground leading-relaxed mt-3" data-testid={`book-context-${i}`}>
+                          {fallbackDescription}
                         </p>
-                      )}
+                      ) : null}
 
-                      <div className="mt-auto pt-3">
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
+                        {bookSlug && (
+                          <Link
+                            href={`/bookstore/${bookSlug}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 transition-colors"
+                            data-testid={`book-detail-link-${i}`}
+                          >
+                            See all podcast mentions
+                            <ChevronRight className="w-3 h-3" />
+                          </Link>
+                        )}
                         <DeepDiveButton entityName={book.name} entityType="book" chatRef={chatRef} />
                       </div>
                     </div>
@@ -1307,7 +1322,7 @@ export default function EpisodeRecapPage() {
               </div>
             </div>
             <div className="px-4 sm:px-6 py-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-5">
                 {(showAllProducts ? shopProducts : shopProducts.slice(0, INITIAL_SHOW)).map((product: any, i: number) => {
                   const typeLabel = product.type === "service_or_tool" ? "Tool" :
                     product.type === "physical_product" ? "Product" :
@@ -1324,12 +1339,12 @@ export default function EpisodeRecapPage() {
                     ? "bg-orange-500/10 text-orange-700 dark:text-orange-400"
                     : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
 
-                  const contextSnippet = typeof product.context === "string" ? product.context : "";
+                  const productContext = typeof product.context === "string" && product.context.length > 20 ? product.context : null;
 
                   return (
                     <div
                       key={i}
-                      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-emerald-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all flex flex-col"
+                      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 hover:border-emerald-500/[0.15] hover:shadow-md hover:shadow-black/[0.03] transition-all"
                       data-testid={`product-card-${i}`}
                     >
                       <div className="flex items-start gap-3">
@@ -1348,17 +1363,25 @@ export default function EpisodeRecapPage() {
                           {product.company && product.company !== product.name && (
                             <p className="text-[14px] text-muted-foreground mt-0.5">by {product.company}</p>
                           )}
+                          {product.description && (
+                            <p className="text-[14px] text-muted-foreground leading-relaxed mt-1" data-testid={`product-desc-${i}`}>
+                              {product.description}
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      {product.description && (
-                        <p className="text-[14px] text-muted-foreground leading-relaxed mt-3" data-testid={`product-context-${i}`}>
-                          {product.description.length > 180 ? product.description.slice(0, 180).replace(/\s+\S*$/, "") + "." : product.description}
-                        </p>
+                      {productContext && (
+                        <div className="mt-3 pt-3 border-t border-emerald-500/[0.08]">
+                          <p className="text-[13px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-1.5">Why they recommended it</p>
+                          <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.85] italic" data-testid={`product-context-${i}`}>
+                            "{productContext.length > 400 ? productContext.slice(0, 400).replace(/\s+\S*$/, "") + "..." : productContext}"
+                          </p>
+                        </div>
                       )}
 
                       {product.url && (
-                        <div className="mt-auto pt-3">
+                        <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
                           <a
                             href={product.url}
                             target="_blank"
