@@ -4201,6 +4201,43 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/pulses/generate-all", async (req, res) => {
+    try {
+      if (!req.session.isAdmin) return res.status(401).json({ error: "Unauthorized" });
+
+      const { dates } = req.body;
+      if (!dates || !Array.isArray(dates) || dates.length === 0) {
+        return res.status(400).json({ error: "dates array required (e.g. ['2026-03-14', '2026-03-13'])" });
+      }
+
+      if (dates.length > 14) {
+        return res.status(400).json({ error: "Maximum 14 dates per request" });
+      }
+
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      const invalidDates = dates.filter((d: string) => !datePattern.test(d));
+      if (invalidDates.length > 0) {
+        return res.status(400).json({ error: `Invalid date format (expected YYYY-MM-DD): ${invalidDates.join(", ")}` });
+      }
+
+      res.json({ message: `Pulse generation started for ${dates.length} date(s)`, dates });
+
+      const { generatePulsesForDate } = await import("./dailyPulseScheduler");
+      for (const dateStr of dates) {
+        try {
+          await generatePulsesForDate(dateStr);
+        } catch (err: any) {
+          console.error(`[PulseBulkGenerate] Failed for ${dateStr}:`, err.message);
+        }
+      }
+    } catch (err: any) {
+      console.error("[PulseBulkGenerate] Error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: err?.message || "Failed to generate pulses" });
+      }
+    }
+  });
+
   app.get("/api/topics/:slug/episodes", async (req, res) => {
     try {
       const { slug } = req.params;

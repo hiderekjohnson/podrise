@@ -1,4 +1,5 @@
 import { generateAndSavePulse, topicKeywordsMap } from "./pulseGenerator";
+import { pool } from "./db";
 
 const TOPIC_NAMES: Record<string, string> = {
   "ai": "Artificial Intelligence",
@@ -40,7 +41,7 @@ const TOPIC_NAMES: Record<string, string> = {
   "young-entrepreneurs": "Young Entrepreneurs",
 };
 
-async function generatePulsesForDate(dateStr: string) {
+export async function generatePulsesForDate(dateStr: string) {
   const slugs = Object.keys(topicKeywordsMap);
   console.log(`[DailyPulse] Generating pulses for ${slugs.length} topics on ${dateStr}`);
 
@@ -65,6 +66,53 @@ async function generatePulsesForDate(dateStr: string) {
   }
 
   console.log(`[DailyPulse] ${dateStr} complete: ${success} generated, ${skipped} skipped, ${failed} failed`);
+  return { success, skipped, failed };
+}
+
+async function getDatesNeedingPulses(maxDays: number = 7): Promise<string[]> {
+  const expectedTopicCount = Object.keys(topicKeywordsMap).length;
+  const minPulsesPerDate = Math.floor(expectedTopicCount * 0.8);
+
+  try {
+    const { rows } = await pool.query(`
+      SELECT DISTINCT lpr.publish_date
+      FROM landing_page_recaps lpr
+      LEFT JOIN topic_pulses tp ON tp.publish_date::text = lpr.publish_date::text
+      WHERE lpr.publish_date::date >= (CURRENT_DATE - $1::int)
+        AND lpr.publish_date::date < CURRENT_DATE
+      GROUP BY lpr.publish_date
+      HAVING COUNT(DISTINCT tp.topic_slug) < $2
+      ORDER BY lpr.publish_date DESC
+    `, [maxDays, minPulsesPerDate]);
+    return rows.map(r => {
+      if (r.publish_date instanceof Date) {
+        return r.publish_date.toISOString().split("T")[0];
+      }
+      return String(r.publish_date);
+    });
+  } catch (err) {
+    console.error("[DailyPulse] Failed to check for dates needing pulses:", err);
+    return [];
+  }
+}
+
+async function backfillMissingPulses() {
+  const missingDates = await getDatesNeedingPulses(7);
+  if (missingDates.length === 0) {
+    console.log("[DailyPulse] No missing pulse dates found — all recent dates have sufficient coverage");
+    return;
+  }
+
+  console.log(`[DailyPulse] Backfill: found ${missingDates.length} date(s) needing pulses: ${missingDates.join(", ")}`);
+
+  for (const dateStr of missingDates) {
+    try {
+      const result = await generatePulsesForDate(dateStr);
+      console.log(`[DailyPulse] Backfill for ${dateStr}: ${result.success} generated, ${result.skipped} skipped, ${result.failed} failed`);
+    } catch (err) {
+      console.error(`[DailyPulse] Backfill failed for ${dateStr}:`, err);
+    }
+  }
 }
 
 export function startDailyPulseScheduler() {
@@ -91,6 +139,14 @@ export function startDailyPulseScheduler() {
       }
     }
   }
+
+  setTimeout(async () => {
+    try {
+      await backfillMissingPulses();
+    } catch (err) {
+      console.error("[DailyPulse] Startup backfill failed:", err);
+    }
+  }, 10000);
 
   checkAndRun();
   setInterval(checkAndRun, CHECK_INTERVAL);
