@@ -27,6 +27,17 @@ const BANNED_INSIGHT_HOOKS = [
   /^ready for this/i,
   /^here'?s where it gets/i,
   /^did you know/i,
+  /^so,?\s/i,
+  /^well,?\s/i,
+  /^okay so/i,
+  /^check this out/i,
+  /^mind.?blown/i,
+];
+
+const BANNED_INSIGHT_INTERIOR = [
+  /dude,?\s+did you know/gi,
+  /did you know\s+(that\s+)?/gi,
+  /here'?s the (thing|twist|kicker|secret)/gi,
 ];
 
 function sanitizeInsight(insight: string): string {
@@ -37,6 +48,15 @@ function sanitizeInsight(insight: string): string {
       cleaned = cleaned.slice(match[0].length).replace(/^[\s,.:!?—–-]+/, '');
       cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
       console.log(`[RecapGenerator] Sanitized insight hook: "${match[0].trim()}" removed`);
+    }
+  }
+  for (const pattern of BANNED_INSIGHT_INTERIOR) {
+    const before = cleaned;
+    cleaned = cleaned.replace(pattern, '');
+    if (cleaned !== before) {
+      cleaned = cleaned.replace(/^[\s,.:!?—–-]+/, '').replace(/\s{2,}/g, ' ');
+      cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      console.log(`[RecapGenerator] Sanitized interior phrase from insight`);
     }
   }
   cleaned = cleaned.replace(/!/g, '.');
@@ -653,7 +673,15 @@ OTHER RULES:
         keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
         topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
         sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
-        guests: Array.isArray(parsed.guests) ? parsed.guests : [],
+        guests: Array.isArray(parsed.guests) ? parsed.guests.filter((g: any) => {
+          if (!g.name || !g.name.trim()) return false;
+          const nameParts = g.name.trim().split(/\s+/);
+          if (nameParts.length < 2) {
+            console.log(`[RecapGenerator] Filtered first-name-only guest: "${g.name}"`);
+            return false;
+          }
+          return true;
+        }) : [],
         resources,
         products: validProducts,
         extractedQuotes: validQuotes,
@@ -979,7 +1007,15 @@ OTHER RULES:
       keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
       topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
       sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
-      guests: Array.isArray(parsed.guests) ? parsed.guests : [],
+      guests: Array.isArray(parsed.guests) ? parsed.guests.filter((g: any) => {
+          if (!g.name || !g.name.trim()) return false;
+          const nameParts = g.name.trim().split(/\s+/);
+          if (nameParts.length < 2) {
+            console.log(`[RecapGenerator] Filtered first-name-only guest: "${g.name}"`);
+            return false;
+          }
+          return true;
+        }) : [],
       resources: Array.isArray(parsed.resources) ? parsed.resources : [],
       products: dedupedProducts,
       extractedQuotes: validQuotes,
