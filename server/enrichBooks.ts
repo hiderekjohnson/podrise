@@ -93,6 +93,8 @@ Respond with ONLY valid JSON:
     temperature: 0.4,
     response_format: { type: "json_object" },
   });
+  const { logCompletionUsage } = await import("./apiUsageTracker");
+  logCompletionUsage(completion, "gpt-4o", "book_enrichment");
 
   const content = completion.choices[0]?.message?.content;
   if (!content) return { description: "", podcastBuzz: "", asin: null };

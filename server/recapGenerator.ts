@@ -455,6 +455,8 @@ Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1",
       temperature: 0.4,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(completion, "gpt-4o", "recap_insights");
     const content = completion.choices[0]?.message?.content;
     if (content) {
       const parsed = JSON.parse(content.trim());
@@ -573,6 +575,8 @@ OTHER RULES:
         temperature: 0.7,
         response_format: { type: "json_object" },
       });
+      const { logCompletionUsage } = await import("./apiUsageTracker");
+      logCompletionUsage(completion, "gpt-4o", "recap_generation");
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {
@@ -768,6 +772,8 @@ Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much
           temperature: 0.3,
           response_format: { type: "json_object" },
         });
+        const { logCompletionUsage } = await import("./apiUsageTracker");
+        logCompletionUsage(completion, "gpt-4o", "recap_chunk_extraction");
         const raw = completion.choices[0]?.message?.content || "{}";
         const parsed = JSON.parse(raw);
         return [parsed];
@@ -933,6 +939,8 @@ OTHER RULES:
       temperature: 0.7,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(completion, "gpt-4o", "recap_synthesis");
 
     const content = completion.choices[0]?.message?.content;
     if (!content) return null;
@@ -1082,6 +1090,8 @@ RULES:
       temperature: 0.3,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(completion, "gpt-4o", "recap_book_extraction");
 
     const content = completion.choices[0]?.message?.content;
     if (!content) return [];
@@ -1251,6 +1261,8 @@ RULES:
       temperature: 0.7,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(completion, "gpt-4o", "recap_quote_extraction");
 
     const content = completion.choices[0]?.message?.content;
     if (!content) return [];

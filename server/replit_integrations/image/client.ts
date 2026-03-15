@@ -19,6 +19,8 @@ export async function generateImageBuffer(
     prompt,
     size,
   });
+  const { logImageUsage } = await import("../../apiUsageTracker");
+  logImageUsage("gpt-image-1", "image_generation", size);
   const base64 = response.data[0]?.b64_json ?? "";
   return Buffer.from(base64, "base64");
 }
@@ -45,6 +47,8 @@ export async function editImages(
     image: images,
     prompt,
   });
+  const { logImageUsage } = await import("../../apiUsageTracker");
+  logImageUsage("gpt-image-1", "image_edit", "1024x1024");
 
   const imageBase64 = response.data[0]?.b64_json ?? "";
   const imageBytes = Buffer.from(imageBase64, "base64");

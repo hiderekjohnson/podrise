@@ -127,6 +127,8 @@ export async function voiceChat(
       ],
     }],
   });
+  const { logCompletionUsage } = await import("../../apiUsageTracker");
+  logCompletionUsage(response, "gpt-audio", "voice_chat");
   const message = response.choices[0]?.message as any;
   const transcript = message?.audio?.transcript || message?.content || "";
   const audioData = message?.audio?.data ?? "";
@@ -165,17 +167,23 @@ export async function voiceChatStream(
     stream: true,
   });
 
+  const inputEstimate = audioBuffer.length.toString();
   return (async function* () {
+    let accumulatedTranscript = "";
     for await (const chunk of stream) {
       const delta = chunk.choices?.[0]?.delta as any;
       if (!delta) continue;
       if (delta?.audio?.transcript) {
+        accumulatedTranscript += delta.audio.transcript;
         yield { type: "transcript", data: delta.audio.transcript };
       }
       if (delta?.audio?.data) {
         yield { type: "audio", data: delta.audio.data };
       }
     }
+    import("../../apiUsageTracker").then(m => m.logEstimatedUsage(
+      "gpt-audio", "voice_chat_stream", inputEstimate, accumulatedTranscript,
+    )).catch(() => {});
   })();
 }
 
@@ -197,6 +205,8 @@ export async function textToSpeech(
       { role: "user", content: `Repeat the following text verbatim: ${text}` },
     ],
   });
+  const { logCompletionUsage } = await import("../../apiUsageTracker");
+  logCompletionUsage(response, "gpt-audio", "tts");
   const audioData = (response.choices[0]?.message as any)?.audio?.data ?? "";
   return Buffer.from(audioData, "base64");
 }
@@ -229,6 +239,9 @@ export async function textToSpeechStream(
         yield delta.audio.data;
       }
     }
+    import("../../apiUsageTracker").then(m => m.logEstimatedUsage(
+      "gpt-audio", "tts_stream", text, text,
+    )).catch(() => {});
   })();
 }
 
@@ -245,6 +258,8 @@ export async function speechToText(
     file,
     model: "gpt-4o-mini-transcribe",
   });
+  const { logEstimatedUsage } = await import("../../apiUsageTracker");
+  logEstimatedUsage("gpt-4o-mini-transcribe", "stt", audioBuffer.length.toString(), response.text);
   return response.text;
 }
 
@@ -262,12 +277,17 @@ export async function speechToTextStream(
     model: "gpt-4o-mini-transcribe",
     stream: true,
   });
-
+  const audioLen = audioBuffer.length.toString();
   return (async function* () {
+    let accumulatedText = "";
     for await (const event of stream) {
       if (event.type === "transcript.text.delta") {
+        accumulatedText += event.delta;
         yield event.delta;
       }
     }
+    import("../../apiUsageTracker").then(m => m.logEstimatedUsage(
+      "gpt-4o-mini-transcribe", "stt_stream", audioLen, accumulatedText,
+    )).catch(() => {});
   })();
 }

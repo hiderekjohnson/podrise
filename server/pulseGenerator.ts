@@ -469,6 +469,8 @@ Respond with ONLY valid JSON (no markdown fences):
       temperature: 0.8,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(completion, "gpt-4o", "pulse_generation");
 
     const content = completion.choices[0]?.message?.content;
     if (!content) return null;

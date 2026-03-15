@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -480,4 +480,24 @@ export const insertTopicPulseSchema = createInsertSchema(topicPulses).omit({
 
 export type TopicPulse = typeof topicPulses.$inferSelect;
 export type InsertTopicPulse = z.infer<typeof insertTopicPulseSchema>;
+
+export const apiUsageLogs = pgTable("api_usage_logs", {
+  id: serial("id").primaryKey(),
+  model: text("model").notNull(),
+  feature: text("feature").notNull(),
+  promptTokens: integer("prompt_tokens").default(0),
+  completionTokens: integer("completion_tokens").default(0),
+  totalTokens: integer("total_tokens").default(0),
+  estimatedCost: real("estimated_cost").default(0),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertApiUsageLogSchema = createInsertSchema(apiUsageLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ApiUsageLog = typeof apiUsageLogs.$inferSelect;
+export type InsertApiUsageLog = z.infer<typeof insertApiUsageLogSchema>;
 

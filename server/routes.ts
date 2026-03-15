@@ -3793,6 +3793,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                 temperature: 0.3,
                 response_format: { type: "json_object" },
               });
+              const { logCompletionUsage } = await import("./apiUsageTracker");
+              logCompletionUsage(aiResp, "gpt-4o-mini", "entity_context");
 
               const content = aiResp.choices[0]?.message?.content;
               if (content) {
@@ -8228,6 +8230,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                   temperature: 0.3,
                   response_format: { type: "json_object" },
                 });
+                const { logCompletionUsage: logCtx } = await import("./apiUsageTracker");
+                logCtx(aiResp, "gpt-4o-mini", "entity_context");
 
                 const content = aiResp.choices[0]?.message?.content;
                 if (content) {
@@ -9383,6 +9387,8 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
         max_tokens: 500,
         temperature: 0.7,
       });
+      const { logCompletionUsage } = await import("./apiUsageTracker");
+      logCompletionUsage(completion, "gpt-4o-mini", "episode_chat");
 
       const answer = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
       res.json({ answer });
@@ -10183,6 +10189,118 @@ Respond with JSON: {"verdict": "genuine"|"ad"|"brief_mention", "confidence": 0.0
     } catch (err) {
       console.error("[TaddyWebhook] Error:", err);
       res.status(200).json({ success: true });
+    }
+  });
+
+  app.get("/api/admin/api-usage/summary", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`
+        SELECT
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '1 day' THEN estimated_cost ELSE 0 END), 0) AS today,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN estimated_cost ELSE 0 END), 0) AS week,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN estimated_cost ELSE 0 END), 0) AS month,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '1 day' THEN total_tokens ELSE 0 END), 0) AS tokens_today,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN total_tokens ELSE 0 END), 0) AS tokens_month,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '1 day' THEN 1 END)::int AS calls_today,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END)::int AS calls_month
+        FROM api_usage_logs
+      `);
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error("[ApiUsage] Summary error:", err);
+      res.status(500).json({ error: "Failed to fetch usage summary" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/daily", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`
+        SELECT
+          DATE(created_at) AS date,
+          COALESCE(SUM(estimated_cost), 0) AS cost,
+          COALESCE(SUM(total_tokens), 0) AS tokens,
+          COUNT(*)::int AS calls
+        FROM api_usage_logs
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY DATE(created_at)
+        ORDER BY date
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[ApiUsage] Daily error:", err);
+      res.status(500).json({ error: "Failed to fetch daily usage" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/by-feature", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`
+        SELECT
+          feature,
+          COUNT(*)::int AS calls,
+          COALESCE(SUM(total_tokens), 0) AS tokens,
+          COALESCE(SUM(estimated_cost), 0) AS cost
+        FROM api_usage_logs
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY feature
+        ORDER BY cost DESC
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[ApiUsage] By-feature error:", err);
+      res.status(500).json({ error: "Failed to fetch usage by feature" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/by-model", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`
+        SELECT
+          model,
+          COUNT(*)::int AS calls,
+          COALESCE(SUM(total_tokens), 0) AS tokens,
+          COALESCE(SUM(estimated_cost), 0) AS cost
+        FROM api_usage_logs
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY model
+        ORDER BY cost DESC
+      `);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[ApiUsage] By-model error:", err);
+      res.status(500).json({ error: "Failed to fetch usage by model" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/recaps", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`
+        SELECT
+          COUNT(*)::int AS total_api_calls,
+          COALESCE(SUM(total_tokens), 0) AS total_tokens,
+          COALESCE(SUM(estimated_cost), 0) AS total_cost,
+          COALESCE(AVG(total_tokens), 0) AS avg_tokens_per_call,
+          COALESCE(AVG(estimated_cost), 0) AS avg_cost_per_call,
+          COUNT(CASE WHEN feature IN ('recap_generation', 'recap_synthesis') THEN 1 END)::int AS recaps_generated,
+          COUNT(CASE WHEN feature IN ('recap_generation', 'recap_synthesis') AND created_at >= NOW() - INTERVAL '1 day' THEN 1 END)::int AS recaps_today,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '1 day' THEN estimated_cost ELSE 0 END), 0) AS cost_today,
+          COUNT(CASE WHEN feature IN ('recap_generation', 'recap_synthesis') AND created_at >= NOW() - INTERVAL '7 days' THEN 1 END)::int AS recaps_week,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN estimated_cost ELSE 0 END), 0) AS cost_week,
+          COUNT(CASE WHEN feature IN ('recap_generation', 'recap_synthesis') AND created_at >= NOW() - INTERVAL '30 days' THEN 1 END)::int AS recaps_month,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN estimated_cost ELSE 0 END), 0) AS cost_month
+        FROM api_usage_logs
+        WHERE feature LIKE 'recap%'
+          AND created_at >= NOW() - INTERVAL '30 days'
+      `);
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error("[ApiUsage] Recaps error:", err);
+      res.status(500).json({ error: "Failed to fetch recap usage" });
     }
   });
 

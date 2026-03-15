@@ -70,6 +70,8 @@ Return a JSON object with a "segments" array of strings. Each segment should be 
     ],
     response_format: { type: "json_object" },
   });
+  const { logCompletionUsage } = await import("./apiUsageTracker");
+  logCompletionUsage(completion, "gpt-4o-mini", "book_segment_extraction");
 
   try {
     const parsed = JSON.parse(completion.choices[0].message.content || "{}");
@@ -116,6 +118,8 @@ ${combinedSegments}`
       }
     ],
   });
+  const { logCompletionUsage: logInsight } = await import("./apiUsageTracker");
+  logInsight(completion, "gpt-4o-mini", "book_insight_generation");
 
   return (completion.choices[0].message.content || "").trim();
 }

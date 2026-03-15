@@ -189,7 +189,7 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
               return `Book: "${t}" - ${res?.context || res?.description || "recommended"}`;
             });
 
-            const aiResp = await openai.chat.completions.create({
+            const aiResp_teaser = await openai.chat.completions.create({
               model: "gpt-4o-mini",
               messages: [{
                 role: "user",
@@ -235,7 +235,9 @@ Only include keys where count > 0.`
               response_format: { type: "json_object" },
             });
 
-            const content = aiResp.choices[0]?.message?.content;
+            const { logCompletionUsage } = await import("./apiUsageTracker");
+            logCompletionUsage(aiResp_teaser, "gpt-4o-mini", "email_teaser");
+            const content = aiResp_teaser.choices[0]?.message?.content;
             if (content) {
               const parsed = JSON.parse(content);
               mentionTeaserPeople = parsed.people || "";
@@ -365,6 +367,8 @@ The "leadEpisodePodcast" field must contain the EXACT podcast name as it appears
       temperature: 0.9,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(resp, "gpt-4o-mini", "email_subject");
 
     const content = resp.choices[0]?.message?.content;
     if (content) {
@@ -1499,6 +1503,8 @@ RULES:
         temperature: 0.3,
         response_format: { type: "json_object" },
       });
+      const { logCompletionUsage: logEnrich } = await import("./apiUsageTracker");
+      logEnrich(completion, "gpt-4o", "podcast_metadata_enrichment");
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {

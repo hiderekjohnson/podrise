@@ -253,6 +253,14 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          const { ensureApiUsageTable } = await import("./apiUsageTracker");
+          await ensureApiUsageTable();
+          console.log("api_usage_logs table ready");
+        } catch (err) {
+          console.warn("api_usage_logs migration skipped:", err);
+        }
+
+        try {
           const existingHosts = await pool.query(`SELECT COUNT(*) FROM podcast_hosts WHERE podcast_slug = 'myfirstmillion'`);
           if (parseInt(existingHosts.rows[0].count) === 0) {
             await pool.query(`

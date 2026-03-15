@@ -84,12 +84,17 @@ export function registerChatRoutes(app: Express): void {
         model: "gpt-5.1",
         messages: chatMessages,
         stream: true,
+        stream_options: { include_usage: true },
         max_completion_tokens: 8192,
       });
 
       let fullResponse = "";
+      let streamUsage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null = null;
 
       for await (const chunk of stream) {
+        if (chunk.usage) {
+          streamUsage = chunk.usage;
+        }
         const content = chunk.choices[0]?.delta?.content || "";
         if (content) {
           fullResponse += content;
@@ -97,7 +102,20 @@ export function registerChatRoutes(app: Express): void {
         }
       }
 
-      // Save assistant message
+      if (streamUsage) {
+        import("../../apiUsageTracker").then(m => m.logApiUsage(
+          "gpt-5.1", "chat",
+          streamUsage!.prompt_tokens || 0,
+          streamUsage!.completion_tokens || 0,
+          streamUsage!.total_tokens,
+        )).catch(() => {});
+      } else {
+        const inputText = chatMessages.map(m => m.content).join(" ");
+        import("../../apiUsageTracker").then(m => m.logEstimatedUsage(
+          "gpt-5.1", "chat", inputText, fullResponse,
+        )).catch(() => {});
+      }
+
       await chatStorage.createMessage(conversationId, "assistant", fullResponse);
 
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);

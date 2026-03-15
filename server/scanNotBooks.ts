@@ -58,6 +58,8 @@ Return a JSON object with a single key "not_books" containing an array of the li
       temperature: 0.2,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(completion, "gpt-4o-mini", "scan_not_books");
 
     const raw = completion.choices[0]?.message?.content || "{}";
     try {

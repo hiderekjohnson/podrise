@@ -26,6 +26,8 @@ async function lookupIsbns(books: { title: string; author: string | null }[]): P
       }
     ],
   });
+  const { logCompletionUsage } = await import("./apiUsageTracker");
+  logCompletionUsage(response, "gpt-4o-mini", "isbn_backfill");
 
   const text = response.choices[0]?.message?.content?.trim() || "{}";
   const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();

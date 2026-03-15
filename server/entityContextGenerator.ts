@@ -197,6 +197,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       temperature: 0.3,
       response_format: { type: "json_object" },
     });
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(aiResp, "gpt-4o-mini", "entity_context");
 
     const content = aiResp.choices[0]?.message?.content;
     if (content) {

@@ -103,6 +103,7 @@ export function registerAudioRoutes(app: Express): void {
       });
 
       let assistantTranscript = "";
+      const inputText = chatHistory.map((m: { content: string }) => m.content).join(" ");
 
       for await (const chunk of stream) {
         const delta = chunk.choices?.[0]?.delta as any;
@@ -118,7 +119,10 @@ export function registerAudioRoutes(app: Express): void {
         }
       }
 
-      // 7. Save assistant message
+      import("../../apiUsageTracker").then(m => m.logEstimatedUsage(
+        "gpt-audio", "voice_conversation_stream", inputText, assistantTranscript,
+      )).catch(() => {});
+
       await chatStorage.createMessage(conversationId, "assistant", assistantTranscript);
 
       res.write(`data: ${JSON.stringify({ type: "done", transcript: assistantTranscript })}\n\n`);

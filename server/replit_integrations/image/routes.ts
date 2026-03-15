@@ -16,6 +16,8 @@ export function registerImageRoutes(app: Express): void {
         n: 1,
         size: size as "1024x1024" | "512x512" | "256x256",
       });
+      const { logImageUsage } = await import("../../apiUsageTracker");
+      logImageUsage("gpt-image-1", "image_generation", size);
 
       const imageData = response.data[0];
       res.json({
