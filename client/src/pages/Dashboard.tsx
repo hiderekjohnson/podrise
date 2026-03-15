@@ -45,7 +45,7 @@ interface LeaderboardPodcast {
   genres: string[];
 }
 
-type TabKey = "podcasts" | "topics" | "settings" | "recaps";
+type TabKey = "emails" | "settings" | "recaps";
 
 function parsePodcasts(raw: string[]): SelectedPodcast[] {
   return raw.map((item) => {
@@ -81,8 +81,7 @@ function fixMarkdownLinks(md: string): string {
 }
 
 const TABS: { key: TabKey; label: string; icon: typeof Podcast }[] = [
-  { key: "podcasts", label: "Podcasts", icon: Podcast },
-  { key: "topics", label: "Topics", icon: Tag },
+  { key: "emails", label: "My Emails", icon: Mail },
   { key: "recaps", label: "Recaps", icon: FileText },
   { key: "settings", label: "Settings", icon: Settings },
 ];
@@ -115,7 +114,8 @@ export default function Dashboard() {
     }
   }, []);
 
-  const [activeTab, setActiveTab] = useState<TabKey>("podcasts");
+  const [activeTab, setActiveTab] = useState<TabKey>("emails");
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [podcasts, setPodcasts] = useState<SelectedPodcast[]>([]);
   const [email, setEmail] = useState("");
   const [editingEmail, setEditingEmail] = useState(false);
@@ -214,7 +214,8 @@ export default function Dashboard() {
     }
     if (params.get("tab")) {
       const t = params.get("tab") as TabKey;
-      if (["podcasts", "topics", "settings", "recaps"].includes(t)) setActiveTab(t);
+      if (["emails", "settings", "recaps"].includes(t)) setActiveTab(t);
+      else if (t === "podcasts" || t === "topics") setActiveTab("emails");
       window.history.replaceState({}, "", "/dashboard");
     }
   }, [user]);
@@ -413,295 +414,342 @@ export default function Dashboard() {
         </div>
 
         <AnimatePresence mode="wait">
-          {activeTab === "podcasts" && (
-            <motion.div
-              key="podcasts"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15 }}
-              className="space-y-5"
-            >
-              <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                <div className="px-6 pt-5 pb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-your-podcasts">
-                      Your Podcasts
-                    </h2>
+          {activeTab === "emails" && (() => {
+            const userIndustries: string[] = (user as any)?.industries || [];
+            const userInterests: string[] = (user as any)?.interests || [];
+            const userRoles: string[] = (user as any)?.roles || [];
+            const hasPodcastRecap = podcasts.length > 0;
+            const industryCount = userIndustries.length;
+            const roleCount = userRoles.length;
+            const interestCount = userInterests.length;
+
+            const completenessItems = [
+              { label: "Podcast Recap", done: hasPodcastRecap, target: "1 podcast recap" },
+              { label: "2+ Industries", done: industryCount >= 2, target: `${industryCount}/2 industries` },
+              { label: "1+ Role", done: roleCount >= 1, target: `${roleCount}/1 role` },
+              { label: "2+ Interests", done: interestCount >= 2, target: `${interestCount}/2 interests` },
+            ];
+            const completedCount = completenessItems.filter(i => i.done).length;
+            const completenessPercent = Math.round((completedCount / completenessItems.length) * 100);
+
+            const renderTopicSection = (
+              category: "industry" | "interest" | "role",
+              sectionTitle: string,
+              sectionSubtitle: string,
+              sectionIcon: any,
+              recommendedCount: number,
+              fieldName: string,
+              userSlugs: string[],
+            ) => {
+              const subscribedTopics = TOPICS.filter(t => t.category === category && userSlugs.includes(t.slug));
+              const availableTopics = TOPICS.filter(t => t.category === category && !userSlugs.includes(t.slug));
+              const isExpanded = expandedSection === fieldName;
+              const nudge = userSlugs.length < recommendedCount;
+              const SIcon = sectionIcon;
+
+              return (
+                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden" data-testid={`section-${fieldName}`}>
+                  <div className="px-6 pt-5 pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-primary/[0.08] flex items-center justify-center">
+                          <SIcon className="w-4.5 h-4.5 text-primary" />
+                        </div>
+                        <div>
+                          <h2 className="text-base font-display font-bold text-foreground" data-testid={`heading-${fieldName}`}>
+                            {sectionTitle}
+                          </h2>
+                          <p className="text-[13px] text-muted-foreground">{sectionSubtitle}</p>
+                        </div>
+                      </div>
+                      <span className="text-[14px] font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full">
+                        {subscribedTopics.length} email{subscribedTopics.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                {podcasts.length > 0 ? (
-                  <div className="px-6 pb-5">
-                    <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-1">
-                      <AnimatePresence initial={false}>
-                        {podcasts.map((podcast) => (
-                          <motion.div
-                            key={podcast.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ duration: 0.2 }}
-                            data-testid={`card-podcast-${podcast.id}`}
-                            className="flex flex-col items-center gap-2 shrink-0 group relative w-20"
-                          >
-                            <div className="relative">
-                              {podcast.artworkUrl ? (
-                                <img
-                                  src={hiResArtwork(podcast.artworkUrl)}
-                                  alt={podcast.name}
-                                  className="w-16 h-16 rounded-xl object-cover shadow-sm"
-                                  data-testid={`img-podcast-${podcast.id}`}
-                                />
-                              ) : (
-                                <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center">
-                                  <Podcast className="w-7 h-7 text-primary" />
-                                </div>
-                              )}
+
+                  {subscribedTopics.length > 0 ? (
+                    <div className="px-6 pb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {subscribedTopics.map((topic) => {
+                          const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
+                          return (
+                            <div
+                              key={topic.slug}
+                              className="group flex items-center gap-3 p-3 rounded-xl border border-primary/15 bg-primary/[0.03] transition-all"
+                              data-testid={`topic-subscribed-${topic.slug}`}
+                            >
+                              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${topic.color} flex items-center justify-center shrink-0`}>
+                                <TIcon className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[14px] font-semibold text-foreground truncate">{topic.name}</p>
+                                <p className="text-[12px] text-muted-foreground">Daily briefing</p>
+                              </div>
                               <button
-                                data-testid={`button-remove-podcast-${podcast.id}`}
-                                onClick={() => handleRemove(podcast.id)}
-                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-black/10 shadow-sm flex items-center justify-center text-muted-foreground/50 hover:text-red-500 hover:border-red-200 transition-colors opacity-0 group-hover:opacity-100"
-                                aria-label={`Remove ${podcast.name}`}
+                                onClick={() => {
+                                  const newList = userSlugs.filter(s => s !== topic.slug);
+                                  updateUser({ [fieldName]: newList });
+                                }}
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground/30 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                data-testid={`button-unsubscribe-${topic.slug}`}
+                                aria-label={`Unsubscribe from ${topic.name}`}
                               >
-                                <X className="w-3 h-3" />
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                            <p className="text-base font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
-                              {podcast.name}
-                            </p>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="px-6 pb-5">
-                    <div className="flex gap-4">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <button
-                          key={`empty-${i}`}
-                          onClick={() => discoverRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                          className="flex flex-col items-center gap-2 shrink-0 w-20 group/slot"
-                        >
-                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-black/[0.08] group-hover/slot:border-primary/30 flex items-center justify-center transition-colors">
-                            <Plus className="w-5 h-5 text-muted-foreground/30 group-hover/slot:text-primary/50 transition-colors" />
-                          </div>
-                          <p className="text-[15px] text-muted-foreground/40 group-hover/slot:text-primary/60 text-center leading-tight transition-colors">Add show</p>
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-3">Search below to add podcasts and start getting daily recaps.</p>
-                  </div>
-                )}
-              </div>
-
-              <div ref={discoverRef} className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden">
-                <div className="px-6 pt-5 pb-4">
-                  <h2 className="text-base font-display font-bold text-foreground mb-1" data-testid="heading-add-podcasts">
-                    Discover Podcasts
-                  </h2>
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
-                    Search or browse popular shows to add to your daily recap.
-                  </p>
-                </div>
-
-                <div className="px-6 pb-5">
-                  <PodcastSearch
-                    selectedPodcasts={podcasts}
-                    onAdd={handleAdd}
-                  />
-                </div>
-
-                {popularPodcasts.length > 0 && (
-                  <div className="px-6 pb-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                      <h3 className="text-sm font-display font-bold text-foreground" data-testid="heading-popular">
-                        Popular with PodCap Users
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {popularPodcasts.map(podcast => (
-                        <button
-                          key={podcast.id}
-                          data-testid={`button-suggest-popular-${podcast.id}`}
-                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl, artist: podcast.artist })}
-                          className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
-                        >
-                          {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                              <Podcast className="w-7 h-7 text-primary" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-base font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
-                            <p className="text-[15px] text-muted-foreground truncate mt-0.5">{podcast.artist}</p>
-                          </div>
-                          <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {recommendedPodcasts.length > 0 && (
-                  <div className="px-6 pb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      <h3 className="text-sm font-display font-bold text-foreground" data-testid="heading-recommended">
-                        Recommended for You
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {recommendedPodcasts.map(podcast => (
-                        <button
-                          key={podcast.id}
-                          data-testid={`button-suggest-rec-${podcast.id}`}
-                          onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl, artist: podcast.genres?.slice(0, 2).join(" · ") })}
-                          className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
-                        >
-                          {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
-                              <Podcast className="w-7 h-7 text-primary" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-base font-semibold text-foreground leading-snug line-clamp-2">{podcast.name}</p>
-                            <p className="text-[15px] text-muted-foreground truncate mt-0.5">{podcast.genres.slice(0, 2).join(" · ")}</p>
-                          </div>
-                          <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === "topics" && (
-            <motion.div
-              key="topics"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15 }}
-              className="space-y-5"
-            >
-              {(["industry", "interest", "role"] as const).map((category) => {
-                const categoryLabel = category === "industry" ? "Industries" : category === "interest" ? "Interests" : "Roles";
-                const fieldName = category === "industry" ? "industries" : category === "interest" ? "interests" : "roles";
-                const userSlugs: string[] = (user as any)?.[fieldName] || [];
-                const subscribedTopics = TOPICS.filter(t => t.category === category && userSlugs.includes(t.slug));
-                const availableTopics = TOPICS.filter(t => t.category === category && !userSlugs.includes(t.slug));
-
-                return (
-                  <div key={category} className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden" data-testid={`section-${fieldName}`}>
-                    <div className="px-6 pt-5 pb-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-base font-display font-bold text-foreground" data-testid={`heading-${fieldName}`}>
-                          {categoryLabel}
-                        </h2>
-                        <span className="text-[15px] font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-full">
-                          {subscribedTopics.length}
-                        </span>
+                          );
+                        })}
                       </div>
-                      <Link
-                        href={getCategoryPath(category)}
-                        className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors"
-                        data-testid={`link-browse-${fieldName}`}
-                      >
-                        Browse all
-                      </Link>
                     </div>
+                  ) : (
+                    <div className="px-6 pb-4">
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-black/[0.02] border border-dashed border-black/[0.08]" data-testid={`empty-${fieldName}`}>
+                        <SIcon className="w-5 h-5 text-muted-foreground/40" />
+                        <p className="text-[14px] text-muted-foreground">
+                          No {sectionTitle.toLowerCase()} emails yet. Add some to start receiving daily briefings.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                    {subscribedTopics.length > 0 ? (
-                      <div className="px-6 pb-4">
-                        <div className="flex flex-wrap gap-2">
-                          {subscribedTopics.map((topic) => {
-                            const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
-                            return (
-                              <div
-                                key={topic.slug}
-                                className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/20 bg-primary/[0.04] transition-all"
-                                data-testid={`topic-subscribed-${topic.slug}`}
-                              >
-                                <div className={`w-7 h-7 rounded-md bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
-                                  <TIcon className="w-3.5 h-3.5 text-white" />
-                                </div>
-                                <span className="text-[14px] font-semibold text-foreground">{topic.name}</span>
+                  {nudge && subscribedTopics.length > 0 && (
+                    <div className="px-6 pb-3">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <p className="text-[13px] text-amber-700">
+                          We recommend {recommendedCount}+ {category === "industry" ? "industries" : category === "role" ? "roles" : "interests"} for the best coverage.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="px-6 pb-5 border-t border-black/[0.04]">
+                    <button
+                      onClick={() => setExpandedSection(isExpanded ? null : fieldName)}
+                      className="flex items-center gap-1.5 text-[14px] font-semibold text-primary hover:text-primary/80 transition-colors mt-3"
+                      data-testid={`button-add-more-${fieldName}`}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {isExpanded ? "Hide options" : `Add ${category === "industry" ? "industries" : category === "role" ? "roles" : "interests"}`}
+                    </button>
+                    <AnimatePresence>
+                      {isExpanded && availableTopics.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {availableTopics.map((topic) => {
+                              const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
+                              return (
                                 <button
+                                  key={topic.slug}
                                   onClick={() => {
-                                    const newList = userSlugs.filter(s => s !== topic.slug);
+                                    const newList = [...userSlugs, topic.slug];
                                     updateUser({ [fieldName]: newList });
                                   }}
-                                  className="ml-1 w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                                  data-testid={`button-unsubscribe-${topic.slug}`}
-                                  aria-label={`Unsubscribe from ${topic.name}`}
+                                  className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-black/[0.06] bg-white hover:border-primary/20 hover:bg-primary/[0.02] transition-all cursor-pointer"
+                                  data-testid={`button-subscribe-${topic.slug}`}
+                                >
+                                  <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
+                                    <TIcon className="w-3 h-3 text-white" />
+                                  </div>
+                                  <span className="text-[14px] font-medium text-foreground group-hover:text-primary transition-colors">{topic.name}</span>
+                                  <Plus className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              );
+            };
+
+            return (
+              <motion.div
+                key="emails"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-5"
+              >
+                {completenessPercent < 100 && (
+                  <div className="bg-white border border-black/[0.06] rounded-2xl p-5" data-testid="section-completeness">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <p className="text-[14px] font-bold text-foreground">Email Portfolio</p>
+                      </div>
+                      <span className="text-[13px] font-semibold text-primary" data-testid="text-completeness-percent">{completenessPercent}% complete</span>
+                    </div>
+                    <div className="w-full h-2 bg-black/[0.06] rounded-full overflow-hidden mb-3" data-testid="progress-completeness">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${completenessPercent}%` }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="h-full bg-primary rounded-full"
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {completenessItems.map((item) => (
+                        <div
+                          key={item.label}
+                          data-testid={`chip-completeness-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ${
+                            item.done
+                              ? "bg-primary/[0.08] text-primary"
+                              : "bg-black/[0.03] text-muted-foreground"
+                          }`}
+                        >
+                          {item.done ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                          {item.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden" data-testid="section-podcast-recap">
+                  <div className="px-6 pt-5 pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-primary/[0.08] flex items-center justify-center">
+                          <Podcast className="w-4.5 h-4.5 text-primary" />
+                        </div>
+                        <div>
+                          <h2 className="text-base font-display font-bold text-foreground" data-testid="heading-podcast-recap">
+                            Podcast Recap
+                          </h2>
+                          <p className="text-[13px] text-muted-foreground">One bundled email with recaps from all your shows</p>
+                        </div>
+                      </div>
+                      <span className="text-[14px] font-semibold text-muted-foreground bg-black/[0.04] px-2.5 py-1 rounded-full" data-testid="text-podcast-count">
+                        {podcasts.length} podcast{podcasts.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+
+                  {podcasts.length > 0 ? (
+                    <div className="px-6 pb-4">
+                      <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-1">
+                        <AnimatePresence initial={false}>
+                          {podcasts.map((podcast) => (
+                            <motion.div
+                              key={podcast.id}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              transition={{ duration: 0.2 }}
+                              data-testid={`card-podcast-${podcast.id}`}
+                              className="flex flex-col items-center gap-2 shrink-0 group relative w-20"
+                            >
+                              <div className="relative">
+                                {podcast.artworkUrl ? (
+                                  <img
+                                    src={hiResArtwork(podcast.artworkUrl)}
+                                    alt={podcast.name}
+                                    className="w-16 h-16 rounded-xl object-cover shadow-sm"
+                                    data-testid={`img-podcast-${podcast.id}`}
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-xl bg-primary/[0.08] flex items-center justify-center">
+                                    <Podcast className="w-7 h-7 text-primary" />
+                                  </div>
+                                )}
+                                <button
+                                  data-testid={`button-remove-podcast-${podcast.id}`}
+                                  onClick={() => handleRemove(podcast.id)}
+                                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-black/10 shadow-sm flex items-center justify-center text-muted-foreground/50 hover:text-red-500 hover:border-red-200 transition-colors opacity-0 group-hover:opacity-100"
+                                  aria-label={`Remove ${podcast.name}`}
                                 >
                                   <X className="w-3 h-3" />
                                 </button>
                               </div>
-                            );
-                          })}
-                        </div>
+                              <p className="text-[13px] font-medium text-foreground text-center leading-tight line-clamp-2 w-full" data-testid={`text-podcast-name-${podcast.id}`}>
+                                {podcast.name}
+                              </p>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
                       </div>
-                    ) : (
-                      <div className="px-6 pb-5">
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-black/[0.02] border border-dashed border-black/[0.08]" data-testid={`empty-${fieldName}`}>
-                          <Tag className="w-5 h-5 text-muted-foreground/40" />
-                          <p className="text-[14px] text-muted-foreground">
-                            You're not following any {categoryLabel.toLowerCase()} yet. Add some below to get briefings.
+                      {podcasts.length < 3 && (
+                        <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <p className="text-[13px] text-amber-700">
+                            Add more podcasts to get a richer daily recap.
                           </p>
                         </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="px-6 pb-4">
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-black/[0.02] border border-dashed border-black/[0.08]" data-testid="empty-podcasts">
+                        <Podcast className="w-5 h-5 text-muted-foreground/40" />
+                        <p className="text-[14px] text-muted-foreground">
+                          No podcasts yet. Search below to start getting daily recaps.
+                        </p>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {availableTopics.length > 0 && (
-                      <div className="px-6 pb-5 pt-1 border-t border-black/[0.04]">
-                        <p className="text-[14px] font-medium text-muted-foreground mb-3">Add {categoryLabel.toLowerCase()}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {availableTopics.slice(0, 12).map((topic) => {
-                            const TIcon = TOPIC_ICON_MAP[topic.icon] || Sparkles;
-                            return (
-                              <button
-                                key={topic.slug}
-                                onClick={() => {
-                                  const newList = [...userSlugs, topic.slug];
-                                  updateUser({ [fieldName]: newList });
-                                }}
-                                className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-white hover:border-primary/20 hover:bg-primary/[0.02] transition-all cursor-pointer"
-                                data-testid={`button-subscribe-${topic.slug}`}
-                              >
-                                <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${topic.color} flex items-center justify-center`}>
-                                  <TIcon className="w-3 h-3 text-white" />
-                                </div>
-                                <span className="text-[14px] font-medium text-foreground group-hover:text-primary transition-colors">{topic.name}</span>
-                                <Plus className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                              </button>
-                            );
-                          })}
-                          {availableTopics.length > 12 && (
-                            <Link
-                              href={getCategoryPath(category)}
-                              className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium text-primary hover:text-primary/80 transition-colors"
-                              data-testid={`link-more-${fieldName}`}
+                  <div ref={discoverRef} className="px-6 pb-5 border-t border-black/[0.04]">
+                    <div className="pt-3">
+                      <PodcastSearch
+                        selectedPodcasts={podcasts}
+                        onAdd={handleAdd}
+                      />
+                    </div>
+
+                    {popularPodcasts.length > 0 && (
+                      <div className="mt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                          <h3 className="text-[13px] font-bold text-foreground uppercase tracking-wider" data-testid="heading-popular">
+                            Popular
+                          </h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {popularPodcasts.slice(0, 4).map(podcast => (
+                            <button
+                              key={podcast.id}
+                              data-testid={`button-suggest-popular-${podcast.id}`}
+                              onClick={() => handleSuggestionAdd({ id: podcast.id, name: podcast.name, artworkUrl: podcast.artworkUrl, artist: podcast.artist })}
+                              className="flex items-center gap-3 p-2.5 rounded-xl border border-black/[0.04] hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left"
                             >
-                              +{availableTopics.length - 12} more
-                            </Link>
-                          )}
+                              {podcast.artworkUrl ? (
+                                <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                                  <Podcast className="w-5 h-5 text-primary" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[14px] font-semibold text-foreground leading-snug truncate">{podcast.name}</p>
+                                <p className="text-[12px] text-muted-foreground truncate">{podcast.artist}</p>
+                              </div>
+                              <Plus className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary shrink-0 transition-colors" />
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </motion.div>
-          )}
+                </div>
+
+                {renderTopicSection("industry", "Industry Pulse", "Daily briefings on the industries you follow", Globe, 2, "industries", userIndustries)}
+                {renderTopicSection("role", "Role Intelligence", "Insights tailored to your professional role", Briefcase, 1, "roles", userRoles)}
+                {renderTopicSection("interest", "Interest Digest", "Daily updates on topics you care about", Lightbulb, 2, "interests", userInterests)}
+              </motion.div>
+            );
+          })()}
 
           {activeTab === "recaps" && (
             <motion.div

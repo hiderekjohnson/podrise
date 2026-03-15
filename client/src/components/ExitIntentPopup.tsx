@@ -260,13 +260,14 @@ export function ExitIntentPopup() {
                     <Check className="w-7 h-7 text-[#6366F1]" />
                   </div>
                   <h3 className="text-xl font-display font-bold text-foreground mb-2" data-testid="text-exit-intent-success">
-                    You're in!
+                    {isNewUser ? "You're in!" : "Added to your subscriptions!"}
                   </h3>
                   <p className="text-[15px] text-muted-foreground mb-4">
-                    {isNewUser ? "We created your account. " : ""}
-                    {pageData?.pageType === "podcast" || pageData?.pageType === "episode"
-                      ? `You'll get a recap every time ${pageData.podcastName || pageData.name} drops a new episode.`
-                      : "Check your inbox for podcast recaps."}
+                    {isNewUser
+                      ? <>We created your account. {pageData?.pageType === "podcast" || pageData?.pageType === "episode"
+                          ? `You'll get a recap every time ${pageData.podcastName || pageData.name} drops a new episode.`
+                          : "Check your inbox for podcast recaps."}</>
+                      : "Go to your dashboard to manage all your subscriptions."}
                   </p>
                   <Link href="/dashboard" onClick={dismiss}>
                     <span className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary hover:underline cursor-pointer" data-testid="link-exit-intent-dashboard">

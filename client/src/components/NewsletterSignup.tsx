@@ -20,6 +20,9 @@ export function NewsletterSignup({ type, slug, name, variant = "card", className
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const frequencyLabel = type === "podcast" ? "recap" : "briefing";
+  const typeLabel = type === "industry" ? "industry" : type === "interest" ? "interest" : type === "role" ? "role" : "podcast";
+
   const subscribe = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
@@ -35,8 +38,8 @@ export function NewsletterSignup({ type, slug, name, variant = "card", className
       setIsNew(data.isNew);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
-        title: `Subscribed to ${name}`,
-        description: data.isNew ? "Your account has been created." : "Added to your subscriptions.",
+        title: data.isNew ? `Subscribed to ${name}` : `Added to your daily ${frequencyLabel}!`,
+        description: data.isNew ? "Your account has been created." : "Go to your dashboard to manage all your subscriptions.",
       });
     },
     onError: (err: any) => {
@@ -54,9 +57,6 @@ export function NewsletterSignup({ type, slug, name, variant = "card", className
     subscribe.mutate();
   };
 
-  const frequencyLabel = type === "podcast" ? "recap" : "briefing";
-  const typeLabel = type === "industry" ? "industry" : type === "interest" ? "interest" : type === "role" ? "role" : "podcast";
-
   if (success) {
     return (
       <div className={`rounded-2xl border border-[#6366F1]/20 bg-[#EEF2FF] p-5 ${className}`} data-testid="newsletter-success">
@@ -67,10 +67,12 @@ export function NewsletterSignup({ type, slug, name, variant = "card", className
           </div>
           <div className="flex-1">
             <p className="text-[15px] font-semibold text-foreground">
-              You're subscribed to {name}
+              {isNew ? `You're subscribed to ${name}` : `Added to your daily ${frequencyLabel}!`}
             </p>
             <p className="text-[14px] text-muted-foreground mt-1">
-              {isNew ? "We created your account. " : ""}You'll get a daily {frequencyLabel} in your inbox.
+              {isNew
+                ? `We created your account. You'll get a daily ${frequencyLabel} in your inbox.`
+                : `Go to your dashboard to manage all your subscriptions.`}
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <Link
@@ -78,7 +80,7 @@ export function NewsletterSignup({ type, slug, name, variant = "card", className
                 className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary hover:underline"
                 data-testid="link-manage-subscriptions"
               >
-                Manage subscriptions
+                {isNew ? "Manage subscriptions" : "Go to your dashboard"}
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

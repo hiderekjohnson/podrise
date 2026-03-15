@@ -823,6 +823,8 @@ export async function registerRoutes(
       }
 
       if (!isNew) {
+        req.session.userId = user.id;
+
         const field = input.type === "podcast" ? "podcasts"
           : input.type === "industry" ? "industries"
           : input.type === "interest" ? "interests"

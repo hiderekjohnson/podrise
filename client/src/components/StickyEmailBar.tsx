@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Mail, X, Loader2, ArrowRight, Check, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,6 +25,8 @@ export function StickyEmailBar({ type, slug, name, artworkUrl, hosts, scrollThre
   const queryClient = useQueryClient();
   const { data: user } = useAuth();
 
+  const [isNewUser, setIsNewUser] = useState(false);
+
   const subscribe = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
@@ -36,12 +39,13 @@ export function StickyEmailBar({ type, slug, name, artworkUrl, hosts, scrollThre
     },
     onSuccess: (data) => {
       setSuccess(true);
+      setIsNewUser(data.isNew);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
-        title: `Subscribed to ${name}`,
-        description: data.isNew ? "Your account has been created." : "Added to your subscriptions.",
+        title: data.isNew ? `Subscribed to ${name}` : `Added to your daily ${label}!`,
+        description: data.isNew ? "Your account has been created." : "Go to your dashboard to manage all your subscriptions.",
       });
-      setTimeout(() => setDismissed(true), 3000);
+      setTimeout(() => setDismissed(true), 5000);
     },
     onError: (err: any) => {
       toast({
@@ -88,7 +92,13 @@ export function StickyEmailBar({ type, slug, name, artworkUrl, hosts, scrollThre
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center gap-3">
             {success ? (
               <div className="flex items-center gap-2 text-[#6366F1] font-semibold text-[15px]" data-testid="sticky-bar-success">
-                <Check className="w-4 h-4" /> Subscribed to {name}!
+                <Check className="w-4 h-4" />
+                {isNewUser ? `Subscribed to ${name}!` : `Added to your daily ${label}!`}
+                {!isNewUser && (
+                  <Link href="/dashboard" className="ml-2 underline hover:text-[#6366F1]/80 transition-colors" data-testid="link-sticky-bar-dashboard">
+                    Go to dashboard
+                  </Link>
+                )}
               </div>
             ) : (
               <>

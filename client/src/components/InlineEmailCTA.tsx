@@ -23,6 +23,8 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
   const queryClient = useQueryClient();
   const { data: user } = useAuth();
 
+  const [isNewUser, setIsNewUser] = useState(false);
+
   const subscribe = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
@@ -35,10 +37,11 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
     },
     onSuccess: (data) => {
       setSuccess(true);
+      setIsNewUser(data.isNew);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
-        title: `Subscribed to ${name}`,
-        description: data.isNew ? "Your account has been created." : "Added to your subscriptions.",
+        title: data.isNew ? `Subscribed to ${name}` : `Added to your daily ${label}!`,
+        description: data.isNew ? "Your account has been created." : "Go to your dashboard to manage all your subscriptions.",
       });
     },
     onError: (err: any) => {
@@ -74,9 +77,11 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
             <Check className="w-5 h-5 text-[#6366F1]" />
           </div>
           <div>
-            <p className="text-[15px] font-semibold text-foreground">Subscribed to {name}</p>
+            <p className="text-[15px] font-semibold text-foreground">
+              {isNewUser ? `Subscribed to ${name}` : `Added to your daily ${label}!`}
+            </p>
             <Link href="/dashboard" className="text-[14px] font-medium text-primary hover:underline flex items-center gap-1 mt-0.5" data-testid="link-inline-cta-dashboard">
-              Manage your subscriptions <ArrowRight className="w-3 h-3" />
+              {isNewUser ? "Manage your subscriptions" : "Go to your dashboard"} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
