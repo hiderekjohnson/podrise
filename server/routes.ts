@@ -4163,7 +4163,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.get("/api/topics/:slug/pulse", async (req, res) => {
     try {
       const { slug } = req.params;
-      const pulses = await storage.getTopicPulses(slug, 30);
+      const pulses = await storage.getTopicPulses(slug, 100);
       res.json(pulses);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Failed to fetch pulses" });

@@ -525,6 +525,8 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
 function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: string }) {
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
+  const categoryType: "industry" | "interest" | "role" = basePath === "/industries" ? "industry" : basePath === "/roles" ? "role" : "interest";
+  const categoryLabel = basePath === "/industries" ? "Industries" : basePath === "/roles" ? "Roles" : "Topics";
 
   const { data: pulses, isLoading } = useQuery<TopicPulse[]>({
     queryKey: ["/api/topics", topicSlug, "pulse"],
@@ -535,12 +537,10 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
     },
   });
 
-  const latestPulse = pulses && pulses.length > 0 ? pulses[0] : null;
-
   function SEOHead() {
     const title = `${topicName} Daily Intelligence Briefing from Top Podcasts | PodCap`;
     const description = `Get daily ${topicName.toLowerCase()} briefings synthesized from top podcast conversations. Key developments, expert analysis, and trends — updated every day.`;
-    const canonicalUrl = `https://podcap.io/topics/${topicSlug}/pulse`;
+    const canonicalUrl = `https://podcap.io${basePath}/${topicSlug}/pulse`;
     if (typeof document !== "undefined") {
       document.title = title;
       const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -571,32 +571,132 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
     return null;
   }
 
-  if (latestPulse && !isLoading) {
-    return <PulseEdition topicSlug={topicSlug} date={latestPulse.publishDate} basePath={basePath} />;
+  const groupedByMonth: Record<string, TopicPulse[]> = {};
+  if (pulses) {
+    for (const p of pulses) {
+      const parts = p.publishDate.split("-");
+      const monthKey = `${parts[0]}-${parts[1]}`;
+      if (!groupedByMonth[monthKey]) groupedByMonth[monthKey] = [];
+      groupedByMonth[monthKey].push(p);
+    }
+  }
+
+  function formatMonthLabel(monthKey: string) {
+    const [year, month] = monthKey.split("-");
+    const d = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   }
 
   return (
     <>
       <SEOHead />
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-16 sm:pb-20">
+        <nav className="flex flex-wrap items-center gap-1 text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-5" aria-label="Breadcrumb" data-testid="nav-breadcrumbs">
+          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+          <ChevronRightSmall className="w-3 h-3 shrink-0" />
+          <Link href={basePath} className="hover:text-foreground transition-colors">{categoryLabel}</Link>
+          <ChevronRightSmall className="w-3 h-3 shrink-0" />
+          <Link href={`${basePath}/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
+          <ChevronRightSmall className="w-3 h-3 shrink-0" />
+          <span className="text-foreground font-medium">The Pulse</span>
+        </nav>
+
+        <motion.header
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-2 text-primary mb-3">
+            <Activity className="w-4 h-4" />
+            <span className="text-[12px] font-bold uppercase tracking-wider">The Pulse</span>
+          </div>
+          <h1 className="text-[28px] sm:text-[36px] font-display font-bold text-foreground leading-tight mb-3" data-testid="heading-pulse-archive">
+            {topicName} Briefings
+          </h1>
+          <p className="text-[16px] sm:text-[17px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
+            Daily intelligence from top podcast conversations about {topicName.toLowerCase()}.
+          </p>
+        </motion.header>
+
+        <InlineEmailCTA
+          type={categoryType}
+          slug={topicSlug}
+          name={topicName}
+          variant="gradient"
+          className="mb-8"
+        />
+
+        <div className="w-full h-px bg-border mb-8" />
+
         {isLoading ? (
           <div className="space-y-6 animate-pulse">
-            <div className="h-4 bg-muted rounded w-1/3" />
-            <div className="h-10 bg-muted rounded w-3/4" />
-            <div className="h-6 bg-muted rounded w-1/2" />
-            <div className="h-px bg-border my-8" />
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-20 bg-muted rounded" />
-              ))}
-            </div>
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="space-y-2">
+                <div className="h-3 bg-muted rounded w-24" />
+                <div className="h-6 bg-muted rounded w-3/4" />
+                <div className="h-4 bg-muted rounded w-full" />
+              </div>
+            ))}
           </div>
+        ) : pulses && pulses.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-10"
+            data-testid="section-pulse-archive"
+          >
+            {Object.entries(groupedByMonth).map(([monthKey, monthPulses]) => (
+              <div key={monthKey}>
+                <h2 className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground mb-4" data-testid={`heading-month-${monthKey}`}>
+                  {formatMonthLabel(monthKey)}
+                </h2>
+                <div className="space-y-3">
+                  {monthPulses.map((p, i) => (
+                    <Link
+                      key={p.publishDate}
+                      href={`${basePath}/${topicSlug}/pulse/${p.publishDate}`}
+                      className="group block p-4 sm:p-5 rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-primary/20 hover:bg-primary/[0.02] transition-all"
+                      data-testid={`link-pulse-${p.publishDate}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <time dateTime={p.publishDate} className="text-[13px] text-muted-foreground flex items-center gap-1.5">
+                          <Calendar className="w-3 h-3" />
+                          {formatDateLong(p.publishDate)}
+                        </time>
+                        <span className="text-muted-foreground/30">·</span>
+                        <span className="text-[13px] text-muted-foreground">{p.episodeCount} episode{p.episodeCount !== 1 ? "s" : ""}</span>
+                      </div>
+                      <h3 className="text-[16px] sm:text-[17px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug mb-1.5">
+                        {p.headline}
+                      </h3>
+                      {p.summary && (
+                        <p className="text-[14px] sm:text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">
+                          {p.summary}
+                        </p>
+                      )}
+                      {p.keyThemes && p.keyThemes.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {p.keyThemes.slice(0, 4).map((theme, ti) => (
+                            <span key={ti} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/[0.06] text-primary/80">
+                              {theme}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </motion.div>
         ) : (
           <div className="text-center py-16">
             <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-lg font-display font-bold text-foreground mb-1">No briefings yet</p>
             <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">The {topicName} Pulse will be published soon.</p>
-            <Link href={`${basePath}/${topicSlug}`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
+            <Link href={`${basePath}/${topicSlug}`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors" data-testid="link-explore-topic">
               Explore {topicName} topic
             </Link>
           </div>
