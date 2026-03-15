@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
-import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, TrendingDown, Minus, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen, Package, Mail } from "lucide-react";
+import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, TrendingDown, Minus, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen, Package, Mail } from "lucide-react";
 import { BookCoverFill } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { motion } from "framer-motion";
@@ -150,7 +150,7 @@ export default function TopicDetailPage() {
     enabled: !isDynamic,
   });
 
-  const { data: latestPulses } = useQuery<{ publishDate: string }[]>({
+  const { data: latestPulses } = useQuery<{ publishDate: string; headline: string; summary: string }[]>({
     queryKey: ["/api/topics", params.slug, "pulse"],
     queryFn: async () => {
       const res = await fetch(`/api/topics/${params.slug}/pulse`);
@@ -415,13 +415,13 @@ export default function TopicDetailPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-3xl sm:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="text-topic-title">
-                  {hasWeeklyContent ? `This Week in ${topicDisplayName}` : topicDisplayName}
+                  {hasWeeklyContent ? `What's Happening in ${topicDisplayName}` : topicDisplayName}
                 </h1>
               </div>
               {weeklyIntel?.weekRange && hasWeeklyContent ? (
                 <div className="flex items-center gap-2 mt-1">
-                  <Calendar className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[14px] font-medium text-primary" data-testid="text-week-range">{weeklyIntel.weekRange}</span>
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[14px] font-medium text-primary" data-testid="text-week-range">Updated recently</span>
                 </div>
               ) : (
                 <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-2 max-w-2xl leading-relaxed" data-testid="text-topic-description">
@@ -464,6 +464,207 @@ export default function TopicDetailPage() {
         )}
 
         {!isDynamic && hasWeeklyContent && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.08 }}
+            className="mb-10 space-y-5"
+            data-testid="snapshot-dashboard"
+          >
+            {(weeklyIntel.quotes.length > 0 || (latestPulses && latestPulses.length > 0)) && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {weeklyIntel.quotes.length > 0 && (
+                  <div className="rounded-xl bg-gradient-to-br from-[#F8F7FF] to-[#F0EFFF] dark:from-[#6366F1]/[0.06] dark:to-[#8B5CF6]/[0.04] border border-[#6366F1]/[0.08] p-5 sm:p-6 flex flex-col" data-testid="snapshot-quote">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Quote className="w-4 h-4 text-[#6366F1]" />
+                      <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#6366F1]">Quote of the Day</span>
+                    </div>
+                    <blockquote className="text-[16px] sm:text-[18px] font-display text-foreground leading-relaxed italic mb-3 flex-1">
+                      "{weeklyIntel.quotes[0].quoteText}"
+                    </blockquote>
+                    <Link href={`/podcasts/${weeklyIntel.quotes[0].podcastSlug}/${weeklyIntel.quotes[0].episodeSlug}`} className="flex items-center gap-2 group" data-testid="link-snapshot-quote">
+                      <span className="text-[14px] font-semibold text-foreground">{weeklyIntel.quotes[0].speakerName}</span>
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                      <span className="text-[13px] text-muted-foreground group-hover:text-primary transition-colors">{weeklyIntel.quotes[0].podcastName}</span>
+                      <ArrowUpRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                    </Link>
+                  </div>
+                )}
+
+                {latestPulses && latestPulses.length > 0 && (
+                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-5 sm:p-6 flex flex-col" data-testid="snapshot-pulse">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-[#6366F1]" />
+                        <span className="text-[14px] font-bold text-foreground">The Pulse</span>
+                      </div>
+                      <Link
+                        href={latestPulseDate ? `${categoryBasePath}/${params.slug}/pulse/${latestPulseDate}` : `${categoryBasePath}/${params.slug}/pulse`}
+                        className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                        data-testid="snapshot-read-pulse"
+                      >
+                        Read all →
+                      </Link>
+                    </div>
+                    <div className="space-y-3 flex-1">
+                      {latestPulses.slice(0, 3).map((pulse, i) => {
+                        const d = new Date(pulse.publishDate + "T00:00:00");
+                        const formattedDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                        return (
+                          <Link
+                            key={i}
+                            href={`${categoryBasePath}/${params.slug}/pulse/${pulse.publishDate}`}
+                            className="block group"
+                            data-testid={`snapshot-pulse-${i}`}
+                          >
+                            <div className="flex items-baseline gap-2 mb-0.5">
+                              <span className="text-[12px] font-semibold text-primary/60 uppercase tracking-wide flex-shrink-0">{formattedDate}</span>
+                            </div>
+                            <p className="text-[14px] text-foreground/80 leading-relaxed group-hover:text-primary transition-colors line-clamp-2">{pulse.summary || pulse.headline}</p>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(weeklyIntel.trendingPeople.length > 0 || weeklyIntel.trendingCompanies.length > 0) && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {weeklyIntel.trendingPeople.length > 0 && (
+                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-5" data-testid="snapshot-trending-people">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-sky-500" />
+                        <span className="text-[14px] font-bold text-foreground">Trending People</span>
+                      </div>
+                      <button
+                        onClick={() => document.getElementById('section-people')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                        data-testid="snapshot-see-all-people"
+                      >
+                        See all →
+                      </button>
+                    </div>
+                    <div className="space-y-3.5">
+                      {weeklyIntel.trendingPeople.slice(0, 3).map((person) => (
+                        <Link key={person.slug} href={`/people/${person.slug}`} className="flex items-start gap-3 group" data-testid={`snapshot-person-${person.slug}`}>
+                          <img
+                            src={getPersonImage(person.slug)}
+                            alt={person.name}
+                            className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">{person.name}</span>
+                              <TrendBadge trend={person.trend} changePercent={person.changePercent} />
+                            </div>
+                            <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-2">
+                              {person.contextSnippets.length > 0 ? person.contextSnippets[0].snippet : person.title}
+                            </p>
+                            {person.contextSnippets.length > 0 && (
+                              <span className="text-[12px] text-primary/50 mt-0.5 inline-block">{person.contextSnippets[0].podcastName}</span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {weeklyIntel.trendingCompanies.length > 0 && (
+                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-5" data-testid="snapshot-trending-companies">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-orange-500" />
+                        <span className="text-[14px] font-bold text-foreground">Trending Companies</span>
+                      </div>
+                      <button
+                        onClick={() => document.getElementById('section-companies')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                        data-testid="snapshot-see-all-companies"
+                      >
+                        See all →
+                      </button>
+                    </div>
+                    <div className="space-y-3.5">
+                      {weeklyIntel.trendingCompanies.slice(0, 3).map((company) => (
+                        <Link key={company.slug} href={`/companies/${company.slug}`} className="flex items-start gap-3 group" data-testid={`snapshot-company-${company.slug}`}>
+                          <img
+                            src={getCompanyLogo(company.slug)}
+                            alt={company.name}
+                            className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-0.5"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">{company.name}</span>
+                              <TrendBadge trend={company.trend} changePercent={company.changePercent} />
+                            </div>
+                            <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-2">
+                              {company.contextSnippets.length > 0 ? company.contextSnippets[0].snippet : company.description}
+                            </p>
+                            {company.contextSnippets.length > 0 && (
+                              <span className="text-[12px] text-primary/50 mt-0.5 inline-block">{company.contextSnippets[0].podcastName}</span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {thisWeekEpisodes.length > 0 && (
+              <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-5" data-testid="snapshot-moments">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-500" />
+                    <span className="text-[14px] font-bold text-foreground">Key Moments</span>
+                  </div>
+                  <button
+                    onClick={() => document.getElementById('section-takeaways')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    data-testid="snapshot-more-moments"
+                  >
+                    See all →
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(() => {
+                    const moments = thisWeekEpisodes
+                      .filter(ep => ep.tldl || (Array.isArray(ep.key_insights) ? ep.key_insights.length > 0 : !!ep.key_insights))
+                      .slice(0, 4)
+                      .map(ep => ({
+                        title: ep.episode_title,
+                        podcast: ep.podcast_name,
+                        artwork: ep.artwork_url,
+                        hook: ep.tldl || (Array.isArray(ep.key_insights) ? ep.key_insights[0] : ep.key_insights),
+                        podcastSlug: ep.slug,
+                        episodeSlug: ep.episode_slug,
+                      }));
+                    return moments.map((m, i) => (
+                      <Link key={i} href={`/podcasts/${m.podcastSlug}/${m.episodeSlug}`} className="group" data-testid={`snapshot-moment-${i}`}>
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50/40 dark:bg-amber-950/10 border border-amber-200/20 dark:border-amber-800/15 hover:border-amber-300/40 transition-all">
+                          <img src={m.artwork} alt={m.podcast} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" loading="lazy" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] text-foreground/80 leading-relaxed line-clamp-2 group-hover:text-foreground transition-colors">{m.hook}</p>
+                            <span className="text-[12px] text-muted-foreground mt-1 inline-block">{m.podcast}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {!isDynamic && hasWeeklyContent && (
           <>
             {weeklyIntel.trendingPeople.length > 0 && (
               <motion.section
@@ -478,7 +679,7 @@ export default function TopicDetailPage() {
                   <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-trending-people">
                     Trending People
                   </h2>
-                  <span className="text-[13px] text-muted-foreground ml-1">This week</span>
+                  <span className="text-[13px] text-muted-foreground ml-1">Recently</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {weeklyIntel.trendingPeople.slice(0, 6).map((person, i) => (
@@ -536,7 +737,7 @@ export default function TopicDetailPage() {
                   <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-trending-companies">
                     Companies in the Conversation
                   </h2>
-                  <span className="text-[13px] text-muted-foreground ml-1">This week</span>
+                  <span className="text-[13px] text-muted-foreground ml-1">Recently</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {weeklyIntel.trendingCompanies.slice(0, 6).map((company, i) => (
@@ -594,7 +795,7 @@ export default function TopicDetailPage() {
               <div className="flex items-center gap-2">
                 <Radio className="w-5 h-5 text-primary" />
                 <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-weekly-episodes">
-                  This Week's Episodes
+                  Recent Episodes
                 </h2>
                 <span className="text-[13px] text-muted-foreground ml-1">{thisWeekEpisodes.length} new</span>
               </div>
@@ -643,7 +844,7 @@ export default function TopicDetailPage() {
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-5 h-5 text-amber-500" />
               <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-key-insights">
-                {weeklyInsights.length > 0 ? "Key Takeaways This Week" : "Key Takeaways"}
+                Key Takeaways
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -670,7 +871,7 @@ export default function TopicDetailPage() {
             <div className="flex items-center gap-2 mb-4">
               <Quote className="w-5 h-5 text-violet-500" />
               <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-top-quotes">
-                Top Quotes This Week
+                Top Quotes
               </h2>
             </div>
             <div className="space-y-3">
@@ -708,7 +909,7 @@ export default function TopicDetailPage() {
                 <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-products">
                   Products & Tools Mentioned
                 </h2>
-                <span className="text-[13px] text-muted-foreground ml-1">This week</span>
+                <span className="text-[13px] text-muted-foreground ml-1">Recently</span>
               </div>
               <Link href="/shop" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1" data-testid="link-shop-all">
                 Browse shop <ArrowRight className="w-3.5 h-3.5" />

@@ -66,7 +66,7 @@ function getContextualCopy(data: PageConversionData | null) {
       return {
         badge: `${data.name} Intelligence`,
         heading: `Stay ahead on ${data.name.toLowerCase()}`,
-        subtext: `Get a daily briefing with the key insights about ${data.name.toLowerCase()} from ${data.podcastCount ? `${data.podcastCount}+` : "top"} podcasts — delivered to your inbox.`,
+        subtext: `Get a daily briefing with the key insights about ${data.name.toLowerCase()} — delivered to your inbox.`,
         cta: `Get the ${data.name} briefing`,
         subscribeType: data.categoryType || "interest",
         subscribeSlug: data.slug,
