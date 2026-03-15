@@ -473,7 +473,18 @@ OTHER RULES:
 - BOOKS ARE CRITICAL: Before writing resources, scan the FULL transcript word by word for ANY book title, author name, or phrase like "this book", "read this", "his book", "her book", "the book called", "a book by", "I read", "have you read", "recommended reading". Even if a book is mentioned once in passing, include it. Missing a book is a serious error
 - quote: Find the single most SHAREABLE line from the transcript. Look for something surprising, counterintuitive, provocative, funny, or profound - the kind of line someone would screenshot and post. It MUST be verbatim from the transcript. Prefer lines with a strong point of view, a vivid metaphor, or a surprising claim. Avoid generic motivational statements like "believe in yourself" or "hard work pays off." The quote should make someone curious about the episode. BAD: "I think self-belief has gotten me so far." GOOD: "Six out of ten people would choose a completely different career if they could start over. Six out of ten." quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
 - keyInsights: Exactly 4 standalone insights. Each must teach the reader something specific they did not know. 2-3 tight sentences that could be read completely out of context and still be worth reading. Include concrete details (a name, a number, a company, a mechanism). Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong." BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing. BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X". BAD: "Bill Gurley discusses the transformative impact of AI on the workplace." BAD: "Scaling a business successfully often comes down to influencer marketing." GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice." GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads. The playbook was simple - find creators whose audiences already want what you sell, and pay per result, not per post."
-- extractedQuotes: 3-5 verbatim quotes from the transcript. Prefer GUESTS over hosts. A quote is worth extracting if someone would screenshot it and send it to a friend. Prioritize: contrarian/spicy takes, tweetable self-contained lines, specific opinions and predictions, memorable phrasing. Skip: generic motivational filler, factual statements with no opinion, rambling passages. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim from transcript. context must be a short phrase starting with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (not just "Guest" - use their actual title)
+- extractedQuotes: 3-5 verbatim quotes from the transcript. QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. If it could be said in any conversation about any topic, it is NOT a quote worth extracting.
+  SPEAKER IDENTIFICATION IS MANDATORY: "Unknown" is NEVER acceptable as a speakerName. Use context clues: who was just introduced, who is the guest vs host, who has the expertise being discussed, whose perspective is being shared. The podcast hosts are mentioned in the episode metadata - any non-host speaker is likely the guest. If the episode title names a person, most quotes likely come from them.
+  Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim from transcript. context must be a short phrase starting with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (not just "Guest" or "Episode Host" - use their actual title like "CEO of Acme" or "Venture Capitalist").
+  BAD QUOTES (never extract these - they are conversational filler, NOT shareable):
+    - "I think your biggest skill is your audacity." (compliment, not insight)
+    - "I'm impressed with your decision making." (reaction, not content)
+    - "That's really interesting." (filler)
+    - "I think the CEO job is the loneliest job in America." (vague, no specifics)
+  GOOD QUOTES (these have substance, specifics, and a point of view):
+    - "Six out of ten people would choose a completely different career if they could start over. Six out of ten. That number floored me."
+    - "We did $30 million in revenue before I turned 20, and the entire playbook was paying fitness influencers per result, not per post."
+    - "The only thing Jeff Bezos looks for when hiring is insane determinism. Not intelligence, not credentials - just the refusal to accept that something can't be done."
 - keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition". Always be specific - never generic
 - topicContexts: DO NOT create slugs from keyTopics. Instead, identify which of these predefined broad categories apply to this episode, and write a 1-2 sentence episode-specific description for each relevant one. ONLY use these exact slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories that are genuinely discussed in the episode (typically 3-6). Reference specific points, people, or perspectives from this episode. Write like a sharp analyst, not generic marketing copy
 - sponsors: Extract ALL sponsors/advertisers. Include coupon codes and URLs when mentioned. Return empty array [] if none
@@ -555,15 +566,30 @@ OTHER RULES:
       }
 
       const rawQuotes = Array.isArray(parsed.extractedQuotes) ? parsed.extractedQuotes : [];
+      const guestNames = Array.isArray(parsed.guests) ? parsed.guests.map((g: any) => g.name).filter(Boolean) : [];
       const validQuotes: ExtractedQuote[] = rawQuotes
         .filter((q: any) => q.speakerName && q.quoteText && q.context && q.quoteType)
-        .map((q: any) => ({
-          speakerName: q.speakerName,
-          speakerRole: q.speakerRole || "",
-          quoteText: q.quoteText,
-          context: q.context,
-          quoteType: q.quoteType,
-        }));
+        .filter((q: any) => {
+          const wordCount = q.quoteText.trim().split(/\s+/).length;
+          if (wordCount < 12) {
+            console.log(`[RecapGenerator] Filtered short quote (${wordCount} words): "${q.quoteText.slice(0, 60)}..."`);
+            return false;
+          }
+          return true;
+        })
+        .map((q: any) => {
+          let name = q.speakerName;
+          let role = q.speakerRole || "";
+          if (name === "Unknown" || name === "Episode Host" || name === "Host") {
+            if (guestNames.length === 1) {
+              name = guestNames[0];
+              role = parsed.guests[0]?.title || role;
+              console.log(`[RecapGenerator] Fixed "Unknown" speaker -> "${name}"`);
+            }
+          }
+          return { speakerName: name, speakerRole: role, quoteText: q.quoteText, context: q.context, quoteType: q.quoteType };
+        })
+        .filter((q: ExtractedQuote) => q.speakerName !== "Unknown");
 
       const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
       const finalInsights = pass2Insights.length === 4 ? pass2Insights : keyInsights;
@@ -623,7 +649,7 @@ Episode: "${episodeTitle}"
 
 For this segment, extract:
 1. KEY FACTS & INSIGHTS: Every specific claim, number, statistic, story, or insight. Include the actual substance — not "they discussed AI" but "GPT-4 costs 10x less than GPT-3 per token and processes images"
-2. BEST QUOTES: Any memorable, surprising, funny, or shareable lines — copy them VERBATIM with speaker attribution
+2. BEST QUOTES: Memorable, surprising, or shareable lines — copy them VERBATIM with speaker attribution (use full name, NEVER "Unknown"). Each quote must be at least 15 words and contain a specific claim, opinion, number, or insight. SKIP conversational filler like "That's amazing", compliments like "Your biggest skill is your audacity", and reactions like "I'm impressed". If the episode title names a person, that person is likely the guest — attribute their quotes to them by name
 3. BOOKS MENTIONED: Any book title, author reference, or "read this" mention — even in passing. For each book, extract rich context: WHO mentioned it, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported
 4. GUESTS: Anyone introduced as a guest, interviewee, or joining the show — full name and title if mentioned
 5. SPONSORS: Any ad reads, sponsor mentions, coupon codes, or "brought to you by" segments
@@ -795,7 +821,11 @@ OTHER RULES:
   BAD: "Trademarking and legal constraints are critical in the naming process." (vague, no substance)
   GOOD: "Swiffer is a $5 billion brand. Clorox's Ready Mop does a couple hundred million. The products are nearly identical - the difference is almost entirely the name. The team behind Swiffer generated over 2,000 candidate names before landing on one that was short, surprising, and sounded like the motion of mopping."
   GOOD: "The most counterintuitive part of naming a billion-dollar brand is that legal constraints actually help. Roughly 80% of candidate names get killed by trademark conflicts, which forces the team toward stranger, more distinctive options - exactly the kind that tend to win in the market."
-- extractedQuotes: 3-5 quotes from the BEST QUOTES above. Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim. context must start with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (their actual title, not "Guest")
+- extractedQuotes: 3-5 quotes from the BEST QUOTES above. QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. Conversational filler, compliments, and reactions are NOT quotes.
+  SPEAKER IDENTIFICATION IS MANDATORY: "Unknown" is NEVER acceptable as a speakerName. Use the episode title, guest list, and host names to determine who said each quote. If the episode title names a person (e.g. "Bill Gurley: ..."), most substantive quotes come from that person. Any speaker who is not a known host is the guest.
+  Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim. context must start with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (their actual title, not "Guest" or "Episode Host").
+  BAD QUOTES (never select these): "I think your biggest skill is your audacity." / "I'm impressed with your decision making." / "That's a great point." — these are conversational reactions with no substance.
+  GOOD QUOTES: Lines with specific numbers, contrarian claims, vivid metaphors, or predictions that someone would screenshot and share
 - keyTopics: 4-6 specific phrases that read like search queries with specific names
 - topicContexts: Use ONLY these slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories genuinely discussed (typically 3-6)
 - resources: Include ALL books from the books list above plus any other notable resources. For books, the context field MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail: WHO mentioned it, WHY they brought it up, what SPECIFIC argument, story, or claim it supported. BAD: "Referenced as an example of successful nonfiction." BAD: "James Clear's concept was referenced to emphasize habits." GOOD: "Morgan Housel frames James Clear not merely as an author but as an entrepreneur who treats his books as products. This perspective shifts the conversation from traditional writing to the strategic elements of launching and marketing a book. Housel admires Clear's scientific thinking in structuring Atomic Habits." For books, include Amazon URL if you know the ASIN`;
@@ -841,15 +871,30 @@ OTHER RULES:
     }
 
     const rawQuotes = Array.isArray(parsed.extractedQuotes) ? parsed.extractedQuotes : [];
+    const synthGuestNames = Array.isArray(parsed.guests) ? parsed.guests.map((g: any) => g.name).filter(Boolean) : [];
     const validQuotes: ExtractedQuote[] = rawQuotes
       .filter((q: any) => q.speakerName && q.quoteText && q.context && q.quoteType)
-      .map((q: any) => ({
-        speakerName: q.speakerName,
-        speakerRole: q.speakerRole || "",
-        quoteText: q.quoteText,
-        context: q.context,
-        quoteType: q.quoteType,
-      }));
+      .filter((q: any) => {
+        const wordCount = q.quoteText.trim().split(/\s+/).length;
+        if (wordCount < 12) {
+          console.log(`[RecapGenerator] Filtered short quote (${wordCount} words): "${q.quoteText.slice(0, 60)}..."`);
+          return false;
+        }
+        return true;
+      })
+      .map((q: any) => {
+        let name = q.speakerName;
+        let role = q.speakerRole || "";
+        if (name === "Unknown" || name === "Episode Host" || name === "Host") {
+          if (synthGuestNames.length === 1) {
+            name = synthGuestNames[0];
+            role = parsed.guests[0]?.title || role;
+            console.log(`[RecapGenerator] Fixed "Unknown" speaker -> "${name}"`);
+          }
+        }
+        return { speakerName: name, speakerRole: role, quoteText: q.quoteText, context: q.context, quoteType: q.quoteType };
+      })
+      .filter((q: ExtractedQuote) => q.speakerName !== "Unknown");
 
     console.log(`[RecapGenerator] Full-transcript recap complete for "${episodeTitle}" (${coverage.chunkCount} chunks, ${coverage.totalChars} chars)`);
 
@@ -1036,11 +1081,28 @@ ${transcript}
 
 EXTRACTION RULES:
 - Always prefer quotes from GUESTS over the host. Include host quotes only if genuinely exceptional.
-- A quote is worth extracting if someone would screenshot it and send it to a friend.
-- Prioritize: contrarian/spicy takes, tweetable self-contained lines, specific opinions and predictions, memorable phrasing.
-- Skip: generic motivational filler, factual statements with no opinion, rambling passages.
+- QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. If the line could be said in ANY conversation about ANY topic, it is NOT worth extracting.
+- Prioritize: contrarian/spicy takes, tweetable self-contained lines, specific opinions and predictions, memorable phrasing, lines with concrete numbers or facts.
+- SKIP: generic motivational filler, conversational reactions ("That's amazing", "I'm impressed"), compliments between speakers ("Your biggest skill is your audacity"), factual statements with no opinion, rambling passages.
 - Pull 3 to 5 quotes. One MUST be the clear hero quote. At least one must be a hot take or prediction.
 - Quotes MUST be verbatim from the transcript. Do NOT clean up, edit, or rephrase.
+
+BAD QUOTES (never extract these):
+- "I think your biggest skill is your audacity." (compliment between speakers, no insight)
+- "I'm impressed with your decision making." (reaction, not content)
+- "I think the CEO job is the loneliest job in America." (vague, no specifics)
+- "That's really interesting." (filler)
+
+GOOD QUOTES (these have substance worth sharing):
+- "Six out of ten people would choose a completely different career if they could start over. Six out of ten. That number floored me."
+- "We did $30 million in revenue before I turned 20, and the entire playbook was paying fitness influencers per result, not per post."
+- "The only thing he looks for when hiring is insane determinism. Not intelligence, not credentials - just the refusal to accept that something can't be done."
+
+SPEAKER IDENTIFICATION:
+- "Unknown" is NEVER acceptable as a speakerName. You MUST identify every speaker.
+- Use context clues: the episode title often names the guest, introductions at the start of the episode identify speakers, the speaking style and expertise help distinguish host from guest.
+- If the episode title mentions a person by name (e.g. "Bill Gurley: ..."), most substantive quotes likely come from that person.
+- Any speaker who is not a known host is the guest. Use the guest's full name and actual title.
 
 Respond ONLY with a valid JSON object (no markdown, no code fences):
 
@@ -1069,7 +1131,7 @@ RULES:
 - At least ONE must be "Hot Take" or "Prediction"
 - quoteText must be VERBATIM from transcript
 - context must be a short phrase starting with "On..." (e.g. "On why AI will replace managers")
-- speakerRole should be specific (not just "Guest" - use their actual title)
+- speakerRole should be specific (not just "Guest" or "Episode Host" - use their actual title)
 - Do NOT use em dashes in any output - use hyphens, commas, or rephrase instead`;
 
   try {
