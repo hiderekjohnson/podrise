@@ -9,163 +9,262 @@ import { SiteHeader } from "@/components/SiteHeader";
 interface ChangelogEntry {
   title: string;
   description: string;
-  link?: { url: string; label: string };
+  link: { url: string; label: string };
   emoji: string;
   date: string;
 }
 
 const changelog: ChangelogEntry[] = [
   {
-    title: "Explore podcast knowledge with Topics",
-    description: "Discover the topics, people, and companies shaping podcast conversations. Browse trending topics, influential guests, and mentioned organizations across your favorite shows.",
-    link: { url: "/interests", label: "Explore Topics" },
-    emoji: "🔍",
+    title: "AI-powered sponsor filtering keeps the Shop honest",
+    description: "We built an AI algorithm that automatically detects and filters out sponsored ads, paid placements, and affiliate pitches from the Shop — so only genuine host recommendations make the cut. If a host truly loves a product and talks about it organically, it stays. If it's a read-from-a-script ad spot, it's gone. Sorry, AG1.",
+    link: { url: "/shop", label: "See what hosts actually recommend" },
+    emoji: "🛡️",
+    date: "Mar 15, 2026",
+  },
+  {
+    title: "Shop — discover what podcast hosts genuinely recommend",
+    description: "Ever heard a host rave about a product and wanted to find it later? The Shop collects every tool, book, service, and product that podcast hosts organically recommend — not the paid ads, just the stuff they actually use. Filter by podcast, browse by category, or search for something specific. It's like a curated marketplace powered by real host enthusiasm.",
+    link: { url: "/shop", label: "Browse the Shop" },
+    emoji: "🛍️",
     date: "Mar 13, 2026",
   },
   {
-    title: "Curated book recommendations from episodes",
-    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. Discover your next read from the podcasts you love, with a dedicated bookstore featuring curated shelves, ratings, and host recommendations.",
-    link: { url: "/bookstore", label: "Browse the Bookstore" },
-    emoji: "📚",
+    title: "Trends — see what's gaining momentum across podcasts",
+    description: "The Discovery Radar tracks which people, companies, and topics are surging (or fading) across the podcast landscape in real time. Each trend gets a momentum score and a rising or falling badge so you can spot what's heating up before it hits the mainstream. Whether you're a researcher, investor, or just curious, Trends gives you a bird's-eye view of where podcast conversations are heading.",
+    link: { url: "/trends", label: "Explore the Discovery Radar" },
+    emoji: "📈",
     date: "Mar 11, 2026",
   },
   {
-    title: "Notable people and companies in every episode",
-    description: "Episode recaps now highlight the key people and organizations discussed. Click through to learn more about influential guests, industry leaders, and companies shaping the conversation.",
-    emoji: "👥",
+    title: "Topic Pulse — AI-synthesized daily intelligence briefings",
+    description: "Pick any topic you care about and Topic Pulse delivers a concise, AI-written intelligence briefing every day — synthesized from dozens of podcast episodes so you don't have to listen to all of them. Each briefing links back to its source episodes, and you can browse the full archive to track how conversations have evolved over time.",
+    link: { url: "/pulse/artificial-intelligence", label: "Read today's AI Pulse briefing" },
+    emoji: "⚡",
     date: "Mar 9, 2026",
   },
   {
-    title: "Direct quotes from every episode",
-    description: "Discover the most insightful moments from each episode with up to 5 carefully selected quotes. Every quote includes the speaker's name and context so you know who said what and why it matters.",
-    emoji: "💬",
+    title: "Subscribe to The Pulse for any industry, topic, or role",
+    description: "You can now sign up to receive regular Pulse briefings tailored to your world — whether that's a specific industry like fintech, a topic like climate tech, or a professional role like product manager. It's like having a research assistant who listens to hundreds of podcasts and sends you only what matters.",
+    link: { url: "/pulse/artificial-intelligence", label: "Subscribe to a Pulse briefing" },
+    emoji: "📬",
     date: "Mar 7, 2026",
   },
   {
-    title: "Higher quality episode recaps with better insights",
-    description: "We completely rebuilt our recap system for clarity and accuracy. Recaps now feature better-structured key insights, improved guest detection from episode titles, and cleaner formatting so the important details stand out.",
-    emoji: "✨",
+    title: "Topics directory — explore what podcasts are talking about",
+    description: "We organized every discussion topic across all podcasts into a single browsable directory. Whether you want to dive into AI, leadership, health, or crypto, the Topics page surfaces the most active conversations happening right now and connects you to the episodes driving them.",
+    link: { url: "/topics", label: "Browse all topics" },
+    emoji: "🔍",
     date: "Mar 5, 2026",
   },
   {
-    title: "Ask AI about any podcast",
-    description: "Ask questions about any podcast and get AI-powered answers drawn from episode recaps and summaries across the entire show's history.",
-    emoji: "🤖",
-    date: "Feb 28, 2026",
+    title: "Roles directory — podcast intelligence for your profession",
+    description: "Not everyone listens to podcasts the same way. The Roles directory lets you filter podcast knowledge by professional role — whether you're a founder, product manager, investor, engineer, or marketer. Find the episodes and insights most relevant to how you work, not just what you're interested in.",
+    link: { url: "/roles", label: "Find insights for your role" },
+    emoji: "💼",
+    date: "Mar 3, 2026",
   },
   {
-    title: "Host bios and photos",
-    description: "Every podcast page now shows host bios and profile photos pulled from their social media accounts. We love our hosts!",
-    emoji: "👤",
+    title: "Industries directory — podcast intelligence organized by sector",
+    description: "We mapped podcast conversations to real industries so you can quickly find intelligence relevant to your field. Browse Tech, Finance, Healthcare, Energy, Media, and more — each industry page surfaces the latest episodes, trending topics, and key people shaping that sector's narrative.",
+    link: { url: "/industries", label: "Browse industries" },
+    emoji: "🏢",
+    date: "Mar 1, 2026",
+  },
+  {
+    title: "Bookstore search by podcast",
+    description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Bookstore by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
+    link: { url: "/bookstore", label: "Search books by podcast" },
+    emoji: "📖",
+    date: "Feb 27, 2026",
+  },
+  {
+    title: "Enterprise — podcast intelligence for teams",
+    description: "If you're in VC, consulting, PR, or corporate strategy, you know podcasts are where founders and executives speak most candidly. Our Enterprise offering packages PodCap's intelligence layer for teams — competitive monitoring, market signal tracking, and structured data feeds so your whole organization benefits from podcast knowledge.",
+    link: { url: "/enterprise", label: "Learn about PodCap for teams" },
+    emoji: "🏛️",
     date: "Feb 25, 2026",
   },
   {
-    title: "Redesigned episode recaps",
-    description: "Episode recap pages now organize content into clean, numbered cards - TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI - so you can scan or deep-dive however you prefer.",
-    emoji: "✨",
+    title: "Advertise on PodCap",
+    description: "We opened up advertising for brands that want to reach an engaged audience of podcast enthusiasts, professionals, and curious minds. Choose from multiple ad formats, target by topic or audience interest, and connect with listeners who are actively seeking knowledge. Everything is transparent — no hidden placements.",
+    link: { url: "/advertise", label: "See advertising options" },
+    emoji: "📣",
+    date: "Feb 23, 2026",
+  },
+  {
+    title: "Podcasters can now claim their show",
+    description: "If you host a podcast, you can now officially claim your show on PodCap. Once verified, you can set a custom byline, manage how your sponsors appear, and control your show's presence on the platform. It takes about 30 seconds and gives you full ownership of your PodCap page.",
+    link: { url: "/podcaster/claim", label: "Claim your podcast" },
+    emoji: "✅",
     date: "Feb 21, 2026",
   },
   {
-    title: "Key Topics and Top Questions",
-    description: "Each episode recap now highlights the main topics discussed and the most interesting questions raised during the episode.",
+    title: "Mobile layout improvements across the entire site",
+    description: "We spent a full week reworking layouts, tap targets, and typography to make PodCap feel truly native on phones and tablets. Episode recaps, podcast pages, the bookstore, and every other section now adapt beautifully to smaller screens. If you've been using PodCap on desktop, give it a try on your phone — it's a much better experience now.",
+    link: { url: "/podcasts", label: "Try it on your phone" },
+    emoji: "📱",
+    date: "Feb 19, 2026",
+  },
+  {
+    title: "Notable people and companies in every episode",
+    description: "Episode recaps now highlight the key people and organizations discussed, turning name-drops into clickable profiles. If a guest mentions Elon Musk, a16z, or any notable figure or company, you'll see them called out with context — so you can follow the threads that matter to you without re-listening to the whole episode.",
+    link: { url: "/podcasts/joerogan", label: "See people and companies in action" },
+    emoji: "👥",
+    date: "Feb 17, 2026",
+  },
+  {
+    title: "Curated book recommendations from episodes",
+    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. We built a dedicated Bookstore with curated shelves, ratings, and host context so you can discover your next great read from the podcasts you already love — no more scrambling to remember that title someone mentioned at minute 47.",
+    link: { url: "/bookstore", label: "Browse the Bookstore" },
+    emoji: "📚",
+    date: "Feb 15, 2026",
+  },
+  {
+    title: "Direct quotes from every episode",
+    description: "Sometimes the best part of a podcast is a single sentence that stops you in your tracks. We now pull up to five of the most insightful quotes from each episode, complete with speaker attribution and context. Share them, save them, or just enjoy the highlights without committing to a full hour of listening.",
+    link: { url: "/podcasts/hubaborherman", label: "See quotes in an episode recap" },
+    emoji: "💬",
+    date: "Feb 13, 2026",
+  },
+  {
+    title: "Higher quality episode recaps with better insights",
+    description: "We completely rebuilt our AI recap engine from the ground up for clarity and accuracy. Recaps now feature better-structured key insights, smarter guest detection from episode titles, and cleaner formatting so the important details stand out. If you tried PodCap early on and found recaps hit-or-miss, give them another look — the difference is night and day.",
+    link: { url: "/podcasts", label: "Read improved recaps" },
+    emoji: "✨",
+    date: "Feb 11, 2026",
+  },
+  {
+    title: "Ask AI about any podcast",
+    description: "Have a question about a podcast but don't want to scrub through hours of episodes? Our Ask AI feature lets you type a natural-language question about any show and get an instant answer drawn from the full history of episode recaps and summaries. It's like having a research assistant who's listened to every single episode.",
+    link: { url: "/podcasts/allin", label: "Try Ask AI on All-In Podcast" },
+    emoji: "🤖",
+    date: "Feb 9, 2026",
+  },
+  {
+    title: "Host bios and photos on every podcast page",
+    description: "We pulled in host bios and profile photos from social media so every podcast page now feels more personal and complete. Knowing who's behind the mic makes a difference — especially when you're deciding whether to follow a new show. It's a small touch, but it makes the whole experience feel more human.",
+    link: { url: "/podcasts/myfirstmillion", label: "See host profiles in action" },
+    emoji: "👤",
+    date: "Feb 7, 2026",
+  },
+  {
+    title: "Redesigned episode recaps for faster scanning",
+    description: "Episode recap pages got a major facelift. Content is now organized into clean, numbered cards — TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI — so you can scan quickly for the bits you care about or deep-dive into the full breakdown. It's the same information, just much easier to navigate.",
+    link: { url: "/podcasts/joerogan", label: "See the new recap layout" },
+    emoji: "🎨",
+    date: "Feb 5, 2026",
+  },
+  {
+    title: "Key Topics and Top Questions in every recap",
+    description: "Each episode recap now highlights the main topics discussed and the most thought-provoking questions raised during the conversation. It's a quick way to decide whether an episode is worth your time — if the topics align with what you're curious about, you know the full listen will be worth it.",
+    link: { url: "/podcasts/hubaborherman", label: "See topics and questions in a recap" },
     emoji: "💡",
-    date: "Feb 18, 2026",
-  },
-  {
-    title: "Listen to the full episode",
-    description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear.",
-    emoji: "🎧",
-    date: "Feb 14, 2026",
-  },
-  {
-    title: "Delete your account",
-    description: "Free-tier users can now permanently delete their account and all associated data from the Settings tab in the dashboard. Because your data is yours.",
-    emoji: "🗑️",
-    date: "Feb 10, 2026",
-  },
-  {
-    title: "Pro plan management",
-    description: "Pro subscribers can now view billing history, update their payment method, and manage their subscription directly from the Your Plan tab - no need to dig through emails.",
-    emoji: "💳",
-    date: "Feb 6, 2026",
-  },
-  {
-    title: "About Us page",
-    description: "A lot of people were asking about who built PodCap and why, so we put together an About Us page with the story behind the project and the team.",
-    link: { url: "/about", label: "Read our story" },
-    emoji: "👋",
     date: "Feb 3, 2026",
   },
   {
-    title: "PodCap is now on X",
-    description: "We created an X account where we'll be posting our top episode recaps daily. Follow us to discover great episodes and stay in the loop.",
-    link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
-    emoji: "𝕏",
-    date: "Jan 30, 2026",
+    title: "Listen to the full episode from any recap",
+    description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear. We built PodCap to help you discover great podcast content, not replace it — and now it's one tap from recap to full listen.",
+    link: { url: "/podcasts", label: "Find an episode to listen to" },
+    emoji: "🎧",
+    date: "Jan 31, 2026",
   },
   {
-    title: "For Podcasters - we're here to help, not hurt",
-    description: "There was some confusion from podcasters that PodCap might lower listening. It's far from the truth. We built a dedicated page to explain how PodCap actually helps podcasters by keeping superfans engaged, boosting completion rates, and improving algorithm performance. We love podcasters, and this service is completely free for creators.",
-    link: { url: "/we-heart-podcasters", label: "Read our message to podcasters" },
-    emoji: "❤️",
+    title: "Delete your account and all your data",
+    description: "Free-tier users can now permanently delete their account and all associated data from the Settings tab in the dashboard. Your data is yours — and if you ever decide PodCap isn't for you, we make it painless to leave. No hoops, no retention dark patterns, just a clean exit.",
+    link: { url: "/dashboard", label: "Manage your account settings" },
+    emoji: "🗑️",
+    date: "Jan 29, 2026",
+  },
+  {
+    title: "Pro plan management in your dashboard",
+    description: "Pro subscribers can now view billing history, update their payment method, and manage their subscription directly from the Your Plan tab — no more digging through old emails or contacting support. We want the business side of PodCap to be as smooth as the product side.",
+    link: { url: "/dashboard", label: "Manage your Pro subscription" },
+    emoji: "💳",
     date: "Jan 27, 2026",
   },
   {
-    title: "AI-generated episode recaps on every podcast page",
-    description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily podcast recap looks like before signing up.",
-    link: { url: "/podcasts/joerogan", label: "Read Joe Rogan's latest episode summary" },
-    emoji: "📝",
+    title: "About Us — the story behind PodCap",
+    description: "A lot of people were asking who built PodCap and why, so we put together a proper About page with the story behind the project. We're a small team that believes podcast knowledge shouldn't be locked behind hours of listening — and we wanted to share that mission more clearly.",
+    link: { url: "/about", label: "Read our story" },
+    emoji: "👋",
+    date: "Jan 25, 2026",
+  },
+  {
+    title: "PodCap is now on X",
+    description: "We created an X account where we post our top episode recaps daily. If you want a low-commitment way to discover great podcast episodes and stay in the loop on new PodCap features, give us a follow. We're posting the good stuff, not just announcements.",
+    link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
+    emoji: "𝕏",
     date: "Jan 23, 2026",
   },
   {
-    title: "Dedicated podcast summary pages for individual shows",
-    description: "Podcasters reached out and asked for their own sign-up pages - so we built them. Each page is a hub for that podcast's daily recaps, episode summaries, and show info. If you're a podcaster and want your own page, we'd love to hear from you.",
-    link: { url: "/podcasts/myfirstmillion", label: "See the My First Million podcast summary page" },
-    emoji: "🎙️",
-    date: "Jan 20, 2026",
+    title: "For Podcasters — we're here to help, not hurt",
+    description: "Some podcasters worried that PodCap might lower their listen counts. The opposite is true. We built a dedicated page explaining how PodCap actually helps creators — by keeping superfans engaged between episodes, boosting completion rates for listeners who preview first, and improving algorithm performance through consistent engagement. This service is completely free for creators, and we love the people who make podcasts.",
+    link: { url: "/we-heart-podcasters", label: "Read our message to podcasters" },
+    emoji: "❤️",
+    date: "Jan 21, 2026",
   },
   {
-    title: "Help & Support center",
-    description: "Sorry we didn't think of this sooner - you can now reach us anytime with questions, issues, or feedback about your podcast summaries.",
-    link: { url: "/support", label: "Visit the PodCap support page" },
-    emoji: "💬",
+    title: "AI-generated episode recaps on every podcast page",
+    description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily recap looks like before signing up. No more guessing whether PodCap is worth it — just visit any podcast page and read the latest recap for yourself. It's the best way to see the quality before you commit.",
+    link: { url: "/podcasts/joerogan", label: "Read Joe Rogan's latest episode summary" },
+    emoji: "📝",
+    date: "Jan 19, 2026",
+  },
+  {
+    title: "Dedicated podcast pages for individual shows",
+    description: "Every podcast on PodCap now has its own dedicated page — a hub for daily recaps, episode summaries, show info, and one-click sign-up. Podcasters asked for this so they could share a clean link with their audience, and listeners love having a single place to catch up on their favorite show.",
+    link: { url: "/podcasts/myfirstmillion", label: "See the My First Million page" },
+    emoji: "🎙️",
     date: "Jan 17, 2026",
   },
   {
-    title: "PodCap Pro - unlimited podcast summaries",
-    description: "Follow more than 3 podcasts with our Pro plan for $9.99/month. Get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
+    title: "Help & Support center",
+    description: "Sorry we didn't think of this sooner — you can now reach us anytime with questions, issues, or feedback about your podcast summaries. Whether something looks off in a recap or you have an idea for a feature, the Support center is the fastest way to get our attention.",
+    link: { url: "/support", label: "Visit the support page" },
+    emoji: "🆘",
+    date: "Jan 15, 2026",
+  },
+  {
+    title: "PodCap Pro — unlimited podcast summaries",
+    description: "The free plan lets you follow up to 3 podcasts, but we know some of you follow dozens. PodCap Pro removes that limit entirely for $9.99/month — unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily. If podcasts are a core part of how you learn and stay informed, Pro pays for itself in time saved.",
+    link: { url: "/pro", label: "Learn about PodCap Pro" },
     emoji: "⭐",
-    date: "Jan 14, 2026",
+    date: "Jan 13, 2026",
   },
   {
     title: "Top podcasts directory",
-    description: "Browse and discover the top podcasts on PodCap. Each show has its own dedicated page with episode summaries, show details, and one-click sign-up for daily recaps.",
-    link: { url: "/interests", label: "Explore podcast insights by topic" },
+    description: "We launched a browsable directory of the top podcasts on PodCap. Each show has its own page with episode summaries, show details, and one-click sign-up for daily recaps. It's the easiest way to discover new shows and see what other PodCap users are following.",
+    link: { url: "/podcasts", label: "Browse top podcasts" },
     emoji: "📊",
     date: "Jan 11, 2026",
   },
   {
     title: "View and re-send past recaps from your dashboard",
-    description: "Your daily podcast recaps aren't just emails anymore. Log in to your PodCap account to browse all your previous episode summaries - and re-send any recap to your inbox if you need it again.",
+    description: "Your daily podcast recaps aren't just emails anymore. Log in to your dashboard to browse all your previous episode summaries — and re-send any recap to your inbox if you need it again. It's your personal archive of podcast knowledge, organized by date and show.",
+    link: { url: "/dashboard", label: "Browse your recap archive" },
     emoji: "📂",
-    date: "Jan 8, 2026",
+    date: "Jan 9, 2026",
   },
   {
     title: "No new episodes? No email",
-    description: "We turned off recap emails on days when none of your podcasts dropped a new episode. One less unnecessary email in your inbox - you're welcome.",
+    description: "We turned off recap emails on days when none of your followed podcasts dropped a new episode. It sounds obvious, but a lot of newsletter products don't do this. One less unnecessary email in your inbox — you're welcome.",
+    link: { url: "/dashboard", label: "Manage your email preferences" },
     emoji: "📭",
     date: "Jan 5, 2026",
   },
   {
     title: "Vacation mode for your daily podcast recaps",
-    description: "Going on a trip? Pause your daily podcast summaries until a specific date. You can update or cancel vacation mode anytime from your dashboard settings.",
+    description: "Going on a trip? Pause your daily podcast summaries until a specific date and they'll automatically resume when you're back. You can update or cancel vacation mode anytime from your dashboard settings. Because even podcast superfans deserve a break.",
+    link: { url: "/dashboard", label: "Set up vacation mode" },
     emoji: "🏖️",
     date: "Jan 3, 2026",
   },
   {
-    title: "Custom delivery time for podcast summaries",
-    description: "Choose exactly when you'd like to receive your daily podcast recap. Early bird or night owl - your AI-powered episode summary arrives on your schedule.",
-    emoji: "⏰",
+    title: "PodCap is live — your daily AI podcast recap starts now",
+    description: "Today we're launching PodCap, the easiest way to stay on top of your favorite podcasts without listening to every episode. Sign up, pick your shows, and get a concise AI-powered recap delivered to your inbox every morning. We built this because we love podcasts but can't listen to everything — and we think you'll love it too. Welcome aboard.",
+    link: { url: "/", label: "Get started with PodCap" },
+    emoji: "🚀",
     date: "Jan 1, 2026",
   },
 ];
@@ -294,16 +393,14 @@ export default function FeatureRequests() {
                       <p className="text-[15px] text-muted-foreground/50 font-medium mb-1">{entry.date}</p>
                       <h3 className="text-[15px] font-bold text-foreground leading-snug mb-1.5">{entry.title}</h3>
                       <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">{entry.description}</p>
-                      {entry.link && (
-                        <a
-                          href={entry.link.url}
-                          className="inline-flex items-center gap-1.5 text-base font-medium text-primary hover:text-primary/80 transition-colors mt-3"
-                          data-testid={`changelog-link-${i}`}
-                        >
-                          {entry.link.label}
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </a>
-                      )}
+                      <a
+                        href={entry.link.url}
+                        className="inline-flex items-center gap-1.5 text-base font-medium text-primary hover:text-primary/80 transition-colors mt-3"
+                        data-testid={`changelog-link-${i}`}
+                      >
+                        {entry.link.label}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
                     </div>
                   </div>
                 </div>
