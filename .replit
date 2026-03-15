@@ -75,7 +75,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx tsx server/backgroundRecapGenerator.ts --per-podcast=10"
+args = "npx tsx server/backgroundRecapGenerator.ts --per-podcast=5"
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "stripe:1.0.0", "resend:1.0.0", "spotify:1.0.0"]
