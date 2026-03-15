@@ -35,6 +35,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 - **Context Summarization**: Products have a `context_summary` column. An admin "AI Summarize Contexts" button generates polished editorial summaries from raw transcript contexts using GPT-4o-mini. The ProductDetailPage prefers `contextSummaries` over raw `contexts` for the "What top podcasters are saying" section, and prefers `contextSummary` over raw `context` for per-episode "Why they talked about it" sections.
 - **Advertise Page**: Dedicated `/advertise` page detailing advertising opportunities and targeting capabilities.
 - **Recap Generator Logic**: `backgroundRecapGenerator.ts` processes a default of 20 most recent episodes per podcast, distributing recaps evenly.
+- **Daily Pulse Scheduler**: `server/dailyPulseScheduler.ts` runs automatically on server startup. Every day at ~7:00 AM UTC, it generates topic pulses for yesterday's episodes across all 37 topics. The scheduler uses `setInterval` (hourly checks) and tracks `lastRunDate` to avoid duplicates. Manual batch generation is available via `server/generateAllPulses.ts` with `--dates=YYYY-MM-DD,YYYY-MM-DD` flag.
 - **Product Filtering**: `isLikelySponsorProduct` function filters out known sponsors, products with sponsor keywords, affiliate tracking URLs, and generic non-brand products.
 - **Taddy Webhook Product Extraction**: Automatically saves and filters products from new episodes arriving via Taddy webhooks.
 

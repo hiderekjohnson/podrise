@@ -1,0 +1,98 @@
+import { generateAndSavePulse, topicKeywordsMap } from "./pulseGenerator";
+
+const TOPIC_NAMES: Record<string, string> = {
+  "ai": "Artificial Intelligence",
+  "venture-capital": "Venture Capital",
+  "saas": "SaaS",
+  "defense-tech": "Defense Tech",
+  "climate-energy": "Climate & Energy",
+  "crypto-web3": "Crypto & Web3",
+  "robotics": "Robotics",
+  "technology": "Technology",
+  "media-content": "Media & Content",
+  "economics": "Economics",
+  "open-source": "Open Source",
+  "automation": "Automation",
+  "health-longevity": "Health & Longevity",
+  "psychology": "Psychology",
+  "productivity": "Productivity",
+  "decision-making": "Decision Making",
+  "creativity": "Creativity",
+  "personal-finance": "Personal Finance",
+  "geopolitics": "Geopolitics",
+  "peak-performance": "Peak Performance",
+  "self-improvement": "Self Improvement",
+  "negotiation": "Negotiation",
+  "investing": "Investing",
+  "future-of-work": "Future of Work",
+  "marketing": "Marketing",
+  "sales": "Sales",
+  "leadership": "Leadership",
+  "creator-economy": "Creator Economy",
+  "career-growth": "Career Growth",
+  "entrepreneurship": "Entrepreneurship",
+  "startups": "Startups",
+  "bootstrapping": "Bootstrapping",
+  "side-hustles": "Side Hustles",
+  "product-management": "Product Management",
+  "product-market-fit": "Product Market Fit",
+  "women-in-business": "Women in Business",
+  "young-entrepreneurs": "Young Entrepreneurs",
+};
+
+async function generatePulsesForDate(dateStr: string) {
+  const slugs = Object.keys(topicKeywordsMap);
+  console.log(`[DailyPulse] Generating pulses for ${slugs.length} topics on ${dateStr}`);
+
+  let success = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const slug of slugs) {
+    const name = TOPIC_NAMES[slug] || slug;
+    try {
+      const pulse = await generateAndSavePulse(slug, dateStr, name);
+      if (pulse) {
+        console.log(`[DailyPulse] ✓ ${name}: ${pulse.episodeCount} episodes`);
+        success++;
+      } else {
+        skipped++;
+      }
+    } catch (err: any) {
+      console.error(`[DailyPulse] ✗ ${name}: ${err.message}`);
+      failed++;
+    }
+  }
+
+  console.log(`[DailyPulse] ${dateStr} complete: ${success} generated, ${skipped} skipped, ${failed} failed`);
+}
+
+export function startDailyPulseScheduler() {
+  const SEVEN_AM_UTC_HOUR = 7;
+  const CHECK_INTERVAL = 60 * 60 * 1000;
+  let lastRunDate: string | null = null;
+
+  async function checkAndRun() {
+    const now = new Date();
+    const utcHour = now.getUTCHours();
+    const todayStr = now.toISOString().split("T")[0];
+
+    if (utcHour >= SEVEN_AM_UTC_HOUR && lastRunDate !== todayStr) {
+      lastRunDate = todayStr;
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+      console.log(`[DailyPulse] Starting daily pulse generation for ${yesterdayStr}`);
+      try {
+        await generatePulsesForDate(yesterdayStr);
+      } catch (err) {
+        console.error("[DailyPulse] Daily generation failed:", err);
+      }
+    }
+  }
+
+  checkAndRun();
+  setInterval(checkAndRun, CHECK_INTERVAL);
+  console.log(`[DailyPulse] Scheduler started — will generate pulses daily at ~${SEVEN_AM_UTC_HOUR}:00 UTC`);
+}
