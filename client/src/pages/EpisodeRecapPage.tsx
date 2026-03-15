@@ -1306,7 +1306,6 @@ export default function EpisodeRecapPage() {
                   {showAllBooks ? "Show Less" : `Show ${books.length - INITIAL_SHOW} More`}
                 </button>
               )}
-            </div>
             </>
             )}
             {hasShopProducts && (
