@@ -1,0 +1,103 @@
+REPLIT TASK: Build the Affiliate Disclosure & Advertising Transparency Page
+URL: podcap.io/disclosure
+Page title: How PodCap Makes Money
+
+BRAND REFERENCE
+Before writing a single word of copy or building any UI, read BRAND.md in the project root. All colors, fonts, spacing, and components must follow the brand spec exactly. This is a light, white-first page. No dark backgrounds except where the brand spec explicitly permits them.
+
+PURPOSE OF THIS PAGE
+This page exists to do two things:
+
+Tell users honestly and clearly how PodCap makes money
+Protect user trust by making the wall between editorial content and commercial relationships completely transparent
+
+Most disclosure pages read like legal boilerplate. This one should not. It should read like a founder explaining something they're proud of. Write it like a smart, direct person — not a lawyer, not a PR team.
+
+PAGE STRUCTURE — build in this order
+Section 1: Opening
+Headline: How PodCap Makes Money
+One short paragraph under the headline. The tone is: we know disclosure pages are boring, but ours is worth reading because the way we make money is actually unusual. Don't say that verbatim — imply it by just being direct and interesting from the first sentence.
+
+Section 2: The Bookstore & Shop — Nothing Here Can Be Bought
+This is the most important section on the page. Give it visual weight — use a left-border accent block (indigo, per brand spec) to call out the core principle.
+The core message to convey:
+
+Every book in the Bookstore and every product in the Shop was mentioned or recommended by a real host or guest on a real podcast episode. That's the only way anything gets in.
+No brand, publisher, author, or PR firm can pay to appear in the Bookstore or Shop. There is no price. We don't offer it. We wouldn't accept it.
+Rankings are determined by mention frequency across episodes and shows — not by commercial relationships.
+When a book appears at the top of the Bookstore, it's because dozens of podcast guests recommended it. The recommendation belongs to your favorite podcasters, not to us.
+
+Use plain, confident language. The word "never" is appropriate here and should appear at least once. Avoid hedging language like "we try to" or "we aim to."
+
+Section 3: How Affiliate Revenue Works
+Explain clearly:
+
+When a user clicks a Bookstore or Shop link and makes a purchase, PodCap may earn a small commission through Amazon Associates or other affiliate programs
+The price the user pays is identical — we never mark anything up
+Affiliate commission rates have zero influence on rankings, placement, or what appears on the site
+A product with no affiliate program still appears if podcasters recommend it enough
+Affiliate revenue helps keep PodCap free
+
+Keep this section factual and brief. No overselling, no guilt-tripping about supporting the site.
+
+Section 4: Paid Advertising — Separate and Always Labeled
+This section needs to draw a clear line between the affiliate content above and PodCap's paid advertising.
+The message:
+
+PodCap also runs paid advertisements. Brands can pay to have their products and services promoted to PodCap's audience.
+These paid ads appear in the newsletter, on industry/category pages, and in personalized briefings — never in the Bookstore or Shop.
+Every paid ad is written by PodCap in our voice, but it is always clearly labeled as sponsored. There is no ambiguity about what is an ad and what isn't.
+Advertisers cannot buy editorial coverage. What PodCap writes about a podcast, episode, guest, or topic is never influenced by any advertiser relationship.
+User trust is the most important asset PodCap has. Paid advertising exists to fund the product — it is never allowed to compromise the product.
+
+Use a visual separator or callout to distinguish this section from the affiliate section above. The distinction matters and should feel intentional in the layout.
+
+Section 5: Other Revenue Streams
+Brief section, no fluff. Just a clean list:
+
+Pro subscriptions (coming soon) — unlimited access, full briefings
+Enterprise plans — custom intelligence products for teams
+These are never affiliated with editorial decisions
+
+
+Section 6: The Legal Part
+This section can look slightly different — smaller text, more utilitarian. It's the FTC language. Include:
+
+PodCap participates in the Amazon Services LLC Associates Program and may participate in other affiliate programs
+Purchases made through affiliate links may earn PodCap a commission at no extra cost to the buyer
+This page constitutes disclosure in accordance with FTC guidelines (16 CFR Part 255)
+Affiliate relationships do not influence editorial decisions, rankings, or site content
+
+Label this section clearly as the legal disclosure. Don't try to make it fun — just make it clean and readable.
+
+Section 7: Contact
+One short closing paragraph. If a user ever wants to know whether PodCap has a commercial relationship with anything they're seeing on the site, they can ask directly. Email: derek@podcap.io. We'll answer straight.
+This should feel like a handshake, not a legal disclaimer.
+
+TONE GUIDELINES — apply across the whole page
+
+Write in first person plural ("we") throughout
+Direct and confident, not apologetic
+Plain English — no legalese outside Section 6
+Short sentences and short paragraphs
+The word "trust" should appear but not be overused — let the transparency itself do the work
+Never use: "we strive to," "we endeavor to," "we are committed to," "it is our policy to"
+The overall feeling should be: a company that has nothing to hide and knows it
+
+
+VISUAL/LAYOUT NOTES
+
+Follow the brand spec for all colors, fonts, spacing
+Use the indigo left-border accent block (background: #F7F7FC, border-left: 3px solid #6366F1) for the key callout in Section 2
+The Section 4 separator can use a subtle horizontal rule and a label pill (indigo, per brand spec)
+Section 6 (legal) should be visually de-emphasized — smaller font, muted color, but still readable
+No dark backgrounds, no full-width color fills except the brand-spec indigo gradient if used for a single accent element
+Page should feel like the rest of podcap.io — clean, light, editorial
+
+
+LAST CHECK BEFORE SHIPPING
+
+Does Section 2 make crystal clear that nothing in the Bookstore or Shop can be paid for? If not, rewrite it until it does.
+Does Section 4 make crystal clear that paid ads exist but are always labeled and never in the Bookstore or Shop? If not, rewrite it.
+Does the page read like a human wrote it? Read it out loud. If it sounds like a terms of service, rewrite it.
+Is every color, font, and component consistent with BRAND.md?
