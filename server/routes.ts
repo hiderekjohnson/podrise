@@ -1231,7 +1231,7 @@ export async function registerRoutes(
 
       const params4 = [...params];
       const recentSignupsResult = await pool.query(
-        `SELECT id, email, signup_source, signup_source_detail, device_type, created_at FROM users WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} ORDER BY created_at DESC LIMIT 50`,
+        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
         params4
       );
 

@@ -1,18 +1,19 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Users, TrendingUp, MapPin } from "lucide-react";
+import { Loader2, Users, TrendingUp, MapPin, ExternalLink } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import AnalyticsFilters from "@/components/AnalyticsFilters";
+import { getTopicBySlug } from "@/data/topicData";
 
 interface AcquisitionData {
   totalSignups: number;
   bySource: { source: string; count: number }[];
   byPodcast: { detail: string; source: string; count: number }[];
   overTime: { period: string; source: string; count: number }[];
-  recentSignups: { id: number; email: string; signup_source: string | null; signup_source_detail: string | null; device_type: string | null; created_at: string | null }[];
+  recentSignups: { id: number; email: string; signup_source: string | null; signup_source_detail: string | null; podcast_name: string | null; device_type: string | null; created_at: string | null }[];
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -61,6 +62,53 @@ const ALL_SOURCES = Object.keys(SOURCE_LABELS);
 
 function formatLabel(period: string) {
   return new Date(period).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function relativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  if (isNaN(then)) return "—";
+  const diff = now - then;
+  if (diff < 0) return "just now";
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
+function resolveDetailName(source: string | null, detail: string | null, podcastName: string | null): string | null {
+  if (!detail) return null;
+  if ((source === "podcast_page" || source === "episode_page") && podcastName) return podcastName;
+  if (source === "industry_page" || source === "role_page" || source === "interest_page") {
+    const topic = getTopicBySlug(detail);
+    if (topic) return topic.name;
+  }
+  return detail;
+}
+
+function getSourcePageUrl(source: string | null, detail: string | null): string | null {
+  if (!source) return null;
+  switch (source) {
+    case "homepage": return "/";
+    case "podcast_page": return detail ? `/podcasts/${detail}` : null;
+    case "episode_page": return detail ? `/podcasts/${detail}` : null;
+    case "industry_page": return detail ? `/industries/${detail}` : null;
+    case "role_page": return detail ? `/roles/${detail}` : null;
+    case "interest_page": return detail ? `/interests/${detail}` : null;
+    case "get_started": return "/get-started";
+    case "register_page": return "/register";
+    case "login_page": return "/login";
+    case "leaderboard": return "/leaderboard";
+    default: return null;
+  }
 }
 
 export default function AnalyticsAcquisition() {
@@ -320,27 +368,55 @@ export default function AnalyticsAcquisition() {
                 <tr className="border-b border-black/[0.06] dark:border-white/[0.08]">
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Email</th>
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Source</th>
-                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Detail</th>
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Device</th>
-                  <th className="text-left py-2 text-xs font-semibold text-muted-foreground uppercase">Date</th>
+                  <th className="text-left py-2 text-xs font-semibold text-muted-foreground uppercase">When</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredData.recentSignups.slice(0, 20).map((user, i) => (
-                  <tr key={i} className="border-b border-black/[0.03] dark:border-white/[0.04]" data-testid={`signup-row-${i}`}>
-                    <td className="py-2 pr-4 font-medium text-foreground truncate max-w-[180px]">{user.email}</td>
-                    <td className="py-2 pr-4 text-muted-foreground">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold text-white ${SOURCE_COLORS[user.signup_source || "unknown"] || "bg-gray-400"}`}>
-                        {SOURCE_LABELS[user.signup_source || "unknown"] || user.signup_source || "Unknown"}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4 text-muted-foreground text-xs">{user.signup_source_detail || "\u2014"}</td>
-                    <td className="py-2 pr-4 text-muted-foreground text-xs capitalize">{user.device_type || "\u2014"}</td>
-                    <td className="py-2 text-muted-foreground text-xs">
-                      {user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "\u2014"}
-                    </td>
-                  </tr>
-                ))}
+                {filteredData.recentSignups.slice(0, 20).map((user, i) => {
+                  const source = user.signup_source || "unknown";
+                  const resolvedName = resolveDetailName(source, user.signup_source_detail, user.podcast_name);
+                  const pageUrl = getSourcePageUrl(source, user.signup_source_detail);
+                  const sourceLabel = SOURCE_LABELS[source] || source;
+                  return (
+                    <tr key={i} className="border-b border-black/[0.03] dark:border-white/[0.04]" data-testid={`signup-row-${i}`}>
+                      <td className="py-2 pr-4 font-medium text-foreground truncate max-w-[180px]" data-testid={`signup-email-${i}`}>{user.email}</td>
+                      <td className="py-2 pr-4" data-testid={`signup-source-${i}`}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`shrink-0 inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold text-white ${SOURCE_COLORS[source] || "bg-gray-400"}`}>
+                            {sourceLabel}
+                          </span>
+                          {resolvedName && (
+                            <>
+                              <span className="text-muted-foreground text-xs shrink-0">→</span>
+                              <span className="text-sm font-medium text-foreground truncate max-w-[200px]" data-testid={`signup-detail-${i}`}>{resolvedName}</span>
+                            </>
+                          )}
+                          {pageUrl && (
+                            <a
+                              href={pageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                              title={`Open ${sourceLabel.toLowerCase()}`}
+                              data-testid={`signup-link-${i}`}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4 text-muted-foreground text-xs capitalize" data-testid={`signup-device-${i}`}>{user.device_type || "\u2014"}</td>
+                      <td className="py-2 text-muted-foreground text-xs" data-testid={`signup-time-${i}`}>
+                        {user.created_at ? (
+                          <span title={new Date(user.created_at).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}>
+                            {relativeTime(user.created_at)}
+                          </span>
+                        ) : "\u2014"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
