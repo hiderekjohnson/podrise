@@ -20,10 +20,81 @@ import {
   Globe,
   Sparkles,
   Radio,
+  Brain,
+  Shield,
+  Cloud,
+  Leaf,
+  Coins,
+  Bot,
+  Cpu,
+  Video,
+  LineChart,
+  GitBranch,
+  Cog,
+  Heart,
+  GitFork,
+  Palette,
+  Wallet,
+  ArrowUpCircle,
+  Scale,
+  Megaphone,
+  Handshake,
+  Layout,
+  Code,
+  DollarSign,
+  Crown,
+  Rocket,
+  UserPlus,
+  GraduationCap,
+  Target,
+  Hammer,
+  Briefcase,
+  type LucideIcon,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { SiteHeader } from "@/components/SiteHeader";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Brain,
+  TrendingUp,
+  Cloud,
+  Shield,
+  Leaf,
+  Coins,
+  Bot,
+  Cpu,
+  Video,
+  LineChart,
+  GitBranch,
+  Cog,
+  Heart,
+  Zap,
+  GitFork,
+  Palette,
+  Wallet,
+  Globe,
+  Flame,
+  ArrowUpCircle,
+  Scale,
+  BarChart3,
+  Building2,
+  Megaphone,
+  Handshake,
+  Layout,
+  Code,
+  DollarSign,
+  Crown,
+  Rocket,
+  Users,
+  UserPlus,
+  GraduationCap,
+  Lightbulb,
+  Target,
+  Sparkles,
+  Hammer,
+  Briefcase,
+};
 
 interface PersonSummary {
   slug: string;
@@ -69,6 +140,8 @@ interface UnifiedEntity {
   changePercent: number;
   imageUrl?: string;
   href: string;
+  iconName?: string;
+  topicCategory?: "industry" | "interest" | "role";
 }
 
 function SEOHead() {
@@ -125,29 +198,20 @@ function TrendBadge({ trend, changePercent, size = "default" }: { trend: string;
   );
 }
 
-function MentionBar({ count, maxCount }: { count: number; maxCount: number }) {
-  const pct = maxCount > 0 ? Math.max(6, (count / maxCount) * 100) : 6;
-  return (
-    <div className="w-full max-w-[160px] bg-[#F0F0F2] rounded-full h-[7px] overflow-hidden">
-      <div
-        className="h-full bg-primary/60 rounded-full transition-all duration-500"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  );
-}
-
-function TypePill({ type }: { type: "person" | "company" | "topic" }) {
+function TypePill({ type, iconName }: { type: "person" | "company" | "topic"; iconName?: string }) {
   const config = {
     person: { label: "Person", icon: Users, className: "bg-[#EEF2FF] text-[#6366F1] border-[#E0E7FF]" },
     company: { label: "Company", icon: Building2, className: "bg-[#FFF7ED] text-[#9A3412] border-[#FFEDD5]" },
     topic: { label: "Topic", icon: Lightbulb, className: "bg-[#F5F3FF] text-[#7C3AED] border-[#EDE9FE]" },
   };
   const c = config[type];
-  const Icon = c.icon;
+  let Icon = c.icon;
+  if (type === "topic" && iconName && ICON_MAP[iconName]) {
+    Icon = ICON_MAP[iconName];
+  }
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium border ${c.className}`}>
-      <Icon className="w-3 h-3" />
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[13px] font-medium border ${c.className}`}>
+      <Icon className="w-3.5 h-3.5" />
       {c.label}
     </span>
   );
@@ -155,9 +219,10 @@ function TypePill({ type }: { type: "person" | "company" | "topic" }) {
 
 function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
   if (entity.type === "topic") {
+    const Icon = entity.iconName && ICON_MAP[entity.iconName] ? ICON_MAP[entity.iconName] : Lightbulb;
     return (
-      <div className="w-10 h-10 rounded-xl bg-[#F5F3FF] border border-[#EDE9FE] flex items-center justify-center flex-shrink-0">
-        <Lightbulb className="w-5 h-5 text-[#7C3AED]" />
+      <div className="w-12 h-12 rounded-xl bg-[#F5F3FF] border border-[#EDE9FE] flex items-center justify-center flex-shrink-0">
+        <Icon className="w-6 h-6 text-[#7C3AED]" />
       </div>
     );
   }
@@ -167,7 +232,7 @@ function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
       <img
         src={entity.imageUrl || '/people/default-avatar.png'}
         alt={entity.name}
-        className="w-10 h-10 rounded-xl object-contain bg-white dark:bg-zinc-900 border border-[#F0F0F2] p-0.5 flex-shrink-0"
+        className="w-12 h-12 rounded-xl object-contain bg-white dark:bg-zinc-900 border border-[#F0F0F2] p-0.5 flex-shrink-0"
         onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
       />
     );
@@ -177,7 +242,7 @@ function EntityAvatar({ entity }: { entity: UnifiedEntity }) {
     <img
       src={entity.imageUrl || '/people/default-avatar.png'}
       alt={entity.name}
-      className="w-10 h-10 rounded-full object-cover border border-[#F0F0F2] flex-shrink-0"
+      className="w-12 h-12 rounded-full object-cover border border-[#F0F0F2] flex-shrink-0"
       onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
     />
   );
@@ -200,18 +265,15 @@ function SpotlightCard({ entity, rank }: { entity: UnifiedEntity; rank: number }
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-[16px] font-bold text-[#09090B] line-clamp-1 group-hover:text-primary transition-colors">{entity.name}</h3>
-            <p className="text-[14px] text-[#52525B] line-clamp-2 mb-3">{entity.subtitle}</p>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[14px] font-mono text-[#52525B] whitespace-nowrap">
-                {entity.recentMentions} recent
-              </span>
+            <h3 className="text-[18px] font-bold text-[#09090B] line-clamp-1 group-hover:text-primary transition-colors">{entity.name}</h3>
+            <p className="text-[15px] text-[#52525B] line-clamp-2 mb-3">{entity.subtitle}</p>
+            <div className="flex items-center justify-end gap-2">
               <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-[14px] font-semibold text-primary">View profile</span>
+          <span className="text-[15px] font-semibold text-primary">View profile</span>
           <ChevronRight className="w-3.5 h-3.5 text-primary" />
         </div>
       </motion.div>
@@ -223,7 +285,6 @@ function CategorySection({
   title,
   icon: Icon,
   entities,
-  maxMentions,
   accentColor,
   seeAllHref,
   seeAllLabel,
@@ -232,7 +293,6 @@ function CategorySection({
   title: string;
   icon: any;
   entities: UnifiedEntity[];
-  maxMentions: number;
   accentColor: string;
   seeAllHref: string;
   seeAllLabel: string;
@@ -250,45 +310,38 @@ function CategorySection({
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-baseline gap-2.5">
-          <div className={`w-8 h-8 rounded-lg ${accentColor} flex items-center justify-center self-center`}>
-            <Icon className="w-4 h-4" />
+          <div className={`w-9 h-9 rounded-lg ${accentColor} flex items-center justify-center self-center`}>
+            <Icon className="w-5 h-5" />
           </div>
-          <h2 className="text-[16px] font-semibold text-[#09090B]">{title}</h2>
-          <span className="text-[14px] text-[#A1A1AA] ml-1">Last 30 days</span>
+          <h2 className="text-[20px] font-semibold text-[#09090B]">{title}</h2>
+          <span className="text-[15px] text-[#A1A1AA] ml-1">Last 30 days</span>
         </div>
         <Link
           href={seeAllHref}
-          className="text-[14px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+          className="text-[15px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
           data-testid={`link-see-all-${title.toLowerCase().replace(/\s+/g, '-')}`}
         >
           {seeAllLabel}
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
 
       <div className="bg-white border border-[#F0F0F2] rounded-xl overflow-hidden">
         {entities.slice(0, 10).map((entity, i) => (
           <Link key={`${entity.type}-${entity.slug}`} href={entity.href} data-testid={`trend-row-${entity.slug}`}>
-            <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-[#F7F7FC] transition-colors cursor-pointer border-b border-[#F0F0F2] last:border-0 group">
-              <span className="text-[14px] font-mono text-[#A1A1AA] font-medium w-6 text-right shrink-0">{i + 1}</span>
+            <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 hover:bg-[#F7F7FC] transition-colors cursor-pointer border-b border-[#F0F0F2] last:border-0 group">
+              <span className="text-[15px] font-mono text-[#A1A1AA] font-medium w-6 text-right shrink-0">{i + 1}</span>
 
               <EntityAvatar entity={entity} />
 
               <div className="flex-1 min-w-0">
-                <span className="text-[15px] font-semibold text-[#09090B] block truncate group-hover:text-primary transition-colors">{entity.name}</span>
-                <span className="text-[14px] text-[#52525B] block truncate">{entity.subtitle}</span>
-              </div>
-
-              <div className="hidden sm:flex flex-col items-end gap-0.5 shrink-0">
-                <MentionBar count={entity.recentMentions} maxCount={maxMentions} />
-                <span className="text-[12px] font-mono text-[#A1A1AA]">
-                  {entity.recentMentions} mentions
-                </span>
+                <span className="text-[17px] font-semibold text-[#09090B] block truncate group-hover:text-primary transition-colors">{entity.name}</span>
+                <span className="text-[15px] text-[#52525B] block truncate">{entity.subtitle}</span>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
-                <ChevronRight className="w-3.5 h-3.5 text-[#A1A1AA] group-hover:text-primary transition-colors" />
+                <ChevronRight className="w-4 h-4 text-[#A1A1AA] group-hover:text-primary transition-colors" />
               </div>
             </div>
           </Link>
@@ -303,10 +356,10 @@ function GatewayCard({ href, icon: Icon, title, description, testId }: { href: s
     <Link href={href} data-testid={testId}>
       <div className="group bg-white border border-[#F0F0F2] rounded-xl p-5 hover:shadow-md hover:border-[#E4E4E7] transition-all cursor-pointer h-full">
         <Icon className="w-5 h-5 text-primary mb-3" />
-        <h3 className="text-[15px] font-bold text-[#09090B] group-hover:text-primary transition-colors mb-1">{title}</h3>
-        <p className="text-[14px] text-[#52525B] leading-relaxed">{description}</p>
+        <h3 className="text-[16px] font-bold text-[#09090B] group-hover:text-primary transition-colors mb-1">{title}</h3>
+        <p className="text-[15px] text-[#52525B] leading-relaxed">{description}</p>
         <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-[14px] font-semibold text-primary">Explore</span>
+          <span className="text-[15px] font-semibold text-primary">Explore</span>
           <ChevronRight className="w-3.5 h-3.5 text-primary" />
         </div>
       </div>
@@ -374,16 +427,22 @@ export default function TrendsPage() {
     if (topics) {
       for (const t of topics) {
         if (t.recentMentions <= 0) continue;
+        const topicConfig = getTopicBySlug(t.slug);
+        const descSnippet = topicConfig?.description
+          ? topicConfig.description.split('.')[0]
+          : "";
         entities.push({
           slug: t.slug,
           name: t.name,
-          subtitle: `${t.recentMentions} episodes this month`,
+          subtitle: descSnippet,
           type: "topic",
           recentMentions: t.recentMentions,
           totalMentions: t.mentionCount,
           trend: t.trend,
           changePercent: t.changePercent,
-          href: `${getCategoryPath(getTopicBySlug(t.slug)?.category || "interest")}/${t.slug}`,
+          href: `${getCategoryPath(topicConfig?.category || "interest")}/${t.slug}`,
+          iconName: topicConfig?.icon,
+          topicCategory: topicConfig?.category,
         });
       }
     }
@@ -422,19 +481,19 @@ export default function TrendsPage() {
       });
   }, [unifiedEntities]);
 
-  const risingTopics = useMemo(() => {
-    return [...unifiedEntities]
-      .filter(e => e.type === "topic")
-      .sort((a, b) => {
-        if (a.trend === "rising" && b.trend !== "rising") return -1;
-        if (b.trend === "rising" && a.trend !== "rising") return 1;
-        return b.recentMentions - a.recentMentions;
-      });
+  const topicsByCategory = useMemo(() => {
+    const topicEntities = [...unifiedEntities].filter(e => e.type === "topic");
+    const sortFn = (a: UnifiedEntity, b: UnifiedEntity) => {
+      if (a.trend === "rising" && b.trend !== "rising") return -1;
+      if (b.trend === "rising" && a.trend !== "rising") return 1;
+      return b.recentMentions - a.recentMentions;
+    };
+    return {
+      industries: topicEntities.filter(e => e.topicCategory === "industry").sort(sortFn),
+      roles: topicEntities.filter(e => e.topicCategory === "role").sort(sortFn),
+      interests: topicEntities.filter(e => e.topicCategory === "interest").sort(sortFn),
+    };
   }, [unifiedEntities]);
-
-  const maxPeopleMentions = useMemo(() => Math.max(...risingPeople.map(e => e.recentMentions), 1), [risingPeople]);
-  const maxCompanyMentions = useMemo(() => Math.max(...risingCompanies.map(e => e.recentMentions), 1), [risingCompanies]);
-  const maxTopicMentions = useMemo(() => Math.max(...risingTopics.map(e => e.recentMentions), 1), [risingTopics]);
 
   const filteredEntities = useMemo(() => {
     let filtered = [...unifiedEntities];
@@ -455,10 +514,6 @@ export default function TrendsPage() {
 
     return filtered.slice(0, 30);
   }, [unifiedEntities, entityFilter, sortMode]);
-
-  const maxMentions = useMemo(() => {
-    return Math.max(...filteredEntities.map(e => e.recentMentions), 1);
-  }, [filteredEntities]);
 
   const isLoading = loadingPeople || loadingCompanies || loadingTopics;
 
@@ -513,7 +568,7 @@ export default function TrendsPage() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-white border border-[#F0F0F2] rounded-xl p-5 animate-pulse">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#F0F0F2]" />
+                  <div className="w-12 h-12 rounded-full bg-[#F0F0F2]" />
                   <div className="flex-1">
                     <div className="h-5 bg-[#F0F0F2] rounded w-40 mb-2" />
                     <div className="h-4 bg-[#F0F0F2] rounded w-56" />
@@ -528,8 +583,8 @@ export default function TrendsPage() {
               <section className="mb-12" data-testid="section-spotlight">
                 <div className="flex items-baseline gap-2.5 mb-5">
                   <Flame className="w-5 h-5 text-[#6366F1] self-center" />
-                  <h2 className="text-[16px] font-semibold text-[#09090B]">Fastest Rising Right Now</h2>
-                  <span className="text-[14px] text-[#A1A1AA] ml-1">Last 30 days</span>
+                  <h2 className="text-[20px] font-semibold text-[#09090B]">Fastest Rising Right Now</h2>
+                  <span className="text-[15px] text-[#A1A1AA] ml-1">Last 30 days</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
                   {spotlightMovers.map((entity, i) => (
@@ -545,7 +600,6 @@ export default function TrendsPage() {
                   title="People in the Conversation"
                   icon={Users}
                   entities={risingPeople}
-                  maxMentions={maxPeopleMentions}
                   accentColor="bg-[#EEF2FF] text-[#6366F1]"
                   seeAllHref="/people"
                   seeAllLabel="All People"
@@ -556,7 +610,6 @@ export default function TrendsPage() {
                   title="Companies Being Discussed"
                   icon={Building2}
                   entities={risingCompanies}
-                  maxMentions={maxCompanyMentions}
                   accentColor="bg-[#FFF7ED] text-[#9A3412]"
                   seeAllHref="/companies"
                   seeAllLabel="All Companies"
@@ -564,14 +617,33 @@ export default function TrendsPage() {
                 />
 
                 <CategorySection
-                  title="Topics Accelerating"
-                  icon={Lightbulb}
-                  entities={risingTopics}
-                  maxMentions={maxTopicMentions}
+                  title="Industries"
+                  icon={Globe}
+                  entities={topicsByCategory.industries}
+                  accentColor="bg-[#F0FDF4] text-[#15803D]"
+                  seeAllHref="/industries"
+                  seeAllLabel="All Industries"
+                  delay={0.15}
+                />
+
+                <CategorySection
+                  title="Roles"
+                  icon={Users}
+                  entities={topicsByCategory.roles}
+                  accentColor="bg-[#EFF6FF] text-[#1D4ED8]"
+                  seeAllHref="/roles"
+                  seeAllLabel="All Roles"
+                  delay={0.2}
+                />
+
+                <CategorySection
+                  title="Interests"
+                  icon={Sparkles}
+                  entities={topicsByCategory.interests}
                   accentColor="bg-[#F5F3FF] text-[#7C3AED]"
                   seeAllHref="/interests"
-                  seeAllLabel="All Topics"
-                  delay={0.15}
+                  seeAllLabel="All Interests"
+                  delay={0.25}
                 />
               </div>
 
@@ -582,10 +654,10 @@ export default function TrendsPage() {
                   transition={{ duration: 0.4, delay: 0.2 }}
                 >
                   <div className="flex items-center gap-2.5 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-primary" />
+                    <div className="w-9 h-9 rounded-lg bg-[#EEF2FF] flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-primary" />
                     </div>
-                    <h2 className="text-[16px] font-semibold text-[#09090B]">Go Deeper</h2>
+                    <h2 className="text-[20px] font-semibold text-[#09090B]">Go Deeper</h2>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 lg:sticky lg:top-[84px]">
@@ -639,7 +711,7 @@ export default function TrendsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
                 <div className="flex items-center gap-2.5">
                   <BarChart3 className="w-5 h-5 text-primary" />
-                  <h2 className="text-[16px] font-semibold text-[#09090B]">Full Leaderboard</h2>
+                  <h2 className="text-[20px] font-semibold text-[#09090B]">Full Leaderboard</h2>
                 </div>
 
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0 max-w-full">
@@ -648,7 +720,7 @@ export default function TrendsPage() {
                       <button
                         key={key}
                         onClick={() => setEntityFilter(key)}
-                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[14px] font-semibold transition-all whitespace-nowrap ${
+                        className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-[15px] font-semibold transition-all whitespace-nowrap ${
                           entityFilter === key
                             ? "bg-primary text-white"
                             : "text-[#52525B] hover:text-[#09090B]"
@@ -666,7 +738,7 @@ export default function TrendsPage() {
 
                   <button
                     onClick={() => setSortMode(s => s === "volume" ? "momentum" : "volume")}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[14px] font-medium text-[#52525B] hover:text-[#09090B] bg-white border border-[#F0F0F2] rounded-xl transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-[15px] font-medium text-[#52525B] hover:text-[#09090B] bg-white border border-[#F0F0F2] rounded-xl transition-colors whitespace-nowrap"
                     data-testid="sort-toggle"
                   >
                     <ArrowDownUp className="w-3.5 h-3.5" />
@@ -676,11 +748,10 @@ export default function TrendsPage() {
               </div>
 
               <div className="bg-white border border-[#F0F0F2] rounded-xl overflow-hidden">
-                <div className="hidden sm:grid grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3 border-b border-[#F0F0F2]">
+                <div className="hidden sm:grid grid-cols-[2.5rem_1fr_auto_7rem] gap-x-4 items-center px-5 py-3 border-b border-[#F0F0F2]">
                   <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">#</span>
                   <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">Name</span>
                   <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">Type</span>
-                  <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider">Podcast Interest</span>
                   <span className="text-[12px] font-mono text-[#A1A1AA] uppercase tracking-wider text-right">Change</span>
                 </div>
 
@@ -690,39 +761,32 @@ export default function TrendsPage() {
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.02 }}
-                      className="grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[2.5rem_1fr_auto_10rem_7rem] gap-x-4 items-center px-5 py-3.5 hover:bg-[#F7F7FC] transition-colors cursor-pointer border-b border-[#F0F0F2] last:border-0 group"
+                      className="grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[2.5rem_1fr_auto_7rem] gap-x-4 items-center px-5 py-3.5 hover:bg-[#F7F7FC] transition-colors cursor-pointer border-b border-[#F0F0F2] last:border-0 group"
                     >
-                      <span className="text-[14px] font-mono text-[#A1A1AA] font-medium">{i + 1}</span>
+                      <span className="text-[15px] font-mono text-[#A1A1AA] font-medium">{i + 1}</span>
 
                       <div className="flex items-center gap-3 min-w-0">
                         <EntityAvatar entity={entity} />
                         <div className="min-w-0">
-                          <span className="text-[15px] font-semibold text-[#09090B] block truncate group-hover:text-primary transition-colors">{entity.name}</span>
-                          <span className="text-[14px] text-[#52525B] block truncate sm:hidden">{entity.subtitle}</span>
+                          <span className="text-[17px] font-semibold text-[#09090B] block truncate group-hover:text-primary transition-colors">{entity.name}</span>
+                          <span className="text-[15px] text-[#52525B] block truncate sm:hidden">{entity.subtitle}</span>
                         </div>
                       </div>
 
                       <div className="hidden sm:block">
-                        <TypePill type={entity.type} />
-                      </div>
-
-                      <div className="hidden sm:block">
-                        <MentionBar count={entity.recentMentions} maxCount={maxMentions} />
-                        <span className="text-[12px] font-mono text-[#A1A1AA] mt-0.5 block">
-                          {entity.recentMentions} mentions
-                        </span>
+                        <TypePill type={entity.type} iconName={entity.iconName} />
                       </div>
 
                       <div className="flex justify-end items-center gap-2">
                         <TrendBadge trend={entity.trend} changePercent={entity.changePercent} />
-                        <ChevronRight className="w-3.5 h-3.5 text-[#A1A1AA] group-hover:text-primary transition-colors" />
+                        <ChevronRight className="w-4 h-4 text-[#A1A1AA] group-hover:text-primary transition-colors" />
                       </div>
                     </motion.div>
                   </Link>
                 ))}
 
                 {filteredEntities.length === 0 && (
-                  <div className="px-5 py-12 text-center text-[15px] text-[#52525B]">
+                  <div className="px-5 py-12 text-center text-[16px] text-[#52525B]">
                     No trending data available for this filter
                   </div>
                 )}
