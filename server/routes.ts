@@ -910,6 +910,7 @@ export async function registerRoutes(
         await storage.markEmailOpened(id);
       }
     } catch (e) {
+      console.error("[TrackOpen] Failed to mark email opened:", e);
     }
     res.set({
       "Content-Type": "image/gif",
@@ -949,6 +950,7 @@ export async function registerRoutes(
         );
       }
     } catch (e) {
+      console.error("[TrackClick] Failed to record click for emailId=%d url=%s:", emailId, validatedUrl, e);
     }
 
     res.redirect(302, validatedUrl);
@@ -3967,6 +3969,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
     const { recapId } = parsed.data;
 
+    let pendingRecordId: number | undefined;
     try {
       const recaps = await storage.getRecapsByUserId(user.id);
       const recap = recaps.find((r) => r.id === recapId);
@@ -3987,22 +3990,47 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { reorderMarkdownLeadFirst } = await import("./emailScheduler");
       const reorderedForSend = reorderMarkdownLeadFirst(recap.summary, emailCopyForSend.leadEpisodePodcast);
       const emailHtml = markdownToEmailHtml(reorderedForSend, user.email, epMeta, emailCopyForSend);
+
+      const pendingRecord = await storage.createPendingEmail({
+        userId: user.id,
+        recipientEmail: user.email,
+        podcasts: recap.podcasts,
+        recapDate: new Date().toISOString().slice(0, 10),
+        summary: recap.summary,
+        emailHtml,
+        subject: emailCopyForSend.subject,
+        scheduledFor: "now",
+        timezone: "America/New_York",
+        source: "manual",
+        status: "sending",
+      });
+      pendingRecordId = pendingRecord.id;
+
+      const baseUrl = "https://podcap.io";
+      const htmlWithClickTracking = wrapLinksWithClickTracking(emailHtml, pendingRecord.id);
+      const trackingPixel = `<img src="${baseUrl}/api/track/open/${pendingRecord.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
+      const htmlWithTracking = htmlWithClickTracking.replace(/<\/body>/i, `${trackingPixel}</body>`) !== htmlWithClickTracking
+        ? htmlWithClickTracking.replace(/<\/body>/i, `${trackingPixel}</body>`)
+        : htmlWithClickTracking + trackingPixel;
+
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
         from: `PodCap <${fromEmail}>`,
         to: user.email,
         subject: emailCopyForSend.subject,
-        html: emailHtml,
+        html: htmlWithTracking,
       });
 
       if (result.error) {
         console.error("Resend API error:", JSON.stringify(result.error));
+        await storage.updatePendingEmailStatus(pendingRecord.id, "error", result.error.message || "Send failed");
         return res.status(500).json({ message: `Email failed: ${result.error.message || "Unknown error"}` });
       }
 
       console.log("Resend email sent, id:", result.data?.id);
 
+      await storage.updatePendingEmailStatus(pendingRecord.id, "sent");
       await storage.logEmail({
         userId: user.id,
         recipientEmail: user.email,
@@ -4013,6 +4041,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       res.json({ message: "Email sent successfully" });
     } catch (err: any) {
+      if (pendingRecordId) {
+        await storage.updatePendingEmailStatus(pendingRecordId, "error", err?.message || String(err)).catch(() => {});
+      }
       console.error("Send email error:", err?.message || err);
       res.status(500).json({ message: "Failed to send email. Please try again." });
     }
