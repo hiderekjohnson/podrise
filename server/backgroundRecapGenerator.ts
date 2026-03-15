@@ -30,11 +30,11 @@ function makeEpisodeSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 }
 
-async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string): Promise<string> {
+async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string, podcastName: string): Promise<string> {
   try {
-    const url = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=30`;
+    const url = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=200`;
     const resp = await fetch(url);
-    if (!resp.ok) return "";
+    if (!resp.ok) return `https://podcasts.apple.com/podcast/id${itunesId}`;
     const data = await resp.json();
     const results = data.results || [];
     const titleLower = episodeTitle.toLowerCase().trim();
@@ -42,13 +42,13 @@ async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string): Pr
       if (ep.wrapperType === "podcastEpisode") {
         const epTitle = (ep.trackName || "").toLowerCase().trim();
         if (epTitle === titleLower || epTitle.includes(titleLower) || titleLower.includes(epTitle)) {
-          return ep.trackViewUrl || ep.collectionViewUrl || "";
+          return ep.trackViewUrl || ep.collectionViewUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
         }
       }
     }
-    return "";
+    return `https://podcasts.apple.com/podcast/id${itunesId}`;
   } catch {
-    return "";
+    return `https://podcasts.apple.com/podcast/id${itunesId}`;
   }
 }
 
@@ -93,7 +93,7 @@ async function processEpisode(
         return "failed";
       }
 
-      const appleEpisodeUrl = await lookupAppleEpisodeUrl(itunesId, epTitle);
+      const appleEpisodeUrl = await lookupAppleEpisodeUrl(itunesId, epTitle, podcastName);
       const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
       const showNotes = ep.description || null;
 
