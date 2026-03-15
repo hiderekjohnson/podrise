@@ -449,24 +449,7 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
               className="space-y-5 sm:space-y-6"
               data-testid="section-pulse-body"
             >
-              {(() => {
-                const elements = renderMarkdownBody(pulse.body);
-                const midpoint = Math.floor(elements.length / 2);
-                const before = elements.slice(0, midpoint);
-                const after = elements.slice(midpoint);
-                return (
-                  <>
-                    {before}
-                    <InlineEmailCTA
-                      type={categoryType}
-                      slug={topicSlug}
-                      name={topicName}
-                      variant="card"
-                    />
-                    {after}
-                  </>
-                );
-              })()}
+              {renderMarkdownBody(pulse.body)}
             </motion.div>
 
             <InlineEmailCTA
