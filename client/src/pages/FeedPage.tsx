@@ -4,7 +4,7 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, UserPlus, UserMinus, Clock, ChevronDown } from "lucide-react";
+import { Loader2, Clock, MessageCircle, Bookmark, Share, MoreHorizontal, ChevronDown, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { FeedHeader } from "@/components/FeedHeader";
@@ -51,108 +51,137 @@ function hiResArtwork(url: string): string {
 
 function RecapCard({ item, onFollowToggle }: { item: FeedItem; onFollowToggle: (slug: string, follow: boolean) => void }) {
   const [expanded, setExpanded] = useState(false);
-  const tldlPreview = item.tldl && item.tldl.length > 280 ? item.tldl.slice(0, 280) + "..." : item.tldl;
+  const tldlPreview = item.tldl && item.tldl.length > 200 ? item.tldl.slice(0, 200) + "..." : item.tldl;
+  const hasMore = item.tldl && item.tldl.length > 200;
 
   return (
     <article
-      className="border-b border-[#F0F0F2] px-4 py-4 hover:bg-[#FAFAFE] transition-colors"
+      className="border-b border-[#F0F0F2]"
       data-testid={`feed-card-${item.id}`}
     >
-      <div className="flex gap-3">
-        <Link href={`/podcasts/${item.podcastSlug}`}>
-          <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
-            <img
-              src={hiResArtwork(item.artworkUrl)}
-              alt={item.podcastName}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-        </Link>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Link href={`/podcasts/${item.podcastSlug}`}>
-                <span className="font-semibold text-[15px] text-[#09090B] hover:underline truncate" data-testid={`feed-podcast-name-${item.id}`}>
-                  {item.podcastName}
-                </span>
-              </Link>
-              <span className="text-[#A1A1AA] text-sm flex-shrink-0">·</span>
-              <span className="text-[#A1A1AA] text-sm flex-shrink-0" data-testid={`feed-time-${item.id}`}>
-                {relativeTime(item.publishDate)}
-              </span>
+      <div className="px-4 pt-3.5 pb-1">
+        <div className="flex items-start gap-3">
+          <Link href={`/podcasts/${item.podcastSlug}`}>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-[0.5px] ring-black/5">
+              <img
+                src={hiResArtwork(item.artworkUrl)}
+                alt={item.podcastName}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
             </div>
-
-            <button
-              onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
-              className={`flex-shrink-0 text-sm font-semibold rounded-full px-4 py-1.5 transition-all ${
-                item.isFollowing
-                  ? "bg-transparent border border-[#E4E4E7] text-[#09090B] hover:border-red-200 hover:text-red-600 hover:bg-red-50"
-                  : "bg-[#09090B] text-white hover:bg-[#1a1a2e]"
-              }`}
-              data-testid={`feed-follow-btn-${item.id}`}
-            >
-              {item.isFollowing ? "Following" : "Follow"}
-            </button>
-          </div>
-
-          <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
-            <h3 className="text-[15px] font-medium text-[#09090B] mt-1 leading-snug hover:underline" data-testid={`feed-episode-title-${item.id}`}>
-              {item.episodeTitle}
-            </h3>
           </Link>
 
-          <div className="mt-2 text-[15px] text-[#52525B] leading-relaxed">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                <Link href={`/podcasts/${item.podcastSlug}`}>
+                  <span className="font-bold text-[15px] text-[#09090B] hover:underline" data-testid={`feed-podcast-name-${item.id}`}>
+                    {item.podcastName}
+                  </span>
+                </Link>
+                <span className="text-[#A1A1AA] text-[13px] flex-shrink-0">·</span>
+                <span className="text-[#71717A] text-[13px] flex-shrink-0" data-testid={`feed-time-${item.id}`}>
+                  {relativeTime(item.publishDate)}
+                </span>
+              </div>
+
+              <button
+                onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
+                className={`flex-shrink-0 text-[13px] font-bold rounded-full transition-all active:scale-95 ${
+                  item.isFollowing
+                    ? "px-3.5 py-[5px] border border-[#D4D4D8] text-[#09090B] hover:border-red-300 hover:text-red-600"
+                    : "px-3.5 py-[5px] bg-[#09090B] text-white hover:bg-[#27272A]"
+                }`}
+                data-testid={`feed-follow-btn-${item.id}`}
+              >
+                {item.isFollowing ? "Following" : "Follow"}
+              </button>
+            </div>
+
+            <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
+              <h3 className="text-[15px] font-semibold text-[#09090B] mt-0.5 leading-[1.35] hover:underline line-clamp-2" data-testid={`feed-episode-title-${item.id}`}>
+                {item.episodeTitle}
+              </h3>
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-2.5 ml-[52px]">
+          <div className="text-[15px] text-[#0F0F0F] leading-[1.5]">
             {expanded ? (
-              <div>
+              <>
                 <p>{item.tldl}</p>
                 {item.keyInsights && item.keyInsights.length > 0 && (
-                  <ul className="mt-3 space-y-1.5">
-                    {item.keyInsights.map((insight, i) => (
-                      <li key={i} className="text-sm text-[#52525B] flex gap-2">
-                        <span className="text-[#6366F1] mt-0.5 flex-shrink-0">•</span>
-                        <span>{insight}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-3 rounded-xl bg-[#F8F8FC] border border-[#EDEDF3] p-3.5">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Zap className="w-3.5 h-3.5 text-[#6366F1]" />
+                      <span className="text-[12px] font-bold text-[#6366F1] uppercase tracking-wide">Key Insights</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {item.keyInsights.map((insight, i) => (
+                        <li key={i} className="text-[14px] text-[#3F3F46] flex gap-2 leading-[1.45]">
+                          <span className="text-[#6366F1] mt-[3px] flex-shrink-0 text-[10px]">●</span>
+                          <span>{insight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 {item.quote && (
-                  <blockquote className="mt-3 pl-3 border-l-2 border-[#6366F1] italic text-sm text-[#52525B]">
-                    "{item.quote}"
+                  <div className="mt-3 pl-3.5 border-l-[3px] border-[#6366F1]/40 py-1">
+                    <p className="text-[14px] text-[#52525B] italic leading-[1.5]">"{item.quote}"</p>
                     {item.quoteAttribution && (
-                      <span className="block mt-1 text-xs text-[#A1A1AA] not-italic">— {item.quoteAttribution}</span>
+                      <p className="text-[12px] text-[#A1A1AA] mt-1 not-italic font-medium">— {item.quoteAttribution}</p>
                     )}
-                  </blockquote>
+                  </div>
                 )}
-              </div>
+              </>
             ) : (
-              <p>{tldlPreview}</p>
+              <p className="text-[#3F3F46]">{tldlPreview}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-4 mt-3">
-            {item.tldl && item.tldl.length > 280 && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="text-[#6366F1] text-sm font-medium hover:underline"
-                data-testid={`feed-expand-${item.id}`}
-              >
-                {expanded ? "Show less" : "Show more"}
-              </button>
-            )}
-            <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
-              <span className="text-[#6366F1] text-sm font-medium hover:underline" data-testid={`feed-viewfull-${item.id}`}>
-                Full recap →
-              </span>
-            </Link>
-            {item.duration && (
-              <span className="text-xs text-[#A1A1AA] flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {item.duration}
-              </span>
-            )}
-          </div>
+          {hasMore && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="text-[#6366F1] text-[14px] font-semibold mt-1 hover:underline"
+              data-testid={`feed-expand-${item.id}`}
+            >
+              {expanded ? "Show less" : "Show more"}
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between mt-2.5 ml-[52px] pb-2.5">
+          <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
+            <span className="flex items-center gap-1.5 text-[#71717A] hover:text-[#6366F1] transition-colors group" data-testid={`feed-viewfull-${item.id}`}>
+              <MessageCircle className="w-[18px] h-[18px] group-hover:text-[#6366F1]" />
+              <span className="text-[13px] font-medium">Full recap</span>
+            </span>
+          </Link>
+
+          {item.duration && (
+            <span className="flex items-center gap-1 text-[#A1A1AA]">
+              <Clock className="w-[14px] h-[14px]" />
+              <span className="text-[12px]">{item.duration}</span>
+            </span>
+          )}
+
+          <button
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: item.episodeTitle, url: `/podcasts/${item.podcastSlug}/${item.episodeSlug}` }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(`${window.location.origin}/podcasts/${item.podcastSlug}/${item.episodeSlug}`);
+              }
+            }}
+            aria-label="Share episode"
+            className="flex items-center gap-1 text-[#A1A1AA] hover:text-[#6366F1] transition-colors"
+            data-testid={`feed-share-${item.id}`}
+          >
+            <Share className="w-[18px] h-[18px]" />
+          </button>
         </div>
       </div>
     </article>
@@ -234,54 +263,50 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-white" data-testid="feed-page">
       <FeedHeader />
-      <div className="sticky top-12 z-30 bg-white/95 backdrop-blur-sm border-b border-[#F0F0F2]">
+
+      <div className="sticky top-[52px] z-30 bg-white border-b border-[#F0F0F2]">
         <div className="max-w-[600px] mx-auto">
           <div className="flex">
-            <button
-              onClick={() => setActiveTab("foryou")}
-              className={`flex-1 py-3.5 text-[15px] font-semibold text-center relative transition-colors ${
-                activeTab === "foryou" ? "text-[#09090B]" : "text-[#A1A1AA] hover:text-[#52525B]"
-              }`}
-              data-testid="feed-tab-foryou"
-            >
-              For You
-              {activeTab === "foryou" && (
-                <motion.div
-                  layoutId="feedTabIndicator"
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-[3px] bg-[#6366F1] rounded-full"
-                />
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("following")}
-              className={`flex-1 py-3.5 text-[15px] font-semibold text-center relative transition-colors ${
-                activeTab === "following" ? "text-[#09090B]" : "text-[#A1A1AA] hover:text-[#52525B]"
-              }`}
-              data-testid="feed-tab-following"
-            >
-              Following
-              {activeTab === "following" && (
-                <motion.div
-                  layoutId="feedTabIndicator"
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-[3px] bg-[#6366F1] rounded-full"
-                />
-              )}
-            </button>
+            {(["foryou", "following"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 text-[14px] font-bold text-center relative transition-colors ${
+                  activeTab === tab ? "text-[#09090B]" : "text-[#A1A1AA] hover:text-[#71717A] hover:bg-[#FAFAFA]"
+                }`}
+                data-testid={`feed-tab-${tab}`}
+              >
+                {tab === "foryou" ? "For You" : "Following"}
+                {activeTab === tab && (
+                  <motion.div
+                    layoutId="feedTabIndicator"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[56px] h-[3px] bg-[#6366F1] rounded-full"
+                  />
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       <div className="max-w-[600px] mx-auto">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-[#6366F1]" />
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <Loader2 className="w-7 h-7 animate-spin text-[#6366F1]" />
+            <span className="text-[14px] text-[#A1A1AA]">Loading your feed...</span>
           </div>
         ) : allItems.length === 0 ? (
-          <div className="text-center py-20 px-6">
-            <p className="text-[#52525B] text-base">
+          <div className="text-center py-20 px-8">
+            <div className="w-16 h-16 rounded-full bg-[#F4F4F5] flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="w-7 h-7 text-[#A1A1AA]" />
+            </div>
+            <p className="text-[17px] font-bold text-[#09090B] mb-1">
+              {activeTab === "following" ? "No followed podcasts yet" : "Nothing here yet"}
+            </p>
+            <p className="text-[14px] text-[#71717A] leading-relaxed">
               {activeTab === "following"
-                ? "You're not following any podcasts yet. Switch to \"For You\" to discover podcasts, or search in Discover."
-                : "No recaps available yet. Check back soon!"}
+                ? "Follow podcasts from the For You tab or Discover to see their recaps here."
+                : "Check back soon for fresh podcast recaps."}
             </p>
           </div>
         ) : (
@@ -293,18 +318,21 @@ export default function FeedPage() {
                 onFollowToggle={handleFollowToggle}
               />
             ))}
-            <div ref={observerRef} className="py-6 flex justify-center">
+            <div ref={observerRef} className="py-8 flex flex-col items-center gap-2">
               {isFetchingNextPage ? (
                 <Loader2 className="w-5 h-5 animate-spin text-[#6366F1]" />
               ) : hasNextPage ? (
-                <span className="text-sm text-[#A1A1AA]">Scroll for more</span>
+                <span className="text-[13px] text-[#A1A1AA]">Scroll for more</span>
               ) : allItems.length > 5 ? (
-                <span className="text-sm text-[#A1A1AA]">You're all caught up</span>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="w-8 h-[2px] bg-[#E4E4E7] rounded-full" />
+                  <span className="text-[13px] text-[#A1A1AA] font-medium">You're all caught up</span>
+                </div>
               ) : null}
             </div>
           </>
         )}
-        <div className="h-16" />
+        <div className="h-[60px]" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
       </div>
       <BottomNav currentPath={location} />
     </div>
