@@ -82,10 +82,10 @@ export default function Home() {
               Podcast Intelligence Platform
             </div>
             <h1 className="text-[2rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
-              The fastest way to keep up with the smartest conversations happening across podcasts
+              The fastest way to keep up with the smartest conversations across podcasts
             </h1>
             <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
-              PodCap distills the most important podcast conversations into quick briefings you can read in minutes
+              PodCap distills the most important insights from podcasts into quick briefings you can read in minutes.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <div className="flex flex-wrap items-center justify-center gap-3">
