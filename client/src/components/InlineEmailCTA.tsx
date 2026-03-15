@@ -147,48 +147,36 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
 
   if (variant === "minimal") {
     return (
-      <div className={`rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-card p-4 sm:p-5 ${className}`} data-testid="inline-email-cta-minimal">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          {artworkUrl && isPodcast && (
-            <img src={artworkUrl} alt={name} className="w-12 h-12 rounded-lg shadow-sm ring-1 ring-black/[0.06] shrink-0" />
-          )}
-          {!isPodcast && (
-            <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-              <Mail className="w-5 h-5 text-primary" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-foreground">
+      <div className={`rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-card p-3 sm:p-4 ${className}`} data-testid="inline-email-cta-minimal">
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5" data-testid="form-inline-cta-minimal">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Mail className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-[14px] font-medium text-foreground whitespace-nowrap">
               {isPodcast
-                ? `Get ${name} recaps in your inbox`
-                : `Get the daily ${name.toLowerCase()} ${label}`}
-            </p>
-            <p className="text-[14px] text-muted-foreground mt-0.5">
-              {isPodcast
-                ? `Free recap every new episode${hostDisplay ? ` from ${hostDisplay}` : ""}.`
-                : "Key podcast insights delivered daily."}
-            </p>
+                ? `Get ${name} recaps free`
+                : `Get the weekly ${name.toLowerCase()} ${label}`}
+            </span>
           </div>
-          <form onSubmit={handleSubmit} className="flex gap-2 w-full sm:w-auto shrink-0" data-testid="form-inline-cta-minimal">
+          <div className="flex gap-2 shrink-0">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
-              className="flex-1 sm:w-44 h-10 px-3 text-[14px] bg-background border border-black/[0.08] dark:border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="flex-1 sm:w-44 h-9 px-3 text-[14px] bg-background border border-black/[0.08] dark:border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               data-testid="input-inline-cta-email-minimal"
             />
             <button
               type="submit"
               disabled={subscribe.isPending}
-              className="h-10 px-4 bg-primary text-primary-foreground font-bold text-[14px] rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="h-9 px-4 bg-primary text-primary-foreground font-semibold text-[13px] rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
               data-testid="button-inline-cta-subscribe-minimal"
             >
               {subscribe.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Subscribe"}
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     );
   }

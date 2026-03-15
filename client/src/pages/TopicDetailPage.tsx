@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
-import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen } from "lucide-react";
+import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, TrendingDown, Minus, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Calendar, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen, Package, Mail } from "lucide-react";
 import { BookCoverFill } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { motion } from "framer-motion";
@@ -12,7 +12,6 @@ import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryDat
 import { SiteHeader } from "@/components/SiteHeader";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPIC_TO_TOPICS_PAGE_MAP, PODCAST_CATEGORIES, getPodcastsForTopic } from "@/data/podcastCategoryData";
-import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { InlineEmailCTA } from "@/components/InlineEmailCTA";
 import { StickyEmailBar } from "@/components/StickyEmailBar";
 import { useSetConversion } from "@/contexts/PageConversionContext";
@@ -46,6 +45,14 @@ interface TopicEpisode {
   key_insights: string[] | string;
   key_topics?: string[];
   guests?: any;
+}
+
+interface WeeklyIntelligence {
+  weekRange: string;
+  trendingPeople: { slug: string; name: string; title: string; trend: string; changePercent: number; recentMentions: number; contextSnippets: { snippet: string; podcastName: string; episodeSlug: string; podcastSlug: string }[] }[];
+  trendingCompanies: { slug: string; name: string; description: string; trend: string; changePercent: number; recentMentions: number; contextSnippets: { snippet: string; podcastName: string; episodeSlug: string; podcastSlug: string }[] }[];
+  quotes: { speakerName: string; quoteText: string; context: string; podcastName: string; episodeTitle: string; podcastSlug: string; episodeSlug: string }[];
+  products: { name: string; company: string; description: string; category: string; episodeTitle: string; podcastSlug: string; episodeSlug: string; imageUrl: string; contextSummary: string }[];
 }
 
 function SEOHead({ name, description }: { name: string; description: string }) {
@@ -91,11 +98,6 @@ function extractInsights(episodes: TopicEpisode[]): string[] {
   return insights;
 }
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 function formatRelativeDate(dateStr: string) {
   const d = new Date(dateStr);
   const now = new Date();
@@ -105,7 +107,32 @@ function formatRelativeDate(dateStr: string) {
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays}d ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return formatDate(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function TrendBadge({ trend, changePercent }: { trend: string; changePercent: number }) {
+  if (trend === "rising") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[13px] py-0.5 px-2 font-mono font-semibold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#6366F1]/10 rounded-md">
+        <TrendingUp className="w-3 h-3" />
+        +{Math.abs(changePercent)}%
+      </span>
+    );
+  }
+  if (trend === "falling") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[13px] py-0.5 px-2 font-mono font-semibold text-muted-foreground bg-muted rounded-md">
+        <TrendingDown className="w-3 h-3" />
+        {changePercent}%
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[13px] py-0.5 px-2 font-mono font-medium text-muted-foreground bg-muted rounded-md">
+      <Minus className="w-3 h-3" />
+      Stable
+    </span>
+  );
 }
 
 export default function TopicDetailPage() {
@@ -145,12 +172,40 @@ export default function TopicDetailPage() {
     enabled: !!params.slug,
   });
 
+  const { data: rawWeeklyIntel } = useQuery<WeeklyIntelligence>({
+    queryKey: ["/api/topics", params.slug, "weekly-intelligence"],
+    queryFn: async () => {
+      const res = await fetch(`/api/topics/${params.slug}/weekly-intelligence`);
+      if (!res.ok) return { weekRange: "", trendingPeople: [], trendingCompanies: [], quotes: [], products: [] };
+      return res.json();
+    },
+    enabled: !!params.slug && !isDynamic,
+  });
+
+  const weeklyIntel = useMemo<WeeklyIntelligence | undefined>(() => {
+    if (!rawWeeklyIntel) return undefined;
+    return {
+      weekRange: rawWeeklyIntel.weekRange || "",
+      trendingPeople: (rawWeeklyIntel.trendingPeople || []).map(p => ({ ...p, contextSnippets: p.contextSnippets || [] })),
+      trendingCompanies: (rawWeeklyIntel.trendingCompanies || []).map(c => ({ ...c, contextSnippets: c.contextSnippets || [] })),
+      quotes: rawWeeklyIntel.quotes || [],
+      products: rawWeeklyIntel.products || [],
+    };
+  }, [rawWeeklyIntel]);
+
   const topicEpisodes = useMemo(() => {
     if (!rawTopicEpisodes) return rawTopicEpisodes;
     return [...rawTopicEpisodes].sort((a, b) =>
       new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime()
     );
   }, [rawTopicEpisodes]);
+
+  const thisWeekEpisodes = useMemo(() => {
+    if (!topicEpisodes) return [];
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return topicEpisodes.filter(ep => ep.publish_date && new Date(ep.publish_date) >= weekAgo);
+  }, [topicEpisodes]);
 
   const relatedPodcasts = useMemo(() => {
     if (!topic) return [];
@@ -208,7 +263,9 @@ export default function TopicDetailPage() {
     enabled: !!params.slug,
   });
 
-  const keyInsights = useMemo(() => topicEpisodes ? extractInsights(topicEpisodes) : [], [topicEpisodes]);
+  const weeklyInsights = useMemo(() => thisWeekEpisodes.length > 0 ? extractInsights(thisWeekEpisodes) : [], [thisWeekEpisodes]);
+  const allInsights = useMemo(() => topicEpisodes ? extractInsights(topicEpisodes) : [], [topicEpisodes]);
+  const keyInsights = weeklyInsights.length > 0 ? weeklyInsights : allInsights;
 
   const taxonomyPodcasts = useMemo(() => {
     if (!params.slug) return null;
@@ -286,15 +343,6 @@ export default function TopicDetailPage() {
   const topicDisplayName = topic ? topic.name : dynamicTopicName;
   const topicDescription = topic ? topic.description : dynamicSummary;
 
-  const latestEpisodeDate = useMemo(() => {
-    if (!topicEpisodes || topicEpisodes.length === 0) return null;
-    return topicEpisodes.reduce((latest, ep) => {
-      if (!ep.publish_date) return latest;
-      if (!latest) return ep.publish_date;
-      return new Date(ep.publish_date) > new Date(latest) ? ep.publish_date : latest;
-    }, null as string | null);
-  }, [topicEpisodes]);
-
   const uniquePodcastSources = useMemo(() => {
     if (!topicEpisodes) return 0;
     return new Set(topicEpisodes.map(ep => ep.slug)).size;
@@ -303,6 +351,11 @@ export default function TopicDetailPage() {
   const getPersonImage = (slug: string) => {
     const person = PEOPLE_DIRECTORY.find(p => p.slug === slug);
     return person?.imageUrl || "";
+  };
+
+  const getCompanyLogo = (slug: string) => {
+    const company = COMPANIES_DIRECTORY.find(c => c.slug === slug);
+    return company?.logoUrl || "";
   };
 
   const allPodcasts = useMemo(() => {
@@ -316,6 +369,15 @@ export default function TopicDetailPage() {
   }, [relatedPodcasts, taxonomyPodcasts]);
 
   const categoryLabel = topic?.category === "industry" ? "Industries" : topic?.category === "role" ? "Roles" : "Interests";
+
+  const hasWeeklyContent = weeklyIntel && (
+    weeklyIntel.trendingPeople.length > 0 ||
+    weeklyIntel.trendingCompanies.length > 0 ||
+    weeklyIntel.quotes.length > 0 ||
+    weeklyIntel.products.length > 0 ||
+    thisWeekEpisodes.length > 0 ||
+    weeklyInsights.length > 0
+  );
 
   useSetConversion(topic ? {
     pageType: "topic",
@@ -344,76 +406,244 @@ export default function TopicDetailPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mb-10"
+          className="mb-8"
         >
-          <div className="flex items-start gap-4 mb-4">
+          <div className="flex items-start gap-4 mb-3">
             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${topic ? topic.color : "from-indigo-500 to-violet-600"} flex items-center justify-center flex-shrink-0`}>
               <Icon className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl sm:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="text-topic-title">
-                {topicDisplayName}
-              </h1>
-              <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-2 max-w-2xl leading-relaxed" data-testid="text-topic-description">
-                {topicDescription}
-              </p>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-3xl sm:text-[2.5rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.02em]" data-testid="text-topic-title">
+                  {hasWeeklyContent ? `This Week in ${topicDisplayName}` : topicDisplayName}
+                </h1>
+              </div>
+              {weeklyIntel?.weekRange && hasWeeklyContent ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[14px] font-medium text-primary" data-testid="text-week-range">{weeklyIntel.weekRange}</span>
+                </div>
+              ) : (
+                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-2 max-w-2xl leading-relaxed" data-testid="text-topic-description">
+                  {topicDescription}
+                </p>
+              )}
             </div>
           </div>
-
-          {latestEpisodeDate && (
-            <div className="flex flex-wrap items-center gap-4 mt-4 text-[14px] text-muted-foreground" data-testid="topic-stats">
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                Last episode {formatRelativeDate(latestEpisodeDate)}
-              </span>
-            </div>
-          )}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.08 }}
-          className="mb-12"
-        >
-          <Link
-            href={latestPulseDate ? `${categoryBasePath}/${params.slug}/pulse/${latestPulseDate}` : `${categoryBasePath}/${params.slug}/pulse`}
-            className="block group"
-            data-testid="link-topic-pulse"
+        {topic && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.06 }}
+            className="mb-8"
           >
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-6 sm:p-8">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/[0.05] rounded-full -translate-y-1/2 translate-x-1/3" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/[0.05] rounded-full translate-y-1/3 -translate-x-1/4" />
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-4 h-4 text-white/80" />
-                  <span className="text-[14px] font-bold uppercase tracking-[0.15em] text-white/70">The Pulse</span>
+            <Link
+              href={latestPulseDate ? `${categoryBasePath}/${params.slug}/pulse/${latestPulseDate}` : `${categoryBasePath}/${params.slug}/pulse`}
+              className="block group"
+              data-testid="link-topic-pulse"
+            >
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-4 sm:p-5">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.05] rounded-full -translate-y-1/2 translate-x-1/3" />
+                <div className="relative flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Activity className="w-5 h-5 text-white/80 flex-shrink-0" />
+                    <div>
+                      <span className="text-[15px] font-bold text-white">The Pulse</span>
+                      <span className="text-[14px] text-white/60 ml-2">Daily {topicDisplayName.toLowerCase()} briefing</span>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#6366F1] rounded-lg text-[14px] font-semibold group-hover:shadow-lg transition-all whitespace-nowrap">
+                    Read <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-2">
-                  Your daily {topicDisplayName.toLowerCase()} briefing
-                </h2>
-                <p className="text-[15px] text-white/70 leading-relaxed max-w-xl mb-4">
-                  Every day, we synthesize the key insights from {topicDisplayName.toLowerCase()} podcast conversations into one concise briefing. Stop scrolling, start knowing.
-                </p>
-                <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#6366F1] rounded-lg text-[15px] font-semibold group-hover:shadow-lg transition-all">
-                  Read today's briefing <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </span>
               </div>
-            </div>
-          </Link>
-        </motion.div>
+            </Link>
+          </motion.div>
+        )}
 
-        {keyInsights.length > 0 && (
+        {!isDynamic && hasWeeklyContent && (
+          <>
+            {weeklyIntel.trendingPeople.length > 0 && (
+              <motion.section
+                id="section-people"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="mb-10 scroll-mt-24"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-5 h-5 text-sky-500" />
+                  <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-trending-people">
+                    Trending People
+                  </h2>
+                  <span className="text-[13px] text-muted-foreground ml-1">This week</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {weeklyIntel.trendingPeople.slice(0, 6).map((person, i) => (
+                    <div key={person.slug} data-testid={`card-trending-person-${person.slug}`}>
+                      <div className="group rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Link href={`/people/${person.slug}`}>
+                            <img
+                              src={getPersonImage(person.slug)}
+                              alt={person.name}
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-muted cursor-pointer"
+                              loading="lazy"
+                              onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
+                            />
+                          </Link>
+                          <div className="flex-1 min-w-0">
+                            <Link href={`/people/${person.slug}`}>
+                              <h4 className="text-[15px] font-semibold text-foreground hover:text-primary transition-colors truncate cursor-pointer">
+                                {person.name}
+                              </h4>
+                            </Link>
+                            <p className="text-[13px] text-muted-foreground truncate">{person.title}</p>
+                          </div>
+                          <TrendBadge trend={person.trend} changePercent={person.changePercent} />
+                        </div>
+                        {person.contextSnippets.length > 0 && (
+                          <div className="space-y-1.5">
+                            {person.contextSnippets.slice(0, 1).map((ctx, j) => (
+                              <Link key={j} href={`/podcasts/${ctx.podcastSlug}/${ctx.episodeSlug}`}>
+                                <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed cursor-pointer hover:text-foreground transition-colors">
+                                  {ctx.snippet}
+                                </p>
+                                <p className="text-[12px] text-primary/60 mt-0.5">{ctx.podcastName}</p>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.section>
+            )}
+
+            {weeklyIntel.trendingCompanies.length > 0 && (
+              <motion.section
+                id="section-companies"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.14 }}
+                className="mb-10 scroll-mt-24"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Building2 className="w-5 h-5 text-orange-500" />
+                  <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-trending-companies">
+                    Companies in the Conversation
+                  </h2>
+                  <span className="text-[13px] text-muted-foreground ml-1">This week</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {weeklyIntel.trendingCompanies.slice(0, 6).map((company, i) => (
+                    <div key={company.slug} data-testid={`card-trending-company-${company.slug}`}>
+                      <div className="group rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Link href={`/companies/${company.slug}`}>
+                            <img
+                              src={getCompanyLogo(company.slug)}
+                              alt={company.name}
+                              className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-0.5 cursor-pointer"
+                              loading="lazy"
+                              onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }}
+                            />
+                          </Link>
+                          <div className="flex-1 min-w-0">
+                            <Link href={`/companies/${company.slug}`}>
+                              <h4 className="text-[15px] font-semibold text-foreground hover:text-primary transition-colors truncate cursor-pointer">
+                                {company.name}
+                              </h4>
+                            </Link>
+                            <p className="text-[13px] text-muted-foreground truncate">{company.description}</p>
+                          </div>
+                          <TrendBadge trend={company.trend} changePercent={company.changePercent} />
+                        </div>
+                        {company.contextSnippets.length > 0 && (
+                          <div className="space-y-1.5">
+                            {company.contextSnippets.slice(0, 1).map((ctx, j) => (
+                              <Link key={j} href={`/podcasts/${ctx.podcastSlug}/${ctx.episodeSlug}`}>
+                                <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed cursor-pointer hover:text-foreground transition-colors">
+                                  {ctx.snippet}
+                                </p>
+                                <p className="text-[12px] text-primary/60 mt-0.5">{ctx.podcastName}</p>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.section>
+            )}
+          </>
+        )}
+
+        {thisWeekEpisodes.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.12 }}
-            className="mb-12"
+            transition={{ duration: 0.4, delay: 0.18 }}
+            className="mb-10"
           >
-            <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Radio className="w-5 h-5 text-primary" />
+                <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-weekly-episodes">
+                  This Week's Episodes
+                </h2>
+                <span className="text-[13px] text-muted-foreground ml-1">{thisWeekEpisodes.length} new</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {thisWeekEpisodes.slice(0, 8).map((ep, i) => (
+                <Link key={`${ep.slug}-${ep.episode_slug}`} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="block" data-testid={`link-weekly-episode-${i}`}>
+                  <div className="group rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-4 sm:p-5 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={ep.artwork_url}
+                        alt={ep.podcast_name}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover flex-shrink-0"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[14px] font-medium text-primary">{ep.podcast_name}</span>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                          <span className="text-[14px] text-muted-foreground">{ep.publish_date ? formatRelativeDate(ep.publish_date) : ""}</span>
+                        </div>
+                        <h3 className="text-[15px] sm:text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1.5">
+                          {ep.episode_title}
+                        </h3>
+                        {ep.tldl && (
+                          <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] line-clamp-2 leading-relaxed">{ep.tldl}</p>
+                        )}
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {keyInsights.length > 0 && (
+          <motion.section
+            id="section-takeaways"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.22 }}
+            className="mb-10 scroll-mt-24"
+          >
+            <div className="flex items-center gap-2 mb-4">
               <Zap className="w-5 h-5 text-amber-500" />
               <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-key-insights">
-                Key Takeaways
+                {weeklyInsights.length > 0 ? "Key Takeaways This Week" : "Key Takeaways"}
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -429,42 +659,107 @@ export default function TopicDetailPage() {
           </motion.section>
         )}
 
-        {topic && keyInsights.length > 0 && (
-          <motion.div
+        {!isDynamic && weeklyIntel && weeklyIntel.quotes.length > 0 && (
+          <motion.section
+            id="section-quotes"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.14 }}
-            className="mb-12"
+            transition={{ duration: 0.4, delay: 0.26 }}
+            className="mb-10 scroll-mt-24"
           >
-            <InlineEmailCTA
-              type={topic.category}
-              slug={topic.slug}
-              name={topicDisplayName}
-              variant="gradient"
-            />
-          </motion.div>
+            <div className="flex items-center gap-2 mb-4">
+              <Quote className="w-5 h-5 text-violet-500" />
+              <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-top-quotes">
+                Top Quotes This Week
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {weeklyIntel.quotes.slice(0, 5).map((quote, i) => (
+                <Link key={i} href={`/podcasts/${quote.podcastSlug}/${quote.episodeSlug}`} data-testid={`card-quote-${i}`}>
+                  <div className="group rounded-xl border border-violet-200/30 dark:border-violet-800/20 bg-violet-50/30 dark:bg-violet-950/10 p-5 hover:border-violet-300/50 hover:shadow-sm transition-all cursor-pointer">
+                    <blockquote className="text-[15px] text-foreground/90 leading-relaxed italic mb-3">
+                      "{quote.quoteText}"
+                    </blockquote>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px] font-semibold text-foreground">{quote.speakerName}</span>
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                        <span className="text-[13px] text-muted-foreground truncate">{quote.podcastName}</span>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.section>
         )}
 
-        {topicEpisodes && topicEpisodes.length > 0 && (
+        {!isDynamic && weeklyIntel && weeklyIntel.products.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="mb-10"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-emerald-500" />
+                <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-products">
+                  Products & Tools Mentioned
+                </h2>
+                <span className="text-[13px] text-muted-foreground ml-1">This week</span>
+              </div>
+              <Link href="/shop" className="text-[14px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1" data-testid="link-shop-all">
+                Browse shop <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {weeklyIntel.products.slice(0, 6).map((product, i) => (
+                <Link key={i} href={`/podcasts/${product.podcastSlug}/${product.episodeSlug}`} data-testid={`card-product-${i}`}>
+                  <div className="group flex items-center gap-3 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-muted p-0.5"
+                        loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center flex-shrink-0">
+                        <Package className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                        {product.name}
+                      </h4>
+                      <p className="text-[13px] text-muted-foreground truncate">
+                        {product.contextSummary || product.description || `Mentioned on ${product.episodeTitle}`}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {!thisWeekEpisodes.length && topicEpisodes && topicEpisodes.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.16 }}
-            className="mb-12"
+            className="mb-10"
           >
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Radio className="w-5 h-5 text-primary" />
                 <h2 className="text-xl font-display font-bold text-foreground" data-testid="heading-recent-episodes">
                   Latest Episodes
                 </h2>
               </div>
-              {latestEpisodeDate && (
-                <span className="text-[14px] text-muted-foreground flex items-center gap-1.5">
-                  <Clock className="w-3 h-3" />
-                  {formatRelativeDate(latestEpisodeDate)}
-                </span>
-              )}
             </div>
             <div className="space-y-3">
               {topicEpisodes.slice(0, 10).map((ep, i) => (
@@ -500,7 +795,7 @@ export default function TopicDetailPage() {
         )}
 
         {episodesLoading && (
-          <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-12 flex items-center justify-center mb-12">
+          <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-12 flex items-center justify-center mb-10">
             <div className="flex items-center gap-3 text-muted-foreground">
               <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span className="text-[15px]">Loading episodes...</span>
@@ -509,11 +804,27 @@ export default function TopicDetailPage() {
         )}
 
         {!episodesLoading && (!topicEpisodes || topicEpisodes.length === 0) && (
-          <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-12 text-center mb-12">
+          <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-12 text-center mb-10">
             <Radio className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-base font-semibold text-foreground mb-1">Coming soon</p>
             <p className="text-[14px] text-muted-foreground/60">We're expanding {topicDisplayName.toLowerCase()} coverage. Check back soon for episodes.</p>
           </div>
+        )}
+
+        {topic && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.34 }}
+            className="mb-12"
+          >
+            <InlineEmailCTA
+              type={topic.category}
+              slug={topic.slug}
+              name={topicDisplayName}
+              variant="minimal"
+            />
+          </motion.div>
         )}
 
         {isDynamic && dynamicGuests.length > 0 && (
@@ -548,9 +859,10 @@ export default function TopicDetailPage() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.38 }}
           className="mb-8"
         >
+          <div className="w-full h-px bg-black/[0.06] dark:bg-white/[0.06] mb-10" />
           <div className="flex items-center gap-3 mb-1">
             <h2 className="text-2xl font-display font-extrabold text-foreground tracking-tight" data-testid="heading-discover">
               Discover more about {topicDisplayName.toLowerCase()}
@@ -565,7 +877,7 @@ export default function TopicDetailPage() {
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.24 }}
+            transition={{ duration: 0.4, delay: 0.42 }}
             className="mb-12"
           >
             <div className="flex items-center justify-between mb-5">
@@ -613,7 +925,7 @@ export default function TopicDetailPage() {
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.28 }}
+            transition={{ duration: 0.4, delay: 0.46 }}
             className="mb-12"
           >
             <div className="flex items-center justify-between mb-5">
@@ -677,7 +989,7 @@ export default function TopicDetailPage() {
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.32 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
             className="mb-12"
           >
             <div className="flex items-center justify-between mb-5">
@@ -725,7 +1037,7 @@ export default function TopicDetailPage() {
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.36 }}
+            transition={{ duration: 0.4, delay: 0.54 }}
             className="mb-12"
           >
             <div className="flex items-center justify-between mb-5">
@@ -773,48 +1085,34 @@ export default function TopicDetailPage() {
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35 }}
+            transition={{ duration: 0.4, delay: 0.56 }}
             className="mb-8"
           >
-            <InlineEmailCTA
-              type={topic.category}
-              slug={topic.slug}
-              name={topicDisplayName}
-              variant="card"
-            />
-          </motion.section>
-        )}
-
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          className="mb-12"
-        >
-          <div className="rounded-2xl bg-foreground text-background overflow-hidden">
-            <div className="px-8 py-10 sm:py-12">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Building2 className="w-4 h-4 text-primary" />
-                    <span className="text-[14px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise</span>
+            <div className="rounded-2xl bg-foreground text-background overflow-hidden">
+              <div className="px-8 py-10 sm:py-12">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Building2 className="w-4 h-4 text-primary" />
+                      <span className="text-[14px] font-semibold uppercase tracking-[0.15em] text-primary">Enterprise</span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2" data-testid="heading-enterprise-cta">
+                      Need {topicDisplayName.toLowerCase()} intelligence at scale?
+                    </h3>
+                    <p className="text-[15px] text-white/60 leading-relaxed max-w-xl">
+                      Custom monitoring, automated alerts, and analyst-ready briefs on {topicDisplayName.toLowerCase()} — tailored to your team.
+                    </p>
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2" data-testid="heading-enterprise-cta">
-                    Need {topicDisplayName.toLowerCase()} intelligence at scale?
-                  </h3>
-                  <p className="text-[15px] text-white/60 leading-relaxed max-w-xl">
-                    Custom monitoring, automated alerts, and analyst-ready briefs on {topicDisplayName.toLowerCase()} — tailored to your team.
-                  </p>
+                  <Link href="/enterprise" data-testid="link-enterprise-cta">
+                    <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-[15px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer whitespace-nowrap">
+                      Request Access <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Link>
                 </div>
-                <Link href="/enterprise" data-testid="link-enterprise-cta">
-                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-[15px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer whitespace-nowrap">
-                    Request Access <ArrowRight className="w-4 h-4" />
-                  </span>
-                </Link>
               </div>
             </div>
-          </div>
-        </motion.section>
+          </motion.section>
+        )}
 
         {relatedTopics.length > 0 && (
           <section className="mb-8">

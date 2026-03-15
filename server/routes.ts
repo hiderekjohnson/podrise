@@ -4240,6 +4240,297 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/topics/:slug/weekly-intelligence", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+
+      try {
+        const topicKeywordsMap: Record<string, { primary: string[]; secondary: string[]; minScore: number }> = {
+          "ai": { primary: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model"], secondary: ["GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI", "computer vision", "natural language processing"], minScore: 4 },
+          "entrepreneurship": { primary: ["entrepreneurship", "entrepreneur", "founded", "co-founded"], secondary: ["founder", "startup", "bootstrap", "bootstrapped", "side hustle", "building a business"], minScore: 3 },
+          "startups": { primary: ["startup", "startups", "product-market fit", "seed round", "series A"], secondary: ["early-stage", "pivot", "launch", "incubator", "accelerator", "Y Combinator"], minScore: 3 },
+          "venture-capital": { primary: ["venture capital", "venture capitalist", "VC firm", "fundraising round"], secondary: ["VC", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"], minScore: 3 },
+          "investing": { primary: ["investing", "investment strategy", "stock market", "portfolio management"], secondary: ["stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns", "bull market", "bear market"], minScore: 3 },
+          "personal-finance": { primary: ["personal finance", "financial independence", "wealth building", "financial planning"], secondary: ["budgeting", "saving", "retirement", "debt", "credit score", "net worth", "FIRE"], minScore: 3 },
+          "leadership": { primary: ["leadership", "leading teams", "executive leadership"], secondary: ["CEO", "executive", "leader", "vision", "organizational culture", "servant leadership", "management"], minScore: 3 },
+          "marketing": { primary: ["marketing strategy", "digital marketing", "brand strategy"], secondary: ["marketing", "brand", "growth hacking", "advertising", "SEO", "content marketing", "social media marketing"], minScore: 3 },
+          "sales": { primary: ["sales strategy", "sales process", "selling"], secondary: ["sales", "revenue", "pipeline", "cold calling", "B2B sales", "closing deals"], minScore: 3 },
+          "productivity": { primary: ["productivity", "time management", "deep work"], secondary: ["habits", "routines", "efficiency", "focus", "workflow", "GTD"], minScore: 3 },
+          "decision-making": { primary: ["decision making", "decision-making", "mental model"], secondary: ["cognitive bias", "heuristic", "judgment", "rational thinking", "first principles"], minScore: 3 },
+          "technology": { primary: ["technology", "software engineering", "tech industry"], secondary: ["software", "engineering", "computing", "cloud", "infrastructure", "developer"], minScore: 3 },
+          "economics": { primary: ["economics", "economic policy", "macroeconomics"], secondary: ["economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve", "fiscal policy"], minScore: 3 },
+          "future-of-work": { primary: ["future of work", "remote work", "workplace transformation"], secondary: ["gig economy", "hybrid work", "automation replacing", "freelance", "work from home"], minScore: 3 },
+          "health-longevity": { primary: ["longevity", "healthspan", "lifespan"], secondary: ["nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking", "metabolic health"], minScore: 3 },
+          "psychology": { primary: ["psychology", "psychological", "neuroscience"], secondary: ["behavior", "mental health", "cognitive", "therapy", "emotional intelligence", "trauma"], minScore: 3 },
+          "peak-performance": { primary: ["peak performance", "high performance"], secondary: ["biohacking", "optimize", "performance", "elite athlete", "mental toughness"], minScore: 3 },
+          "self-improvement": { primary: ["self-improvement", "personal development", "personal growth"], secondary: ["mindset", "motivation", "discipline", "self-help", "life coaching", "transformation"], minScore: 3 },
+          "negotiation": { primary: ["negotiation", "negotiating", "negotiator"], secondary: ["persuasion", "influence", "conflict resolution", "bargaining", "deal-making"], minScore: 3 },
+          "career-growth": { primary: ["career growth", "career development", "professional development"], secondary: ["career", "promotion", "job search", "networking", "mentorship", "career change"], minScore: 3 },
+          "creativity": { primary: ["creativity", "creative process", "creative thinking"], secondary: ["creative", "design", "storytelling", "artistic", "imagination", "inspiration"], minScore: 3 },
+          "media-content": { primary: ["media industry", "content creation", "journalism"], secondary: ["media", "streaming", "podcast", "newsletter", "content strategy"], minScore: 3 },
+          "geopolitics": { primary: ["geopolitics", "geopolitical", "foreign policy", "international relations"], secondary: ["diplomacy", "international", "sanctions", "trade war", "national security"], minScore: 3 },
+          "creator-economy": { primary: ["creator economy", "content creator", "creator"], secondary: ["influencer", "newsletter", "monetize", "audience building", "personal brand", "YouTube", "TikTok"], minScore: 3 },
+          "saas": { primary: ["saas", "software as a service", "recurring revenue"], secondary: ["churn", "ARR", "MRR", "subscription", "B2B software", "cloud software"], minScore: 3 },
+          "open-source": { primary: ["open source", "open-source", "free software"], secondary: ["GitHub", "Linux", "open model", "open weights", "community-driven"], minScore: 3 },
+          "product-management": { primary: ["product management", "product manager", "product strategy"], secondary: ["roadmap", "user research", "product-led", "feature prioritization", "product team"], minScore: 3 },
+          "product-market-fit": { primary: ["product-market fit", "product market fit", "PMF"], secondary: ["market validation", "customer discovery", "pivoting", "finding fit", "demand validation"], minScore: 3 },
+          "automation": { primary: ["automation", "workflow automation", "process automation"], secondary: ["automate", "automated", "RPA", "no-code", "low-code", "Zapier"], minScore: 3 },
+          "robotics": { primary: ["robotics", "robot", "autonomous vehicle"], secondary: ["humanoid", "drone", "manufacturing automation", "self-driving", "autonomous"], minScore: 3 },
+          "crypto-web3": { primary: ["cryptocurrency", "bitcoin", "blockchain", "web3"], secondary: ["crypto", "ethereum", "DeFi", "NFT", "token", "decentralized", "smart contract"], minScore: 3 },
+          "climate-energy": { primary: ["climate change", "clean energy", "renewable energy"], secondary: ["climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle", "EV", "energy transition"], minScore: 3 },
+          "defense-tech": { primary: ["defense tech", "defense technology", "military technology"], secondary: ["defense", "military", "cybersecurity", "national security", "pentagon", "aerospace", "Anduril", "Palantir"], minScore: 3 },
+          "women-in-business": { primary: ["women in business", "female founder", "women entrepreneurs"], secondary: ["women in tech", "female CEO", "women investors", "gender gap", "women leadership"], minScore: 3 },
+          "young-entrepreneurs": { primary: ["young entrepreneur", "teenage founder", "young founder"], secondary: ["Gen Z", "college dropout", "young CEO", "millennial founder", "student entrepreneur"], minScore: 3 },
+          "bootstrapping": { primary: ["bootstrapping", "bootstrapped", "self-funded"], secondary: ["bootstrap", "profitable", "no funding", "indie hacker", "revenue-funded"], minScore: 3 },
+          "side-hustles": { primary: ["side hustle", "side project", "passive income"], secondary: ["freelance", "extra income", "hustle", "side business", "moonlighting"], minScore: 3 },
+          "engineering": { primary: ["software engineering", "engineering", "developer"], secondary: ["programming", "coding", "system design", "architecture", "devops"], minScore: 3 },
+          "finance": { primary: ["corporate finance", "financial modeling", "capital allocation"], secondary: ["finance", "cfo", "financial analysis", "treasury", "accounting"], minScore: 3 },
+          "executive": { primary: ["c-suite", "executive leadership", "board governance"], secondary: ["ceo", "executive", "coo", "cto", "chief", "leadership"], minScore: 3 },
+          "founder": { primary: ["founder journey", "founding a company"], secondary: ["founder", "entrepreneurship", "startup", "bootstrap", "co-founder"], minScore: 3 },
+        };
+
+        const topicConfig = topicKeywordsMap[slug];
+        if (!topicConfig) {
+          return res.json({ trendingPeople: [], trendingCompanies: [], quotes: [], products: [], weekRange: "" });
+        }
+
+        const now = new Date();
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const twoWeeksAgo = new Date(now);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        const weekStart = new Date(weekAgo);
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const weekRange = `${monthNames[weekStart.getMonth()]} ${weekStart.getDate()}–${monthNames[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+        const { primary, secondary, minScore } = topicConfig;
+        const allKeywords = [...primary, ...secondary];
+
+        const conditions = allKeywords.map((_, i) => {
+          const p = `$${i + 1}`;
+          return `(episode_title ILIKE ${p} OR what_happened ILIKE ${p} OR tldl ILIKE ${p} OR key_insights::text ILIKE ${p})`;
+        }).join(" OR ");
+        const params = allKeywords.map(k => `%${k}%`);
+
+        const { rows: recentRecaps } = await client.query(
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights, key_topics, guests
+           FROM landing_page_recaps
+           WHERE publish_date >= $${params.length + 1} AND (${conditions})
+           ORDER BY publish_date DESC`,
+          [...params, weekAgo.toISOString().split("T")[0]]
+        );
+
+        const { rows: olderRecaps } = await client.query(
+          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, tldl, what_happened, key_insights, key_topics, guests
+           FROM landing_page_recaps
+           WHERE publish_date >= $${params.length + 1} AND publish_date < $${params.length + 2} AND (${conditions})
+           ORDER BY publish_date DESC`,
+          [...params, twoWeeksAgo.toISOString().split("T")[0], weekAgo.toISOString().split("T")[0]]
+        );
+
+        function scoreEpisode(ep: any): number {
+          let score = 0;
+          const title = (ep.episode_title || "").toLowerCase();
+          const body = `${ep.what_happened || ""} ${ep.tldl || ""} ${ep.key_insights || ""}`.toLowerCase();
+          for (const kw of primary) {
+            const kwLower = kw.toLowerCase();
+            if (title.includes(kwLower)) score += 5;
+            const bodyMatches = body.split(kwLower).length - 1;
+            score += Math.min(bodyMatches, 5) * 2;
+          }
+          for (const kw of secondary) {
+            const kwLower = kw.toLowerCase();
+            if (kw.length <= 3) {
+              const regex = new RegExp(`\\b${kw}\\b`, "gi");
+              if (regex.test(title)) score += 3;
+              const bodyHits = (body.match(new RegExp(`\\b${kw.toLowerCase()}\\b`, "gi")) || []).length;
+              score += Math.min(bodyHits, 4);
+            } else {
+              if (title.includes(kwLower)) score += 3;
+              const bodyMatches = body.split(kwLower).length - 1;
+              score += Math.min(bodyMatches, 4);
+            }
+          }
+          return score;
+        }
+
+        const scoredRecent = recentRecaps
+          .map(ep => ({ ...ep, _score: scoreEpisode(ep) }))
+          .filter(ep => ep._score >= minScore);
+
+        const scoredOlder = olderRecaps
+          .map(ep => ({ ...ep, _score: scoreEpisode(ep) }))
+          .filter(ep => ep._score >= minScore);
+
+        function extractMentionSnippet(recaps: any[], searchTerms: string[], maxSnippets: number = 2): { snippet: string; podcastName: string; episodeSlug: string; podcastSlug: string }[] {
+          const snippets: { snippet: string; podcastName: string; episodeSlug: string; podcastSlug: string }[] = [];
+          for (const r of recaps) {
+            if (snippets.length >= maxSnippets) break;
+            const sources = [r.what_happened, r.tldl].filter(Boolean);
+            for (const text of sources) {
+              const sentences = text.split(/(?<=[.!?])\s+/);
+              for (const sentence of sentences) {
+                const matched = searchTerms.some(term => {
+                  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                  return new RegExp(`\\b${escaped}\\b`, 'i').test(sentence);
+                });
+                if (matched && sentence.length >= 30 && sentence.length <= 300) {
+                  const clean = sentence.replace(/^\s*[-•]\s*/, '').trim();
+                  if (!snippets.some(s => s.snippet === clean)) {
+                    snippets.push({ snippet: clean, podcastName: r.podcast_name, episodeSlug: r.episode_slug, podcastSlug: r.slug });
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          return snippets;
+        }
+
+        function matchesEntity(texts: string, searchTerms: string[]): boolean {
+          return searchTerms.some(term => {
+            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return new RegExp(`\\b${escaped}\\b`, 'i').test(texts);
+          });
+        }
+
+        const trendingPeople: { slug: string; name: string; title: string; trend: string; changePercent: number; recentMentions: number; contextSnippets: { snippet: string; podcastName: string; episodeSlug: string; podcastSlug: string }[] }[] = [];
+        for (const person of ENTITY_PEOPLE) {
+          const hostedSet = new Set(person.hostedSlugs);
+          const recentMentions = scoredRecent.filter(r => {
+            if (hostedSet.has(r.slug)) return false;
+            const texts = [r.guests, r.what_happened, r.tldl, r.episode_title].filter(Boolean).join(" ");
+            return matchesEntity(texts, person.searchTerms);
+          });
+          const olderMentions = scoredOlder.filter(r => {
+            if (hostedSet.has(r.slug)) return false;
+            const texts = [r.guests, r.what_happened, r.tldl, r.episode_title].filter(Boolean).join(" ");
+            return matchesEntity(texts, person.searchTerms);
+          });
+          if (recentMentions.length > 0) {
+            const trend = computeTrendDirection(recentMentions.length, olderMentions.length);
+            const contextSnippets = extractMentionSnippet(recentMentions, person.searchTerms, 2);
+            trendingPeople.push({
+              slug: person.slug,
+              name: person.name,
+              title: person.title,
+              trend: trend.direction,
+              changePercent: trend.changePercent,
+              recentMentions: recentMentions.length,
+              contextSnippets,
+            });
+          }
+        }
+        trendingPeople.sort((a, b) => {
+          if (a.trend === "rising" && b.trend !== "rising") return -1;
+          if (b.trend === "rising" && a.trend !== "rising") return 1;
+          return b.recentMentions - a.recentMentions;
+        });
+
+        const trendingCompanies: { slug: string; name: string; description: string; trend: string; changePercent: number; recentMentions: number; contextSnippets: { snippet: string; podcastName: string; episodeSlug: string; podcastSlug: string }[] }[] = [];
+        for (const company of ENTITY_COMPANIES) {
+          const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
+          const recentMentions = scoredRecent.filter(r => {
+            const texts = [r.what_happened, r.tldl, r.episode_title].filter(Boolean).join(" ");
+            return matchesEntity(texts, allTerms);
+          });
+          const olderMentions = scoredOlder.filter(r => {
+            const texts = [r.what_happened, r.tldl, r.episode_title].filter(Boolean).join(" ");
+            return matchesEntity(texts, allTerms);
+          });
+          if (recentMentions.length > 0) {
+            const trend = computeTrendDirection(recentMentions.length, olderMentions.length);
+            const contextSnippets = extractMentionSnippet(recentMentions, allTerms, 2);
+            trendingCompanies.push({
+              slug: company.slug,
+              name: company.name,
+              description: company.description,
+              trend: trend.direction,
+              changePercent: trend.changePercent,
+              recentMentions: recentMentions.length,
+              contextSnippets,
+            });
+          }
+        }
+        trendingCompanies.sort((a, b) => {
+          if (a.trend === "rising" && b.trend !== "rising") return -1;
+          if (b.trend === "rising" && a.trend !== "rising") return 1;
+          return b.recentMentions - a.recentMentions;
+        });
+
+        const recentEpPairs = scoredRecent.map(r => ({ podcastSlug: r.slug, episodeSlug: r.episode_slug }));
+        let quotes: any[] = [];
+        if (recentEpPairs.length > 0) {
+          const pairConditions = recentEpPairs.map((_, i) => `(eq.podcast_slug = $${i * 2 + 1} AND eq.episode_slug = $${i * 2 + 2})`).join(" OR ");
+          const pairParams = recentEpPairs.flatMap(p => [p.podcastSlug, p.episodeSlug]);
+          const { rows } = await client.query(
+            `SELECT eq.speaker_name, eq.quote_text, eq.context, eq.quote_type, eq.podcast_slug, eq.episode_slug,
+                    lpr.podcast_name, lpr.episode_title
+             FROM episode_quotes eq
+             JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug
+             WHERE ${pairConditions}
+             ORDER BY eq.sort_order ASC`,
+            pairParams
+          );
+          quotes = rows.slice(0, 8).map((q: any) => ({
+            speakerName: q.speaker_name,
+            quoteText: q.quote_text,
+            context: q.context,
+            podcastName: q.podcast_name,
+            episodeTitle: q.episode_title,
+            podcastSlug: q.podcast_slug,
+            episodeSlug: q.episode_slug,
+          }));
+        }
+
+        let products: any[] = [];
+        if (recentEpPairs.length > 0) {
+          const pairConditions = recentEpPairs.map((_, i) => `(podcast_slug = $${i * 2 + 1} AND episode_slug = $${i * 2 + 2})`).join(" OR ");
+          const pairParams = recentEpPairs.flatMap(p => [p.podcastSlug, p.episodeSlug]);
+          const { rows } = await client.query(
+            `SELECT name, company, description, category, episode_title, podcast_slug, episode_slug, image_url, context_summary
+             FROM extracted_products
+             WHERE (${pairConditions}) AND status = 'approved'
+             ORDER BY extracted_at DESC`,
+            pairParams
+          );
+          const seen = new Set<string>();
+          products = rows.filter((p: any) => {
+            const key = p.name.toLowerCase().trim();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          }).slice(0, 8).map((p: any) => ({
+            name: p.name,
+            company: p.company,
+            description: p.description,
+            category: p.category,
+            episodeTitle: p.episode_title,
+            podcastSlug: p.podcast_slug,
+            episodeSlug: p.episode_slug,
+            imageUrl: p.image_url,
+            contextSummary: p.context_summary,
+          }));
+        }
+
+        res.json({
+          weekRange,
+          trendingPeople: trendingPeople.slice(0, 8),
+          trendingCompanies: trendingCompanies.slice(0, 8),
+          quotes,
+          products,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      console.error("[WeeklyIntelligence] Error:", err);
+      res.status(500).json({ error: err?.message || "Failed to fetch weekly intelligence" });
+    }
+  });
+
   app.get("/api/topics/:slug/episodes", async (req, res) => {
     try {
       const { slug } = req.params;

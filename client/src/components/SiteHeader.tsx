@@ -144,13 +144,6 @@ export function SiteHeader() {
           </div>
 
           <Link
-            href="/trends"
-            className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
-            data-testid="nav-trends"
-          >
-            Trends
-          </Link>
-          <Link
             href="/podcasts"
             className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
             data-testid="nav-podcasts"
@@ -234,7 +227,6 @@ export function SiteHeader() {
               <Link href="/roles" className="block text-[14px] font-medium text-[#6366F1] py-2 px-3" onClick={() => setMobileMenuOpen(false)}>View all →</Link>
             </div>
             <div className="border-t border-black/[0.06] dark:border-white/[0.06] pt-2 space-y-1">
-              <Link href="/trends" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-trends">Trends</Link>
               <Link href="/podcasts" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-podcasts">Podcasts</Link>
               <Link href="/shop" className="flex items-center gap-2 text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-shop">
                 Shop

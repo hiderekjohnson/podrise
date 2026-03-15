@@ -23,11 +23,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/trends" className={linkClass} data-testid="link-trends">
-                  Trends
-                </Link>
-              </li>
-              <li>
                 <Link href="/people" className={linkClass} data-testid="link-people">
                   People
                 </Link>

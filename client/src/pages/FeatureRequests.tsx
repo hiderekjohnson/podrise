@@ -32,7 +32,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Trends — see what's gaining momentum across podcasts",
     description: "The Discovery Radar tracks which people, companies, and topics are surging (or fading) across the podcast landscape in real time. Each trend gets a momentum score and a rising or falling badge so you can spot what's heating up before it hits the mainstream. Whether you're a researcher, investor, or just curious, Trends gives you a bird's-eye view of where podcast conversations are heading.",
-    link: { url: "/trends", label: "Explore the Discovery Radar" },
+    link: { url: "/industries", label: "Explore by industry" },
     emoji: "📈",
     date: "Mar 11, 2026",
   },

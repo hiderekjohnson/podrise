@@ -40,7 +40,7 @@ const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const ShopPage = lazy(() => import("./pages/Bookstore"));
 const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
 const ShopDetailRouter = lazy(() => import("./pages/ShopDetailRouter"));
-const TrendsPage = lazy(() => import("./pages/TrendsPage"));
+
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
@@ -86,7 +86,7 @@ function Router() {
         <Route path="/register" component={Register} />
         <Route path="/verify-email" component={VerifyEmail} />
         <Route path="/enterprise" component={Enterprise} />
-        <Route path="/trends" component={TrendsPage} />
+        <Route path="/trends">{() => { window.location.replace("/industries"); return null; }}</Route>
         <Route path="/industries/:slug/pulse/:date" component={TopicPulsePage} />
         <Route path="/industries/:slug/pulse" component={TopicPulsePage} />
         <Route path="/industries/:slug" component={TopicDetailPage} />

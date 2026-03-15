@@ -24,7 +24,7 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
       url: "https://podcap.io",
       twitterCard: "summary",
       replaceFavicon: false,
-      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Shop</a></li><li><a href="/trends">Trends</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Shop</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
     };
   },
   "/contact": {
@@ -111,15 +111,6 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
       replaceFavicon: false,
       ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Insights - Trending Topics</h1><p>Explore what the world's top podcasts are talking about. Trending topics, emerging themes, and key narratives across ${PODCAST_SEO.length}+ shows.</p><ul style="list-style:none;padding:0;">${topicLinks}</ul><a href="/">Back to Home</a></div>`,
     };
-  },
-  "/trends": {
-    title: "The Pulse - Podcast Trends & Trending Topics | PodCap",
-    description: "See what's trending across the podcast world. Track people, companies, and topics gaining momentum across 240+ top podcasts.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/trends",
-    twitterCard: "summary",
-    replaceFavicon: false,
-    ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>The Pulse - Podcast Trends</h1><p>Track what's trending across the podcast world. See which people, companies, and topics are gaining momentum across ${PODCAST_SEO.length}+ top podcasts.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Topics</a></li></ul></nav><a href="/">Back to Home</a></div>`,
   },
   "/enterprise": {
     title: "PodCap Enterprise - Podcast Intelligence for Teams",
