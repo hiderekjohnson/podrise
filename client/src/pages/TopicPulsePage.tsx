@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightSmall, Activity, Calendar } from "lucide-react";
+import { ChevronRight as ChevronRightSmall, Activity, Calendar } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StickyEmailBar } from "@/components/StickyEmailBar";
@@ -26,12 +26,6 @@ function formatDateLong(dateStr: string) {
   const parts = dateStr.split("-");
   const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
   return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-}
-
-function formatDateShort(dateStr: string) {
-  const parts = dateStr.split("-");
-  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function formatDateISO(dateStr: string) {
@@ -167,12 +161,10 @@ function getCategoryLabel(basePath: string): string {
   return "Interests";
 }
 
-function Breadcrumbs({ topicSlug, topicName, date, basePath }: { topicSlug: string; topicName: string; date?: string; basePath: string }) {
+function Breadcrumbs({ topicSlug, topicName, basePath, date }: { topicSlug: string; topicName: string; basePath: string; date?: string }) {
   const categoryLabel = getCategoryLabel(basePath);
   return (
     <nav className="flex flex-wrap items-center gap-1 text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-5" aria-label="Breadcrumb" data-testid="nav-breadcrumbs">
-      <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-      <ChevronRightSmall className="w-3 h-3 shrink-0" />
       <Link href={basePath} className="hover:text-foreground transition-colors">{categoryLabel}</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
       <Link href={`${basePath}/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
@@ -181,7 +173,7 @@ function Breadcrumbs({ topicSlug, topicName, date, basePath }: { topicSlug: stri
         <>
           <Link href={`${basePath}/${topicSlug}/pulse`} className="hover:text-foreground transition-colors">The Pulse</Link>
           <ChevronRightSmall className="w-3 h-3 shrink-0" />
-          <span className="text-foreground font-medium">{formatDateShort(date)}</span>
+          <span className="text-foreground font-medium">{formatDateLong(date)}</span>
         </>
       ) : (
         <span className="text-foreground font-medium">The Pulse</span>
@@ -250,18 +242,17 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
     },
   });
 
-  const currentIndex = allPulses?.findIndex(p => p.publishDate === date) ?? -1;
-  const prevPulse = currentIndex >= 0 && currentIndex < (allPulses?.length || 0) - 1 ? allPulses![currentIndex + 1] : null;
-  const nextPulse = currentIndex > 0 ? allPulses![currentIndex - 1] : null;
-
   const pastBriefings = allPulses?.filter(p => p.publishDate !== date).slice(0, 5) || [];
 
   function SEOHead() {
+    const formattedDate = formatDateLong(date);
     const title = pulse
-      ? `${pulse.headline} — ${topicName} Daily Intelligence | PodCap`
-      : `${topicName} Daily Intelligence Briefing | PodCap`;
-    const description = pulse?.summary || `Today's ${topicName} briefing from top podcasts — key developments, expert takes, and actionable insights in one place.`;
-    const canonicalUrl = `https://podcap.io/topics/${topicSlug}/pulse/${date}`;
+      ? `${pulse.headline} | The Pulse — ${topicName}`
+      : `${topicName} Pulse — ${formattedDate} | PodCap`;
+    const description = pulse?.summary
+      ? `${pulse.summary.slice(0, 155).trim()}${pulse.summary.length > 155 ? '…' : ''}`
+      : `What ${topicName.toLowerCase()} podcasts are talking about today — key developments, expert takes, and trends synthesized from top shows.`;
+    const canonicalUrl = `https://podcap.io${basePath}/${topicSlug}/pulse/${date}`;
     if (typeof document !== "undefined") {
       document.title = title;
       const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -279,9 +270,14 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
       setOrCreate('meta[property="og:description"]', "property", description);
       setOrCreate('meta[property="og:url"]', "property", canonicalUrl);
       setOrCreate('meta[property="og:type"]', "property", "article");
+      setOrCreate('meta[property="og:site_name"]', "property", "PodCap");
       setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
       setOrCreate('meta[name="twitter:title"]', "name", title);
       setOrCreate('meta[name="twitter:description"]', "name", description);
+      setOrCreate('meta[name="robots"]', "name", "index, follow, max-snippet:-1");
+      setOrCreate('meta[property="article:published_time"]', "property", date);
+      setOrCreate('meta[property="article:section"]', "property", topicName);
+      setOrCreate('meta[property="article:tag"]', "property", topicName);
 
       let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
       if (!canonical) {
@@ -293,12 +289,21 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
 
       let scriptEl = document.querySelector('script[type="application/ld+json"][data-pulse]') as HTMLScriptElement | null;
       if (pulse) {
+        const sourceNames = pulse.sourceEpisodes
+          ? [...new Set(pulse.sourceEpisodes.map(ep => ep.podcastName))].slice(0, 5)
+          : [];
         const jsonLd = {
           "@context": "https://schema.org",
-          "@type": "Article",
+          "@type": "NewsArticle",
           headline: pulse.headline,
           description: pulse.summary,
-          datePublished: pulse.publishDate,
+          datePublished: `${pulse.publishDate}T06:00:00Z`,
+          dateModified: `${pulse.publishDate}T06:00:00Z`,
+          author: {
+            "@type": "Organization",
+            name: "The Pulse by PodCap",
+            url: "https://podcap.io",
+          },
           publisher: {
             "@type": "Organization",
             name: "PodCap",
@@ -308,10 +313,18 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
             "@type": "WebPage",
             "@id": canonicalUrl,
           },
+          articleSection: topicName,
+          keywords: pulse.keyThemes ? pulse.keyThemes.join(", ") : topicName,
           about: {
             "@type": "Thing",
             name: topicName,
           },
+          ...(sourceNames.length > 0 && {
+            citation: sourceNames.map(name => ({
+              "@type": "CreativeWork",
+              name: name,
+            })),
+          }),
         };
         if (!scriptEl) {
           scriptEl = document.createElement("script");
@@ -328,7 +341,7 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
   return (
     <>
       <SEOHead />
-      <div className="bg-white dark:bg-[#0A0A0F]">
+      <div className="bg-[#F4F4F5] dark:bg-[#0A0A0F]">
         <article className="w-full max-w-[680px] mx-auto px-5 sm:px-6 pt-8 sm:pt-14 pb-16 sm:pb-20">
           {isLoading ? (
             <div className="space-y-6 animate-pulse">
@@ -353,109 +366,68 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
             </div>
           ) : (
             <>
-              <motion.header
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-8 sm:mb-10"
-              >
-                <Breadcrumbs topicSlug={topicSlug} topicName={topicName} date={date} basePath={basePath} />
+              <Breadcrumbs topicSlug={topicSlug} topicName={topicName} basePath={basePath} date={date} />
 
-                <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-primary/70 mb-4">
-                  <Activity className="w-3.5 h-3.5" />
-                  <span>The Pulse</span>
-                  <span className="text-muted-foreground/30 mx-0.5">·</span>
-                  <span className="text-[#71717A] dark:text-[#A1A1AA] font-medium normal-case tracking-normal">
-                    {topicName}
-                  </span>
-                </div>
+              <div className="bg-white dark:bg-[#18181B] rounded-2xl shadow-sm border border-black/[0.04] dark:border-white/[0.06] overflow-hidden mb-8 sm:mb-10">
+                <motion.header
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="px-6 sm:px-10 pt-8 sm:pt-10 pb-6 sm:pb-8 border-b border-black/[0.04] dark:border-white/[0.06]"
+                >
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-sm" data-testid="icon-pulse-brand">
+                      <Activity className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-[13px] font-bold uppercase tracking-wider text-primary/70">The Pulse</span>
+                  </div>
 
-                <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em] mb-4" data-testid="heading-pulse">
-                  {pulse.headline}
-                </h1>
+                  <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em] mb-3" data-testid="heading-pulse">
+                    {pulse.headline}
+                  </h1>
 
-                <div className="flex items-center gap-3 text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5">
                   <time
                     dateTime={formatDateISO(pulse.publishDate)}
-                    className="flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5"
                   >
                     <Calendar className="w-3.5 h-3.5" />
                     {formatDateLong(pulse.publishDate)}
                   </time>
-                  <span className="text-muted-foreground/30">·</span>
-                  <span>{pulse.episodeCount} episode{pulse.episodeCount !== 1 ? "s" : ""} analyzed</span>
+
+                  {pulse.summary && (
+                    <p className="text-[17px] sm:text-[19px] text-[#3F3F46] dark:text-[#A1A1AA] leading-relaxed font-medium mb-5" data-testid="text-pulse-summary">
+                      {pulse.summary}
+                    </p>
+                  )}
+
+                  <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
+                </motion.header>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="px-6 sm:px-10 py-8 sm:py-10 space-y-5 sm:space-y-6"
+                  data-testid="section-pulse-body"
+                >
+                  {renderMarkdownBody(pulse.body)}
+                </motion.div>
+
+                <div className="px-6 sm:px-10 pb-8 sm:pb-10">
+                  <InlineEmailCTA
+                    type={categoryType}
+                    slug={topicSlug}
+                    name={topicName}
+                    variant="gradient"
+                  />
                 </div>
-
-                {pulse.summary && (
-                  <p className="text-[17px] sm:text-[19px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed font-medium mb-5" data-testid="text-pulse-summary">
-                    {pulse.summary}
-                  </p>
-                )}
-
-                <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
-
-                <InlineEmailCTA
-                  type={categoryType}
-                  slug={topicSlug}
-                  name={topicName}
-                  variant="gradient"
-                  className="mt-6"
-                />
-              </motion.header>
-
-              <div className="w-full h-px bg-border/60 mb-8 sm:mb-10" />
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="space-y-5 sm:space-y-6"
-                data-testid="section-pulse-body"
-              >
-                {renderMarkdownBody(pulse.body)}
-              </motion.div>
-
-              <InlineEmailCTA
-                type={categoryType}
-                slug={topicSlug}
-                name={topicName}
-                variant="gradient"
-                className="mt-10"
-              />
-
-              <div className="w-full h-px bg-border/60 mt-10 mb-8" />
-
-              <nav className="flex items-center justify-between" data-testid="nav-pulse-editions">
-                {prevPulse ? (
-                  <Link
-                    href={`${basePath}/${topicSlug}/pulse/${prevPulse.publishDate}`}
-                    className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors"
-                    data-testid="link-prev-pulse"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    {formatDateShort(prevPulse.publishDate)}
-                  </Link>
-                ) : <div />}
-                {nextPulse ? (
-                  <Link
-                    href={`${basePath}/${topicSlug}/pulse/${nextPulse.publishDate}`}
-                    className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors"
-                    data-testid="link-next-pulse"
-                  >
-                    {formatDateShort(nextPulse.publishDate)}
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                ) : <div />}
-              </nav>
+              </div>
 
               {pastBriefings.length > 0 && (
                 <div className="mt-12 pt-10 border-t border-border/60" data-testid="section-past-briefings">
-                  <h3 className="text-[18px] sm:text-[20px] font-display font-bold text-foreground mb-1">
-                    More from PodCap
+                  <h3 className="text-[18px] sm:text-[20px] font-display font-bold text-foreground mb-5">
+                    Previously in the Pulse on {topicName}
                   </h3>
-                  <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5">
-                    Past briefings on {topicName}
-                  </p>
                   <div className="space-y-3">
                     {pastBriefings.map((p, i) => (
                       <Link
@@ -469,8 +441,6 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
                             <Calendar className="w-3 h-3" />
                             {formatDateLong(p.publishDate)}
                           </time>
-                          <span className="text-muted-foreground/30">·</span>
-                          <span className="text-[13px] text-[#71717A] dark:text-[#A1A1AA]">{p.episodeCount} episode{p.episodeCount !== 1 ? "s" : ""}</span>
                         </div>
                         <p className="text-[15px] sm:text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug mb-1">
                           {p.headline}
@@ -490,7 +460,7 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
                         className="text-[14px] font-semibold text-primary hover:text-primary/80 transition-colors"
                         data-testid="link-view-all-briefings"
                       >
-                        View all {topicName} briefings →
+                        View all {topicName} pulses →
                       </Link>
                     </div>
                   )}
@@ -520,8 +490,11 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
   });
 
   function SEOHead() {
-    const title = `${topicName} Daily Intelligence Briefing from Top Podcasts | PodCap`;
-    const description = `Get daily ${topicName.toLowerCase()} briefings synthesized from top podcast conversations. Key developments, expert analysis, and trends — updated every day.`;
+    const latestPulse = pulses && pulses.length > 0 ? pulses[0] : null;
+    const title = `The Pulse on ${topicName} — Daily Podcast Intelligence | PodCap`;
+    const description = latestPulse
+      ? `Today: ${latestPulse.headline}. Get the daily ${topicName.toLowerCase()} briefing — what top podcasts are saying, synthesized into key takeaways.`
+      : `What ${topicName.toLowerCase()} podcasts are talking about — daily briefings with key developments, expert takes, and trends from top shows.`;
     const canonicalUrl = `https://podcap.io${basePath}/${topicSlug}/pulse`;
     if (typeof document !== "undefined") {
       document.title = title;
@@ -535,12 +508,15 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
         }
         el.setAttribute("content", value);
       };
-      setOrCreate('meta[name="description"]', "name", description);
+      setOrCreate('meta[name="description"]', "name", description.slice(0, 160));
       setOrCreate('meta[property="og:title"]', "property", title);
-      setOrCreate('meta[property="og:description"]', "property", description);
+      setOrCreate('meta[property="og:description"]', "property", description.slice(0, 160));
+      setOrCreate('meta[property="og:url"]', "property", canonicalUrl);
+      setOrCreate('meta[property="og:site_name"]', "property", "PodCap");
       setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
       setOrCreate('meta[name="twitter:title"]', "name", title);
-      setOrCreate('meta[name="twitter:description"]', "name", description);
+      setOrCreate('meta[name="twitter:description"]', "name", description.slice(0, 160));
+      setOrCreate('meta[name="robots"]', "name", "index, follow, max-snippet:-1");
 
       let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
       if (!canonical) {
@@ -549,6 +525,39 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
         document.head.appendChild(canonical);
       }
       canonical.href = canonicalUrl;
+
+      let scriptEl = document.querySelector('script[type="application/ld+json"][data-pulse-archive]') as HTMLScriptElement | null;
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: `The Pulse on ${topicName}`,
+        description: description,
+        url: canonicalUrl,
+        publisher: {
+          "@type": "Organization",
+          name: "PodCap",
+          url: "https://podcap.io",
+        },
+        about: {
+          "@type": "Thing",
+          name: topicName,
+        },
+        ...(pulses && pulses.length > 0 && {
+          hasPart: pulses.slice(0, 10).map(p => ({
+            "@type": "NewsArticle",
+            headline: p.headline,
+            datePublished: `${p.publishDate}T06:00:00Z`,
+            url: `https://podcap.io${basePath}/${topicSlug}/pulse/${p.publishDate}`,
+          })),
+        }),
+      };
+      if (!scriptEl) {
+        scriptEl = document.createElement("script");
+        scriptEl.type = "application/ld+json";
+        scriptEl.setAttribute("data-pulse-archive", "true");
+        document.head.appendChild(scriptEl);
+      }
+      scriptEl.textContent = JSON.stringify(jsonLd);
     }
     return null;
   }
@@ -572,16 +581,9 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
   return (
     <>
       <SEOHead />
+      <div className="bg-[#F4F4F5] dark:bg-[#0A0A0F] min-h-full">
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-16 sm:pb-20">
-        <nav className="flex flex-wrap items-center gap-1 text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-5" aria-label="Breadcrumb" data-testid="nav-breadcrumbs">
-          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-          <ChevronRightSmall className="w-3 h-3 shrink-0" />
-          <Link href={basePath} className="hover:text-foreground transition-colors">{categoryLabel}</Link>
-          <ChevronRightSmall className="w-3 h-3 shrink-0" />
-          <Link href={`${basePath}/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
-          <ChevronRightSmall className="w-3 h-3 shrink-0" />
-          <span className="text-foreground font-medium">The Pulse</span>
-        </nav>
+        <Breadcrumbs topicSlug={topicSlug} topicName={topicName} basePath={basePath} />
 
         <motion.header
           initial={{ opacity: 0, y: 12 }}
@@ -593,21 +595,10 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
             <Activity className="w-4 h-4" />
             <span className="text-[12px] font-bold uppercase tracking-wider">The Pulse</span>
           </div>
-          <h1 className="text-[28px] sm:text-[36px] font-display font-bold text-foreground leading-tight mb-3" data-testid="heading-pulse-archive">
+          <h1 className="text-[28px] sm:text-[36px] font-display font-bold text-foreground leading-tight" data-testid="heading-pulse-archive">
             {topicName} Briefings
           </h1>
-          <p className="text-[16px] sm:text-[17px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-            Daily intelligence from top podcast conversations about {topicName.toLowerCase()}.
-          </p>
         </motion.header>
-
-        <InlineEmailCTA
-          type={categoryType}
-          slug={topicSlug}
-          name={topicName}
-          variant="gradient"
-          className="mb-8"
-        />
 
         <div className="w-full h-px bg-border mb-8" />
 
@@ -622,6 +613,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
             ))}
           </div>
         ) : pulses && pulses.length > 0 ? (
+          <div className="bg-white dark:bg-[#18181B] rounded-2xl shadow-sm border border-black/[0.04] dark:border-white/[0.06] p-5 sm:p-8">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -647,8 +639,6 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
                           <Calendar className="w-3 h-3" />
                           {formatDateLong(p.publishDate)}
                         </time>
-                        <span className="text-muted-foreground/30">·</span>
-                        <span className="text-[13px] text-muted-foreground">{p.episodeCount} episode{p.episodeCount !== 1 ? "s" : ""}</span>
                       </div>
                       <h3 className="text-[16px] sm:text-[17px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug mb-1.5">
                         {p.headline}
@@ -673,6 +663,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
               </div>
             ))}
           </motion.div>
+          </div>
         ) : (
           <div className="text-center py-16">
             <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
@@ -683,6 +674,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
             </Link>
           </div>
         )}
+      </div>
       </div>
     </>
   );

@@ -451,7 +451,7 @@ export default function TopicDetailPage() {
                     <Activity className="w-5 h-5 text-white/80 flex-shrink-0" />
                     <div>
                       <span className="text-[15px] font-bold text-white">The Pulse</span>
-                      <span className="text-[14px] text-white/60 ml-2">Daily {topicDisplayName.toLowerCase()} briefing</span>
+                      <span className="text-[14px] text-white/60 ml-2">Get the daily Pulse on {topicDisplayName.toLowerCase()}</span>
                     </div>
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#6366F1] rounded-lg text-[14px] font-semibold group-hover:shadow-lg transition-all whitespace-nowrap">
