@@ -13,6 +13,7 @@ const BookCoversAdmin = lazy(() => import("./BookCoversAdmin"));
 const ProductsAdmin = lazy(() => import("./ProductsAdmin"));
 const BookstoreAdmin = lazy(() => import("./BookstoreAdmin"));
 const AnalyticsAcquisition = lazy(() => import("./AnalyticsAcquisition"));
+const ShopManagement = lazy(() => import("./ShopManagement"));
 const AnalyticsAffiliates = lazy(() => import("./AnalyticsAffiliates"));
 const AnalyticsGrowth = lazy(() => import("./AnalyticsGrowth"));
 const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
@@ -494,7 +495,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "covers" | "products" | "api-costs">("backfill");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "covers" | "products" | "shop" | "api-costs">("backfill");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
@@ -905,6 +906,18 @@ export default function Admin() {
                   Products
                 </button>
                 <button
+                  data-testid="tab-shop"
+                  onClick={() => { setActiveTab("shop"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
+                    activeTab === "shop"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  Shop Mgmt
+                </button>
+                <button
                   data-testid="tab-api-costs"
                   onClick={() => { setActiveTab("api-costs"); setSearchTerm(""); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
@@ -917,7 +930,7 @@ export default function Admin() {
                   API Costs
                 </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && activeTab !== "covers" && activeTab !== "products" && activeTab !== "bookstore" && activeTab !== "api-costs" && (
+              {activeTab !== "analytics" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && activeTab !== "covers" && activeTab !== "products" && activeTab !== "bookstore" && activeTab !== "shop" && activeTab !== "api-costs" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -1365,6 +1378,11 @@ export default function Admin() {
             {activeTab === "products" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
                 <ProductsAdmin />
+              </Suspense>
+            )}
+            {activeTab === "shop" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <ShopManagement />
               </Suspense>
             )}
             {activeTab === "api-costs" && (

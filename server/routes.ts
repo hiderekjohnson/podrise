@@ -13,7 +13,9 @@ import { generateRecap } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
 import { activeEpGenItunesIds } from "./epGenState";
-import { readFileSync } from "fs";
+import { readFileSync, mkdirSync, copyFileSync, unlinkSync } from "fs";
+import multer from "multer";
+import path from "path";
 
 declare module "express-session" {
   interface SessionData {
@@ -10446,6 +10448,220 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       res.json({ message: `Summarized ${summarized}/${rows.length} product contexts`, summarized, total: rows.length });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to summarize contexts" });
+    }
+  });
+
+  const uploadsDir = path.resolve("public/uploads");
+  mkdirSync(uploadsDir, { recursive: true });
+
+  const ALLOWED_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"];
+  const ALLOWED_MIMETYPES = ["image/jpeg", "image/png", "image/webp"];
+
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: (_req, _file, cb) => cb(null, uploadsDir),
+      filename: (_req, file, cb) => {
+        let ext = path.extname(file.originalname).toLowerCase();
+        if (!ALLOWED_IMAGE_EXTS.includes(ext)) ext = ".jpg";
+        const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+        cb(null, uniqueName);
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (ALLOWED_MIMETYPES.includes(file.mimetype)) cb(null, true);
+      else cb(new Error("Only JPG, PNG, and WebP images are allowed"));
+    },
+  });
+
+  const adminUploadAuth = (req: any, res: any, next: any) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    next();
+  };
+
+  app.get("/api/admin/shop-items", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: productRows } = await pool.query(
+        `SELECT id, name, company, description, purchase_url, image_url, category, status, image_status
+         FROM extracted_products ORDER BY name ASC`
+      );
+      const { rows: bookRows } = await pool.query(
+        `SELECT id, book_title, author, description, amazon_url, slug, has_cover, cover_approved,
+                publisher, publish_year, rating, isbn, topics, categories
+         FROM book_enrichments WHERE slug IS NOT NULL ORDER BY book_title ASC`
+      );
+
+      const items: any[] = [];
+
+      for (const p of productRows) {
+        items.push({
+          id: p.id,
+          type: "product",
+          name: p.name,
+          company: p.company,
+          description: p.description,
+          url: p.purchase_url,
+          image_url: p.image_url,
+          category: p.category,
+          status: p.status,
+          image_status: p.image_status,
+          extra: {},
+        });
+      }
+
+      for (const b of bookRows) {
+        const bookStatus = b.cover_approved === true ? "approved" : b.cover_approved === false ? "rejected" : "pending";
+        items.push({
+          id: b.id,
+          type: "book",
+          name: b.book_title,
+          company: b.author,
+          description: b.description,
+          url: b.amazon_url,
+          image_url: b.has_cover ? `/books/${b.slug}.jpg` : null,
+          category: (b.categories && b.categories.length > 0) ? b.categories[0] : (b.topics && b.topics.length > 0 ? b.topics[0] : null),
+          status: bookStatus,
+          image_status: null,
+          extra: { slug: b.slug, publisher: b.publisher, publish_year: b.publish_year, rating: b.rating, isbn: b.isbn },
+        });
+      }
+
+      const stats = {
+        total: items.length,
+        books: bookRows.length,
+        products: productRows.length,
+        approved: items.filter(i => i.status === "approved").length,
+        pending: items.filter(i => i.status === "pending").length,
+        rejected: items.filter(i => i.status === "rejected").length,
+      };
+
+      res.json({ items, stats });
+    } catch (err: any) {
+      console.error("[ShopItems] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to load shop items" });
+    }
+  });
+
+  app.post("/api/admin/shop-items/:type/:id/update", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { type, id } = req.params;
+      const { name, description, url, imageUrl } = req.body;
+      const numId = parseInt(id, 10);
+      if (!numId || (type !== "product" && type !== "book")) {
+        return res.status(400).json({ message: "Invalid type or id" });
+      }
+
+      if (type === "product") {
+        const sets: string[] = [];
+        const vals: any[] = [];
+        let idx = 1;
+        if (name !== undefined) { sets.push(`name = $${idx++}`); vals.push(name); }
+        if (description !== undefined) { sets.push(`description = $${idx++}`); vals.push(description); }
+        if (url !== undefined) { sets.push(`purchase_url = $${idx++}`); vals.push(url); }
+        if (imageUrl !== undefined) {
+          sets.push(`image_url = $${idx++}`); vals.push(imageUrl);
+          sets.push(`image_status = $${idx++}`); vals.push("approved");
+        }
+        if (sets.length > 0) {
+          vals.push(numId);
+          await pool.query(`UPDATE extracted_products SET ${sets.join(", ")} WHERE id = $${idx}`, vals);
+          shopCache.invalidate();
+        }
+      } else {
+        const sets: string[] = [];
+        const vals: any[] = [];
+        let idx = 1;
+        if (name !== undefined) { sets.push(`book_title = $${idx++}`); vals.push(name); }
+        if (description !== undefined) { sets.push(`description = $${idx++}`); vals.push(description); }
+        if (url !== undefined) { sets.push(`amazon_url = $${idx++}`); vals.push(url); }
+        if (sets.length > 0) {
+          sets.push(`updated_at = NOW()`);
+          vals.push(numId);
+          await pool.query(`UPDATE book_enrichments SET ${sets.join(", ")} WHERE id = $${idx}`, vals);
+        }
+      }
+
+      res.json({ message: `${type} updated successfully` });
+    } catch (err: any) {
+      console.error("[ShopItems] Update error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update item" });
+    }
+  });
+
+  app.post("/api/admin/shop-items/:type/:id/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { type, id } = req.params;
+      const { status } = req.body;
+      const numId = parseInt(id, 10);
+      if (!numId || (type !== "product" && type !== "book")) {
+        return res.status(400).json({ message: "Invalid type or id" });
+      }
+      if (!["approved", "pending", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      if (type === "product") {
+        await pool.query(
+          `UPDATE extracted_products SET status = $1, image_status = $1 WHERE id = $2`,
+          [status, numId]
+        );
+        shopCache.invalidate();
+      } else {
+        const coverApproved = status === "approved" ? true : status === "rejected" ? false : null;
+        await pool.query(
+          `UPDATE book_enrichments SET cover_approved = $1, updated_at = NOW() WHERE id = $2`,
+          [coverApproved, numId]
+        );
+      }
+
+      res.json({ message: `${type} status updated to ${status}` });
+    } catch (err: any) {
+      console.error("[ShopItems] Status update error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update status" });
+    }
+  });
+
+  app.post("/api/admin/shop-items/upload-image", adminUploadAuth, upload.single("image"), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ message: "No image file provided" });
+
+      const type = req.body.type;
+      const id = parseInt(req.body.id, 10);
+      if (!id || (type !== "product" && type !== "book")) {
+        return res.status(400).json({ message: "Invalid type or id" });
+      }
+
+      let responseUrl = `/uploads/${file.filename}`;
+
+      if (type === "product") {
+        await pool.query(
+          `UPDATE extracted_products SET image_url = $1, image_status = 'approved' WHERE id = $2`,
+          [responseUrl, id]
+        );
+        shopCache.invalidate();
+      } else {
+        const { rows } = await pool.query(`SELECT slug FROM book_enrichments WHERE id = $1`, [id]);
+        if (rows.length > 0) {
+          const slug = rows[0].slug;
+          const destPath = path.resolve("public/books", `${slug}.jpg`);
+          copyFileSync(file.path, destPath);
+          await pool.query(
+            `UPDATE book_enrichments SET has_cover = true, cover_approved = true, updated_at = NOW() WHERE id = $1`,
+            [id]
+          );
+          responseUrl = `/books/${slug}.jpg`;
+          try { unlinkSync(file.path); } catch {}
+        }
+      }
+
+      res.json({ imageUrl: responseUrl, message: "Image uploaded successfully" });
+    } catch (err: any) {
+      console.error("[ShopItems] Upload error:", err);
+      res.status(500).json({ message: err?.message || "Failed to upload image" });
     }
   });
 
