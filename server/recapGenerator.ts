@@ -349,40 +349,44 @@ async function generateKeyInsightsFromRecap(
   episodeTitle: string,
 ): Promise<string[]> {
   console.log(`[RecapGenerator] Pass 2: Generating key takeaways from recap for "${episodeTitle}"...`);
-  const prompt = `You are PodCap's Key Insights writer. You read a finished episode recap and extract the 4 most interesting, specific, standalone takeaways.
+  const prompt = `You write the "Key Takeaways" section for a podcast recap site. Each takeaway is a mini-story that makes the reader feel like they learned something worth sharing.
 
-Your audience: smart, curious professionals who will never listen to this episode. Each takeaway should feel like discovering a surprising fact or idea worth sharing.
+Your reader will never listen to this episode. These 4 takeaways are the only thing they'll read. Make each one count.
 
 Episode: "${episodeTitle}" from ${podcastName}
 
 RECAP:
 ${recap}
 
-Write exactly 4 key takeaways. Each must:
-- Teach the reader something specific they did not know
-- Be 2-3 tight sentences that could be read completely out of context and still be worth reading
-- Include concrete details (a name, a number, a company, a mechanism) woven into the insight naturally
-- Have a point of view or tension - not "X is important" but "X works because of Y, which most people get wrong"
-- Be specific to THIS episode - if you swapped in a different episode title it should not make sense
+THE FORMULA FOR A GREAT TAKEAWAY:
+1. Open with the most surprising or specific fact (a number, a name, a comparison, a contradiction)
+2. Add the "why" or "how" - the mechanism, the story, the context that makes it click
+3. Land on a punchline - the twist, the implication, the "here's why this matters to you"
 
-BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing, crucial, critical, essential, important
-BANNED PATTERNS: "[Person] [verb] [topic]" (never start with a speaker name followed by a verb), "The importance of X", "[Company] is [verb]ing [industry] by [marketing speak]", "X is crucial/critical/essential for Y"
+Each takeaway should be 2-3 sentences. It should read like something you'd text a smart friend starting with "dude, did you know..."
 
-LITMUS TEST: "If I texted this to a smart friend with zero context, would they find it interesting?" If not, rewrite.
+WHAT MAKES THEM GREAT:
+- They tell a STORY, not state a fact. "Swiffer is a $5B brand while Clorox's ReadyMop does a few hundred million - and the products are nearly identical" is a story. "A good name is important for brand success" is a fact.
+- They have a TWIST or TENSION. Something counterintuitive, ironic, or unexpected.
+- They include at least one SPECIFIC detail (a dollar amount, a percentage, a company name, a mechanism).
+- They stand completely alone - no "in this episode" or "the guest explained" framing needed.
 
-BAD: "Bill Gurley discusses the transformative impact of AI on the workplace." (starts with a name + verb)
-BAD: "David Placek's naming strategy involves generating 2,000 names." (starts with a name, just describes what he does)
-BAD: "ZuruTech is revolutionizing home construction by leveraging advanced robotics." (marketing speak)
-BAD: "Scaling a business successfully often comes down to influencer marketing." (vague, no specifics)
-BAD: "A company's name is its most enduring asset, making it crucial for long-term success." (generic truism)
-BAD: "Sound symbolism plays a pivotal role in brand naming." (vague, tells you nothing)
+NEVER start a takeaway with a person's name. Lead with the insight, not the attribution.
 
-GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice."
-GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads. The playbook was simple - find creators whose audiences already want what you sell, and pay per result, not per post."
-GOOD: "Swiffer is a $5 billion brand. Clorox's Ready Mop does a couple hundred million. The products are nearly identical - the difference is almost entirely the name. The team generated over 2,000 candidate names before landing on one that was short, surprising, and sounded like the motion of mopping."
-GOOD: "Letters like K, P, and Z are perceived as fast and powerful by the human brain - a concept called sound symbolism. This is why 'BlackBerry' works as a tech brand name despite having nothing to do with phones, and why 'ReadyMop' lost to 'Swiffer' even though the products were basically identical."
+EXAMPLES OF GREAT TAKEAWAYS:
+- "Rejected by every Ivy League school including Stanford despite a 4.0 GPA and running a multimillion-dollar company, Zach turned his setback into a viral success on Twitter. The unexpected twist connected him with influential figures like the Mayor of Miami, proving that sometimes failure is the best networking tool."
+- "Cal AI's remarkable $5.7M revenue in January was largely driven by influencer marketing and performance ads. The strategy? Partner with fitness creators whose audiences already crave what you're selling, and pay based on the results, not just the exposure."
+- "After an undervalued initial offer from MyFitnessPal, Zach switched gears and built Cal AI as a long-term, cash-flowing business rather than chasing a quick exit. This increased its appeal to buyers, leading MyFitnessPal to re-engage and acquire the company at a higher valuation."
 
-Respond ONLY with a JSON object: {"keyInsights": ["insight1", "insight2", "insight3", "insight4"]}`;
+EXAMPLES OF BAD TAKEAWAYS (never write these):
+- "David's naming strategy hinges on the first 90 to 120 days." (clinical, no story)
+- "Sound symbolism plays a vital role in brand naming." (vague, no specifics)
+- "Legal constraints force creativity in naming, with 80% eliminated." (just states a fact, no twist)
+- "Zach's journey shows the importance of perseverance." (generic motivational filler)
+
+BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, reveals, showcases, illustrates, demonstrates, underscores, stresses, crucial, critical, essential, pivotal, important, innovative, groundbreaking, game-changing, leveraging, revolutionizing
+
+Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1", "takeaway2", "takeaway3", "takeaway4"]}`;
 
   try {
     const completion = await openai.chat.completions.create({
