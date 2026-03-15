@@ -39,7 +39,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Topic Pulse — AI-synthesized daily intelligence briefings",
     description: "Pick any topic you care about and Topic Pulse delivers a concise, AI-written intelligence briefing every day — synthesized from dozens of podcast episodes so you don't have to listen to all of them. Each briefing links back to its source episodes, and you can browse the full archive to track how conversations have evolved over time.",
-    link: { url: "/pulse/artificial-intelligence", label: "Read today's AI Pulse briefing" },
+    link: { url: "/industries/ai/pulse", label: "Read today's AI Pulse briefing" },
     emoji: "⚡",
     date: "Mar 9, 2026",
   },

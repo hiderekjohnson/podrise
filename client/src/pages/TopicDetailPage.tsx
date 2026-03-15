@@ -123,6 +123,18 @@ export default function TopicDetailPage() {
     enabled: !isDynamic,
   });
 
+  const { data: latestPulses } = useQuery<{ publishDate: string }[]>({
+    queryKey: ["/api/topics", params.slug, "pulse"],
+    queryFn: async () => {
+      const res = await fetch(`/api/topics/${params.slug}/pulse`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!params.slug,
+  });
+
+  const latestPulseDate = latestPulses?.[0]?.publishDate;
+
   const { data: rawTopicEpisodes, isLoading: episodesLoading } = useQuery<TopicEpisode[]>({
     queryKey: ["/api/topics", params.slug, "episodes"],
     queryFn: async () => {
@@ -360,7 +372,7 @@ export default function TopicDetailPage() {
           className="mb-12"
         >
           <Link
-            href={`${categoryBasePath}/${params.slug}/pulse`}
+            href={latestPulseDate ? `${categoryBasePath}/${params.slug}/pulse/${latestPulseDate}` : `${categoryBasePath}/${params.slug}/pulse`}
             className="block group"
             data-testid="link-topic-pulse"
           >

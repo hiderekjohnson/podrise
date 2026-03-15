@@ -161,63 +161,19 @@ function renderMarkdownBody(body: string) {
   });
 }
 
-function RelatedArticles({ currentTopicSlug }: { currentTopicSlug: string }) {
-  const { data: recentPulses } = useQuery<TopicPulse[]>({
-    queryKey: ["/api/pulses/recent", currentTopicSlug],
-    queryFn: async () => {
-      const res = await fetch(`/api/pulses/recent?exclude=${encodeURIComponent(currentTopicSlug)}`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-  });
-
-  if (!recentPulses || recentPulses.length === 0) return null;
-
-  return (
-    <div className="mt-12 pt-10 border-t border-border" data-testid="section-related-articles">
-      <h3 className="text-[18px] sm:text-[20px] font-display font-bold text-foreground mb-6">More from PodCap</h3>
-      <div className="grid grid-cols-1 gap-4">
-        {recentPulses.map((p, i) => {
-          const topic = TOPICS.find(t => t.slug === p.topicSlug);
-          const topicName = topic?.name || p.topicSlug;
-          const topicBasePath = topic ? getCategoryPath(topic.category) : "/interests";
-          return (
-            <Link
-              key={p.id}
-              href={`${topicBasePath}/${p.topicSlug}/pulse/${p.publishDate}`}
-              className="group flex flex-col gap-2 p-4 rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-primary/20 hover:bg-primary/[0.02] transition-all"
-              data-testid={`link-related-article-${i}`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] font-semibold uppercase tracking-wider text-primary/70">{topicName}</span>
-                <span className="text-muted-foreground/30">·</span>
-                <time dateTime={p.publishDate} className="text-[14px] text-muted-foreground flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {formatDateShort(p.publishDate)}
-                </time>
-              </div>
-              <p className="text-[15px] sm:text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                {p.headline}
-              </p>
-              {p.summary && (
-                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">
-                  {p.summary}
-                </p>
-              )}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
+function getCategoryLabel(basePath: string): string {
+  if (basePath === "/industries") return "Industries";
+  if (basePath === "/roles") return "Roles";
+  return "Interests";
 }
 
 function Breadcrumbs({ topicSlug, topicName, date, basePath }: { topicSlug: string; topicName: string; date?: string; basePath: string }) {
+  const categoryLabel = getCategoryLabel(basePath);
   return (
     <nav className="flex flex-wrap items-center gap-1 text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-5" aria-label="Breadcrumb" data-testid="nav-breadcrumbs">
       <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
-      <Link href={basePath} className="hover:text-foreground transition-colors">{basePath === "/industries" ? "Industries" : basePath === "/roles" ? "Roles" : "Topics"}</Link>
+      <Link href={basePath} className="hover:text-foreground transition-colors">{categoryLabel}</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
       <Link href={`${basePath}/${topicSlug}`} className="hover:text-foreground transition-colors">{topicName}</Link>
       <ChevronRightSmall className="w-3 h-3 shrink-0" />
@@ -298,6 +254,8 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
   const prevPulse = currentIndex >= 0 && currentIndex < (allPulses?.length || 0) - 1 ? allPulses![currentIndex + 1] : null;
   const nextPulse = currentIndex > 0 ? allPulses![currentIndex - 1] : null;
 
+  const pastBriefings = allPulses?.filter(p => p.publishDate !== date).slice(0, 5) || [];
+
   function SEOHead() {
     const title = pulse
       ? `${pulse.headline} — ${topicName} Daily Intelligence | PodCap`
@@ -370,154 +328,178 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
   return (
     <>
       <SEOHead />
-      <article className="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-16 sm:pb-20">
-        {isLoading ? (
-          <div className="space-y-6 animate-pulse">
-            <div className="h-4 bg-muted rounded w-1/4" />
-            <div className="h-10 bg-muted rounded w-3/4" />
-            <div className="h-6 bg-muted rounded w-2/3" />
-            <div className="h-px bg-border my-8" />
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-5 bg-muted rounded w-full" />
-              ))}
-            </div>
-          </div>
-        ) : isError || !pulse ? (
-          <div className="text-center py-16" data-testid="pulse-error">
-            <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-lg font-display font-bold text-foreground mb-1">Briefing not found</p>
-            <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">No Pulse briefing available for this date.</p>
-            <Link href={`${basePath}/${topicSlug}/pulse`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
-              Browse all briefings
-            </Link>
-          </div>
-        ) : (
-          <>
-            <motion.header
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-8 sm:mb-10"
-            >
-              <Breadcrumbs topicSlug={topicSlug} topicName={topicName} date={date} basePath={basePath} />
-
-              <div className="flex items-center gap-2 text-[15px] font-semibold uppercase tracking-wider text-primary mb-4">
-                <Activity className="w-3.5 h-3.5" />
-                The Pulse
-                <span className="text-muted-foreground/40 mx-1">·</span>
-                <span className="font-medium normal-case tracking-normal text-[#52525B] dark:text-[#A1A1AA]">
-                  {topicName}
-                </span>
-                <span className="text-muted-foreground/40 mx-1">·</span>
-                <time
-                  dateTime={formatDateISO(pulse.publishDate)}
-                  className="flex items-center gap-1.5 text-[#52525B] dark:text-[#A1A1AA] font-medium normal-case tracking-normal"
-                >
-                  <Calendar className="w-3 h-3" />
-                  {formatDateLong(pulse.publishDate)}
-                </time>
+      <div className="bg-white dark:bg-[#0A0A0F]">
+        <article className="w-full max-w-[680px] mx-auto px-5 sm:px-6 pt-8 sm:pt-14 pb-16 sm:pb-20">
+          {isLoading ? (
+            <div className="space-y-6 animate-pulse">
+              <div className="h-4 bg-muted rounded w-1/4" />
+              <div className="h-10 bg-muted rounded w-3/4" />
+              <div className="h-6 bg-muted rounded w-2/3" />
+              <div className="h-px bg-border my-8" />
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="h-5 bg-muted rounded w-full" />
+                ))}
               </div>
+            </div>
+          ) : isError || !pulse ? (
+            <div className="text-center py-16" data-testid="pulse-error">
+              <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-lg font-display font-bold text-foreground mb-1">Briefing not found</p>
+              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">No Pulse briefing available for this date.</p>
+              <Link href={`${basePath}/${topicSlug}/pulse`} className="text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors">
+                Browse all briefings
+              </Link>
+            </div>
+          ) : (
+            <>
+              <motion.header
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mb-8 sm:mb-10"
+              >
+                <Breadcrumbs topicSlug={topicSlug} topicName={topicName} date={date} basePath={basePath} />
 
-              <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em] mb-3" data-testid="heading-pulse">
-                {pulse.headline}
-              </h1>
+                <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-primary/70 mb-4">
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>The Pulse</span>
+                  <span className="text-muted-foreground/30 mx-0.5">·</span>
+                  <span className="text-[#71717A] dark:text-[#A1A1AA] font-medium normal-case tracking-normal">
+                    {topicName}
+                  </span>
+                </div>
 
-              {pulse.summary && (
-                <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] leading-relaxed font-medium mb-4" data-testid="text-pulse-summary">
-                  {pulse.summary}
-                </p>
-              )}
+                <h1 className="text-[1.75rem] sm:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.15] tracking-[-0.02em] mb-4" data-testid="heading-pulse">
+                  {pulse.headline}
+                </h1>
 
-              <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
+                <div className="flex items-center gap-3 text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5">
+                  <time
+                    dateTime={formatDateISO(pulse.publishDate)}
+                    className="flex items-center gap-1.5"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    {formatDateLong(pulse.publishDate)}
+                  </time>
+                  <span className="text-muted-foreground/30">·</span>
+                  <span>{pulse.episodeCount} episode{pulse.episodeCount !== 1 ? "s" : ""} analyzed</span>
+                </div>
+
+                {pulse.summary && (
+                  <p className="text-[17px] sm:text-[19px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed font-medium mb-5" data-testid="text-pulse-summary">
+                    {pulse.summary}
+                  </p>
+                )}
+
+                <AsHeardOn sourceEpisodes={pulse.sourceEpisodes} />
+
+                <InlineEmailCTA
+                  type={categoryType}
+                  slug={topicSlug}
+                  name={topicName}
+                  variant="gradient"
+                  className="mt-6"
+                />
+              </motion.header>
+
+              <div className="w-full h-px bg-border/60 mb-8 sm:mb-10" />
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="space-y-5 sm:space-y-6"
+                data-testid="section-pulse-body"
+              >
+                {renderMarkdownBody(pulse.body)}
+              </motion.div>
 
               <InlineEmailCTA
                 type={categoryType}
                 slug={topicSlug}
                 name={topicName}
                 variant="gradient"
-                className="mt-6"
+                className="mt-10"
               />
-            </motion.header>
 
-            <div className="w-full h-px bg-border mb-8 sm:mb-10" />
+              <div className="w-full h-px bg-border/60 mt-10 mb-8" />
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-5 sm:space-y-6"
-              data-testid="section-pulse-body"
-            >
-              {renderMarkdownBody(pulse.body)}
-            </motion.div>
+              <nav className="flex items-center justify-between" data-testid="nav-pulse-editions">
+                {prevPulse ? (
+                  <Link
+                    href={`${basePath}/${topicSlug}/pulse/${prevPulse.publishDate}`}
+                    className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                    data-testid="link-prev-pulse"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    {formatDateShort(prevPulse.publishDate)}
+                  </Link>
+                ) : <div />}
+                {nextPulse ? (
+                  <Link
+                    href={`${basePath}/${topicSlug}/pulse/${nextPulse.publishDate}`}
+                    className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                    data-testid="link-next-pulse"
+                  >
+                    {formatDateShort(nextPulse.publishDate)}
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                ) : <div />}
+              </nav>
 
-            <InlineEmailCTA
-              type={categoryType}
-              slug={topicSlug}
-              name={topicName}
-              variant="gradient"
-              className="mt-10"
-            />
-
-            <div className="w-full h-px bg-border mt-10 mb-8" />
-
-            <nav className="flex items-center justify-between" data-testid="nav-pulse-editions">
-              {prevPulse ? (
-                <Link
-                  href={`${basePath}/${topicSlug}/pulse/${prevPulse.publishDate}`}
-                  className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors"
-                  data-testid="link-prev-pulse"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  {formatDateShort(prevPulse.publishDate)}
-                </Link>
-              ) : <div />}
-              {nextPulse ? (
-                <Link
-                  href={`${basePath}/${topicSlug}/pulse/${nextPulse.publishDate}`}
-                  className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-primary hover:text-primary/80 transition-colors"
-                  data-testid="link-next-pulse"
-                >
-                  {formatDateShort(nextPulse.publishDate)}
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              ) : <div />}
-            </nav>
-
-            {allPulses && allPulses.length > 1 && (
-              <div className="mt-10 pt-8 border-t border-border" data-testid="section-past-briefings">
-                <h3 className="text-[17px] font-display font-bold text-foreground mb-4">Past Briefings</h3>
-                <div className="space-y-1">
-                  {allPulses.filter(p => p.publishDate !== date).map((p, i) => (
-                    <Link
-                      key={p.publishDate}
-                      href={`${basePath}/${topicSlug}/pulse/${p.publishDate}`}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group"
-                      data-testid={`link-past-briefing-${i}`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+              {pastBriefings.length > 0 && (
+                <div className="mt-12 pt-10 border-t border-border/60" data-testid="section-past-briefings">
+                  <h3 className="text-[18px] sm:text-[20px] font-display font-bold text-foreground mb-1">
+                    More from PodCap
+                  </h3>
+                  <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5">
+                    Past briefings on {topicName}
+                  </p>
+                  <div className="space-y-3">
+                    {pastBriefings.map((p, i) => (
+                      <Link
+                        key={p.publishDate}
+                        href={`${basePath}/${topicSlug}/pulse/${p.publishDate}`}
+                        className="group block p-4 rounded-xl border border-black/[0.05] dark:border-white/[0.08] hover:border-primary/20 hover:bg-primary/[0.02] transition-all"
+                        data-testid={`link-past-briefing-${i}`}
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <time dateTime={p.publishDate} className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] flex items-center gap-1.5">
+                            <Calendar className="w-3 h-3" />
+                            {formatDateLong(p.publishDate)}
+                          </time>
+                          <span className="text-muted-foreground/30">·</span>
+                          <span className="text-[13px] text-[#71717A] dark:text-[#A1A1AA]">{p.episodeCount} episode{p.episodeCount !== 1 ? "s" : ""}</span>
+                        </div>
+                        <p className="text-[15px] sm:text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-snug mb-1">
                           {p.headline}
                         </p>
-                      </div>
-                      <time
-                        dateTime={formatDateISO(p.publishDate)}
-                        className="text-[14px] text-muted-foreground ml-3 shrink-0 flex items-center gap-1"
+                        {p.summary && (
+                          <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed line-clamp-2">
+                            {p.summary}
+                          </p>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                  {allPulses && allPulses.length > 6 && (
+                    <div className="mt-4 text-center">
+                      <Link
+                        href={`${basePath}/${topicSlug}/pulse`}
+                        className="text-[14px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                        data-testid="link-view-all-briefings"
                       >
-                        <Calendar className="w-3 h-3" />
-                        {formatDateShort(p.publishDate)}
-                      </time>
-                    </Link>
-                  ))}
+                        View all {topicName} briefings →
+                      </Link>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-
-            <RelatedArticles currentTopicSlug={topicSlug} />
-          </>
-        )}
-      </article>
+              )}
+            </>
+          )}
+        </article>
+      </div>
     </>
   );
 }
@@ -526,7 +508,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
   const topic = TOPICS.find(t => t.slug === topicSlug);
   const topicName = topic?.name || topicSlug;
   const categoryType: "industry" | "interest" | "role" = basePath === "/industries" ? "industry" : basePath === "/roles" ? "role" : "interest";
-  const categoryLabel = basePath === "/industries" ? "Industries" : basePath === "/roles" ? "Roles" : "Topics";
+  const categoryLabel = getCategoryLabel(basePath);
 
   const { data: pulses, isLoading } = useQuery<TopicPulse[]>({
     queryKey: ["/api/topics", topicSlug, "pulse"],
@@ -653,7 +635,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
                   {formatMonthLabel(monthKey)}
                 </h2>
                 <div className="space-y-3">
-                  {monthPulses.map((p, i) => (
+                  {monthPulses.map((p) => (
                     <Link
                       key={p.publishDate}
                       href={`${basePath}/${topicSlug}/pulse/${p.publishDate}`}
