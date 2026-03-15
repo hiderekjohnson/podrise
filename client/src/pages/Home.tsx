@@ -81,7 +81,7 @@ export default function Home() {
               <BarChart3 className="w-3.5 h-3.5" />
               Podcast Intelligence Platform
             </div>
-            <h1 className="text-[2rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
+            <h1 className="text-[1.75rem] sm:text-[2.5rem] md:text-[3rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
               The fastest way to keep up with the smartest conversations across podcasts
             </h1>
             <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
