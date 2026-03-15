@@ -19,6 +19,7 @@ const AnalyticsGrowth = lazy(() => import("./AnalyticsGrowth"));
 const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
 const ApiUsageDashboard = lazy(() => import("./ApiUsageDashboard"));
 const AdvertisersAdmin = lazy(() => import("./AdvertisersAdmin"));
+const AdminUsersManager = lazy(() => import("./AdminUsersManager"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -496,7 +497,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "covers" | "products" | "shop" | "api-costs" | "advertisers">("backfill");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "transcripts" | "pending" | "directory" | "rss" | "hosts" | "updates" | "backfill" | "covers" | "products" | "shop" | "api-costs" | "advertisers" | "admin-users">("backfill");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
@@ -942,8 +943,20 @@ export default function Admin() {
                   <Megaphone className="w-4 h-4" />
                   Advertisers
                 </button>
+                <button
+                  data-testid="tab-admin-users"
+                  onClick={() => { setActiveTab("admin-users"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
+                    activeTab === "admin-users"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Admins
+                </button>
               </div>
-              {activeTab !== "analytics" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && activeTab !== "covers" && activeTab !== "products" && activeTab !== "bookstore" && activeTab !== "shop" && activeTab !== "api-costs" && activeTab !== "advertisers" && (
+              {activeTab !== "analytics" && activeTab !== "transcripts" && activeTab !== "pending" && activeTab !== "directory" && activeTab !== "rss" && activeTab !== "hosts" && activeTab !== "updates" && activeTab !== "backfill" && activeTab !== "covers" && activeTab !== "products" && activeTab !== "bookstore" && activeTab !== "shop" && activeTab !== "api-costs" && activeTab !== "advertisers" && activeTab !== "admin-users" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
@@ -1406,6 +1419,11 @@ export default function Admin() {
             {activeTab === "advertisers" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
                 <AdvertisersAdmin />
+              </Suspense>
+            )}
+            {activeTab === "admin-users" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <AdminUsersManager />
               </Suspense>
             )}
           </motion.div>

@@ -5019,6 +5019,71 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Admin logged out" });
   });
 
+  app.get("/api/admin/admin-users", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { db } = await import("./db");
+    const { adminUsers } = await import("@shared/schema");
+    const { desc } = await import("drizzle-orm");
+    const rows = await db.select().from(adminUsers).orderBy(desc(adminUsers.createdAt));
+    res.json(rows);
+  });
+
+  app.post("/api/admin/admin-users", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { insertAdminUserSchema, adminUsers } = await import("@shared/schema");
+    const parsed = insertAdminUserSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0]?.message || "Invalid input" });
+    const { db } = await import("./db");
+    try {
+      const [row] = await db.insert(adminUsers).values(parsed.data).returning();
+      res.json(row);
+    } catch (e: any) {
+      if (e.code === "23505") return res.status(409).json({ message: "An admin with this email already exists" });
+      throw e;
+    }
+  });
+
+  app.patch("/api/admin/admin-users/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { adminUsers } = await import("@shared/schema");
+    const updates: Record<string, any> = {};
+    if (req.body.email) {
+      const emailParsed = z.string().email().safeParse(req.body.email);
+      if (!emailParsed.success) return res.status(400).json({ message: "Invalid email" });
+      updates.email = emailParsed.data;
+    }
+    if (req.body.name !== undefined) updates.name = req.body.name || null;
+    if (req.body.role) {
+      if (!["owner", "admin"].includes(req.body.role)) return res.status(400).json({ message: "Invalid role" });
+      updates.role = req.body.role;
+    }
+    if (Object.keys(updates).length === 0) return res.status(400).json({ message: "No fields to update" });
+    try {
+      const [row] = await db.update(adminUsers).set(updates).where(eq(adminUsers.id, id)).returning();
+      if (!row) return res.status(404).json({ message: "Admin user not found" });
+      res.json(row);
+    } catch (e: any) {
+      if (e.code === "23505") return res.status(409).json({ message: "An admin with this email already exists" });
+      throw e;
+    }
+  });
+
+  app.delete("/api/admin/admin-users/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { adminUsers } = await import("@shared/schema");
+    const [deleted] = await db.delete(adminUsers).where(eq(adminUsers.id, id)).returning();
+    if (!deleted) return res.status(404).json({ message: "Admin user not found" });
+    res.json({ message: "Admin user deleted" });
+  });
+
   app.post("/api/admin/refresh-caches", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

@@ -532,3 +532,23 @@ export const insertAdvertiserSchema = createInsertSchema(advertisers).omit({
 export type Advertiser = typeof advertisers.$inferSelect;
 export type InsertAdvertiser = z.infer<typeof insertAdvertiserSchema>;
 
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  role: text("role").notNull().default("admin"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  email: z.string().email("Must be a valid email"),
+  name: z.string().optional(),
+  role: z.enum(["owner", "admin"]).default("admin"),
+});
+
+export type AdminUser = typeof adminUsers.$inferSelect;
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+
