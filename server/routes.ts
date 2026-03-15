@@ -5340,11 +5340,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.get("/api/admin/admin-users", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
-    const { db } = await import("./db");
-    const { adminUsers } = await import("@shared/schema");
-    const { desc } = await import("drizzle-orm");
-    const rows = await db.select().from(adminUsers).orderBy(desc(adminUsers.createdAt));
-    res.json(rows);
+    const { pool } = await import("./db");
+    const { rows } = await pool.query(
+      `SELECT id, email, name, role, status, invite_sent_at, created_at FROM admin_users ORDER BY created_at DESC`
+    );
+    res.json(rows.map((r: any) => ({
+      id: r.id,
+      email: r.email,
+      name: r.name,
+      role: r.role,
+      status: r.status || "pending",
+      inviteSentAt: r.invite_sent_at,
+      createdAt: r.created_at,
+    })));
   });
 
   app.post("/api/admin/admin-users", async (req, res) => {
@@ -5401,6 +5409,102 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const [deleted] = await db.delete(adminUsers).where(eq(adminUsers.id, id)).returning();
     if (!deleted) return res.status(404).json({ message: "Admin user not found" });
     res.json({ message: "Admin user deleted" });
+  });
+
+  app.post("/api/admin/admin-users/:id/invite", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const { db, pool } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { adminUsers } = await import("@shared/schema");
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    if (!user) return res.status(404).json({ message: "Admin user not found" });
+
+    const crypto = await import("crypto");
+    const token = crypto.randomBytes(32).toString("hex");
+    await pool.query(
+      `UPDATE admin_users SET invite_token = $1, invite_sent_at = NOW(), status = 'invited' WHERE id = $2`,
+      [token, id]
+    );
+
+    const baseUrl = process.env.REPLIT_DEPLOYMENT === "1"
+      ? "https://podcap.io"
+      : process.env.REPLIT_DEV_DOMAIN
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+        : "https://podcap.io";
+    const setupUrl = `${baseUrl}/admin/setup?token=${token}`;
+
+    try {
+      const { getUncachableResendClient } = await import("./resendClient");
+      const { client, fromEmail } = await getUncachableResendClient();
+      await client.emails.send({
+        from: `PodCap <${fromEmail}>`,
+        to: user.email,
+        subject: "You've been invited to PodCap Admin",
+        html: `
+          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
+            <div style="text-align:center;margin-bottom:32px;">
+              <h1 style="font-size:24px;font-weight:700;color:#18181B;margin:0;">Welcome to PodCap Admin</h1>
+            </div>
+            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 16px;">Hi${user.name ? ` ${user.name}` : ''},</p>
+            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px;">You've been invited as an <strong>${user.role}</strong> on PodCap. Click the button below to set up your password and activate your admin account.</p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${setupUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;">Set Up Your Account</a>
+            </div>
+            <p style="color:#A1A1AA;font-size:13px;line-height:1.5;margin:24px 0 0;">This link expires in 7 days. If you didn't expect this invitation, you can ignore this email.</p>
+          </div>
+        `,
+      });
+      res.json({ message: `Invite sent to ${user.email}` });
+    } catch (err: any) {
+      console.error("[AdminInvite] Failed to send invite email:", err.message);
+      res.json({ message: `Invite link created but email failed to send. Share this link manually: ${setupUrl}` });
+    }
+  });
+
+  app.get("/api/admin/setup/verify", async (req, res) => {
+    const { token } = req.query;
+    if (!token || typeof token !== "string") return res.status(400).json({ message: "Token required" });
+    const { pool } = await import("./db");
+    const { rows } = await pool.query(
+      `SELECT id, email, name, role, invite_sent_at FROM admin_users WHERE invite_token = $1`,
+      [token]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: "Invalid or expired invite link" });
+    const user = rows[0];
+    const sentAt = new Date(user.invite_sent_at);
+    const now = new Date();
+    if (now.getTime() - sentAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
+      return res.status(410).json({ message: "This invite link has expired. Please ask an admin to resend it." });
+    }
+    res.json({ email: user.email, name: user.name, role: user.role });
+  });
+
+  app.post("/api/admin/setup/complete", async (req, res) => {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ message: "Token and password required" });
+    if (password.length < 8) return res.status(400).json({ message: "Password must be at least 8 characters" });
+    const { pool } = await import("./db");
+    const { rows } = await pool.query(
+      `SELECT id, email, invite_sent_at FROM admin_users WHERE invite_token = $1`,
+      [token]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: "Invalid or expired invite link" });
+    const user = rows[0];
+    const sentAt = new Date(user.invite_sent_at);
+    const now = new Date();
+    if (now.getTime() - sentAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
+      return res.status(410).json({ message: "This invite link has expired" });
+    }
+    const bcrypt = await import("bcryptjs");
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query(
+      `UPDATE admin_users SET password_hash = $1, invite_token = NULL, status = 'active' WHERE id = $2`,
+      [hash, user.id]
+    );
+    req.session.isAdmin = true;
+    res.json({ message: "Account set up successfully" });
   });
 
   app.post("/api/admin/refresh-caches", async (req, res) => {

@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, Shield, Crown, X, UserPlus } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Shield, Crown, X, UserPlus, Send, Check } from "lucide-react";
 
 interface AdminUserRow {
   id: number;
   email: string;
   name: string | null;
   role: string;
+  status: string;
+  inviteSentAt: string | null;
   createdAt: string | null;
 }
 
@@ -69,11 +71,34 @@ export default function AdminUsersManager() {
     },
   });
 
+  const inviteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("POST", `/api/admin/admin-users/${id}/invite`),
+    onSuccess: async (res) => {
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admin-users"] });
+      toast({ title: "Invite sent", description: data.message });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed", description: err.message || "Could not send invite.", variant: "destructive" });
+    },
+  });
+
   const startEditing = (user: AdminUserRow) => {
     setEditingId(user.id);
     setEditEmail(user.email);
     setEditName(user.name || "");
     setEditRole(user.role);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700">Active</span>;
+      case "invited":
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-700">Invited</span>;
+      default:
+        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-600">Pending</span>;
+    }
   };
 
   if (isLoading) {
@@ -271,11 +296,12 @@ export default function AdminUsersManager() {
                     <p className="text-sm font-semibold text-foreground truncate" data-testid={`text-admin-email-${user.id}`}>
                       {user.email}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                       {user.name && <span>{user.name}</span>}
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${user.role === "owner" ? "bg-amber-100 text-amber-700" : "bg-primary/10 text-primary"}`}>
                         {user.role}
                       </span>
+                      {getStatusBadge(user.status)}
                       {user.createdAt && (
                         <span>Added {new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                       )}
@@ -283,6 +309,27 @@ export default function AdminUsersManager() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {user.status !== "active" && (
+                    <button
+                      onClick={() => inviteMutation.mutate(user.id)}
+                      disabled={inviteMutation.isPending}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary/5 transition-all"
+                      data-testid={`button-invite-admin-${user.id}`}
+                      title={user.status === "invited" ? "Resend invite" : "Send invite"}
+                    >
+                      {inviteMutation.isPending ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      {user.status === "invited" ? "Resend" : "Invite"}
+                    </button>
+                  )}
+                  {user.status === "active" && (
+                    <span className="flex items-center gap-1 px-2 py-1 text-xs text-green-600">
+                      <Check className="w-3.5 h-3.5" />
+                    </span>
+                  )}
                   <button
                     onClick={() => startEditing(user)}
                     className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
