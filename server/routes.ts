@@ -22,6 +22,7 @@ declare module "express-session" {
     impersonatingUserId?: number;
     originalUserId?: number;
     podcasterEmail?: string;
+    oauthState?: string;
   }
 }
 
@@ -927,6 +928,97 @@ export async function registerRoutes(
     req.session.destroy(() => {
       res.json({ message: "Logged out" });
     });
+  });
+
+  app.get("/api/auth/google", (req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) return res.status(500).json({ message: "Google OAuth not configured" });
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+    const scope = encodeURIComponent("openid email profile");
+    const state = crypto.randomBytes(16).toString("hex");
+    req.session.oauthState = state;
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&state=${state}&access_type=offline&prompt=select_account`;
+    res.redirect(url);
+  });
+
+  app.get("/api/auth/google/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query as { code?: string; state?: string };
+      if (!code) return res.redirect("/login?error=invalid");
+      if (!state || state !== req.session.oauthState) return res.redirect("/login?error=invalid");
+      delete req.session.oauthState;
+
+      const clientId = process.env.GOOGLE_CLIENT_ID!;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const redirectUri = `${baseUrl}/api/auth/google/callback`;
+
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
+      const tokenData = await tokenRes.json() as any;
+      if (!tokenData.access_token) {
+        console.error("[GoogleAuth] Token exchange failed:", tokenData);
+        return res.redirect("/login?error=invalid");
+      }
+
+      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      const googleUser = await userInfoRes.json() as { id: string; email: string; name?: string; picture?: string };
+      if (!googleUser.email) {
+        return res.redirect("/login?error=invalid");
+      }
+
+      let user = await storage.getUserByEmail(googleUser.email);
+
+      if (user) {
+        if (user.googleId && user.googleId !== googleUser.id) {
+          console.error("[GoogleAuth] Google ID mismatch for user:", user.id);
+          return res.redirect("/login?error=invalid");
+        }
+        if (!user.googleId) {
+          await pool.query(`UPDATE users SET google_id = $1 WHERE id = $2`, [googleUser.id, user.id]);
+        }
+        if (!user.emailVerified) {
+          await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+        }
+      } else {
+        let detectedTimezone = "America/New_York";
+        user = await storage.createUser({
+          email: googleUser.email,
+          podcasts: [],
+          deliveryTime: "07:00",
+          deliveryTimezone: detectedTimezone,
+        });
+        const meta = extractSignupMetadata(req, "google_oauth");
+        await pool.query(
+          `UPDATE users SET google_id = $1, email_verified = true, signup_source = $2, signup_source_detail = $3, ip_address = $4, user_agent = $5, device_type = $6 WHERE id = $7`,
+          [googleUser.id, meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, user.id]
+        );
+
+        sendNewUserNotification(user, req, "google_oauth").catch((err) =>
+          console.error("[NewUserNotify] Failed:", err)
+        );
+      }
+
+      req.session.userId = user.id;
+      req.session.save(() => {
+        res.redirect("/dashboard");
+      });
+    } catch (err) {
+      console.error("[GoogleAuth] Callback error:", err);
+      res.redirect("/login?error=invalid");
+    }
   });
 
   app.delete("/api/account", async (req, res) => {

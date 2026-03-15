@@ -10,7 +10,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 **Frontend**: React, Vite, Tailwind CSS, Shadcn UI, `wouter` for routing, `framer-motion` for animations. UI adheres to WCAG AA accessibility standards, utilizing DM Sans and DM Mono fonts, an indigo/violet brand palette, and an inline SVG wordmark logo.
 **Backend**: Express.js server for API and user sessions.
 **Database**: PostgreSQL with Drizzle ORM and connection pooling.
-**Authentication**: Session-based, secure email magic link login.
+**Authentication**: Session-based with email magic link login and Google OAuth (one-click sign-in). Google OAuth stores `google_id` on users table with unique constraint. New Google users are auto-verified and tracked as `google_oauth` signup source.
 **Core Features**:
 - **Pages**: Includes marketing landing, 2-step signup, user dashboards, podcast and episode recap pages, archives, and entity/category directories (Industries, Interests, Roles) with dedicated `/pulse` AI briefings.
 - **AI Integration**: Uses OpenAI (GPT-4o) for a 2-pass recap generation process (full recap + key takeaways) and an episode chat panel (GPT-4o-mini). Curated `topicContexts` ensure consistency in AI-generated insights. All AI prompt logic lives in `server/recapGenerator.ts` as the single source of truth — `regenerateFullRecaps.ts` and `backgroundRecapGenerator.ts` both import and call shared functions from it.

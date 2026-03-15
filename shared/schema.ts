@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   deviceType: text("device_type"),
+  googleId: text("google_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -55,6 +56,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   ipAddress: true,
   userAgent: true,
   deviceType: true,
+  googleId: true,
 }).extend({
   email: z.string().email("Please enter a valid email address"),
   podcasts: z.array(z.string()).min(1, "Select at least one podcast"),
