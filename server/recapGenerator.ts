@@ -6,6 +6,43 @@ import { TOPICS } from "../client/src/data/topicData";
 
 const CURATED_TOPIC_SLUGS = TOPICS.map(t => t.slug);
 
+const BANNED_INSIGHT_HOOKS = [
+  /^dude[,!.\s]/i,
+  /^here'?s (a |the )?(twist|thing|kicker|takeaway|secret|strategy|result)[:\s!?—–-]/i,
+  /^turns out[,:\s]/i,
+  /^imagine\b/i,
+  /^what'?s wild is/i,
+  /^the kicker[?:\s]/i,
+  /^the takeaway[?:\s]/i,
+  /^the secret[?:\s]/i,
+  /^the strategy[?:\s]/i,
+  /^the result[?:\s]/i,
+  /^you know what/i,
+  /^guess what/i,
+  /^fun fact[:\s]/i,
+  /^plot twist[:\s]/i,
+  /^get this[:\s]/i,
+  /^wait for it/i,
+  /^brace yourself/i,
+  /^ready for this/i,
+  /^here'?s where it gets/i,
+  /^did you know/i,
+];
+
+function sanitizeInsight(insight: string): string {
+  let cleaned = insight;
+  for (const pattern of BANNED_INSIGHT_HOOKS) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      cleaned = cleaned.slice(match[0].length).replace(/^[\s,.:!?—–-]+/, '');
+      cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      console.log(`[RecapGenerator] Sanitized insight hook: "${match[0].trim()}" removed`);
+    }
+  }
+  cleaned = cleaned.replace(/!/g, '.');
+  return cleaned;
+}
+
 interface PodcastInfo {
   name: string;
   id: string;
@@ -395,15 +432,16 @@ Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1",
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 2000,
-      temperature: 0.7,
+      temperature: 0.4,
       response_format: { type: "json_object" },
     });
     const content = completion.choices[0]?.message?.content;
     if (content) {
       const parsed = JSON.parse(content.trim());
       if (Array.isArray(parsed.keyInsights) && parsed.keyInsights.length === 4) {
+        const sanitized = parsed.keyInsights.map((insight: string) => sanitizeInsight(insight));
         console.log(`[RecapGenerator] Pass 2 complete: 4 key takeaways generated from recap`);
-        return parsed.keyInsights;
+        return sanitized;
       }
     }
   } catch (err) {
@@ -492,7 +530,7 @@ OTHER RULES:
 - topicContexts: DO NOT create slugs from keyTopics. Instead, identify which of these predefined broad categories apply to this episode, and write a 1-2 sentence episode-specific description for each relevant one. ONLY use these exact slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories that are genuinely discussed in the episode (typically 3-6). Reference specific points, people, or perspectives from this episode. Write like a sharp analyst, not generic marketing copy
 - sponsors: Extract ALL sponsors/advertisers. Include coupon codes and URLs when mentioned. Return empty array [] if none
 - guests: Extract ALL guests (NOT regular hosts). CRITICAL: Use FULL NAME (first AND last). Search the entire transcript for last names. A guest is anyone who is interviewed, joins the conversation, or is introduced on the show - even if they only appear briefly. Look for introductions like "joining us", "our guest", "we have", "[Name] is here", or any person who speaks who is not a regular host. If the episode title mentions a person by name or title (e.g. "$450M VC", "$100B Founder"), that person is almost certainly a guest - find their full name. Return empty array [] ONLY if the episode truly has no guests (e.g. hosts-only discussion episodes)
-- products: Extract GENUINE personal endorsements of products, services, tools, apps, experiences — NOT sponsors/ads. The speaker must have personal experience ("I use this", "I bought one", "Game changer for me"). SKIP anything near "sponsored by", "use code", "promo code", "brought to you by", "quick break". SKIP books (tracked in resources), stocks/crypto, social media platforms, generic categories without brand names. 0-5 items per episode is normal. Context must be 3-5 sentences summarizing WHY they use/recommend it, what problem it solves, and what makes it stand out - written as an editorial summary, NOT a raw transcript pull. BAD context: "Yeah, yeah. My friend's got a very, very interesting startup called Wild Type, which is like sustainable sushi grade salmon." (raw transcript). GOOD context: "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing or farming. The hosts were drawn to it as a solution to overfishing and ocean ecosystem damage, noting that cultivated seafood could let people enjoy sushi without the environmental cost. The company's first product is already being served at select restaurants."
+- products: Extract GENUINE personal endorsements of products, services, tools, apps, experiences — NOT sponsors/ads. The speaker must have personal experience ("I use this", "I bought one", "Game changer for me"). SKIP anything near "sponsored by", "use code", "promo code", "brought to you by", "quick break". SKIP books (tracked in resources), stocks/crypto, social media platforms, generic categories without brand names. 0-5 items per episode is normal. Context must be 3-5 sentences explaining WHY the hosts/guests use or recommend it — do NOT restate what the product or company is (that info is already displayed separately in the UI). Focus on: what drew them to it, what problem it solves for them, what they said about it, and any specific results or opinions. Written as an editorial summary, NOT a raw transcript pull. BAD context: "Yeah, yeah. My friend's got a very, very interesting startup called Wild Type, which is like sustainable sushi grade salmon." (raw transcript). BAD context: "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing. The hosts noted..." (restates what it is). GOOD context: "The hosts said they are fans of this company and its approach to producing sustainable, lab-grown sushi-grade salmon using cultivated seafood technology. By eliminating the need for traditional fishing or ocean farming, they viewed it as a promising solution to overfishing and damage to marine ecosystems. They noted that innovations like this could allow people to enjoy sushi without the environmental cost, and highlighted that the company's first product is already being served."
 - resources: Extract ALL books mentioned - even briefly. Include full title and author name. THE CONTEXT FIELD IS THE MOST IMPORTANT PART OF EVERY BOOK ENTRY. Each context MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail. MINIMUM 3 full sentences per book - one-sentence contexts are a SERIOUS ERROR. It must answer: (1) WHO specifically mentioned this book (full name), (2) WHY they brought it up - what argument they were making, (3) What SPECIFIC story, anecdote, statistic, or claim from the book they referenced.
   NEVER start context with "Referenced to...", "Mentioned as...", "Discussed in the context of...", "Highlighted as...", "Brought up to...". ALWAYS start with a speaker's full name.
   BAD context (too short, generic): "Mentioned as a recommended read."
@@ -671,7 +709,7 @@ PRODUCT ENDORSEMENT RULES:
 - NEVER extract items that are clearly ads/sponsors — look for phrases like "this episode is sponsored by", "use code", "promo code", "brought to you by", "quick word from our sponsor", "let's take a quick break", "special offer", "free trial"
 - NEVER extract books (tracked separately), stocks/ETFs/crypto, social media platforms, or companies discussed only as business cases
 - NEVER extract generic categories without specific brand names ("standing desks" vs "FlexiSpot standing desk")
-- The context field must be 3-5 sentences summarizing WHY they use/recommend it, what problem it solves, and what makes it stand out. Write as an editorial summary, NOT a raw transcript pull. Do not copy verbatim transcript text - rewrite it cleanly.
+- The context field must be 3-5 sentences explaining WHY the hosts/guests use or recommend it — do NOT restate what the product or company is (that info is already displayed separately). Focus on what drew them to it, what problem it solves, what they said about it, and any specific results or opinions. Write as an editorial summary, NOT a raw transcript pull.
 - Categories: "physical_product" (tangible items), "service_or_tool" (digital/SaaS/apps), "experience" (places, events, memberships)
 - 0-5 genuine products per segment is normal. Many segments will have ZERO — that's fine.
 

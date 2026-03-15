@@ -8951,11 +8951,13 @@ DO NOT EXTRACT:
 - Medications, weapons, alcohol, or heavily regulated items
 
 CONTEXT REQUIREMENT — THIS IS THE MOST IMPORTANT FIELD:
-For the "context" field, write a 3-5 sentence editorial summary of WHY they use or recommend this product, what problem it solves, and what makes it stand out. Do NOT copy raw transcript text. Rewrite it as a clean, professional summary that a reader can understand without hearing the episode.
+For the "context" field, write 3-5 sentences explaining WHY the hosts/guests use or recommend this product. Do NOT restate what the product or company is — that info is already displayed separately in the UI. Focus on: what drew them to it, what problem it solves for them, what they specifically said about it, and any concrete results or opinions they shared. Do NOT copy raw transcript text. Write as a clean editorial summary.
 
 BAD context (raw transcript copy): "Yeah, yeah. My friend's got a very, very interesting startup called Wild Type, which is like sustainable sushi grade salmon. So basically that's like cultivated seafood."
 
-GOOD context (editorial summary): "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing or farming. The hosts were drawn to it as a solution to overfishing and ocean ecosystem damage, noting that cultivated seafood could let consumers enjoy sushi without the ecological cost. The company's first product is already being served at select restaurants."
+BAD context (restates what it is): "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing or farming. The hosts noted..."
+
+GOOD context: "The hosts said they are fans of this company and its approach to producing sustainable, lab-grown sushi-grade salmon using cultivated seafood technology. By eliminating the need for traditional fishing or ocean farming, they viewed it as a promising solution to overfishing and damage to marine ecosystems. They noted that innovations like this could allow people to enjoy sushi without the environmental cost, and highlighted that the company's first product is already being served."
 
 QUALITY BAR: We want 0-5 high-quality items per episode across ALL categories. Many episodes will have ZERO qualifying items — that's perfectly fine. Only extract items you're confident are genuine endorsements, not ads.
 
@@ -8964,7 +8966,7 @@ For each qualifying item, return:
 - company: the company/brand behind it
 - description: 1 sentence explaining what it is and why it's interesting
 - purchaseUrl: the best URL to buy/visit (prefer Amazon for physical products)
-- context: 3-5 sentence editorial summary of why they use/recommend it, what problem it solves, and what makes it stand out. Written as a professional summary, not raw transcript.
+- context: 3-5 sentences explaining WHY they use/recommend it — do NOT restate what the product is. Focus on their reasons, opinions, and specific experiences.
 - mentionType: "recommendation" | "personal_use"
 - category: "physical_product" | "service_or_tool" | "experience"
 
