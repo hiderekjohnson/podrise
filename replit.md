@@ -21,7 +21,7 @@ PodCap is a full-stack web application designed to provide personalized daily po
 - **Directory Caching**: A 24-hour in-memory cache pre-warms and manages heavy directory endpoints.
 - **Trends Page**: A unified `/trends` dashboard for people, companies, and topics, featuring "Biggest Movers" and data visualizations.
 - **Podcast Features**: Directory with landing pages, AI recaps, host info, enhanced show notes, and podcast-level AI Q&A. Discovery includes "Just Dropped" and "Hot Right Now."
-- **Book Covers & Enrichment**: A multi-source system for book covers with a robust fallback chain. Comprehensive book enrichment fetches data from Google Books and Open Library.
+- **Book Covers & Enrichment**: A multi-source system for book covers with a robust fallback chain. Comprehensive book enrichment fetches data from Google Books and Open Library. Admin review uses an MTurk-style single-focus review mode with keyboard shortcuts (A/→ approve, R/← reject, Z undo, 1-9 switch candidates, ? help), smart image scoring/ranking, 3-tab workflow (Needs Review sorted by popularity, No Images auto-classified, Approved with Send Back to Review), progress bar, visual flash feedback, undo support, and preloading.
 - **Entity Directories**: Dedicated pages for people and companies with tab-based navigation, search, and Recharts data visualizations.
 - **Asset Storage**: All images are stored locally.
 - **People Image Pipeline**: Resolves profile photos from local storage, Wikipedia/Wikimedia, or X/Twitter via unavatar.io, with a placeholder fallback.

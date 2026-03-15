@@ -5009,14 +5009,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const sort = req.query.sort as string || "title";
       const page = parseInt(req.query.page as string || "1", 10);
       const pageSize = parseInt(req.query.pageSize as string || "25", 10);
-      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note, cover_source, cover_tried_sources FROM book_enrichments WHERE slug IS NOT NULL";
-      if (filter === "needs_review") query += " AND cover_approved IS NOT TRUE";
+      let query = "SELECT id, book_key, book_title, author, slug, google_books_id, isbn, has_cover, cover_approved, asin, amazon_url, rejection_reason, cover_quality_score, needs_replacement, replacement_note, cover_source, cover_tried_sources, rating_count, ol_ratings_count FROM book_enrichments WHERE slug IS NOT NULL";
+      if (filter === "needs_review") query += " AND cover_approved IS NOT TRUE AND NOT (cover_approved = false AND has_cover = false AND rejection_reason = 'no_images')";
+      else if (filter === "no_images") query += " AND cover_approved = false AND has_cover = false AND rejection_reason = 'no_images'";
       else if (filter === "pending") query += " AND (cover_approved IS NULL)";
       else if (filter === "approved") query += " AND cover_approved = true";
       else if (filter === "rejected") query += " AND cover_approved = false";
       else if (filter === "replace") query += " AND needs_replacement = true";
       else if (filter === "nocover") query += " AND (has_cover IS NULL OR has_cover = false)";
-      if (sort === "quality") query += " ORDER BY cover_quality_score DESC NULLS LAST, book_title ASC";
+      if (sort === "popularity") query += " ORDER BY (COALESCE(rating_count, 0) + COALESCE(ol_ratings_count, 0)) DESC, book_title ASC";
+      else if (sort === "quality") query += " ORDER BY cover_quality_score DESC NULLS LAST, book_title ASC";
       else query += " ORDER BY book_title ASC";
 
       const { rows } = await pool.query(query);
@@ -5042,14 +5044,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           replacementNote: r.replacement_note,
           coverSource: r.cover_source || null,
           triedSources: r.cover_tried_sources || [],
+          ratingCount: r.rating_count || 0,
+          olRatingsCount: r.ol_ratings_count || 0,
         };
       });
 
-      const allRows = await pool.query("SELECT cover_approved, needs_replacement, has_cover FROM book_enrichments WHERE slug IS NOT NULL");
+      const allRows = await pool.query("SELECT cover_approved, needs_replacement, has_cover, rejection_reason FROM book_enrichments WHERE slug IS NOT NULL");
       const stats = {
         total: allRows.rows.length,
         approved: allRows.rows.filter((r: any) => r.cover_approved === true).length,
-        needsReview: allRows.rows.filter((r: any) => r.cover_approved !== true).length,
+        needsReview: allRows.rows.filter((r: any) => r.cover_approved !== true && !(r.cover_approved === false && r.has_cover === false && r.rejection_reason === 'no_images')).length,
+        noImages: allRows.rows.filter((r: any) => r.cover_approved === false && r.has_cover === false && r.rejection_reason === 'no_images').length,
         rejected: allRows.rows.filter((r: any) => r.cover_approved === false).length,
         pending: allRows.rows.filter((r: any) => r.cover_approved === null).length,
         needsReplacement: allRows.rows.filter((r: any) => r.needs_replacement === true).length,
@@ -5201,6 +5206,29 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         if (isPng && (buf.length === 15567 || buf.length === 1269)) return true;
         return false;
       }
+      function isPureColorImage(buf: Buffer): boolean {
+        const isJpeg = buf[0] === 0xff && buf[1] === 0xd8;
+        const isPngFmt = buf[0] === 0x89 && buf[1] === 0x50;
+        if (!isJpeg && !isPngFmt) return false;
+        const sampleStart = Math.min(isJpeg ? 200 : 50, buf.length - 100);
+        const sampleEnd = Math.min(sampleStart + 500, buf.length);
+        if (sampleEnd - sampleStart < 50) return false;
+        let allSame = true;
+        const firstByte = buf[sampleStart];
+        for (let i = sampleStart + 1; i < sampleEnd; i++) {
+          if (buf[i] !== firstByte) { allSame = false; break; }
+        }
+        if (allSame && (firstByte === 0xff || firstByte === 0x00)) return true;
+        let whiteCount = 0;
+        let blackCount = 0;
+        for (let i = sampleStart; i < sampleEnd; i++) {
+          if (buf[i] >= 0xfe) whiteCount++;
+          if (buf[i] <= 0x01) blackCount++;
+        }
+        const total = sampleEnd - sampleStart;
+        if (whiteCount / total > 0.95 || blackCount / total > 0.95) return true;
+        return false;
+      }
       function jpegDimensions(buf: Buffer): { w: number; h: number } {
         let i = 2;
         while (i < buf.length - 8) {
@@ -5243,6 +5271,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             if (!r.ok) continue;
             const buf = Buffer.from(await r.arrayBuffer());
             if (isPlaceholder(buf)) continue;
+            if (isPureColorImage(buf)) continue;
             if (looksLikeDocument(buf)) continue;
             const { w, h } = getDimensions(buf);
             if (w >= MIN_WIDTH || (zoom === 1 && w > 0)) {
@@ -5262,6 +5291,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           if (!r.ok) return null;
           const buf = Buffer.from(await r.arrayBuffer());
           if (buf.length < 1000) return null;
+          if (isPureColorImage(buf)) return null;
           if (looksLikeDocument(buf)) return null;
           const { w, h } = getDimensions(buf);
           const filename = `${slug}_openlibrary.jpg`;
@@ -5282,6 +5312,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             const buf = Buffer.from(await r.arrayBuffer());
             if (isPlaceholder(buf)) continue;
             if (buf.length < 2000) continue;
+            if (isPureColorImage(buf)) continue;
             if (looksLikeDocument(buf)) continue;
             const { w, h } = getDimensions(buf);
             if (w > 0) {
@@ -5308,6 +5339,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               if (!r.ok) continue;
               const buf = Buffer.from(await r.arrayBuffer());
               if (buf.length < 1000) continue;
+              if (isPureColorImage(buf)) continue;
               if (looksLikeDocument(buf)) continue;
               const { w, h } = getDimensions(buf);
               if (w >= MIN_WIDTH || w > 0) {
@@ -5374,6 +5406,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       const results = await Promise.all(promises);
       const candidates = results.filter((r): r is NonNullable<CandidateResult> => r !== null);
+
+      if (candidates.length === 0) {
+        const fsMod2 = await import("fs");
+        const pathMod2 = await import("path");
+        const existingCover = pathMod2.default.join(pathMod2.default.resolve("public/books"), `${book.slug}.jpg`);
+        const hasExistingFile = fsMod2.default.existsSync(existingCover);
+        if (!hasExistingFile) {
+          await pool.query(
+            "UPDATE book_enrichments SET cover_approved = false, has_cover = false, rejection_reason = 'no_images', updated_at = NOW() WHERE id = $1",
+            [book.id]
+          );
+        }
+      }
 
       res.json({ candidates, bookId: book.id, slug: book.slug, title: book.book_title, isbnEnriched: isbn && !book.isbn ? isbn : null });
     } catch (err: any) {
@@ -5444,6 +5489,57 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err: any) {
       console.error("[BookCovers] Select candidate error:", err);
       res.status(500).json({ message: err?.message || "Failed to select candidate" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/soft-reject", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { id } = req.body;
+      if (!id) return res.status(400).json({ message: "id required" });
+
+      await pool.query(
+        "UPDATE book_enrichments SET cover_approved = false, has_cover = false, rejection_reason = 'no_images', updated_at = NOW() WHERE id = $1",
+        [id]
+      );
+      res.json({ message: "Moved to No Images" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to soft-reject" });
+    }
+  });
+
+  app.post("/api/admin/book-covers/unapprove", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "ids array required" });
+      }
+      const fsMod = await import("fs");
+      const pathMod = await import("path");
+      const coversDir = pathMod.default.resolve("public/books");
+
+      const { rows: bookRows } = await pool.query(
+        "SELECT id, slug FROM book_enrichments WHERE id = ANY($1::int[])",
+        [ids]
+      );
+
+      for (const row of bookRows) {
+        const filePath = pathMod.default.join(coversDir, `${row.slug}.jpg`);
+        const fileExists = fsMod.default.existsSync(filePath);
+        await pool.query(
+          "UPDATE book_enrichments SET cover_approved = NULL, rejection_reason = NULL, has_cover = $1, updated_at = NOW() WHERE id = $2",
+          [fileExists, row.id]
+        );
+      }
+
+      res.json({ message: `Sent ${ids.length} cover(s) back to review` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to unapprove covers" });
     }
   });
 
