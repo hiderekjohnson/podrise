@@ -1,0 +1,17 @@
+Okay I want to redo the user interface. When you log in let's put all of the settings and everything (set your email, time zone, everything) in the right-hand corner so it's out of the way.
+
+Then what I really want the goal to be is that people just scroll through on their phone and spend hours just scrolling. I think we want two tabs, very similar to how X lays it out, which I'll send you a screenshot here.
+
+I think we want the feed, which has just all of the newest. The promise is the feed.
+
+I think what we want to do is we want to have four podcasts for you and following. This will just be for recaps of podcasts. You'll see a decent amount of the recap and then you can click View more to continue to see more, I think. It'll look similar to Twitter but like a white version of Twitter. It'll have the podcast name, four hours ago. It'll have the icon from the podcast and then it'll have the recap. Essentially there'll be two scrolls:
+1. One will be all the podcasts or actually made for you, which we'll have to use some algorithm to kind of figure out what kind of podcast we think they'll like.
+2. Following.
+
+
+The page will essentially be just like X, where it'll be two kinds of scroll systems:
+1. One is for you.
+2. One is following.
+
+
+If they click Follow or Unfollow that's essentially them subscribing or unsubscribing from the podcast, like we currently do for the email. It will add that to their email recap. Maybe at the bottom we can have a little home icon which would take them back to the 4U. We could put maybe a Pulse logo or something at the bottom and you click Pulse; that essentially brings up a discover page, kind of similar to the search on x.com, where they can sign up for an industry, a role, or an interest. Maybe we need to put some kind of search also in there so they could search a podcast and subscribe to the podcasts. Take what you can from X's feature and functionality and their UI/UX layout and maybe even look at other sites like Reddit or other types of sites to see how they've laid it out and then do that for our website. 

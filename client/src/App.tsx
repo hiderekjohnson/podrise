@@ -42,6 +42,10 @@ const ShopPage = lazy(() => import("./pages/Bookstore"));
 const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
 const ShopDetailRouter = lazy(() => import("./pages/ShopDetailRouter"));
 
+const FeedPage = lazy(() => import("./pages/FeedPage"));
+const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
@@ -61,7 +65,10 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
-        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/dashboard" component={FeedPage} />
+        <Route path="/dashboard/legacy" component={Dashboard} />
+        <Route path="/discover" component={DiscoverPage} />
+        <Route path="/settings" component={SettingsPage} />
         <Route path="/admin/setup" component={AdminSetup} />
         <Route path="/admin" component={Admin} />
         <Route path="/shop" component={ShopPage} />

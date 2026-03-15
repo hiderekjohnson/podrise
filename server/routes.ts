@@ -5094,6 +5094,190 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/feed", async (req, res) => {
+    try {
+      const tab = (req.query.tab as string) || "foryou";
+      const cursor = req.query.cursor ? parseInt(req.query.cursor as string) : null;
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+      let userPodcastSlugs: string[] = [];
+      let userTopics: string[] = [];
+      let isAuthenticated = false;
+
+      if (req.session.userId) {
+        isAuthenticated = true;
+        const user = await storage.getUserById(req.session.userId);
+        if (user) {
+          const rawPodcasts = user.podcasts || [];
+          const itunesIds = rawPodcasts.map((p: string) => {
+            try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
+          });
+          if (itunesIds.length > 0) {
+            const slugResult = await pool.query(
+              `SELECT slug FROM podcast_directory WHERE itunes_id::text = ANY($1)`,
+              [itunesIds]
+            );
+            userPodcastSlugs = slugResult.rows.map((r: any) => r.slug);
+          }
+          userTopics = [
+            ...(user.industries || []),
+            ...(user.interests || []),
+            ...(user.roles || []),
+          ];
+        }
+      }
+
+      let query: string;
+      let params: any[];
+
+      if (tab === "following") {
+        if (!isAuthenticated || userPodcastSlugs.length === 0) {
+          return res.json({ items: [], nextCursor: null, tab });
+        }
+        const cursorParam = cursor ? `AND lr.id < $3` : "";
+        query = `
+          SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
+                 lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
+                 lr.quote, lr.quote_attribution, lr.duration,
+                 pd.slug as pd_slug
+          FROM landing_page_recaps lr
+          LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
+          WHERE lr.episode_slug IS NOT NULL
+            AND lr.tldl IS NOT NULL
+            AND lr.slug = ANY($1)
+            ${cursorParam}
+          ORDER BY lr.publish_date DESC NULLS LAST, lr.id DESC
+          LIMIT $2
+        `;
+        params = [userPodcastSlugs, limit];
+        if (cursor) params.push(cursor);
+      } else {
+        const cursorParam = cursor ? `AND lr.id < $2` : "";
+        query = `
+          SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
+                 lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
+                 lr.quote, lr.quote_attribution, lr.duration,
+                 pd.slug as pd_slug
+          FROM landing_page_recaps lr
+          LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
+          WHERE lr.episode_slug IS NOT NULL
+            AND lr.tldl IS NOT NULL
+            ${cursorParam}
+          ORDER BY lr.publish_date DESC NULLS LAST, lr.id DESC
+          LIMIT $1
+        `;
+        params = [limit];
+        if (cursor) params.push(cursor);
+      }
+
+      const result = await pool.query(query, params);
+      const items = result.rows.map((r: any) => ({
+        id: r.id,
+        podcastSlug: r.slug,
+        podcastName: r.podcast_name,
+        episodeTitle: r.episode_title,
+        episodeSlug: r.episode_slug,
+        publishDate: r.publish_date,
+        artworkUrl: r.artwork_url,
+        tldl: r.tldl,
+        keyInsights: r.key_insights,
+        quote: r.quote,
+        quoteAttribution: r.quote_attribution,
+        duration: r.duration,
+        isFollowing: userPodcastSlugs.includes(r.slug),
+      }));
+
+      const nextCursor = items.length === limit ? items[items.length - 1].id : null;
+
+      res.json({ items, nextCursor, tab });
+    } catch (err) {
+      console.error("Feed error:", err);
+      res.status(500).json({ message: "Failed to load feed" });
+    }
+  });
+
+  app.post("/api/feed/follow", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    const { podcastSlug } = req.body;
+    if (!podcastSlug) return res.status(400).json({ message: "Missing podcastSlug" });
+
+    try {
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const pdResult = await pool.query(
+        `SELECT itunes_id, name, slug FROM podcast_directory WHERE slug = $1`,
+        [podcastSlug]
+      );
+      if (pdResult.rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+
+      const pd = pdResult.rows[0];
+      const artworkResult = await pool.query(
+        `SELECT artwork_url FROM landing_page_recaps WHERE slug = $1 LIMIT 1`,
+        [podcastSlug]
+      );
+      const artworkUrl = artworkResult.rows[0]?.artwork_url || "";
+
+      const currentPodcasts = user.podcasts || [];
+      const existingIds = currentPodcasts.map((p: string) => {
+        try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
+      });
+
+      if (existingIds.includes(pd.itunes_id.toString())) {
+        return res.json({ success: true, message: "Already following" });
+      }
+
+      const newEntry = JSON.stringify({
+        id: pd.itunes_id.toString(),
+        name: pd.name,
+        artworkUrl: artworkUrl,
+      });
+
+      await pool.query(
+        `UPDATE users SET podcasts = array_append(podcasts, $1) WHERE id = $2`,
+        [newEntry, req.session.userId]
+      );
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Follow error:", err);
+      res.status(500).json({ message: "Failed to follow" });
+    }
+  });
+
+  app.post("/api/feed/unfollow", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    const { podcastSlug } = req.body;
+    if (!podcastSlug) return res.status(400).json({ message: "Missing podcastSlug" });
+
+    try {
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const pdResult = await pool.query(
+        `SELECT itunes_id FROM podcast_directory WHERE slug = $1`,
+        [podcastSlug]
+      );
+      if (pdResult.rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+
+      const itunesId = pdResult.rows[0].itunes_id.toString();
+      const currentPodcasts = user.podcasts || [];
+      const filtered = currentPodcasts.filter((p: string) => {
+        try { const parsed = JSON.parse(p); return (parsed.id || p) !== itunesId; } catch { return p !== itunesId; }
+      });
+
+      await pool.query(
+        `UPDATE users SET podcasts = $1 WHERE id = $2`,
+        [filtered, req.session.userId]
+      );
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Unfollow error:", err);
+      res.status(500).json({ message: "Failed to unfollow" });
+    }
+  });
+
   app.get("/api/recaps", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
