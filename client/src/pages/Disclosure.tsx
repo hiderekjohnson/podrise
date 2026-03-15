@@ -9,7 +9,7 @@ import { DollarSign, BookOpen, ShoppingBag, Megaphone, CreditCard, Scale, Messag
 export default function Disclosure() {
   useEffect(() => {
     const title = "How PodCap Makes Money — Affiliate Disclosure & Advertising Transparency | PodCap";
-    const desc = "PodCap earns revenue through affiliate links, paid advertising, and subscriptions. Nothing in the Bookstore or Shop can be paid for. Here is exactly how it works.";
+    const desc = "PodCap earns revenue through affiliate links, paid advertising, and subscriptions. Nothing in the Shop can be paid for. Here is exactly how it works.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -59,7 +59,7 @@ export default function Disclosure() {
           </p>
         </motion.section>
 
-        {/* Section 2: The Bookstore & Shop — Nothing Here Can Be Bought */}
+        {/* Section 2: The Shop — Nothing Here Can Be Bought */}
         <motion.section
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -69,7 +69,7 @@ export default function Disclosure() {
         >
           <div className="flex items-center gap-3 mb-8">
             <BookOpen className="w-5 h-5 text-primary" />
-            <h2 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-bookstore-heading">The Bookstore & Shop — Nothing Here Can Be Bought</h2>
+            <h2 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-bookstore-heading">The Shop — Nothing Here Can Be Bought</h2>
           </div>
 
           <div className="space-y-5 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
@@ -80,7 +80,7 @@ export default function Disclosure() {
 
           <div className="mt-6 bg-[#F7F7FC] border-l-[3px] border-l-[#6366F1] rounded-r-lg p-5 sm:p-6" data-testid="callout-bookstore-integrity">
             <p className="text-[17px] leading-[1.85] text-foreground font-semibold mb-3">
-              No brand, publisher, author, or PR firm can pay to appear in the Bookstore or Shop. There is no price. We do not offer it. We would never accept it.
+              No brand, publisher, author, or PR firm can pay to appear in the Shop. There is no price. We do not offer it. We would never accept it.
             </p>
             <p className="text-[16px] leading-[1.85] text-[#52525B]">
               Rankings are determined by mention frequency across episodes and shows — not by commercial relationships. When a book appears at the top of the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-callout">Shop</Link>, it is because dozens of <Link href="/podcasts" className="text-primary font-medium hover:underline" data-testid="link-podcasts-callout">podcast</Link> guests recommended it. The recommendation belongs to your favorite podcasters, not to us.

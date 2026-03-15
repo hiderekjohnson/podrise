@@ -227,12 +227,6 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
     }
   };
 
-  const defaultSuggestions = [
-    `What's the main thesis of this episode?`,
-    `What was the most surprising insight?`,
-    `Summarize the key takeaways in simple terms`,
-  ];
-
   const entitySuggestions = currentEntity
     ? currentEntity.type === "person"
       ? [`What did they say about ${currentEntity.name}?`, `Why was ${currentEntity.name} mentioned?`]
@@ -243,7 +237,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
       : currentEntity.type === "insight"
       ? [`Expand on this takeaway`, `What evidence supports this insight?`]
       : [`Tell me more about ${currentEntity.name}`, `Why is ${currentEntity.name} relevant?`]
-    : defaultSuggestions;
+    : [];
 
   const clearEntity = () => {
     setCurrentEntity(null);

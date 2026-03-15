@@ -3476,11 +3476,15 @@ export async function registerRoutes(
         .slice(0, 6);
 
       const productKey = normalizeProductKey(p.name || "");
-      const { rows: buzzRows } = await pool.query(
-        `SELECT podcast_buzz FROM product_podcast_buzz WHERE product_key = $1`,
-        [productKey]
-      );
-      const podcastBuzz = buzzRows[0]?.podcast_buzz || null;
+      let podcastBuzz: string | null = null;
+      try {
+        const { rows: buzzRows } = await pool.query(
+          `SELECT podcast_buzz FROM product_podcast_buzz WHERE product_key = $1`,
+          [productKey]
+        );
+        podcastBuzz = buzzRows[0]?.podcast_buzz || null;
+      } catch {
+      }
 
       const result = {
         name: p.name,

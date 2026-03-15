@@ -72,8 +72,8 @@ const changelog: ChangelogEntry[] = [
     date: "Mar 1, 2026",
   },
   {
-    title: "Bookstore search by podcast",
-    description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Bookstore by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
+    title: "Shop search by podcast",
+    description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Shop by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
     link: { url: "/shop", label: "Search books by podcast" },
     emoji: "📖",
     date: "Feb 27, 2026",
@@ -101,7 +101,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Mobile layout improvements across the entire site",
-    description: "We spent a full week reworking layouts, tap targets, and typography to make PodCap feel truly native on phones and tablets. Episode recaps, podcast pages, the bookstore, and every other section now adapt beautifully to smaller screens. If you've been using PodCap on desktop, give it a try on your phone — it's a much better experience now.",
+    description: "We spent a full week reworking layouts, tap targets, and typography to make PodCap feel truly native on phones and tablets. Episode recaps, podcast pages, the Shop, and every other section now adapt beautifully to smaller screens. If you've been using PodCap on desktop, give it a try on your phone — it's a much better experience now.",
     link: { url: "/podcasts", label: "Try it on your phone" },
     emoji: "📱",
     date: "Feb 19, 2026",
@@ -115,7 +115,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Curated book recommendations from episodes",
-    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. We built a dedicated Bookstore with curated shelves, ratings, and host context so you can discover your next great read from the podcasts you already love — no more scrambling to remember that title someone mentioned at minute 47.",
+    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. We built a dedicated Shop with curated shelves, ratings, and host context so you can discover your next great read from the podcasts you already love — no more scrambling to remember that title someone mentioned at minute 47.",
     link: { url: "/shop", label: "Browse the Shop" },
     emoji: "📚",
     date: "Feb 15, 2026",

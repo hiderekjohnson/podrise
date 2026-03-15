@@ -402,15 +402,6 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
             </div>
           </div>
 
-          {(product.isAmazon || product.url) && (
-            <div className="bg-[#6366F1]/[0.03] dark:bg-[#6366F1]/[0.06] border border-[#6366F1]/[0.08] rounded-xl px-5 py-3 mb-7" data-testid="affiliate-disclosure">
-              <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-                Some links are affiliate links — they help keep PodCap free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
-                <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
-              </p>
-            </div>
-          )}
-
           {product.description && (
             <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl px-5 py-4 mb-7 shadow-[0_1px_3px_rgba(0,0,0,0.07)]" data-testid="section-description">
               <p className="text-[12px] font-bold tracking-[1.5px] uppercase text-[#A1A1AA] mb-2">About this product</p>
@@ -482,6 +473,15 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
                 ))}
               </div>
             </>
+          )}
+
+          {(product.isAmazon || product.url) && (
+            <div className="bg-[#6366F1]/[0.03] dark:bg-[#6366F1]/[0.06] border border-[#6366F1]/[0.08] rounded-xl px-5 py-3 mt-7" data-testid="affiliate-disclosure">
+              <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
+                Some links are affiliate links — they help keep PodCap free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
+                <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
+              </p>
+            </div>
           )}
 
         </div>

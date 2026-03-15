@@ -82,10 +82,10 @@ export default function Home() {
               Podcast Intelligence Platform
             </div>
             <h1 className="text-[2rem] sm:text-[3.25rem] md:text-[3.75rem] font-display font-extrabold text-foreground leading-[1.06] tracking-[-0.03em] max-w-3xl" data-testid="text-headline">
-              Always know what the smartest people in your industry are saying
+              The fastest way to keep up with the smartest conversations happening across podcasts
             </h1>
             <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
-              PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's most influential shows and deliver structured briefings so you stay current on what matters -- without listening to everything.
+              PodCap distills the most important podcast conversations into quick briefings you can read in minutes
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <div className="flex flex-wrap items-center justify-center gap-3">

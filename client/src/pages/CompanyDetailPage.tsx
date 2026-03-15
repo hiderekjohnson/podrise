@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageSquare, Headphones, Calendar, ExternalLink, Building2, Globe, MapPin, Users, DollarSign, Briefcase, Clock, Zap } from "lucide-react";
+import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { Footer } from "@/components/Footer";
 import { getCompanyBySlug, getPersonBySlug as getPersonData, COMPANIES_DIRECTORY, PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -159,10 +160,9 @@ export default function CompanyDetailPage() {
                       {company.name}
                     </h1>
                     <p className="text-base text-muted-foreground mb-3">{company.description}</p>
-                    <div className="flex items-center gap-1.5 text-base justify-center sm:justify-start">
-                      <MessageSquare className="w-4 h-4 text-primary" />
-                      <span className="font-semibold text-foreground">{company.mentionCount}</span>
-                      <span className="text-muted-foreground">mentions across podcasts</span>
+                    <div className="flex items-center gap-3 text-base justify-center sm:justify-start">
+                      <PodcastMicBadge count={new Set(company.mentions.map(m => m.slug)).size} size="lg" />
+                      <span className="text-muted-foreground">{company.mentionCount} mentions</span>
                     </div>
                   </div>
                 </div>
