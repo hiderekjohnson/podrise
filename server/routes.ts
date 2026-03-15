@@ -4203,6 +4203,32 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/pulses/sync", async (req, res) => {
+    try {
+      if (!req.session.isAdmin) return res.status(401).json({ error: "Unauthorized" });
+      const { pulses } = req.body;
+      if (!pulses || !Array.isArray(pulses)) return res.status(400).json({ error: "pulses array required" });
+      const pool = await import("./db").then(m => m.pool);
+      let inserted = 0, skipped = 0;
+      for (const p of pulses) {
+        try {
+          await pool.query(
+            `INSERT INTO topic_pulses (topic_slug, publish_date, headline, summary, body, key_themes, episode_count, source_episodes)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (topic_slug, publish_date) DO NOTHING`,
+            [p.topic_slug, p.publish_date, p.headline, p.summary, p.body, p.key_themes, p.episode_count, JSON.stringify(p.source_episodes)]
+          );
+          inserted++;
+        } catch (err: any) {
+          skipped++;
+        }
+      }
+      res.json({ inserted, skipped, total: pulses.length });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.post("/api/admin/pulses/generate-all", async (req, res) => {
     try {
       if (!req.session.isAdmin) return res.status(401).json({ error: "Unauthorized" });
