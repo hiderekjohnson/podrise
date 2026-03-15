@@ -39,6 +39,7 @@ interface ProductDetail {
   slug: string;
   contexts: string[];
   contextSummaries: string[];
+  podcastBuzz: string | null;
   mentionCount: number;
   podcastCount: number;
   podcastNames: string[];
@@ -419,16 +420,22 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
             </div>
           )}
 
-          {(product.contextSummaries?.length > 0 || product.contexts.length > 0) && (
+          {(product.podcastBuzz || product.contextSummaries?.length > 0 || product.contexts.length > 0) && (
             <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] border-l-[3px] border-l-[#6366F1] rounded-[0_12px_12px_0] px-5 py-4 mb-7 shadow-[0_1px_3px_rgba(0,0,0,0.07)]" data-testid="section-context">
-              <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#6366F1] mb-2.5">What top podcasters are saying</div>
-              <div className="space-y-3">
-                {(product.contextSummaries?.length > 0 ? product.contextSummaries : product.contexts).slice(0, 3).map((ctx, i) => (
-                  <p key={i} className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.85]">
-                    {ctx}
-                  </p>
-                ))}
-              </div>
+              <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#6366F1] mb-2">What top podcasters are saying</div>
+              {product.podcastBuzz ? (
+                <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.75]" data-testid="text-podcast-buzz">
+                  {product.podcastBuzz}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {(product.contextSummaries?.length > 0 ? product.contextSummaries : product.contexts).slice(0, 3).map((ctx, i) => (
+                    <p key={i} className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.85]">
+                      {ctx}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

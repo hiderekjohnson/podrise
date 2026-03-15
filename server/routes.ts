@@ -3475,6 +3475,13 @@ export async function registerRoutes(
         .sort((a, b) => b.mentionCount - a.mentionCount)
         .slice(0, 6);
 
+      const productKey = normalizeProductKey(p.name || "");
+      const { rows: buzzRows } = await pool.query(
+        `SELECT podcast_buzz FROM product_podcast_buzz WHERE product_key = $1`,
+        [productKey]
+      );
+      const podcastBuzz = buzzRows[0]?.podcast_buzz || null;
+
       const result = {
         name: p.name,
         company: p.company,
@@ -3486,6 +3493,7 @@ export async function registerRoutes(
         slug,
         contexts: p.contexts,
         contextSummaries: p.contextSummaries,
+        podcastBuzz,
         mentionCount: p.mentionCount,
         podcastCount: p.podcastSlugs.size,
         podcastNames: [...p.podcastSlugs].map(s => slugToName[s] || s),
@@ -10434,6 +10442,141 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       res.json({ message: `Summarized ${summarized}/${rows.length} product contexts`, summarized, total: rows.length });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to summarize contexts" });
+    }
+  });
+
+  app.post("/api/admin/products/generate-podcast-buzz", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: productRows } = await pool.query(
+        `SELECT ep.name, ep.company, ep.context, ep.context_summary, ep.episode_title, ep.podcast_slug
+         FROM extracted_products ep
+         WHERE ep.status = 'approved' AND ep.context IS NOT NULL AND ep.context != ''
+         ORDER BY ep.name`
+      );
+
+      const slugToName: Record<string, string> = {};
+      const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
+      for (const p of pdRows) slugToName[p.slug] = p.name;
+
+      const productMap = new Map<string, {
+        name: string;
+        company: string | null;
+        contexts: string[];
+        contextSummaries: string[];
+        podcastSlugs: Set<string>;
+        mentionCount: number;
+        episodes: { podcastSlug: string; episodeTitle: string; context: string | null; contextSummary: string | null }[];
+      }>();
+
+      for (const row of productRows) {
+        const key = normalizeProductKey(row.name || "");
+        if (!key) continue;
+        const existing = productMap.get(key);
+        if (existing) {
+          existing.mentionCount++;
+          existing.podcastSlugs.add(row.podcast_slug);
+          if (row.context && !existing.contexts.includes(row.context)) existing.contexts.push(row.context);
+          if (row.context_summary && !existing.contextSummaries.includes(row.context_summary)) existing.contextSummaries.push(row.context_summary);
+          existing.episodes.push({ podcastSlug: row.podcast_slug, episodeTitle: row.episode_title, context: row.context || null, contextSummary: row.context_summary || null });
+        } else {
+          productMap.set(key, {
+            name: row.name,
+            company: row.company || null,
+            contexts: row.context ? [row.context] : [],
+            contextSummaries: row.context_summary ? [row.context_summary] : [],
+            podcastSlugs: new Set([row.podcast_slug]),
+            mentionCount: 1,
+            episodes: [{ podcastSlug: row.podcast_slug, episodeTitle: row.episode_title, context: row.context || null, contextSummary: row.context_summary || null }],
+          });
+        }
+      }
+
+      const { rows: existingBuzz } = await pool.query(`SELECT product_key FROM product_podcast_buzz`);
+      const existingKeys = new Set(existingBuzz.map((r: any) => r.product_key));
+
+      const productsToProcess = Array.from(productMap.entries())
+        .filter(([key]) => !existingKeys.has(key))
+        .slice(0, 20);
+
+      if (productsToProcess.length === 0) {
+        return res.json({ message: "All products already have podcast buzz summaries", generated: 0 });
+      }
+
+      const OpenAI = (await import("openai")).default;
+      const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      let generated = 0;
+
+      const hostsByPodcast: Record<string, string[]> = {};
+      const { rows: hostRows } = await pool.query(`SELECT podcast_slug, name FROM podcast_hosts ORDER BY sort_order`);
+      for (const h of hostRows) {
+        if (!hostsByPodcast[h.podcast_slug]) hostsByPodcast[h.podcast_slug] = [];
+        hostsByPodcast[h.podcast_slug].push(h.name);
+      }
+
+      for (const [key, product] of productsToProcess) {
+        try {
+          const episodeDetails = product.episodes.slice(0, 8).map(ep => {
+            const podName = slugToName[ep.podcastSlug] || ep.podcastSlug;
+            const hosts = hostsByPodcast[ep.podcastSlug]?.join(" & ") || "";
+            const context = ep.contextSummary || ep.context || "";
+            return `- ${podName}${hosts ? ` (${hosts})` : ""} — "${ep.episodeTitle}"\n  Context: ${context.slice(0, 400)}`;
+          }).join("\n");
+
+          const podcastNames = [...product.podcastSlugs].map(s => slugToName[s] || s).join(", ");
+
+          const aiResp = await directOpenai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{
+              role: "user",
+              content: `Write a single editorial "podcast buzz" summary for this product. This will appear on a product page under "What top podcasters are saying."
+
+PRODUCT: "${product.name}"${product.company ? ` by ${product.company}` : ''}
+MENTIONED ON: ${podcastNames} (${product.mentionCount} total mention${product.mentionCount > 1 ? 's' : ''})
+
+EPISODE-BY-EPISODE CONTEXT:
+${episodeDetails}
+
+Write 1-2 sentences that synthesize WHY podcast hosts discussed or recommended this product. Reference specific podcast names and host names. Capture the specific angle or reason each host brought it up — don't just say they "praised" it. Make it read like editorial social proof, not marketing copy.
+
+Good examples:
+- "A staple on business podcasts. Tim Ferriss calls it essential reading, and it regularly comes up on The Knowledge Project as a framework for building habits."
+- "Frequently cited on tech podcasts when discussing AI safety. Hosts on Lex Fridman and All-In have called it the most important book of the decade."
+- "Chamath Palihapitiya on All-In praised it as a fan favorite alongside Notion, while Avlok Kohli on My First Million highlighted how it complements Notion's page-building with powerful backlinking for context and knowledge discovery."
+
+Bad examples (avoid these patterns):
+- "A favorite among productivity enthusiasts..." (too vague, no specific angle)
+- "...making it a must-have tool for anyone looking to..." (generic marketing speak)
+- "...has garnered praise on popular podcasts..." (passive, no specifics)
+
+Respond with ONLY the buzz paragraph text, no quotes or labels.`
+            }],
+            max_tokens: 250,
+            temperature: 0.3,
+          });
+
+          const { logCompletionUsage } = await import("./apiUsageTracker");
+          logCompletionUsage(aiResp, "gpt-4o", "product_buzz_generation");
+
+          const buzz = aiResp.choices[0]?.message?.content?.trim();
+          if (buzz) {
+            await pool.query(
+              `INSERT INTO product_podcast_buzz (product_key, product_name, company, podcast_buzz)
+               VALUES ($1, $2, $3, $4)
+               ON CONFLICT (product_key) DO UPDATE SET podcast_buzz = $4, generated_at = NOW()`,
+              [key, product.name, product.company, buzz]
+            );
+            generated++;
+          }
+        } catch (err: any) {
+          console.warn(`[ProductBuzz] Failed for ${product.name}:`, err.message);
+        }
+      }
+
+      shopCache.invalidate();
+      res.json({ message: `Generated podcast buzz for ${generated}/${productsToProcess.length} products`, generated, total: productsToProcess.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to generate podcast buzz" });
     }
   });
 

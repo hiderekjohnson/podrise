@@ -462,6 +462,17 @@ export const insertExtractedProductSchema = createInsertSchema(extractedProducts
 export type ExtractedProduct = typeof extractedProducts.$inferSelect;
 export type InsertExtractedProduct = z.infer<typeof insertExtractedProductSchema>;
 
+export const productPodcastBuzz = pgTable("product_podcast_buzz", {
+  id: serial("id").primaryKey(),
+  productKey: text("product_key").notNull().unique(),
+  productName: text("product_name").notNull(),
+  company: text("company"),
+  podcastBuzz: text("podcast_buzz").notNull(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
+
+export type ProductPodcastBuzz = typeof productPodcastBuzz.$inferSelect;
+
 export const topicPulses = pgTable("topic_pulses", {
   id: serial("id").primaryKey(),
   topicSlug: text("topic_slug").notNull(),
