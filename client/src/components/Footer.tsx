@@ -119,6 +119,11 @@ export function Footer() {
                   Advertise
                 </Link>
               </li>
+              <li>
+                <Link href="/disclosure" className={linkClass} data-testid="link-disclosure">
+                  How We Make Money
+                </Link>
+              </li>
             </ul>
           </div>
 
