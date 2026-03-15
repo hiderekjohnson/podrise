@@ -5372,6 +5372,27 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/feed/followed-slugs", async (req, res) => {
+    if (!req.session.userId) return res.json({ followedSlugs: [] });
+    try {
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) return res.json({ followedSlugs: [] });
+      const rawPodcasts = user.podcasts || [];
+      const itunesIds = rawPodcasts.map((p: string) => {
+        try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
+      });
+      if (itunesIds.length === 0) return res.json({ followedSlugs: [] });
+      const slugResult = await pool.query(
+        `SELECT slug FROM podcast_directory WHERE itunes_id::text = ANY($1)`,
+        [itunesIds]
+      );
+      res.json({ followedSlugs: slugResult.rows.map((r: any) => r.slug) });
+    } catch (err) {
+      console.error("Followed slugs error:", err);
+      res.json({ followedSlugs: [] });
+    }
+  });
+
   app.post("/api/feed/follow", async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
     const { podcastSlug } = req.body;
