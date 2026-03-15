@@ -46,6 +46,9 @@ function SEOHead({ topicName, categoryName, categorySlug, topicSlug, podcastName
     setOrCreate('meta[property="og:description"]', "content", description);
     setOrCreate('meta[property="og:type"]', "content", "website");
     setOrCreate('meta[property="og:url"]', "content", canonicalUrl);
+    setOrCreate('meta[name="twitter:card"]', "content", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "content", title);
+    setOrCreate('meta[name="twitter:description"]', "content", description);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) {

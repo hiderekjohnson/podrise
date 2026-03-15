@@ -663,7 +663,7 @@ export default function EpisodeRecapPage() {
       return;
     }
 
-    const pageTitle = `${episode.episodeTitle} | ${episode.podcastName} Recap | PodCap`;
+    const pageTitle = `${episode.episodeTitle} — ${episode.podcastName} Summary & Key Takeaways | PodCap`;
     const truncateAtWord = (s: string, max: number) => {
       if (s.length <= max) return s;
       const t = s.slice(0, max);

@@ -1,10 +1,32 @@
+import { useEffect } from "react";
 import { FileText } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 
+function SEOHead() {
+  useEffect(() => {
+    const title = "Terms & Conditions | PodCap";
+    const desc = "Read PodCap's terms and conditions. Understand the rules and guidelines for using our podcast summaries and intelligence platform.";
+    document.title = title;
+    const setMeta = (attr: string, key: string, value: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", value);
+    };
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", desc);
+    setMeta("name", "twitter:card", "summary");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
+  }, []);
+  return null;
+}
+
 export default function Terms() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead />
       <SiteHeader />
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-10">

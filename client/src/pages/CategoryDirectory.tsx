@@ -40,7 +40,7 @@ const CATEGORY_META: Record<string, { title: string; subtitle: string; descripti
 
 function SEOHead({ title, description }: { title: string; description: string }) {
   if (typeof document !== "undefined") {
-    document.title = `${title} - Podcast Intelligence | PodCap`;
+    document.title = `${title} — Insights & Trends from Top Podcasts | PodCap`;
     const setOrCreate = (selector: string, attr: string, value: string) => {
       let el = document.querySelector(selector);
       if (!el) {
@@ -52,10 +52,12 @@ function SEOHead({ title, description }: { title: string; description: string })
       el.setAttribute("content", value);
     };
     setOrCreate('meta[name="description"]', "name", description);
-    setOrCreate('meta[property="og:title"]', "property", `${title} | PodCap`);
+    setOrCreate('meta[property="og:title"]', "property", `${title} — Insights & Trends from Top Podcasts | PodCap`);
     setOrCreate('meta[property="og:description"]', "property", description);
     setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-podcasts.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", `${title} — Insights & Trends from Top Podcasts | PodCap`);
+    setOrCreate('meta[name="twitter:description"]', "name", description);
   }
   return null;
 }

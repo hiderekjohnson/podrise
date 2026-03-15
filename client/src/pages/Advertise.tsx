@@ -63,21 +63,21 @@ const fadeUp = {
 
 export default function Advertise() {
   useEffect(() => {
-    document.title = "Advertise with PodCap - Reach Podcast Listeners at Scale";
+    document.title = "Advertise with PodCap — Reach Engaged Podcast Listeners at Scale | PodCap";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    const desc = "Reach highly engaged podcast listeners through targeted email sponsorships. PodCap delivers precision targeting by podcast, role, industry, and interest — without selling user data.";
+    const desc = "Reach podcast listeners through targeted email sponsorships. Precision targeting by podcast, role, industry, and interest — without selling user data.";
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "Advertise with PodCap");
+    setMeta("property", "og:title", "Advertise with PodCap — Reach Engaged Podcast Listeners at Scale | PodCap");
     setMeta("property", "og:description", desc);
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/advertise");
     setMeta("property", "og:image", "https://podcap.io/og/og-advertise.png");
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", "Advertise with PodCap");
+    setMeta("name", "twitter:title", "Advertise with PodCap — Reach Engaged Podcast Listeners at Scale | PodCap");
     setMeta("name", "twitter:description", desc);
     setMeta("name", "twitter:image", "https://podcap.io/og/og-advertise.png");
 

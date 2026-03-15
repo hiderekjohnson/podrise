@@ -93,6 +93,8 @@ function SEOHead({ book }: { book: BookDetail }) {
     setOrCreate("property", "og:url", `https://podcap.io/bookstore/${book.slug}`);
     setOrCreate("property", "og:type", "book");
     setOrCreate("name", "twitter:card", "summary");
+    setOrCreate("name", "twitter:title", title);
+    setOrCreate("name", "twitter:description", description);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
     if (!canonical) {

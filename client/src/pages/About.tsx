@@ -7,21 +7,23 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 export default function About() {
   useEffect(() => {
-    document.title = "About PodCap - The Intelligence Layer for Podcasts";
+    const title = "About PodCap — Podcast Summaries, Recaps & Intelligence | PodCap";
+    const desc = "PodCap monitors hundreds of top podcasts and delivers daily summaries, key takeaways, and structured intelligence by topic, person, or company.";
+    document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
-    setMeta("property", "og:title", "About PodCap - The Intelligence Layer for Podcasts");
-    setMeta("property", "og:description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", desc);
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podcap.io/about");
     setMeta("property", "og:image", "https://podcap.io/og/og-podcasts.png");
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", "About PodCap - The Intelligence Layer for Podcasts");
-    setMeta("name", "twitter:description", "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
     setMeta("name", "twitter:image", "https://podcap.io/og/og-podcasts.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;

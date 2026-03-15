@@ -98,8 +98,8 @@ const PAGE_SIZE = 36;
 
 function SEOHead() {
   useEffect(() => {
-    const title = "Podcast Bookstore | Books Recommended on Top Podcasts | PodCap";
-    const description = "Discover what the world's top podcast hosts and guests actually recommend reading — and why. Real recommendations from real conversations.";
+    const title = "Podcast Book Recommendations — Books Mentioned on Top Podcasts | PodCap";
+    const description = "Browse books recommended by top podcast hosts and guests. See which titles come up most, who recommends them, and why — sourced from real conversations.";
     document.title = title;
     const setOrCreate = (attr: string, key: string, value: string) => {
       const selector = `meta[${attr}="${key}"]`;
@@ -118,6 +118,8 @@ function SEOHead() {
     setOrCreate("property", "og:type", "website");
     setOrCreate("property", "og:image", "https://podcap.io/og/og-bookstore.png");
     setOrCreate("name", "twitter:card", "summary_large_image");
+    setOrCreate("name", "twitter:title", title);
+    setOrCreate("name", "twitter:description", description);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
     if (!canonical) {

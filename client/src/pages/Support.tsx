@@ -100,15 +100,20 @@ export default function Support() {
   ];
 
   useEffect(() => {
-    document.title = "Help & Support - PodCap | Podcast Recaps & Summaries";
+    const title = "Help & Support — FAQ for Podcast Recaps & Summaries | PodCap";
+    const desc = "Find answers about AI-powered podcast recaps, episode summaries, delivery settings, Pro features, and more. Get help or contact the PodCap team.";
+    document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "Find answers about PodCap's AI-powered podcast recaps, episode summaries, delivery settings, Pro plan features, and more. Get help or contact our team.");
-    setMeta("property", "og:title", "Help & Support - PodCap | Podcast Recaps & Summaries");
-    setMeta("property", "og:description", "Get answers about podcast recaps, episode summaries, delivery timing, and your subscription. Contact the PodCap support team.");
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", desc);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
   }, []);
 
   return (

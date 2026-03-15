@@ -473,7 +473,7 @@ export default function PodcastLandingGeneric() {
     const { name, slug: s, keywords, hosts, description, artworkUrl } = config;
     const url = `https://podcap.io/podcasts/${s}`;
 
-    document.title = `${name} Podcast Summary, Latest Episode Recap | PodCap`;
+    document.title = `${name} Podcast Summary, Recaps & Key Takeaways | PodCap`;
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -481,9 +481,9 @@ export default function PodcastLandingGeneric() {
       el.setAttribute("content", content);
     };
 
-    setMeta("name", "description", `Get free daily ${name} podcast summaries and episode recaps. ${name} podcast recap of every new episode by ${hosts} - ${description} delivered to your inbox.`);
+    setMeta("name", "description", `Get free daily ${name} podcast summaries and episode recaps with key takeaways. Every new episode by ${hosts} — ${description} — delivered to your inbox.`);
     setMeta("name", "keywords", `${name} podcast summary, ${name} episode summary, ${name} podcast recap, ${name} recap, ${keywords}, podcast summary, daily podcast recap`);
-    setMeta("property", "og:title", `${name} Podcast Summary, Latest Episode Recap | PodCap`);
+    setMeta("property", "og:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodCap`);
     setMeta("property", "og:description", `Daily ${name} podcast summaries and episode recaps. ${description.charAt(0).toUpperCase() + description.slice(1)} - delivered free to your inbox.`);
     setMeta("property", "og:url", url);
     setMeta("property", "og:type", "website");
@@ -495,7 +495,7 @@ export default function PodcastLandingGeneric() {
     } else {
       setMeta("name", "twitter:card", "summary");
     }
-    setMeta("name", "twitter:title", `${name} Podcast Summary, Latest Episode Recap | PodCap`);
+    setMeta("name", "twitter:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodCap`);
     setMeta("name", "twitter:description", `Free daily ${name} podcast summaries and episode recaps delivered to your inbox.`);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;

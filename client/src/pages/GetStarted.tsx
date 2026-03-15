@@ -19,8 +19,8 @@ interface SelectedPodcast {
 }
 
 function SEOHead() {
-  const title = "Get Your Daily Podcast Intelligence - PodCap";
-  const description = "Choose your favorite podcasts and get daily intelligence briefings delivered to your inbox. Key insights, notable quotes, and structured takeaways -- stay current on what matters, in minutes.";
+  const title = "Get Free Daily Podcast Summaries & Recaps | PodCap";
+  const description = "Pick your favorite podcasts and get free daily summaries with key insights, notable quotes, and takeaways delivered to your inbox every morning.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -37,6 +37,9 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
+    setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", title);
+    setOrCreate('meta[name="twitter:description"]', "name", description);
   }
   return null;
 }

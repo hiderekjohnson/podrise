@@ -300,9 +300,9 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
 
   function SEOHead() {
     const title = pulse
-      ? `${pulse.headline} - ${topicName} Pulse - PodCap`
-      : `${topicName} Pulse - PodCap`;
-    const description = pulse?.summary || `Daily ${topicName} intelligence briefing from podcast conversations. Stay informed about what matters.`;
+      ? `${pulse.headline} — ${topicName} Daily Intelligence | PodCap`
+      : `${topicName} Daily Intelligence Briefing | PodCap`;
+    const description = pulse?.summary || `Today's ${topicName} briefing from top podcasts — key developments, expert takes, and actionable insights in one place.`;
     const canonicalUrl = `https://podcap.io/topics/${topicSlug}/pulse/${date}`;
     if (typeof document !== "undefined") {
       document.title = title;
@@ -321,6 +321,9 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
       setOrCreate('meta[property="og:description"]', "property", description);
       setOrCreate('meta[property="og:url"]', "property", canonicalUrl);
       setOrCreate('meta[property="og:type"]', "property", "article");
+      setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+      setOrCreate('meta[name="twitter:title"]', "name", title);
+      setOrCreate('meta[name="twitter:description"]', "name", description);
 
       let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
       if (!canonical) {
@@ -552,8 +555,8 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
   const latestPulse = pulses && pulses.length > 0 ? pulses[0] : null;
 
   function SEOHead() {
-    const title = `${topicName} Pulse - Daily Intelligence Briefing - PodCap`;
-    const description = `Stay informed about ${topicName} with daily intelligence briefings synthesized from podcast conversations.`;
+    const title = `${topicName} Daily Intelligence Briefing from Top Podcasts | PodCap`;
+    const description = `Get daily ${topicName.toLowerCase()} briefings synthesized from top podcast conversations. Key developments, expert analysis, and trends — updated every day.`;
     const canonicalUrl = `https://podcap.io/topics/${topicSlug}/pulse`;
     if (typeof document !== "undefined") {
       document.title = title;
@@ -570,6 +573,9 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
       setOrCreate('meta[name="description"]', "name", description);
       setOrCreate('meta[property="og:title"]', "property", title);
       setOrCreate('meta[property="og:description"]', "property", description);
+      setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+      setOrCreate('meta[name="twitter:title"]', "name", title);
+      setOrCreate('meta[name="twitter:description"]', "name", description);
 
       let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
       if (!canonical) {

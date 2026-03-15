@@ -203,8 +203,8 @@ export default function EpisodeTranscriptPage() {
 
   useEffect(() => {
     if (!meta) return;
-    const pageTitle = `${meta.podcastName}, ${meta.episodeTitle}, Full Transcript`;
-    const pageDescription = `Read the full transcript of "${meta.episodeTitle}" from ${meta.podcastName}. Timestamped, searchable transcript with direct links to any moment.`;
+    const pageTitle = `${meta.episodeTitle} Full Transcript — ${meta.podcastName} | PodCap`;
+    const pageDescription = `Read the full transcript of "${meta.episodeTitle}" from ${meta.podcastName}. Timestamped and searchable with direct links to any moment.`;
     const canonicalUrl = `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
 
     document.title = pageTitle;

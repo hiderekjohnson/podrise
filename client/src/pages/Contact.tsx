@@ -32,18 +32,22 @@ export default function Contact() {
   };
 
   useEffect(() => {
-    document.title = "Contact Us - PodCap | The World's Searchable Library of Podcast Knowledge";
+    const title = "Contact PodCap — Questions, Feedback & Partnership Inquiries | PodCap";
+    const desc = "Reach the PodCap team for questions about podcast recaps, episode summaries, partnerships, or feature requests. We'd love to hear from you.";
+    document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = content;
     };
-    setMeta("name", "description", "Get in touch with the PodCap team. Questions about podcast recaps, episode summaries, or the platform - we'd love to hear from you.");
-    setMeta("property", "og:title", "Contact Us - PodCap");
-    setMeta("property", "og:description", "Get in touch with the PodCap team. Questions about podcast recaps, episode summaries, or the platform - we'd love to hear from you.");
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", desc);
     setMeta("property", "og:url", "https://podcap.io/contact");
     setMeta("property", "og:image", "https://podcap.io/og/og-podcasts.png");
     setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }

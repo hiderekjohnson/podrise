@@ -49,8 +49,8 @@ export default function CompanyDetailPage() {
   });
 
   if (typeof document !== "undefined" && company) {
-    const title = `${company.name} - Podcast Mentions & Discussions | PodCap`;
-    const desc = `See every podcast episode where ${company.name} is discussed. ${company.mentionCount} mentions across top podcasts.`;
+    const title = `${company.name} Podcast Mentions, Analysis & Trends | PodCap`;
+    const desc = `What top podcasts say about ${company.name}. ${company.mentionCount} mentions across leading shows — explore episodes, trends, and key discussions.`;
     document.title = title;
     const setOrCreate = (selector: string, attr: string, value: string) => {
       let el = document.querySelector(selector);
@@ -65,6 +65,9 @@ export default function CompanyDetailPage() {
     setOrCreate('meta[name="description"]', "name", desc);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", desc);
+    setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", title);
+    setOrCreate('meta[name="twitter:description"]', "name", desc);
   }
 
   const details = companyData?.details;

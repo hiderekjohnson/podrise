@@ -125,16 +125,20 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    document.title = "For Podcasters - Make Your Episodes Discoverable and Actionable | PodCap";
-    const desc = "Your best ideas deserve to travel further than audio. PodCap turns every episode into structured, discoverable intelligence -- amplifying your sponsors and making your content accessible long after it drops.";
+    const title = "For Podcasters — Make Your Episodes Searchable & Discoverable | PodCap";
+    const desc = "PodCap turns your episodes into searchable, structured intelligence. Amplify your sponsors, reach new listeners, and make your content discoverable long after it drops.";
+    document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "For Podcasters - Make Your Episodes Discoverable and Actionable | PodCap");
+    setMeta("property", "og:title", title);
     setMeta("property", "og:description", desc);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
   }, []);
 
   return (

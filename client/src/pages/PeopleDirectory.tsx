@@ -58,8 +58,8 @@ const PIE_COLORS = [
 ];
 
 function SEOHead() {
-  const title = "People Intelligence - Who's Trending in Podcasts | PodCap";
-  const description = "Track who's trending across the world's top podcasts. See which founders, investors, and leaders are being discussed most, discover rising voices, and explore mention trends over time.";
+  const title = "People Mentioned on Podcasts — Founders, Investors & Leaders | PodCap";
+  const description = "See which founders, investors, and thought leaders are most discussed on top podcasts. Track trending mentions, rising voices, and explore every appearance.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -78,6 +78,8 @@ function SEOHead() {
     setOrCreate('meta[property="og:description"]', "property", description);
     setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-people.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", title);
+    setOrCreate('meta[name="twitter:description"]', "name", description);
   }
   return null;
 }

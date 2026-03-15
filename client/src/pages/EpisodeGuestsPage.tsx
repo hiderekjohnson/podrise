@@ -74,28 +74,26 @@ export default function EpisodeGuestsPage() {
   useEffect(() => {
     if (episode && podcastConfig) {
       const guestNames = guests.length > 0 ? guests.map(g => g.name).join(", ") : "";
-      const titleParts = [episode.episodeTitle];
-      if (guestNames) titleParts.push(`Guests: ${guestNames}`);
-      titleParts.push(episode.podcastName, "PodCap");
-      document.title = titleParts.join(" | ");
+      const pageTitle = guestNames
+        ? `${guestNames} on ${episode.podcastName} — Guest Bios & Topics | PodCap`
+        : `${episode.episodeTitle} Guests — ${episode.podcastName} | PodCap`;
+      document.title = pageTitle;
 
       const desc = guestNames
-        ? `Meet the guests on "${episode.episodeTitle}" - ${guestNames}. Full bios, social media links, and topics discussed on ${episode.podcastName}.`
-        : `Guest information for "${episode.episodeTitle}" on ${episode.podcastName}. Discover who appeared on this episode.`;
+        ? `Meet ${guestNames} — guests on "${episode.episodeTitle}." Full bios, key topics discussed, and social links from ${episode.podcastName}.`
+        : `Discover who appeared on "${episode.episodeTitle}" from ${episode.podcastName}. Guest bios, topics discussed, and social links.`;
 
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute("content", desc);
-      else {
-        const meta = document.createElement("meta");
-        meta.name = "description";
-        meta.content = desc;
-        document.head.appendChild(meta);
-      }
-
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute("content", `${episode.episodeTitle} - Guests | ${episode.podcastName}`);
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) ogDesc.setAttribute("content", desc);
+      const setOrCreate = (attr: string, key: string, value: string) => {
+        let el = document.querySelector(`meta[${attr}="${key}"]`);
+        if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+        el.setAttribute("content", value);
+      };
+      setOrCreate("name", "description", desc);
+      setOrCreate("property", "og:title", pageTitle);
+      setOrCreate("property", "og:description", desc);
+      setOrCreate("name", "twitter:card", "summary_large_image");
+      setOrCreate("name", "twitter:title", pageTitle);
+      setOrCreate("name", "twitter:description", desc);
     }
   }, [episode, podcastConfig, guests]);
 

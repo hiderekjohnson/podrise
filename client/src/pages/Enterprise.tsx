@@ -103,8 +103,8 @@ function EnterpriseContactForm() {
 
 export default function Enterprise() {
   useEffect(() => {
-    const title = "Enterprise - Podcast Intelligence for Teams | PodCap";
-    const desc = "Your whole team stays ahead of your industry — automatically, every day, without listening to a single episode. Custom briefings by industry, role, and interest.";
+    const title = "Enterprise Podcast Intelligence for Teams & Organizations | PodCap";
+    const desc = "Custom podcast intelligence for your team. Automated briefings by industry, role, and topic — so everyone stays ahead without listening to a single episode.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -116,6 +116,9 @@ export default function Enterprise() {
     setMeta("property", "og:description", desc);
     setMeta("property", "og:url", "https://podcap.io/enterprise");
     setMeta("property", "og:type", "website");
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
   }, []);
 
   return (

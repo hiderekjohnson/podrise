@@ -306,8 +306,8 @@ export default function EpisodeArchivePage() {
       document.title = "Podcast Not Found | PodCap";
       return;
     }
-    const pageTitle = `${config.name} Episode Archive | PodCap`;
-    const pageDescription = `Browse every ${config.name} episode on PodCap. Search by keyword, filter by guest, topic, year, or episode length to find your next listen.`;
+    const pageTitle = `${config.name} All Episodes — Complete Episode Guide & Archive | PodCap`;
+    const pageDescription = `Browse every ${config.name} episode with AI-powered recaps. Search by keyword, filter by guest, topic, or year to find exactly what you need.`;
     const canonicalUrl = `https://podcap.io/podcasts/${slug}/episodes`;
 
     document.title = pageTitle;
@@ -329,6 +329,9 @@ export default function EpisodeArchivePage() {
     setMeta('meta[property="og:title"]', "content", pageTitle);
     setMeta('meta[property="og:description"]', "content", pageDescription);
     setMeta('meta[property="og:url"]', "content", canonicalUrl);
+    setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
+    setMeta('meta[name="twitter:title"]', "content", pageTitle);
+    setMeta('meta[name="twitter:description"]', "content", pageDescription);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) {

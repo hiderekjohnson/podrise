@@ -177,14 +177,14 @@ export default function PersonDetailPage() {
 
   const pageTitle = person
     ? hasGuestAppearances
-      ? `${person.name} Podcast Appearances, Interviews, and Mentions`
-      : `${person.name} Podcast Mentions, Discussions, and Episode Recaps`
+      ? `${person.name} Podcast Appearances & Key Insights`
+      : `${person.name} Podcast Mentions, Analysis & Key Insights`
     : "";
 
   const pageDescription = person
     ? hasGuestAppearances
-      ? `Explore ${person.name} podcast appearances, interviews, mentions, and episode recaps across top business, technology, and AI podcasts.`
-      : `Explore podcast episodes discussing ${person.name}, including mentions, recaps, and key themes across top business, technology, and AI podcasts.`
+      ? `${person.name} podcast appearances, interviews, and key insights. See every episode, takeaway, and topic discussed across top podcasts.`
+      : `What top podcasts say about ${person.name}. Explore mentions, key themes, and episode recaps across business, tech, and AI shows.`
     : "";
 
   useEffect(() => {
@@ -204,6 +204,9 @@ export default function PersonDetailPage() {
     setOrCreate('meta[property="og:title"]', "property", `${pageTitle} | PodCap`);
     setOrCreate('meta[property="og:description"]', "property", pageDescription);
     setOrCreate('meta[property="og:type"]', "property", "profile");
+    setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", `${pageTitle} | PodCap`);
+    setOrCreate('meta[name="twitter:description"]', "name", pageDescription);
 
     let schemaScript = document.getElementById("person-schema") as HTMLScriptElement | null;
     if (!schemaScript) {

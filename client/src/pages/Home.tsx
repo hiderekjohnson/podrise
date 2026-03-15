@@ -24,8 +24,8 @@ function hiResArtwork(url: string) {
 }
 
 function SEOHead() {
-  const title = "PodCap - The Intelligence Layer for Podcasts";
-  const description = "Know what the smartest people in your industry are talking about, without listening to everything. PodCap monitors hundreds of top podcasts and delivers structured intelligence by topic, company, or person -- so you stay current in minutes, not hours.";
+  const title = "Podcast Summaries & Episode Recaps from Top Shows | PodCap";
+  const description = "Get daily podcast summaries, key takeaways, and episode recaps from hundreds of top shows. Stay current on AI, business, finance, and more — in minutes, not hours.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -44,6 +44,8 @@ function SEOHead() {
     setOrCreate('meta[property="og:description"]', "property", description);
     setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/podcap-og-image.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", title);
+    setOrCreate('meta[name="twitter:description"]', "name", description);
   }
   return null;
 }

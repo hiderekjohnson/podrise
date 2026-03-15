@@ -49,8 +49,8 @@ interface TopicEpisode {
 
 function SEOHead({ name, description }: { name: string; description: string }) {
   useEffect(() => {
-    const title = `${name} - Podcast Intelligence | PodCap`;
-    const desc = `${description} Daily insights, key takeaways, recommended books, and top voices in ${name.toLowerCase()} from the world's best podcasts.`;
+    const title = `${name} Tactics, Strategies & Lessons from Top Podcasts | PodCap`;
+    const desc = `Discover ${name.toLowerCase()} tactics, key takeaways, recommended books, and expert voices — curated daily from the world's best podcasts.`;
     document.title = title;
     const setOrCreate = (selector: string, attr: string, value: string) => {
       let el = document.querySelector(selector);
@@ -65,6 +65,9 @@ function SEOHead({ name, description }: { name: string; description: string }) {
     setOrCreate('meta[name="description"]', "name", desc);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", desc);
+    setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", title);
+    setOrCreate('meta[name="twitter:description"]', "name", desc);
   }, [name, description]);
   return null;
 }

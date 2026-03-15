@@ -179,7 +179,7 @@ export default function FeatureRequests() {
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = "What's New - PodCap Updates, Features & Changelog";
+    document.title = "What's New — PodCap Updates, Features & Product Changelog | PodCap";
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -187,13 +187,17 @@ export default function FeatureRequests() {
       el.setAttribute("content", content);
     };
 
-    setMeta("name", "description", "See what we've shipped - AI-powered podcast recaps, episode summaries, people and topic pages, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.");
+    const desc = "See what we've shipped — AI podcast recaps, episode summaries, topic intelligence, and more. Follow PodCap's product journey and request features.";
+    setMeta("name", "description", desc);
     setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodCap changelog, AI podcast knowledge, episode recap platform");
-    setMeta("property", "og:title", "What's New - PodCap Updates, Features & Changelog");
-    setMeta("property", "og:description", "See what we've shipped - AI-powered podcast recaps, episode summaries, and more. Follow PodCap's journey.");
+    setMeta("property", "og:title", "What's New — PodCap Updates, Features & Product Changelog | PodCap");
+    setMeta("property", "og:description", desc);
     setMeta("property", "og:url", "https://podcap.io/updates");
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodCap");
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", "What's New — PodCap Updates, Features & Product Changelog | PodCap");
+    setMeta("name", "twitter:description", desc);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }

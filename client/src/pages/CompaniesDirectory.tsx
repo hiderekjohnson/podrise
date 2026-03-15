@@ -28,8 +28,8 @@ const TABS: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
 ];
 
 function SEOHead() {
-  const title = "Company Intelligence - What's Trending in Podcasts | PodCap";
-  const description = "Track which companies are trending across the world's top podcasts. See mention trends, rising brands, and explore every episode where companies are discussed.";
+  const title = "Companies Mentioned on Podcasts — Trends & Analysis | PodCap";
+  const description = "Track which companies are trending across top podcasts. See mention data, rising brands, and explore every episode where companies like OpenAI, Tesla, and more are discussed.";
 
   if (typeof document !== "undefined") {
     document.title = title;
@@ -48,6 +48,8 @@ function SEOHead() {
     setOrCreate('meta[property="og:description"]', "property", description);
     setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-companies.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:title"]', "name", title);
+    setOrCreate('meta[name="twitter:description"]', "name", description);
   }
   return null;
 }
