@@ -286,9 +286,14 @@ export default function TopicDetailPage() {
   const topicDisplayName = topic ? topic.name : dynamicTopicName;
   const topicDescription = topic ? topic.description : dynamicSummary;
 
-  const latestEpisodeDate = topicEpisodes && topicEpisodes.length > 0
-    ? topicEpisodes[0].publish_date
-    : null;
+  const latestEpisodeDate = useMemo(() => {
+    if (!topicEpisodes || topicEpisodes.length === 0) return null;
+    return topicEpisodes.reduce((latest, ep) => {
+      if (!ep.publish_date) return latest;
+      if (!latest) return ep.publish_date;
+      return new Date(ep.publish_date) > new Date(latest) ? ep.publish_date : latest;
+    }, null as string | null);
+  }, [topicEpisodes]);
 
   const uniquePodcastSources = useMemo(() => {
     if (!topicEpisodes) return 0;
@@ -359,7 +364,7 @@ export default function TopicDetailPage() {
             <div className="flex flex-wrap items-center gap-4 mt-4 text-[14px] text-muted-foreground" data-testid="topic-stats">
               <span className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                Updated {formatRelativeDate(latestEpisodeDate)}
+                Last episode {formatRelativeDate(latestEpisodeDate)}
               </span>
             </div>
           )}
