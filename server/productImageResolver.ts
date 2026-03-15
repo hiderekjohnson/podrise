@@ -1,10 +1,11 @@
 export async function resolveProductImage(purchaseUrl: string): Promise<string | null> {
   try {
-    const domain = new URL(purchaseUrl).hostname.replace(/^www\./, "");
+    const normalizedUrl = purchaseUrl.match(/^https?:\/\//) ? purchaseUrl : `https://${purchaseUrl}`;
+    const domain = new URL(normalizedUrl).hostname.replace(/^www\./, "");
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
-    const resp = await fetch(purchaseUrl, {
+    const resp = await fetch(normalizedUrl, {
       signal: controller.signal,
       redirect: "follow",
       headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
