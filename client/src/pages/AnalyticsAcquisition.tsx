@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Users, TrendingUp, MapPin } from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend,
+} from "recharts";
 import AnalyticsFilters from "@/components/AnalyticsFilters";
 
 interface AcquisitionData {
@@ -25,6 +29,20 @@ const SOURCE_LABELS: Record<string, string> = {
   unknown: "Unknown",
 };
 
+const SOURCE_CHART_COLORS: Record<string, string> = {
+  homepage: "#3b82f6",
+  podcast_page: "#a855f7",
+  episode_page: "#8b5cf6",
+  industry_page: "#10b981",
+  role_page: "#f59e0b",
+  interest_page: "#ec4899",
+  get_started: "#22c55e",
+  register_page: "#6366f1",
+  login_page: "#06b6d4",
+  leaderboard: "#f97316",
+  unknown: "#9ca3af",
+};
+
 const SOURCE_COLORS: Record<string, string> = {
   homepage: "bg-blue-500",
   podcast_page: "bg-purple-500",
@@ -40,6 +58,10 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 const ALL_SOURCES = Object.keys(SOURCE_LABELS);
+
+function formatLabel(period: string) {
+  return new Date(period).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export default function AnalyticsAcquisition() {
   const [startDate, setStartDate] = useState("");
@@ -93,6 +115,35 @@ export default function AnalyticsAcquisition() {
     return data.byPodcast.map(p => p.detail).filter((v, i, a) => a.indexOf(v) === i);
   }, [data]);
 
+  const stackedChartData = useMemo(() => {
+    if (!filteredData) return [];
+    const groups: Record<string, Record<string, number>> = {};
+    for (const item of filteredData.overTime) {
+      const key = item.period;
+      if (!groups[key]) groups[key] = {};
+      groups[key][item.source] = (groups[key][item.source] || 0) + item.count;
+    }
+    const sourceSet = Array.from(new Set(filteredData.overTime.map(i => i.source)));
+    return Object.entries(groups).map(([period, sources]) => ({
+      label: formatLabel(period),
+      ...sourceSet.reduce((acc, src) => ({ ...acc, [src]: sources[src] || 0 }), {} as Record<string, number>),
+    }));
+  }, [filteredData]);
+
+  const activeSources = useMemo(() => {
+    if (!filteredData) return [] as string[];
+    return Array.from(new Set(filteredData.overTime.map(i => i.source)));
+  }, [filteredData]);
+
+  const sourceBarData = useMemo(() => {
+    if (!filteredData) return [];
+    return filteredData.bySource.map(s => ({
+      name: SOURCE_LABELS[s.source] || s.source,
+      count: s.count,
+      source: s.source,
+    }));
+  }, [filteredData]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -110,23 +161,15 @@ export default function AnalyticsAcquisition() {
   }
 
   const topSource = filteredData.bySource[0];
-  const maxSourceCount = filteredData.bySource[0]?.count || 1;
-
-  const timeGroups: Record<string, Record<string, number>> = {};
-  for (const item of filteredData.overTime) {
-    const dateKey = new Date(item.period).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" });
-    if (!timeGroups[dateKey]) timeGroups[dateKey] = {};
-    timeGroups[dateKey][item.source] = (timeGroups[dateKey][item.source] || 0) + item.count;
-  }
-  const timeEntries = Object.entries(timeGroups).slice(-20);
-  const maxTimeCount = Math.max(...timeEntries.map(([, sources]) => Object.values(sources).reduce((a, b) => a + b, 0)), 1);
-
   const availableSources = data.bySource.map(s => s.source);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-acquisition">User Acquisition</h2>
+        <div>
+          <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-acquisition">Where Users Come From</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Which pages and sources drive signups</p>
+        </div>
         <div className="flex items-center gap-3 flex-wrap">
           <select
             value={sourceFilter}
@@ -174,7 +217,7 @@ export default function AnalyticsAcquisition() {
             <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
               <TrendingUp className="w-4.5 h-4.5 text-green-500" />
             </div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sources</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Sources</span>
           </div>
           <p className="text-3xl font-bold text-foreground">{filteredData.bySource.length}</p>
         </div>
@@ -190,73 +233,80 @@ export default function AnalyticsAcquisition() {
         </div>
       </div>
 
+      <div className="glass-panel rounded-2xl p-6" data-testid="chart-acquisition-trend">
+        <h3 className="text-sm font-bold text-foreground mb-4">Signups by Source Over Time</h3>
+        {stackedChartData.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">No data yet</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={stackedChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <defs>
+                {activeSources.map(src => (
+                  <linearGradient key={src} id={`grad-${src}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={SOURCE_CHART_COLORS[src] || "#9ca3af"} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={SOURCE_CHART_COLORS[src] || "#9ca3af"} stopOpacity={0.02} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={stackedChartData.length > 30 ? Math.floor(stackedChartData.length / 15) : 0} />
+              <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {activeSources.map(src => (
+                <Area
+                  key={src}
+                  type="monotone"
+                  dataKey={src}
+                  name={SOURCE_LABELS[src] || src}
+                  stackId="1"
+                  stroke={SOURCE_CHART_COLORS[src] || "#9ca3af"}
+                  strokeWidth={1.5}
+                  fill={`url(#grad-${src})`}
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel rounded-2xl p-6" data-testid="chart-source-breakdown">
-          <h3 className="text-sm font-bold text-foreground mb-4">Source Breakdown</h3>
-          {filteredData.bySource.length === 0 ? (
+          <h3 className="text-sm font-bold text-foreground mb-4">Source Ranking</h3>
+          {sourceBarData.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No data yet</p>
           ) : (
-            <div className="space-y-3">
-              {filteredData.bySource.map((item, i) => (
-                <div key={i} className="flex items-center gap-3" data-testid={`source-row-${i}`}>
-                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${SOURCE_COLORS[item.source] || "bg-gray-400"}`} />
-                  <span className="text-sm font-medium text-foreground w-32 truncate">{SOURCE_LABELS[item.source] || item.source}</span>
-                  <div className="flex-1 h-2 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${SOURCE_COLORS[item.source] || "bg-gray-400"} opacity-60`}
-                      style={{ width: `${(item.count / maxSourceCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-bold text-foreground tabular-nums w-12 text-right">{item.count}</span>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={Math.max(sourceBarData.length * 36, 120)}>
+              <BarChart data={sourceBarData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} width={100} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="count" name="Signups" fill="#6366f1" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           )}
         </div>
 
         <div className="glass-panel rounded-2xl p-6" data-testid="chart-podcast-drilldown">
-          <h3 className="text-sm font-bold text-foreground mb-4">Podcast Sources</h3>
+          <h3 className="text-sm font-bold text-foreground mb-4">Top Podcast Sources</h3>
           {filteredData.byPodcast.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No podcast-driven signups yet</p>
           ) : (
             <div className="space-y-2">
               {filteredData.byPodcast.slice(0, 15).map((item, i) => (
                 <div key={i} className="flex items-center justify-between py-1" data-testid={`podcast-source-${i}`}>
-                  <span className="text-sm font-medium text-foreground truncate flex-1">{item.detail}</span>
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-xs font-bold text-muted-foreground w-5 shrink-0">{i + 1}</span>
+                    <span className="text-sm font-medium text-foreground truncate">{item.detail}</span>
+                  </div>
                   <span className="text-sm font-bold text-foreground tabular-nums ml-2">{item.count}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </div>
-
-      <div className="glass-panel rounded-2xl p-6" data-testid="chart-acquisition-trend">
-        <h3 className="text-sm font-bold text-foreground mb-4">Acquisition Over Time</h3>
-        {timeEntries.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">No data yet</p>
-        ) : (
-          <div className="space-y-1">
-            {timeEntries.map(([date, sources], i) => {
-              const total = Object.values(sources).reduce((a, b) => a + b, 0);
-              return (
-                <div key={i} className="flex items-center gap-3 py-1" data-testid={`acquisition-time-${i}`}>
-                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">{date}</span>
-                  <div className="flex-1 h-2.5 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden flex">
-                    {Object.entries(sources).map(([src, cnt]) => (
-                      <div
-                        key={src}
-                        className={`h-full first:rounded-l-full last:rounded-r-full ${SOURCE_COLORS[src] || "bg-gray-400"} opacity-70`}
-                        style={{ width: `${(cnt / maxTimeCount) * 100}%` }}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs font-bold text-foreground w-10 text-right tabular-nums">{total}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       <div className="glass-panel rounded-2xl p-6" data-testid="table-recent-signups">

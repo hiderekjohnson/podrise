@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MousePointerClick, ShoppingBag, TrendingUp, ArrowUpDown } from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend, Cell,
+} from "recharts";
 import AnalyticsFilters from "@/components/AnalyticsFilters";
 
 interface AffiliateData {
@@ -14,6 +18,15 @@ interface AffiliateData {
 
 type SortField = "clicks" | "name" | "type" | "lastClicked";
 type SortDir = "asc" | "desc";
+
+const CATEGORY_COLORS: Record<string, string> = {
+  book: "#3b82f6",
+  product: "#f59e0b",
+};
+
+function formatLabel(period: string) {
+  return new Date(period).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export default function AnalyticsAffiliates() {
   const [startDate, setStartDate] = useState("");
@@ -77,7 +90,22 @@ export default function AnalyticsAffiliates() {
     );
   }
 
-  const maxTimeCount = Math.max(...data.overTime.map(d => d.count), 1);
+  const clickTrendData = data.overTime.map(d => ({
+    ...d,
+    label: formatLabel(d.period),
+  }));
+
+  let cumulativeCount = 0;
+  const cumulativeTrendData = clickTrendData.map(d => {
+    cumulativeCount += d.count;
+    return { ...d, cumulative: cumulativeCount };
+  });
+
+  const categoryBarData = data.byCategory.map(c => ({
+    name: c.type === "book" ? "Books" : "Products",
+    count: c.count,
+    type: c.type,
+  }));
 
   function SortHeader({ field, label }: { field: SortField; label: string }) {
     const active = sortField === field;
@@ -154,6 +182,70 @@ export default function AnalyticsAffiliates() {
         </div>
       </div>
 
+      <div className="glass-panel rounded-2xl p-6" data-testid="chart-click-trend">
+        <h3 className="text-sm font-bold text-foreground mb-4">Affiliate Click Growth</h3>
+        {cumulativeTrendData.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">No click data yet</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={cumulativeTrendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <defs>
+                <linearGradient id="gradClicks" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={cumulativeTrendData.length > 30 ? Math.floor(cumulativeTrendData.length / 15) : 0} />
+              <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Area type="monotone" dataKey="cumulative" name="Total Clicks" stroke="#6366f1" strokeWidth={2} fill="url(#gradClicks)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass-panel rounded-2xl p-6" data-testid="chart-clicks-per-period">
+          <h3 className="text-sm font-bold text-foreground mb-4">Clicks Per Period</h3>
+          {clickTrendData.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">No click data yet</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={clickTrendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={clickTrendData.length > 30 ? Math.floor(clickTrendData.length / 15) : 0} />
+                <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="count" name="Clicks" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {categoryBarData.length > 0 && (
+          <div className="glass-panel rounded-2xl p-6" data-testid="chart-category-breakdown">
+            <h3 className="text-sm font-bold text-foreground mb-4">Clicks by Category</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={categoryBarData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} />
+                <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="count" name="Clicks" radius={[4, 4, 0, 0]}>
+                  {categoryBarData.map((entry, i) => (
+                    <Cell key={i} fill={CATEGORY_COLORS[entry.type] || "#9ca3af"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
       <div className="glass-panel rounded-2xl p-6" data-testid="table-products">
         <h3 className="text-sm font-bold text-foreground mb-4">All Tracked Items</h3>
         {sortedProducts.length === 0 ? (
@@ -190,44 +282,6 @@ export default function AnalyticsAffiliates() {
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel rounded-2xl p-6" data-testid="chart-click-trend">
-          <h3 className="text-sm font-bold text-foreground mb-4">Click Trend</h3>
-          {data.overTime.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">No click data yet</p>
-          ) : (
-            <div className="space-y-1">
-              {data.overTime.slice(-20).map((point, i) => (
-                <div key={i} className="flex items-center gap-3 py-1" data-testid={`click-time-${i}`}>
-                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                    {new Date(point.period).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
-                  </span>
-                  <div className="flex-1 h-2 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                    <div className="h-full bg-primary/60 rounded-full" style={{ width: `${(point.count / maxTimeCount) * 100}%` }} />
-                  </div>
-                  <span className="text-xs font-bold text-foreground w-10 text-right tabular-nums">{point.count}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {data.byCategory.length > 0 && (
-          <div className="glass-panel rounded-2xl p-6" data-testid="chart-category-breakdown">
-            <h3 className="text-sm font-bold text-foreground mb-4">By Category</h3>
-            <div className="flex gap-6">
-              {data.byCategory.map((cat, i) => (
-                <div key={i} className="flex items-center gap-2" data-testid={`category-${i}`}>
-                  <div className={`w-3 h-3 rounded-full ${cat.type === "book" ? "bg-blue-500" : "bg-amber-500"}`} />
-                  <span className="text-sm font-medium text-foreground capitalize">{cat.type === "book" ? "Books" : "Products"}</span>
-                  <span className="text-sm font-bold text-foreground">{cat.count}</span>
-                </div>
-              ))}
-            </div>
           </div>
         )}
       </div>

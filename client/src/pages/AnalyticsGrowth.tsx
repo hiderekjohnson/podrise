@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Users, UserPlus, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend,
+} from "recharts";
 import AnalyticsFilters from "@/components/AnalyticsFilters";
 
 interface GrowthData {
@@ -8,6 +12,10 @@ interface GrowthData {
   periodSignups: number;
   growthRate: number;
   overTime: { period: string; newUsers: number; totalUsers: number }[];
+}
+
+function formatLabel(period: string) {
+  return new Date(period).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export default function AnalyticsGrowth() {
@@ -45,9 +53,10 @@ export default function AnalyticsGrowth() {
     );
   }
 
-  const maxTotal = Math.max(...data.overTime.map(d => d.totalUsers), 1);
-  const maxNew = Math.max(...data.overTime.map(d => d.newUsers), 1);
-  const displayData = data.overTime.slice(-30);
+  const chartData = data.overTime.map(d => ({
+    ...d,
+    label: formatLabel(d.period),
+  }));
 
   return (
     <div className="space-y-6">
@@ -102,65 +111,61 @@ export default function AnalyticsGrowth() {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Latest Period</span>
           </div>
           <p className="text-3xl font-bold text-foreground">
-            {displayData.length > 0 ? `+${displayData[displayData.length - 1].newUsers}` : "0"}
+            {chartData.length > 0 ? `+${chartData[chartData.length - 1].newUsers}` : "0"}
           </p>
         </div>
       </div>
 
       <div className="glass-panel rounded-2xl p-6" data-testid="chart-cumulative-growth">
         <h3 className="text-sm font-bold text-foreground mb-4">Cumulative Growth</h3>
-        {displayData.length === 0 ? (
+        {chartData.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">No data yet</p>
         ) : (
-          <div className="space-y-1">
-            {displayData.map((point, i) => (
-              <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`growth-row-${i}`}>
-                <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                  {new Date(point.period).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
-                </span>
-                <div className="flex-1 h-2.5 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-500/60 rounded-full transition-all"
-                    style={{ width: `${(point.totalUsers / maxTotal) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-foreground w-16 text-right tabular-nums">
-                  {point.totalUsers} total
-                </span>
-                {point.newUsers > 0 && (
-                  <span className="text-xs font-semibold text-green-600 w-12 text-right">
-                    +{point.newUsers}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <defs>
+                <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={chartData.length > 30 ? Math.floor(chartData.length / 15) : 0} />
+              <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Area
+                type="monotone"
+                dataKey="totalUsers"
+                name="Total Users"
+                stroke="#22c55e"
+                strokeWidth={2}
+                fill="url(#gradTotal)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         )}
       </div>
 
       <div className="glass-panel rounded-2xl p-6" data-testid="chart-new-users">
         <h3 className="text-sm font-bold text-foreground mb-4">New Users Per Period</h3>
-        {displayData.length === 0 ? (
+        {chartData.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">No data yet</p>
         ) : (
-          <div className="space-y-1">
-            {displayData.map((point, i) => (
-              <div key={i} className="flex items-center gap-3 py-1" data-testid={`new-users-row-${i}`}>
-                <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                  {new Date(point.period).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
-                </span>
-                <div className="flex-1 h-2 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500/60 rounded-full transition-all"
-                    style={{ width: `${(point.newUsers / maxNew) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-foreground w-10 text-right tabular-nums">
-                  {point.newUsers}
-                </span>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={chartData.length > 30 ? Math.floor(chartData.length / 15) : 0} />
+              <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="newUsers" name="New Users" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
     </div>

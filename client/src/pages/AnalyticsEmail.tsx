@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Mail, Eye, MousePointerClick, Clock, Send, TrendingUp, ExternalLink, ArrowUpDown } from "lucide-react";
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend,
+} from "recharts";
 import AnalyticsFilters from "@/components/AnalyticsFilters";
 
 interface EmailData {
@@ -17,6 +21,10 @@ interface EmailData {
 
 type EmailSortField = "sentAt" | "recipient" | "opened" | "clicked";
 type SortDir = "asc" | "desc";
+
+function formatLabel(period: string) {
+  return new Date(period).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export default function AnalyticsEmail() {
   const [startDate, setStartDate] = useState("");
@@ -78,7 +86,10 @@ export default function AnalyticsEmail() {
     );
   }
 
-  const maxSent = Math.max(...data.trend.map(d => d.sent), 1);
+  const trendData = data.trend.map(d => ({
+    ...d,
+    label: formatLabel(d.period),
+  }));
 
   function formatTimeToOpen(minutes: number | null): string {
     if (minutes === null) return "N/A";
@@ -181,22 +192,19 @@ export default function AnalyticsEmail() {
             <Mail className="w-4 h-4 text-blue-500" />
             Send Volume
           </h3>
-          {data.trend.length === 0 ? (
+          {trendData.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No emails sent yet</p>
           ) : (
-            <div className="space-y-1">
-              {data.trend.slice(-20).map((point, i) => (
-                <div key={i} className="flex items-center gap-3 py-1" data-testid={`send-trend-${i}`}>
-                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                    {new Date(point.period).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
-                  </span>
-                  <div className="flex-1 h-2 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500/60 rounded-full" style={{ width: `${(point.sent / maxSent) * 100}%` }} />
-                  </div>
-                  <span className="text-xs font-bold text-foreground w-10 text-right tabular-nums">{point.sent}</span>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={trendData.length > 30 ? Math.floor(trendData.length / 15) : 0} />
+                <YAxis tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="sent" name="Emails Sent" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           )}
         </div>
 
@@ -205,40 +213,31 @@ export default function AnalyticsEmail() {
             <Eye className="w-4 h-4 text-green-500" />
             Engagement Trend
           </h3>
-          {data.trend.length === 0 ? (
+          {trendData.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No tracking data yet</p>
           ) : (
-            <div className="space-y-1">
-              {data.trend.slice(-20).map((point, i) => (
-                <div key={i} className="flex items-center gap-3 py-1.5" data-testid={`engagement-trend-${i}`}>
-                  <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">
-                    {new Date(point.period).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
-                  </span>
-                  <div className="flex-1 space-y-0.5">
-                    <div className="h-2 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${point.openRate >= 50 ? "bg-green-500/60" : point.openRate >= 25 ? "bg-amber-500/60" : "bg-red-500/40"}`}
-                        style={{ width: `${Math.min(point.openRate, 100)}%` }}
-                      />
-                    </div>
-                    {point.clicked > 0 && (
-                      <div className="h-1.5 bg-black/[0.04] dark:bg-white/[0.06] rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all bg-amber-500/60"
-                          style={{ width: `${Math.min(point.clickRate, 100)}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right w-28 shrink-0">
-                    <span className="text-xs font-bold text-foreground tabular-nums">{point.openRate}% open</span>
-                    {point.clicked > 0 && (
-                      <span className="text-xs text-amber-600 tabular-nums block">{point.clickRate}% click</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} interval={trendData.length > 30 ? Math.floor(trendData.length / 15) : 0} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  stroke="currentColor"
+                  opacity={0.4}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 100]}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <Tooltip
+                  contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+                  formatter={(value: unknown) => [`${value}%`]}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Line type="monotone" dataKey="openRate" name="Open Rate" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="clickRate" name="Click Rate" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
           )}
         </div>
       </div>
