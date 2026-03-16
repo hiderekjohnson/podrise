@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -100,6 +100,10 @@ export interface IStorage {
   createReferralTier(data: InsertReferralTier): Promise<ReferralTier>;
   updateReferralTier(id: number, data: Partial<InsertReferralTier>): Promise<ReferralTier>;
   deleteReferralTier(id: number): Promise<void>;
+  getPulseSubscriptions(userId: number): Promise<PulseSubscription[]>;
+  addPulseSubscription(userId: number, topicSlug: string): Promise<PulseSubscription>;
+  removePulseSubscription(userId: number, topicSlug: string): Promise<void>;
+  bulkUpdatePulseSubscriptions(userId: number, topicSlugs: string[]): Promise<PulseSubscription[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -929,6 +933,37 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReferralTier(id: number): Promise<void> {
     await db.delete(referralTiers).where(eq(referralTiers.id, id));
+  }
+
+  async getPulseSubscriptions(userId: number): Promise<PulseSubscription[]> {
+    return db.select().from(pulseSubscriptions)
+      .where(eq(pulseSubscriptions.userId, userId))
+      .orderBy(asc(pulseSubscriptions.subscribedAt));
+  }
+
+  async addPulseSubscription(userId: number, topicSlug: string): Promise<PulseSubscription> {
+    const [sub] = await db.insert(pulseSubscriptions)
+      .values({ userId, topicSlug })
+      .onConflictDoNothing()
+      .returning();
+    if (sub) return sub;
+    const [existing] = await db.select().from(pulseSubscriptions)
+      .where(and(eq(pulseSubscriptions.userId, userId), eq(pulseSubscriptions.topicSlug, topicSlug)))
+      .limit(1);
+    return existing;
+  }
+
+  async removePulseSubscription(userId: number, topicSlug: string): Promise<void> {
+    await db.delete(pulseSubscriptions)
+      .where(and(eq(pulseSubscriptions.userId, userId), eq(pulseSubscriptions.topicSlug, topicSlug)));
+  }
+
+  async bulkUpdatePulseSubscriptions(userId: number, topicSlugs: string[]): Promise<PulseSubscription[]> {
+    await db.delete(pulseSubscriptions).where(eq(pulseSubscriptions.userId, userId));
+    if (topicSlugs.length === 0) return [];
+    const values = topicSlugs.map(slug => ({ userId, topicSlug: slug }));
+    return db.insert(pulseSubscriptions).values(values).returning();
+  }
   }
 }
 

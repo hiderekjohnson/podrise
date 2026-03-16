@@ -9397,6 +9397,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(404).json({ message: "User not found" });
     }
 
+    const billingCycle = req.body?.billingCycle;
+    if (billingCycle && billingCycle !== "monthly" && billingCycle !== "annual") {
+      return res.status(400).json({ message: "billingCycle must be 'monthly' or 'annual'" });
+    }
+    const cycle = billingCycle || "annual";
+
     try {
       const stripe = await getUncachableStripeClient();
 
@@ -9410,25 +9416,46 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         customerId = customer.id;
       }
 
-      const products = await stripe.products.search({ query: "name:'PodCap Pro'" });
-      const proProduct = products.data.find(p => p.active);
+      let products = await stripe.products.search({ query: "name:'PodCap Pulse Pro'" });
+      let proProduct = products.data.find(p => p.active);
 
       if (!proProduct) {
-        return res.status(500).json({ message: "No Pro plan found. Please contact support." });
+        proProduct = await stripe.products.create({
+          name: "PodCap Pulse Pro",
+          description: "Daily topic briefings personalized by industry, interest, and role.",
+        });
       }
 
-      const pricesResult = await stripe.prices.list({ product: proProduct.id, active: true, limit: 5 });
-      const proPrice = pricesResult.data.find(p => p.recurring?.interval === "month");
+      const pricesResult = await stripe.prices.list({ product: proProduct.id, active: true, limit: 10 });
 
-      if (!proPrice) {
-        return res.status(500).json({ message: "No Pro plan price found. Please contact support." });
+      let targetPrice;
+      if (cycle === "monthly") {
+        targetPrice = pricesResult.data.find(p => p.recurring?.interval === "month" && p.unit_amount === 1500);
+        if (!targetPrice) {
+          targetPrice = await stripe.prices.create({
+            product: proProduct.id,
+            unit_amount: 1500,
+            currency: "usd",
+            recurring: { interval: "month" },
+          });
+        }
+      } else {
+        targetPrice = pricesResult.data.find(p => p.recurring?.interval === "year" && p.unit_amount === 15000);
+        if (!targetPrice) {
+          targetPrice = await stripe.prices.create({
+            product: proProduct.id,
+            unit_amount: 15000,
+            currency: "usd",
+            recurring: { interval: "year" },
+          });
+        }
       }
 
       const baseUrl = `${req.protocol}://${req.get("host")}`;
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         payment_method_types: ["card"],
-        line_items: [{ price: proPrice.id, quantity: 1 }],
+        line_items: [{ price: targetPrice.id, quantity: 1 }],
         mode: "subscription",
         success_url: `${baseUrl}/dashboard?upgraded=true`,
         cancel_url: `${baseUrl}/upgrade`,
@@ -9498,14 +9525,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const user = await storage.getUserById(cancelUserId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
-    }
-
-    const podcastCount = user.podcasts?.length || 0;
-    if (podcastCount > 3) {
-      return res.status(400).json({
-        message: `Please remove ${podcastCount - 3} podcast${podcastCount - 3 > 1 ? "s" : ""} before canceling. The free plan supports up to 3 podcasts.`,
-        podcastCount,
-      });
     }
 
     if (!user.stripeSubscriptionId) {
@@ -9614,7 +9633,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         limit: 10,
       });
 
-      const products = await stripe.products.search({ query: "name:'PodCap Pro'" });
+      const products = await stripe.products.search({ query: "name:'PodCap Pulse Pro'" });
       const proProductId = products.data.find(p => p.active)?.id;
 
       const activeSub = subscriptions.data.find(sub =>
@@ -9643,6 +9662,88 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err) {
       console.error("Sync subscription error:", err);
       res.json({ plan: user.plan || "free" });
+    }
+  });
+
+  app.get("/api/pulse/subscriptions", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    try {
+      const subs = await storage.getPulseSubscriptions(userId);
+      res.json({ subscriptions: subs });
+    } catch (err: any) {
+      console.error("Get pulse subscriptions error:", err);
+      res.status(500).json({ message: "Failed to get subscriptions" });
+    }
+  });
+
+  const { VALID_PULSE_SLUGS } = await import("@shared/pulseSlugs");
+
+  app.post("/api/pulse/subscriptions", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(userId);
+    if (!user || user.plan !== "pro") {
+      return res.status(403).json({ message: "Pro plan required" });
+    }
+    const { topicSlug } = req.body;
+    if (!topicSlug || typeof topicSlug !== "string" || !VALID_PULSE_SLUGS.has(topicSlug)) {
+      return res.status(400).json({ message: "Invalid topicSlug" });
+    }
+    try {
+      const sub = await storage.addPulseSubscription(userId, topicSlug);
+      res.json({ subscription: sub });
+    } catch (err) {
+      console.error("Add pulse subscription error:", err);
+      res.status(500).json({ message: "Failed to add subscription" });
+    }
+  });
+
+  app.delete("/api/pulse/subscriptions/:topicSlug", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(userId);
+    if (!user || user.plan !== "pro") {
+      return res.status(403).json({ message: "Pro plan required" });
+    }
+    if (!VALID_PULSE_SLUGS.has(req.params.topicSlug)) {
+      return res.status(400).json({ message: "Invalid topicSlug" });
+    }
+    try {
+      await storage.removePulseSubscription(userId, req.params.topicSlug);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Remove pulse subscription error:", err);
+      res.status(500).json({ message: "Failed to remove subscription" });
+    }
+  });
+
+  app.put("/api/pulse/subscriptions", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUserById(userId);
+    if (!user || user.plan !== "pro") {
+      return res.status(403).json({ message: "Pro plan required" });
+    }
+    const { topicSlugs } = req.body;
+    if (!Array.isArray(topicSlugs) || topicSlugs.length > 50) {
+      return res.status(400).json({ message: "topicSlugs must be an array with at most 50 items" });
+    }
+    const validSlugs = [...new Set(topicSlugs.filter((s: string) => typeof s === "string" && VALID_PULSE_SLUGS.has(s)))];
+    try {
+      const subs = await storage.bulkUpdatePulseSubscriptions(userId, validSlugs);
+      res.json({ subscriptions: subs });
+    } catch (err) {
+      console.error("Bulk update pulse subscriptions error:", err);
+      res.status(500).json({ message: "Failed to update subscriptions" });
     }
   });
 

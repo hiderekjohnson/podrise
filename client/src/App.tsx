@@ -58,6 +58,8 @@ const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
 const Disclosure = lazy(() => import("./pages/Disclosure"));
 const PodSquad = lazy(() => import("./pages/PodSquad"));
+const Upgrade = lazy(() => import("./pages/Upgrade"));
+const MyPulsePage = lazy(() => import("./pages/MyPulsePage"));
 
 function PageLoader() {
   return (
@@ -131,6 +133,8 @@ function Router() {
         <Route path="/topics/:slug/pulse" component={TopicPulsePage} />
         <Route path="/topics/:slug" component={TopicDetailPage} />
         <Route path="/topics" component={TopicsDirectory} />
+        <Route path="/upgrade" component={Upgrade} />
+        <Route path="/pulse" component={MyPulsePage} />
         <Route path="/podcaster/claim" component={PodcasterClaim} />
         <Route path="/podcaster/verify" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />

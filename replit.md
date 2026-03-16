@@ -44,8 +44,10 @@ PodCap is a full-stack web application designed to provide personalized daily po
 - **Taddy Webhook Product Extraction**: Automatically saves and filters products from new episodes arriving via Taddy webhooks.
 - **Pod Squad Referral Program**: Morning Brew-style referral system. Users get unique 8-char referral codes and share via SMS, WhatsApp, social media, or email invites. 7 tiered rewards (3/5/10/15/25/50/100 referrals). Referrals tracked on registration and verified. DB tables: `referrals` (referrerId, referredUserId, status, createdAt), `referral_tiers` (threshold, rewardName, rewardDescription, imageUrl, active, sortOrder). Users table has `referral_code` (unique) and `referred_by` columns. API: `GET /api/referrals/my-stats` (auth), `GET /api/referrals/leaderboard` (public, emails stripped), `POST /api/referrals/send-invite` (auth), admin CRUD at `/api/admin/referral-tiers`. Registration accepts optional `referralCode` in request body for mobile app integration. Daily recap emails include a Pod Squad section with referral count and next tier progress. Frontend: `/pod-squad` page with hero, tier progression, sharing tools, leaderboard. Admin: Referrals tab in admin panel with tier management and leaderboard views.
 
+- **Pulse Product (Pro)**: Paid subscription ($15/mo or $150/yr) for personalized daily topic briefings. Users select from 30+ Pulse topics organized by industry, interest, and role. Data in `client/src/data/pulseTopics.ts` (separate from browse `TOPICS` in `topicData.ts`). DB table `pulse_subscriptions` tracks user topic selections. Pricing page at `/upgrade` with Free/Pro/Enterprise tiers. Topic selection UI at `/pulse` ("My Pulse"). Stripe checkout creates "PodCap Pulse Pro" product with monthly and annual prices. Webhook handlers set plan to pro/free based on subscription status. Settings page shows Pulse Pro branding and billing management for Pro users. Sidebar includes "My Pulse" nav item.
+
 ## External Dependencies
-- **Stripe**: Payment processing and subscription management.
+- **Stripe**: Payment processing and subscription management for Pulse Pro ($15/mo or $150/yr).
 - **OpenAI**: AI-driven content generation and chat.
 - **Taddy GraphQL API**: Podcast transcription services and show notes.
 - **iTunes Search API**: Podcast search functionality.

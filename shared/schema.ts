@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb, real } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb, real, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -668,4 +668,21 @@ export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
 
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
+
+export const pulseSubscriptions = pgTable("pulse_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  topicSlug: text("topic_slug").notNull(),
+  subscribedAt: timestamp("subscribed_at").defaultNow(),
+}, (table) => ({
+  userTopicUnique: unique("pulse_subscriptions_user_topic_unique").on(table.userId, table.topicSlug),
+}));
+
+export const insertPulseSubscriptionSchema = createInsertSchema(pulseSubscriptions).omit({
+  id: true,
+  subscribedAt: true,
+});
+
+export type PulseSubscription = typeof pulseSubscriptions.$inferSelect;
+export type InsertPulseSubscription = z.infer<typeof insertPulseSubscriptionSchema>;
 

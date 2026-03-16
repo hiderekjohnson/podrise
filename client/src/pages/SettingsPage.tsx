@@ -7,9 +7,11 @@ import { TimePicker } from "@/components/TimePicker";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   Mail, Clock, Globe, Palmtree, LogOut,
-  ChevronRight, Sun, Moon, User, MapPin, Languages, Calendar
+  ChevronRight, Sun, Moon, User, MapPin, Languages, Calendar,
+  Crown, Zap, CreditCard, ExternalLink
 } from "lucide-react";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { PodCapIcon } from "@/components/PodCapHeader";
 
@@ -81,8 +83,13 @@ export default function SettingsPage() {
               <p className="text-[18px] md:text-[20px] font-bold text-[#09090B] dark:text-white truncate">
                 {user?.displayName || user?.email || ""}
               </p>
-              <p className="text-[13px] md:text-[14px] text-[#A1A1AA] mt-0.5">
-                {user?.plan === "pro" ? "Pro member" : "Free plan"}
+              <p className="text-[13px] md:text-[14px] text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
+                {user?.plan === "pro" ? (
+                  <>
+                    <Crown className="w-3.5 h-3.5 text-[#6366F1]" />
+                    <span className="text-[#6366F1] font-semibold">Pulse Pro</span>
+                  </>
+                ) : "Free plan"}
               </p>
             </div>
           </div>
@@ -244,6 +251,8 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          <SubscriptionSection user={user} navigate={navigate} />
+
           <section>
             <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Display</h2>
             <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden">
@@ -355,5 +364,133 @@ export default function SettingsPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+interface StripePrice {
+  recurring?: { interval?: string };
+}
+
+interface StripeSubscriptionItem {
+  price?: StripePrice;
+}
+
+interface StripeSubscription {
+  id: string;
+  status: string;
+  items?: { data?: StripeSubscriptionItem[] };
+}
+
+interface SubscriptionData {
+  subscription: StripeSubscription | null;
+  plan: string;
+}
+
+function SubscriptionSection({ user, navigate }: { user: { plan?: string; stripeCustomerId?: string | null } | undefined; navigate: (path: string) => void }) {
+  const { toast } = useToast();
+  const [loadingPortal, setLoadingPortal] = useState(false);
+
+  const { data: subData } = useQuery<SubscriptionData>({
+    queryKey: ["/api/stripe/subscription"],
+    enabled: !!user && user.plan === "pro",
+  });
+
+  const handleManageBilling = async () => {
+    setLoadingPortal(true);
+    try {
+      const res = await apiRequest("POST", "/api/stripe/portal");
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to open billing portal", variant: "destructive" });
+    } finally {
+      setLoadingPortal(false);
+    }
+  };
+
+  const isPro = user?.plan === "pro";
+
+  let billingCycleLabel = "";
+  if (isPro && subData?.subscription) {
+    const interval = subData.subscription.items?.data?.[0]?.price?.recurring?.interval;
+    if (interval === "year") {
+      billingCycleLabel = "Billed annually";
+    } else if (interval === "month") {
+      billingCycleLabel = "Billed monthly";
+    }
+  }
+
+  return (
+    <section>
+      <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Subscription</h2>
+      <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
+        <div className="px-4 py-3.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isPro ? "bg-[#6366F1]/10" : "bg-[#F4F4F5] dark:bg-[#27272A]"}`}>
+                {isPro ? <Crown className="w-5 h-5 text-[#6366F1]" /> : <Zap className="w-5 h-5 text-[#71717A]" />}
+              </div>
+              <div>
+                <p className="text-[14px] font-bold text-foreground" data-testid="text-plan-name">
+                  {isPro ? "Pulse Pro" : "Free Plan"}
+                </p>
+                <p className="text-[12px] text-muted-foreground">
+                  {isPro ? "Personalized daily topic briefings" : "Follow as many podcasts as you want"}
+                </p>
+                {isPro && billingCycleLabel && (
+                  <p className="text-[11px] text-[#6366F1] font-semibold mt-0.5" data-testid="text-billing-cycle">
+                    {billingCycleLabel}
+                  </p>
+                )}
+              </div>
+            </div>
+            {!isPro && (
+              <button
+                data-testid="button-upgrade-settings"
+                onClick={() => navigate("/upgrade")}
+                className="px-4 py-2 bg-[#6366F1] text-white text-[13px] font-bold rounded-xl hover:bg-[#4F46E5] transition-colors flex items-center gap-1.5"
+              >
+                <Crown className="w-3.5 h-3.5" />
+                Upgrade
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isPro && (
+          <>
+            <div className="px-4 py-3.5">
+              <button
+                data-testid="button-my-pulse-settings"
+                onClick={() => navigate("/pulse")}
+                className="w-full flex items-center gap-3 text-left hover:bg-[#FAFAFA] dark:hover:bg-[#18181B] transition-colors rounded-lg -mx-1 px-1"
+              >
+                <Zap className="w-[18px] h-[18px] text-[#6366F1]" />
+                <span className="text-[14px] font-semibold text-foreground flex-1">Manage Pulse Topics</span>
+                <ChevronRight className="w-4 h-4 text-[#D4D4D8] dark:text-[#3F3F46]" />
+              </button>
+            </div>
+            <div className="px-4 py-3.5">
+              <button
+                data-testid="button-manage-billing"
+                onClick={handleManageBilling}
+                disabled={loadingPortal}
+                className="w-full flex items-center gap-3 text-left hover:bg-[#FAFAFA] dark:hover:bg-[#18181B] transition-colors rounded-lg -mx-1 px-1"
+              >
+                <CreditCard className="w-[18px] h-[18px] text-[#71717A]" />
+                <span className="text-[14px] font-semibold text-foreground flex-1">Manage Billing</span>
+                {loadingPortal ? (
+                  <span className="text-[12px] text-muted-foreground">Opening...</span>
+                ) : (
+                  <ExternalLink className="w-4 h-4 text-[#D4D4D8] dark:text-[#3F3F46]" />
+                )}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
