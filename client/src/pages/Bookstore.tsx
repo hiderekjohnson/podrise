@@ -14,6 +14,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { trackAffiliateUrl } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { PersonalShop } from "@/components/PersonalShop";
 
 interface ShopBook {
   name: string;
@@ -720,6 +722,16 @@ function AffiliateDisclosure() {
 }
 
 export default function ShopPage() {
+  const { data: user } = useAuth();
+
+  if (user) {
+    return <PersonalShop />;
+  }
+
+  return <PublicShopPage />;
+}
+
+function PublicShopPage() {
   const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
