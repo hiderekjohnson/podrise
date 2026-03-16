@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { PodCapIcon, PodCapWordmark } from "@/components/PodCapHeader";
 import {
   Home, Compass, ShoppingBag, Settings, HelpCircle, Bookmark,
-  ChevronLeft, ChevronRight, Zap
+  ChevronLeft, ChevronRight, Zap, Users
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
 
@@ -43,6 +43,7 @@ const NAV_ITEMS = [
   { key: "pulse", path: "/pulse", label: "My Pulse", LucideIcon: Zap, badge: "Pro" },
   { key: "shop", path: "/shop", label: "Shop", badge: "Beta", LucideIcon: ShoppingBag },
   { key: "bookmarks", path: "/bookmarks", label: "Bookmarks", LucideIcon: Bookmark },
+  { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", LucideIcon: Users },
   { key: "settings", path: "/settings", label: "Settings", Icon: SettingsIcon },
   { key: "help", path: "/help", label: "Help & Support", LucideIcon: HelpCircle },
 ];
