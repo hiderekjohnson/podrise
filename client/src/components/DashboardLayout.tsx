@@ -177,12 +177,6 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
               <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
               <span>|</span>
               <Link href="/cookies" className="hover:underline">Cookie Policy</Link>
-              <span>|</span>
-              <a href="/support" className="hover:underline">Accessibility</a>
-              <span>|</span>
-              <Link href="/advertise" className="hover:underline">Ads info</Link>
-              <span>|</span>
-              <Link href="/about" className="hover:underline">More</Link>
             </div>
             <p className="text-[11px] text-[#A1A1AA] dark:text-[#52525B] mt-1">
               &copy; 2026 PodCap, Inc.

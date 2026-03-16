@@ -705,6 +705,97 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/help-chat", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { messages } = req.body;
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 20) {
+      return res.status(400).json({ message: "Messages are required (max 20)" });
+    }
+
+    const validatedMessages: { role: "user" | "assistant"; content: string }[] = [];
+    for (const m of messages) {
+      if (!m || typeof m.content !== "string" || !["user", "assistant"].includes(m.role)) {
+        return res.status(400).json({ message: "Invalid message format" });
+      }
+      if (m.content.length === 0 || m.content.length > 2000) {
+        return res.status(400).json({ message: "Message content must be 1-2000 characters" });
+      }
+      validatedMessages.push({ role: m.role as "user" | "assistant", content: m.content });
+    }
+
+    if (validatedMessages.length === 0 || validatedMessages[validatedMessages.length - 1].role !== "user") {
+      return res.status(400).json({ message: "Last message must be from user" });
+    }
+
+    const systemPrompt = `You are PodCap's friendly and knowledgeable AI support assistant. You help users understand how PodCap works and troubleshoot any issues they have. Keep your answers concise, helpful, and conversational.
+
+Here is your knowledge base about PodCap:
+
+## What is PodCap?
+PodCap generates AI-powered recaps of your favorite podcasts. Follow the podcasts you care about, and PodCap delivers concise summaries of new episodes to your inbox and feed.
+
+## Getting Started
+- To follow a podcast: Go to the Discover page and search for a podcast, or browse curated lists. Click the "Follow" button next to any podcast.
+- Email recaps are sent daily at your configured delivery time. You can change your delivery time and timezone in Settings.
+- You can pause email delivery in Settings by setting a "Pause emails until" date. Your feed will still update while emails are paused.
+
+## Account Management
+- To change your email: Go to Settings and update your email address in the Account section. Click Save.
+- To log out: Go to Settings and scroll to the bottom. Click "Log out."
+- To update your profile: Go to Settings > Account Settings. You can update display name, location, language, and more.
+- To delete your account: Go to Settings and follow the account deletion option. This is permanent and removes all data.
+
+## Feed & Content
+- "For You" tab shows recaps from all podcasts that might interest you. "Following" shows only recaps from podcasts you explicitly follow.
+- Bookmarks: Click the bookmark icon on any recap card to save it. Access saved episodes from the Bookmarks page in the sidebar.
+- Sharing: Each recap card has a share button. On mobile it uses native share. On desktop it copies the link.
+
+## How Recaps Work
+- PodCap checks for new episodes released the previous calendar day in your timezone.
+- If no podcasts released a new episode, no email is sent that day — no empty digests.
+- Recaps are generated using advanced AI that analyzes episode content for accurate summaries.
+- Your daily recap is delivered at your chosen time each day.
+
+## Subscriptions & Pricing
+- PodCap is free to use. You can follow as many podcasts as you want.
+- PodCap Pro offers additional features. Pro plans can be managed from Settings.
+
+## Troubleshooting
+- Not receiving emails? Check your spam/junk folder first. Verify your email address in Settings. If emails are in spam, mark them as "not spam."
+- Still having issues? Users can contact support at hello@podcap.io or use the Support page.
+
+## Data & Privacy
+- PodCap only collects your email and podcast preferences. Data is never sold.
+- Payment processing is handled by Stripe — PodCap never sees or stores credit card details.
+
+If you don't know the answer to something, be honest about it and suggest the user contact hello@podcap.io for further help. Do not make up features that don't exist.`;
+
+    try {
+      const { openai } = await import("./replit_integrations/image/client");
+      const recentMessages = validatedMessages.slice(-10);
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...recentMessages,
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+      const reply = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
+      res.json({ reply });
+    } catch (err) {
+      console.error("[HelpChat] Failed to generate response:", err);
+      res.status(500).json({ message: "Failed to generate response" });
+    }
+  });
+
   app.post("/api/podcast-request", async (req, res) => {
     const { podcastName, reason, email } = req.body;
     if (!podcastName || !reason) {
