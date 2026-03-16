@@ -964,7 +964,6 @@ export class DatabaseStorage implements IStorage {
     const values = topicSlugs.map(slug => ({ userId, topicSlug: slug }));
     return db.insert(pulseSubscriptions).values(values).returning();
   }
-  }
 }
 
 export const storage = new DatabaseStorage();
