@@ -1,0 +1,15 @@
+For admin - on shop
+
+- for approved tab, need filters for different kinds of products, sort by recently added, most popular based on page views, etc.
+- on approved tab, maybe instead of edit, we say “view product” and it goes to a page with all the info essentially pulled from the public page, image, text, etc, and that’s where we can click to edit anything.
+- on each individual product page, we should also be able to delete it, move it back to approval queue.
+- when editing a product, we need it really easy for someone to check things, like we need to see which episodes the product was from, we need to easily open that episode in new tab, we need to have a button to click to open the url in a different tab.
+When approving, we should have the ability to see only books to approve or physical products, etc. when you click find images, it just says no images found from the product url. When you click find images, it should offer some selection of images below that you can select one and replace it with the image we’re going to use.
+When you reject an item, you need to collect why we rejected it.
+When approving an item, we should include more info, the url we’re going to use (everything should be editable), a description of the product, etc.
+Upload needs to have some info on what size images to upload.
+When you click approve, reject or skip, and go to the next one, the page gets longer or shorter because of the title, author, description, etc, we need to standardize the page size so those buttons stay at the exact same place.
+Is it possible to for every item in the approval queue we present three different images upon landing on the item for review? Is that too taxing? Maybe better than having to click find images, even though we could use that for find more images if the first three don’t work?
+For the image preview, can you preview it like we have in the shop, the size, the borders, etc, so we know exactly how it will look.
+On the item page, when approving, we should for every item, see the episode that is triggering it to be put on the site, and also especially important is the context around the conversation that is triggering it to be added. I think we need like 600 words of text around the conversation, and the item name highlighted in the conversation so the human can scan to see if legit, an ad, etc.
+Let’s also store for each item who approved it and when.

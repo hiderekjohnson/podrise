@@ -199,9 +199,9 @@ function RelatedProductCard({ product }: { product: RelatedProduct }) {
       className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl p-3 transition-all hover:border-[#6366F1]/30 hover:shadow-[0_2px_12px_rgba(0,0,0,0.1)] block"
       data-testid={`related-product-${product.slug}`}
     >
-      <div className="w-full aspect-square rounded-lg mb-2 overflow-hidden flex items-center justify-center bg-[#FAFAFA] dark:bg-white/[0.02]">
+      <div className="w-full aspect-[3/4] rounded-lg mb-2 overflow-hidden flex items-center justify-center bg-[#FAFAFA] dark:bg-white/[0.02] p-2">
         {hasImage ? (
-          <img src={product.imageUrl!} alt={product.name} className="w-full h-full object-cover" loading="lazy" onError={() => setImgError(true)} />
+          <img src={product.imageUrl!} alt={product.name} className="max-w-full max-h-full object-contain" loading="lazy" onError={() => setImgError(true)} />
         ) : (
           <ShoppingBag className="w-8 h-8 text-[#A1A1AA]/30" />
         )}
@@ -338,9 +338,9 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
           </div>
 
           <div ref={heroRef} className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start mb-8" data-testid="section-hero">
-            <div className={`w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] rounded-2xl shrink-0 overflow-hidden flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.12)] ${hasImage ? "" : "bg-gradient-to-br from-[#F7F7FC] to-[#E4E4E7] dark:from-white/[0.04] dark:to-white/[0.02]"}`}>
+            <div className={`w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] rounded-2xl shrink-0 overflow-hidden flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.12)] ${hasImage ? "bg-[#FAFAFA] dark:bg-white/[0.02] p-4" : "bg-gradient-to-br from-[#F7F7FC] to-[#E4E4E7] dark:from-white/[0.04] dark:to-white/[0.02]"}`}>
               {hasImage ? (
-                <img src={product.imageUrl!} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+                <img src={product.imageUrl!} alt={product.name} className="max-w-full max-h-full object-contain" onError={() => setImgError(true)} />
               ) : (
                 <ShoppingBag className="w-16 h-16 text-[#A1A1AA]/25" />
               )}
