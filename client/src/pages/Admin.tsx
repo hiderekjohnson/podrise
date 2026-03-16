@@ -1077,6 +1077,28 @@ export default function Admin() {
                         </button>
                       </div>
 
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-quotes">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Backfill Episode Quotes</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Generate shareable quotes for all episodes that don't have them yet. Runs in background.</p>
+                        </div>
+                        <button
+                          data-testid="button-backfill-quotes"
+                          onClick={async () => {
+                            if (!confirm("This will generate quotes for all episodes missing them (~3,990 episodes). It runs in the background. Continue?")) return;
+                            try {
+                              await apiRequest("POST", "/api/admin/updates/trigger-quote-backfill");
+                              toast({ title: "Quote Backfill Started", description: "Generating quotes for all episodes. Check progress below." });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to start quote backfill", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors whitespace-nowrap"
+                        >
+                          Start Backfill
+                        </button>
+                      </div>
+
                       <BatchExpansionPanel />
                     </div>
                   )}
