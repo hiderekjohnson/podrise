@@ -2808,7 +2808,7 @@ export async function registerRoutes(
         }
       }
 
-      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
+      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments WHERE cover_approved = true");
       const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
 
       const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
@@ -3150,7 +3150,7 @@ export async function registerRoutes(
         }
       }
 
-      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
+      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments WHERE cover_approved = true");
       const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
       const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
 
@@ -3336,7 +3336,7 @@ export async function registerRoutes(
         }
       }
 
-      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments");
+      const { rows: enrichments } = await pool.query("SELECT * FROM book_enrichments WHERE cover_approved = true");
       const enrichMap = new Map(enrichments.map((e: any) => [e.book_key, e]));
 
       const normalizeBookKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
