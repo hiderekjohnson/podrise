@@ -61,6 +61,7 @@ const directoryCache = {
   bookstore: new DataCache<any>("bookstore"),
   podcastsDiscovery: new DataCache<any>("podcastsDiscovery"),
   podcastsDirectory: new DataCache<any[]>("podcastsDirectory"),
+  sidebarData: new DataCache<any>("sidebarData"),
 };
 
 function podcastNameToSlugForEmail(name: string): string {
@@ -5248,6 +5249,83 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err) {
       console.error("Podcasts discovery error:", err);
       res.status(500).json({ message: "Failed to fetch discovery data" });
+    }
+  });
+
+  app.get("/api/sidebar-data", async (_req, res) => {
+    try {
+      const cached = directoryCache.sidebarData.get();
+      if (cached) return res.json(cached);
+
+      const client = await pool.connect();
+      try {
+        const topicsData = directoryCache.topics.get() || await computeTopicsData();
+        const trendingTopics = (topicsData || [])
+          .filter((t: any) => t.recentMentions > 0)
+          .sort((a: any, b: any) => b.recentMentions - a.recentMentions)
+          .slice(0, 5)
+          .map((t: any) => ({ slug: t.slug, name: t.name, episodeCount: t.recentMentions, trend: t.trend }));
+
+        const peopleData = directoryCache.people.get() || await computePeopleData();
+        const trendingPeople = (peopleData || [])
+          .filter((p: any) => p.recentMentions > 0)
+          .sort((a: any, b: any) => b.recentMentions - a.recentMentions)
+          .slice(0, 4)
+          .map((p: any) => ({ slug: p.slug, name: p.name, title: p.title, mentionCount: p.recentMentions, trend: p.trend }));
+
+        const { rows: recentQuotes } = await client.query(
+          `SELECT eq.speaker_name, eq.quote_text, eq.context, eq.podcast_slug, eq.episode_slug,
+                  lpr.podcast_name, lpr.episode_title
+           FROM episode_quotes eq
+           JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug
+           WHERE lpr.published = true
+           ORDER BY lpr.publish_date DESC, eq.sort_order ASC
+           LIMIT 30`
+        );
+        const seenSpeakers = new Set<string>();
+        const notableQuotes = recentQuotes.filter((q: any) => {
+          const key = q.speaker_name?.toLowerCase();
+          if (seenSpeakers.has(key)) return false;
+          seenSpeakers.add(key);
+          return q.quote_text && q.quote_text.length >= 20 && q.quote_text.length <= 200;
+        }).slice(0, 3).map((q: any) => ({
+          speakerName: q.speaker_name,
+          quoteText: q.quote_text,
+          podcastName: q.podcast_name,
+          podcastSlug: q.podcast_slug,
+          episodeSlug: q.episode_slug,
+        }));
+
+        const { rows: shopRows } = await client.query(
+          `SELECT ep.name, ep.company, ep.image_url, ep.category, ep.podcast_slug, ep.episode_slug
+           FROM extracted_products ep
+           WHERE ep.status = 'approved' AND ep.image_status = 'approved' AND ep.image_url IS NOT NULL
+           ORDER BY ep.extracted_at DESC
+           LIMIT 30`
+        );
+        const seenProducts = new Set<string>();
+        const popularShop = shopRows.filter((p: any) => {
+          const key = (p.name || "").toLowerCase().trim();
+          if (seenProducts.has(key)) return false;
+          seenProducts.add(key);
+          return true;
+        }).slice(0, 3).map((p: any) => ({
+          name: p.name,
+          company: p.company,
+          imageUrl: p.image_url,
+          category: p.category,
+          slug: generateItemSlug(p.name || "", p.company || null),
+        }));
+
+        const result = { trendingTopics, notableQuotes, trendingPeople, popularShop };
+        directoryCache.sidebarData.set(result);
+        res.json(result);
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error("Sidebar data error:", err);
+      res.status(500).json({ message: "Failed to fetch sidebar data" });
     }
   });
 

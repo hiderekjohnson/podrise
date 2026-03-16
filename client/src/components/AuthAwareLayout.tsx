@@ -3,13 +3,14 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface AuthAwareLayoutProps {
   children: React.ReactNode;
+  hideRightSidebar?: boolean;
 }
 
-export function AuthAwareLayout({ children }: AuthAwareLayoutProps) {
+export function AuthAwareLayout({ children, hideRightSidebar }: AuthAwareLayoutProps) {
   const { data: user } = useAuth();
 
   if (user) {
-    return <DashboardLayout>{children}</DashboardLayout>;
+    return <DashboardLayout hideRightSidebar={hideRightSidebar}>{children}</DashboardLayout>;
   }
 
   return <>{children}</>;

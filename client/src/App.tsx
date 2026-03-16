@@ -81,10 +81,10 @@ function Router() {
         <Route path="/bookmarks" component={BookmarksPage} />
         <Route path="/admin/setup" component={AdminSetup} />
         <Route path="/admin" component={Admin} />
-        <Route path="/shop">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><ShopPage /></Suspense></AuthAwareLayout>}</Route>
-        <Route path="/shop/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><ShopDetailRouter /></Suspense></AuthAwareLayout>}</Route>
-        <Route path="/podcasts/:slug/episodes">{() => <AuthAwareLayout><EpisodeArchivePage /></AuthAwareLayout>}</Route>
-        <Route path="/podcasts/:podcastSlug/:episodeSlug/guests">{() => <AuthAwareLayout><EpisodeGuestsPage /></AuthAwareLayout>}</Route>
+        <Route path="/shop">{() => <AuthAwareLayout hideRightSidebar><Suspense fallback={<PageLoader />}><ShopPage /></Suspense></AuthAwareLayout>}</Route>
+        <Route path="/shop/:slug">{() => <AuthAwareLayout hideRightSidebar><Suspense fallback={<PageLoader />}><ShopDetailRouter /></Suspense></AuthAwareLayout>}</Route>
+        <Route path="/podcasts/:slug/episodes">{() => <AuthAwareLayout hideRightSidebar><EpisodeArchivePage /></AuthAwareLayout>}</Route>
+        <Route path="/podcasts/:podcastSlug/:episodeSlug/guests">{() => <AuthAwareLayout hideRightSidebar><EpisodeGuestsPage /></AuthAwareLayout>}</Route>
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />
         <Route path="/podcasts/:slug" component={PodcastRouter} />
         <Route path="/podcasts" component={PodcastsExplorer} />

@@ -13,7 +13,7 @@ function PageLoader() {
 
 export default function PodcastRouter() {
   return (
-    <AuthAwareLayout>
+    <AuthAwareLayout hideRightSidebar>
       <Suspense fallback={<PageLoader />}>
         <PodcastLandingGeneric />
       </Suspense>

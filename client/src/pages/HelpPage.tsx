@@ -73,7 +73,7 @@ function FAQSection({ title, icon: Icon, items }: { title: string; icon: typeof 
 
 export default function HelpPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout hideRightSidebar>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="help-page">
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 pb-24 md:pb-8">
           <div className="mb-8">

@@ -6,9 +6,11 @@ import {
   Home, Compass, ShoppingBag, Settings, HelpCircle, Bookmark,
   ChevronLeft, ChevronRight
 } from "lucide-react";
+import { RightSidebar } from "@/components/RightSidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  hideRightSidebar?: boolean;
 }
 
 function HomeIcon({ active }: { active: boolean }) {
@@ -82,13 +84,15 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
   );
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutProps) {
   const { data: user } = useAuth();
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (path: string) =>
     location === path || (path === "/dashboard" && location === "/");
+
+  const showRightSidebar = !hideRightSidebar;
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="dashboard-layout">
@@ -188,7 +192,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       <div className={`transition-all duration-200 ${collapsed ? "md:ml-[68px]" : "md:ml-[260px]"}`}>
-        {children}
+        <div className="flex">
+          <div className="flex-1 min-w-0">
+            {children}
+          </div>
+          {showRightSidebar && (
+            <div className={collapsed
+              ? "hidden xl:block border-l border-[#F0F0F2] dark:border-[#1C1C22] transition-all duration-200"
+              : "hidden 2xl:block border-l border-[#F0F0F2] dark:border-[#1C1C22] transition-all duration-200"
+            }>
+              <RightSidebar />
+            </div>
+          )}
+        </div>
       </div>
 
       <MobileBottomNav currentPath={location} />

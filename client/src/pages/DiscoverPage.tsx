@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -168,9 +168,18 @@ function ListDetail({
 export default function DiscoverPage() {
   const { data: user } = useAuth();
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
+  const initialQuery = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("q") || "" : "";
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedList, setSelectedList] = useState<PodcastList | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") || "";
+    if (q && q !== searchQuery) {
+      setSearchQuery(q);
+    }
+  }, []);
 
   const { data: lists = [], isLoading: loadingLists } = useQuery<PodcastList[]>({
     queryKey: ["/api/lists"],
