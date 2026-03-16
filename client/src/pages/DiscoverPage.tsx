@@ -3,8 +3,9 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, X, ArrowLeft, Building2, Lightbulb, Briefcase, Sparkles, ChevronRight, ListIcon } from "lucide-react";
+import { Search, Loader2, X, ArrowLeft, Building2, Lightbulb, Briefcase, Sparkles, ChevronRight, ListIcon, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { Link } from "wouter";
 
 interface PodcastList {
   id: number;
@@ -29,6 +30,86 @@ interface ListDetailPodcast {
   artwork_url: string;
   description?: string;
   category?: string;
+}
+
+const DISCOVER_TOPICS = [
+  { slug: "ai", name: "AI", icon: Brain, color: "#8B5CF6" },
+  { slug: "startups", name: "Startups", icon: Rocket, color: "#F59E0B" },
+  { slug: "investing", name: "Investing", icon: BarChart3, color: "#3B82F6" },
+  { slug: "crypto-web3", name: "Crypto", icon: Coins, color: "#F97316" },
+  { slug: "health-longevity", name: "Health", icon: Heart, color: "#EF4444" },
+  { slug: "psychology", name: "Psychology", icon: BookOpen, color: "#A855F7" },
+  { slug: "productivity", name: "Productivity", icon: Zap, color: "#EAB308" },
+  { slug: "geopolitics", name: "Geopolitics", icon: Globe, color: "#64748B" },
+] as const;
+
+interface TopicRecap {
+  slug: string;
+  episode_slug: string;
+  podcast_name: string;
+  episode_title: string;
+  publish_date: string;
+  artwork_url: string;
+  tldl: string;
+}
+
+function TopicRecapsFeed({ topicSlug }: { topicSlug: string }) {
+  const { data: recaps, isLoading, isError } = useQuery<TopicRecap[]>({
+    queryKey: ["/api/topics", topicSlug, "episodes"],
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="w-5 h-5 animate-spin text-[#6366F1]" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-10" data-testid="topic-recaps-error">
+        <p className="text-[14px] text-[#EF4444]">Failed to load recaps. Please try again later.</p>
+      </div>
+    );
+  }
+
+  if (!recaps || recaps.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-[14px] text-[#A1A1AA]">No recent recaps for this topic</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="divide-y divide-[#F0F0F2] dark:divide-[#1C1C22]" data-testid="topic-recaps-feed">
+      {recaps.map((recap) => {
+        const date = new Date(recap.publish_date);
+        const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        return (
+          <Link
+            key={`${recap.slug}/${recap.episode_slug}`}
+            href={`/podcasts/${recap.slug}/${recap.episode_slug}`}
+            className="flex gap-3 py-3.5 hover:bg-[#FAFAFA] dark:hover:bg-[#111114] transition-colors -mx-4 px-4 md:-mx-8 md:px-8 cursor-pointer no-underline"
+            data-testid={`topic-recap-${recap.episode_slug}`}
+          >
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
+              <img src={recap.artwork_url} alt={recap.podcast_name} className="w-full h-full object-cover" loading="lazy" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white line-clamp-2 leading-snug">{recap.episode_title}</p>
+              <p className="text-[12px] text-[#A1A1AA] mt-0.5">{recap.podcast_name} · {formatted}</p>
+              {recap.tldl && (
+                <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] mt-1 line-clamp-2 leading-relaxed">{recap.tldl}</p>
+              )}
+            </div>
+            <ChevronRight className="w-4 h-4 text-[#D4D4D8] flex-shrink-0 mt-1" />
+          </Link>
+        );
+      })}
+    </div>
+  );
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; icon: typeof Building2; color: string }> = {
@@ -172,6 +253,7 @@ export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedList, setSelectedList] = useState<PodcastList | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -393,6 +475,37 @@ export default function DiscoverPage() {
             </div>
           ) : (
             <>
+              <div className="px-4 md:px-8 pt-2 pb-4" data-testid="topics-section">
+                <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white mb-3">Topics</h2>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                  {DISCOVER_TOPICS.map((topic) => {
+                    const Icon = topic.icon;
+                    const isActive = selectedTopic === topic.slug;
+                    return (
+                      <button
+                        key={topic.slug}
+                        onClick={() => setSelectedTopic(isActive ? null : topic.slug)}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all active:scale-95 ${
+                          isActive
+                            ? "text-white"
+                            : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
+                        }`}
+                        style={isActive ? { backgroundColor: topic.color } : undefined}
+                        data-testid={`topic-pill-${topic.slug}`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        {topic.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedTopic && (
+                  <div className="mt-3">
+                    <TopicRecapsFeed topicSlug={selectedTopic} />
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2 px-4 md:px-8 py-3 overflow-x-auto scrollbar-hide">
                 {recommendedLists.length > 0 && (
                   <button
