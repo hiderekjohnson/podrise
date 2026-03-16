@@ -94,6 +94,7 @@ export interface IStorage {
   createReferral(referrerId: number, referredUserId: number): Promise<Referral>;
   verifyReferral(referredUserId: number): Promise<Referral | undefined>;
   getReferralCount(userId: number): Promise<number>;
+  getPendingReferralCount(userId: number): Promise<number>;
   getLeaderboard(limit?: number): Promise<{ userId: number; displayName: string | null; email: string; count: number }[]>;
   getReferralTiers(): Promise<ReferralTier[]>;
   getReferralTierById(id: number): Promise<ReferralTier | undefined>;
@@ -892,6 +893,13 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.select({ count: sql<number>`count(*)` })
       .from(referrals)
       .where(and(eq(referrals.referrerId, userId), eq(referrals.status, "verified")));
+    return Number(result?.count ?? 0);
+  }
+
+  async getPendingReferralCount(userId: number): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(*)` })
+      .from(referrals)
+      .where(and(eq(referrals.referrerId, userId), eq(referrals.status, "pending")));
     return Number(result?.count ?? 0);
   }
 

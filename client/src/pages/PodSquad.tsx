@@ -26,6 +26,7 @@ interface ReferralStats {
   referralCode: string;
   referralLink: string;
   count: number;
+  pendingCount: number;
   currentTier: ReferralTier | null;
   nextTier: ReferralTier | null;
   tiers: ReferralTier[];
@@ -250,6 +251,14 @@ export default function PodSquad() {
                 <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] font-medium">Your Referral Count</p>
                 <p className="text-[28px] font-extrabold text-[#09090B] dark:text-white leading-none" data-testid="text-referral-count">{stats?.count ?? 0}</p>
               </div>
+              {(stats?.pendingCount ?? 0) > 0 && (
+                <div className="ml-1 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40">
+                  <p className="text-[12px] text-amber-600 dark:text-amber-400 font-medium">
+                    {stats!.pendingCount} pending
+                  </p>
+                  <p className="text-[11px] text-amber-500/70 dark:text-amber-400/60">awaiting email confirmation</p>
+                </div>
+              )}
             </div>
             {stats?.nextTier && (
               <div className="flex-1 w-full sm:w-auto">

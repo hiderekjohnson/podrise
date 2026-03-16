@@ -1061,6 +1061,7 @@ If you don't know the answer to something, be honest about it and suggest the us
     try {
       const code = await ensureReferralCode(userId);
       const count = await storage.getReferralCount(userId);
+      const pendingCount = await storage.getPendingReferralCount(userId);
       const tiers = await storage.getReferralTiers();
       const activeTiers = tiers.filter(t => t.active);
       const currentTier = activeTiers.filter(t => count >= t.threshold).pop() || null;
@@ -1070,6 +1071,7 @@ If you don't know the answer to something, be honest about it and suggest the us
         referralCode: code,
         referralLink: `https://podcap.io/r/${code}`,
         count,
+        pendingCount,
         currentTier,
         nextTier,
         tiers: activeTiers,
