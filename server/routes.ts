@@ -531,17 +531,6 @@ export async function registerRoutes(
         END IF;
       END $$;
 
-      INSERT INTO referrals (referrer_id, referred_user_id, status, verified_at)
-      SELECT u.referred_by::integer, u.id, 
-             CASE WHEN u.email_verified THEN 'verified' ELSE 'pending' END,
-             CASE WHEN u.email_verified THEN NOW() ELSE NULL END
-      FROM users u
-      JOIN users ref ON ref.id = u.referred_by::integer
-      WHERE u.referred_by IS NOT NULL
-        AND u.referred_by::text ~ '^\d+$'
-        AND NOT EXISTS (SELECT 1 FROM referrals r WHERE r.referred_user_id = u.id)
-      ON CONFLICT (referred_user_id) DO NOTHING;
-
       CREATE TABLE IF NOT EXISTS referral_tiers (
         id SERIAL PRIMARY KEY,
         threshold INTEGER NOT NULL UNIQUE,
@@ -583,6 +572,27 @@ export async function registerRoutes(
     console.log("[startup] Schema migration check complete");
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
+  }
+
+  try {
+    const { pool: backfillPool } = await import("./db");
+    const backfillResult = await backfillPool.query(`
+      INSERT INTO referrals (referrer_id, referred_user_id, status, verified_at)
+      SELECT u.referred_by::integer, u.id, 
+             CASE WHEN u.email_verified THEN 'verified' ELSE 'pending' END,
+             CASE WHEN u.email_verified THEN NOW() ELSE NULL END
+      FROM users u
+      JOIN users ref ON ref.id = u.referred_by::integer
+      WHERE u.referred_by IS NOT NULL
+        AND u.referred_by::text ~ '^\\d+$'
+        AND NOT EXISTS (SELECT 1 FROM referrals r WHERE r.referred_user_id = u.id)
+      ON CONFLICT (referred_user_id) DO NOTHING
+    `);
+    if (backfillResult.rowCount && backfillResult.rowCount > 0) {
+      console.log(`[startup] Backfilled ${backfillResult.rowCount} referral rows`);
+    }
+  } catch (e: any) {
+    console.error("[startup] Referral backfill error:", e.message);
   }
 
   app.use((req, res, next) => {
