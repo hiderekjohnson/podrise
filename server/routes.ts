@@ -544,7 +544,7 @@ export async function registerRoutes(
 
       CREATE TABLE IF NOT EXISTS referral_tiers (
         id SERIAL PRIMARY KEY,
-        threshold INTEGER NOT NULL,
+        threshold INTEGER NOT NULL UNIQUE,
         reward_name TEXT NOT NULL,
         reward_description TEXT NOT NULL,
         image_url TEXT,
@@ -552,6 +552,16 @@ export async function registerRoutes(
         active BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMP DEFAULT NOW()
       );
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conrelid = 'referral_tiers'::regclass AND contype = 'u'
+          AND EXISTS (SELECT 1 FROM unnest(conkey) k JOIN pg_attribute a ON a.attrelid = conrelid AND a.attnum = k WHERE a.attname = 'threshold')
+        ) THEN
+          DELETE FROM referral_tiers a USING referral_tiers b WHERE a.id > b.id AND a.threshold = b.threshold;
+          ALTER TABLE referral_tiers ADD CONSTRAINT referral_tiers_threshold_key UNIQUE (threshold);
+        END IF;
+      END $$;
       CREATE TABLE IF NOT EXISTS pulse_subscriptions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
@@ -13849,28 +13859,25 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
-      const { rows: tierCount } = await pool.query("SELECT COUNT(*)::int AS count FROM referral_tiers");
-      if (tierCount[0].count === 0) {
-        console.log("[ReferralSeed] No referral tiers found — seeding defaults...");
-        const defaultTiers = [
-          { threshold: 3, rewardName: "Exclusive Sticker Pack", rewardDescription: "A set of premium PodCap stickers.", sortOrder: 1 },
-          { threshold: 5, rewardName: "PodCap Premium — 1 Month Free", rewardDescription: "Unlock a free month of PodCap Premium with all features.", sortOrder: 2 },
-          { threshold: 10, rewardName: "PodCap Mug", rewardDescription: "A sleek PodCap-branded ceramic mug.", sortOrder: 3 },
-          { threshold: 15, rewardName: "Limited Edition T-Shirt", rewardDescription: "PodCap crew-neck tee, limited run.", sortOrder: 4 },
-          { threshold: 25, rewardName: "AirPods Pro", rewardDescription: "Top-tier audio for a top-tier referrer.", sortOrder: 5 },
-          { threshold: 50, rewardName: "Annual Premium Membership", rewardDescription: "A full year of PodCap Premium, on us.", sortOrder: 6 },
-          { threshold: 100, rewardName: "VIP Experience Package", rewardDescription: "Exclusive VIP access and premium perks.", sortOrder: 7 },
-        ];
-        for (const t of defaultTiers) {
-          await pool.query(
-            `INSERT INTO referral_tiers (threshold, reward_name, reward_description, sort_order, active) VALUES ($1, $2, $3, $4, true) ON CONFLICT DO NOTHING`,
-            [t.threshold, t.rewardName, t.rewardDescription, t.sortOrder]
-          );
-        }
-        console.log(`[ReferralSeed] Seeded ${defaultTiers.length} default referral tiers`);
-      } else {
-        console.log(`[ReferralSeed] ${tierCount[0].count} referral tiers already exist, skipping`);
+      console.log("[ReferralSeed] Syncing referral tiers to 5-tier structure...");
+      const defaultTiers = [
+        { threshold: 3, rewardName: "Stickers", rewardDescription: "A fresh set of PodCap stickers for your laptop, water bottle, you name it.", sortOrder: 1 },
+        { threshold: 5, rewardName: "T-Shirt", rewardDescription: "Rep the pod life with a soft-cotton PodCap crew tee.", sortOrder: 2 },
+        { threshold: 10, rewardName: "Socks", rewardDescription: "Cozy PodCap-branded socks to keep your feet as happy as your ears.", sortOrder: 3 },
+        { threshold: 15, rewardName: "Mystery Item", rewardDescription: "A surprise reward hand-picked by the PodCap team. What could it be?", sortOrder: 4 },
+        { threshold: 25, rewardName: "AirPods", rewardDescription: "Top-tier audio for a top-tier referrer.", sortOrder: 5 },
+      ];
+      const validThresholds = defaultTiers.map(t => t.threshold);
+      await pool.query(`DELETE FROM referral_tiers WHERE threshold != ALL($1::int[])`, [validThresholds]);
+      for (const t of defaultTiers) {
+        await pool.query(
+          `INSERT INTO referral_tiers (threshold, reward_name, reward_description, sort_order, active)
+           VALUES ($1, $2, $3, $4, true)
+           ON CONFLICT (threshold) DO UPDATE SET reward_name = $2, reward_description = $3, sort_order = $4, active = true`,
+          [t.threshold, t.rewardName, t.rewardDescription, t.sortOrder]
+        );
       }
+      console.log(`[ReferralSeed] Synced ${defaultTiers.length} referral tiers`);
     } catch (err) {
       console.error("[ReferralSeed] Failed to seed referral tiers:", err);
     }

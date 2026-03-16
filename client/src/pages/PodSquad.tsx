@@ -7,7 +7,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
 import {
   Copy, MessageSquare, Check, Lock, Trophy, Users,
-  Send, Star, Crown, Zap, Award, Target, Rocket,
+  Send, Star, Crown, Zap, Award, Target,
   BookUser, ChevronRight
 } from "lucide-react";
 import { SiWhatsapp, SiX, SiLinkedin, SiFacebook } from "react-icons/si";
@@ -38,7 +38,7 @@ interface LeaderboardEntry {
   count: number;
 }
 
-const TIER_ICONS = [Users, Star, Zap, Award, Crown, Rocket, Trophy];
+const TIER_ICONS = [Star, Zap, Award, Crown, Trophy];
 
 const DEFAULT_INVITE_MESSAGE = `Thought you'd find this useful. PodCap tracks your favorite podcasts and pulls out the key takeaways, so you always know what's going on without sitting through hours of audio. Free:`;
 
