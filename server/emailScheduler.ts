@@ -706,6 +706,7 @@ async function processSchedulerTick() {
 
   for (const user of users) {
     if (!user.podcasts || user.podcasts.length === 0 || !user.email) continue;
+    if (!user.emailVerified) continue;
     if (isUserOnVacation(user)) continue;
 
     const timezone = user.deliveryTimezone || "America/New_York";

@@ -1240,7 +1240,7 @@ If you don't know the answer to something, be honest about it and suggest the us
       const { rows: verifiedReferrals } = await pool.query(`SELECT COUNT(*)::int AS count FROM referrals WHERE status = 'verified'`);
       const { rows: pendingReferrals } = await pool.query(`SELECT COUNT(*)::int AS count FROM referrals WHERE status = 'pending'`);
       const { rows: usersWithReferrals } = await pool.query(`SELECT COUNT(DISTINCT referrer_id)::int AS count FROM referrals WHERE status = 'verified'`);
-      const { rows: totalUsers } = await pool.query(`SELECT COUNT(*)::int AS count FROM users`);
+      const { rows: totalUsers } = await pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE email_verified = true`);
       const { rows: referredUsers } = await pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE referred_by IS NOT NULL`);
       const { rows: recentReferrals } = await pool.query(
         `SELECT COUNT(*)::int AS count FROM referrals WHERE created_at >= NOW() - INTERVAL '7 days'`
@@ -1827,31 +1827,31 @@ If you don't know the answer to something, be honest about it and suggest the us
       const trunc = truncMap[granularity] || "day";
 
       const bySourceResult = await pool.query(
-        `SELECT COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE 1=1${dateFilter} GROUP BY source ORDER BY count DESC`,
+        `SELECT COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE email_verified = true${dateFilter} GROUP BY source ORDER BY count DESC`,
         params
       );
 
       const params2 = [...params];
       const byPodcastResult = await pool.query(
-        `SELECT COALESCE(signup_source_detail, 'unknown') as detail, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE signup_source IN ('podcast_page', 'episode_page')${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY detail, source ORDER BY count DESC LIMIT 20`,
+        `SELECT COALESCE(signup_source_detail, 'unknown') as detail, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE email_verified = true AND signup_source IN ('podcast_page', 'episode_page')${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY detail, source ORDER BY count DESC LIMIT 20`,
         params2
       );
 
       const params3 = [...params];
       const overTimeResult = await pool.query(
-        `SELECT date_trunc('${trunc}', created_at) as period, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period, source ORDER BY period ASC`,
+        `SELECT date_trunc('${trunc}', created_at) as period, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE email_verified = true AND created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period, source ORDER BY period ASC`,
         params3
       );
 
       const params4 = [...params];
       const recentSignupsResult = await pool.query(
-        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
+        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE u.email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
         params4
       );
 
       const params5 = [...params];
       const totalResult = await pool.query(
-        `SELECT COUNT(*) as count FROM users WHERE 1=1${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}`,
+        `SELECT COUNT(*) as count FROM users WHERE email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)}`,
         params5
       );
 
@@ -1937,7 +1937,7 @@ If you don't know the answer to something, be honest about it and suggest the us
       const truncMap: Record<string, string> = { daily: "day", weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" };
       const trunc = truncMap[granularity] || "day";
 
-      const totalResult = await pool.query(`SELECT COUNT(*) as count FROM users`);
+      const totalResult = await pool.query(`SELECT COUNT(*) as count FROM users WHERE email_verified = true`);
       const totalUsers = parseInt(totalResult.rows[0]?.count || "0");
 
       let dateFilter = "";
@@ -1946,14 +1946,14 @@ If you don't know the answer to something, be honest about it and suggest the us
       if (endDate) { params.push(endDate + " 23:59:59"); dateFilter += ` AND created_at <= $${params.length}::timestamp`; }
 
       const periodResult = await pool.query(
-        `SELECT COUNT(*) as count FROM users WHERE 1=1${dateFilter}`,
+        `SELECT COUNT(*) as count FROM users WHERE email_verified = true${dateFilter}`,
         params
       );
       const periodSignups = parseInt(periodResult.rows[0]?.count || "0");
 
       const p2 = [...params];
       const overTimeResult = await pool.query(
-        `SELECT date_trunc('${trunc}', created_at) as period, COUNT(*) as count FROM users WHERE created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period ORDER BY period ASC`,
+        `SELECT date_trunc('${trunc}', created_at) as period, COUNT(*) as count FROM users WHERE email_verified = true AND created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period ORDER BY period ASC`,
         p2
       );
 
@@ -1961,7 +1961,7 @@ If you don't know the answer to something, be honest about it and suggest the us
       let priorFilter = "";
       if (startDate) { priorParams.push(startDate); priorFilter = ` AND created_at < $${priorParams.length}::timestamp`; }
       const priorResult = startDate ? await pool.query(
-        `SELECT COUNT(*) as count FROM users WHERE created_at IS NOT NULL${priorFilter}`,
+        `SELECT COUNT(*) as count FROM users WHERE email_verified = true AND created_at IS NOT NULL${priorFilter}`,
         priorParams
       ) : null;
       let cumulative = priorResult ? parseInt(priorResult.rows[0]?.count || "0") : 0;
@@ -9036,7 +9036,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
-      const allUsers = await storage.getAllUsers();
+      const allUsersRaw = await storage.getAllUsers();
+      const allUsers = allUsersRaw.filter(u => u.emailVerified);
       const allRecaps = await storage.getAllRecaps();
       const allEmailLogs = await storage.getEmailLogs();
 
