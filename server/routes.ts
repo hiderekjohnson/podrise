@@ -658,10 +658,12 @@ export async function registerRoutes(
       store: new PgStore({
         conString: process.env.DATABASE_URL,
         createTableIfMissing: true,
+        pruneSessionInterval: 60 * 15,
       }),
       secret: process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
+      rolling: true,
       cookie: {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
