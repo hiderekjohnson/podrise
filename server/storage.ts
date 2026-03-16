@@ -808,12 +808,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async logError(data: InsertErrorLog): Promise<ErrorLog> {
+    const conditions = [
+      eq(errorLogs.endpoint, data.endpoint),
+      eq(errorLogs.errorMessage, data.errorMessage),
+      eq(errorLogs.httpStatus, data.httpStatus ?? 500),
+    ];
+    if (data.method) conditions.push(eq(errorLogs.method, data.method));
     const existing = await db.select().from(errorLogs)
-      .where(and(
-        eq(errorLogs.endpoint, data.endpoint),
-        eq(errorLogs.errorMessage, data.errorMessage),
-        eq(errorLogs.httpStatus, data.httpStatus ?? 500)
-      ))
+      .where(and(...conditions))
       .limit(1);
 
     if (existing.length > 0) {

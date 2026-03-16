@@ -585,6 +585,58 @@ export async function registerRoutes(
     maxAge: 86400,
   }));
 
+  const errorTrackingEndpointBlacklist = new Set(["/api/health", "/api/admin/error-logs"]);
+  app.use("/api", (req, res, next) => {
+    if (errorTrackingEndpointBlacklist.has(req.path) || errorTrackingEndpointBlacklist.has(req.originalUrl?.split("?")[0])) {
+      return next();
+    }
+    const originalJson = res.json.bind(res);
+    res.json = function(body: any) {
+      const status = res.statusCode;
+      if (status >= 400) {
+        const endpoint = req.originalUrl?.split("?")[0] || req.path;
+        const method = req.method;
+        const errorMessage = typeof body?.message === "string" ? body.message : (typeof body === "string" ? body : JSON.stringify(body));
+        const userId = (req as any).session?.userId || null;
+        const userAgent = req.headers["user-agent"] || null;
+        const severity = status >= 500 ? "error" : "warning";
+
+        const actionMap: Record<string, string> = {
+          GET: "load", POST: "create", PUT: "update", PATCH: "update", DELETE: "delete from"
+        };
+        const action = actionMap[method] || "access";
+        const pathSegments = endpoint.replace(/^\/api\//, "").split("/").filter(Boolean);
+        const resourceName = pathSegments.slice(0, 2).join("/");
+        const friendlySummary = `An internal ${severity === "error" ? "server error" : "client error"} occurred while trying to ${action} the ${resourceName || "API"}.`;
+
+        (async () => {
+          try {
+            const { pool } = await import("./db");
+            const existing = await pool.query(
+              `SELECT id, occurrence_count FROM error_logs WHERE endpoint = $1 AND method = $2 AND http_status = $3 AND error_message = $4 LIMIT 1`,
+              [endpoint, method, status, errorMessage.substring(0, 2000)]
+            );
+            if (existing.rows.length > 0) {
+              await pool.query(
+                `UPDATE error_logs SET occurrence_count = occurrence_count + 1, last_occurred_at = NOW() WHERE id = $1`,
+                [existing.rows[0].id]
+              );
+            } else {
+              await pool.query(
+                `INSERT INTO error_logs (endpoint, http_status, error_message, friendly_summary, severity, method, user_agent, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [endpoint, status, errorMessage.substring(0, 2000), friendlySummary, severity, method, userAgent, userId]
+              );
+            }
+          } catch (logErr) {
+            console.error("[ErrorTracker] Failed to log error:", logErr);
+          }
+        })();
+      }
+      return originalJson(body);
+    } as any;
+    next();
+  });
+
   registerMobileRoutes(app);
 
   app.get("/api/health", (_req, res) => {
