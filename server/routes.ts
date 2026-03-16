@@ -4059,10 +4059,48 @@ If you don't know the answer to something, be honest about it and suggest the us
         : { rows: [] };
       const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
 
-      const books = Array.from(bookMap.values())
-        .map(b => {
-          const key = normalizeBookKey(b.name);
-          const resolvedKey = aliasMap.get(key) || key;
+      const mergedBookMap = new Map<string, { name: string; author: string | null; description: string; url: string; context: string[]; podcasts: Map<string, string>; episodes: { podcastSlug: string; episodeSlug: string; episodeTitle: string }[]; mentionCount: number }>();
+      for (const [key, val] of bookMap) {
+        const resolvedKey = aliasMap.get(key) || key;
+        const existing = mergedBookMap.get(resolvedKey);
+        if (existing) {
+          existing.mentionCount += val.mentionCount;
+          for (const [ps, pn] of val.podcasts) existing.podcasts.set(ps, pn);
+          for (const ep of val.episodes) {
+            if (!existing.episodes.find(e => e.episodeSlug === ep.episodeSlug && e.podcastSlug === ep.podcastSlug))
+              existing.episodes.push(ep);
+          }
+          for (const c of val.context) { if (!existing.context.includes(c)) existing.context.push(c); }
+          if (!existing.author && val.author) existing.author = val.author;
+          if (!existing.url && val.url) existing.url = val.url;
+        } else {
+          mergedBookMap.set(resolvedKey, { ...val, podcasts: new Map(val.podcasts) });
+        }
+      }
+
+      const finalBookMap = new Map<string, typeof mergedBookMap extends Map<string, infer V> ? V : never>();
+      for (const [key, val] of mergedBookMap) {
+        let merged = false;
+        for (const [ek, ev] of finalBookMap) {
+          const sameAuthor = val.author && ev.author && val.author.toLowerCase() === ev.author.toLowerCase();
+          if (sameAuthor && (ek.startsWith(key) || key.startsWith(ek))) {
+            ev.mentionCount += val.mentionCount;
+            for (const [ps, pn] of val.podcasts) ev.podcasts.set(ps, pn);
+            for (const ep of val.episodes) {
+              if (!ev.episodes.find(e => e.episodeSlug === ep.episodeSlug && e.podcastSlug === ep.podcastSlug))
+                ev.episodes.push(ep);
+            }
+            if (!ev.author && val.author) ev.author = val.author;
+            if (!ev.url && val.url) ev.url = val.url;
+            merged = true;
+            break;
+          }
+        }
+        if (!merged) finalBookMap.set(key, val);
+      }
+
+      const books = Array.from(finalBookMap.entries())
+        .map(([resolvedKey, b]) => {
           const enrichment = enrichMap.get(resolvedKey) as any;
           const enrichedAsin = enrichment?.asin || null;
           const originalAsin = extractAsinFromUrl(b.url);
