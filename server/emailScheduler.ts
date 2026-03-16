@@ -1083,6 +1083,34 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           });
         }
 
+        try {
+          if (transcriptText) {
+            const { extractQuotesFromTranscript } = await import("./recapGenerator");
+            const extractedQuotes = await extractQuotesFromTranscript(
+              transcriptText,
+              podcast.name,
+              recap.episodeTitle,
+              podcast.hosts || null,
+              recap.guests ? JSON.stringify(recap.guests) : null,
+            );
+            if (extractedQuotes.length > 0) {
+              const quotesToSave = extractedQuotes.map((q: any) => ({
+                podcastSlug: podcast.slug,
+                episodeSlug: epSlug,
+                speakerName: q.speakerName,
+                speakerRole: q.speakerRole || null,
+                quoteText: q.quoteText,
+                context: q.context,
+                quoteType: q.quoteType,
+              }));
+              await storage.saveEpisodeQuotes(quotesToSave);
+              console.log(`[LandingRecaps] Generated ${extractedQuotes.length} quotes for ${podcast.name} - "${epTitle}"`);
+            }
+          }
+        } catch (quoteErr) {
+          console.warn(`[LandingRecaps] Quote generation failed for ${podcast.name} - "${epTitle}":`, quoteErr);
+        }
+
         podcastNewRecaps++;
         newRecaps++;
         landingRecapProgress.recapsCreated = newRecaps;
@@ -1144,6 +1172,88 @@ export async function backfillTopicsAndQuestions() {
     console.log(`[BackfillTopics] Complete: ${updated} updated, ${errors} errors, ${recaps.length - updated - errors} skipped`);
   } finally {
     client.release();
+  }
+}
+
+let quoteBackfillRunning = false;
+let quoteBackfillProgress = { status: "idle", processed: 0, total: 0, generated: 0, errors: 0 };
+
+export function getQuoteBackfillProgress() {
+  return quoteBackfillProgress;
+}
+
+export async function backfillEpisodeQuotes() {
+  if (quoteBackfillRunning) {
+    console.log("[QuoteBackfill] Already running, skipping");
+    return;
+  }
+  quoteBackfillRunning = true;
+  quoteBackfillProgress = { status: "running", processed: 0, total: 0, generated: 0, errors: 0 };
+
+  const { pool: dbPool } = await import("./db");
+  const { extractQuotesFromTranscript } = await import("./recapGenerator");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recapsWithoutQuotes } = await client.query(
+      `SELECT lpr.id, lpr.slug, lpr.episode_slug, lpr.podcast_name, lpr.episode_title, lpr.hosts, lpr.guests
+       FROM landing_page_recaps lpr
+       LEFT JOIN episode_quotes eq ON eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug
+       WHERE eq.id IS NULL
+       ORDER BY lpr.created_at DESC`
+    );
+
+    quoteBackfillProgress.total = recapsWithoutQuotes.length;
+    console.log(`[QuoteBackfill] Found ${recapsWithoutQuotes.length} episodes without quotes`);
+
+    for (const recap of recapsWithoutQuotes) {
+      quoteBackfillProgress.processed++;
+      try {
+        const { rows: transcriptRows } = await client.query(
+          `SELECT et.transcript FROM episode_transcripts et
+           JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
+           WHERE pd.slug = $1 AND et.episode_title ILIKE $2
+           LIMIT 1`,
+          [recap.slug, recap.episode_title]
+        );
+
+        if (transcriptRows.length === 0) continue;
+
+        const transcriptText = transcriptRows[0].transcript;
+        if (!transcriptText) continue;
+
+        const extractedQuotes = await extractQuotesFromTranscript(
+          transcriptText,
+          recap.podcast_name,
+          recap.episode_title,
+          recap.hosts || null,
+          recap.guests || null,
+        );
+
+        if (extractedQuotes.length > 0) {
+          const quotesToSave = extractedQuotes.map((q: any) => ({
+            podcastSlug: recap.slug,
+            episodeSlug: recap.episode_slug,
+            speakerName: q.speakerName,
+            speakerRole: q.speakerRole || null,
+            quoteText: q.quoteText,
+            context: q.context,
+            quoteType: q.quoteType,
+          }));
+          await storage.saveEpisodeQuotes(quotesToSave);
+          quoteBackfillProgress.generated++;
+          console.log(`[QuoteBackfill] Generated ${extractedQuotes.length} quotes for ${recap.podcast_name} - "${recap.episode_title}" (${quoteBackfillProgress.processed}/${quoteBackfillProgress.total})`);
+        }
+      } catch (err) {
+        quoteBackfillProgress.errors++;
+        console.warn(`[QuoteBackfill] Error for ${recap.podcast_name} - "${recap.episode_title}":`, err);
+      }
+    }
+
+    console.log(`[QuoteBackfill] Complete: ${quoteBackfillProgress.generated} episodes got quotes, ${quoteBackfillProgress.errors} errors, ${quoteBackfillProgress.total} total`);
+  } finally {
+    client.release();
+    quoteBackfillRunning = false;
+    quoteBackfillProgress.status = "completed";
   }
 }
 

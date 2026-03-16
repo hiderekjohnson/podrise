@@ -7243,6 +7243,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/updates/trigger-quote-backfill", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { backfillEpisodeQuotes, getQuoteBackfillProgress } = await import("./emailScheduler");
+      const current = getQuoteBackfillProgress();
+      if (current.status === "running") {
+        return res.status(409).json({ message: "Quote backfill already running", progress: current });
+      }
+      backfillEpisodeQuotes();
+      res.json({ message: "Quote backfill started" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to start" });
+    }
+  });
+
+  app.get("/api/admin/updates/quote-backfill-progress", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { getQuoteBackfillProgress } = await import("./emailScheduler");
+    res.json(getQuoteBackfillProgress());
+  });
+
   app.post("/api/admin/updates/trigger-batch-expand", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
