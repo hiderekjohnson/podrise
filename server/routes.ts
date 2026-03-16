@@ -210,6 +210,72 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
   console.log(`[NewUserNotify] Notification sent for ${user.email}`);
 }
 
+async function checkAndRecordTierHit(referrerId: number) {
+  try {
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM referrals WHERE referrer_id = $1 AND status = 'verified'`,
+      [referrerId]
+    );
+    const count = countResult.rows[0]?.count || 0;
+    if (count === 0) return;
+
+    const tiersResult = await pool.query(
+      `SELECT id, threshold, reward_name FROM referral_tiers WHERE active = true AND threshold <= $1 ORDER BY threshold ASC`,
+      [count]
+    );
+    const achievedTiers = tiersResult.rows;
+    if (achievedTiers.length === 0) return;
+
+    const referrerResult = await pool.query(`SELECT email, display_name FROM users WHERE id = $1`, [referrerId]);
+    const referrer = referrerResult.rows[0];
+    if (!referrer) return;
+
+    for (const tier of achievedTiers) {
+      const insertResult = await pool.query(
+        `INSERT INTO referral_fulfillments (user_id, tier_id, tier_threshold, status)
+         VALUES ($1, $2, $3, 'unsent')
+         ON CONFLICT (user_id, tier_id) DO NOTHING
+         RETURNING id`,
+        [referrerId, tier.id, tier.threshold]
+      );
+      if (insertResult.rows.length > 0) {
+        try {
+          const { client, fromEmail } = await getUncachableResendClient();
+          await client.emails.send({
+            from: `PodCap Alerts <${fromEmail}>`,
+            to: "hiderekjohnson@gmail.com",
+            subject: `🎁 Referral Tier Reached: ${referrer.email} hit ${tier.threshold} referrals!`,
+            html: `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
+<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#6366F1,#4F46E5);padding:28px 32px;">
+<h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">🎁 New Tier Reached!</h1>
+</div>
+<div style="padding:28px 32px;">
+<table style="width:100%;border-collapse:collapse;">
+<tr><td style="padding:10px 0;color:#888;font-size:13px;width:120px;">User</td><td style="padding:10px 0;font-size:14px;font-weight:600;color:#1a1a1a;">${referrer.display_name || referrer.email}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;">Email</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${referrer.email}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;">Referrals</td><td style="padding:10px 0;font-size:14px;font-weight:700;color:#6366F1;">${count}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;">Tier Reached</td><td style="padding:10px 0;font-size:14px;font-weight:700;color:#1a1a1a;">${tier.reward_name} (${tier.threshold} referrals)</td></tr>
+</table>
+<div style="margin-top:20px;padding:16px;background:#f0f0ff;border-radius:8px;text-align:center;">
+<a href="https://podcap.io/admin" style="color:#6366F1;font-weight:600;font-size:14px;text-decoration:none;">View in Admin Panel →</a>
+</div>
+</div>
+</div>
+</body></html>`,
+          });
+          console.log(`[Referral] Tier alert sent: ${referrer.email} reached ${tier.reward_name} (${tier.threshold} referrals)`);
+        } catch (emailErr) {
+          console.error(`[Referral] Failed to send tier alert email:`, emailErr);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[Referral] checkAndRecordTierHit error:", err);
+  }
+}
+
 async function sendVerificationEmail(user: { id: number; email: string }) {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -567,6 +633,16 @@ export async function registerRoutes(
         active BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS referral_fulfillments (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        tier_id INTEGER NOT NULL,
+        tier_threshold INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'unsent',
+        sent_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, tier_id)
       );
     `);
     console.log("[startup] Schema migration check complete");
@@ -1089,7 +1165,10 @@ If you don't know the answer to something, be honest about it and suggest the us
 
       // Verify referral on email confirmation
       storage.verifyReferral(row.user_id).then(ref => {
-        if (ref) console.log(`[Referral] Verified referral for user ${row.user_id}, referrer ${ref.referrerId}`);
+        if (ref) {
+          console.log(`[Referral] Verified referral for user ${row.user_id}, referrer ${ref.referrerId}`);
+          checkAndRecordTierHit(ref.referrerId);
+        }
       }).catch(e => console.error("[Referral] Verify error:", e));
 
       req.session.userId = row.user_id;
@@ -1406,6 +1485,68 @@ If you don't know the answer to something, be honest about it and suggest the us
     }
   });
 
+  app.get("/api/admin/referral-fulfillments", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const tiers = await storage.getReferralTiers();
+      const activeTiers = tiers.filter(t => t.active).sort((a, b) => a.threshold - b.threshold);
+
+      const { rows: fulfillments } = await pool.query(`
+        SELECT rf.*, u.email, u.display_name,
+          (SELECT COUNT(*)::int FROM referrals WHERE referrer_id = rf.user_id AND status = 'verified') AS referral_count
+        FROM referral_fulfillments rf
+        JOIN users u ON u.id = rf.user_id
+        ORDER BY rf.tier_threshold ASC, rf.status ASC, rf.created_at DESC
+      `);
+
+      const tierData = activeTiers.map(tier => ({
+        tier: { id: tier.id, threshold: tier.threshold, rewardName: tier.rewardName, imageUrl: tier.imageUrl },
+        users: fulfillments
+          .filter((f: any) => f.tier_id === tier.id)
+          .sort((a: any, b: any) => {
+            if (a.status === 'unsent' && b.status !== 'unsent') return -1;
+            if (a.status !== 'unsent' && b.status === 'unsent') return 1;
+            return 0;
+          })
+          .map((f: any) => ({
+            fulfillmentId: f.id,
+            userId: f.user_id,
+            email: f.email,
+            displayName: f.display_name,
+            status: f.status,
+            sentAt: f.sent_at,
+            createdAt: f.created_at,
+            referralCount: f.referral_count,
+          })),
+      }));
+
+      res.json(tierData);
+    } catch (err) {
+      console.error("[Admin] Fulfillment list error:", err);
+      res.status(500).json({ message: "Failed to load fulfillments" });
+    }
+  });
+
+  app.patch("/api/admin/referral-fulfillments/:id", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    const { status } = req.body;
+    if (!["sent", "unsent"].includes(status)) {
+      return res.status(400).json({ message: "Status must be 'sent' or 'unsent'" });
+    }
+    try {
+      const sentAt = status === "sent" ? new Date() : null;
+      const { rows } = await pool.query(
+        `UPDATE referral_fulfillments SET status = $1, sent_at = $2 WHERE id = $3 RETURNING *`,
+        [status, sentAt, req.params.id]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Fulfillment not found" });
+      res.json(rows[0]);
+    } catch (err) {
+      console.error("[Admin] Fulfillment update error:", err);
+      res.status(500).json({ message: "Failed to update fulfillment" });
+    }
+  });
+
   app.post(api.subscriptions.quickSubscribe.path, async (req, res) => {
     try {
       const input = api.subscriptions.quickSubscribe.input.parse(req.body);
@@ -1567,7 +1708,10 @@ If you don't know the answer to something, be honest about it and suggest the us
       await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
       // Verify any pending referral now that email is confirmed via magic link
       storage.verifyReferral(user.id).then(ref => {
-        if (ref) console.log(`[Referral] Verified referral for user ${user.id} via magic link login, referrer ${ref.referrerId}`);
+        if (ref) {
+          console.log(`[Referral] Verified referral for user ${user.id} via magic link login, referrer ${ref.referrerId}`);
+          checkAndRecordTierHit(ref.referrerId);
+        }
       }).catch(e => console.error("[Referral] Magic link verify error:", e));
       // Send new user notification now that email is confirmed (double opt-in)
       sendNewUserNotification(user, req, user.signupSource || "magic_link").catch((err) =>
@@ -1690,6 +1834,7 @@ If you don't know the answer to something, be honest about it and suggest the us
               // Google OAuth users are email-verified by default, so verify the referral immediately
               await storage.verifyReferral(user.id);
               console.log(`[Referral] Google OAuth user ${user.id} referred by ${referrer.id} (code: ${refCode}) — auto-verified`);
+              checkAndRecordTierHit(referrer.id);
             }
           } catch (e) {
             console.error("[Referral] Failed to record Google OAuth referral:", e);
@@ -1717,6 +1862,7 @@ If you don't know the answer to something, be honest about it and suggest the us
               if (user.emailVerified) {
                 await storage.verifyReferral(user.id);
                 console.log(`[Referral] Existing Google user ${user.id} referred by ${referrer.id} (code: ${refCode}) — auto-verified`);
+                checkAndRecordTierHit(referrer.id);
               } else {
                 console.log(`[Referral] Existing user ${user.id} referred by ${referrer.id} (code: ${refCode}) — pending`);
               }

@@ -109,6 +109,18 @@ export const insertReferralTierSchema = createInsertSchema(referralTiers).omit({
 export type ReferralTier = typeof referralTiers.$inferSelect;
 export type InsertReferralTier = z.infer<typeof insertReferralTierSchema>;
 
+export const referralFulfillments = pgTable("referral_fulfillments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  tierId: integer("tier_id").notNull(),
+  tierThreshold: integer("tier_threshold").notNull(),
+  status: text("status").notNull().default("unsent"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ReferralFulfillment = typeof referralFulfillments.$inferSelect;
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
