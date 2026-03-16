@@ -1150,6 +1150,19 @@ If you don't know the answer to something, be honest about it and suggest the us
       const currentTier = activeTiers.filter(t => count >= t.threshold).pop() || null;
       const nextTier = activeTiers.find(t => count < t.threshold) || null;
 
+      if (count === 0 && pendingCount === 0) {
+        const { pool } = await import("./db");
+        const debugResult = await pool.query(
+          `SELECT id, referrer_id, referred_user_id, status FROM referrals WHERE referrer_id = $1 LIMIT 10`,
+          [userId]
+        );
+        const userResult = await pool.query(
+          `SELECT id, referred_by FROM users WHERE referred_by IS NOT NULL AND referred_by::text = $1::text LIMIT 10`,
+          [String(userId)]
+        );
+        console.log(`[Referrals] Debug for user ${userId}: referrals rows=${debugResult.rows.length} (${JSON.stringify(debugResult.rows)}), users with referred_by=${userId}: ${userResult.rows.length} (${JSON.stringify(userResult.rows)})`);
+      }
+
       res.json({
         referralCode: code,
         referralLink: `https://podcap.io/r/${code}`,
@@ -1346,6 +1359,21 @@ If you don't know the answer to something, be honest about it and suggest the us
     } catch (err) {
       console.error("[Admin] Referral stats error:", err);
       res.status(500).json({ message: "Failed to load referral stats" });
+    }
+  });
+
+  app.get("/api/admin/referral-debug", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows: columns } = await pool.query(
+        `SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'referrals' ORDER BY ordinal_position`
+      );
+      const { rows: allReferrals } = await pool.query(`SELECT * FROM referrals ORDER BY id LIMIT 50`);
+      const { rows: usersWithRefs } = await pool.query(`SELECT id, email, referred_by, email_verified FROM users WHERE referred_by IS NOT NULL ORDER BY id`);
+      const { rows: indexes } = await pool.query(`SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'referrals'`);
+      res.json({ columns, allReferrals, usersWithRefs, indexes });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message, stack: err.stack });
     }
   });
 
