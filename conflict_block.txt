@@ -1,0 +1,105 @@
+  }
+
+<<<<<<< HEAD
+  async registerDeviceToken(userId: number, token: string, platform: string = "ios"): Promise<DeviceToken> {
+    const [existing] = await db.select().from(deviceTokens).where(eq(deviceTokens.deviceToken, token));
+    if (existing) {
+      if (existing.userId !== userId) {
+        const [updated] = await db.update(deviceTokens).set({ userId }).where(eq(deviceTokens.deviceToken, token)).returning();
+        return updated;
+      }
+      return existing;
+    }
+    const [created] = await db.insert(deviceTokens).values({ userId, deviceToken: token, platform }).returning();
+    return created;
+  }
+
+  async unregisterDeviceToken(token: string, userId: number): Promise<void> {
+    await db.delete(deviceTokens).where(
+      and(eq(deviceTokens.deviceToken, token), eq(deviceTokens.userId, userId))
+    );
+  }
+
+  async getDeviceTokensByUserId(userId: number): Promise<DeviceToken[]> {
+    return db.select().from(deviceTokens).where(eq(deviceTokens.userId, userId));
+  }
+
+  async createRefreshToken(userId: number, token: string, expiresAt: Date): Promise<RefreshToken> {
+    const [created] = await db.insert(refreshTokens).values({ userId, token, expiresAt }).returning();
+    return created;
+  }
+
+  async getRefreshToken(token: string): Promise<RefreshToken | undefined> {
+    const [row] = await db.select().from(refreshTokens).where(
+      and(eq(refreshTokens.token, token), isNull(refreshTokens.revokedAt), gt(refreshTokens.expiresAt, new Date()))
+    );
+    return row ?? undefined;
+  }
+
+  async revokeRefreshToken(token: string): Promise<void> {
+    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.token, token));
+  }
+
+  async revokeAllRefreshTokensForUser(userId: number): Promise<void> {
+    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(
+      and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt))
+    );
+=======
+  async logError(data: InsertErrorLog): Promise<ErrorLog> {
+    const existing = await db.select().from(errorLogs)
+      .where(and(
+        eq(errorLogs.endpoint, data.endpoint),
+        eq(errorLogs.errorMessage, data.errorMessage),
+        eq(errorLogs.httpStatus, data.httpStatus ?? 500)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      const [updated] = await db.update(errorLogs)
+        .set({
+          occurrenceCount: sql`${errorLogs.occurrenceCount} + 1`,
+          lastOccurredAt: new Date(),
+          userAgent: data.userAgent || existing[0].userAgent,
+          userId: data.userId || existing[0].userId,
+        })
+        .where(eq(errorLogs.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db.insert(errorLogs).values({
+      ...data,
+      httpStatus: data.httpStatus ?? 500,
+    }).returning();
+    return created;
+  }
+
+  async getErrorLogs(limit = 50, offset = 0, severity?: string): Promise<ErrorLog[]> {
+    const conditions = severity ? [eq(errorLogs.severity, severity)] : [];
+    if (conditions.length > 0) {
+      return db.select().from(errorLogs)
+        .where(and(...conditions))
+        .orderBy(desc(errorLogs.lastOccurredAt))
+        .limit(limit)
+        .offset(offset);
+    }
+    return db.select().from(errorLogs)
+      .orderBy(desc(errorLogs.lastOccurredAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getErrorLogCount(severity?: string): Promise<number> {
+    const conditions = severity ? [eq(errorLogs.severity, severity)] : [];
+    if (conditions.length > 0) {
+      const [result] = await db.select({ count: sql<number>`count(*)` }).from(errorLogs)
+        .where(and(...conditions));
+      return result?.count ?? 0;
+    }
+    const [result] = await db.select({ count: sql<number>`count(*)` }).from(errorLogs);
+    return result?.count ?? 0;
+>>>>>>> 3ceaa4c (Task #35: Admin error log & friendly error pages)
+  }
+}
+
+export const storage = new DatabaseStorage();

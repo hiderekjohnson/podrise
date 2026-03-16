@@ -10,6 +10,7 @@ import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { PageConversionProvider } from "@/contexts/PageConversionContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthAwareLayout } from "@/components/AuthAwareLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -137,17 +138,19 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <PageConversionProvider>
-          <TooltipProvider>
-            <Router />
-            <ExitIntentPopup />
-            <Toaster />
-          </TooltipProvider>
-        </PageConversionProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <PageConversionProvider>
+            <TooltipProvider>
+              <Router />
+              <ExitIntentPopup />
+              <Toaster />
+            </TooltipProvider>
+          </PageConversionProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

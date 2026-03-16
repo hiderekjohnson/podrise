@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -87,6 +87,9 @@ export interface IStorage {
   getRefreshToken(token: string): Promise<RefreshToken | undefined>;
   revokeRefreshToken(token: string): Promise<void>;
   revokeAllRefreshTokensForUser(userId: number): Promise<void>;
+  logError(data: InsertErrorLog): Promise<ErrorLog>;
+  getErrorLogs(limit?: number, offset?: number, severity?: string, startDate?: Date, endDate?: Date): Promise<ErrorLog[]>;
+  getErrorLogCount(severity?: string, startDate?: Date, endDate?: Date): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -787,6 +790,67 @@ export class DatabaseStorage implements IStorage {
     await db.update(refreshTokens).set({ revokedAt: new Date() }).where(
       and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt))
     );
+  }
+
+  async logError(data: InsertErrorLog): Promise<ErrorLog> {
+    const existing = await db.select().from(errorLogs)
+      .where(and(
+        eq(errorLogs.endpoint, data.endpoint),
+        eq(errorLogs.errorMessage, data.errorMessage),
+        eq(errorLogs.httpStatus, data.httpStatus ?? 500)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      const [updated] = await db.update(errorLogs)
+        .set({
+          occurrenceCount: sql`${errorLogs.occurrenceCount} + 1`,
+          lastOccurredAt: new Date(),
+          userAgent: data.userAgent || existing[0].userAgent,
+          userId: data.userId || existing[0].userId,
+        })
+        .where(eq(errorLogs.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db.insert(errorLogs).values({
+      ...data,
+      httpStatus: data.httpStatus ?? 500,
+    }).returning();
+    return created;
+  }
+
+  async getErrorLogs(limit = 50, offset = 0, severity?: string, startDate?: Date, endDate?: Date): Promise<ErrorLog[]> {
+    const conditions: any[] = [];
+    if (severity) conditions.push(eq(errorLogs.severity, severity));
+    if (startDate) conditions.push(sql`${errorLogs.lastOccurredAt} >= ${startDate}`);
+    if (endDate) conditions.push(sql`${errorLogs.lastOccurredAt} <= ${endDate}`);
+    if (conditions.length > 0) {
+      return db.select().from(errorLogs)
+        .where(and(...conditions))
+        .orderBy(desc(errorLogs.lastOccurredAt))
+        .limit(limit)
+        .offset(offset);
+    }
+    return db.select().from(errorLogs)
+      .orderBy(desc(errorLogs.lastOccurredAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getErrorLogCount(severity?: string, startDate?: Date, endDate?: Date): Promise<number> {
+    const conditions: any[] = [];
+    if (severity) conditions.push(eq(errorLogs.severity, severity));
+    if (startDate) conditions.push(sql`${errorLogs.lastOccurredAt} >= ${startDate}`);
+    if (endDate) conditions.push(sql`${errorLogs.lastOccurredAt} <= ${endDate}`);
+    if (conditions.length > 0) {
+      const [result] = await db.select({ count: sql<number>`count(*)` }).from(errorLogs)
+        .where(and(...conditions));
+      return result?.count ?? 0;
+    }
+    const [result] = await db.select({ count: sql<number>`count(*)` }).from(errorLogs);
+    return result?.count ?? 0;
   }
 }
 

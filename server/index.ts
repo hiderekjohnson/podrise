@@ -9,6 +9,35 @@ import { startEmailScheduler } from "./emailScheduler";
 const app = express();
 const httpServer = createServer(app);
 
+function generateFriendlySummary(method: string, endpoint: string, status: number, message: string): string {
+  const endpointParts = endpoint.split("/").filter(Boolean);
+  let resource = "a page";
+  if (endpoint.includes("/api/")) {
+    const apiPart = endpointParts.slice(endpointParts.indexOf("api") + 1).join("/");
+    resource = apiPart ? `the ${apiPart.split("?")[0]} API` : "an API endpoint";
+  } else {
+    resource = `the page at ${endpoint.split("?")[0]}`;
+  }
+
+  const action = method === "GET" ? "load" : method === "POST" ? "submit data to" : method === "PUT" || method === "PATCH" ? "update" : method === "DELETE" ? "delete from" : "access";
+
+  if (status === 404) return `Someone tried to ${action} ${resource}, but it wasn't found.`;
+  if (status === 401) return `An unauthorized request was made to ${resource}.`;
+  if (status === 403) return `Access was denied to ${resource}.`;
+  if (status === 400) return `A bad request was sent to ${resource}: ${message.substring(0, 100)}`;
+  if (status === 429) return `Too many requests were made to ${resource} (rate limited).`;
+  if (status >= 500) {
+    if (message.toLowerCase().includes("database") || message.toLowerCase().includes("query")) {
+      return `A database error occurred while trying to ${action} ${resource}.`;
+    }
+    if (message.toLowerCase().includes("timeout")) {
+      return `A request to ${resource} timed out.`;
+    }
+    return `An internal server error occurred while trying to ${action} ${resource}.`;
+  }
+  return `An error (${status}) occurred at ${resource}: ${message.substring(0, 100)}`;
+}
+
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
@@ -145,7 +174,7 @@ process.on("uncaughtException", (err) => {
     console.error("Failed to register routes:", err);
   }
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+  app.use(async (err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
@@ -155,7 +184,35 @@ process.on("uncaughtException", (err) => {
       return next(err);
     }
 
-    return res.status(status).json({ message });
+    try {
+      const { storage } = await import("./storage");
+      const endpoint = _req.originalUrl || _req.url || "unknown";
+      const method = _req.method || "unknown";
+      const ua = _req.headers["user-agent"] || undefined;
+      const userId = (_req as any).session?.userId || undefined;
+
+      let severity = "error";
+      if (status >= 400 && status < 500) severity = "warning";
+      if (status >= 500) severity = "error";
+
+      const friendlySummary = generateFriendlySummary(method, endpoint, status, message);
+
+      await storage.logError({
+        endpoint,
+        httpStatus: status,
+        errorMessage: message,
+        friendlySummary,
+        severity,
+        method,
+        userAgent: ua,
+        userId,
+      });
+    } catch (logErr) {
+      console.error("Failed to log error to database:", logErr);
+    }
+
+    const clientMessage = status >= 500 ? "Something went wrong. Please try again later." : message;
+    return res.status(status).json({ message: clientMessage });
   });
 
   if (process.env.NODE_ENV === "production") {

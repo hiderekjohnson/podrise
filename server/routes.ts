@@ -440,6 +440,22 @@ export async function registerRoutes(
       ALTER TABLE users ADD COLUMN IF NOT EXISTS location TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT;
     `);
+    await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS error_logs (
+        id SERIAL PRIMARY KEY,
+        endpoint TEXT NOT NULL,
+        http_status INTEGER NOT NULL DEFAULT 500,
+        error_message TEXT NOT NULL,
+        friendly_summary TEXT NOT NULL,
+        severity TEXT NOT NULL DEFAULT 'error',
+        method TEXT,
+        user_agent TEXT,
+        user_id INTEGER,
+        occurrence_count INTEGER NOT NULL DEFAULT 1,
+        first_occurred_at TIMESTAMP DEFAULT NOW(),
+        last_occurred_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
     console.log("[startup] Schema migration check complete");
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
@@ -6066,6 +6082,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
     const allUsers = await storage.getAllUsers();
     res.json(allUsers);
+  });
+
+  app.get("/api/admin/error-logs", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 200);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+    const rawSeverity = req.query.severity as string | undefined;
+    const severity = rawSeverity && ["error", "warning"].includes(rawSeverity) ? rawSeverity : undefined;
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+    if (req.query.startDate) {
+      const parsed = new Date(req.query.startDate as string);
+      if (!isNaN(parsed.getTime())) startDate = parsed;
+    }
+    if (req.query.endDate) {
+      const parsed = new Date(req.query.endDate as string);
+      if (!isNaN(parsed.getTime())) endDate = parsed;
+    }
+    const [logs, total] = await Promise.all([
+      storage.getErrorLogs(limit, offset, severity, startDate, endDate),
+      storage.getErrorLogCount(severity, startDate, endDate),
+    ]);
+    res.json({ logs, total, limit, offset });
   });
 
   app.get("/api/admin/email-logs", async (req, res) => {

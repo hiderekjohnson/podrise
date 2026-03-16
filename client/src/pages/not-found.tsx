@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Mic, Home, Radio, ShoppingBag, Headphones } from "lucide-react";
+import { Mic, Home, Radio, ShoppingBag, Headphones, HelpCircle } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
@@ -27,9 +27,13 @@ export default function NotFound() {
         <p className="text-base sm:text-lg text-[#52525B] dark:text-[#A1A1AA] max-w-md leading-relaxed mb-2" data-testid="text-404-description">
           Looks like you've gone off-script. The page you're looking for doesn't exist — maybe it was cut in post-production.
         </p>
-        <p className="text-[15px] text-[#A1A1AA] dark:text-[#71717A] mb-10" data-testid="text-404-joke">
+        <p className="text-[15px] text-[#A1A1AA] dark:text-[#71717A] mb-6" data-testid="text-404-joke">
           Even the best podcasters flub a take sometimes.
         </p>
+        <div className="mb-10 inline-flex items-center gap-2 text-sm text-primary hover:underline" data-testid="link-404-support">
+          <HelpCircle className="w-4 h-4" />
+          <Link href="/support">Need help? Visit our support page</Link>
+        </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3" data-testid="nav-404-links">
           <Link

@@ -612,3 +612,28 @@ export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 
+export const errorLogs = pgTable("error_logs", {
+  id: serial("id").primaryKey(),
+  endpoint: text("endpoint").notNull(),
+  httpStatus: integer("http_status").notNull().default(500),
+  errorMessage: text("error_message").notNull(),
+  friendlySummary: text("friendly_summary").notNull(),
+  severity: text("severity").notNull().default("error"),
+  method: text("method"),
+  userAgent: text("user_agent"),
+  userId: integer("user_id"),
+  occurrenceCount: integer("occurrence_count").notNull().default(1),
+  firstOccurredAt: timestamp("first_occurred_at").defaultNow(),
+  lastOccurredAt: timestamp("last_occurred_at").defaultNow(),
+});
+
+export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
+  id: true,
+  occurrenceCount: true,
+  firstOccurredAt: true,
+  lastOccurredAt: true,
+});
+
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
+
