@@ -428,6 +428,20 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  try {
+    const { pool: migrationPool } = await import("./db");
+    await migrationPool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS birthday TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS location TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT;
+    `);
+    console.log("[startup] Schema migration check complete");
+  } catch (e: any) {
+    console.error("[startup] Schema migration error:", e.message);
+  }
+
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", uptime: process.uptime() });
   });
