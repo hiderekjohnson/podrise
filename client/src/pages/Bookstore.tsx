@@ -281,7 +281,7 @@ function ProductCard({ product, index }: { product: ShopProduct; index: number }
       <Link href={`/shop/${product.slug}`} className="block">
         <div className="p-5">
           <div className="flex gap-4">
-            <div className="w-[112px] h-[168px] rounded-xl shrink-0 overflow-hidden flex items-center justify-center bg-[#FAFAFA] dark:bg-white/[0.02]">
+            <div className={`w-[112px] h-[168px] rounded-xl shrink-0 overflow-hidden flex items-center justify-center ${hasImage ? "bg-[#FAFAFA] dark:bg-white/[0.02]" : "bg-[#FAFAFA] dark:bg-white/[0.02]"}`}>
               {hasImage ? (
                 <img src={product.imageUrl!} alt={product.name} className="max-w-full max-h-full object-contain" loading="lazy" onError={() => setImgError(true)} />
               ) : (
@@ -681,7 +681,7 @@ function ProductShelfRow({ products, keyPrefix }: { products: ShopProduct[]; key
           return (
             <Link href={`/shop/${product.slug}`} className="block shrink-0" key={`${keyPrefix}-${product.name}-${i}`} data-testid={`shelf-${keyPrefix}-${product.slug}-${i}`}>
               <div className="w-[160px] shrink-0 group/shelf">
-                <div className={`w-[160px] h-[160px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center p-4 bg-[#FAFAFA] dark:bg-white/[0.02] ${hasImage ? "border border-[#F0F0F2] dark:border-white/[0.06]" : ""}`}>
+                <div className={`w-[160px] h-[216px] sm:h-[264px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center p-3 ${hasImage ? "bg-[#FAFAFA] dark:bg-white/[0.02]" : "bg-[#FAFAFA] dark:bg-white/[0.02]"}`}>
                   {hasImage ? (
                     <img src={product.imageUrl!} alt={product.name} className="max-w-full max-h-full object-contain" loading="lazy" onError={() => setImgErrors(prev => new Set(prev).add(i))} />
                   ) : (

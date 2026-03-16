@@ -482,12 +482,16 @@ export const extractedProducts = pgTable("extracted_products", {
   status: text("status").notNull().default("pending"),
   imageStatus: text("image_status").notNull().default("pending"),
   rejectionReason: text("rejection_reason"),
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at"),
   extractedAt: timestamp("extracted_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
 });
 
 export const insertExtractedProductSchema = createInsertSchema(extractedProducts).omit({
   id: true,
+  approvedBy: true,
+  approvedAt: true,
   extractedAt: true,
   reviewedAt: true,
 });
