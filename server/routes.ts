@@ -9868,6 +9868,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
+    const user = await storage.getUser(userId);
+    if (!user || user.plan !== "pro") {
+      return res.status(403).json({ message: "Pulse subscriptions require a Pro plan" });
+    }
     const { topicSlug } = req.body;
     if (!topicSlug || typeof topicSlug !== "string" || !VALID_PULSE_SLUGS.has(topicSlug)) {
       return res.status(400).json({ message: "Invalid topicSlug" });
@@ -9886,6 +9890,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
+    const user = await storage.getUser(userId);
+    if (!user || user.plan !== "pro") {
+      return res.status(403).json({ message: "Pulse subscriptions require a Pro plan" });
+    }
     if (!VALID_PULSE_SLUGS.has(req.params.topicSlug)) {
       return res.status(400).json({ message: "Invalid topicSlug" });
     }
@@ -9902,6 +9910,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const userId = getAuthUserId(req);
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || user.plan !== "pro") {
+      return res.status(403).json({ message: "Pulse subscriptions require a Pro plan" });
     }
     const { topicSlugs } = req.body;
     if (!Array.isArray(topicSlugs) || topicSlugs.length > 50) {
