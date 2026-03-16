@@ -69,7 +69,11 @@ async function main() {
       await pool.query(
         `INSERT INTO book_enrichments (book_key, book_title, author, slug, amazon_url, description, google_books_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
-         ON CONFLICT (slug) DO UPDATE SET google_books_id = COALESCE(book_enrichments.google_books_id, $7)`,
+         ON CONFLICT (slug) DO UPDATE SET
+           google_books_id = COALESCE(book_enrichments.google_books_id, EXCLUDED.google_books_id),
+           description = COALESCE(NULLIF(TRIM(book_enrichments.description), ''), EXCLUDED.description),
+           amazon_url = COALESCE(NULLIF(TRIM(book_enrichments.amazon_url), ''), EXCLUDED.amazon_url),
+           author = COALESCE(book_enrichments.author, EXCLUDED.author)`,
         [key, book.name, book.author, slug, book.url, book.description, gbId]
       );
       created++;

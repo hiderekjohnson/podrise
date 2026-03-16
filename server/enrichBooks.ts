@@ -127,10 +127,10 @@ export async function enrichAllBooks(limit?: number): Promise<{ processed: numbe
 
   for (const book of toProcess) {
     const existing = await pool.query(
-      "SELECT id FROM book_enrichments WHERE book_key = $1",
+      "SELECT id, description FROM book_enrichments WHERE book_key = $1",
       [book.bookKey]
     );
-    if (existing.rows.length > 0) {
+    if (existing.rows.length > 0 && existing.rows[0].description && existing.rows[0].description.trim() !== '') {
       console.log(`[BookEnrich] Skipping "${book.name}" - already enriched`);
       continue;
     }

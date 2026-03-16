@@ -3421,7 +3421,7 @@ If you don't know the answer to something, be honest about it and suggest the us
     }
   }
 
-  async function enrichMissingGoogleBooksIds(books: Array<{name: string; author: string | null; googleBooksId: string | null; isbn?: string | null; hasCover?: boolean | null}>) {
+  async function enrichMissingGoogleBooksIds(books: Array<{name: string; author: string | null; googleBooksId: string | null; isbn?: string | null; hasCover?: boolean | null; description?: string; url?: string}>) {
     const missing = books.filter(b => !b.googleBooksId);
     if (missing.length === 0) return;
 
@@ -3435,20 +3435,31 @@ If you don't know the answer to something, be honest about it and suggest the us
         const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
         const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [bookKey]);
         if (blocked.length > 0) continue;
+        const descValue = book.description || null;
+        const urlValue = book.url || null;
         pool.query(
-          "UPDATE book_enrichments SET google_books_id = $1, isbn = COALESCE(isbn, $2), has_cover = COALESCE(has_cover, $3) WHERE book_key = $4 AND google_books_id IS NULL",
-          [info.id, info.isbn, info.hasCover, bookKey]
+          `UPDATE book_enrichments SET 
+             google_books_id = $1, 
+             isbn = COALESCE(isbn, $2), 
+             has_cover = COALESCE(has_cover, $3),
+             description = COALESCE(NULLIF(TRIM(description), ''), $4),
+             amazon_url = COALESCE(NULLIF(TRIM(amazon_url), ''), $5)
+           WHERE book_key = $6 AND google_books_id IS NULL`,
+          [info.id, info.isbn, info.hasCover, descValue, urlValue, bookKey]
         ).catch(() => {});
 
         const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
         pool.query(
-          `INSERT INTO book_enrichments (book_key, book_title, author, slug, google_books_id, isbn, has_cover)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO book_enrichments (book_key, book_title, author, slug, google_books_id, isbn, has_cover, description, amazon_url)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
            ON CONFLICT (slug) DO UPDATE SET 
-             google_books_id = COALESCE(book_enrichments.google_books_id, $5),
-             isbn = COALESCE(book_enrichments.isbn, $6),
-             has_cover = COALESCE(book_enrichments.has_cover, $7)`,
-          [bookKey, book.name, book.author, slug, info.id, info.isbn, info.hasCover]
+             google_books_id = COALESCE(book_enrichments.google_books_id, EXCLUDED.google_books_id),
+             isbn = COALESCE(book_enrichments.isbn, EXCLUDED.isbn),
+             has_cover = COALESCE(book_enrichments.has_cover, EXCLUDED.has_cover),
+             author = COALESCE(book_enrichments.author, EXCLUDED.author),
+             description = COALESCE(NULLIF(TRIM(book_enrichments.description), ''), EXCLUDED.description),
+             amazon_url = COALESCE(NULLIF(TRIM(book_enrichments.amazon_url), ''), EXCLUDED.amazon_url)`,
+          [bookKey, book.name, book.author, slug, info.id, info.isbn, info.hasCover, descValue, urlValue]
         ).catch(() => {});
       }
     }
@@ -7348,6 +7359,75 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/backfill-book-descriptions", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { rows: missingRows } = await pool.query(
+        `SELECT id, book_key, book_title FROM book_enrichments WHERE description IS NULL OR TRIM(description) = ''`
+      );
+      if (missingRows.length === 0) {
+        return res.json({ message: "All books have descriptions", updated: 0, remaining: 0 });
+      }
+
+      const { rows: recapRows } = await pool.query(
+        `SELECT resources FROM landing_page_recaps 
+         WHERE resources IS NOT NULL AND resources::text LIKE '%book%'`
+      );
+
+      const recapBookMap = new Map<string, { description: string | null; url: string | null; context: string | null }>();
+      for (const row of recapRows) {
+        let resources: any[];
+        try {
+          resources = typeof row.resources === "string" ? JSON.parse(row.resources) : row.resources;
+          if (!Array.isArray(resources)) continue;
+        } catch { continue; }
+        for (const r of resources) {
+          if (!r || r.type !== "book" || !r.name) continue;
+          const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          const existing = recapBookMap.get(key);
+          if (!existing || (!existing.description && r.description)) {
+            recapBookMap.set(key, {
+              description: r.description || existing?.description || null,
+              url: r.url || existing?.url || null,
+              context: r.context || existing?.context || null,
+            });
+          }
+        }
+      }
+
+      let updated = 0;
+      for (const row of missingRows) {
+        const recapData = recapBookMap.get(row.book_key);
+        if (recapData && (recapData.description || recapData.context)) {
+          await pool.query(
+            `UPDATE book_enrichments SET 
+               description = COALESCE(NULLIF(TRIM(description), ''), $1),
+               amazon_url = COALESCE(NULLIF(TRIM(amazon_url), ''), $2)
+             WHERE id = $3 AND (description IS NULL OR TRIM(description) = '')`,
+            [recapData.description || recapData.context, recapData.url, row.id]
+          );
+          updated++;
+        }
+      }
+
+      const remaining = missingRows.length - updated;
+      console.log(`[BackfillDesc] Updated ${updated} books from recaps, ${remaining} still missing descriptions`);
+
+      if (remaining > 0) {
+        const { enrichAllBooks } = await import("./enrichBooks");
+        enrichAllBooks().then(result => {
+          console.log(`[BackfillDesc] AI enrichment: ${result.processed} processed, ${result.errors} errors`);
+        });
+      }
+
+      res.json({ message: "Book description backfill started", updatedFromRecaps: updated, remainingForAI: remaining });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to backfill descriptions" });
+    }
+  });
+
   app.post("/api/admin/enrich-book-metadata", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -10276,22 +10356,37 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       try {
         const books = resources.filter((r: any) => r.type === "book" && r.name);
         for (const book of books) {
+          const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [bookKey]);
+          if (blocked.length > 0) continue;
           const { rows: existing } = await pool.query(
-            `SELECT id FROM book_enrichments WHERE lower(book_title) = lower($1) LIMIT 1`,
+            `SELECT id, description, amazon_url FROM book_enrichments WHERE lower(book_title) = lower($1) LIMIT 1`,
             [book.name]
           );
+          const descValue = book.description || book.context || null;
+          const urlValue = book.url || null;
           if (existing.length === 0) {
             const slug = book.name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").trim();
-            const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
-            const { rows: blocked } = await pool.query("SELECT 1 FROM book_blocklist WHERE book_key = $1", [bookKey]);
-            if (blocked.length > 0) continue;
             await pool.query(
               `INSERT INTO book_enrichments (book_key, book_title, author, slug, amazon_url, description)
                VALUES ($1, $2, $3, $4, $5, $6)
-               ON CONFLICT (slug) DO NOTHING`,
-              [bookKey, book.name, book.author || null, slug, book.url || null, book.description || book.context || null]
+               ON CONFLICT (slug) DO UPDATE SET
+                 description = COALESCE(NULLIF(TRIM(book_enrichments.description), ''), EXCLUDED.description),
+                 amazon_url = COALESCE(NULLIF(TRIM(book_enrichments.amazon_url), ''), EXCLUDED.amazon_url),
+                 author = COALESCE(book_enrichments.author, EXCLUDED.author)`,
+              [bookKey, book.name, book.author || null, slug, urlValue, descValue]
             );
             console.log(`[PostProcess] Enriched book: "${book.name}"`);
+          } else if (!existing[0].description || existing[0].description.trim() === '' || !existing[0].amazon_url || existing[0].amazon_url.trim() === '') {
+            await pool.query(
+              `UPDATE book_enrichments SET
+                 description = COALESCE(NULLIF(TRIM(description), ''), $1),
+                 amazon_url = COALESCE(NULLIF(TRIM(amazon_url), ''), $2),
+                 author = COALESCE(author, $3)
+               WHERE id = $4`,
+              [descValue, urlValue, book.author || null, existing[0].id]
+            );
+            console.log(`[PostProcess] Updated missing data for book: "${book.name}"`);
           }
         }
       } catch (err) {
