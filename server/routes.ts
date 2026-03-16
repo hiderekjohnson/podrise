@@ -646,6 +646,19 @@ export async function registerRoutes(
       );
     `);
     console.log("[startup] Schema migration check complete");
+
+    const dupeResult = await migrationPool.query(`
+      DELETE FROM book_enrichments WHERE slug IN (
+        'atomic-habits-an-easy-proven-way-to-build-good-habits-break-bad-ones',
+        'the-snowball-warren-buffett-and-the-business-of-life',
+        'founders-the-people-who-brought-you-a-nation',
+        'the-constitution-of-liberty',
+        'meditations-by-marcus-aurelius-marcus-aurelius'
+      )
+    `);
+    if (dupeResult.rowCount && dupeResult.rowCount > 0) {
+      console.log(`[startup] Cleaned up ${dupeResult.rowCount} duplicate book entries`);
+    }
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
   }
