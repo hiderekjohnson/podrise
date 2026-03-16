@@ -362,8 +362,20 @@ export default function Admin() {
     u.podcasts.some((p) => parsePodcastName(p).toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const isDev = import.meta.env.DEV;
+
   return (
     <div className="min-h-screen flex flex-col">
+      {isDev && (
+        <div className="w-full bg-amber-500/15 border-b border-amber-500/30 px-6 py-3" data-testid="banner-dev-warning">
+          <div className="max-w-6xl mx-auto flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <p className="text-sm font-medium text-amber-400">
+              <span className="font-bold">Dev Environment</span> — Changes made here won't appear on the live site. Approve/reject products and manage data on the <a href="https://podcap.replit.app/admin" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-amber-300">production admin</a> instead.
+            </p>
+          </div>
+        </div>
+      )}
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
           <a href="/" className="flex items-center">
