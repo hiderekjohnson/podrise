@@ -1,7 +1,7 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import BookDetailPage from "./BookDetailPage";
-import ProductDetailPage from "./ProductDetailPage";
+import ShopItemDetailPage from "./ShopItemDetailPage";
+import type { BookData, ProductData } from "./ShopItemDetailPage";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { Link } from "wouter";
@@ -22,7 +22,7 @@ export default function ShopDetailRouter() {
   const [, params] = useRoute("/shop/:slug");
   const slug = params?.slug || "";
 
-  const { data: bookData, isLoading: bookLoading, error: bookError } = useQuery({
+  const { data: bookData, isLoading: bookLoading, error: bookError } = useQuery<BookData>({
     queryKey: ["/api/bookstore", slug],
     enabled: !!slug,
     retry: false,
@@ -31,7 +31,7 @@ export default function ShopDetailRouter() {
   const bookIs404 = is404(bookError);
   const shouldTryProduct = !!slug && bookIs404;
 
-  const { data: productData, isLoading: productLoading, error: productError } = useQuery({
+  const { data: productData, isLoading: productLoading, error: productError } = useQuery<ProductData>({
     queryKey: ["/api/shop/product", slug],
     enabled: shouldTryProduct,
     retry: false,
@@ -64,7 +64,7 @@ export default function ShopDetailRouter() {
   }
 
   if (bookData) {
-    return <BookDetailPage />;
+    return <ShopItemDetailPage itemKind="book" bookData={bookData} />;
   }
 
   if (shouldTryProduct && productLoading) {
@@ -79,7 +79,7 @@ export default function ShopDetailRouter() {
   }
 
   if (productData) {
-    return <ProductDetailPage slug={slug} />;
+    return <ShopItemDetailPage itemKind="product" productData={productData} />;
   }
 
   return (

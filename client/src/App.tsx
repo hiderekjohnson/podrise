@@ -41,7 +41,6 @@ const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
 const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
 const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const ShopPage = lazy(() => import("./pages/Bookstore"));
-const BookDetailPage = lazy(() => import("./pages/BookDetailPage"));
 const ShopDetailRouter = lazy(() => import("./pages/ShopDetailRouter"));
 
 const FeedPage = lazy(() => import("./pages/FeedPage"));

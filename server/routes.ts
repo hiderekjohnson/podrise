@@ -3487,8 +3487,10 @@ export async function registerRoutes(
 
       const { rows: productRows } = await pool.query(
         `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.image_url, ep.context, ep.context_summary,
-                ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug
+                ep.mention_type, ep.category, ep.episode_title, ep.episode_slug, ep.podcast_slug,
+                lpr.publish_date
          FROM extracted_products ep
+         LEFT JOIN landing_page_recaps lpr ON lpr.slug = ep.podcast_slug AND lpr.episode_slug = ep.episode_slug
          WHERE ep.status = 'approved'
          ORDER BY ep.name`
       );
@@ -3504,7 +3506,7 @@ export async function registerRoutes(
         contextSummaries: string[];
         mentionCount: number;
         podcastSlugs: Set<string>;
-        episodes: { slug: string; title: string; podcastSlug: string; context: string | null; contextSummary: string | null }[];
+        episodes: { slug: string; title: string; podcastSlug: string; context: string | null; contextSummary: string | null; publishedAt: string | null }[];
       }>();
 
       for (const row of productRows) {
@@ -3516,7 +3518,7 @@ export async function registerRoutes(
           existing.mentionCount++;
           existing.podcastSlugs.add(row.podcast_slug);
           if (!existing.episodes.find(e => e.slug === epSlug && e.podcastSlug === row.podcast_slug)) {
-            existing.episodes.push({ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug, context: row.context || null, contextSummary: row.context_summary || null });
+            existing.episodes.push({ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug, context: row.context || null, contextSummary: row.context_summary || null, publishedAt: row.publish_date || null });
           }
           if (row.context && !existing.contexts.includes(row.context)) existing.contexts.push(row.context);
           if (row.context_summary && !existing.contextSummaries.includes(row.context_summary)) existing.contextSummaries.push(row.context_summary);
@@ -3535,7 +3537,7 @@ export async function registerRoutes(
             contextSummaries: row.context_summary ? [row.context_summary] : [],
             mentionCount: 1,
             podcastSlugs: new Set([row.podcast_slug]),
-            episodes: [{ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug, context: row.context || null, contextSummary: row.context_summary || null }],
+            episodes: [{ slug: epSlug, title: row.episode_title, podcastSlug: row.podcast_slug, context: row.context || null, contextSummary: row.context_summary || null, publishedAt: row.publish_date || null }],
           });
         }
       }
@@ -3608,6 +3610,7 @@ export async function registerRoutes(
           episodeSlug: e.slug,
           episodeTitle: e.title,
           context: e.contextSummary || e.context || null,
+          publishedAt: e.publishedAt || null,
         })),
         relatedProducts,
       };
