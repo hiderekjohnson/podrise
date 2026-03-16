@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { PodCapIcon, PodCapWordmark } from "@/components/PodCapHeader";
 import {
   Home, Compass, ShoppingBag, Settings, HelpCircle, Bookmark,
-  ChevronLeft, ChevronRight, Zap, Users
+  ChevronLeft, ChevronRight, Zap, Users, Shield
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
 
@@ -148,7 +148,8 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
                     <span className="text-[15px] flex items-center gap-2">
                       {label}
                       {badge && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-[#6366F1]/10 text-[#6366F1] px-1.5 py-0.5 rounded-md" data-testid={`sidebar-badge-${key}`}>
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white shadow-sm shadow-[#6366F1]/25 border border-[#818CF8]/30 dark:border-[#6366F1]/40 dark:shadow-[#6366F1]/20" data-testid={`sidebar-badge-${key}`}>
+                          <Shield className="w-2.5 h-2.5" />
                           {badge}
                         </span>
                       )}

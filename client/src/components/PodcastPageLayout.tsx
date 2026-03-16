@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister } from "@/hooks/use-auth";
@@ -275,7 +275,8 @@ export function PodcastPageLayout({
                 <item.icon className="w-4 h-4" />
                 {item.label}
                 {item.beta && (
-                  <span className="ml-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">
+                  <span className="ml-1 inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white shadow-sm shadow-[#6366F1]/25 border border-[#818CF8]/30 dark:border-[#6366F1]/40 dark:shadow-[#6366F1]/20" data-testid="tab-badge-beta">
+                    <Shield className="w-2.5 h-2.5" />
                     Beta
                   </span>
                 )}
