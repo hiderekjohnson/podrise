@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 
 const PodcastLandingGeneric = lazy(() => import("./PodcastLandingGeneric"));
 
@@ -12,8 +13,10 @@ function PageLoader() {
 
 export default function PodcastRouter() {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <PodcastLandingGeneric />
-    </Suspense>
+    <AuthAwareLayout>
+      <Suspense fallback={<PageLoader />}>
+        <PodcastLandingGeneric />
+      </Suspense>
+    </AuthAwareLayout>
   );
 }

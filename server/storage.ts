@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -76,6 +76,10 @@ export interface IStorage {
   createAdvertiser(data: InsertAdvertiser): Promise<Advertiser>;
   updateAdvertiser(id: number, data: InsertAdvertiser): Promise<Advertiser>;
   deleteAdvertiser(id: number): Promise<void>;
+  getBookmarksByUserId(userId: number): Promise<Bookmark[]>;
+  addBookmark(data: InsertBookmark): Promise<Bookmark>;
+  removeBookmark(userId: number, podcastSlug: string, episodeSlug: string): Promise<void>;
+  isBookmarked(userId: number, podcastSlug: string, episodeSlug: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -709,6 +713,28 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAdvertiser(id: number): Promise<void> {
     await db.delete(advertisers).where(eq(advertisers.id, id));
+  }
+
+  async getBookmarksByUserId(userId: number): Promise<Bookmark[]> {
+    return db.select().from(bookmarks).where(eq(bookmarks.userId, userId)).orderBy(desc(bookmarks.createdAt));
+  }
+
+  async addBookmark(data: InsertBookmark): Promise<Bookmark> {
+    const [created] = await db.insert(bookmarks).values(data).onConflictDoNothing().returning();
+    if (!created) {
+      const [existing] = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, data.userId!), eq(bookmarks.podcastSlug, data.podcastSlug), eq(bookmarks.episodeSlug, data.episodeSlug)));
+      return existing;
+    }
+    return created;
+  }
+
+  async removeBookmark(userId: number, podcastSlug: string, episodeSlug: string): Promise<void> {
+    await db.delete(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.podcastSlug, podcastSlug), eq(bookmarks.episodeSlug, episodeSlug)));
+  }
+
+  async isBookmarked(userId: number, podcastSlug: string, episodeSlug: string): Promise<boolean> {
+    const [row] = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.podcastSlug, podcastSlug), eq(bookmarks.episodeSlug, episodeSlug)));
+    return !!row;
   }
 }
 

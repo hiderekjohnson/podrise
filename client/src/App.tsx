@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import NotFound from "./pages/not-found";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { PageConversionProvider } from "@/contexts/PageConversionContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -46,6 +48,9 @@ const FeedPage = lazy(() => import("./pages/FeedPage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
+const BookmarksPage = lazy(() => import("./pages/BookmarksPage"));
+const LogoutPage = lazy(() => import("./pages/LogoutPage"));
 
 const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
@@ -66,17 +71,20 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
+        <Route path="/logout" component={LogoutPage} />
         <Route path="/onboarding" component={Onboarding} />
         <Route path="/dashboard" component={FeedPage} />
         <Route path="/dashboard/legacy" component={Dashboard} />
         <Route path="/discover" component={DiscoverPage} />
         <Route path="/settings" component={SettingsPage} />
+        <Route path="/help" component={HelpPage} />
+        <Route path="/bookmarks" component={BookmarksPage} />
         <Route path="/admin/setup" component={AdminSetup} />
         <Route path="/admin" component={Admin} />
-        <Route path="/shop" component={ShopPage} />
-        <Route path="/shop/:slug" component={ShopDetailRouter} />
-        <Route path="/podcasts/:slug/episodes" component={EpisodeArchivePage} />
-        <Route path="/podcasts/:podcastSlug/:episodeSlug/guests" component={EpisodeGuestsPage} />
+        <Route path="/shop">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><ShopPage /></Suspense></AuthAwareLayout>}</Route>
+        <Route path="/shop/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><ShopDetailRouter /></Suspense></AuthAwareLayout>}</Route>
+        <Route path="/podcasts/:slug/episodes">{() => <AuthAwareLayout><EpisodeArchivePage /></AuthAwareLayout>}</Route>
+        <Route path="/podcasts/:podcastSlug/:episodeSlug/guests">{() => <AuthAwareLayout><EpisodeGuestsPage /></AuthAwareLayout>}</Route>
         <Route path="/podcasts/:podcastSlug/:episodeSlug" component={PodcastSubRouter} />
         <Route path="/podcasts/:slug" component={PodcastRouter} />
         <Route path="/podcasts" component={PodcastsExplorer} />
@@ -89,9 +97,9 @@ function Router() {
         <Route path="/advertise" component={Advertise} />
         <Route path="/disclosure" component={Disclosure} />
         <Route path="/we-heart-podcasters" component={WeHeartPodcasters} />
-        <Route path="/people/:slug" component={PersonDetailPage} />
+        <Route path="/people/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><PersonDetailPage /></Suspense></AuthAwareLayout>}</Route>
         <Route path="/people" component={PeopleDirectory} />
-        <Route path="/companies/:slug" component={CompanyDetailPage} />
+        <Route path="/companies/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><CompanyDetailPage /></Suspense></AuthAwareLayout>}</Route>
         <Route path="/companies" component={CompaniesDirectory} />
         <Route path="/get-started">{() => { window.location.replace("/register"); return null; }}</Route>
         <Route path="/register" component={Register} />
@@ -131,13 +139,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <PageConversionProvider>
-        <TooltipProvider>
-          <Router />
-          <ExitIntentPopup />
-          <Toaster />
-        </TooltipProvider>
-      </PageConversionProvider>
+      <ThemeProvider>
+        <PageConversionProvider>
+          <TooltipProvider>
+            <Router />
+            <ExitIntentPopup />
+            <Toaster />
+          </TooltipProvider>
+        </PageConversionProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

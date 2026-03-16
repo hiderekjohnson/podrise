@@ -1090,6 +1090,38 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/bookmarks", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const bookmarksList = await storage.getBookmarksByUserId(req.session.userId);
+    res.json(bookmarksList);
+  });
+
+  app.post("/api/bookmarks", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const { episodeSlug, podcastSlug } = req.body;
+    if (!episodeSlug || !podcastSlug) {
+      return res.status(400).json({ message: "episodeSlug and podcastSlug required" });
+    }
+    const exists = await storage.isBookmarked(req.session.userId, podcastSlug, episodeSlug);
+    if (exists) {
+      return res.json({ message: "Already bookmarked" });
+    }
+    const bookmark = await storage.addBookmark({ userId: req.session.userId, episodeSlug, podcastSlug });
+    res.status(201).json(bookmark);
+  });
+
+  app.delete("/api/bookmarks/:podcastSlug/:episodeSlug", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    await storage.removeBookmark(req.session.userId, req.params.podcastSlug, req.params.episodeSlug);
+    res.json({ message: "Bookmark removed" });
+  });
+
   function wrapLinksWithClickTracking(html: string, emailId: number): string {
     const baseUrl = "https://podcap.io";
     return html.replace(/href="(https?:\/\/[^"]+)"/g, (_match, url) => {
@@ -1503,7 +1535,7 @@ export async function registerRoutes(
     }
     try {
       const { rows } = await pool.query(
-        `SELECT itunes_id, name, artwork_url FROM podcast_directory
+        `SELECT itunes_id, name, artwork_url, slug FROM podcast_directory
          WHERE has_landing_page = true
            AND (name ILIKE $1 OR slug ILIKE $1)
          ORDER BY name ASC LIMIT 8`,
@@ -1514,6 +1546,7 @@ export async function registerRoutes(
         name: r.name,
         artistName: "",
         artworkUrl: r.artwork_url || "",
+        slug: r.slug || "",
       }));
       res.json({ results });
     } catch {

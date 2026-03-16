@@ -24,8 +24,24 @@ export const users = pgTable("users", {
   deviceType: text("device_type"),
   googleId: text("google_id"),
   onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
+  displayName: text("display_name"),
+  birthday: text("birthday"),
+  gender: text("gender"),
+  location: text("location"),
+  language: text("language"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const bookmarks = pgTable("bookmarks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  podcastSlug: text("podcast_slug").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = typeof bookmarks.$inferInsert;
 
 export const podcastLists = pgTable("podcast_lists", {
   id: serial("id").primaryKey(),
@@ -97,7 +113,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type CreateUserRequest = InsertUser;
-export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "podcasts" | "deliveryTime" | "deliveryTimezone" | "industries" | "interests" | "roles" | "topicFrequencies">> & { vacationUntil?: string | null };
+export type UpdateUserRequest = Partial<Pick<InsertUser, "email" | "podcasts" | "deliveryTime" | "deliveryTimezone" | "industries" | "interests" | "roles" | "topicFrequencies">> & { vacationUntil?: string | null; displayName?: string | null; birthday?: string | null; gender?: string | null; location?: string | null; language?: string | null };
 export type UserResponse = User;
 
 export const recaps = pgTable("recaps", {

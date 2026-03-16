@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 
 const EpisodeRecapPage = lazy(() => import("./EpisodeRecapPage"));
 
@@ -12,8 +13,10 @@ function PageLoader() {
 
 export default function PodcastSubRouter() {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <EpisodeRecapPage />
-    </Suspense>
+    <AuthAwareLayout>
+      <Suspense fallback={<PageLoader />}>
+        <EpisodeRecapPage />
+      </Suspense>
+    </AuthAwareLayout>
   );
 }

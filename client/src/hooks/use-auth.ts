@@ -66,7 +66,7 @@ export function useLogout() {
 
 export function useUpdateUser() {
   return useMutation({
-    mutationFn: async (data: { email?: string; podcasts?: string[]; deliveryTime?: string; deliveryTimezone?: string }) => {
+    mutationFn: async (data: { email?: string; podcasts?: string[]; deliveryTime?: string; deliveryTimezone?: string; vacationUntil?: string | null; displayName?: string | null; birthday?: string | null; gender?: string | null; location?: string | null; language?: string | null }) => {
       const res = await apiRequest("POST", "/api/users/update", data);
       return await res.json();
     },

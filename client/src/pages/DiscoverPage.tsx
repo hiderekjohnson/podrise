@@ -4,9 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Loader2, X, ArrowLeft, Building2, Lightbulb, Briefcase, Sparkles, ChevronRight, ListIcon } from "lucide-react";
-import { BottomNav } from "@/components/BottomNav";
-import { FeedHeader } from "@/components/FeedHeader";
-import { useLocation } from "wouter";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface PodcastList {
   id: number;
@@ -65,8 +63,8 @@ function FollowButton({
       aria-pressed={isFollowing}
       className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50 ${
         isFollowing
-          ? "bg-[#F4F4F5] text-[#71717A] border border-[#E4E4E7]"
-          : "bg-[#09090B] text-white"
+          ? "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#71717A] border border-[#E4E4E7] dark:border-[#3F3F46]"
+          : "bg-[#09090B] dark:bg-white text-white dark:text-[#09090B]"
       }`}
       data-testid={`follow-btn-${slug}`}
     >
@@ -80,12 +78,14 @@ function ListDetail({
   followedSlugs,
   onFollow,
   onUnfollow,
+  onFollowAll,
   onBack,
 }: {
   list: PodcastList;
   followedSlugs: Set<string>;
   onFollow: (slug: string) => void;
   onUnfollow: (slug: string) => void;
+  onFollowAll: (slugs: string[]) => void;
   onBack: () => void;
 }) {
   const { data: listDetail, isLoading } = useQuery<{ podcasts: ListDetailPodcast[] }>({
@@ -94,31 +94,41 @@ function ListDetail({
 
   const podcasts = listDetail?.podcasts || [];
   const followingCount = podcasts.filter((p) => followedSlugs.has(p.slug)).length;
+  const unfollowedSlugs = podcasts.filter((p) => !followedSlugs.has(p.slug)).map((p) => p.slug);
 
   return (
     <div data-testid={`list-detail-${list.slug}`}>
-      <div className="sticky top-[52px] z-30 bg-white border-b border-[#F0F0F2]">
-        <div className="max-w-[600px] mx-auto px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-30 bg-white dark:bg-[#09090B] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center gap-3">
           <button
             onClick={onBack}
             className="w-9 h-9 flex items-center justify-center flex-shrink-0 -ml-1"
             aria-label="Back to lists"
             data-testid="list-detail-back"
           >
-            <ArrowLeft className="w-5 h-5 text-[#09090B]" />
+            <ArrowLeft className="w-5 h-5 text-[#09090B] dark:text-white" />
           </button>
           <div className="flex-1 min-w-0">
-            <h2 className="text-[17px] font-bold text-[#09090B] truncate">{list.name}</h2>
-            <p className="text-[12px] text-[#A1A1AA]">
+            <h2 className="text-[17px] md:text-[20px] font-bold text-[#09090B] dark:text-white truncate">{list.name}</h2>
+            <p className="text-[12px] md:text-[13px] text-[#A1A1AA]">
               {list.podcast_slugs.length} podcasts · {followingCount} following
             </p>
           </div>
+          {unfollowedSlugs.length > 0 && (
+            <button
+              onClick={() => onFollowAll(unfollowedSlugs)}
+              className="px-4 py-2 bg-[#6366F1] text-white text-[13px] font-bold rounded-full hover:bg-[#4F46E5] transition-colors active:scale-95"
+              data-testid="list-follow-all-btn"
+            >
+              Follow All
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="max-w-[600px] mx-auto px-4 py-2">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 py-2">
         {list.description && (
-          <p className="text-[14px] text-[#71717A] mb-3 leading-relaxed">{list.description}</p>
+          <p className="text-[14px] md:text-[15px] text-[#71717A] dark:text-[#A1A1AA] mb-3 leading-relaxed">{list.description}</p>
         )}
 
         {isLoading ? (
@@ -126,18 +136,18 @@ function ListDetail({
             <Loader2 className="w-6 h-6 animate-spin text-[#6366F1]" />
           </div>
         ) : (
-          <div className="divide-y divide-[#F4F4F5]">
+          <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
             {podcasts.map((p) => (
               <div
                 key={p.slug}
                 className="flex items-center gap-3 py-3"
                 data-testid={`list-podcast-${p.slug}`}
               >
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] flex-shrink-0 ring-[0.5px] ring-black/5">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
                   <img src={p.artwork_url} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-[#09090B] truncate">{p.name}</p>
+                  <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{p.name}</p>
                   {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5">{p.category}</p>}
                 </div>
                 <FollowButton
@@ -158,9 +168,7 @@ function ListDetail({
 export default function DiscoverPage() {
   const { data: user } = useAuth();
   const { toast } = useToast();
-  const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedList, setSelectedList] = useState<PodcastList | null>(null);
 
@@ -228,6 +236,11 @@ export default function DiscoverPage() {
     unfollowMutation.mutate(slug);
   };
 
+  const handleFollowAll = (slugs: string[]) => {
+    slugs.forEach((slug) => followMutation.mutate(slug));
+    toast({ title: "Following all", description: `Following ${slugs.length} new podcasts` });
+  };
+
   const recommendedLists = useMemo(() => {
     if (!resolvedFollowedSlugs.size || !lists.length) return [];
     return lists
@@ -266,240 +279,226 @@ export default function DiscoverPage() {
 
   if (selectedList) {
     return (
-      <div className="min-h-screen bg-white" data-testid="discover-page">
-        <FeedHeader />
-        <ListDetail
-          list={selectedList}
-          followedSlugs={resolvedFollowedSlugs}
-          onFollow={handleFollow}
-          onUnfollow={handleUnfollow}
-          onBack={() => setSelectedList(null)}
-        />
-        <div className="h-[80px]" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
-        <BottomNav currentPath={location} />
-      </div>
+      <DashboardLayout>
+        <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="discover-page">
+          <ListDetail
+            list={selectedList}
+            followedSlugs={resolvedFollowedSlugs}
+            onFollow={handleFollow}
+            onUnfollow={handleUnfollow}
+            onFollowAll={handleFollowAll}
+            onBack={() => setSelectedList(null)}
+          />
+          <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white" data-testid="discover-page">
-      <FeedHeader />
-
-      <div className="sticky top-[52px] z-30 bg-white border-b border-[#F0F0F2]">
-        <div className="max-w-[600px] mx-auto px-4 py-2.5">
-          <div className="relative flex items-center gap-2">
-            {searchFocused && (
+    <DashboardLayout>
+      <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="discover-page">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 pt-6 pb-3">
+          <h1 className="text-[22px] md:text-[26px] font-bold text-[#09090B] dark:text-white mb-4">Discover</h1>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
+            <input
+              type="text"
+              placeholder="Search podcasts and lists..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-2xl py-3.5 pl-12 pr-12 text-[16px] md:text-[17px] text-[#09090B] dark:text-white placeholder:text-[#A1A1AA] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 transition-all"
+              data-testid="discover-search-input"
+            />
+            {searchQuery && (
               <button
-                onClick={() => { setSearchFocused(false); setSearchQuery(""); }}
-                className="w-9 h-9 flex items-center justify-center flex-shrink-0"
-                aria-label="Close search"
-                data-testid="discover-search-back"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#A1A1AA] flex items-center justify-center"
+                aria-label="Clear search"
+                data-testid="discover-search-clear"
               >
-                <ArrowLeft className="w-5 h-5 text-[#09090B]" />
+                <X className="w-3 h-3 text-white" strokeWidth={3} />
               </button>
             )}
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
-              <input
-                type="text"
-                placeholder="Search podcasts and lists"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                className="w-full bg-[#F4F4F5] rounded-full py-2.5 pl-10 pr-10 text-[15px] text-[#09090B] placeholder:text-[#A1A1AA] focus:outline-none focus:bg-[#ECECEE] transition-colors"
-                data-testid="discover-search-input"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#A1A1AA] flex items-center justify-center"
-                  aria-label="Clear search"
-                  data-testid="discover-search-clear"
-                >
-                  <X className="w-3 h-3 text-white" strokeWidth={3} />
-                </button>
-              )}
-            </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-[600px] mx-auto">
-        {searchQuery.length >= 2 ? (
-          <div className="px-4 py-3">
-            {searchedLists.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">Lists</h3>
-                <div className="space-y-1">
-                  {searchedLists.slice(0, 5).map((list) => (
-                    <button
-                      key={list.slug}
-                      onClick={() => { setSelectedList(list); setSearchQuery(""); setSearchFocused(false); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F9F9FB] active:bg-[#F4F4F5] transition-colors text-left"
-                      data-testid={`search-list-${list.slug}`}
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-[#F4F4F5] flex items-center justify-center flex-shrink-0">
-                        <ListIcon className="w-5 h-5 text-[#A1A1AA]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#09090B] truncate">{list.name}</p>
-                        <p className="text-[12px] text-[#A1A1AA]">{list.podcast_slugs.length} podcasts · {list.category}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-[#D4D4D8] flex-shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {filteredPodcasts.length > 0 && (
-              <div>
-                <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">Podcasts</h3>
-                <div className="divide-y divide-[#F4F4F5]">
-                  {filteredPodcasts.slice(0, 20).map((p) => (
-                    <div key={p.slug} className="flex items-center gap-3 py-3" data-testid={`search-podcast-${p.slug}`}>
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] flex-shrink-0 ring-[0.5px] ring-black/5">
-                        <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#09090B] truncate">{p.name}</p>
-                        {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5">{p.category}</p>}
-                      </div>
-                      <FollowButton
-                        slug={p.slug}
-                        isFollowing={resolvedFollowedSlugs.has(p.slug)}
-                        onFollow={handleFollow}
-                        onUnfollow={handleUnfollow}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {searchedLists.length === 0 && filteredPodcasts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-[15px] text-[#71717A]">No results for "{searchQuery}"</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
-              {recommendedLists.length > 0 && (
-                <button
-                  onClick={() => setActiveCategory("recommended")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all active:scale-95 ${
-                    effectiveCategory === "recommended"
-                      ? "bg-[#09090B] text-white"
-                      : "bg-[#F4F4F5] text-[#52525B] hover:bg-[#E4E4E7]"
-                  }`}
-                  data-testid="discover-category-recommended"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  For You
-                </button>
-              )}
-              {categories.map((cat) => {
-                const config = CATEGORY_CONFIG[cat] || { label: cat, icon: ListIcon, color: "#6366F1" };
-                const Icon = config.icon;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all active:scale-95 ${
-                      effectiveCategory === cat
-                        ? "bg-[#09090B] text-white"
-                        : "bg-[#F4F4F5] text-[#52525B] hover:bg-[#E4E4E7]"
-                    }`}
-                    data-testid={`discover-category-${cat}`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {config.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {loadingLists ? (
-              <div className="flex justify-center py-16">
-                <Loader2 className="w-6 h-6 animate-spin text-[#6366F1]" />
-              </div>
-            ) : (
-              <div className="px-4 pb-4">
-                {effectiveCategory === "recommended" && recommendedLists.length > 0 && (
-                  <div className="mb-2">
-                    <p className="text-[13px] text-[#A1A1AA] mb-3">Lists based on podcasts you follow</p>
-                  </div>
-                )}
-                <div className="space-y-2">
-                  {filteredLists.map((list) => {
-                    const followingCount = list.podcast_slugs.filter((s) => resolvedFollowedSlugs.has(s)).length;
-                    const previewSlugs = list.podcast_slugs.slice(0, 5);
-                    const previewPodcasts = previewSlugs
-                      .map((slug) => directoryData?.find((p) => p.slug === slug))
-                      .filter(Boolean) as DirectoryPodcast[];
-
-                    return (
+        <div className="max-w-5xl mx-auto">
+          {searchQuery.length >= 2 ? (
+            <div className="px-4 md:px-8 py-3">
+              {searchedLists.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">Lists</h3>
+                  <div className="space-y-1">
+                    {searchedLists.slice(0, 5).map((list) => (
                       <button
                         key={list.slug}
-                        onClick={() => setSelectedList(list)}
-                        className="w-full text-left border border-[#F0F0F2] rounded-2xl p-4 hover:bg-[#FAFAFA] active:bg-[#F4F4F5] transition-colors"
-                        data-testid={`discover-list-${list.slug}`}
+                        onClick={() => { setSelectedList(list); setSearchQuery(""); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F9F9FB] dark:hover:bg-[#111114] active:bg-[#F4F4F5] transition-colors text-left"
+                        data-testid={`search-list-${list.slug}`}
                       >
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-[16px] font-bold text-[#09090B]">{list.name}</h3>
-                            <p className="text-[13px] text-[#A1A1AA] mt-0.5">
-                              {list.podcast_slugs.length} podcasts
-                              {followingCount > 0 && <span className="text-[#6366F1] font-medium"> · {followingCount} following</span>}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-[#D4D4D8] mt-1 flex-shrink-0" />
+                        <div className="w-10 h-10 rounded-xl bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center flex-shrink-0">
+                          <ListIcon className="w-5 h-5 text-[#A1A1AA]" />
                         </div>
-                        {list.description && (
-                          <p className="text-[13px] text-[#71717A] mb-3 line-clamp-2 leading-relaxed">{list.description}</p>
-                        )}
-                        {previewPodcasts.length > 0 && (
-                          <div className="flex items-center gap-0">
-                            {previewPodcasts.map((p, i) => (
-                              <div
-                                key={p.slug}
-                                className="w-9 h-9 rounded-lg overflow-hidden ring-2 ring-white flex-shrink-0"
-                                style={{ marginLeft: i > 0 ? "-6px" : "0", zIndex: 5 - i }}
-                              >
-                                <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
-                              </div>
-                            ))}
-                            {list.podcast_slugs.length > 5 && (
-                              <div
-                                className="w-9 h-9 rounded-lg bg-[#F4F4F5] flex items-center justify-center ring-2 ring-white flex-shrink-0 text-[11px] font-bold text-[#71717A]"
-                                style={{ marginLeft: "-6px", zIndex: 0 }}
-                              >
-                                +{list.podcast_slugs.length - 5}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{list.name}</p>
+                          <p className="text-[12px] text-[#A1A1AA]">{list.podcast_slugs.length} podcasts · {list.category}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[#D4D4D8] flex-shrink-0" />
                       </button>
-                    );
-                  })}
-                </div>
-
-                {filteredLists.length === 0 && effectiveCategory === "recommended" && (
-                  <div className="text-center py-12">
-                    <Sparkles className="w-10 h-10 mx-auto mb-3 text-[#D4D4D8]" />
-                    <p className="text-[15px] font-medium text-[#71717A]">Follow some podcasts first</p>
-                    <p className="text-[13px] text-[#A1A1AA] mt-1">We'll recommend lists based on what you follow</p>
+                    ))}
                   </div>
+                </div>
+              )}
+
+              {filteredPodcasts.length > 0 && (
+                <div>
+                  <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">Podcasts</h3>
+                  <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
+                    {filteredPodcasts.slice(0, 20).map((p) => (
+                      <div key={p.slug} className="flex items-center gap-3 py-3" data-testid={`search-podcast-${p.slug}`}>
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
+                          <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{p.name}</p>
+                          {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5">{p.category}</p>}
+                        </div>
+                        <FollowButton
+                          slug={p.slug}
+                          isFollowing={resolvedFollowedSlugs.has(p.slug)}
+                          onFollow={handleFollow}
+                          onUnfollow={handleUnfollow}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {searchedLists.length === 0 && filteredPodcasts.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">No results for "{searchQuery}"</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-2 px-4 md:px-8 py-3 overflow-x-auto scrollbar-hide">
+                {recommendedLists.length > 0 && (
+                  <button
+                    onClick={() => setActiveCategory("recommended")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all active:scale-95 ${
+                      effectiveCategory === "recommended"
+                        ? "bg-[#09090B] dark:bg-white text-white dark:text-[#09090B]"
+                        : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
+                    }`}
+                    data-testid="discover-category-recommended"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    For You
+                  </button>
                 )}
+                {categories.map((cat) => {
+                  const config = CATEGORY_CONFIG[cat] || { label: cat, icon: ListIcon, color: "#6366F1" };
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all active:scale-95 ${
+                        effectiveCategory === cat
+                          ? "bg-[#09090B] dark:bg-white text-white dark:text-[#09090B]"
+                          : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
+                      }`}
+                      data-testid={`discover-category-${cat}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {config.label}
+                    </button>
+                  );
+                })}
               </div>
-            )}
-          </>
-        )}
-        <div className="h-[80px]" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+
+              {loadingLists ? (
+                <div className="flex justify-center py-16">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#6366F1]" />
+                </div>
+              ) : (
+                <div className="px-4 md:px-8 pb-4">
+                  {effectiveCategory === "recommended" && recommendedLists.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-[13px] text-[#A1A1AA] mb-3">Lists based on podcasts you follow</p>
+                    </div>
+                  )}
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {filteredLists.map((list) => {
+                      const followingCount = list.podcast_slugs.filter((s) => resolvedFollowedSlugs.has(s)).length;
+                      const previewSlugs = list.podcast_slugs.slice(0, 5);
+                      const previewPodcasts = previewSlugs
+                        .map((slug) => directoryData?.find((p) => p.slug === slug))
+                        .filter(Boolean) as DirectoryPodcast[];
+
+                      return (
+                        <button
+                          key={list.slug}
+                          onClick={() => setSelectedList(list)}
+                          className="w-full text-left border border-[#F0F0F2] dark:border-[#1C1C22] rounded-2xl p-4 hover:bg-[#FAFAFA] dark:hover:bg-[#111114] active:bg-[#F4F4F5] transition-colors"
+                          data-testid={`discover-list-${list.slug}`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-[16px] md:text-[17px] font-bold text-[#09090B] dark:text-white">{list.name}</h3>
+                              <p className="text-[13px] text-[#A1A1AA] mt-0.5">
+                                {list.podcast_slugs.length} podcasts
+                                {followingCount > 0 && <span className="text-[#6366F1] font-medium"> · {followingCount} following</span>}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-[#D4D4D8] mt-1 flex-shrink-0" />
+                          </div>
+                          {list.description && (
+                            <p className="text-[13px] md:text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-3 line-clamp-2 leading-relaxed">{list.description}</p>
+                          )}
+                          {previewPodcasts.length > 0 && (
+                            <div className="flex items-center gap-0">
+                              {previewPodcasts.map((p, i) => (
+                                <div
+                                  key={p.slug}
+                                  className="w-9 h-9 rounded-lg overflow-hidden ring-2 ring-white dark:ring-[#09090B] flex-shrink-0"
+                                  style={{ marginLeft: i > 0 ? "-6px" : "0", zIndex: 5 - i }}
+                                >
+                                  <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                                </div>
+                              ))}
+                              {list.podcast_slugs.length > 5 && (
+                                <div
+                                  className="w-9 h-9 rounded-lg bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center ring-2 ring-white dark:ring-[#09090B] flex-shrink-0 text-[11px] font-bold text-[#71717A]"
+                                  style={{ marginLeft: "-6px", zIndex: 0 }}
+                                >
+                                  +{list.podcast_slugs.length - 5}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {filteredLists.length === 0 && effectiveCategory === "recommended" && (
+                    <div className="text-center py-12">
+                      <Sparkles className="w-10 h-10 mx-auto mb-3 text-[#D4D4D8]" />
+                      <p className="text-[15px] font-medium text-[#71717A] dark:text-[#A1A1AA]">Follow some podcasts first</p>
+                      <p className="text-[13px] text-[#A1A1AA] mt-1">We'll recommend lists based on what you follow</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+          <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+        </div>
       </div>
-      <BottomNav currentPath={location} />
-    </div>
+    </DashboardLayout>
   );
 }

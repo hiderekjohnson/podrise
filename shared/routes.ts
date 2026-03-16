@@ -30,6 +30,11 @@ const userResponseSchema = z.object({
   vacationUntil: z.string().nullable().optional(),
   emailVerified: z.boolean().optional(),
   onboardingCompleted: z.boolean().optional(),
+  displayName: z.string().nullable().optional(),
+  birthday: z.string().nullable().optional(),
+  gender: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  language: z.string().nullable().optional(),
   createdAt: z.string().nullable(),
 });
 
@@ -83,6 +88,11 @@ export const api = {
         deliveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
         deliveryTimezone: z.string().optional(),
         vacationUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format").nullable().optional(),
+        displayName: z.string().max(100).nullable().optional(),
+        birthday: z.string().nullable().optional(),
+        gender: z.string().max(50).nullable().optional(),
+        location: z.string().max(200).nullable().optional(),
+        language: z.string().max(50).nullable().optional(),
       }),
       responses: {
         200: userResponseSchema,

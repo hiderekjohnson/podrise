@@ -1,18 +1,19 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag, Bookmark, BookmarkCheck } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 interface BookResource {
   name: string;
@@ -499,7 +500,23 @@ export default function EpisodeRecapPage() {
   const [showAllProducts, setShowAllProducts] = useState(false);
   const chatRef = useRef<ChatContextRef | null>(null);
   const { toast } = useToast();
+  const { data: authUser } = useAuth();
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
+
+  const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
+    queryKey: ["/api/bookmarks"],
+    enabled: !!authUser,
+  });
+  const isBookmarked = (bookmarksData || []).some(b => b.episodeSlug === episodeSlug && b.podcastSlug === podcastSlug);
+
+  const addBookmarkMut = useMutation({
+    mutationFn: async () => { await apiRequest("POST", "/api/bookmarks", { episodeSlug, podcastSlug }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+  const removeBookmarkMut = useMutation({
+    mutationFn: async () => { await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
 
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
     queryKey: ["/api/podcasts", podcastSlug, "recaps", episodeSlug],
@@ -905,6 +922,18 @@ export default function EpisodeRecapPage() {
             <Mail className="w-4 h-4" />
             Get Updates
           </button>
+          {authUser && (
+            <button
+              onClick={() => isBookmarked ? removeBookmarkMut.mutate() : addBookmarkMut.mutate()}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                isBookmarked ? "text-primary bg-primary/[0.08]" : "text-muted-foreground hover:text-primary hover:bg-primary/[0.06]"
+              }`}
+              data-testid="nav-bookmark"
+            >
+              {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+              {isBookmarked ? "Saved" : "Save"}
+            </button>
+          )}
         </nav>
 
         {episode.keyInsights?.length > 0 && (
