@@ -35,6 +35,8 @@ const userResponseSchema = z.object({
   gender: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
   language: z.string().nullable().optional(),
+  referralCode: z.string().nullable().optional(),
+  referredBy: z.number().nullable().optional(),
   createdAt: z.string().nullable(),
 });
 

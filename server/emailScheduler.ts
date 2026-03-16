@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import { pool } from "./db";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
@@ -611,7 +612,33 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     const episodeCount = result.parsedEpisodes.length || 1;
     const emailCopy = await generateEmailSubjectAndPreview(result.summary, episodeCount);
     const reorderedSummary = reorderMarkdownLeadFirst(result.summary, emailCopy.leadEpisodePodcast);
-    const emailHtml = markdownToEmailHtml(reorderedSummary, user.email, episodeMeta, emailCopy);
+
+    let referralData: { referralCode: string; referralCount: number; nextTierName?: string; nextTierThreshold?: number } | undefined;
+    try {
+      let code = user.referralCode;
+      if (!code) {
+        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        let generated = "";
+        for (let i = 0; i < 8; i++) generated += chars[Math.floor(Math.random() * chars.length)];
+        await pool.query(`UPDATE users SET referral_code = $1 WHERE id = $2 AND referral_code IS NULL`, [generated, user.id]);
+        const refreshed = await storage.getUserById(user.id);
+        code = refreshed?.referralCode || generated;
+      }
+      const referralCount = await storage.getReferralCount(user.id);
+      const tiers = await storage.getReferralTiers();
+      const activeTiers = tiers.filter(t => t.active);
+      const nextTier = activeTiers.find(t => referralCount < t.threshold);
+      referralData = {
+        referralCode: code,
+        referralCount,
+        nextTierName: nextTier?.rewardName,
+        nextTierThreshold: nextTier?.threshold,
+      };
+    } catch (e) {
+      console.error("[EmailScheduler] Failed to fetch referral data:", e);
+    }
+
+    const emailHtml = markdownToEmailHtml(reorderedSummary, user.email, episodeMeta, emailCopy, referralData);
 
     const deliveryTime = user.deliveryTime || "07:00";
     const subject = emailCopy.subject;

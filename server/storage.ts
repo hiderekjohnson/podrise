@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -90,6 +90,16 @@ export interface IStorage {
   logError(data: InsertErrorLog): Promise<ErrorLog>;
   getErrorLogs(limit?: number, offset?: number, severity?: string, startDate?: Date, endDate?: Date): Promise<ErrorLog[]>;
   getErrorLogCount(severity?: string, startDate?: Date, endDate?: Date): Promise<number>;
+  getUserByReferralCode(code: string): Promise<UserResponse | undefined>;
+  createReferral(referrerId: number, referredUserId: number): Promise<Referral>;
+  verifyReferral(referredUserId: number): Promise<Referral | undefined>;
+  getReferralCount(userId: number): Promise<number>;
+  getLeaderboard(limit?: number): Promise<{ userId: number; displayName: string | null; email: string; count: number }[]>;
+  getReferralTiers(): Promise<ReferralTier[]>;
+  getReferralTierById(id: number): Promise<ReferralTier | undefined>;
+  createReferralTier(data: InsertReferralTier): Promise<ReferralTier>;
+  updateReferralTier(id: number, data: Partial<InsertReferralTier>): Promise<ReferralTier>;
+  deleteReferralTier(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -851,6 +861,74 @@ export class DatabaseStorage implements IStorage {
     }
     const [result] = await db.select({ count: sql<number>`count(*)` }).from(errorLogs);
     return result?.count ?? 0;
+  }
+
+  async getUserByReferralCode(code: string): Promise<UserResponse | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.referralCode, code));
+    return user ?? undefined;
+  }
+
+  async createReferral(referrerId: number, referredUserId: number): Promise<Referral> {
+    const [created] = await db.insert(referrals).values({ referrerId, referredUserId }).returning();
+    return created;
+  }
+
+  async verifyReferral(referredUserId: number): Promise<Referral | undefined> {
+    const [existing] = await db.select().from(referrals)
+      .where(and(eq(referrals.referredUserId, referredUserId), eq(referrals.status, "pending")));
+    if (!existing) return undefined;
+    const [updated] = await db.update(referrals)
+      .set({ status: "verified", verifiedAt: new Date() })
+      .where(eq(referrals.id, existing.id))
+      .returning();
+    return updated;
+  }
+
+  async getReferralCount(userId: number): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(*)` })
+      .from(referrals)
+      .where(and(eq(referrals.referrerId, userId), eq(referrals.status, "verified")));
+    return Number(result?.count ?? 0);
+  }
+
+  async getLeaderboard(limit: number = 20): Promise<{ userId: number; displayName: string | null; email: string; count: number }[]> {
+    const result = await db
+      .select({
+        userId: referrals.referrerId,
+        displayName: users.displayName,
+        email: users.email,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(referrals)
+      .innerJoin(users, eq(referrals.referrerId, users.id))
+      .where(eq(referrals.status, "verified"))
+      .groupBy(referrals.referrerId, users.displayName, users.email)
+      .orderBy(sql`count(*) DESC`)
+      .limit(limit);
+    return result;
+  }
+
+  async getReferralTiers(): Promise<ReferralTier[]> {
+    return db.select().from(referralTiers).orderBy(asc(referralTiers.sortOrder));
+  }
+
+  async getReferralTierById(id: number): Promise<ReferralTier | undefined> {
+    const [tier] = await db.select().from(referralTiers).where(eq(referralTiers.id, id));
+    return tier ?? undefined;
+  }
+
+  async createReferralTier(data: InsertReferralTier): Promise<ReferralTier> {
+    const [created] = await db.insert(referralTiers).values(data).returning();
+    return created;
+  }
+
+  async updateReferralTier(id: number, data: Partial<InsertReferralTier>): Promise<ReferralTier> {
+    const [updated] = await db.update(referralTiers).set(data).where(eq(referralTiers.id, id)).returning();
+    return updated;
+  }
+
+  async deleteReferralTier(id: number): Promise<void> {
+    await db.delete(referralTiers).where(eq(referralTiers.id, id));
   }
 }
 

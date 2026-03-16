@@ -29,6 +29,8 @@ export const users = pgTable("users", {
   gender: text("gender"),
   location: text("location"),
   language: text("language"),
+  referralCode: text("referral_code").unique(),
+  referredBy: integer("referred_by"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -79,6 +81,34 @@ export const emailVerificationTokens = pgTable("email_verification_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  referrerId: integer("referrer_id").notNull(),
+  referredUserId: integer("referred_user_id").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+  verifiedAt: timestamp("verified_at"),
+});
+
+export type Referral = typeof referrals.$inferSelect;
+
+export const referralTiers = pgTable("referral_tiers", {
+  id: serial("id").primaryKey(),
+  threshold: integer("threshold").notNull(),
+  rewardName: text("reward_name").notNull(),
+  rewardDescription: text("reward_description").notNull(),
+  imageUrl: text("image_url"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+});
+
+export const insertReferralTierSchema = createInsertSchema(referralTiers).omit({
+  id: true,
+});
+
+export type ReferralTier = typeof referralTiers.$inferSelect;
+export type InsertReferralTier = z.infer<typeof insertReferralTierSchema>;
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -90,6 +120,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   deviceType: true,
   googleId: true,
   onboardingCompleted: true,
+  referralCode: true,
+  referredBy: true,
 }).extend({
   email: z.string().email("Please enter a valid email address"),
   podcasts: z.array(z.string()),

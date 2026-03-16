@@ -57,6 +57,7 @@ const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
 const Disclosure = lazy(() => import("./pages/Disclosure"));
+const PodSquad = lazy(() => import("./pages/PodSquad"));
 
 function PageLoader() {
   return (
@@ -106,6 +107,8 @@ function Router() {
         <Route path="/get-started">{() => { window.location.replace("/register"); return null; }}</Route>
         <Route path="/register" component={Register} />
         <Route path="/verify-email" component={VerifyEmail} />
+        <Route path="/pod-squad" component={PodSquad} />
+        <Route path="/refer">{() => { window.location.replace("/pod-squad"); return null; }}</Route>
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends">{() => { window.location.replace("/industries"); return null; }}</Route>
         <Route path="/industries/:slug/pulse/:date" component={TopicPulsePage} />

@@ -489,7 +489,7 @@ export function recapHasContent(markdown: string): boolean {
   return parsed.episodes.length > 0;
 }
 
-export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, emailCopy?: { previewText?: string; leadHeadline?: string; supportingDetail?: string; coverlines?: string }): string {
+export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, emailCopy?: { previewText?: string; leadHeadline?: string; supportingDetail?: string; coverlines?: string }, referralData?: { referralCode: string; referralCount: number; nextTierName?: string; nextTierThreshold?: number }): string {
   const parsed = parseDigestMarkdown(markdown);
 
   const episodeCount = parsed.episodes.length;
@@ -598,6 +598,23 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 </td></tr>
 
 ${episodeCardsHtml}
+
+<!-- POD SQUAD REFERRAL SECTION -->
+${referralData ? `
+<tr><td style="padding:0 28px;background:#ffffff;">
+  <div style="height:1px;background:#F0F0F2;margin:24px 0 0;"></div>
+</td></tr>
+<tr><td style="padding:24px 28px;background:#ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:linear-gradient(145deg,#6366F1,#8B5CF6);border-radius:12px;overflow:hidden;">
+    <tr><td style="padding:24px 24px 20px;text-align:center;">
+      <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.12em;text-transform:uppercase;margin:0 0 6px;">THE POD SQUAD</p>
+      <p style="font-size:20px;font-weight:800;color:#ffffff;margin:0 0 4px;">Share the knowledge</p>
+      <p style="font-size:14px;color:rgba(255,255,255,0.8);margin:0 0 16px;">You have <strong style="color:#ffffff;">${referralData.referralCount}</strong> referral${referralData.referralCount !== 1 ? "s" : ""}${referralData.nextTierName ? `. ${referralData.nextTierThreshold! - referralData.referralCount} more to unlock <strong style="color:#ffffff;">${escapeHtml(referralData.nextTierName)}</strong>` : ""}.</p>
+      <a href="https://podcap.io/r/${escapeHtml(referralData.referralCode)}" style="display:inline-block;background:#ffffff;color:#6366F1;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Share Your Link</a>
+    </td></tr>
+  </table>
+</td></tr>
+` : ""}
 
 <!-- SIGN-OFF -->
 <tr><td style="padding:0 28px;background:#ffffff;">

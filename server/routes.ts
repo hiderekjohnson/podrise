@@ -29,6 +29,7 @@ declare module "express-session" {
     podcasterEmail?: string;
     oauthState?: string;
     signupContext?: string;
+    referralCode?: string;
   }
 }
 
@@ -262,6 +263,7 @@ const STATIC_PAGES = [
   { path: "/interests", priority: "0.8", changefreq: "weekly" },
   { path: "/roles", priority: "0.8", changefreq: "weekly" },
   { path: "/insights", priority: "0.7", changefreq: "weekly" },
+  { path: "/pod-squad", priority: "0.7", changefreq: "weekly" },
   { path: "/about", priority: "0.5", changefreq: "monthly" },
   { path: "/contact", priority: "0.4", changefreq: "monthly" },
   { path: "/enterprise", priority: "0.5", changefreq: "monthly" },
@@ -887,6 +889,22 @@ If you don't know the answer to something, be honest about it and suggest the us
         [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, user.id]
       ).catch(e => console.error("[SignupMeta] Failed:", e));
 
+      // Handle referral tracking (session-based from web or direct from mobile app)
+      const refCode = req.session.referralCode || req.body.referralCode;
+      if (refCode && typeof refCode === "string") {
+        try {
+          const referrer = await storage.getUserByReferralCode(refCode);
+          if (referrer && referrer.id !== user.id) {
+            await pool.query(`UPDATE users SET referred_by = $1 WHERE id = $2`, [referrer.id, user.id]);
+            await storage.createReferral(referrer.id, user.id);
+            console.log(`[Referral] User ${user.id} referred by ${referrer.id} (code: ${refCode})`);
+          }
+        } catch (e) {
+          console.error("[Referral] Failed to record referral:", e);
+        }
+        delete req.session.referralCode;
+      }
+
       res.status(201).json(user);
 
       if (input.podcasts && input.podcasts.length > 0) {
@@ -942,6 +960,11 @@ If you don't know the answer to something, be honest about it and suggest the us
         [row.user_id]
       );
 
+      // Verify referral on email confirmation
+      storage.verifyReferral(row.user_id).then(ref => {
+        if (ref) console.log(`[Referral] Verified referral for user ${row.user_id}, referrer ${ref.referrerId}`);
+      }).catch(e => console.error("[Referral] Verify error:", e));
+
       req.session.userId = row.user_id;
       const user = await storage.getUserById(row.user_id);
       res.json({ message: "Email verified successfully", user });
@@ -969,6 +992,278 @@ If you don't know the answer to something, be honest about it and suggest the us
     } catch (err) {
       console.error("[ResendVerify] Error:", err);
       res.status(500).json({ message: "Failed to send verification email. Please try again." });
+    }
+  });
+
+  // Referral redirect route
+  app.get("/r/:code", async (req, res) => {
+    const code = req.params.code;
+    if (code && /^[a-zA-Z0-9_-]{4,20}$/.test(code)) {
+      req.session.referralCode = code;
+    }
+    res.redirect("/register");
+  });
+
+  // Generate referral code for user if they don't have one
+  function generateReferralCode(): string {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
+    for (let i = 0; i < 8; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return code;
+  }
+
+  async function ensureReferralCode(userId: number): Promise<string> {
+    const user = await storage.getUserById(userId);
+    if (user?.referralCode) return user.referralCode;
+    const code = generateReferralCode();
+    await pool.query(`UPDATE users SET referral_code = $1 WHERE id = $2 AND referral_code IS NULL`, [code, userId]);
+    const updated = await storage.getUserById(userId);
+    return updated?.referralCode || code;
+  }
+
+  // GET /api/referrals/my-stats
+  app.get("/api/referrals/my-stats", async (req, res) => {
+    const userId = req.session?.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    try {
+      const code = await ensureReferralCode(userId);
+      const count = await storage.getReferralCount(userId);
+      const tiers = await storage.getReferralTiers();
+      const activeTiers = tiers.filter(t => t.active);
+      const currentTier = activeTiers.filter(t => count >= t.threshold).pop() || null;
+      const nextTier = activeTiers.find(t => count < t.threshold) || null;
+
+      res.json({
+        referralCode: code,
+        referralLink: `https://podcap.io/r/${code}`,
+        count,
+        currentTier,
+        nextTier,
+        tiers: activeTiers,
+      });
+    } catch (err) {
+      console.error("[Referrals] Stats error:", err);
+      res.status(500).json({ message: "Failed to load referral stats" });
+    }
+  });
+
+  // GET /api/referrals/leaderboard
+  app.get("/api/referrals/leaderboard", async (_req, res) => {
+    try {
+      const leaderboard = await storage.getLeaderboard(20);
+      const safeLeaderboard = leaderboard.map(({ email, ...rest }) => ({
+        ...rest,
+        displayName: rest.displayName || `User •••${String(rest.userId).slice(-4)}`,
+      }));
+      res.json(safeLeaderboard);
+    } catch (err) {
+      console.error("[Referrals] Leaderboard error:", err);
+      res.status(500).json({ message: "Failed to load leaderboard" });
+    }
+  });
+
+  // POST /api/referrals/send-invite
+  app.post("/api/referrals/send-invite", async (req, res) => {
+    const userId = req.session?.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const { email: inviteeEmail } = req.body;
+    if (!inviteeEmail || !/^\S+@\S+\.\S+$/.test(inviteeEmail)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+
+    try {
+      const user = await storage.getUserById(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const code = await ensureReferralCode(userId);
+      const referralLink = `https://podcap.io/r/${code}`;
+      const rawName = user.displayName || user.email.split("@")[0];
+      const senderName = rawName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+      const { client, fromEmail } = await getUncachableResendClient();
+      await client.emails.send({
+        from: `PodCap <${fromEmail}>`,
+        to: inviteeEmail,
+        subject: `${rawName} invited you to PodCap`,
+        html: `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
+<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<div style="padding:40px 32px 24px;text-align:center;background:linear-gradient(145deg,#6366F1,#8B5CF6);">
+<h1 style="margin:0 0 8px;color:#fff;font-size:22px;font-weight:800;">You're Invited to The Pod Squad</h1>
+<p style="margin:0;color:rgba(255,255,255,0.85);font-size:15px;line-height:1.5;">${senderName} thinks you'd love PodCap — AI-powered podcast intelligence.</p>
+</div>
+<div style="padding:24px 32px 32px;text-align:center;">
+<p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 20px;">Get smart summaries, key insights, and episode recaps from your favorite podcasts — delivered right to your inbox.</p>
+<a href="${referralLink}" style="display:inline-block;background:#6366F1;color:#fff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;">Join PodCap Free</a>
+</div>
+<div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
+<span style="font-size:12px;color:#a1a1aa;">PodCap — The intelligence layer on top of podcasts</span>
+</div>
+</div>
+</body></html>`,
+      });
+
+      res.json({ message: "Invitation sent!" });
+    } catch (err) {
+      console.error("[Referrals] Send invite error:", err);
+      res.status(500).json({ message: "Failed to send invitation" });
+    }
+  });
+
+  // Admin referral tier management
+  app.get("/api/admin/referral-tiers", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const tiers = await storage.getReferralTiers();
+      res.json(tiers);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load tiers" });
+    }
+  });
+
+  app.post("/api/admin/referral-tiers", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { threshold, rewardName, rewardDescription, imageUrl, sortOrder, active } = req.body;
+      const t = Number(threshold);
+      if (!rewardName || typeof rewardName !== "string" || rewardName.trim().length === 0) {
+        return res.status(400).json({ message: "Reward name is required" });
+      }
+      if (!Number.isInteger(t) || t < 1) {
+        return res.status(400).json({ message: "Threshold must be a positive integer" });
+      }
+      if (!rewardDescription || typeof rewardDescription !== "string" || rewardDescription.trim().length === 0) {
+        return res.status(400).json({ message: "Reward description is required" });
+      }
+      const tier = await storage.createReferralTier({
+        threshold: t,
+        rewardName: rewardName.trim(),
+        rewardDescription: rewardDescription.trim(),
+        imageUrl: imageUrl?.trim() || null,
+        sortOrder: Number(sortOrder || 0),
+        active: active !== false,
+      });
+      res.json(tier);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create tier" });
+    }
+  });
+
+  app.patch("/api/admin/referral-tiers/:id", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const updates: Partial<{ threshold: number; rewardName: string; rewardDescription: string | null; imageUrl: string | null; sortOrder: number; active: boolean }> = {};
+      if (req.body.threshold !== undefined) {
+        const t = Number(req.body.threshold);
+        if (!Number.isInteger(t) || t < 1) {
+          return res.status(400).json({ message: "Threshold must be a positive integer" });
+        }
+        updates.threshold = t;
+      }
+      if (req.body.rewardName !== undefined) {
+        if (typeof req.body.rewardName !== "string" || req.body.rewardName.trim().length === 0) {
+          return res.status(400).json({ message: "Reward name is required" });
+        }
+        updates.rewardName = req.body.rewardName.trim();
+      }
+      if (req.body.rewardDescription !== undefined) {
+        const desc = typeof req.body.rewardDescription === "string" ? req.body.rewardDescription.trim() : "";
+        if (desc.length === 0) return res.status(400).json({ message: "Reward description is required" });
+        updates.rewardDescription = desc;
+      }
+      if (req.body.imageUrl !== undefined) updates.imageUrl = req.body.imageUrl?.trim() || null;
+      if (req.body.sortOrder !== undefined) updates.sortOrder = Number(req.body.sortOrder);
+      if (req.body.active !== undefined) updates.active = !!req.body.active;
+      const tier = await storage.updateReferralTier(Number(req.params.id), updates);
+      res.json(tier);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update tier" });
+    }
+  });
+
+  app.delete("/api/admin/referral-tiers/:id", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      await storage.deleteReferralTier(Number(req.params.id));
+      res.json({ message: "Tier deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete tier" });
+    }
+  });
+
+  app.post("/api/admin/referral-tiers/upload-image", adminUploadAuth, upload.single("image"), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ message: "No image file provided" });
+      const tierId = parseInt(req.body.tierId, 10);
+      if (!tierId) return res.status(400).json({ message: "Invalid tier ID" });
+      const imageUrl = `/uploads/${file.filename}`;
+      await pool.query(`UPDATE referral_tiers SET image_url = $1 WHERE id = $2`, [imageUrl, tierId]);
+      res.json({ imageUrl, message: "Tier image uploaded" });
+    } catch (err: unknown) {
+      console.error("[Admin] Tier image upload error:", err);
+      res.status(500).json({ message: "Failed to upload tier image" });
+    }
+  });
+
+  app.get("/api/admin/referral-stats", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows: totalReferrals } = await pool.query(`SELECT COUNT(*)::int AS count FROM referrals`);
+      const { rows: verifiedReferrals } = await pool.query(`SELECT COUNT(*)::int AS count FROM referrals WHERE status = 'verified'`);
+      const { rows: pendingReferrals } = await pool.query(`SELECT COUNT(*)::int AS count FROM referrals WHERE status = 'pending'`);
+      const { rows: usersWithReferrals } = await pool.query(`SELECT COUNT(DISTINCT referrer_id)::int AS count FROM referrals WHERE status = 'verified'`);
+      const { rows: totalUsers } = await pool.query(`SELECT COUNT(*)::int AS count FROM users`);
+      const { rows: referredUsers } = await pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE referred_by IS NOT NULL`);
+      const { rows: recentReferrals } = await pool.query(
+        `SELECT COUNT(*)::int AS count FROM referrals WHERE created_at >= NOW() - INTERVAL '7 days'`
+      );
+      const { rows: signupSources } = await pool.query(
+        `SELECT u.signup_source AS source, COUNT(*)::int AS count FROM referrals r JOIN users u ON r.referred_user_id = u.id WHERE r.status = 'verified' GROUP BY u.signup_source ORDER BY count DESC LIMIT 10`
+      );
+
+      const total = totalReferrals[0].count;
+      const verified = verifiedReferrals[0].count;
+      const conversionRate = total > 0 ? Math.round((verified / total) * 100) : 0;
+
+      res.json({
+        totalReferrals: total,
+        verifiedReferrals: verified,
+        pendingReferrals: pendingReferrals[0].count,
+        conversionRate,
+        activeReferrers: usersWithReferrals[0].count,
+        totalUsers: totalUsers[0].count,
+        referredUsers: referredUsers[0].count,
+        last7Days: recentReferrals[0].count,
+        topChannels: signupSources,
+      });
+    } catch (err) {
+      console.error("[Admin] Referral stats error:", err);
+      res.status(500).json({ message: "Failed to load referral stats" });
+    }
+  });
+
+  // Admin referral leaderboard (includes current tier info)
+  app.get("/api/admin/referral-leaderboard", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const leaderboard = await storage.getLeaderboard(50);
+      const tiers = await storage.getReferralTiers();
+      const activeTiers = tiers.filter(t => t.active);
+      const enriched = leaderboard.map(entry => {
+        const currentTier = activeTiers.filter(t => entry.count >= t.threshold).pop() || null;
+        return {
+          ...entry,
+          currentTier: currentTier ? { name: currentTier.rewardName, threshold: currentTier.threshold } : null,
+        };
+      });
+      res.json(enriched);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to load leaderboard" });
     }
   });
 
@@ -13115,6 +13410,33 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       await seedProductionProducts();
     } catch (err) {
       console.error("[ProductSeed] Seed failed:", err);
+    }
+
+    try {
+      const { rows: tierCount } = await pool.query("SELECT COUNT(*)::int AS count FROM referral_tiers");
+      if (tierCount[0].count === 0) {
+        console.log("[ReferralSeed] No referral tiers found — seeding defaults...");
+        const defaultTiers = [
+          { threshold: 3, rewardName: "Exclusive Sticker Pack", rewardDescription: "A set of premium PodCap stickers.", sortOrder: 1 },
+          { threshold: 5, rewardName: "PodCap Premium — 1 Month Free", rewardDescription: "Unlock a free month of PodCap Premium with all features.", sortOrder: 2 },
+          { threshold: 10, rewardName: "PodCap Mug", rewardDescription: "A sleek PodCap-branded ceramic mug.", sortOrder: 3 },
+          { threshold: 15, rewardName: "Limited Edition T-Shirt", rewardDescription: "PodCap crew-neck tee, limited run.", sortOrder: 4 },
+          { threshold: 25, rewardName: "AirPods Pro", rewardDescription: "Top-tier audio for a top-tier referrer.", sortOrder: 5 },
+          { threshold: 50, rewardName: "Annual Premium Membership", rewardDescription: "A full year of PodCap Premium, on us.", sortOrder: 6 },
+          { threshold: 100, rewardName: "VIP Experience Package", rewardDescription: "Exclusive VIP access and premium perks.", sortOrder: 7 },
+        ];
+        for (const t of defaultTiers) {
+          await pool.query(
+            `INSERT INTO referral_tiers (threshold, reward_name, reward_description, sort_order, active) VALUES ($1, $2, $3, $4, true) ON CONFLICT DO NOTHING`,
+            [t.threshold, t.rewardName, t.rewardDescription, t.sortOrder]
+          );
+        }
+        console.log(`[ReferralSeed] Seeded ${defaultTiers.length} default referral tiers`);
+      } else {
+        console.log(`[ReferralSeed] ${tierCount[0].count} referral tiers already exist, skipping`);
+      }
+    } catch (err) {
+      console.error("[ReferralSeed] Failed to seed referral tiers:", err);
     }
 
     try {

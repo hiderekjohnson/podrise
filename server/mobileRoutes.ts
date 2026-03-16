@@ -27,6 +27,7 @@ export function registerMobileRoutes(app: Express) {
         podcasts: z.array(z.string()).optional().default([]),
         deliveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default("07:00"),
         deliveryTimezone: z.string().optional().default("America/New_York"),
+        referralCode: z.string().optional(),
       });
       const input = schema.parse(req.body);
 
@@ -45,6 +46,19 @@ export function registerMobileRoutes(app: Express) {
         `UPDATE users SET signup_source = $1, ip_address = $2, user_agent = $3, device_type = $4 WHERE id = $5`,
         ["mobile_app", ip, ua, "mobile", user.id]
       ).catch(e => console.error("[MobileAuth] Signup meta failed:", e));
+
+      if (input.referralCode) {
+        try {
+          const referrer = await storage.getUserByReferralCode(input.referralCode);
+          if (referrer && referrer.id !== user.id) {
+            await pool.query(`UPDATE users SET referred_by = $1 WHERE id = $2`, [referrer.id, user.id]);
+            await storage.createReferral(referrer.id, user.id);
+            console.log(`[MobileReferral] User ${user.id} referred by ${referrer.id} (code: ${input.referralCode})`);
+          }
+        } catch (e) {
+          console.error("[MobileReferral] Failed to record referral:", e);
+        }
+      }
 
       const accessToken = generateAccessToken(user.id);
       const refreshTokenStr = generateRefreshTokenString();
@@ -133,6 +147,9 @@ export function registerMobileRoutes(app: Express) {
 
     if (!user.emailVerified) {
       await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+      storage.verifyReferral(user.id).then(ref => {
+        if (ref) console.log(`[MobileReferral] Verified referral for user ${user.id}, referrer ${ref.referrerId}`);
+      }).catch(e => console.error("[MobileReferral] Verify error:", e));
     }
 
     const accessToken = generateAccessToken(user.id);
@@ -164,6 +181,9 @@ export function registerMobileRoutes(app: Express) {
         }
         if (!user.emailVerified) {
           await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+          storage.verifyReferral(user.id).then(ref => {
+            if (ref) console.log(`[MobileReferral] Verified referral for user ${user!.id}, referrer ${ref.referrerId}`);
+          }).catch(e => console.error("[MobileReferral] Verify error:", e));
         }
       } else {
         user = await storage.createUser({
@@ -176,6 +196,9 @@ export function registerMobileRoutes(app: Express) {
           `UPDATE users SET google_id = $1, email_verified = true, signup_source = $2, device_type = $3 WHERE id = $4`,
           [googlePayload.sub, "mobile_google_oauth", "mobile", user.id]
         );
+        storage.verifyReferral(user.id).then(ref => {
+          if (ref) console.log(`[MobileReferral] Verified referral for user ${user!.id}, referrer ${ref.referrerId}`);
+        }).catch(e => console.error("[MobileReferral] Verify error:", e));
       }
 
       const accessToken = generateAccessToken(user.id);
