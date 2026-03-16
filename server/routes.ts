@@ -11950,6 +11950,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
       const offset = (page - 1) * limit;
       const categoryFilter = (req.query.category as string || "").trim();
+      const sortBy = (req.query.sort as string || "recent").trim();
 
       let productWhere = "status = 'pending'";
       const productVals: any[] = [limit, offset];
@@ -11962,12 +11963,15 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
         }
       }
 
+      const productOrderBy = sortBy === "alphabetical" ? "name ASC" : "extracted_at DESC NULLS LAST";
+      const bookOrderBy = sortBy === "alphabetical" ? "book_title ASC" : "created_at DESC NULLS LAST";
+
       const { rows: productRows } = await pool.query(
         `SELECT id, 'product' as source_type, name, company, description, purchase_url as url,
                 image_url, context, context_summary, mention_type, category, episode_title, episode_slug, podcast_slug,
                 status, image_status, extracted_at as created_at
          FROM extracted_products WHERE ${productWhere}
-         ORDER BY extracted_at DESC
+         ORDER BY ${productOrderBy}
          LIMIT $1 OFFSET $2`,
         productVals
       );
@@ -11982,7 +11986,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
                   CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
                   'pending' as image_status, created_at
            FROM book_enrichments WHERE cover_approved IS NULL
-           ORDER BY created_at DESC
+           ORDER BY ${bookOrderBy}
            LIMIT $1 OFFSET $2`,
           [limit, offset]
         );

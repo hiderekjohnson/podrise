@@ -239,13 +239,15 @@ function ApprovalQueue() {
   const [customImageUrl, setCustomImageUrl] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [editFields, setEditFields] = useState<{ name: string; description: string; url: string; category: string } | null>(null);
+  const [queueSort, setQueueSort] = useState("recent");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading, refetch } = useQuery<QueueResponse>({
-    queryKey: ["/api/admin/shop/queue", 1, categoryFilter],
+    queryKey: ["/api/admin/shop/queue", 1, categoryFilter, queueSort],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "50" });
       if (categoryFilter) params.set("category", categoryFilter);
+      if (queueSort) params.set("sort", queueSort);
       const res = await fetch(`/api/admin/shop/queue?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
@@ -257,7 +259,7 @@ function ApprovalQueue() {
   const current = items[currentIndex];
 
   useEffect(() => {
-    if (current && !imageSearch.loading && imageSearch.images.length === 0 && !showImageBrowser && !current.image_url) {
+    if (current && !imageSearch.loading && imageSearch.images.length === 0) {
       findImages(current);
     }
   }, [current?.id]);
@@ -400,23 +402,37 @@ function ApprovalQueue() {
         )}
       </div>
 
-      <div className="flex items-center gap-2" data-testid="queue-category-filter">
-        <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-        <div className="flex items-center gap-1 flex-wrap">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => { setCategoryFilter(cat.value); setCurrentIndex(0); resetImageState(); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                categoryFilter === cat.value
-                  ? "bg-primary text-white"
-                  : "bg-black/[0.04] text-muted-foreground hover:text-foreground hover:bg-black/[0.07]"
-              }`}
-              data-testid={`filter-category-${cat.value || "all"}`}
-            >
-              {cat.label}
-            </button>
-          ))}
+      <div className="flex items-center justify-between flex-wrap gap-3" data-testid="queue-category-filter">
+        <div className="flex items-center gap-2">
+          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+          <div className="flex items-center gap-1 flex-wrap">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => { setCategoryFilter(cat.value); setCurrentIndex(0); resetImageState(); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  categoryFilter === cat.value
+                    ? "bg-primary text-white"
+                    : "bg-black/[0.04] text-muted-foreground hover:text-foreground hover:bg-black/[0.07]"
+                }`}
+                data-testid={`filter-category-${cat.value || "all"}`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="relative">
+          <select
+            value={queueSort}
+            onChange={(e) => { setQueueSort(e.target.value); setCurrentIndex(0); resetImageState(); }}
+            className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+            data-testid="select-queue-sort"
+          >
+            <option value="recent">Recently Added</option>
+            <option value="alphabetical">Alphabetical</option>
+          </select>
+          <SortAsc className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
         </div>
       </div>
 
@@ -451,18 +467,19 @@ function ApprovalQueue() {
           <div className="flex-1 overflow-y-auto p-5">
             <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
               <div className="space-y-3">
-                <div className="w-[280px] h-[280px] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto">
+                <p className="text-[10px] text-muted-foreground text-center font-semibold uppercase tracking-wide">Shop Preview</p>
+                <div className="w-[200px] aspect-[3/4] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto p-3">
                   {(imageSearch.selectedIdx !== null && imageSearch.images[imageSearch.selectedIdx]) ? (
                     <img
                       src={imageSearch.images[imageSearch.selectedIdx]}
                       alt={current.name}
-                      className="w-full h-full object-contain p-2"
+                      className="w-full h-full object-contain"
                     />
                   ) : current.image_url ? (
                     <img
                       src={current.image_url}
                       alt={current.name}
-                      className="w-full h-full object-contain p-2"
+                      className="w-full h-full object-contain"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
                   ) : (
@@ -481,7 +498,7 @@ function ApprovalQueue() {
                     data-testid="button-find-images"
                   >
                     {imageSearch.loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    {imageSearch.images.length > 0 ? "Find More" : "Find Images"}
+                    Find More Images
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
