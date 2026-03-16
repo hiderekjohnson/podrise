@@ -460,8 +460,16 @@ export async function registerRoutes(
         image_status TEXT NOT NULL DEFAULT 'pending',
         approved_by TEXT,
         approved_at TIMESTAMP,
+        reviewed_at TIMESTAMP,
         extracted_at TIMESTAMP DEFAULT NOW()
       );
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS approved_by TEXT;
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP;
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS context_summary TEXT;
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS image_status TEXT NOT NULL DEFAULT 'pending';
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'service_or_tool';
+      ALTER TABLE extracted_products ADD COLUMN IF NOT EXISTS mention_type TEXT DEFAULT 'personal_use';
       CREATE TABLE IF NOT EXISTS episode_quotes (
         id SERIAL PRIMARY KEY,
         podcast_slug TEXT NOT NULL,
