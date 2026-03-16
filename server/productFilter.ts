@@ -68,7 +68,6 @@ const SPONSOR_CONTEXT_PATTERNS = [
   /discount code/i,
   /special offer/i,
   /\bad read\b/i,
-  /check them out at/i,
 ];
 
 export interface ProductCandidate {
@@ -98,10 +97,6 @@ export function isLikelySponsorProduct(product: ProductCandidate): FilterResult 
   }
 
   if (nameLower === "ag1" || nameLower === "ag-1" || nameLower === "agz" || companyLower === "ag1") {
-    return { isFiltered: true, reason: "sponsor_ad" };
-  }
-
-  if (nameLower === "airbnb" || companyLower.includes("airbnb")) {
     return { isFiltered: true, reason: "sponsor_ad" };
   }
 

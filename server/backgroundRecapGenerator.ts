@@ -150,22 +150,41 @@ async function processEpisode(
         console.warn(`[BgRecap] Quote extraction failed for "${epTitle.slice(0, 50)}": ${quoteErr.message}`);
       }
 
+      const totalExtracted = recap.products ? recap.products.length : 0;
+      console.log(`[BgRecap] Episode "${epTitle.slice(0, 60)}": AI extracted ${totalExtracted} products`);
+
       if (recap.products && recap.products.length > 0) {
-        let productsSaved = 0;
-        let productsFiltered = 0;
+        let productsInserted = 0;
+        let productsFilteredAsSponsors = 0;
+        let productsPassedFilter = 0;
+        let productsDuplicate = 0;
+        let productsSkippedInvalid = 0;
         for (const p of recap.products) {
-          if (!p.name || !p.context) continue;
+          if (!p.name || !p.context) {
+            productsSkippedInvalid++;
+            continue;
+          }
 
           const filterResult = isLikelySponsorProduct(p);
           const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
           const rejectionReason = filterResult.reason;
+
+          if (filterResult.isFiltered) {
+            productsFilteredAsSponsors++;
+            console.log(`[BgRecap]   Filtered "${p.name}": ${filterResult.reason}`);
+          } else {
+            productsPassedFilter++;
+          }
 
           try {
             const { rows: existing } = await pool.query(
               `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
               [p.name, podcastSlug, epTitle]
             );
-            if (existing.length > 0) continue;
+            if (existing.length > 0) {
+              productsDuplicate++;
+              continue;
+            }
 
             let imageUrl: string | null = null;
             if (!filterResult.isFiltered && p.purchaseUrl) {
@@ -175,23 +194,19 @@ async function processEpisode(
               } catch {}
             }
 
-            await pool.query(
+            const insertResult = await pool.query(
               `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
               [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
             );
-            if (filterResult.isFiltered) {
-              productsFiltered++;
-            } else {
-              productsSaved++;
+            if (insertResult.rowCount && insertResult.rowCount > 0) {
+              productsInserted++;
             }
           } catch (prodErr: any) {
             console.warn(`[BgRecap] Product save failed for "${p.name}": ${prodErr.message}`);
           }
         }
-        if (productsSaved > 0 || productsFiltered > 0) {
-          console.log(`[BgRecap] Products for "${epTitle.slice(0, 50)}": ${productsSaved} saved, ${productsFiltered} auto-filtered`);
-        }
+        console.log(`[BgRecap] Product summary for "${epTitle.slice(0, 50)}": ${totalExtracted} extracted, ${productsPassedFilter} passed filter, ${productsFilteredAsSponsors} sponsor-filtered, ${productsInserted} inserted, ${productsDuplicate} duplicates, ${productsSkippedInvalid} invalid`);
       }
 
       const qa = validateRecap(recap, epTitle, quoteCount);

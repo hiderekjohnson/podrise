@@ -81,7 +81,7 @@ export interface ExtractedProduct {
   description: string;
   purchaseUrl: string;
   context: string;
-  mentionType: "recommendation" | "personal_use";
+  mentionType: "recommendation" | "personal_use" | "discussion";
   category: "physical_product" | "service_or_tool" | "experience";
 }
 
@@ -734,16 +734,16 @@ For this segment, extract:
 4. GUESTS: Anyone introduced as a guest, interviewee, or joining the show — full name and title if mentioned. Also include anyone addressed by first name who shares opinions or answers questions (e.g. "Andrew, you want to go next?") — they are participating as a guest even without formal introduction
 5. SPONSORS: Any ad reads, sponsor mentions, coupon codes, or "brought to you by" segments
 6. RESOURCES: Tools, products, services, websites, companies discussed substantively (not just name-dropped)
-7. GENUINE PRODUCT ENDORSEMENTS: Products, services, tools, apps, or experiences that hosts/guests genuinely endorse from personal experience (NOT sponsors/ads)
+7. GENUINE PRODUCT ENDORSEMENTS: Products, services, tools, apps, or experiences that hosts/guests discuss substantively, recommend, or endorse (NOT sponsors/ads)
 
 PRODUCT ENDORSEMENT RULES:
-- ONLY extract products where the speaker has PERSONAL EXPERIENCE: "I use this", "I bought one", "We use this at our company", "Game changer for me"
+- Extract products that hosts/guests discuss substantively: personal experience ("I use this", "we switched to"), specific recommendations ("you should try", "highly recommend"), detailed discussion of features/benefits, or comparison with alternatives. The key test is: did they say something SPECIFIC and SUBSTANTIVE about this product beyond just naming it?
 - NEVER extract items that are clearly ads/sponsors — look for phrases like "this episode is sponsored by", "use code", "promo code", "brought to you by", "quick word from our sponsor", "let's take a quick break", "special offer", "free trial"
 - NEVER extract books (tracked separately), stocks/ETFs/crypto, social media platforms, or companies discussed only as business cases
 - NEVER extract generic categories without specific brand names ("standing desks" vs "FlexiSpot standing desk")
 - The context field must be 3-5 sentences explaining WHY the hosts/guests use or recommend it — do NOT restate what the product or company is (that info is already displayed separately). Focus on what drew them to it, what problem it solves, what they said about it, and any specific results or opinions. Write as an editorial summary, NOT a raw transcript pull.
 - Categories: "physical_product" (tangible items), "service_or_tool" (digital/SaaS/apps), "experience" (places, events, memberships)
-- 0-5 genuine products per segment is normal. Many segments will have ZERO — that's fine.
+- Extract ALL qualifying products — podcasts often mention several tools, services, or products in a single segment.
 
 Respond with JSON:
 {
@@ -753,7 +753,7 @@ Respond with JSON:
   "guests": [{"name": "Full Name", "title": "Their title/role"}],
   "sponsors": [{"name": "Sponsor", "description": "What they do", "code": "COUPON or null", "url": "url or null"}],
   "resources": [{"name": "Resource Name", "type": "tool|product|website", "description": "What it is", "url": "url or null", "context": "How it was mentioned"}],
-  "products": [{"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "3-5 sentence editorial summary of why they use/recommend it", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}]
+  "products": [{"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "3-5 sentence editorial summary of why they use/recommend it", "mentionType": "recommendation|personal_use|discussion", "category": "physical_product|service_or_tool|experience"}]
 }
 
 Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much than miss something. Every paragraph of the transcript should yield at least one note.`;
@@ -806,7 +806,7 @@ Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much
       for (const p of cn.products) {
         if (p.name && typeof p.name === "string") {
           const validCategories = ["physical_product", "service_or_tool", "experience"];
-          const validMentionTypes = ["recommendation", "personal_use"];
+          const validMentionTypes = ["recommendation", "personal_use", "discussion"];
           allProducts.push({
             name: p.name,
             company: p.company || "",
