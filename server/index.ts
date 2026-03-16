@@ -216,22 +216,28 @@ process.on("uncaughtException", (err) => {
     return res.status(status).json({ message: clientMessage });
   });
 
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
-  }
-
   const port = parseInt(process.env.PORT || "5000", 10);
+
+  app.get("/__health", (_req, res) => {
+    res.status(200).send("ok");
+  });
+
   httpServer.listen(
     {
       port,
       host: "0.0.0.0",
       reusePort: true,
     },
-    () => {
+    async () => {
       log(`serving on port ${port}`);
+
+      if (process.env.NODE_ENV === "production") {
+        serveStatic(app);
+      } else {
+        const { setupVite } = await import("./vite");
+        await setupVite(httpServer, app);
+        log(`Vite dev server ready`);
+      }
 
       (async () => {
         const { pool, withRetry } = await import("./db");
