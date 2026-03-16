@@ -1667,12 +1667,17 @@ If you don't know the answer to something, be honest about it and suggest the us
     if (!episodeSlug || !podcastSlug) {
       return res.status(400).json({ message: "episodeSlug and podcastSlug required" });
     }
-    const exists = await storage.isBookmarked(userId, podcastSlug, episodeSlug);
-    if (exists) {
-      return res.json({ message: "Already bookmarked" });
+    try {
+      const exists = await storage.isBookmarked(userId, podcastSlug, episodeSlug);
+      if (exists) {
+        return res.json({ message: "Already bookmarked" });
+      }
+      const bookmark = await storage.addBookmark({ userId, episodeSlug, podcastSlug });
+      res.status(201).json(bookmark);
+    } catch (err) {
+      console.error("[Bookmark] Failed to add bookmark:", err);
+      res.status(500).json({ message: "Failed to bookmark episode" });
     }
-    const bookmark = await storage.addBookmark({ userId, episodeSlug, podcastSlug });
-    res.status(201).json(bookmark);
   });
 
   app.delete("/api/bookmarks/:podcastSlug/:episodeSlug", async (req, res) => {
@@ -9751,10 +9756,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(userId);
-    if (!user || user.plan !== "pro") {
-      return res.status(403).json({ message: "Pro plan required" });
-    }
     const { topicSlug } = req.body;
     if (!topicSlug || typeof topicSlug !== "string" || !VALID_PULSE_SLUGS.has(topicSlug)) {
       return res.status(400).json({ message: "Invalid topicSlug" });
@@ -9773,10 +9774,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(userId);
-    if (!user || user.plan !== "pro") {
-      return res.status(403).json({ message: "Pro plan required" });
-    }
     if (!VALID_PULSE_SLUGS.has(req.params.topicSlug)) {
       return res.status(400).json({ message: "Invalid topicSlug" });
     }
@@ -9793,10 +9790,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const userId = getAuthUserId(req);
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
-    }
-    const user = await storage.getUserById(userId);
-    if (!user || user.plan !== "pro") {
-      return res.status(403).json({ message: "Pro plan required" });
     }
     const { topicSlugs } = req.body;
     if (!Array.isArray(topicSlugs) || topicSlugs.length > 50) {
