@@ -7256,6 +7256,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/delete-duplicate-books", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const result = await pool.query(`
+        DELETE FROM book_enrichments WHERE slug IN (
+          'atomic-habits-an-easy-proven-way-to-build-good-habits-break-bad-ones',
+          'the-snowball-warren-buffett-and-the-business-of-life',
+          'founders-the-people-who-brought-you-a-nation',
+          'the-constitution-of-liberty',
+          'meditations-by-marcus-aurelius-marcus-aurelius'
+        ) RETURNING slug, book_title
+      `);
+      res.json({ deleted: result.rows, count: result.rowCount });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to delete" });
+    }
+  });
+
   app.post("/api/admin/updates/trigger-quote-backfill", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

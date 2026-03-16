@@ -1077,6 +1077,28 @@ export default function Admin() {
                         </button>
                       </div>
 
+                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-delete-dupe-books">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">Clean Duplicate Books</h3>
+                          <p className="text-xs text-muted-foreground mt-1">Remove duplicate book entries (Atomic Habits, Snowball, Founders, etc.)</p>
+                        </div>
+                        <button
+                          data-testid="button-delete-dupe-books"
+                          onClick={async () => {
+                            try {
+                              const res = await apiRequest("POST", "/api/admin/delete-duplicate-books");
+                              const data = await res.json();
+                              toast({ title: "Duplicates Removed", description: `Deleted ${data.count} duplicate book entries.` });
+                            } catch (err: any) {
+                              toast({ title: "Error", description: err?.message || "Failed to delete duplicates", variant: "destructive" });
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors whitespace-nowrap"
+                        >
+                          Clean Dupes
+                        </button>
+                      </div>
+
                       <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-quotes">
                         <div>
                           <h3 className="text-sm font-bold text-foreground">Backfill Episode Quotes</h3>
