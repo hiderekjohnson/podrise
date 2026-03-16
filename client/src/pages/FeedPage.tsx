@@ -4,7 +4,7 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Zap } from "lucide-react";
+import { Loader2, Clock, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Zap, Copy, ExternalLink, ArrowRight, Quote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { HoverPreviewCard } from "@/components/HoverPreviewCard";
@@ -52,29 +52,117 @@ function hiResArtwork(url: string): string {
   return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
 }
 
-function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
+function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }: {
+  episodeTitle: string;
+  podcastSlug: string;
+  episodeSlug: string;
+  itemId: number;
+  toast: ReturnType<typeof useToast>["toast"];
+}) {
+  const [open, setOpen] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const getShareUrl = () => `${window.location.origin}/podcasts/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`;
+  const supportsNativeShare = typeof navigator !== "undefined" && !!navigator.share;
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={popoverRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label="Share episode"
+        className={`flex items-center gap-1 transition-colors ${open ? "text-[#6366F1]" : "text-[#A1A1AA] hover:text-[#6366F1]"}`}
+        data-testid={`feed-share-${itemId}`}
+      >
+        <Share className="w-[18px] h-[18px]" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute bottom-full right-0 mb-2 w-[180px] bg-white dark:bg-[#18181B] rounded-xl shadow-lg border border-[#E4E4E7] dark:border-[#27272A] overflow-hidden z-50"
+          >
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(getShareUrl());
+                  toast({ title: "Link copied", description: "Episode link copied to clipboard" });
+                } catch {
+                  toast({ title: "Copy failed", description: "Could not copy link to clipboard", variant: "destructive" });
+                }
+                setOpen(false);
+              }}
+              className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] dark:text-[#D4D4D8] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] transition-colors"
+              data-testid={`feed-share-copy-${itemId}`}
+            >
+              <Copy className="w-4 h-4" />
+              Copy link
+            </button>
+            {supportsNativeShare && (
+              <button
+                onClick={() => {
+                  navigator.share({ title: episodeTitle, url: getShareUrl() }).catch(() => {});
+                  setOpen(false);
+                }}
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] dark:text-[#D4D4D8] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] transition-colors border-t border-[#F0F0F2] dark:border-[#27272A]"
+                data-testid={`feed-share-native-${itemId}`}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Share via...
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toast }: {
   item: FeedItem;
   onFollowToggle: (slug: string, follow: boolean) => void;
   bookmarkedKeys: Set<string>;
   onBookmarkToggle: (episodeSlug: string, podcastSlug: string) => void;
+  toast: ReturnType<typeof useToast>["toast"];
 }) {
   const [expanded, setExpanded] = useState(false);
   const isBookmarked = bookmarkedKeys.has(`${item.podcastSlug}::${item.episodeSlug}`);
 
   const previewInsights = item.keyInsights?.slice(0, 2) || [];
   const allInsights = item.keyInsights || [];
-  const hasFullRecap = !!(item.whatHappened || (allInsights.length > previewInsights.length) || item.quote || (item.guests && item.guests.length > 0) || (item.keyTopics && item.keyTopics.length > 0));
+  const hasMoreContent = !!(item.whatHappened || (allInsights.length > previewInsights.length) || (item.guests && item.guests.length > 0) || (item.keyTopics && item.keyTopics.length > 0));
 
   const whatHappenedParagraphs = item.whatHappened
     ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim())
     : [];
+
+  const episodeUrl = `/podcasts/${item.podcastSlug}/${item.episodeSlug}`;
 
   return (
     <article
       className="border-b border-[#F0F0F2] dark:border-[#1C1C22]"
       data-testid={`feed-card-${item.id}`}
     >
-      <div className="px-4 pt-3.5 pb-1">
+      <div className="px-4 pt-4 pb-1.5">
         <div className="flex items-start gap-3">
           <HoverPreviewCard
             type="podcast"
@@ -85,7 +173,7 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
             onFollowToggle={onFollowToggle}
           >
             <Link href={`/podcasts/${item.podcastSlug}`}>
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-[0.5px] ring-black/5">
+              <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 ring-[0.5px] ring-black/5 shadow-sm">
                 <img
                   src={hiResArtwork(item.artworkUrl)}
                   alt={item.podcastName}
@@ -133,7 +221,7 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
               </button>
             </div>
 
-            <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
+            <Link href={episodeUrl}>
               <h3 className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white mt-0.5 leading-[1.35] hover:underline line-clamp-2" data-testid={`feed-episode-title-${item.id}`}>
                 {item.episodeTitle}
               </h3>
@@ -141,14 +229,20 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
           </div>
         </div>
 
-        <div className="mt-2.5 ml-[52px]">
-          <p className="text-[15px] md:text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.55]">{item.tldl}</p>
+        <div className="mt-3 ml-[56px]">
+          <div className="rounded-xl bg-gradient-to-br from-[#F8F8FC] to-[#F4F4F8] dark:from-[#111118] dark:to-[#0F0F14] border border-[#EDEDF3] dark:border-[#1C1C22] p-3.5 mb-3">
+            <p className="text-[15px] md:text-[16px] text-[#27272A] dark:text-[#D4D4D8] leading-[1.6] font-medium" data-testid={`feed-tldl-${item.id}`}>
+              {item.tldl}
+            </p>
+          </div>
 
           {!expanded && previewInsights.length > 0 && (
-            <div className="mt-2.5 space-y-1.5">
+            <div className="space-y-2 mb-2.5">
               {previewInsights.map((insight, i) => (
-                <div key={i} className="flex gap-2 text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.45]">
-                  <span className="text-[#6366F1] mt-[3px] flex-shrink-0 text-[10px]">●</span>
+                <div key={i} className="flex gap-2.5 text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.5]">
+                  <span className="w-5 h-5 rounded-full bg-[#6366F1]/10 flex items-center justify-center flex-shrink-0 mt-[1px]">
+                    <span className="text-[#6366F1] text-[8px]">●</span>
+                  </span>
                   <span>{insight}</span>
                 </div>
               ))}
@@ -156,11 +250,16 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
           )}
 
           {!expanded && item.quote && (
-            <div className="mt-2.5 pl-3.5 border-l-[3px] border-[#6366F1]/30 py-0.5">
-              <p className="text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] italic leading-[1.5] line-clamp-2">"{item.quote}"</p>
-              {item.quoteAttribution && (
-                <p className="text-[12px] text-[#A1A1AA] mt-0.5 not-italic font-medium">— {item.quoteAttribution}</p>
-              )}
+            <div className="mt-2.5 mb-2.5 rounded-lg bg-[#6366F1]/[0.04] dark:bg-[#6366F1]/[0.06] border-l-[3px] border-[#6366F1]/40 px-3.5 py-2.5">
+              <div className="flex gap-2">
+                <Quote className="w-4 h-4 text-[#6366F1]/40 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] italic leading-[1.55] line-clamp-2">"{item.quote}"</p>
+                  {item.quoteAttribution && (
+                    <p className="text-[12px] text-[#A1A1AA] mt-1 not-italic font-semibold">— {item.quoteAttribution}</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -174,8 +273,8 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
                 className="overflow-hidden"
               >
                 {item.guests && item.guests.length > 0 && (
-                  <div className="mt-3 flex items-center gap-2 flex-wrap">
-                    <span className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wide">Guests</span>
+                  <div className="mt-1 mb-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-bold text-[#A1A1AA] uppercase tracking-wider">Guests</span>
                     {item.guests.map((guest, i) => (
                       <span key={i} className="text-[13px] font-medium text-[#09090B] dark:text-white bg-[#F4F4F5] dark:bg-[#1C1C22] px-2.5 py-1 rounded-full">{typeof guest === 'string' ? guest : (guest as any).name || ''}</span>
                     ))}
@@ -183,23 +282,25 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
                 )}
 
                 {whatHappenedParagraphs.length > 0 && (
-                  <div className="mt-3 space-y-2.5">
+                  <div className="mb-3 space-y-2.5">
                     {whatHappenedParagraphs.map((para, i) => (
-                      <p key={i} className="text-[14px] md:text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.6]">{para}</p>
+                      <p key={i} className="text-[14px] md:text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.65]">{para}</p>
                     ))}
                   </div>
                 )}
 
                 {allInsights.length > 0 && (
-                  <div className="mt-3.5 rounded-xl bg-[#F8F8FC] dark:bg-[#111118] border border-[#EDEDF3] dark:border-[#1C1C22] p-3.5">
-                    <div className="flex items-center gap-1.5 mb-2">
+                  <div className="mb-3 rounded-xl bg-gradient-to-br from-[#F8F8FC] to-[#F4F4F8] dark:from-[#111118] dark:to-[#0F0F14] border border-[#EDEDF3] dark:border-[#1C1C22] p-3.5">
+                    <div className="flex items-center gap-1.5 mb-2.5">
                       <Zap className="w-3.5 h-3.5 text-[#6366F1]" />
-                      <span className="text-[12px] font-bold text-[#6366F1] uppercase tracking-wide">Key Insights</span>
+                      <span className="text-[11px] font-bold text-[#6366F1] uppercase tracking-wider">Key Insights</span>
                     </div>
-                    <ul className="space-y-2">
+                    <ul className="space-y-2.5">
                       {allInsights.map((insight, i) => (
-                        <li key={i} className="text-[14px] md:text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] flex gap-2 leading-[1.45]">
-                          <span className="text-[#6366F1] mt-[3px] flex-shrink-0 text-[10px]">●</span>
+                        <li key={i} className="text-[14px] md:text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] flex gap-2.5 leading-[1.5]">
+                          <span className="w-5 h-5 rounded-full bg-[#6366F1]/10 flex items-center justify-center flex-shrink-0 mt-[1px]">
+                            <span className="text-[#6366F1] text-[8px]">●</span>
+                          </span>
                           <span>{insight}</span>
                         </li>
                       ))}
@@ -208,16 +309,21 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
                 )}
 
                 {item.quote && (
-                  <div className="mt-3 pl-3.5 border-l-[3px] border-[#6366F1]/40 py-1">
-                    <p className="text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] italic leading-[1.5]">"{item.quote}"</p>
-                    {item.quoteAttribution && (
-                      <p className="text-[12px] text-[#A1A1AA] mt-1 not-italic font-medium">— {item.quoteAttribution}</p>
-                    )}
+                  <div className="mb-3 rounded-lg bg-[#6366F1]/[0.04] dark:bg-[#6366F1]/[0.06] border-l-[3px] border-[#6366F1]/40 px-3.5 py-2.5">
+                    <div className="flex gap-2">
+                      <Quote className="w-4 h-4 text-[#6366F1]/40 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] italic leading-[1.55]">"{item.quote}"</p>
+                        {item.quoteAttribution && (
+                          <p className="text-[12px] text-[#A1A1AA] mt-1 not-italic font-semibold">— {item.quoteAttribution}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {item.keyTopics && item.keyTopics.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  <div className="mb-3 flex flex-wrap gap-1.5">
                     {item.keyTopics.map((topic, i) => (
                       <span key={i} className="text-[12px] font-medium text-[#6366F1] bg-[#6366F1]/[0.08] px-2.5 py-1 rounded-full">{topic}</span>
                     ))}
@@ -227,59 +333,56 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle }: {
             )}
           </AnimatePresence>
 
-          {hasFullRecap && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-[#6366F1] text-[14px] font-semibold mt-2 hover:underline"
-              data-testid={`feed-expand-${item.id}`}
-            >
-              {expanded ? (
-                <>Show less<ChevronDown className="w-3.5 h-3.5 rotate-180 transition-transform" /></>
-              ) : (
-                <>Show more<ChevronDown className="w-3.5 h-3.5 transition-transform" /></>
-              )}
-            </button>
-          )}
+          <div className="flex items-center gap-3 mt-1 mb-1">
+            {hasMoreContent && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="flex items-center gap-1 text-[#6366F1] text-[13px] font-semibold hover:underline"
+                data-testid={`feed-expand-${item.id}`}
+              >
+                {expanded ? (
+                  <>Show less<ChevronDown className="w-3.5 h-3.5 rotate-180 transition-transform" /></>
+                ) : (
+                  <>Show more<ChevronDown className="w-3.5 h-3.5 transition-transform" /></>
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between mt-2 ml-[52px] pb-2.5">
-          <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
-            <span className="flex items-center gap-1.5 text-[#71717A] hover:text-[#6366F1] transition-colors group" data-testid={`feed-viewfull-${item.id}`}>
-              <MessageCircle className="w-[18px] h-[18px] group-hover:text-[#6366F1]" />
-              <span className="text-[13px] font-medium">Full recap</span>
+        <div className="flex items-center justify-between mt-1.5 ml-[56px] pb-3">
+          <Link href={episodeUrl}>
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6366F1] hover:text-[#4F46E5] transition-colors group" data-testid={`feed-viewfull-${item.id}`}>
+              Read full recap
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </span>
           </Link>
 
-          {item.duration && (
-            <span className="flex items-center gap-1 text-[#A1A1AA]">
-              <Clock className="w-[14px] h-[14px]" />
-              <span className="text-[12px]">{item.duration}</span>
-            </span>
-          )}
+          <div className="flex items-center gap-4">
+            {item.duration && (
+              <span className="flex items-center gap-1 text-[#A1A1AA]">
+                <Clock className="w-[14px] h-[14px]" />
+                <span className="text-[12px]">{item.duration}</span>
+              </span>
+            )}
 
-          <button
-            onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
-            aria-label={isBookmarked ? "Remove bookmark" : "Bookmark episode"}
-            className={`flex items-center gap-1 transition-colors ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:text-[#6366F1]"}`}
-            data-testid={`feed-bookmark-${item.id}`}
-          >
-            {isBookmarked ? <BookmarkCheck className="w-[18px] h-[18px]" /> : <Bookmark className="w-[18px] h-[18px]" />}
-          </button>
+            <button
+              onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
+              aria-label={isBookmarked ? "Remove bookmark" : "Bookmark episode"}
+              className={`flex items-center gap-1 transition-all active:scale-90 ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:text-[#6366F1]"}`}
+              data-testid={`feed-bookmark-${item.id}`}
+            >
+              {isBookmarked ? <BookmarkCheck className="w-[18px] h-[18px]" /> : <Bookmark className="w-[18px] h-[18px]" />}
+            </button>
 
-          <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({ title: item.episodeTitle, url: `/podcasts/${item.podcastSlug}/${item.episodeSlug}` }).catch(() => {});
-              } else {
-                navigator.clipboard.writeText(`${window.location.origin}/podcasts/${item.podcastSlug}/${item.episodeSlug}`);
-              }
-            }}
-            aria-label="Share episode"
-            className="flex items-center gap-1 text-[#A1A1AA] hover:text-[#6366F1] transition-colors"
-            data-testid={`feed-share-${item.id}`}
-          >
-            <Share className="w-[18px] h-[18px]" />
-          </button>
+            <SharePopover
+              episodeTitle={item.episodeTitle}
+              podcastSlug={item.podcastSlug}
+              episodeSlug={item.episodeSlug}
+              itemId={item.id}
+              toast={toast}
+            />
+          </div>
         </div>
       </div>
     </article>
@@ -292,7 +395,9 @@ export default function FeedPage() {
   const [activeTab, setActiveTab] = useState<"foryou" | "following">("foryou");
   const observerRef = useRef<HTMLDivElement>(null);
 
-  const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
+  type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
+
+  const { data: bookmarksData } = useQuery<BookmarkRecord[]>({
     queryKey: ["/api/bookmarks"],
     enabled: !!user,
   });
@@ -303,8 +408,27 @@ export default function FeedPage() {
     mutationFn: async ({ episodeSlug, podcastSlug }: { episodeSlug: string; podcastSlug: string }) => {
       await apiRequest("POST", "/api/bookmarks", { episodeSlug, podcastSlug });
     },
+    onMutate: async ({ episodeSlug, podcastSlug }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks"] });
+      const previous = queryClient.getQueryData<BookmarkRecord[]>(["/api/bookmarks"]);
+      queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], (old) => {
+        const existing = old || [];
+        if (existing.some((b) => b.podcastSlug === podcastSlug && b.episodeSlug === episodeSlug)) return existing;
+        return [...existing, { id: Date.now(), episodeSlug, podcastSlug }];
+      });
+      return { previous };
+    },
     onSuccess: () => {
+      toast({ title: "Bookmarked", description: "Episode saved to your bookmarks" });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
+      }
+      toast({ title: "Error", description: "Failed to bookmark episode", variant: "destructive" });
     },
   });
 
@@ -312,19 +436,40 @@ export default function FeedPage() {
     mutationFn: async ({ podcastSlug, episodeSlug }: { podcastSlug: string; episodeSlug: string }) => {
       await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`);
     },
+    onMutate: async ({ podcastSlug, episodeSlug }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks"] });
+      const previous = queryClient.getQueryData<BookmarkRecord[]>(["/api/bookmarks"]);
+      queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], (old) =>
+        (old || []).filter((b) => !(b.podcastSlug === podcastSlug && b.episodeSlug === episodeSlug))
+      );
+      return { previous };
+    },
     onSuccess: () => {
+      toast({ title: "Removed", description: "Episode removed from bookmarks" });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
+      }
+      toast({ title: "Error", description: "Failed to remove bookmark", variant: "destructive" });
     },
   });
 
   const handleBookmarkToggle = useCallback((episodeSlug: string, podcastSlug: string) => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Log in to bookmark episodes", variant: "destructive" });
+      return;
+    }
     const key = `${podcastSlug}::${episodeSlug}`;
     if (bookmarkedKeys.has(key)) {
       removeBookmark.mutate({ podcastSlug, episodeSlug });
     } else {
       addBookmark.mutate({ episodeSlug, podcastSlug });
     }
-  }, [bookmarkedKeys, addBookmark, removeBookmark]);
+  }, [bookmarkedKeys, addBookmark, removeBookmark, user, toast]);
 
   const {
     data,
@@ -446,6 +591,7 @@ export default function FeedPage() {
                   onFollowToggle={handleFollowToggle}
                   bookmarkedKeys={bookmarkedKeys}
                   onBookmarkToggle={handleBookmarkToggle}
+                  toast={toast}
                 />
               ))}
               <div ref={observerRef} className="py-8 flex flex-col items-center gap-2">
