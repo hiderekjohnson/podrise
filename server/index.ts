@@ -218,9 +218,13 @@ process.on("uncaughtException", (err) => {
 
   const port = parseInt(process.env.PORT || "5000", 10);
 
-  app.get("/__health", (_req, res) => {
-    res.status(200).send("ok");
-  });
+  if (process.env.NODE_ENV === "production") {
+    serveStatic(app);
+  } else {
+    const { setupVite } = await import("./vite");
+    await setupVite(httpServer, app);
+    log(`Vite dev server ready`);
+  }
 
   httpServer.listen(
     {
@@ -228,15 +232,19 @@ process.on("uncaughtException", (err) => {
       host: "0.0.0.0",
       reusePort: true,
     },
-    async () => {
+    () => {
       log(`serving on port ${port}`);
 
-      if (process.env.NODE_ENV === "production") {
-        serveStatic(app);
-      } else {
-        const { setupVite } = await import("./vite");
-        await setupVite(httpServer, app);
-        log(`Vite dev server ready`);
+      // Pre-warm Vite compilation in background
+      if (process.env.NODE_ENV !== "production") {
+        import("http").then(({ default: http }) => {
+          const req = http.get(`http://localhost:${port}/`, (res) => {
+            res.resume();
+            log(`Vite pre-warm complete`);
+          });
+          req.on("error", () => {});
+          req.end();
+        });
       }
 
       (async () => {
