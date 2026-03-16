@@ -8538,8 +8538,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { rows: pdRows } = await pool.query(`SELECT name FROM podcast_directory WHERE slug = $1`, [podcastSlug]);
       const podcastName = pdRows[0]?.name || podcastSlug;
 
-      const { generateSinglePassRecap } = await import("./recapGenerator");
-      const recap = await generateSinglePassRecap(processedTranscript, podcastName, episode_title);
+      const { generateRecapFromTranscript } = await import("./recapGenerator");
+      const recap = await generateRecapFromTranscript(processedTranscript, podcastName, episode_title);
       if (!recap) return res.status(500).json({ message: "AI generation failed" });
 
       await pool.query(
