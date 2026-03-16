@@ -941,10 +941,6 @@ If you don't know the answer to something, be honest about it and suggest the us
         autoPopulateDirectory(input.podcasts).catch(() => {});
       }
 
-      sendNewUserNotification(user, req, req.body.signupSource).catch((err) =>
-        console.error("[NewUserNotify] Failed:", err)
-      );
-
       sendVerificationEmail(user).catch((err) =>
         console.error("[VerifyEmail] Failed to send:", err)
       );
@@ -997,6 +993,14 @@ If you don't know the answer to something, be honest about it and suggest the us
 
       req.session.userId = row.user_id;
       const user = await storage.getUserById(row.user_id);
+
+      // Send new user notification now that email is confirmed (double opt-in)
+      if (user) {
+        sendNewUserNotification(user, req, user.signupSource || "email").catch((err) =>
+          console.error("[NewUserNotify] Failed:", err)
+        );
+      }
+
       res.json({ message: "Email verified successfully", user });
     } catch (err) {
       console.error("[VerifyEmail] Error:", err);
@@ -1315,10 +1319,6 @@ If you don't know the answer to something, be honest about it and suggest the us
             [qsMeta.signupSource, qsMeta.signupSourceDetail, qsMeta.ipAddress, qsMeta.userAgent, qsMeta.deviceType, user.id]
           ).catch(e => console.error("[SignupMeta] Failed:", e));
 
-          sendNewUserNotification(user, req, `quick-subscribe-${input.type}`).catch((err) =>
-            console.error("[NewUserNotify] Failed:", err)
-          );
-
           sendVerificationEmail(user).catch((err) =>
             console.error("[VerifyEmail] Failed to send:", err)
           );
@@ -1453,6 +1453,10 @@ If you don't know the answer to something, be honest about it and suggest the us
       storage.verifyReferral(user.id).then(ref => {
         if (ref) console.log(`[Referral] Verified referral for user ${user.id} via magic link login, referrer ${ref.referrerId}`);
       }).catch(e => console.error("[Referral] Magic link verify error:", e));
+      // Send new user notification now that email is confirmed (double opt-in)
+      sendNewUserNotification(user, req, user.signupSource || "magic_link").catch((err) =>
+        console.error("[NewUserNotify] Failed:", err)
+      );
     }
 
     req.session.save(() => {
