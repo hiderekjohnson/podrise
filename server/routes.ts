@@ -556,6 +556,16 @@ export async function registerRoutes(
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(user_id, topic_slug)
       );
+      CREATE TABLE IF NOT EXISTS support_articles (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        category TEXT NOT NULL,
+        body TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
     console.log("[startup] Schema migration check complete");
   } catch (e: any) {
@@ -842,50 +852,31 @@ export async function registerRoutes(
       return res.status(400).json({ message: "Last message must be from user" });
     }
 
-    const systemPrompt = `You are PodCap's friendly and knowledgeable AI support assistant. You help users understand how PodCap works and troubleshoot any issues they have. Keep your answers concise, helpful, and conversational.
+    try {
+      const articles = await storage.getSupportArticles(true);
+
+      let knowledgeBase = "";
+      if (articles.length > 0) {
+        const grouped = new Map<string, string[]>();
+        for (const a of articles) {
+          const existing = grouped.get(a.category) || [];
+          existing.push(a.body);
+          grouped.set(a.category, existing);
+        }
+        for (const [category, bodies] of grouped) {
+          knowledgeBase += `\n## ${category}\n`;
+          for (const body of bodies) {
+            knowledgeBase += body + "\n";
+          }
+        }
+      }
+
+      const systemPrompt = `You are PodCap's friendly and knowledgeable AI support assistant. You help users understand how PodCap works and troubleshoot any issues they have. Keep your answers concise, helpful, and conversational.
 
 Here is your knowledge base about PodCap:
-
-## What is PodCap?
-PodCap generates AI-powered recaps of your favorite podcasts. Follow the podcasts you care about, and PodCap delivers concise summaries of new episodes to your inbox and feed.
-
-## Getting Started
-- To follow a podcast: Go to the Discover page and search for a podcast, or browse curated lists. Click the "Follow" button next to any podcast.
-- Email recaps are sent daily at your configured delivery time. You can change your delivery time and timezone in Settings.
-- You can pause email delivery in Settings by setting a "Pause emails until" date. Your feed will still update while emails are paused.
-
-## Account Management
-- To change your email: Go to Settings and update your email address in the Account section. Click Save.
-- To log out: Go to Settings and scroll to the bottom. Click "Log out."
-- To update your profile: Go to Settings > Account Settings. You can update display name, location, language, and more.
-- To delete your account: Go to Settings and follow the account deletion option. This is permanent and removes all data.
-
-## Feed & Content
-- "For You" tab shows recaps from all podcasts that might interest you. "Following" shows only recaps from podcasts you explicitly follow.
-- Bookmarks: Click the bookmark icon on any recap card to save it. Access saved episodes from the Bookmarks page in the sidebar.
-- Sharing: Each recap card has a share button. On mobile it uses native share. On desktop it copies the link.
-
-## How Recaps Work
-- PodCap checks for new episodes released the previous calendar day in your timezone.
-- If no podcasts released a new episode, no email is sent that day — no empty digests.
-- Recaps are generated using advanced AI that analyzes episode content for accurate summaries.
-- Your daily recap is delivered at your chosen time each day.
-
-## Subscriptions & Pricing
-- PodCap is free to use. You can follow as many podcasts as you want.
-- PodCap Pro offers additional features. Pro plans can be managed from Settings.
-
-## Troubleshooting
-- Not receiving emails? Check your spam/junk folder first. Verify your email address in Settings. If emails are in spam, mark them as "not spam."
-- Still having issues? Users can contact support at hello@podcap.io or use the Support page.
-
-## Data & Privacy
-- PodCap only collects your email and podcast preferences. Data is never sold.
-- Payment processing is handled by Stripe — PodCap never sees or stores credit card details.
-
+${knowledgeBase}
 If you don't know the answer to something, be honest about it and suggest the user contact hello@podcap.io for further help. Do not make up features that don't exist.`;
 
-    try {
       const { openai } = await import("./replit_integrations/image/client");
       const recentMessages = validatedMessages.slice(-10);
 
@@ -901,8 +892,8 @@ If you don't know the answer to something, be honest about it and suggest the us
 
       const reply = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
       res.json({ reply });
-    } catch (err) {
-      console.error("[HelpChat] Failed to generate response:", err);
+    } catch (err: any) {
+      console.error("[HelpChat] Failed to generate response:", err?.message || err);
       res.status(500).json({ message: "Failed to generate response" });
     }
   });
@@ -13590,6 +13581,60 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.get("/api/admin/support-articles", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const articles = await storage.getSupportArticles();
+      res.json(articles);
+    } catch (err) {
+      console.error("[SupportArticles] List error:", err);
+      res.status(500).json({ error: "Failed to fetch support articles" });
+    }
+  });
+
+  app.post("/api/admin/support-articles", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { insertSupportArticleSchema } = await import("@shared/schema");
+      const parsed = insertSupportArticleSchema.parse(req.body);
+      const created = await storage.createSupportArticle(parsed);
+      res.json(created);
+    } catch (err: any) {
+      if (err?.issues) return res.status(400).json({ error: "Validation failed", details: err.issues });
+      console.error("[SupportArticles] Create error:", err);
+      res.status(500).json({ error: "Failed to create support article" });
+    }
+  });
+
+  app.patch("/api/admin/support-articles/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const id = Number(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+      const existing = await storage.getSupportArticleById(id);
+      if (!existing) return res.status(404).json({ error: "Article not found" });
+      const { insertSupportArticleSchema } = await import("@shared/schema");
+      const partial = insertSupportArticleSchema.partial().parse(req.body);
+      const updated = await storage.updateSupportArticle(id, partial);
+      res.json(updated);
+    } catch (err: any) {
+      if (err?.issues) return res.status(400).json({ error: "Validation failed", details: err.issues });
+      console.error("[SupportArticles] Update error:", err);
+      res.status(500).json({ error: "Failed to update support article" });
+    }
+  });
+
+  app.delete("/api/admin/support-articles/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      await storage.deleteSupportArticle(Number(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[SupportArticles] Delete error:", err);
+      res.status(500).json({ error: "Failed to delete support article" });
+    }
+  });
+
   app.get("/api/admin/lists", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
@@ -13735,6 +13780,34 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       }
     } catch (err) {
       console.error("[ReferralSeed] Failed to seed referral tiers:", err);
+    }
+
+    try {
+      const { rows: kbCount } = await pool.query("SELECT COUNT(*)::int AS count FROM support_articles");
+      if (kbCount[0].count === 0) {
+        console.log("[SupportKB] No support articles found — seeding defaults...");
+        const defaultArticles = [
+          { title: "What is PodCap?", category: "About", body: "PodCap generates AI-powered recaps of your favorite podcasts. Follow the podcasts you care about, and PodCap delivers concise summaries of new episodes to your inbox and feed.", sortOrder: 0 },
+          { title: "Following Podcasts", category: "Getting Started", body: "- To follow a podcast: Go to the Discover page and search for a podcast, or browse curated lists. Click the \"Follow\" button next to any podcast.\n- Email recaps are sent daily at your configured delivery time. You can change your delivery time and timezone in Settings.\n- You can pause email delivery in Settings by setting a \"Pause emails until\" date. Your feed will still update while emails are paused.", sortOrder: 1 },
+          { title: "Account Management", category: "Account", body: "- To change your email: Go to Settings and update your email address in the Account section. Click Save.\n- To log out: Go to Settings and scroll to the bottom. Click \"Log out.\"\n- To update your profile: Go to Settings > Account Settings. You can update display name, location, language, and more.\n- To delete your account: Go to Settings and follow the account deletion option. This is permanent and removes all data.", sortOrder: 2 },
+          { title: "Feed & Content", category: "Feed & Content", body: "- \"For You\" tab shows recaps from all podcasts that might interest you. \"Following\" shows only recaps from podcasts you explicitly follow.\n- Bookmarks: Click the bookmark icon on any recap card to save it. Access saved episodes from the Bookmarks page in the sidebar.\n- Sharing: Each recap card has a share button. On mobile it uses native share. On desktop it copies the link.", sortOrder: 3 },
+          { title: "How Recaps Work", category: "How Recaps Work", body: "- PodCap checks for new episodes released the previous calendar day in your timezone.\n- If no podcasts released a new episode, no email is sent that day — no empty digests.\n- Recaps are generated using advanced AI that analyzes episode content for accurate summaries.\n- Your daily recap is delivered at your chosen time each day.", sortOrder: 4 },
+          { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "- PodCap is free to use. You can follow as many podcasts as you want.\n- PodCap Pro offers additional features. Pro plans can be managed from Settings.", sortOrder: 5 },
+          { title: "Troubleshooting", category: "Troubleshooting", body: "- Not receiving emails? Check your spam/junk folder first. Verify your email address in Settings. If emails are in spam, mark them as \"not spam.\"\n- Still having issues? Users can contact support at hello@podcap.io or use the Support page.", sortOrder: 6 },
+          { title: "Data & Privacy", category: "Data & Privacy", body: "- PodCap only collects your email and podcast preferences. Data is never sold.\n- Payment processing is handled by Stripe — PodCap never sees or stores credit card details.", sortOrder: 7 },
+        ];
+        for (const a of defaultArticles) {
+          await pool.query(
+            `INSERT INTO support_articles (title, category, body, sort_order, active) VALUES ($1, $2, $3, $4, true)`,
+            [a.title, a.category, a.body, a.sortOrder]
+          );
+        }
+        console.log(`[SupportKB] Seeded ${defaultArticles.length} default support articles`);
+      } else {
+        console.log(`[SupportKB] ${kbCount[0].count} support articles already exist, skipping`);
+      }
+    } catch (err) {
+      console.error("[SupportKB] Failed to seed support articles:", err);
     }
 
     try {

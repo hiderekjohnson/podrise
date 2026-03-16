@@ -686,3 +686,29 @@ export const insertPulseSubscriptionSchema = createInsertSchema(pulseSubscriptio
 export type PulseSubscription = typeof pulseSubscriptions.$inferSelect;
 export type InsertPulseSubscription = z.infer<typeof insertPulseSubscriptionSchema>;
 
+export const supportArticles = pgTable("support_articles", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  body: text("body").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSupportArticleSchema = createInsertSchema(supportArticles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  title: z.string().min(1, "Title is required").max(200),
+  category: z.string().min(1, "Category is required").max(100),
+  body: z.string().min(1, "Body is required").max(10000),
+  sortOrder: z.number().int().min(0).optional().default(0),
+  active: z.boolean().optional().default(true),
+});
+
+export type SupportArticle = typeof supportArticles.$inferSelect;
+export type InsertSupportArticle = z.infer<typeof insertSupportArticleSchema>;
+

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -105,6 +105,11 @@ export interface IStorage {
   addPulseSubscription(userId: number, topicSlug: string): Promise<PulseSubscription>;
   removePulseSubscription(userId: number, topicSlug: string): Promise<void>;
   bulkUpdatePulseSubscriptions(userId: number, topicSlugs: string[]): Promise<PulseSubscription[]>;
+  getSupportArticles(activeOnly?: boolean): Promise<SupportArticle[]>;
+  getSupportArticleById(id: number): Promise<SupportArticle | undefined>;
+  createSupportArticle(data: InsertSupportArticle): Promise<SupportArticle>;
+  updateSupportArticle(id: number, data: Partial<InsertSupportArticle>): Promise<SupportArticle>;
+  deleteSupportArticle(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -973,6 +978,38 @@ export class DatabaseStorage implements IStorage {
     if (topicSlugs.length === 0) return [];
     const values = topicSlugs.map(slug => ({ userId, topicSlug: slug }));
     return db.insert(pulseSubscriptions).values(values).returning();
+  }
+
+  async getSupportArticles(activeOnly?: boolean): Promise<SupportArticle[]> {
+    if (activeOnly) {
+      return db.select().from(supportArticles)
+        .where(eq(supportArticles.active, true))
+        .orderBy(asc(supportArticles.sortOrder), asc(supportArticles.id));
+    }
+    return db.select().from(supportArticles)
+      .orderBy(asc(supportArticles.sortOrder), asc(supportArticles.id));
+  }
+
+  async getSupportArticleById(id: number): Promise<SupportArticle | undefined> {
+    const [article] = await db.select().from(supportArticles).where(eq(supportArticles.id, id));
+    return article ?? undefined;
+  }
+
+  async createSupportArticle(data: InsertSupportArticle): Promise<SupportArticle> {
+    const [created] = await db.insert(supportArticles).values(data).returning();
+    return created;
+  }
+
+  async updateSupportArticle(id: number, data: Partial<InsertSupportArticle>): Promise<SupportArticle> {
+    const [updated] = await db.update(supportArticles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(supportArticles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSupportArticle(id: number): Promise<void> {
+    await db.delete(supportArticles).where(eq(supportArticles.id, id));
   }
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
@@ -19,6 +19,7 @@ const AdminUsersManager = lazy(() => import("./AdminUsersManager"));
 const AdminListsManager = lazy(() => import("./AdminListsManager"));
 const AdminErrorLogs = lazy(() => import("./AdminErrorLogs"));
 const AdminReferrals = lazy(() => import("./AdminReferrals"));
+const AdminSupportKB = lazy(() => import("./AdminSupportKB"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -202,7 +203,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced" | "errors" | "referrals">("advanced");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced" | "errors" | "referrals" | "support-kb">("advanced");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
@@ -600,6 +601,18 @@ export default function Admin() {
                 >
                   <AlertTriangle className="w-4 h-4" />
                   Errors
+                </button>
+                <button
+                  data-testid="tab-support-kb"
+                  onClick={() => { setActiveTab("support-kb"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
+                    activeTab === "support-kb"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Support KB
                 </button>
                 <button
                   data-testid="tab-advanced"
@@ -1118,6 +1131,11 @@ export default function Admin() {
             {activeTab === "referrals" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
                 <AdminReferrals />
+              </Suspense>
+            )}
+            {activeTab === "support-kb" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <AdminSupportKB />
               </Suspense>
             )}
           </motion.div>

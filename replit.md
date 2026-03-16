@@ -14,34 +14,35 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 **Mobile API**: Dedicated endpoints for iOS companion app, including registration, login, token management, and push notifications via APNs.
 **Onboarding Flow**: A 2-step onboarding process (podcast suggestions, topic interests) for new users after email verification.
 **Core Features**:
-- **Pages**: Includes marketing landing, signup, user dashboards, podcast and episode recaps, archives, and entity/category directories with `/pulse` AI briefings.
-- **AI Integration**: Utilizes OpenAI (GPT-4o, GPT-4o-mini) for 2-pass recap generation, key takeaways, and episode chat. AI prompt logic is centralized in `server/recapGenerator.ts`.
-- **Email System**: Resend for email delivery, including scheduled daily recaps.
-- **Podcast Lists**: Curated podcast lists by category, managed via admin panel.
-- **Newsletter Subscriptions**: Users can subscribe to podcasts, industries, interests, and roles.
-- **Conversion System**: Contextual email CTAs (Exit Intent Popup, Inline Email CTA, Sticky Email Bar) for lead generation.
-- **Admin Tools**: Dashboard for user management, episode generation status, podcast expansion, data backfilling, cache management, analytics (User Acquisition, Affiliate Performance, User Growth, Email Marketing), OpenAI API cost tracking, unified shop management (Approval Queue, Approved items), and admin user management.
-- **API Usage Tracking**: Logs all OpenAI API calls to `api_usage_logs` table for cost tracking.
-- **Signup Tracking**: Captures signup source, IP, user-agent, and device type for new registrations.
-- **Affiliate Click Tracking**: Logs web-based affiliate/product link clicks.
+- **Pages**: Includes marketing landing, 2-step signup, user dashboards, podcast and episode recaps, archives, and entity/category directories (Industries, Interests, Roles) with dedicated `/pulse` AI briefings.
+- **AI Integration**: Utilizes OpenAI (GPT-4o, GPT-4o-mini) for 2-pass recap generation, key takeaways, and episode chat. Curated `topicContexts` ensure consistency in AI-generated insights. AI prompt logic is centralized in `server/recapGenerator.ts` as the single source of truth — `regenerateFullRecaps.ts` and `backgroundRecapGenerator.ts` both import and call shared functions from it.
+- **Email System**: Resend for email delivery, including scheduled daily recaps. Email templates are hardcoded for consistency.
+- **Podcast Lists**: Curated podcast lists by category, managed via admin panel. Public API: `GET /api/lists` (all), `GET /api/lists/:slug` (with full podcast data). DB table: `podcast_lists` with name, slug, description, podcast_slugs array, category, sort_order.
+- **Newsletter Subscriptions**: Users can subscribe to podcasts, industries, interests, and roles. A quick-subscribe endpoint facilitates account creation and subscription management.
+- **Conversion System**: Contextual email CTAs (Exit Intent Popup, Inline Email CTA, Sticky Email Bar) for lead generation, utilizing `PageConversionContext`.
+- **Admin Tools**: Dashboard for user management, episode generation status, podcast expansion, data backfilling, cache management, analytics (User Acquisition, Affiliate Performance, User Growth, Email Marketing), OpenAI API cost tracking, unified shop management (Approval Queue, Approved items), admin user management (`admin_users` table with invite flow), and Support Knowledge Base management (`support_articles` table) for the Help chatbot.
+- **API Usage Tracking**: Logs all OpenAI API calls to `api_usage_logs` table for cost tracking, capturing model, token counts, and feature category via `server/apiUsageTracker.ts`.
+- **Signup Tracking**: Captures signup source, IP, user-agent, and device type for new registrations and quick-subscribes.
+- **Affiliate Click Tracking**: Logs web-based affiliate/product link clicks via `/api/track/affiliate-click`.
 - **Directory Caching**: 24-hour in-memory cache for heavy directory endpoints.
-- **Trends Page**: Unified `/trends` dashboard with "Biggest Movers" and data visualizations.
+- **Trends Page**: Unified `/trends` dashboard for people, companies, and topics, with "Biggest Movers" and data visualizations.
 - **Podcast Features**: Directory with landing pages, AI recaps, host info, enhanced show notes, podcast-level AI Q&A, "Just Dropped" and "Hot Right Now" discovery.
-- **Book Covers & Enrichment**: Multi-source system for book covers with fallback, Google Books and Open Library enrichment. Admin review interface for book covers with MTurk-style workflow.
-- **Entity Directories**: Dedicated pages for people and companies with search and data visualizations.
+- **Book Covers & Enrichment**: Multi-source system for book covers with fallback, Google Books and Open Library enrichment. Admin review interface for book covers with MTurk-style workflow (keyboard shortcuts, smart ranking, preloading).
+- **Entity Directories**: Dedicated pages for people and companies with search, tab-based navigation, and data visualizations.
 - **Asset Storage**: All images stored locally.
 - **People Image Pipeline**: Resolves profile photos from local storage, Wikipedia/Wikimedia, or X/Twitter via unavatar.io.
-- **SEO/SSR Pipeline**: Async DB-backed meta tag injection and SSR for all public pages for search engine visibility.
+- **SEO/SSR Pipeline**: Async DB-backed meta tag injection and SSR for all public pages for search engine visibility, using branded OG images.
 - **Logged-In Desktop Experience**: Three-column layout on large screens, collapsible left sidebar, mobile bottom navigation, light/dark mode, profile settings, bookmarks, hover preview cards, and redesigned Discover page.
-- **Unified Shop**: Merged bookstore and product pages into a single `/shop` page with unified filtering and detail pages (`/shop/:slug`) that normalize book and product data.
+- **Unified Shop**: Merged bookstore and product pages into a single `/shop` page with unified filtering and detail pages (`/shop/:slug`) that normalize book and product data. Includes type-specific features like book spines and author links.
 - **Product Image Approval**: Products require `image_status = 'approved'` to be visible publicly; managed via admin panel.
-- **Context Summarization**: Generates polished editorial summaries for products using AI, preferring these over raw contexts.
+- **Context Summarization**: Generates polished editorial summaries for products using AI (GPT-4o-mini), preferring these over raw transcript contexts.
+- **Support Knowledge Base**: Admin-editable knowledge base (`support_articles` table) powers the Help & Support AI chatbot. Admins manage articles via the "Support KB" tab.
 - **Advertise Page**: Dedicated page detailing advertising opportunities.
 - **Recap Generator Logic**: Processes recent episodes for recap generation, distributing recaps evenly.
-- **Daily Pulse Scheduler**: Generates daily topic pulses for yesterday's episodes, running automatically.
-- **Product Filtering**: Filters out known sponsor products and non-brand items.
+- **Daily Pulse Scheduler**: Generates daily topic pulses for yesterday's episodes, running automatically at ~7:00 AM UTC.
+- **Product Filtering**: Filters out known sponsor products, non-brand items, and affiliate tracking URLs.
 - **Taddy Webhook Product Extraction**: Automatically extracts and filters products from new episodes.
-- **Pod Squad Referral Program**: Morning Brew-style referral system with tiered rewards, tracking, and sharing options.
+- **Pod Squad Referral Program**: Morning Brew-style referral system with tiered rewards, tracking, sharing options, and leaderboard.
 - **Pulse Product (Pro)**: Paid subscription for personalized daily topic briefings ($15/mo or $150/yr), with topic selection UI and Stripe integration.
 
 ## External Dependencies
