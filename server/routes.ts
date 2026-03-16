@@ -1449,6 +1449,10 @@ If you don't know the answer to something, be honest about it and suggest the us
 
     if (!user.emailVerified) {
       await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+      // Verify any pending referral now that email is confirmed via magic link
+      storage.verifyReferral(user.id).then(ref => {
+        if (ref) console.log(`[Referral] Verified referral for user ${user.id} via magic link login, referrer ${ref.referrerId}`);
+      }).catch(e => console.error("[Referral] Magic link verify error:", e));
     }
 
     req.session.save(() => {
@@ -1555,11 +1559,53 @@ If you don't know the answer to something, be honest about it and suggest the us
           console.error("[NewUserNotify] Failed:", err)
         );
 
+        // Handle referral tracking for Google OAuth signups
+        const refCode = req.session.referralCode;
+        if (refCode && typeof refCode === "string") {
+          try {
+            const referrer = await storage.getUserByReferralCode(refCode);
+            if (referrer && referrer.id !== user.id) {
+              await pool.query(`UPDATE users SET referred_by = $1 WHERE id = $2`, [referrer.id, user.id]);
+              const ref = await storage.createReferral(referrer.id, user.id);
+              // Google OAuth users are email-verified by default, so verify the referral immediately
+              await storage.verifyReferral(user.id);
+              console.log(`[Referral] Google OAuth user ${user.id} referred by ${referrer.id} (code: ${refCode}) — auto-verified`);
+            }
+          } catch (e) {
+            console.error("[Referral] Failed to record Google OAuth referral:", e);
+          }
+          delete req.session.referralCode;
+        }
+
         req.session.userId = user.id;
         req.session.save(() => {
           res.redirect("/onboarding");
         });
         return;
+      }
+
+      // Handle referral for existing users logging in via Google (if they were referred but never tracked)
+      const refCode = req.session.referralCode;
+      if (refCode && typeof refCode === "string") {
+        try {
+          const referrer = await storage.getUserByReferralCode(refCode);
+          if (referrer && referrer.id !== user.id) {
+            const existingRef = await pool.query(`SELECT id FROM referrals WHERE referred_user_id = $1`, [user.id]);
+            if (existingRef.rows.length === 0) {
+              await pool.query(`UPDATE users SET referred_by = $1 WHERE id = $2 AND referred_by IS NULL`, [referrer.id, user.id]);
+              await storage.createReferral(referrer.id, user.id);
+              if (user.emailVerified) {
+                await storage.verifyReferral(user.id);
+                console.log(`[Referral] Existing Google user ${user.id} referred by ${referrer.id} (code: ${refCode}) — auto-verified`);
+              } else {
+                console.log(`[Referral] Existing user ${user.id} referred by ${referrer.id} (code: ${refCode}) — pending`);
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[Referral] Failed to record referral for existing user:", e);
+        }
+        delete req.session.referralCode;
       }
 
       req.session.userId = user.id;
