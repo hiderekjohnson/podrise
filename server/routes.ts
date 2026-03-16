@@ -526,6 +526,9 @@ export async function registerRoutes(
         IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE tablename = 'referrals' AND indexname = 'referrals_referred_user_id_unique') THEN
           CREATE UNIQUE INDEX referrals_referred_user_id_unique ON referrals (referred_user_id);
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE tablename = 'referrals' AND indexname = 'idx_referrals_referrer_status') THEN
+          CREATE INDEX idx_referrals_referrer_status ON referrals (referrer_id, status);
+        END IF;
       END $$;
 
       INSERT INTO referrals (referrer_id, referred_user_id, status, verified_at)
@@ -571,6 +574,14 @@ export async function registerRoutes(
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
   }
+
+  app.use((req, res, next) => {
+    const host = req.hostname || req.headers.host?.split(":")[0];
+    if (host === "www.podcap.io") {
+      return res.redirect(301, `https://podcap.io${req.originalUrl}`);
+    }
+    next();
+  });
 
   app.use(cors({
     origin: (origin, callback) => {
@@ -1141,19 +1152,6 @@ If you don't know the answer to something, be honest about it and suggest the us
       const currentTier = activeTiers.filter(t => count >= t.threshold).pop() || null;
       const nextTier = activeTiers.find(t => count < t.threshold) || null;
 
-      if (count === 0 && pendingCount === 0) {
-        const { pool } = await import("./db");
-        const debugResult = await pool.query(
-          `SELECT id, referrer_id, referred_user_id, status FROM referrals WHERE referrer_id = $1 LIMIT 10`,
-          [userId]
-        );
-        const userResult = await pool.query(
-          `SELECT id, referred_by FROM users WHERE referred_by IS NOT NULL AND referred_by::text = $1::text LIMIT 10`,
-          [String(userId)]
-        );
-        console.log(`[Referrals] Debug for user ${userId}: referrals rows=${debugResult.rows.length} (${JSON.stringify(debugResult.rows)}), users with referred_by=${userId}: ${userResult.rows.length} (${JSON.stringify(userResult.rows)})`);
-      }
-
       res.json({
         referralCode: code,
         referralLink: `https://podcap.io/r/${code}`,
@@ -1364,7 +1362,7 @@ If you don't know the answer to something, be honest about it and suggest the us
       const { rows: indexes } = await pool.query(`SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'referrals'`);
       res.json({ columns, allReferrals, usersWithRefs, indexes });
     } catch (err: any) {
-      res.status(500).json({ message: err.message, stack: err.stack });
+      res.status(500).json({ message: err.message });
     }
   });
 
@@ -9939,7 +9937,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUser(userId);
+    const user = await storage.getUserById(userId);
     if (!user || user.plan !== "pro") {
       return res.status(403).json({ message: "Pulse subscriptions require a Pro plan" });
     }
@@ -9961,7 +9959,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUser(userId);
+    const user = await storage.getUserById(userId);
     if (!user || user.plan !== "pro") {
       return res.status(403).json({ message: "Pulse subscriptions require a Pro plan" });
     }
@@ -9982,7 +9980,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUser(userId);
+    const user = await storage.getUserById(userId);
     if (!user || user.plan !== "pro") {
       return res.status(403).json({ message: "Pulse subscriptions require a Pro plan" });
     }

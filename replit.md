@@ -42,8 +42,11 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Daily Pulse Scheduler**: Generates daily topic pulses for yesterday's episodes, running automatically at ~7:00 AM UTC.
 - **Product Filtering**: Filters out known sponsor products, non-brand items, and affiliate tracking URLs.
 - **Taddy Webhook Product Extraction**: Automatically extracts and filters products from new episodes.
-- **Pod Squad Referral Program**: Morning Brew-style referral system with tiered rewards, tracking, sharing options, and leaderboard.
-- **Pulse Product (Pro)**: Paid subscription for personalized daily topic briefings ($15/mo or $150/yr), with topic selection UI and Stripe integration.
+- **Pod Squad Referral Program**: Morning Brew-style referral system with tiered rewards, tracking, sharing options, and leaderboard. Only email-verified users count toward referral totals. Referrals table uses `referred_user_id` column with unique index and `(referrer_id, status)` composite index.
+- **Pulse Product (Pro)**: Paid subscription for personalized daily topic briefings ($15/mo or $150/yr), with topic selection UI and Stripe integration. Free users can browse topics but see an upgrade modal when trying to subscribe. Backend enforces Pro plan check on subscribe/unsubscribe/bulk-update endpoints.
+- **Error Tracking**: Global middleware intercepts all `/api` responses with 4xx/5xx status codes, logs to `error_logs` table with deduplication by endpoint+method+status+message.
+- **www Redirect**: Server-side 301 redirect from `www.podcap.io` to `podcap.io` for canonical URLs.
+- **Email Verification Gating**: Email scheduler, analytics, and user counts only process/count email-verified users.
 
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management for Pulse Pro.
