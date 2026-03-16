@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { getStripeSync } from "./stripeClient";
 import { WebhookHandlers } from "./webhookHandlers";
 import { startEmailScheduler } from "./emailScheduler";
+import { startProductionRecapScheduler } from "./productionRecapScheduler";
 
 const app = express();
 const httpServer = createServer(app);
@@ -348,6 +349,7 @@ process.on("uncaughtException", (err) => {
       });
 
       startEmailScheduler();
+      startProductionRecapScheduler();
     },
   );
 })().catch((err) => {

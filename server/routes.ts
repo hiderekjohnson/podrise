@@ -441,6 +441,39 @@ export async function registerRoutes(
       ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT;
     `);
     await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS extracted_products (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        company TEXT,
+        description TEXT,
+        purchase_url TEXT,
+        context TEXT,
+        context_summary TEXT,
+        mention_type TEXT DEFAULT 'personal_use',
+        category TEXT DEFAULT 'service_or_tool',
+        episode_title TEXT,
+        episode_slug TEXT,
+        podcast_slug TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        rejection_reason TEXT,
+        image_url TEXT,
+        image_status TEXT NOT NULL DEFAULT 'pending',
+        approved_by TEXT,
+        approved_at TIMESTAMP,
+        extracted_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS episode_quotes (
+        id SERIAL PRIMARY KEY,
+        podcast_slug TEXT NOT NULL,
+        episode_slug TEXT NOT NULL,
+        episode_title TEXT,
+        speaker_name TEXT,
+        quote_text TEXT NOT NULL,
+        context TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await migrationPool.query(`
       CREATE TABLE IF NOT EXISTS error_logs (
         id SERIAL PRIMARY KEY,
         endpoint TEXT NOT NULL,
