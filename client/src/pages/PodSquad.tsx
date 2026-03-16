@@ -39,7 +39,7 @@ interface LeaderboardEntry {
 
 const TIER_ICONS = [Users, Star, Zap, Award, Crown, Rocket, Trophy];
 
-const DEFAULT_INVITE_MESSAGE = `Hey, I highly recommend checking out PodCap — it's an awesome platform that gives you AI-powered summaries of the best podcasts. It saves me hours every week staying on top of great conversations. Best of all, it's free! Give it a try using my personal invite link below:`;
+const DEFAULT_INVITE_MESSAGE = `Thought you'd find this useful. PodCap tracks your favorite podcasts and pulls out the key takeaways, so you always know what's going on without sitting through hours of audio. Free:`;
 
 export default function PodSquad() {
   const { data: user } = useAuth();
@@ -123,7 +123,9 @@ export default function PodSquad() {
     }
   };
 
-  const shareText = `I've been using PodCap to get AI-powered podcast summaries and it's awesome. Check it out!`;
+  const smsShareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
+  const linkedInShareText = `Been using PodCap to keep up with the podcasts in my space without actually listening. It tracks your favorite shows and delivers the key takeaways. Free:`;
+  const twitterShareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
 
   if (!user) {
     return (
@@ -301,7 +303,7 @@ export default function PodSquad() {
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <a
-                      href={`sms:?body=${encodeURIComponent(`${shareText} ${stats?.referralLink || ""}`)}`}
+                      href={`sms:?body=${encodeURIComponent(`${smsShareText} ${stats?.referralLink || ""}`)}`}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#34C759] text-white rounded-xl font-semibold hover:bg-[#2DB84D] transition-colors"
                       data-testid="button-text-friend"
                     >
@@ -309,7 +311,7 @@ export default function PodSquad() {
                       Text a Friend
                     </a>
                     <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${stats?.referralLink || ""}`)}`}
+                      href={`https://wa.me/?text=${encodeURIComponent(`${smsShareText} ${stats?.referralLink || ""}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#25D366] text-white rounded-xl font-semibold hover:bg-[#1EBE5C] transition-colors"
@@ -375,7 +377,7 @@ export default function PodSquad() {
                 <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">Rack up referrals by sharing on your social channels.</p>
                 <div className="flex gap-2">
                   <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(stats?.referralLink || "")}`}
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(stats?.referralLink || "")}&quote=${encodeURIComponent(smsShareText)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#1877F2] text-white hover:opacity-90 transition-opacity"
@@ -384,7 +386,7 @@ export default function PodSquad() {
                     <SiFacebook className="w-5 h-5" />
                   </a>
                   <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(stats?.referralLink || "")}`}
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterShareText)}&url=${encodeURIComponent(stats?.referralLink || "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] hover:opacity-90 transition-opacity"
@@ -393,7 +395,7 @@ export default function PodSquad() {
                     <SiX className="w-4 h-4" />
                   </a>
                   <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(stats?.referralLink || "")}`}
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(stats?.referralLink || "")}&summary=${encodeURIComponent(linkedInShareText)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#0A66C2] text-white hover:opacity-90 transition-opacity"
