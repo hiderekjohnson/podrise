@@ -3,6 +3,7 @@ import type { Server } from "http";
 import crypto from "crypto";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import cors from "cors";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -16,6 +17,8 @@ import { activeEpGenItunesIds } from "./epGenState";
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync } from "fs";
 import multer from "multer";
 import path from "path";
+import { authenticateRequest, getAuthUserId } from "./jwt";
+import { registerMobileRoutes } from "./mobileRoutes";
 
 declare module "express-session" {
   interface SessionData {
@@ -442,6 +445,31 @@ export async function registerRoutes(
     console.error("[startup] Schema migration error:", e.message);
   }
 
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const allowedOrigins = [
+        /^https?:\/\/localhost(:\d+)?$/,
+        /^https?:\/\/.*\.replit\.dev$/,
+        /^https:\/\/podcap\.io$/,
+        /^https:\/\/.*\.podcap\.io$/,
+        /^capacitor:\/\//,
+        /^ionic:\/\//,
+      ];
+      const mobileOrigin = process.env.MOBILE_APP_ORIGIN;
+      if (mobileOrigin && origin === mobileOrigin) return callback(null, true);
+      if (allowedOrigins.some(re => re.test(origin))) return callback(null, true);
+      callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["X-Total-Count"],
+    maxAge: 86400,
+  }));
+
+  registerMobileRoutes(app);
+
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", uptime: process.uptime() });
   });
@@ -674,12 +702,13 @@ export async function registerRoutes(
   );
 
   app.get(api.auth.me.path, async (req, res) => {
-    if (!req.session.userId) {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(userId);
     if (!user) {
-      req.session.destroy(() => {});
+      if (req.session?.userId) req.session.destroy(() => {});
       return res.status(401).json({ message: "User not found" });
     }
     res.json(user);
@@ -1081,14 +1110,15 @@ export async function registerRoutes(
   });
 
   app.delete("/api/account", async (req, res) => {
-    if (!req.session.userId) {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
     const { confirmation } = req.body || {};
     if (confirmation !== "DELETE") {
       return res.status(400).json({ message: "Please type DELETE to confirm account deletion" });
     }
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -1097,9 +1127,13 @@ export async function registerRoutes(
     }
     try {
       await storage.deleteUser(user.id);
-      req.session.destroy(() => {
+      if (req.session?.userId) {
+        req.session.destroy(() => {
+          res.json({ message: "Account deleted successfully" });
+        });
+      } else {
         res.json({ message: "Account deleted successfully" });
-      });
+      }
     } catch (err: any) {
       console.error("Failed to delete account:", err);
       res.status(500).json({ message: "Failed to delete account" });
@@ -1107,34 +1141,37 @@ export async function registerRoutes(
   });
 
   app.get("/api/bookmarks", async (req, res) => {
-    if (!req.session.userId) {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const bookmarksList = await storage.getBookmarksByUserId(req.session.userId);
+    const bookmarksList = await storage.getBookmarksByUserId(userId);
     res.json(bookmarksList);
   });
 
   app.post("/api/bookmarks", async (req, res) => {
-    if (!req.session.userId) {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
     const { episodeSlug, podcastSlug } = req.body;
     if (!episodeSlug || !podcastSlug) {
       return res.status(400).json({ message: "episodeSlug and podcastSlug required" });
     }
-    const exists = await storage.isBookmarked(req.session.userId, podcastSlug, episodeSlug);
+    const exists = await storage.isBookmarked(userId, podcastSlug, episodeSlug);
     if (exists) {
       return res.json({ message: "Already bookmarked" });
     }
-    const bookmark = await storage.addBookmark({ userId: req.session.userId, episodeSlug, podcastSlug });
+    const bookmark = await storage.addBookmark({ userId, episodeSlug, podcastSlug });
     res.status(201).json(bookmark);
   });
 
   app.delete("/api/bookmarks/:podcastSlug/:episodeSlug", async (req, res) => {
-    if (!req.session.userId) {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    await storage.removeBookmark(req.session.userId, req.params.podcastSlug, req.params.episodeSlug);
+    await storage.removeBookmark(userId, req.params.podcastSlug, req.params.episodeSlug);
     res.json({ message: "Bookmark removed" });
   });
 
@@ -5156,13 +5193,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.get("/api/onboarding/suggestions", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const onbUserId = getAuthUserId(req);
+      if (!onbUserId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      const user = await storage.getUserById(req.session.userId);
+      const user = await storage.getUserById(onbUserId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
-      const contextRaw = (req.query.context as string) || req.session.signupContext || "";
+      const contextRaw = (req.query.context as string) || req.session?.signupContext || "";
       const [contextType, contextSlug] = contextRaw.includes(":") ? contextRaw.split(":", 2) : ["", ""];
 
       let suggestedPodcasts: any[] = [];
@@ -5270,11 +5308,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.post("/api/onboarding/complete", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const onbCompleteUserId = getAuthUserId(req);
+      if (!onbCompleteUserId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
       const { podcasts, industries, interests, roles } = req.body;
-      const user = await storage.getUserById(req.session.userId);
+      const user = await storage.getUserById(onbCompleteUserId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const existingPodcasts = user.podcasts || [];
@@ -5310,7 +5349,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         [newPodcasts, mergedIndustries, mergedInterests, mergedRoles, user.id]
       );
 
-      delete req.session.signupContext;
+      if (req.session?.signupContext) delete req.session.signupContext;
       const updatedUser = await storage.getUserById(user.id);
       res.json(updatedUser);
     } catch (err) {
@@ -5329,9 +5368,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       let userTopics: string[] = [];
       let isAuthenticated = false;
 
-      if (req.session.userId) {
+      const feedUserId = getAuthUserId(req);
+      if (feedUserId) {
         isAuthenticated = true;
-        const user = await storage.getUserById(req.session.userId);
+        const user = await storage.getUserById(feedUserId);
         if (user) {
           const rawPodcasts = user.podcasts || [];
           const itunesIds = rawPodcasts.map((p: string) => {
@@ -5438,9 +5478,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.get("/api/feed/followed-slugs", async (req, res) => {
-    if (!req.session.userId) return res.json({ followedSlugs: [] });
+    const fsUserId = getAuthUserId(req);
+    if (!fsUserId) return res.json({ followedSlugs: [] });
     try {
-      const user = await storage.getUserById(req.session.userId);
+      const user = await storage.getUserById(fsUserId);
       if (!user) return res.json({ followedSlugs: [] });
       const rawPodcasts = user.podcasts || [];
       const itunesIds = rawPodcasts.map((p: string) => {
@@ -5459,12 +5500,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post("/api/feed/follow", async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    const followUserId = getAuthUserId(req);
+    if (!followUserId) return res.status(401).json({ message: "Not authenticated" });
     const { podcastSlug } = req.body;
     if (!podcastSlug) return res.status(400).json({ message: "Missing podcastSlug" });
 
     try {
-      const user = await storage.getUserById(req.session.userId);
+      const user = await storage.getUserById(followUserId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const pdResult = await pool.query(
@@ -5497,7 +5539,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       await pool.query(
         `UPDATE users SET podcasts = array_append(podcasts, $1) WHERE id = $2`,
-        [newEntry, req.session.userId]
+        [newEntry, followUserId]
       );
 
       res.json({ success: true });
@@ -5508,12 +5550,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post("/api/feed/unfollow", async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    const unfollowUserId = getAuthUserId(req);
+    if (!unfollowUserId) return res.status(401).json({ message: "Not authenticated" });
     const { podcastSlug } = req.body;
     if (!podcastSlug) return res.status(400).json({ message: "Missing podcastSlug" });
 
     try {
-      const user = await storage.getUserById(req.session.userId);
+      const user = await storage.getUserById(unfollowUserId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const pdResult = await pool.query(
@@ -5530,7 +5573,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       await pool.query(
         `UPDATE users SET podcasts = $1 WHERE id = $2`,
-        [filtered, req.session.userId]
+        [filtered, unfollowUserId]
       );
 
       res.json({ success: true });
@@ -5541,18 +5584,20 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.get("/api/recaps", async (req, res) => {
-    if (!req.session.userId) {
+    const recapUserId = getAuthUserId(req);
+    if (!recapUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const recaps = await storage.getRecapsByUserId(req.session.userId);
+    const recaps = await storage.getRecapsByUserId(recapUserId);
     res.json(recaps);
   });
 
   app.post("/api/recaps/generate", async (req, res) => {
-    if (!req.session.userId) {
+    const recapGenUserId = getAuthUserId(req);
+    if (!recapGenUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(recapGenUserId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -5587,10 +5632,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post("/api/recaps/send-email", async (req, res) => {
-    if (!req.session.userId) {
+    const sendEmailUserId = getAuthUserId(req);
+    if (!sendEmailUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(sendEmailUserId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -8757,12 +8803,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post(api.users.update.path, async (req, res) => {
-    if (!req.session.userId) {
+    const updateUserId = getAuthUserId(req);
+    if (!updateUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
     try {
       const input = api.users.update.input.parse(req.body);
-      const updated = await storage.updateUser(req.session.userId, input);
+      const updated = await storage.updateUser(updateUserId, input);
 
       if (input.podcasts && input.podcasts.length > 0) {
         autoPopulateDirectory(input.podcasts).catch(() => {});
@@ -8791,11 +8838,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post("/api/stripe/create-checkout", async (req, res) => {
-    if (!req.session.userId) {
+    const checkoutUserId = getAuthUserId(req);
+    if (!checkoutUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(checkoutUserId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -8845,11 +8893,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.get("/api/stripe/subscription", async (req, res) => {
-    if (!req.session.userId) {
+    const subUserId = getAuthUserId(req);
+    if (!subUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(subUserId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -8867,11 +8916,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post("/api/stripe/portal", async (req, res) => {
-    if (!req.session.userId) {
+    const portalUserId = getAuthUserId(req);
+    if (!portalUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(portalUserId);
     if (!user || !user.stripeCustomerId) {
       return res.status(400).json({ message: "No billing account found" });
     }
@@ -8891,11 +8941,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.post("/api/stripe/cancel-subscription", async (req, res) => {
-    if (!req.session.userId) {
+    const cancelUserId = getAuthUserId(req);
+    if (!cancelUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(cancelUserId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -8932,10 +8983,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.get("/api/stripe/payment-method", async (req, res) => {
-    if (!req.session.userId) {
+    const pmUserId = getAuthUserId(req);
+    if (!pmUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(pmUserId);
     if (!user || !user.stripeCustomerId) {
       return res.json({ paymentMethod: null });
     }
@@ -8965,10 +9017,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   });
 
   app.get("/api/stripe/invoices", async (req, res) => {
-    if (!req.session.userId) {
+    const invUserId = getAuthUserId(req);
+    if (!invUserId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUserById(req.session.userId);
+    const user = await storage.getUserById(invUserId);
     if (!user || !user.stripeCustomerId) {
       return res.json({ invoices: [] });
     }

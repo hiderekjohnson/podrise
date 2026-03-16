@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -80,6 +80,13 @@ export interface IStorage {
   addBookmark(data: InsertBookmark): Promise<Bookmark>;
   removeBookmark(userId: number, podcastSlug: string, episodeSlug: string): Promise<void>;
   isBookmarked(userId: number, podcastSlug: string, episodeSlug: string): Promise<boolean>;
+  registerDeviceToken(userId: number, deviceToken: string, platform?: string): Promise<DeviceToken>;
+  unregisterDeviceToken(deviceToken: string, userId: number): Promise<void>;
+  getDeviceTokensByUserId(userId: number): Promise<DeviceToken[]>;
+  createRefreshToken(userId: number, token: string, expiresAt: Date): Promise<RefreshToken>;
+  getRefreshToken(token: string): Promise<RefreshToken | undefined>;
+  revokeRefreshToken(token: string): Promise<void>;
+  revokeAllRefreshTokensForUser(userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -735,6 +742,51 @@ export class DatabaseStorage implements IStorage {
   async isBookmarked(userId: number, podcastSlug: string, episodeSlug: string): Promise<boolean> {
     const [row] = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.podcastSlug, podcastSlug), eq(bookmarks.episodeSlug, episodeSlug)));
     return !!row;
+  }
+
+  async registerDeviceToken(userId: number, token: string, platform: string = "ios"): Promise<DeviceToken> {
+    const [existing] = await db.select().from(deviceTokens).where(eq(deviceTokens.deviceToken, token));
+    if (existing) {
+      if (existing.userId !== userId) {
+        const [updated] = await db.update(deviceTokens).set({ userId }).where(eq(deviceTokens.deviceToken, token)).returning();
+        return updated;
+      }
+      return existing;
+    }
+    const [created] = await db.insert(deviceTokens).values({ userId, deviceToken: token, platform }).returning();
+    return created;
+  }
+
+  async unregisterDeviceToken(token: string, userId: number): Promise<void> {
+    await db.delete(deviceTokens).where(
+      and(eq(deviceTokens.deviceToken, token), eq(deviceTokens.userId, userId))
+    );
+  }
+
+  async getDeviceTokensByUserId(userId: number): Promise<DeviceToken[]> {
+    return db.select().from(deviceTokens).where(eq(deviceTokens.userId, userId));
+  }
+
+  async createRefreshToken(userId: number, token: string, expiresAt: Date): Promise<RefreshToken> {
+    const [created] = await db.insert(refreshTokens).values({ userId, token, expiresAt }).returning();
+    return created;
+  }
+
+  async getRefreshToken(token: string): Promise<RefreshToken | undefined> {
+    const [row] = await db.select().from(refreshTokens).where(
+      and(eq(refreshTokens.token, token), isNull(refreshTokens.revokedAt), gt(refreshTokens.expiresAt, new Date()))
+    );
+    return row ?? undefined;
+  }
+
+  async revokeRefreshToken(token: string): Promise<void> {
+    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.token, token));
+  }
+
+  async revokeAllRefreshTokensForUser(userId: number): Promise<void> {
+    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(
+      and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt))
+    );
   }
 }
 

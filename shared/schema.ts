@@ -569,6 +569,29 @@ export const insertAdvertiserSchema = createInsertSchema(advertisers).omit({
 export type Advertiser = typeof advertisers.$inferSelect;
 export type InsertAdvertiser = z.infer<typeof insertAdvertiserSchema>;
 
+export const deviceTokens = pgTable("device_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  deviceToken: text("device_token").notNull().unique(),
+  platform: text("platform").notNull().default("ios"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type DeviceToken = typeof deviceTokens.$inferSelect;
+export type InsertDeviceToken = typeof deviceTokens.$inferInsert;
+
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type InsertRefreshToken = typeof refreshTokens.$inferInsert;
+
 export const adminUsers = pgTable("admin_users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
