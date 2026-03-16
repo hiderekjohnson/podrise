@@ -12570,6 +12570,23 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
+      const { rows: listCount } = await pool.query("SELECT COUNT(*)::int AS count FROM podcast_lists");
+      if (listCount[0].count === 0) {
+        console.log("[Seed] No podcast lists found — seeding curated lists...");
+        const { SEED_LISTS } = await import("./seedLists");
+        for (const l of SEED_LISTS) {
+          await pool.query(
+            `INSERT INTO podcast_lists (name, slug, description, podcast_slugs, category, sort_order) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (slug) DO NOTHING`,
+            [l.name, l.slug, l.description, l.podcastSlugs, l.category, l.sortOrder]
+          );
+        }
+        console.log(`[Seed] Seeded ${SEED_LISTS.length} curated podcast lists`);
+      }
+    } catch (err) {
+      console.error("[Seed] Failed to seed podcast lists:", err);
+    }
+
+    try {
       console.log("[Cache] Pre-warming directory caches on startup...");
       const [peopleData, companiesData, topicsData] = await Promise.all([
         computePeopleData(),
