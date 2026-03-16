@@ -125,7 +125,7 @@ export default function PodSquad() {
   return (
     <DashboardLayout hideRightSidebar>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="pod-squad-page">
-        {/* Hero Banner */}
+        {/* Hero Banner with Reward Tiers */}
         <div
           className="relative overflow-hidden"
           style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
@@ -136,33 +136,116 @@ export default function PodSquad() {
             <div className="absolute bottom-10 -left-16 w-48 h-48 rounded-full bg-white/[0.04]" />
             <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full bg-white/[0.03]" />
           </div>
-          <div className="relative z-10 max-w-3xl mx-auto px-4 md:px-8 py-10 md:py-14 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.15] text-white/90 text-[13px] font-semibold mb-4" data-testid="badge-pod-squad">
+          <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8 pt-8 md:pt-10 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.15] text-white/90 text-[13px] font-semibold mb-3" data-testid="badge-pod-squad">
               <Trophy className="w-4 h-4" />
               THE POD SQUAD
             </div>
-            <h1 className="text-[2rem] md:text-[2.75rem] font-bold text-white leading-[1.1] tracking-[-0.03em] mb-3" data-testid="heading-hero">
+            <h1 className="text-[1.75rem] md:text-[2.25rem] font-bold text-white leading-[1.1] tracking-[-0.03em] mb-2" data-testid="heading-hero">
               Referrals Get Rewarded
             </h1>
-            <p className="text-[16px] md:text-[18px] text-white/80 max-w-lg mx-auto">
-              Share PodCap with friends. As they sign up, you'll unlock exclusive rewards and climb the leaderboard.
+            <p className="text-[15px] md:text-[17px] text-white/80 max-w-lg mx-auto mb-8">
+              Share PodCap with friends. As they sign up, you'll unlock exclusive rewards.
             </p>
 
-            {/* Referral count badge */}
-            {stats && (
-              <div className="mt-6 inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/[0.15] backdrop-blur-sm" data-testid="referral-count-badge">
-                <div className="text-left">
-                  <p className="text-[13px] text-white/70 font-medium">Your Referrals</p>
-                  <p className="text-[28px] font-bold text-white leading-none" data-testid="text-referral-count">{stats.count}</p>
+            {/* Reward Tier Cards - Horizontal Row */}
+            {!statsLoading && stats?.tiers && stats.tiers.length > 0 && (
+              <div className="pb-8">
+                <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 px-1 justify-start md:justify-center scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {stats.tiers.map((tier, i) => {
+                    const isUnlocked = stats.count >= tier.threshold;
+                    const isNext = stats.nextTier?.id === tier.id;
+                    const Icon = TIER_ICONS[i % TIER_ICONS.length];
+
+                    return (
+                      <div
+                        key={tier.id}
+                        className={`relative flex-shrink-0 w-[120px] md:w-[140px] rounded-2xl p-3 md:p-4 text-center transition-all ${
+                          isUnlocked
+                            ? "bg-white/[0.25] ring-2 ring-white/40"
+                            : isNext
+                            ? "bg-white/[0.18] ring-2 ring-white/30"
+                            : "bg-white/[0.10]"
+                        }`}
+                        data-testid={`tier-card-${tier.id}`}
+                      >
+                        {isUnlocked && (
+                          <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                            <Check className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        )}
+                        {isNext && (
+                          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] font-bold rounded-full uppercase tracking-wide">
+                            Next
+                          </div>
+                        )}
+                        <div className={`w-14 h-14 md:w-16 md:h-16 mx-auto mb-2 rounded-xl flex items-center justify-center ${
+                          isUnlocked
+                            ? "bg-white/[0.3]"
+                            : "bg-white/[0.15]"
+                        }`}>
+                          {tier.imageUrl ? (
+                            <img
+                              src={tier.imageUrl}
+                              alt={tier.rewardName}
+                              className={`w-10 h-10 md:w-12 md:h-12 object-contain ${!isUnlocked && !isNext ? "opacity-50 grayscale" : ""}`}
+                            />
+                          ) : (
+                            <Icon className={`w-7 h-7 md:w-8 md:h-8 ${
+                              isUnlocked ? "text-white" : isNext ? "text-white/80" : "text-white/40"
+                            }`} />
+                          )}
+                        </div>
+                        <p className={`text-[13px] md:text-[14px] font-bold leading-tight mb-1 ${
+                          isUnlocked ? "text-white" : isNext ? "text-white/90" : "text-white/50"
+                        }`}>
+                          {tier.rewardName}
+                        </p>
+                        <p className={`text-[22px] md:text-[26px] font-extrabold leading-none ${
+                          isUnlocked ? "text-white" : isNext ? "text-white/80" : "text-white/40"
+                        }`}>
+                          {tier.threshold}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
-                {stats.nextTier && (
-                  <div className="text-left border-l border-white/20 pl-3">
-                    <p className="text-[13px] text-white/70 font-medium">Next Reward</p>
-                    <p className="text-[15px] font-semibold text-white">
-                      {stats.nextTier.threshold - stats.count} more to go
-                    </p>
-                  </div>
-                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Referral Count + Progress Bar */}
+        <div className="max-w-3xl mx-auto px-4 md:px-8 -mt-4 relative z-20">
+          <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] shadow-lg p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4" data-testid="referral-count-badge">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-[#6366F1] flex items-center justify-center">
+                <Target className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] font-medium">Your Referral Count</p>
+                <p className="text-[28px] font-extrabold text-[#09090B] dark:text-white leading-none" data-testid="text-referral-count">{stats?.count ?? 0}</p>
+              </div>
+            </div>
+            {stats?.nextTier && (
+              <div className="flex-1 w-full sm:w-auto">
+                <div className="flex justify-between text-[13px] mb-1.5">
+                  <span className="text-[#52525B] dark:text-[#A1A1AA] font-medium">
+                    You're only <span className="font-bold text-[#6366F1]">{stats.nextTier.threshold - stats.count} referrals</span> away from winning
+                  </span>
+                </div>
+                <p className="text-[15px] font-bold text-[#09090B] dark:text-white mb-2">{stats.nextTier.rewardName}!</p>
+                <div className="h-2.5 bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, (stats.count / stats.nextTier.threshold) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {!stats?.nextTier && stats?.count !== undefined && stats.count > 0 && (
+              <div className="flex-1">
+                <p className="text-[15px] font-bold text-[#6366F1]">All rewards unlocked! You're a legend.</p>
               </div>
             )}
           </div>
@@ -173,7 +256,6 @@ export default function PodSquad() {
           <section data-testid="share-section">
             <h2 className="text-[18px] font-bold text-foreground mb-4">Share Your Link</h2>
             <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 space-y-4">
-              {/* Copy Link */}
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -192,7 +274,6 @@ export default function PodSquad() {
                 </button>
               </div>
 
-              {/* Primary share buttons */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <a
                   href={`sms:?body=${encodeURIComponent(`${shareText} ${stats?.referralLink || ""}`)}`}
@@ -214,7 +295,6 @@ export default function PodSquad() {
                 </a>
               </div>
 
-              {/* Secondary social share */}
               <div className="flex gap-2">
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(stats?.referralLink || "")}`}
@@ -248,7 +328,6 @@ export default function PodSquad() {
                 </a>
               </div>
 
-              {/* Email invite */}
               <div className="pt-3 border-t border-[#F4F4F5] dark:border-[#1C1C22]">
                 <p className="text-[13px] font-semibold text-[#52525B] dark:text-[#A1A1AA] mb-2">Share via Email</p>
                 <form
@@ -279,86 +358,6 @@ export default function PodSquad() {
                 </form>
               </div>
             </div>
-          </section>
-
-          {/* Tier Progression */}
-          <section data-testid="tier-section">
-            <h2 className="text-[18px] font-bold text-foreground mb-4">Reward Tiers</h2>
-            {statsLoading ? (
-              <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {stats?.tiers.map((tier, i) => {
-                  const isUnlocked = stats.count >= tier.threshold;
-                  const isNext = stats.nextTier?.id === tier.id;
-                  const Icon = TIER_ICONS[i % TIER_ICONS.length];
-                  const colorClass = TIER_COLORS[i % TIER_COLORS.length];
-                  const progress = isNext ? Math.min(100, ((stats.count - (i > 0 ? stats.tiers[i - 1].threshold : 0)) / (tier.threshold - (i > 0 ? stats.tiers[i - 1].threshold : 0))) * 100) : 0;
-
-                  return (
-                    <div
-                      key={tier.id}
-                      className={`rounded-2xl border p-4 transition-all ${
-                        isUnlocked
-                          ? "bg-white dark:bg-[#111114] border-[#6366F1]/30 shadow-sm"
-                          : isNext
-                          ? "bg-white dark:bg-[#111114] border-[#ECECEE] dark:border-[#1C1C22] ring-2 ring-[#6366F1]/20"
-                          : "bg-[#F9F9FB] dark:bg-[#0A0A0C] border-[#ECECEE] dark:border-[#1C1C22] opacity-60"
-                      }`}
-                      data-testid={`tier-card-${tier.id}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {tier.imageUrl ? (
-                          <img
-                            src={tier.imageUrl}
-                            alt={tier.rewardName}
-                            className={`w-10 h-10 rounded-xl object-cover flex-shrink-0 ${!isUnlocked ? "opacity-40 grayscale" : ""}`}
-                          />
-                        ) : (
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            isUnlocked
-                              ? `bg-gradient-to-br ${colorClass} text-white`
-                              : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#A1A1AA]"
-                          }`}>
-                            {isUnlocked ? <Icon className="w-5 h-5" /> : <Lock className="w-4 h-4" />}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-bold text-foreground">{tier.rewardName}</span>
-                            <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-full ${
-                              isUnlocked
-                                ? "bg-[#6366F1]/10 text-[#6366F1]"
-                                : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#A1A1AA]"
-                            }`}>
-                              {isUnlocked ? "Unlocked" : `${tier.threshold} referrals`}
-                            </span>
-                          </div>
-                          <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5">{tier.rewardDescription}</p>
-                          {isNext && (
-                            <div className="mt-2">
-                              <div className="flex justify-between text-[12px] text-[#A1A1AA] mb-1">
-                                <span>{stats.count} / {tier.threshold}</span>
-                                <span>{tier.threshold - stats.count} to go</span>
-                              </div>
-                              <div className="h-2 bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full transition-all duration-500"
-                                  style={{ width: `${progress}%` }}
-                                  data-testid={`tier-progress-${tier.id}`}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </section>
 
           {/* Leaderboard */}
@@ -403,6 +402,10 @@ export default function PodSquad() {
               )}
             </div>
           </section>
+
+          <p className="text-center text-[12px] text-[#A1A1AA] dark:text-[#52525B]">
+            * By participating in the Referral Program, you agree to abide by these <Link href="/terms" className="underline hover:text-[#6366F1]">Referral Program Terms and Conditions</Link>.
+          </p>
         </div>
       </div>
     </DashboardLayout>
