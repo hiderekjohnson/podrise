@@ -176,7 +176,7 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
               <span>|</span>
               <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
               <span>|</span>
-              <a href="/privacy#cookies" className="hover:underline">Cookie Policy</a>
+              <Link href="/cookies" className="hover:underline">Cookie Policy</Link>
               <span>|</span>
               <a href="/support" className="hover:underline">Accessibility</a>
               <span>|</span>

@@ -23,6 +23,7 @@ const PodcastsExplorer = lazy(() => import("./pages/PodcastsExplorer"));
 const EpisodeGuestsPage = lazy(() => import("./pages/EpisodeGuestsPage"));
 const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const Cookies = lazy(() => import("./pages/Cookies"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureRequests = lazy(() => import("./pages/FeatureRequests"));
@@ -89,6 +90,7 @@ function Router() {
         <Route path="/podcasts/:slug" component={PodcastRouter} />
         <Route path="/podcasts" component={PodcastsExplorer} />
         <Route path="/privacy" component={Privacy} />
+        <Route path="/cookies">{() => <AuthAwareLayout><Cookies /></AuthAwareLayout>}</Route>
         <Route path="/terms" component={Terms} />
         <Route path="/support" component={Support} />
         <Route path="/updates" component={FeatureRequests} />
