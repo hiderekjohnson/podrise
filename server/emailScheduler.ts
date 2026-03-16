@@ -567,6 +567,10 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     return "skipped";
   }
 
+  if (!user.emailVerified) {
+    return "skipped";
+  }
+
   if (isUserOnVacation(user)) {
     console.log(`[EmailScheduler] Skipping user ${user.id}: on vacation until ${user.vacationUntil}`);
     return "skipped";

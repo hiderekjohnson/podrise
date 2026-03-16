@@ -506,12 +506,39 @@ export async function registerRoutes(
       CREATE TABLE IF NOT EXISTS referrals (
         id SERIAL PRIMARY KEY,
         referrer_id INTEGER NOT NULL,
-        referred_id INTEGER,
+        referred_user_id INTEGER NOT NULL,
         referred_email TEXT,
         status TEXT NOT NULL DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW(),
         verified_at TIMESTAMP
       );
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'referrals' AND column_name = 'referred_id')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'referrals' AND column_name = 'referred_user_id') THEN
+          ALTER TABLE referrals RENAME COLUMN referred_id TO referred_user_id;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'referrals' AND column_name = 'referred_user_id') THEN
+          ALTER TABLE referrals ADD COLUMN referred_user_id INTEGER;
+        END IF;
+      END $$;
+
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE tablename = 'referrals' AND indexname = 'referrals_referred_user_id_unique') THEN
+          CREATE UNIQUE INDEX referrals_referred_user_id_unique ON referrals (referred_user_id);
+        END IF;
+      END $$;
+
+      INSERT INTO referrals (referrer_id, referred_user_id, status, verified_at)
+      SELECT u.referred_by::integer, u.id, 
+             CASE WHEN u.email_verified THEN 'verified' ELSE 'pending' END,
+             CASE WHEN u.email_verified THEN NOW() ELSE NULL END
+      FROM users u
+      JOIN users ref ON ref.id = u.referred_by::integer
+      WHERE u.referred_by IS NOT NULL
+        AND u.referred_by::text ~ '^\d+$'
+        AND NOT EXISTS (SELECT 1 FROM referrals r WHERE r.referred_user_id = u.id)
+      ON CONFLICT (referred_user_id) DO NOTHING;
+
       CREATE TABLE IF NOT EXISTS referral_tiers (
         id SERIAL PRIMARY KEY,
         threshold INTEGER NOT NULL,
