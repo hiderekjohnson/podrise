@@ -500,6 +500,36 @@ export async function registerRoutes(
         last_occurred_at TIMESTAMP DEFAULT NOW()
       );
     `);
+    await migrationPool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;
+      CREATE TABLE IF NOT EXISTS referrals (
+        id SERIAL PRIMARY KEY,
+        referrer_id INTEGER NOT NULL,
+        referred_id INTEGER,
+        referred_email TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW(),
+        verified_at TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS referral_tiers (
+        id SERIAL PRIMARY KEY,
+        threshold INTEGER NOT NULL,
+        reward_name TEXT NOT NULL,
+        reward_description TEXT NOT NULL,
+        image_url TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS pulse_subscriptions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        topic_slug TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, topic_slug)
+      );
+    `);
     console.log("[startup] Schema migration check complete");
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
@@ -1195,20 +1225,7 @@ If you don't know the answer to something, be honest about it and suggest the us
     }
   });
 
-  app.post("/api/admin/referral-tiers/upload-image", adminUploadAuth, upload.single("image"), async (req, res) => {
-    try {
-      const file = req.file;
-      if (!file) return res.status(400).json({ message: "No image file provided" });
-      const tierId = parseInt(req.body.tierId, 10);
-      if (!tierId) return res.status(400).json({ message: "Invalid tier ID" });
-      const imageUrl = `/uploads/${file.filename}`;
-      await pool.query(`UPDATE referral_tiers SET image_url = $1 WHERE id = $2`, [imageUrl, tierId]);
-      res.json({ imageUrl, message: "Tier image uploaded" });
-    } catch (err: unknown) {
-      console.error("[Admin] Tier image upload error:", err);
-      res.status(500).json({ message: "Failed to upload tier image" });
-    }
-  });
+  // Referral tier image upload route is registered below, after multer is configured
 
   app.get("/api/admin/referral-stats", async (req, res) => {
     if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
@@ -12336,6 +12353,21 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     } catch (err: any) {
       console.error("[ShopItems] Upload error:", err);
       res.status(500).json({ message: err?.message || "Failed to upload image" });
+    }
+  });
+
+  app.post("/api/admin/referral-tiers/upload-image", adminUploadAuth, upload.single("image"), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ message: "No image file provided" });
+      const tierId = parseInt(req.body.tierId, 10);
+      if (!tierId) return res.status(400).json({ message: "Invalid tier ID" });
+      const imageUrl = `/uploads/${file.filename}`;
+      await pool.query(`UPDATE referral_tiers SET image_url = $1 WHERE id = $2`, [imageUrl, tierId]);
+      res.json({ imageUrl, message: "Tier image uploaded" });
+    } catch (err: unknown) {
+      console.error("[Admin] Tier image upload error:", err);
+      res.status(500).json({ message: "Failed to upload tier image" });
     }
   });
 
