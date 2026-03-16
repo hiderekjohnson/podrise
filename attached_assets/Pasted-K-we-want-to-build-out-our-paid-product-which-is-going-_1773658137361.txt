@@ -1,0 +1,22 @@
+K, we want to build out our paid product which is going to be called Pulse, which will be for paid users to keep the pulse on topics, like the ones we cover in industries, interests, and jobs. Essentially they’ll be able to build their own daily pulse, which will track the industries, interests and jobs that they want to follow. I think to start out though we want to keep it simple, so on the paid account, you can subscribe to any of the following pulses.
+
+You can remove the code for the old subscription model and functionality, but we’ll still be using the same stripe account.
+
+	•	Venture Capital & Private Equity Artificial Intelligence Real Estate Financial Services Healthcare & Biotech Technology & SaaS Media & Advertising Defense & National Security Climate & Energy Legal Crypto & Web3 Entrepreneurship & Startups Marketing Sales Product Engineering Finance Executive & Leadership Founder & CEO Operations Investing People & HR Business Development Health & Longevity Psychology Personal Finance Productivity Geopolitics Fitness & Performance Science & Innovation Philosophy Parenting
+For now don’t build out the email functionality, or how the emails are put together and sent, just allow people to sign up and select their topics, etc. 
+And as discussed earlier, these daily emails will not just be looking at podcasts that talk about a topic, they’ll be scrapping all episodes to look for people talking about these topics.
+Account Types
+Free — follow as many podcats as you want
+Pro ($15/month) — Email delivery of topic briefings personalized by topic. Add team members and configure their briefings. Self-serve.
+Enterprise (custom) — Everything in Pro plus people, company, and product tracking. Competitive intelligence layer. Admin dashboard, Slack, department-level configuration, annual contracts. (Dont build this functionality yet - but market it and encourage upgrades)
+Why people will pay for this:
+Career anxiety is the biggest one. The fear of being the person in the room who didn't know something everyone else already knew. "Sound smarter in your next meeting" — that's not vanity, it's self-preservation. The executive who references something from a podcast no one else caught looks ahead of the curve. That feeling is worth subscribing for.
+The boss/peer surveillance angle is underrated. Knowing what your manager, your CEO, or your biggest client is listening to is genuinely useful intelligence. If your VP is obsessed with a framework they heard on a podcast, knowing that before your next 1:1 is an edge. "Know what your boss is thinking before they say it" is a sharper hook than almost anything else in this space.
+FOMO on the conversation — not the news, but the specific discourse happening in your world. The VC community has its own set of references. The SaaS founder world has its own. When someone in your industry says "did you hear what [person] said about X" and you didn't, that's a tax on belonging. PodCap removes it.
+The time math — "I can't listen to 40 hours of podcasts a week, but I can read a 5-minute briefing." This one is table stakes but it's still true. The person who wants the knowledge but genuinely doesn't have the time. This is Blinkist's entire business.
+Recruiting and client intelligence — knowing what the company you're about to interview with, or the client you're pitching, is talking about publicly. If their CEO was just on a podcast, you should know what they said before you walk in the room.
+The curious but not committed listener — someone who wants to be a podcast person but can never finish episodes. They get the identity ("I follow what's happening in AI") without the time cost. This is a bigger segment than it sounds.
+The structure that tends to convert best in practice:
+Monthly — $15/month, cancel anytime, smaller text, not highlighted
+Annual — $12.50/month, billed $150/year, highlighted as "Best Value," default selected
+The "cancel anytime" on monthly actually helps annual conversion — it removes the risk anxiety that makes people default to monthly in the first place. If canceling is easy, the commitment feels lower and people are more willing to go annual.
