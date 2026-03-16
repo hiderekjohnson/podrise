@@ -738,7 +738,7 @@ export default function EpisodeRecapPage() {
     ];
 
     const handleScroll = () => {
-      const offset = 56 + 52 + 40;
+      const offset = (authUser ? 0 : 56) + 52 + 40;
       let current = sectionIds[0];
       for (const id of sectionIds) {
         const el = document.getElementById(id);
@@ -752,7 +752,7 @@ export default function EpisodeRecapPage() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [episode]);
+  }, [episode, authUser]);
 
 
   if (episodeLoading) {
@@ -820,7 +820,7 @@ export default function EpisodeRecapPage() {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const headerHeight = 56;
+    const headerHeight = authUser ? 0 : 56;
     const navHeight = 52;
     const offset = headerHeight + navHeight + 16;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
@@ -859,7 +859,7 @@ export default function EpisodeRecapPage() {
           <span className="text-foreground font-medium truncate min-w-0">{episode.episodeTitle}</span>
         </nav>
 
-        <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar" data-testid="nav-in-page">
+        <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar ${authUser ? "top-0" : "top-[68px]"}`} data-testid="nav-in-page">
           {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}

@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight, ListChecks, ExternalLink } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
-import { useRegister } from "@/hooks/use-auth";
+import { useAuth, useRegister } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
@@ -55,6 +55,8 @@ export function EpisodePageLayout({
 }: EpisodePageLayoutProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { data: authUser } = useAuth();
+  const isLoggedIn = !!authUser;
   const [email, setEmail] = useState("");
   const [stickyEmail, setStickyEmail] = useState("");
   const [showStickyBar, setShowStickyBar] = useState(false);
@@ -153,11 +155,11 @@ export function EpisodePageLayout({
   }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
+    <div className={`min-h-screen bg-background ${isLoggedIn ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
+      {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">
+        <section className={`w-full max-w-7xl pb-8 sm:pb-10 ${isLoggedIn ? "pt-4 sm:pt-6" : "pt-8 sm:pt-12"}`}>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -278,43 +280,45 @@ export function EpisodePageLayout({
           {children}
         </motion.div>
 
-        <motion.div
-          ref={ctaSectionRef}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="w-full max-w-7xl pb-16 mt-10"
-        >
-          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
-            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
-                  Get {episode.podcastName} recaps in your inbox
-                </h2>
-                <p className="text-[16px] text-muted-foreground">
-                  We'll send a recap whenever a new episode drops.
-                </p>
+        {!isLoggedIn && (
+          <motion.div
+            ref={ctaSectionRef}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="w-full max-w-7xl pb-16 mt-10"
+          >
+            <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
+              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
+                    Get {episode.podcastName} recaps in your inbox
+                  </h2>
+                  <p className="text-[16px] text-muted-foreground">
+                    We'll send a recap whenever a new episode drops.
+                  </p>
+                </div>
+                <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-episode">
+                  <input
+                    data-testid="input-email-episode"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                  />
+                  <button
+                    data-testid="button-signup-episode"
+                    type="submit"
+                    className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
+                  >
+                    Get Started
+                  </button>
+                </form>
               </div>
-              <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-episode">
-                <input
-                  data-testid="input-email-episode"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
-                />
-                <button
-                  data-testid="button-signup-episode"
-                  type="submit"
-                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  Get Started
-                </button>
-              </form>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         {previousEpisodes.length > 0 && (
           <motion.section
@@ -354,7 +358,7 @@ export function EpisodePageLayout({
         )}
       </main>
 
-      <Footer />
+      {!isLoggedIn && <Footer />}
 
       {/* Sticky subscribe bar removed to avoid overlapping with AI chat panel */}
 
