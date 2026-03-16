@@ -28,12 +28,22 @@ function SettingsIcon({ active }: { active: boolean }) {
   );
 }
 
+function UsersIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
 export function BottomNav({ currentPath }: BottomNavProps) {
   const [, navigate] = useLocation();
 
-  const tabs = [
+  const tabs: { key: string; path: string; Icon?: typeof HomeIcon; label: string; highlight?: boolean }[] = [
     { key: "feed", path: "/dashboard", Icon: HomeIcon, label: "Home" },
     { key: "discover", path: "/discover", Icon: CompassIcon, label: "Discover" },
+    { key: "pod-squad", path: "/pod-squad", label: "Refer", highlight: true },
     { key: "settings", path: "/settings", Icon: SettingsIcon, label: "You" },
   ];
 
@@ -44,19 +54,27 @@ export function BottomNav({ currentPath }: BottomNavProps) {
       data-testid="bottom-nav"
     >
       <div className="flex items-stretch justify-around max-w-[600px] mx-auto h-[50px]">
-        {tabs.map(({ key, path, Icon, label }) => {
+        {tabs.map(({ key, path, Icon, label, highlight }) => {
           const isActive = currentPath === path || (path === "/dashboard" && currentPath === "/");
           return (
             <button
               key={key}
               onClick={() => navigate(path)}
               className={`flex flex-col items-center justify-center flex-1 gap-[2px] transition-colors active:opacity-70 ${
-                isActive ? "text-[#09090B]" : "text-[#A1A1AA]"
+                highlight
+                  ? "text-[#6366F1]"
+                  : isActive ? "text-[#09090B]" : "text-[#A1A1AA]"
               }`}
               data-testid={`bottom-nav-${key}`}
             >
-              <Icon active={isActive} />
-              <span className="text-[10px] font-semibold leading-none">{label}</span>
+              {highlight ? (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #6366F1, #7C3AED)" }}>
+                  <UsersIcon />
+                </div>
+              ) : Icon ? (
+                <Icon active={isActive} />
+              ) : null}
+              <span className={`text-[10px] font-semibold leading-none ${highlight ? "text-[#6366F1]" : ""}`}>{label}</span>
             </button>
           );
         })}

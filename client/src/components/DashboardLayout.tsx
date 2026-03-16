@@ -54,7 +54,7 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
   const tabs = [
     { key: "feed", path: "/dashboard", Icon: HomeIcon, label: "Home" },
     { key: "discover", path: "/discover", Icon: CompassIcon, label: "Discover" },
-    { key: "shop", path: "/shop", label: "Shop", LucideIcon: ShoppingBag },
+    { key: "pod-squad", path: "/pod-squad", label: "Refer", LucideIcon: Users, highlight: true },
     { key: "settings", path: "/settings", Icon: SettingsIcon, label: "You" },
   ];
 
@@ -65,19 +65,27 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
       data-testid="bottom-nav"
     >
       <div className="flex items-stretch justify-around mx-auto h-[50px]">
-        {tabs.map(({ key, path, Icon, LucideIcon, label }) => {
+        {tabs.map(({ key, path, Icon, LucideIcon, label, highlight }) => {
           const isActive = currentPath === path || (path === "/dashboard" && currentPath === "/");
           return (
             <button
               key={key}
               onClick={() => navigate(path)}
               className={`flex flex-col items-center justify-center flex-1 gap-[2px] transition-colors active:opacity-70 ${
-                isActive ? "text-[#09090B] dark:text-white" : "text-[#A1A1AA] dark:text-[#71717A]"
+                highlight
+                  ? "text-[#6366F1]"
+                  : isActive ? "text-[#09090B] dark:text-white" : "text-[#A1A1AA] dark:text-[#71717A]"
               }`}
               data-testid={`bottom-nav-${key}`}
             >
-              {Icon ? <Icon active={isActive} /> : LucideIcon ? <LucideIcon className="w-6 h-6" /> : null}
-              <span className="text-[10px] font-semibold leading-none">{label}</span>
+              {highlight ? (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #6366F1, #7C3AED)" }}>
+                  {LucideIcon ? <LucideIcon className="w-[18px] h-[18px] text-white" /> : null}
+                </div>
+              ) : (
+                Icon ? <Icon active={isActive} /> : LucideIcon ? <LucideIcon className="w-6 h-6" /> : null
+              )}
+              <span className={`text-[10px] font-semibold leading-none ${highlight ? "text-[#6366F1]" : ""}`}>{label}</span>
             </button>
           );
         })}

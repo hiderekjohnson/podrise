@@ -4,7 +4,7 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Zap, Copy, ExternalLink, ArrowRight, Quote } from "lucide-react";
+import { Loader2, Clock, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Zap, Copy, ExternalLink, ArrowRight, Quote, Gift, Users, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { HoverPreviewCard } from "@/components/HoverPreviewCard";
@@ -50,6 +50,32 @@ function hiResArtwork(url: string): string {
   if (!url) return "";
   if (url.startsWith("/artwork/")) return url;
   return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
+}
+
+function PodSquadBanner() {
+  const [, navigate] = useLocation();
+
+  return (
+    <div className="md:hidden px-4 py-3" data-testid="pod-squad-banner">
+      <button
+        onClick={() => navigate("/pod-squad")}
+        className="w-full relative overflow-hidden rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+        style={{ background: "linear-gradient(135deg, #6366F1 0%, #7C3AED 50%, #A855F7 100%)" }}
+        data-testid="pod-squad-banner-cta"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Gift className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-white font-bold text-[15px] leading-tight">Invite Friends, Earn Rewards</div>
+            <div className="text-white/80 text-[13px] mt-0.5">Get stickers, t-shirts, AirPods & more</div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-white/70 flex-shrink-0" />
+        </div>
+      </button>
+    </div>
+  );
 }
 
 function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }: {
@@ -561,6 +587,8 @@ export default function FeedPage() {
             </div>
           </div>
         </div>
+
+        <PodSquadBanner />
 
         <div className="max-w-5xl mx-auto">
           {isLoading ? (
