@@ -191,10 +191,7 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
             {children}
           </div>
           {showRightSidebar && (
-            <div className={collapsed
-              ? "hidden xl:block border-l border-[#F0F0F2] dark:border-[#1C1C22] transition-all duration-200"
-              : "hidden 2xl:block border-l border-[#F0F0F2] dark:border-[#1C1C22] transition-all duration-200"
-            }>
+            <div className="hidden xl:block border-l border-[#F0F0F2] dark:border-[#1C1C22] transition-all duration-200">
               <RightSidebar />
             </div>
           )}

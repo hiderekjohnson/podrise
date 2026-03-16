@@ -42,8 +42,8 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       `INSERT INTO landing_page_recaps
        (slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url,
         tldl, what_happened, key_insights, quote, quote_attribution,
-        duration, itunes_id, apple_podcasts_url, key_topics, guests, published)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,true)
+        duration, itunes_id, key_topics, guests, published)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,true)
        ON CONFLICT (slug, episode_slug) DO NOTHING`,
       [
         podcastSlug, epSlug, podcastName, epTitle, publishDate, artwork,
@@ -51,7 +51,6 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
         JSON.stringify(recap.keyInsights || []),
         recap.quote, recap.quoteAttribution,
         ep.duration || null, itunesId,
-        `https://podcasts.apple.com/podcast/id${itunesId}`,
         recap.keyTopics || [],
         JSON.stringify(recap.guests || []),
       ]
