@@ -216,35 +216,22 @@ process.on("uncaughtException", (err) => {
     return res.status(status).json({ message: clientMessage });
   });
 
-  const port = parseInt(process.env.PORT || "5000", 10);
-
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
-    log(`Vite dev server ready`);
   }
 
+  const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
       port,
       host: "0.0.0.0",
+      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`);
-
-      // Pre-warm Vite compilation in background
-      if (process.env.NODE_ENV !== "production") {
-        import("http").then(({ default: http }) => {
-          const req = http.get(`http://localhost:${port}/`, (res) => {
-            res.resume();
-            log(`Vite pre-warm complete`);
-          });
-          req.on("error", () => {});
-          req.end();
-        });
-      }
 
       (async () => {
         const { pool, withRetry } = await import("./db");

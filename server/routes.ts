@@ -13149,13 +13149,12 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       console.error("[Cache] Pre-warm failed:", err);
     }
 
-    // Daily pulse scheduler disabled for now
-    // try {
-    //   const { startDailyPulseScheduler } = await import("./dailyPulseScheduler");
-    //   startDailyPulseScheduler();
-    // } catch (err) {
-    //   console.error("[DailyPulse] Scheduler start failed:", err);
-    // }
+    try {
+      const { startDailyPulseScheduler } = await import("./dailyPulseScheduler");
+      startDailyPulseScheduler();
+    } catch (err) {
+      console.error("[DailyPulse] Scheduler start failed:", err);
+    }
   }, 5000);
 
   return httpServer;
