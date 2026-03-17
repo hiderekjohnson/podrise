@@ -1,0 +1,345 @@
+import { pool } from "./db";
+
+let backfillState = {
+  running: false,
+  phase: "" as string,
+  processed: 0,
+  total: 0,
+  fixed: 0,
+  errors: 0,
+  log: [] as string[],
+};
+
+export function getBackfillProgress() {
+  return { ...backfillState, log: backfillState.log.slice(-30) };
+}
+
+function logMsg(msg: string) {
+  console.log(`[EpisodeBackfill] ${msg}`);
+  backfillState.log.push(`${new Date().toISOString().slice(11, 19)} ${msg}`);
+  if (backfillState.log.length > 100) backfillState.log = backfillState.log.slice(-50);
+}
+
+async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string): Promise<string | null> {
+  try {
+    const url = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=200`;
+    const resp = await fetch(url);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const results = data.results || [];
+    const titleLower = episodeTitle.toLowerCase().trim();
+    for (const ep of results) {
+      if (ep.wrapperType === "podcastEpisode") {
+        const epTitle = (ep.trackName || "").toLowerCase().trim();
+        if (epTitle === titleLower || epTitle.includes(titleLower) || titleLower.includes(epTitle)) {
+          return ep.trackViewUrl || ep.collectionViewUrl || null;
+        }
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function backfillAppleEpisodeUrls() {
+  logMsg("=== Phase 1: Apple Episode URLs ===");
+  const { rows } = await pool.query(`
+    SELECT id, slug, itunes_id, episode_title 
+    FROM landing_page_recaps 
+    WHERE (apple_episode_url IS NULL OR apple_episode_url = '')
+      AND itunes_id IS NOT NULL AND itunes_id != ''
+    ORDER BY slug, id
+  `);
+  backfillState.total = rows.length;
+  backfillState.processed = 0;
+  logMsg(`Found ${rows.length} episodes missing Apple URLs`);
+
+  const byPodcast: Record<string, typeof rows> = {};
+  for (const r of rows) {
+    if (!byPodcast[r.itunes_id]) byPodcast[r.itunes_id] = [];
+    byPodcast[r.itunes_id].push(r);
+  }
+
+  for (const [itunesId, episodes] of Object.entries(byPodcast)) {
+    try {
+      const url = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=200`;
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        logMsg(`Apple API error for itunes_id ${itunesId}: ${resp.status}`);
+        backfillState.processed += episodes.length;
+        continue;
+      }
+      const data = await resp.json();
+      const appleEps = (data.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+
+      for (const ep of episodes) {
+        const titleLower = ep.episode_title.toLowerCase().trim();
+        let matchedUrl: string | null = null;
+        let matchedAudio: string | null = null;
+
+        for (const appleEp of appleEps) {
+          const appleTitle = (appleEp.trackName || "").toLowerCase().trim();
+          if (appleTitle === titleLower || appleTitle.includes(titleLower) || titleLower.includes(appleTitle)) {
+            matchedUrl = appleEp.trackViewUrl || appleEp.collectionViewUrl || null;
+            matchedAudio = appleEp.episodeUrl || null;
+            break;
+          }
+        }
+
+        if (matchedUrl) {
+          const updates: string[] = [`apple_episode_url = $2`];
+          const params: any[] = [ep.id, matchedUrl];
+          
+          if (matchedAudio) {
+            const { rows: existing } = await pool.query(
+              `SELECT audio_url FROM landing_page_recaps WHERE id = $1`, [ep.id]
+            );
+            if (!existing[0]?.audio_url) {
+              updates.push(`audio_url = $${params.length + 1}`);
+              params.push(matchedAudio);
+            }
+          }
+
+          await pool.query(
+            `UPDATE landing_page_recaps SET ${updates.join(", ")} WHERE id = $1`,
+            params
+          );
+          backfillState.fixed++;
+        }
+        backfillState.processed++;
+      }
+
+      await new Promise(r => setTimeout(r, 300));
+    } catch (err: any) {
+      logMsg(`Error for itunes_id ${itunesId}: ${err.message}`);
+      backfillState.errors++;
+      backfillState.processed += episodes.length;
+    }
+  }
+  logMsg(`Apple URLs done: ${backfillState.fixed} fixed out of ${rows.length}`);
+}
+
+async function backfillShowNotes() {
+  logMsg("=== Phase 2: Show Notes from RSS ===");
+  const { rows } = await pool.query(`
+    SELECT r.id, r.slug, r.episode_title, r.itunes_id
+    FROM landing_page_recaps r
+    WHERE (r.show_notes IS NULL OR r.show_notes = '')
+    ORDER BY r.id
+  `);
+  logMsg(`Found ${rows.length} episodes missing show notes`);
+  backfillState.total += rows.length;
+  
+  for (const row of rows) {
+    backfillState.processed++;
+  }
+  logMsg(`Show notes phase complete (skipped — requires RSS feed access)`);
+}
+
+async function backfillAIFields() {
+  logMsg("=== Phase 3: AI-Generated Fields (sponsors, guests, resources, questions) ===");
+  
+  const { rows } = await pool.query(`
+    SELECT r.id, r.slug, r.episode_title, r.podcast_name, r.show_notes, r.itunes_id,
+      CASE WHEN (r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]') THEN 1 ELSE 0 END as missing_sponsors,
+      CASE WHEN (r.guests IS NULL OR r.guests = '' OR r.guests = '[]') THEN 1 ELSE 0 END as missing_guests,
+      CASE WHEN (r.resources IS NULL OR r.resources = '' OR r.resources = '[]') THEN 1 ELSE 0 END as missing_resources,
+      CASE WHEN (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]') THEN 1 ELSE 0 END as missing_questions,
+      CASE WHEN (r.topic_contexts IS NULL OR r.topic_contexts = '') THEN 1 ELSE 0 END as missing_topic_ctx
+    FROM landing_page_recaps r
+    WHERE (r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]')
+       OR (r.guests IS NULL OR r.guests = '' OR r.guests = '[]')
+       OR (r.resources IS NULL OR r.resources = '' OR r.resources = '[]')
+       OR (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]')
+       OR (r.topic_contexts IS NULL OR r.topic_contexts = '')
+    ORDER BY r.id DESC
+    LIMIT 500
+  `);
+
+  logMsg(`Found ${rows.length} episodes missing AI fields (processing batch of up to 500)`);
+  backfillState.total += rows.length;
+
+  for (const row of rows) {
+    if (!backfillState.running) break;
+    
+    try {
+      const { rows: transcriptRows } = await pool.query(`
+        SELECT full_text FROM episode_transcripts
+        WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2))
+        LIMIT 1
+      `, [row.itunes_id, row.episode_title]);
+
+      if (!transcriptRows[0]?.full_text) {
+        backfillState.processed++;
+        continue;
+      }
+
+      const transcript = transcriptRows[0].full_text;
+      const { processFullTranscript } = await import("./transcriptChunker");
+      const processedTranscript = processFullTranscript(transcript);
+
+      const { generateRecapFromFullTranscript } = await import("./recapGenerator");
+      const recap = await generateRecapFromFullTranscript(
+        processedTranscript,
+        row.podcast_name,
+        row.episode_title,
+        row.show_notes || null
+      );
+
+      if (recap) {
+        const updates: string[] = [];
+        const params: any[] = [row.id];
+        let paramIdx = 2;
+
+        if (row.missing_sponsors === 1 && recap.sponsors && recap.sponsors.length > 0) {
+          updates.push(`sponsors = $${paramIdx}`);
+          params.push(JSON.stringify(recap.sponsors));
+          paramIdx++;
+        }
+        if (row.missing_guests === 1 && recap.guests && recap.guests.length > 0) {
+          updates.push(`guests = $${paramIdx}`);
+          params.push(JSON.stringify(recap.guests));
+          paramIdx++;
+        }
+        if (row.missing_resources === 1 && recap.resources && recap.resources.length > 0) {
+          updates.push(`resources = $${paramIdx}`);
+          params.push(JSON.stringify(recap.resources));
+          paramIdx++;
+        }
+        if (row.missing_questions === 1 && recap.topQuestions && recap.topQuestions.length > 0) {
+          updates.push(`top_questions = $${paramIdx}`);
+          params.push(JSON.stringify(recap.topQuestions));
+          paramIdx++;
+        }
+        if (row.missing_topic_ctx === 1 && recap.topicContexts) {
+          updates.push(`topic_contexts = $${paramIdx}`);
+          params.push(JSON.stringify(recap.topicContexts));
+          paramIdx++;
+        }
+
+        if (updates.length > 0) {
+          await pool.query(
+            `UPDATE landing_page_recaps SET ${updates.join(", ")} WHERE id = $1`,
+            params
+          );
+          backfillState.fixed++;
+          logMsg(`Fixed AI fields for "${row.episode_title}" (${updates.length} fields)`);
+        }
+      }
+    } catch (err: any) {
+      logMsg(`AI error for ep ${row.id}: ${err.message?.slice(0, 100)}`);
+      backfillState.errors++;
+    }
+
+    backfillState.processed++;
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  logMsg(`AI fields done: ${backfillState.fixed} total fixed`);
+}
+
+async function backfillQuotes() {
+  logMsg("=== Phase 4: Episode Quotes ===");
+
+  const { rows } = await pool.query(`
+    SELECT r.id, r.slug, r.episode_slug, r.episode_title, r.itunes_id, r.podcast_name, r.show_notes
+    FROM landing_page_recaps r
+    LEFT JOIN episode_quotes eq ON eq.podcast_slug = r.slug AND eq.episode_slug = r.episode_slug
+    WHERE eq.id IS NULL
+    ORDER BY r.id DESC
+    LIMIT 500
+  `);
+
+  logMsg(`Found ${rows.length} episodes missing quotes (processing batch of up to 500)`);
+  backfillState.total += rows.length;
+
+  for (const row of rows) {
+    if (!backfillState.running) break;
+
+    try {
+      const { rows: transcriptRows } = await pool.query(`
+        SELECT full_text FROM episode_transcripts
+        WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2))
+        LIMIT 1
+      `, [row.itunes_id, row.episode_title]);
+
+      if (!transcriptRows[0]?.full_text) {
+        backfillState.processed++;
+        continue;
+      }
+
+      const transcript = transcriptRows[0].full_text;
+      const { processFullTranscript } = await import("./transcriptChunker");
+      const processedTranscript = processFullTranscript(transcript);
+
+      const { generateRecapFromFullTranscript } = await import("./recapGenerator");
+      const recap = await generateRecapFromFullTranscript(
+        processedTranscript,
+        row.podcast_name,
+        row.episode_title,
+        row.show_notes || null
+      );
+
+      if (recap?.extractedQuotes && recap.extractedQuotes.length > 0) {
+        for (const q of recap.extractedQuotes) {
+          await pool.query(
+            `INSERT INTO episode_quotes (podcast_slug, episode_slug, quote_text, speaker, context, category)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             ON CONFLICT DO NOTHING`,
+            [row.slug, row.episode_slug, q.text, q.speaker || null, q.context || null, q.category || "general"]
+          );
+        }
+        backfillState.fixed++;
+        logMsg(`Added ${recap.extractedQuotes.length} quotes for "${row.episode_title}"`);
+      }
+    } catch (err: any) {
+      logMsg(`Quotes error for ep ${row.id}: ${err.message?.slice(0, 100)}`);
+      backfillState.errors++;
+    }
+
+    backfillState.processed++;
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  logMsg(`Quotes done: ${backfillState.fixed} total fixed`);
+}
+
+export async function runEpisodeBackfill(phases: string[] = ["apple", "ai", "quotes"]) {
+  if (backfillState.running) {
+    throw new Error("Backfill already running");
+  }
+
+  backfillState = { running: true, phase: "starting", processed: 0, total: 0, fixed: 0, errors: 0, log: [] };
+  logMsg(`Starting episode backfill — phases: ${phases.join(", ")}`);
+
+  try {
+    if (phases.includes("apple")) {
+      backfillState.phase = "apple_urls";
+      await backfillAppleEpisodeUrls();
+    }
+
+    if (phases.includes("ai") && backfillState.running) {
+      backfillState.phase = "ai_fields";
+      await backfillAIFields();
+    }
+
+    if (phases.includes("quotes") && backfillState.running) {
+      backfillState.phase = "quotes";
+      await backfillQuotes();
+    }
+
+    backfillState.phase = "complete";
+    logMsg(`=== Backfill complete: ${backfillState.fixed} fixes, ${backfillState.errors} errors ===`);
+  } catch (err: any) {
+    logMsg(`Fatal error: ${err.message}`);
+    backfillState.phase = "error";
+  } finally {
+    backfillState.running = false;
+  }
+}
+
+export function stopEpisodeBackfill() {
+  backfillState.running = false;
+  logMsg("Backfill stop requested");
+}

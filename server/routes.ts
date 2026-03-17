@@ -7870,6 +7870,65 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json(getTabloidBackfillProgress());
   });
 
+  app.post("/api/admin/backfill-episodes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { runEpisodeBackfill, getBackfillProgress } = await import("./episodeBackfill");
+      const current = getBackfillProgress();
+      if (current.running) return res.status(409).json({ message: "Episode backfill already running", progress: current });
+      const phases = req.body.phases || ["apple", "ai", "quotes"];
+      runEpisodeBackfill(phases);
+      res.json({ message: "Episode backfill started", phases });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to start episode backfill" });
+    }
+  });
+
+  app.get("/api/admin/backfill-episodes/progress", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { getBackfillProgress } = await import("./episodeBackfill");
+    res.json(getBackfillProgress());
+  });
+
+  app.post("/api/admin/backfill-episodes/stop", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { stopEpisodeBackfill } = await import("./episodeBackfill");
+    stopEpisodeBackfill();
+    res.json({ message: "Stop requested" });
+  });
+
+  app.get("/api/admin/episode-data-gaps", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT 
+          COUNT(*) as total,
+          SUM(CASE WHEN apple_episode_url IS NULL OR apple_episode_url = '' THEN 1 ELSE 0 END)::int as missing_apple_url,
+          SUM(CASE WHEN audio_url IS NULL OR audio_url = '' THEN 1 ELSE 0 END)::int as missing_audio,
+          SUM(CASE WHEN show_notes IS NULL OR show_notes = '' THEN 1 ELSE 0 END)::int as missing_notes,
+          SUM(CASE WHEN quote IS NULL OR quote = '' THEN 1 ELSE 0 END)::int as missing_quote,
+          SUM(CASE WHEN sponsors IS NULL OR sponsors = '' OR sponsors = '[]' THEN 1 ELSE 0 END)::int as missing_sponsors,
+          SUM(CASE WHEN guests IS NULL OR guests = '' OR guests = '[]' THEN 1 ELSE 0 END)::int as missing_guests,
+          SUM(CASE WHEN resources IS NULL OR resources = '' OR resources = '[]' THEN 1 ELSE 0 END)::int as missing_resources,
+          SUM(CASE WHEN top_questions IS NULL OR top_questions = '' OR top_questions = '[]' THEN 1 ELSE 0 END)::int as missing_questions,
+          SUM(CASE WHEN topic_contexts IS NULL OR topic_contexts = '' THEN 1 ELSE 0 END)::int as missing_topic_ctx
+        FROM landing_page_recaps
+      `);
+      const { rows: quotesGap } = await pool.query(`
+        SELECT COUNT(DISTINCT r.id)::int as episodes_without_quotes
+        FROM landing_page_recaps r
+        LEFT JOIN episode_quotes eq ON eq.podcast_slug = r.slug AND eq.episode_slug = r.episode_slug
+        WHERE eq.id IS NULL
+      `);
+      res.json({
+        ...rows[0],
+        missing_episode_quotes: quotesGap[0]?.episodes_without_quotes || 0,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.post("/api/admin/updates/trigger-batch-expand", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
