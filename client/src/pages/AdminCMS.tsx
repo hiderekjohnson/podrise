@@ -1234,8 +1234,18 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
     });
   };
 
-  const books = form.resources.filter((r) => r.type === "book");
-  const tools = form.resources.filter((r) => r.type !== "book");
+  const MENTION_TYPES = ["book", "tool", "product", "service", "app", "website"] as const;
+  const MENTION_TYPE_LABELS: Record<string, string> = {
+    book: "Book", tool: "Tool", product: "Product", service: "Service", app: "App", website: "Website",
+  };
+  const MENTION_TYPE_COLORS: Record<string, string> = {
+    book: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+    tool: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+    product: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+    service: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    app: "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400",
+    website: "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400",
+  };
 
   return (
     <div className="space-y-6" data-testid="cms-episode-detail">
@@ -1733,107 +1743,79 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">Books Mentioned</h4>
-              <button onClick={() => addResource("book")} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80" data-testid="button-add-book">
-                <Plus className="w-3 h-3" /> Add
-              </button>
+              <h4 className="text-sm font-bold text-foreground">Mentions</h4>
+              <div className="flex items-center gap-1">
+                {MENTION_TYPES.map((mt) => (
+                  <button key={mt} onClick={() => addResource(mt)} className="px-2 py-1 text-[10px] font-semibold rounded-md bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" data-testid={`button-add-mention-${mt}`}>
+                    + {MENTION_TYPE_LABELS[mt]}
+                  </button>
+                ))}
+              </div>
             </div>
-            {books.length === 0 && <p className="text-xs text-muted-foreground">No books mentioned.</p>}
-            {books.map((b, bi) => {
-              const ri = form.resources.indexOf(b);
-              return (
-                <div key={bi} className="border border-border rounded-lg p-2 space-y-1" data-testid={`book-item-${bi}`}>
-                  <div className="flex items-center gap-2">
-                    <input
-                      placeholder="Book title"
-                      value={b.name}
-                      onChange={(e) => updateResource(ri, "name", e.target.value)}
-                      className="flex-1 px-2 py-1 border border-border rounded text-xs"
-                      data-testid={`input-book-name-${bi}`}
-                    />
-                    <button onClick={() => removeResource(ri)} className="text-muted-foreground hover:text-red-500" data-testid={`button-delete-book-${bi}`}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+            {form.resources.length === 0 && <p className="text-xs text-muted-foreground">No mentions.</p>}
+            {form.resources.map((r, ri) => (
+              <div key={ri} className="border border-border rounded-lg p-2 space-y-1" data-testid={`mention-item-${ri}`}>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={r.type}
+                    onChange={(e) => updateResource(ri, "type", e.target.value)}
+                    className="px-2 py-1 border border-border rounded text-xs bg-white dark:bg-zinc-900 flex-shrink-0"
+                    data-testid={`select-mention-type-${ri}`}
+                  >
+                    {MENTION_TYPES.map((mt) => (
+                      <option key={mt} value={mt}>{MENTION_TYPE_LABELS[mt]}</option>
+                    ))}
+                  </select>
+                  <input
+                    placeholder={r.type === "book" ? "Book title" : "Name"}
+                    value={r.name}
+                    onChange={(e) => updateResource(ri, "name", e.target.value)}
+                    className="flex-1 px-2 py-1 border border-border rounded text-xs"
+                    data-testid={`input-mention-name-${ri}`}
+                  />
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold flex-shrink-0 ${MENTION_TYPE_COLORS[r.type] || "bg-gray-100 text-gray-600"}`}>
+                    {MENTION_TYPE_LABELS[r.type] || r.type}
+                  </span>
+                  <button onClick={() => removeResource(ri)} className="text-muted-foreground hover:text-red-500 flex-shrink-0" data-testid={`button-delete-mention-${ri}`}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {r.type === "book" && (
                   <input
                     placeholder="Author"
-                    value={b.author || ""}
+                    value={r.author || ""}
                     onChange={(e) => updateResource(ri, "author", e.target.value)}
                     className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-book-author-${bi}`}
+                    data-testid={`input-mention-author-${ri}`}
                   />
-                  <input
-                    placeholder="Description"
-                    value={b.description || ""}
-                    onChange={(e) => updateResource(ri, "description", e.target.value)}
-                    className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-book-desc-${bi}`}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">Products & Tools</h4>
-              <button onClick={() => addResource("tool")} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80" data-testid="button-add-tool">
-                <Plus className="w-3 h-3" /> Add
-              </button>
-            </div>
-            {tools.length === 0 && <p className="text-xs text-muted-foreground">No tools/products mentioned.</p>}
-            {tools.map((t, ti) => {
-              const ri = form.resources.indexOf(t);
-              return (
-                <div key={ti} className="border border-border rounded-lg p-2 space-y-1" data-testid={`tool-item-${ti}`}>
-                  <div className="flex items-center gap-2">
-                    <input
-                      placeholder="Name"
-                      value={t.name}
-                      onChange={(e) => updateResource(ri, "name", e.target.value)}
-                      className="flex-1 px-2 py-1 border border-border rounded text-xs"
-                      data-testid={`input-tool-name-${ti}`}
-                    />
-                    <select
-                      value={t.type}
-                      onChange={(e) => updateResource(ri, "type", e.target.value)}
-                      className="px-2 py-1 border border-border rounded text-xs bg-white dark:bg-zinc-900"
-                      data-testid={`select-tool-type-${ti}`}
-                    >
-                      <option value="tool">Tool</option>
-                      <option value="product">Product</option>
-                      <option value="service">Service</option>
-                      <option value="app">App</option>
-                      <option value="website">Website</option>
-                    </select>
-                    <button onClick={() => removeResource(ri)} className="text-muted-foreground hover:text-red-500" data-testid={`button-delete-tool-${ti}`}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                )}
+                {r.type !== "book" && (
                   <input
                     placeholder="Category (e.g. SaaS, Hardware, Finance)"
-                    value={t.category || ""}
+                    value={r.category || ""}
                     onChange={(e) => updateResource(ri, "category", e.target.value)}
                     className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-tool-category-${ti}`}
+                    data-testid={`input-mention-category-${ri}`}
                   />
-                  <input
-                    placeholder="Description"
-                    value={t.description || ""}
-                    onChange={(e) => updateResource(ri, "description", e.target.value)}
-                    className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-tool-desc-${ti}`}
-                  />
+                )}
+                <input
+                  placeholder="Description"
+                  value={r.description || ""}
+                  onChange={(e) => updateResource(ri, "description", e.target.value)}
+                  className="w-full px-2 py-1 border border-border rounded text-xs"
+                  data-testid={`input-mention-desc-${ri}`}
+                />
+                {r.type !== "book" && (
                   <input
                     placeholder="Context (how it was mentioned)"
-                    value={t.context || ""}
+                    value={r.context || ""}
                     onChange={(e) => updateResource(ri, "context", e.target.value)}
                     className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-tool-context-${ti}`}
+                    data-testid={`input-mention-context-${ri}`}
                   />
-                </div>
-              );
-            })}
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
@@ -2391,9 +2373,11 @@ function CompaniesTab() {
 const CATEGORY_LABELS: Record<string, string> = {
   all: "All",
   book: "Books",
-  physical_product: "Physical Goods",
-  service_or_tool: "Services & Tools",
+  physical_product: "Products",
+  service_or_tool: "Tools & Services",
   experience: "Experiences",
+  app: "Apps",
+  website: "Websites",
 };
 
 function ProductsTab() {
@@ -2438,7 +2422,7 @@ function ProductsTab() {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input type="text" placeholder="Search products, books, or companies..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-products" />
+          <input type="text" placeholder="Search mentions..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-products" />
         </div>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
@@ -2458,7 +2442,7 @@ function ProductsTab() {
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
       ) : !products.length ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">No products found.</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">No mentions found.</div>
       ) : (
         <div className="space-y-2">
           {products.map((p) => (
@@ -2468,7 +2452,7 @@ function ProductsTab() {
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <CopyableId label={p.source === "book" ? "Book" : "Product"} value={p.id} context={p.name} />
+                  <CopyableId label={p.source === "book" ? "Book" : "Mention"} value={p.id} context={p.name} />
                   <span className="text-sm font-semibold text-foreground">{p.name}</span>
                   {p.company && <span className="text-xs text-muted-foreground">{p.source === "book" ? "by" : "—"} {p.company}</span>}
                   <StatusBadge status={p.status === "approved" ? "published" : p.status === "rejected" ? "hidden" : "needs_review"} />
@@ -2529,7 +2513,7 @@ export default function AdminCMS() {
     { key: "episodes", label: "Episodes", icon: FileText },
     { key: "people", label: "People", icon: Users },
     { key: "companies", label: "Companies", icon: Building2 },
-    { key: "products", label: "Products", icon: ShoppingBag },
+    { key: "products", label: "Mentions", icon: ShoppingBag },
   ];
 
   const handleSectionClick = (key: CMSSection) => {
