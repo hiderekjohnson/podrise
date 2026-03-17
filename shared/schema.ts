@@ -331,6 +331,8 @@ export const landingPageRecaps = pgTable("landing_page_recaps", {
   resources: text("resources"),
   published: boolean("published").notNull().default(true),
   status: text("status").notNull().default("published"),
+  tabloidHeadline: text("tabloid_headline"),
+  tabloidSubHeadline: text("tabloid_sub_headline"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

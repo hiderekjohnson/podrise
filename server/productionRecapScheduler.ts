@@ -38,12 +38,27 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       ? new Date(ep.date_published * 1000).toISOString().slice(0, 10)
       : null;
 
+    let tabloidHeadline: string | null = null;
+    let tabloidSubHeadline: string | null = null;
+    try {
+      const { generateTabloidHeadline } = await import("./emailScheduler");
+      const tabloidResult = await generateTabloidHeadline(
+        epTitle, podcastName, recap.tldl, recap.whatHappened, recap.keyInsights || []
+      );
+      if (tabloidResult) {
+        tabloidHeadline = tabloidResult.tabloidHeadline;
+        tabloidSubHeadline = tabloidResult.tabloidSubHeadline;
+      }
+    } catch (err: any) {
+      console.warn(`[ProdRecap] Tabloid headline generation failed for "${epTitle?.slice(0, 50)}": ${err.message}`);
+    }
+
     await pool.query(
       `INSERT INTO landing_page_recaps
        (slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url,
         tldl, what_happened, key_insights, quote, quote_attribution,
-        duration, itunes_id, key_topics, guests, published)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,true)
+        duration, itunes_id, key_topics, guests, tabloid_headline, tabloid_sub_headline, published)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,true)
        ON CONFLICT (slug, episode_slug) DO NOTHING`,
       [
         podcastSlug, epSlug, podcastName, epTitle, publishDate, artwork,
@@ -53,6 +68,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
         ep.duration || null, itunesId,
         recap.keyTopics || [],
         JSON.stringify(recap.guests || []),
+        tabloidHeadline, tabloidSubHeadline,
       ]
     );
 

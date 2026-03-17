@@ -650,6 +650,8 @@ export async function registerRoutes(
     await migrationPool.query(`
       ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
+      ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS tabloid_headline TEXT;
+      ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS tabloid_sub_headline TEXT;
     `);
     // Backfill landing_page_recaps: unpublished episodes get status='hidden'
     await migrationPool.query(`
@@ -7837,6 +7839,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
     const { getQuoteBackfillProgress } = await import("./emailScheduler");
     res.json(getQuoteBackfillProgress());
+  });
+
+  app.post("/api/admin/backfill-tabloid-headlines", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { backfillTabloidHeadlines, getTabloidBackfillProgress } = await import("./emailScheduler");
+      const current = getTabloidBackfillProgress();
+      if (current.status === "running") {
+        return res.status(409).json({ message: "Tabloid headline backfill already running", progress: current });
+      }
+      backfillTabloidHeadlines();
+      res.json({ message: "Tabloid headline backfill started" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to start tabloid headline backfill" });
+    }
+  });
+
+  app.get("/api/admin/tabloid-backfill-progress", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { getTabloidBackfillProgress } = await import("./emailScheduler");
+    res.json(getTabloidBackfillProgress());
   });
 
   app.post("/api/admin/updates/trigger-batch-expand", async (req, res) => {

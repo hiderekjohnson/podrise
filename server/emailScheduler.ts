@@ -616,6 +616,33 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
     const episodeMeta = await buildEpisodeMeta(podcastNames);
     const episodeCount = result.parsedEpisodes.length || 1;
     const emailCopy = await generateEmailSubjectAndPreview(result.summary, episodeCount);
+
+    if (emailCopy.leadEpisodePodcast) {
+      try {
+        const leadEp = result.parsedEpisodes.find((ep: any) =>
+          ep.podcastName && ep.podcastName.toLowerCase() === emailCopy.leadEpisodePodcast.toLowerCase()
+        );
+        const leadTitle = leadEp?.episodeTitle || "";
+        if (leadTitle) {
+          const { rows: storedHeadlines } = await pool.query(
+            `SELECT tabloid_headline, tabloid_sub_headline FROM landing_page_recaps
+             WHERE LOWER(podcast_name) = LOWER($1) AND LOWER(episode_title) = LOWER($2)
+               AND tabloid_headline IS NOT NULL AND tabloid_headline != ''
+             LIMIT 1`,
+            [emailCopy.leadEpisodePodcast, leadTitle]
+          );
+          if (storedHeadlines.length > 0 && storedHeadlines[0].tabloid_headline) {
+            emailCopy.leadHeadline = storedHeadlines[0].tabloid_headline;
+            if (storedHeadlines[0].tabloid_sub_headline) {
+              emailCopy.supportingDetail = storedHeadlines[0].tabloid_sub_headline;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[EmailScheduler] Failed to fetch stored tabloid headline:", err);
+      }
+    }
+
     const reorderedSummary = reorderMarkdownLeadFirst(result.summary, emailCopy.leadEpisodePodcast);
 
     let referralData: { referralCode: string; referralCount: number; nextTierName?: string; nextTierThreshold?: number } | undefined;
@@ -782,6 +809,33 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   const parsedDigest = parseDigestMarkdown(pending.summary);
   const episodeCount = parsedDigest.episodes.length || 1;
   const emailCopy = await generateEmailSubjectAndPreview(pending.summary, episodeCount);
+
+  if (emailCopy.leadEpisodePodcast) {
+    try {
+      const leadEp = parsedDigest.episodes.find((ep: any) =>
+        ep.podcastName && ep.podcastName.toLowerCase() === emailCopy.leadEpisodePodcast.toLowerCase()
+      );
+      const leadTitle = leadEp?.episodeTitle || "";
+      if (leadTitle) {
+        const { rows: storedHeadlines } = await pool.query(
+          `SELECT tabloid_headline, tabloid_sub_headline FROM landing_page_recaps
+           WHERE LOWER(podcast_name) = LOWER($1) AND LOWER(episode_title) = LOWER($2)
+             AND tabloid_headline IS NOT NULL AND tabloid_headline != ''
+           LIMIT 1`,
+          [emailCopy.leadEpisodePodcast, leadTitle]
+        );
+        if (storedHeadlines.length > 0 && storedHeadlines[0].tabloid_headline) {
+          emailCopy.leadHeadline = storedHeadlines[0].tabloid_headline;
+          if (storedHeadlines[0].tabloid_sub_headline) {
+            emailCopy.supportingDetail = storedHeadlines[0].tabloid_sub_headline;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[EmailScheduler] sendHeldEmail: Failed to fetch stored tabloid headline:", err);
+    }
+  }
+
   const reorderedSummary = reorderMarkdownLeadFirst(pending.summary, emailCopy.leadEpisodePodcast);
   const freshHtml = markdownToEmailHtml(reorderedSummary, pending.recipientEmail, episodeMeta, emailCopy);
 
@@ -1288,6 +1342,139 @@ export async function backfillEpisodeQuotes() {
     client.release();
     quoteBackfillRunning = false;
     quoteBackfillProgress.status = "completed";
+  }
+}
+
+export async function generateTabloidHeadline(episodeTitle: string, podcastName: string, tldl: string, whatHappened: string, keyInsights: string[]): Promise<{ tabloidHeadline: string; tabloidSubHeadline: string } | null> {
+  try {
+    const { openai } = await import("./replit_integrations/image/client");
+
+    const insightsText = (keyInsights || []).slice(0, 5).join("\n- ");
+    const contentSummary = `Podcast: ${podcastName}\nEpisode: ${episodeTitle}\n\nTL;DL: ${tldl}\n\nWhat Happened:\n${whatHappened?.slice(0, 1500) || ""}\n\nKey Insights:\n- ${insightsText}`;
+
+    const resp = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: `You write tabloid-style headlines for a podcast recap service. Given the episode summary below, write ONE headline and ONE sub-headline.
+
+THE SINGLE TEST: Would a tabloid editor print this on a front page? If it sounds like a university press release, a LinkedIn post, or a podcast description, rewrite it until it doesn't.
+
+HEADLINE RULES:
+- Under 8 words. Active language only.
+- NEVER use: reveals, discusses, explores, examines, features, showcases, delves, unpacks, deep dive, candid discussion, reshaping, narratives.
+- Must be personal, specific, and make the reader feel like they are about to miss something.
+- Written like a New York Post front page. NO full stop at the end.
+- BAD: "Expert reveals secrets to better health"
+- GOOD: "The food critic who saved his own life"
+
+SUB-HEADLINE RULES:
+- 1-2 sentences. Must contain exactly one specific surprising detail — a number, a direct comparison, or a claim that sounds almost too bold to be true.
+- Must leave the most interesting part unsaid so the reader wants to learn more.
+- BAD: "A comprehensive discussion about health and wellness strategies"
+- GOOD: "He eliminated sugar and white flour to reclaim his health — and he now spends 25 minutes savoring just one raisin"
+
+Episode content:
+${contentSummary.slice(0, 3000)}
+
+Respond with JSON: { "tabloidHeadline": "...", "tabloidSubHeadline": "..." }`
+      }],
+      max_tokens: 200,
+      temperature: 0.9,
+      response_format: { type: "json_object" },
+    });
+
+    const { logCompletionUsage } = await import("./apiUsageTracker");
+    logCompletionUsage(resp, "gpt-4o-mini", "tabloid_headline");
+
+    const content = resp.choices[0]?.message?.content;
+    if (content) {
+      const parsed = JSON.parse(content);
+      let headline = String(parsed.tabloidHeadline || "").trim().replace(/\.$/, "");
+      const subHeadline = String(parsed.tabloidSubHeadline || "").trim();
+      if (headline && subHeadline) {
+        const wordCount = headline.split(/\s+/).length;
+        if (wordCount > 10) {
+          headline = headline.split(/\s+/).slice(0, 8).join(" ");
+        }
+        return { tabloidHeadline: headline, tabloidSubHeadline: subHeadline };
+      }
+    }
+  } catch (err) {
+    console.warn("[TabloidHeadline] AI generation failed:", err);
+  }
+  return null;
+}
+
+let tabloidBackfillRunning = false;
+let tabloidBackfillProgress = { status: "idle", processed: 0, total: 0, generated: 0, errors: 0 };
+
+export function getTabloidBackfillProgress() {
+  return tabloidBackfillProgress;
+}
+
+export async function backfillTabloidHeadlines() {
+  if (tabloidBackfillRunning) {
+    console.log("[TabloidBackfill] Already running, skipping");
+    return;
+  }
+  tabloidBackfillRunning = true;
+  tabloidBackfillProgress = { status: "running", processed: 0, total: 0, generated: 0, errors: 0 };
+
+  const { pool: dbPool } = await import("./db");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recapsWithout } = await client.query(
+      `SELECT id, episode_title, podcast_name, tldl, what_happened, key_insights
+       FROM landing_page_recaps
+       WHERE tabloid_headline IS NULL OR tabloid_headline = ''
+       ORDER BY created_at DESC`
+    );
+
+    tabloidBackfillProgress.total = recapsWithout.length;
+    console.log(`[TabloidBackfill] Found ${recapsWithout.length} episodes without tabloid headlines`);
+
+    for (const recap of recapsWithout) {
+      tabloidBackfillProgress.processed++;
+      try {
+        let keyInsights: string[] = [];
+        try {
+          if (typeof recap.key_insights === "string") {
+            keyInsights = JSON.parse(recap.key_insights);
+          } else if (Array.isArray(recap.key_insights)) {
+            keyInsights = recap.key_insights;
+          }
+        } catch {}
+
+        const result = await generateTabloidHeadline(
+          recap.episode_title,
+          recap.podcast_name,
+          recap.tldl,
+          recap.what_happened,
+          keyInsights
+        );
+
+        if (result) {
+          await client.query(
+            `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+            [result.tabloidHeadline, result.tabloidSubHeadline, recap.id]
+          );
+          tabloidBackfillProgress.generated++;
+          console.log(`[TabloidBackfill] Generated for "${recap.episode_title?.slice(0, 50)}" (${tabloidBackfillProgress.processed}/${tabloidBackfillProgress.total})`);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (err) {
+        tabloidBackfillProgress.errors++;
+        console.warn(`[TabloidBackfill] Error for "${recap.episode_title?.slice(0, 50)}":`, err);
+      }
+    }
+
+    console.log(`[TabloidBackfill] Complete: ${tabloidBackfillProgress.generated} generated, ${tabloidBackfillProgress.errors} errors, ${tabloidBackfillProgress.total} total`);
+  } finally {
+    client.release();
+    tabloidBackfillRunning = false;
+    tabloidBackfillProgress.status = "completed";
   }
 }
 

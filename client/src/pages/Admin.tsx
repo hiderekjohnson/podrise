@@ -55,6 +55,129 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
+function TabloidHeadlineBackfillPanel() {
+  const { toast } = useToast();
+  const [isRunning, setIsRunning] = useState(false);
+  const [progress, setProgress] = useState<any>(null);
+  const [polling, setPolling] = useState(false);
+
+  const startBackfill = async () => {
+    if (!confirm("This will generate tabloid headlines for all episodes missing them. It runs in the background using AI. Continue?")) return;
+    try {
+      setIsRunning(true);
+      const res = await fetch("/api/admin/backfill-tabloid-headlines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (res.status === 409) {
+        toast({ title: "Already Running", description: "Tabloid headline backfill is already in progress." });
+        setPolling(true);
+        pollProgress();
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to start");
+      toast({ title: "Backfill Started", description: "Generating tabloid headlines for all episodes. Check progress below." });
+      setPolling(true);
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
+      setIsRunning(false);
+    }
+  };
+
+  const pollProgress = async () => {
+    try {
+      const res = await fetch("/api/admin/tabloid-backfill-progress", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setProgress(data);
+        if (data.status === "running") {
+          setPolling(true);
+          setIsRunning(true);
+        } else {
+          setPolling(false);
+          setIsRunning(false);
+        }
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    pollProgress();
+  }, []);
+
+  useEffect(() => {
+    if (!polling) return;
+    const interval = setInterval(pollProgress, 3000);
+    return () => clearInterval(interval);
+  }, [polling]);
+
+  return (
+    <div className="glass-panel rounded-2xl p-5" data-testid="action-backfill-tabloid-headlines">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <FileText className="w-4 h-4 text-primary" />
+            Backfill Tabloid Headlines
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">Generate tabloid-style headlines and sub-headlines for all episodes missing them.</p>
+        </div>
+        <button
+          data-testid="button-backfill-tabloid-headlines"
+          onClick={startBackfill}
+          disabled={isRunning}
+          className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors whitespace-nowrap disabled:opacity-50"
+        >
+          {isRunning ? "Running..." : "Start Backfill"}
+        </button>
+      </div>
+
+      {progress && progress.status !== "idle" && (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className={`inline-block w-2 h-2 rounded-full ${progress.status === "running" ? "bg-indigo-500 animate-pulse" : progress.status === "completed" ? "bg-blue-500" : "bg-red-500"}`} />
+            <span className="text-xs font-semibold text-foreground capitalize">{progress.status}</span>
+          </div>
+
+          {progress.total > 0 && (
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${Math.round((progress.processed / progress.total) * 100)}%` }}
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-xl p-2">
+              <p className="text-lg font-bold text-indigo-600" data-testid="text-tabloid-generated">{progress.generated}</p>
+              <p className="text-xs text-muted-foreground">Generated</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-2">
+              <p className="text-lg font-bold text-muted-foreground" data-testid="text-tabloid-processed">{progress.processed}/{progress.total}</p>
+              <p className="text-xs text-muted-foreground">Processed</p>
+            </div>
+            <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-2">
+              <p className="text-lg font-bold text-red-500" data-testid="text-tabloid-errors">{progress.errors}</p>
+              <p className="text-xs text-muted-foreground">Errors</p>
+            </div>
+          </div>
+
+          {!polling && progress.status !== "idle" && (
+            <button
+              onClick={() => { setPolling(true); pollProgress(); }}
+              className="text-xs text-primary hover:underline"
+              data-testid="button-refresh-tabloid-status"
+            >
+              Refresh Status
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BatchExpansionPanel() {
   const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
@@ -1120,6 +1243,8 @@ export default function Admin() {
                           Start Backfill
                         </button>
                       </div>
+
+                      <TabloidHeadlineBackfillPanel />
 
                       <BatchExpansionPanel />
                     </div>
