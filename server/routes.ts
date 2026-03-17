@@ -8928,6 +8928,100 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/cms/entity-backfill-status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows: [counts] } = await pool.query(`
+        SELECT 
+          count(*)::int as total_episodes,
+          count(entity_contexts_cache)::int as with_entities,
+          (count(*) - count(entity_contexts_cache))::int as without_entities
+        FROM landing_page_recaps
+      `);
+      const { rows: [transcriptCounts] } = await pool.query(`
+        SELECT count(DISTINCT et.episode_slug)::int as episodes_with_transcripts
+        FROM episode_transcripts et
+        INNER JOIN landing_page_recaps lr ON lr.episode_slug = et.episode_slug
+        WHERE lr.entity_contexts_cache IS NULL
+      `);
+      res.json({
+        ...counts,
+        backfillable: transcriptCounts.episodes_with_transcripts,
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to get status" });
+    }
+  });
+
+  app.post("/api/admin/cms/entity-backfill", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    const batchSize = Math.min(parseInt(req.body.batchSize) || 10, 25);
+    try {
+      const { rows: episodes } = await pool.query(`
+        SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug, lr.sponsors, lr.hosts
+        FROM landing_page_recaps lr
+        INNER JOIN episode_transcripts et ON et.episode_slug = lr.episode_slug
+        WHERE lr.entity_contexts_cache IS NULL
+        ORDER BY lr.publish_date DESC NULLS LAST
+        LIMIT $1
+      `, [batchSize]);
+
+      if (episodes.length === 0) {
+        return res.json({ processed: 0, message: "All episodes already have entity contexts" });
+      }
+
+      let processed = 0;
+      let errors = 0;
+      const results: Array<{ episode: string; entities: number; error?: string }> = [];
+
+      for (const ep of episodes) {
+        try {
+          const { rows: transcriptRows } = await pool.query(
+            `SELECT transcript FROM episode_transcripts WHERE episode_slug = $1 LIMIT 1`,
+            [ep.episode_slug]
+          );
+          if (!transcriptRows[0]?.transcript) {
+            results.push({ episode: ep.episode_title, entities: 0, error: "No transcript" });
+            errors++;
+            continue;
+          }
+
+          let sponsorNames: string[] = [];
+          try {
+            if (ep.sponsors) {
+              const sponsors = typeof ep.sponsors === "string" ? JSON.parse(ep.sponsors) : ep.sponsors;
+              sponsorNames = (Array.isArray(sponsors) ? sponsors : []).map((s: any) => (s.name || "").toLowerCase()).filter(Boolean);
+            }
+          } catch {}
+
+          const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
+          const entityContexts = await generateEntityContextsForRecap(
+            ep.id, ep.slug, ep.podcast_name,
+            ep.episode_title, transcriptRows[0].transcript, sponsorNames
+          );
+
+          const entityCount = Object.keys(entityContexts).length;
+          if (entityCount === 0) {
+            await pool.query(
+              `UPDATE landing_page_recaps SET entity_contexts_cache = '{}' WHERE id = $1`,
+              [ep.id]
+            );
+          }
+          results.push({ episode: ep.episode_title, entities: entityCount });
+          processed++;
+        } catch (err: any) {
+          results.push({ episode: ep.episode_title, entities: 0, error: err.message?.substring(0, 100) });
+          errors++;
+        }
+      }
+
+      res.json({ processed, errors, results });
+    } catch (err: any) {
+      console.error("[CMS] Entity backfill error:", err);
+      res.status(500).json({ message: err?.message || "Backfill failed" });
+    }
+  });
+
   app.get("/api/admin/cms/people", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
