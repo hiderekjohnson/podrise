@@ -8965,6 +8965,154 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  const podcastEnrichState = { running: false, progress: { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] as string[] } };
+
+  app.post("/api/admin/cms/podcast-enrich", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    if (podcastEnrichState.running) return res.status(409).json({ message: "Enrichment already running", progress: podcastEnrichState.progress });
+
+    const singleSlug = typeof req.body?.slug === "string" ? req.body.slug.trim() : undefined;
+    podcastEnrichState.running = true;
+    podcastEnrichState.progress = { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] };
+
+    res.json({ message: "Enrichment started", singleSlug: singleSlug || null });
+
+    (async () => {
+      try {
+        const whereClause = singleSlug ? `WHERE slug = $1` : `WHERE has_landing_page = true`;
+        const queryParams = singleSlug ? [singleSlug] : [];
+        const { rows: podcasts } = await pool.query(
+          `SELECT id, slug, name, hosts, description, apple_url, spotify_url, youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url, discord_url, store_url, category, frequency, avg_episode_length, year_started ${whereClause} ORDER BY name`,
+          queryParams
+        );
+
+        podcastEnrichState.progress.total = podcasts.length;
+        const { openai } = await import("./replit_integrations/image/client");
+
+        for (let i = 0; i < podcasts.length; i++) {
+          const p = podcasts[i];
+          podcastEnrichState.progress.done = i;
+
+          const missing: string[] = [];
+          if (!p.youtube_url) missing.push("youtube_url");
+          if (!p.website_url) missing.push("website_url");
+          if (!p.twitter_handle) missing.push("twitter_handle");
+          if (!p.instagram_url) missing.push("instagram_url");
+          if (!p.tiktok_url) missing.push("tiktok_url");
+          if (!p.facebook_url) missing.push("facebook_url");
+          if (!p.spotify_url) missing.push("spotify_url");
+          if (!p.year_started || p.year_started === 0) missing.push("year_started");
+          if (!p.avg_episode_length || p.avg_episode_length === 0) missing.push("avg_episode_length");
+
+          if (missing.length === 0 && !singleSlug) {
+            podcastEnrichState.progress.skipped++;
+            continue;
+          }
+
+          try {
+            const prompt = `You are a podcast metadata researcher. For the podcast below, find the REAL, verified information. Only return data you are confident is correct. Return null for anything you're unsure about.
+
+Podcast: "${p.name}"
+Hosts: ${p.hosts || "Unknown"}
+Description: ${p.description || "N/A"}
+Apple URL: ${p.apple_url || "N/A"}
+Current Spotify: ${p.spotify_url || "N/A"}
+
+Find these missing fields: ${missing.join(", ")}
+
+Return a JSON object with ONLY the fields you can fill in. Use these exact keys:
+- youtube_url: Full YouTube channel URL (e.g. "https://www.youtube.com/@channelname")
+- website_url: Official podcast website URL (NOT Apple/Spotify)
+- twitter_handle: Twitter/X handle WITHOUT @ (e.g. "podcastname")
+- instagram_url: Full Instagram URL (e.g. "https://www.instagram.com/podcastname")
+- tiktok_url: Full TikTok URL (e.g. "https://www.tiktok.com/@podcastname")
+- facebook_url: Full Facebook URL
+- spotify_url: Full Spotify show URL (e.g. "https://open.spotify.com/show/...")
+- year_started: Year the podcast first launched (integer)
+- avg_episode_length: Average episode length in minutes (integer)
+
+Rules:
+- Only return fields you are genuinely confident about
+- For social links, only return them if the podcast actually has an active presence there
+- Do NOT guess or make up URLs
+- Return valid JSON only, no markdown`;
+
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 500,
+              temperature: 0.1,
+              response_format: { type: "json_object" },
+            });
+
+            const raw = completion.choices[0]?.message?.content?.trim() || "{}";
+            let enriched: Record<string, any>;
+            try { enriched = JSON.parse(raw); } catch { enriched = {}; }
+
+            const isValidUrl = (u: any) => typeof u === "string" && /^https?:\/\/.+\..+/.test(u) && u.length < 500;
+            const isValidHandle = (h: any) => typeof h === "string" && /^[a-zA-Z0-9_.-]{1,100}$/.test(h.replace(/^@/, ""));
+            const isValidYear = (y: any) => { const n = Number(y); return Number.isInteger(n) && n >= 2000 && n <= new Date().getFullYear(); };
+            const isValidMinutes = (m: any) => { const n = Number(m); return Number.isInteger(n) && n >= 1 && n <= 600; };
+
+            const urlFields = ["youtube_url", "website_url", "instagram_url", "tiktok_url", "facebook_url", "spotify_url"];
+            const sets: string[] = [];
+            const params: any[] = [];
+
+            for (const f of urlFields) {
+              const val = enriched[f];
+              if (val && isValidUrl(val)) {
+                if (!p[f] || p[f] === "") { params.push(val); sets.push(`${f} = $${params.length}`); }
+              }
+            }
+            if (enriched.twitter_handle) {
+              const handle = String(enriched.twitter_handle).replace(/^@/, "");
+              if (isValidHandle(handle) && (!p.twitter_handle || p.twitter_handle === "")) {
+                params.push(handle); sets.push(`twitter_handle = $${params.length}`);
+              }
+            }
+            if (enriched.year_started && isValidYear(enriched.year_started) && (!p.year_started || p.year_started === 0)) {
+              params.push(Number(enriched.year_started)); sets.push(`year_started = $${params.length}`);
+            }
+            if (enriched.avg_episode_length && isValidMinutes(enriched.avg_episode_length) && (!p.avg_episode_length || p.avg_episode_length === 0)) {
+              params.push(Number(enriched.avg_episode_length)); sets.push(`avg_episode_length = $${params.length}`);
+            }
+
+            if (sets.length > 0) {
+              params.push(p.slug);
+              sets.push(`updated_at = NOW()`);
+              await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE slug = $${params.length}`, params);
+              podcastEnrichState.progress.updated++;
+              podcastEnrichState.progress.log.push(`✓ ${p.name}: updated ${sets.length - 1} fields`);
+            } else {
+              podcastEnrichState.progress.skipped++;
+              podcastEnrichState.progress.log.push(`— ${p.name}: no new data found`);
+            }
+          } catch (err: any) {
+            podcastEnrichState.progress.errors++;
+            podcastEnrichState.progress.log.push(`✗ ${p.name}: ${err.message?.slice(0, 80)}`);
+          }
+
+          if (i % 5 === 0 && i > 0) {
+            await new Promise(r => setTimeout(r, 500));
+          }
+        }
+
+        podcastEnrichState.progress.done = podcasts.length;
+        console.log(`[Enrich] Complete: ${podcastEnrichState.progress.updated} updated, ${podcastEnrichState.progress.skipped} skipped, ${podcastEnrichState.progress.errors} errors`);
+      } catch (err: any) {
+        console.error("[Enrich] Fatal error:", err);
+        podcastEnrichState.progress.log.push(`FATAL: ${err.message}`);
+      } finally {
+        podcastEnrichState.running = false;
+      }
+    })();
+  });
+
+  app.get("/api/admin/cms/podcast-enrich/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    res.json({ running: podcastEnrichState.running, ...podcastEnrichState.progress });
+  });
+
   app.get("/api/admin/cms/podcasts/:slug/episodes", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {

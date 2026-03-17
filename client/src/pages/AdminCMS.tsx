@@ -291,6 +291,61 @@ function StatusSelect({ value, onChange }: { value: string; onChange: (v: string
   );
 }
 
+function PodcastEnrichButton() {
+  const { toast } = useToast();
+  const [enrichStatus, setEnrichStatus] = useState<any>(null);
+  const [polling, setPolling] = useState(false);
+
+  const startEnrich = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/admin/cms/podcast-enrich", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      if (res.status === 409) { setPolling(true); return; }
+      if (!res.ok) throw new Error("Failed to start");
+    },
+    onSuccess: () => {
+      toast({ title: "Enrichment started" });
+      setPolling(true);
+    },
+    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  useQuery({
+    queryKey: ["/api/admin/cms/podcast-enrich/status"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/cms/podcast-enrich/status", { credentials: "include" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      setEnrichStatus(data);
+      if (!data.running && polling) {
+        setPolling(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+      }
+      return data;
+    },
+    refetchInterval: polling ? 3000 : false,
+    enabled: polling,
+  });
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => startEnrich.mutate()}
+        disabled={startEnrich.isPending || polling}
+        className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+        data-testid="button-enrich-podcasts"
+      >
+        {polling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+        {polling ? "Enriching..." : "Enrich All Metadata"}
+      </button>
+      {enrichStatus && (polling || enrichStatus.done > 0) && (
+        <span className="text-xs text-muted-foreground">
+          {enrichStatus.done}/{enrichStatus.total} — {enrichStatus.updated} updated, {enrichStatus.errors} errors
+        </span>
+      )}
+    </div>
+  );
+}
+
 function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -335,6 +390,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
         <div>
           <h3 className="text-lg font-bold text-foreground">Podcasts</h3>
           <p className="text-sm text-muted-foreground">{podcasts?.length || 0} podcasts</p>
+          <PodcastEnrichButton />
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-56">
