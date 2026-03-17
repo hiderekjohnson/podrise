@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -76,6 +76,14 @@ export interface IStorage {
   createAdvertiser(data: InsertAdvertiser): Promise<Advertiser>;
   updateAdvertiser(id: number, data: InsertAdvertiser): Promise<Advertiser>;
   deleteAdvertiser(id: number): Promise<void>;
+  getFeedAds(): Promise<FeedAd[]>;
+  getActiveFeedAds(): Promise<FeedAd[]>;
+  getFeedAdById(id: number): Promise<FeedAd | undefined>;
+  createFeedAd(data: InsertFeedAd): Promise<FeedAd>;
+  updateFeedAd(id: number, data: Partial<InsertFeedAd>): Promise<FeedAd | undefined>;
+  deleteFeedAd(id: number): Promise<void>;
+  getFeedAdSetting(key: string): Promise<string | undefined>;
+  setFeedAdSetting(key: string, value: string): Promise<void>;
   getBookmarksByUserId(userId: number): Promise<Bookmark[]>;
   addBookmark(data: InsertBookmark): Promise<Bookmark>;
   removeBookmark(userId: number, podcastSlug: string, episodeSlug: string): Promise<void>;
@@ -744,6 +752,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAdvertiser(id: number): Promise<void> {
     await db.delete(advertisers).where(eq(advertisers.id, id));
+  }
+
+  async getFeedAds(): Promise<FeedAd[]> {
+    return db.select().from(feedAds).orderBy(desc(feedAds.createdAt));
+  }
+
+  async getActiveFeedAds(): Promise<FeedAd[]> {
+    return db.select().from(feedAds).where(eq(feedAds.isActive, true)).orderBy(desc(feedAds.weight));
+  }
+
+  async getFeedAdById(id: number): Promise<FeedAd | undefined> {
+    const [ad] = await db.select().from(feedAds).where(eq(feedAds.id, id));
+    return ad;
+  }
+
+  async createFeedAd(data: InsertFeedAd): Promise<FeedAd> {
+    const [created] = await db.insert(feedAds).values(data).returning();
+    return created;
+  }
+
+  async updateFeedAd(id: number, data: Partial<InsertFeedAd>): Promise<FeedAd | undefined> {
+    const [updated] = await db.update(feedAds).set(data).where(eq(feedAds.id, id)).returning();
+    return updated;
+  }
+
+  async deleteFeedAd(id: number): Promise<void> {
+    await db.delete(feedAds).where(eq(feedAds.id, id));
+  }
+
+  async getFeedAdSetting(key: string): Promise<string | undefined> {
+    const [row] = await db.select().from(feedAdSettings).where(eq(feedAdSettings.key, key));
+    return row?.value;
+  }
+
+  async setFeedAdSetting(key: string, value: string): Promise<void> {
+    await db.insert(feedAdSettings).values({ key, value }).onConflictDoUpdate({ target: feedAdSettings.key, set: { value } });
   }
 
   async getBookmarksByUserId(userId: number): Promise<Bookmark[]> {

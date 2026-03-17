@@ -650,6 +650,106 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
   );
 }
 
+interface FeedAdData {
+  id: number;
+  type: "podcast" | "regular";
+  title: string;
+  description: string;
+  imageUrl: string;
+  destinationUrl: string;
+  podcastSlug: string | null;
+  weight: number;
+  isActive: boolean;
+}
+
+function PodcastAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: string) => void }) {
+  return (
+    <div
+      className="rounded-2xl overflow-hidden mb-4"
+      style={{ background: "#FDF8F3" }}
+      data-testid={`feed-podcast-ad-${ad.id}`}
+    >
+      <div className="p-5 flex items-start gap-4">
+        <img
+          src={ad.imageUrl}
+          alt={ad.title}
+          className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
+          onError={(e) => { (e.target as HTMLImageElement).style.background = "#ddd"; }}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-[17px] text-[#09090B] mb-1" data-testid={`text-podcast-ad-title-${ad.id}`}>
+            {ad.title}
+          </div>
+          <div className="text-[14px] text-[#52525B] leading-[1.6]" data-testid={`text-podcast-ad-desc-${ad.id}`}>
+            {ad.description}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <span className="text-[12px] text-[#A1A1AA] font-medium" data-testid={`label-ad-${ad.id}`}>Ad</span>
+          {ad.podcastSlug && (
+            <button
+              onClick={() => onFollow(ad.podcastSlug!)}
+              className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+              data-testid={`feed-ad-follow-btn-${ad.id}`}
+            >
+              Follow
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegularAdCard({ ad }: { ad: FeedAdData }) {
+  return (
+    <div
+      className="rounded-2xl overflow-hidden mb-4"
+      style={{ background: "#FDF8F3" }}
+      data-testid={`feed-regular-ad-${ad.id}`}
+    >
+      <div className="p-5 flex items-start gap-4">
+        <img
+          src={ad.imageUrl}
+          alt={ad.title}
+          className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
+          onError={(e) => { (e.target as HTMLImageElement).style.background = "#ddd"; }}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-[17px] text-[#09090B] mb-1" data-testid={`text-regular-ad-title-${ad.id}`}>
+            {ad.title}
+          </div>
+          <div className="text-[14px] text-[#52525B] leading-[1.6] [&_a]:text-[#6366F1] [&_a]:underline [&_a]:hover:text-[#4F46E5]" data-testid={`text-regular-ad-desc-${ad.id}`}>
+            <span dangerouslySetInnerHTML={{ __html: ad.description }} />
+            {ad.destinationUrl && (() => {
+              try {
+                const hostname = new URL(ad.destinationUrl).hostname.replace("www.", "");
+                return (
+                  <>
+                    {" "}
+                    <a
+                      href={ad.destinationUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#6366F1] underline hover:text-[#4F46E5]"
+                      data-testid={`link-regular-ad-${ad.id}`}
+                    >
+                      {hostname}
+                    </a>
+                  </>
+                );
+              } catch { return null; }
+            })()}
+          </div>
+        </div>
+        <div className="shrink-0">
+          <span className="text-[12px] text-[#A1A1AA] font-medium" data-testid={`label-ad-${ad.id}`}>Ad</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function FeedPage() {
   const { data: user } = useAuth();
   const { toast } = useToast();
@@ -781,6 +881,13 @@ export default function FeedPage() {
 
   const allItems: FeedItem[] = data?.pages?.flatMap((p: any) => p.items) || [];
 
+  const { data: feedAdsData } = useQuery<{ ads: FeedAdData[]; frequency: number }>({
+    queryKey: ["/api/feed-ads/batch"],
+  });
+
+  const feedAdsPool = feedAdsData?.ads || [];
+  const adFrequency = feedAdsData?.frequency || 5;
+
   return (
     <DashboardLayout>
       <div className="min-h-screen flex flex-col" data-testid="feed-page">
@@ -855,16 +962,39 @@ export default function FeedPage() {
             </div>
           ) : (
             <>
-              {allItems.map((item) => (
-                <RecapCard
-                  key={item.id}
-                  item={item}
-                  onFollowToggle={handleFollowToggle}
-                  bookmarkedKeys={bookmarkedKeys}
-                  onBookmarkToggle={handleBookmarkToggle}
-                  toast={toast}
-                />
-              ))}
+              {allItems.map((item, index) => {
+                const elements = [];
+                if (feedAdsPool.length > 0 && index > 0 && index % adFrequency === 0) {
+                  const adIndex = Math.floor(index / adFrequency) - 1;
+                  const ad = feedAdsPool[adIndex % feedAdsPool.length];
+                  if (ad) {
+                    if (ad.type === "podcast") {
+                      elements.push(
+                        <PodcastAdCard
+                          key={`ad-${ad.id}-${index}`}
+                          ad={ad}
+                          onFollow={(slug) => handleFollowToggle(slug, true)}
+                        />
+                      );
+                    } else {
+                      elements.push(
+                        <RegularAdCard key={`ad-${ad.id}-${index}`} ad={ad} />
+                      );
+                    }
+                  }
+                }
+                elements.push(
+                  <RecapCard
+                    key={item.id}
+                    item={item}
+                    onFollowToggle={handleFollowToggle}
+                    bookmarkedKeys={bookmarkedKeys}
+                    onBookmarkToggle={handleBookmarkToggle}
+                    toast={toast}
+                  />
+                );
+                return elements;
+              })}
               <div ref={observerRef} className="py-8 flex flex-col items-center gap-2">
                 {isFetchingNextPage ? (
                   <Loader2 className="w-5 h-5 animate-spin text-[#6366F1]" />

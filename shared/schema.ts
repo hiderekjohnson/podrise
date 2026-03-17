@@ -804,3 +804,47 @@ export const insertEntityEpisodeMentionSchema = createInsertSchema(entityEpisode
 export type EntityEpisodeMention = typeof entityEpisodeMentions.$inferSelect;
 export type InsertEntityEpisodeMention = z.infer<typeof insertEntityEpisodeMentionSchema>;
 
+export const feedAds = pgTable("feed_ads", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  destinationUrl: text("destination_url").default(""),
+  podcastSlug: text("podcast_slug"),
+  weight: integer("weight").notNull().default(1),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertFeedAdSchema = createInsertSchema(feedAds).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  type: z.enum(["podcast", "regular"]),
+  title: z.string().min(1, "Title is required").max(200),
+  description: z.string().min(1, "Description is required").max(1000),
+  imageUrl: z.string().min(1, "Image URL is required"),
+  destinationUrl: z.string().refine((val) => !val || /^https?:\/\//.test(val), { message: "URL must start with http:// or https://" }).optional().default(""),
+  podcastSlug: z.string().nullable().optional(),
+  weight: z.number().int().min(1).max(10).default(1),
+  isActive: z.boolean().default(true),
+}).refine((data) => {
+  if (data.type === "podcast" && (!data.podcastSlug || data.podcastSlug.trim() === "")) return false;
+  return true;
+}, { message: "Podcast slug is required for podcast ads", path: ["podcastSlug"] }).refine((data) => {
+  if (data.type === "regular" && (!data.destinationUrl || data.destinationUrl.trim() === "")) return false;
+  return true;
+}, { message: "Destination URL is required for regular ads", path: ["destinationUrl"] });
+
+export type FeedAd = typeof feedAds.$inferSelect;
+export type InsertFeedAd = z.infer<typeof insertFeedAdSchema>;
+
+export const feedAdSettings = pgTable("feed_ad_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+});
+
+export type FeedAdSetting = typeof feedAdSettings.$inferSelect;
+

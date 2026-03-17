@@ -16075,6 +16075,138 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.get("/api/admin/feed-ads", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const list = await storage.getFeedAds();
+      res.json(list);
+    } catch (err) {
+      console.error("[FeedAds] List error:", err);
+      res.status(500).json({ error: "Failed to fetch feed ads" });
+    }
+  });
+
+  app.post("/api/admin/feed-ads", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { insertFeedAdSchema } = await import("@shared/schema");
+      const sanitizeHtml = (await import("sanitize-html")).default;
+      const parsed = insertFeedAdSchema.parse(req.body);
+      parsed.description = sanitizeHtml(parsed.description, {
+        allowedTags: ["b", "strong", "i", "em", "a", "br"],
+        allowedAttributes: { a: ["href", "target", "rel"] },
+        allowedSchemes: ["http", "https"],
+      });
+      const created = await storage.createFeedAd(parsed);
+      res.json(created);
+    } catch (err: any) {
+      if (err?.issues) return res.status(400).json({ error: "Validation failed", details: err.issues });
+      console.error("[FeedAds] Create error:", err);
+      res.status(500).json({ error: "Failed to create feed ad" });
+    }
+  });
+
+  app.patch("/api/admin/feed-ads/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { insertFeedAdSchema } = await import("@shared/schema");
+      const sanitizeHtml = (await import("sanitize-html")).default;
+      const parsed = insertFeedAdSchema.partial().parse(req.body);
+      if (parsed.description) {
+        parsed.description = sanitizeHtml(parsed.description, {
+          allowedTags: ["b", "strong", "i", "em", "a", "br"],
+          allowedAttributes: { a: ["href", "target", "rel"] },
+          allowedSchemes: ["http", "https"],
+        });
+      }
+      const updated = await storage.updateFeedAd(Number(req.params.id), parsed);
+      if (!updated) return res.status(404).json({ error: "Feed ad not found" });
+      res.json(updated);
+    } catch (err: any) {
+      if (err?.issues) return res.status(400).json({ error: "Validation failed", details: err.issues });
+      console.error("[FeedAds] Update error:", err);
+      res.status(500).json({ error: "Failed to update feed ad" });
+    }
+  });
+
+  app.delete("/api/admin/feed-ads/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      await storage.deleteFeedAd(Number(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[FeedAds] Delete error:", err);
+      res.status(500).json({ error: "Failed to delete feed ad" });
+    }
+  });
+
+  app.get("/api/admin/feed-ad-settings", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const frequency = await storage.getFeedAdSetting("feed_ad_frequency");
+      res.json({ frequency: frequency ? parseInt(frequency) : 5 });
+    } catch (err) {
+      console.error("[FeedAdSettings] Get error:", err);
+      res.status(500).json({ error: "Failed to fetch feed ad settings" });
+    }
+  });
+
+  app.put("/api/admin/feed-ad-settings", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { frequency } = req.body;
+      if (typeof frequency !== "number" || frequency < 1 || frequency > 50 || !Number.isInteger(frequency)) {
+        return res.status(400).json({ error: "Frequency must be an integer between 1 and 50" });
+      }
+      await storage.setFeedAdSetting("feed_ad_frequency", String(frequency));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[FeedAdSettings] Update error:", err);
+      res.status(500).json({ error: "Failed to update feed ad settings" });
+    }
+  });
+
+  app.get("/api/feed-ads/next", async (req, res) => {
+    try {
+      const activeAds = await storage.getActiveFeedAds();
+      if (activeAds.length === 0) return res.json(null);
+      const totalWeight = activeAds.reduce((sum, ad) => sum + ad.weight, 0);
+      let random = Math.random() * totalWeight;
+      let selected = activeAds[0];
+      for (const ad of activeAds) {
+        random -= ad.weight;
+        if (random <= 0) { selected = ad; break; }
+      }
+      res.json(selected);
+    } catch (err) {
+      console.error("[FeedAds] Next error:", err);
+      res.status(500).json({ error: "Failed to fetch next feed ad" });
+    }
+  });
+
+  app.get("/api/feed-ads/batch", async (req, res) => {
+    try {
+      const count = Math.min(parseInt(req.query.count as string) || 5, 20);
+      const activeAds = await storage.getActiveFeedAds();
+      const frequency = await storage.getFeedAdSetting("feed_ad_frequency");
+      const freq = frequency ? parseInt(frequency) : 5;
+      if (activeAds.length === 0) return res.json({ ads: [], frequency: freq });
+      const totalWeight = activeAds.reduce((sum, ad) => sum + ad.weight, 0);
+      const results: typeof activeAds = [];
+      for (let i = 0; i < count; i++) {
+        let random = Math.random() * totalWeight;
+        for (const ad of activeAds) {
+          random -= ad.weight;
+          if (random <= 0) { results.push(ad); break; }
+        }
+      }
+      res.json({ ads: results, frequency: freq });
+    } catch (err) {
+      console.error("[FeedAds] Batch error:", err);
+      res.status(500).json({ error: "Failed to fetch feed ads" });
+    }
+  });
+
   app.get("/api/admin/support-articles", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
@@ -16299,6 +16431,37 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       }
     } catch (err) {
       console.error("[SupportKB] Failed to seed support articles:", err);
+    }
+
+    try {
+      const { rows: feedAdCount } = await pool.query("SELECT COUNT(*)::int AS count FROM feed_ads");
+      if (feedAdCount[0].count === 0) {
+        console.log("[FeedAdSeed] No feed ads found — seeding defaults...");
+        const demoAds = [
+          { type: "podcast", title: "Fresh Air", description: "Award-winning NPR podcast featuring intimate conversations with today's biggest luminaries. Over 1,000,000 downloads per episode. A must-follow for curious minds.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/d6/31/a4d63137-91f0-a73a-07e3-0a0b0e8617e5/mza_13866365516284798537.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "fresh-air", weight: 3 },
+          { type: "podcast", title: "The Daily", description: "The biggest stories of our day, told by the best journalists in the world. From The New York Times, this is the podcast millions trust to start their morning.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/1c/ac/04/1cac0421-4483-ff09-4f80-19710d9feda4/mza_12421371692158516891.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "the-daily", weight: 2 },
+          { type: "podcast", title: "Radiolab", description: "Investigating a strange world through science, philosophy and human experience. Radiolab has been a Peabody Award-winning podcast since 2002.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/91/93/ea/9193eaa1-1261-936a-d1f6-a4f3b6e2221e/mza_4417378394975087647.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "radiolab", weight: 2 },
+          { type: "podcast", title: "How I Built This", description: "Guy Raz dives into the stories behind some of the world's best known companies. Entrepreneurs share the incredible journeys of building their iconic brands.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/80/a7/f0/80a7f04b-8ed0-c85d-a767-f8be84a6e8f6/mza_16618981505tried432.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "how-i-built-this", weight: 1 },
+          { type: "podcast", title: "Freakonomics Radio", description: "Discover the hidden side of everything with host Stephen Dubner. The podcast that makes you question conventional wisdom with data-driven insights.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/7d/c9/d5/7dc9d5f6-dc06-8f2c-3c61-2699b0ef42ab/mza_8908910437421367498.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "freakonomics-radio", weight: 1 },
+          { type: "regular", title: "AG1", description: "The ultimate daily nutrition supplement trusted by millions. Get your daily greens, vitamins, and probiotics in one scoop. Try AG1 today and save 50% on your first order.", imageUrl: "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=200&h=200&fit=crop", destinationUrl: "https://www.drinkag1.com", podcastSlug: null, weight: 3 },
+          { type: "regular", title: "Squarespace", description: "Build a beautiful website for your podcast, portfolio, or business. Start your free trial today — no credit card required. Everything you need to grow online.", imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200&h=200&fit=crop", destinationUrl: "https://www.squarespace.com", podcastSlug: null, weight: 2 },
+          { type: "regular", title: "BetterHelp", description: "Professional therapy, accessible anywhere. Connect with a licensed therapist from the comfort of your home. Get 25% off your first month with code PODCAST.", imageUrl: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=200&h=200&fit=crop", destinationUrl: "https://www.betterhelp.com", podcastSlug: null, weight: 2 },
+          { type: "regular", title: "NordVPN", description: "Protect your privacy online with military-grade encryption. Stream content from anywhere, browse securely, and stay anonymous. 68% off 2-year plans.", imageUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=200&h=200&fit=crop", destinationUrl: "https://www.nordvpn.com", podcastSlug: null, weight: 1 },
+          { type: "regular", title: "Athletic Greens", description: "Comprehensive daily nutrition made simple. 75 vitamins, minerals, and whole food-sourced ingredients in one delicious drink. Free welcome kit with first purchase.", imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&h=200&fit=crop", destinationUrl: "https://www.athleticgreens.com", podcastSlug: null, weight: 1 },
+        ];
+        for (const ad of demoAds) {
+          await pool.query(
+            `INSERT INTO feed_ads (type, title, description, image_url, destination_url, podcast_slug, weight, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, true)`,
+            [ad.type, ad.title, ad.description, ad.imageUrl, ad.destinationUrl, ad.podcastSlug, ad.weight]
+          );
+        }
+        await pool.query(`INSERT INTO feed_ad_settings (key, value) VALUES ('feed_ad_frequency', '5') ON CONFLICT (key) DO NOTHING`);
+        console.log(`[FeedAdSeed] Seeded ${demoAds.length} demo feed ads`);
+      } else {
+        console.log(`[FeedAdSeed] ${feedAdCount[0].count} feed ads already exist, skipping`);
+      }
+    } catch (err) {
+      console.error("[FeedAdSeed] Failed to seed feed ads:", err);
     }
 
     try {

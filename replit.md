@@ -39,6 +39,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Product Image Approval**: Products require `image_status = 'approved'` to be visible publicly; managed via admin panel.
 - **Context Summarization**: Generates polished editorial summaries for products using AI (GPT-4o-mini), preferring these over raw transcript contexts.
 - **Support Knowledge Base**: Admin-editable knowledge base (`support_articles` table) powers the Help & Support AI chatbot. Admins manage articles via the "Support KB" tab.
+- **Feed Ads System**: Inline feed ads (podcast ads + regular ads) interspersed in user feed at configurable frequency. DB tables: `feed_ads` (type, title, description, imageUrl, destinationUrl, podcastSlug, weight, isActive) and `feed_ad_settings` (key-value config). Admin controls in Advertisers tab with ad CRUD, weight/priority sliders, active toggles, and global frequency setting. Public API: `GET /api/feed-ads/batch` (weighted selection), `GET /api/feed-ads/next`. Podcast ads show Follow button; regular ads show destination links. 10 demo ads seeded.
 - **Advertise Page**: Dedicated page detailing advertising opportunities.
 - **Recap Generator Logic**: Processes recent episodes for recap generation, distributing recaps evenly.
 - **Daily Pulse Scheduler**: Generates daily topic pulses for yesterday's episodes, running automatically at ~7:00 AM UTC.
