@@ -490,8 +490,7 @@ function FollowMenuDropdown({ onUnfollow, itemId }: { onUnfollow: () => void; it
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-lg flex items-center justify-center border border-black/[0.12] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all"
-        style={{ background: "rgba(255,255,255,0.75)" }}
+        className="w-9 h-9 rounded-full flex items-center justify-center border border-[#D4D4D8] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all bg-white"
         aria-label="Podcast options"
         data-testid={`feed-follow-menu-${itemId}`}
       >
@@ -541,64 +540,49 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
         <div className="w-[120px] h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
           <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[120px]">
-          <div>
-            <Link href={`/podcasts/${item.podcastSlug}`}>
-              <span className="text-[18px] font-extrabold text-[#09090B] tracking-[-0.02em] leading-[1.1] mb-2 inline-block hover:text-[#6366F1] transition-colors" data-testid={`feed-podcast-name-${item.id}`}>
-                {item.podcastName}
-              </span>
-            </Link>
-            <div className="flex items-center gap-[14px] flex-wrap mb-3">
-              {item.hosts && (
-                <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                  <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
-                  {item.hosts}
-                </div>
-              )}
-              {item.totalEpisodes && (
-                <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                  <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd"/></svg>
-                  {item.totalEpisodes}+ episodes
-                </div>
-              )}
-              {item.yearStarted && (
-                <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                  <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
-                  Since {item.yearStarted}
-                </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[120px]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <Link href={`/podcasts/${item.podcastSlug}`}>
+                <span className="text-[18px] font-extrabold text-[#09090B] tracking-[-0.02em] leading-[1.1] mb-2 block hover:text-[#6366F1] transition-colors overflow-hidden text-ellipsis" data-testid={`feed-podcast-name-${item.id}`}>
+                  {item.podcastName}
+                </span>
+              </Link>
+              <div className="flex items-center gap-[14px] flex-wrap">
+                {item.hosts && (
+                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
+                    {item.hosts}
+                  </div>
+                )}
+                {item.totalEpisodes && (
+                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd"/></svg>
+                    {item.totalEpisodes}+ episodes
+                  </div>
+                )}
+                {item.yearStarted && (
+                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
+                    Since {item.yearStarted}
+                  </div>
+                )}
+              </div>
+              <div className="w-[30px] h-[3px] rounded-full bg-[#6366F1]/40 mt-3" />
+            </div>
+            <div className="flex-shrink-0 pt-0.5">
+              {item.isFollowing ? (
+                <FollowMenuDropdown onUnfollow={() => onFollowToggle(item.podcastSlug, false)} itemId={item.id} />
+              ) : (
+                <button
+                  onClick={() => onFollowToggle(item.podcastSlug, true)}
+                  className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+                  data-testid={`feed-follow-btn-${item.id}`}
+                >
+                  Follow
+                </button>
               )}
             </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {item.appleUrl && (
-              <a href={item.appleUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-lg text-[14px] font-medium text-[#52525B] border border-black/[0.12] transition-all hover:bg-white whitespace-nowrap no-underline" style={{ background: "rgba(255,255,255,0.75)" }} data-testid={`feed-apple-${item.id}`}>
-                <svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#B150E2"/><circle cx="10" cy="10" r="6" fill="none" stroke="white" strokeWidth="1.5" opacity="0.7"/><circle cx="10" cy="10" r="2.5" fill="white" opacity="0.8"/></svg>
-                Apple
-              </a>
-            )}
-            {item.spotifyUrl && (
-              <a href={item.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-lg text-[14px] font-medium text-[#52525B] border border-black/[0.12] transition-all hover:bg-white whitespace-nowrap no-underline" style={{ background: "rgba(255,255,255,0.75)" }} data-testid={`feed-spotify-${item.id}`}>
-                <svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#1DB954"/><path d="M14.5 13.5a.5.5 0 01-.7.1c-1.9-1.2-4.3-1.4-7.1-.8a.5.5 0 01-.2-1c3.1-.7 5.7-.4 7.9 1a.5.5 0 01.1.7zm1.1-2.5a.6.6 0 01-.8.2c-2.2-1.3-5.5-1.7-8.1-1a.6.6 0 01-.3-1.2c3-.8 6.7-.4 9.2 1.2a.6.6 0 010 .8zm.1-2.6C12.7 7 8.9 6.8 6.3 7.6a.7.7 0 11-.4-1.4c3-.9 7.2-.7 10.1 1.1a.7.7 0 01-.3 1.2z" fill="white"/></svg>
-                Spotify
-              </a>
-            )}
-            {item.youtubeUrl && (
-              <a href={item.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-lg text-[14px] font-medium text-[#52525B] border border-black/[0.12] transition-all hover:bg-white whitespace-nowrap no-underline" style={{ background: "rgba(255,255,255,0.75)" }} data-testid={`feed-youtube-${item.id}`}>
-                <svg width="13" height="13" viewBox="0 0 20 20"><rect width="20" height="20" rx="4" fill="#FF0000"/><polygon points="8,5.5 8,14.5 15,10" fill="white"/></svg>
-                YouTube
-              </a>
-            )}
-            {item.isFollowing ? (
-              <FollowMenuDropdown onUnfollow={() => onFollowToggle(item.podcastSlug, false)} itemId={item.id} />
-            ) : (
-              <button
-                onClick={() => onFollowToggle(item.podcastSlug, true)}
-                className="inline-flex items-center px-5 py-2 rounded-lg text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
-                data-testid={`feed-follow-btn-${item.id}`}
-              >
-                Follow
-              </button>
-            )}
           </div>
         </div>
       </div>
