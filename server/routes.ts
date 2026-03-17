@@ -9306,7 +9306,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return res.status(400).json({ message: "Invalid status. Must be: published, needs_review, or hidden" });
       }
       const allowedFields: Record<string, string> = {
-        name: "name", description: "description", artworkUrl: "artwork_url",
+        slug: "slug", name: "name", description: "description", artworkUrl: "artwork_url",
         hosts: "hosts", appleUrl: "apple_url", spotifyUrl: "spotify_url",
         youtubeUrl: "youtube_url", status: "status", hasLandingPage: "has_landing_page",
         twitterHandle: "twitter_handle", instagramUrl: "instagram_url",
@@ -9326,7 +9326,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if (sets.length === 0) return res.status(400).json({ message: "No fields to update" });
       params.push(slug);
       sets.push(`updated_at = NOW()`);
-      const result = await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE slug = $${params.length}`, params);
+      const isNumericId = /^\d+$/.test(slug);
+      const whereClause = isNumericId ? `id = $${params.length}::int` : `slug = $${params.length}`;
+      const result = await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE ${whereClause}`, params);
       if (result.rowCount === 0) return res.status(404).json({ message: "Podcast not found" });
       res.json({ success: true });
     } catch (err: any) {
