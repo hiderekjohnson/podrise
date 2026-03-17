@@ -20,6 +20,7 @@ const AdminListsManager = lazy(() => import("./AdminListsManager"));
 const AdminErrorLogs = lazy(() => import("./AdminErrorLogs"));
 const AdminReferrals = lazy(() => import("./AdminReferrals"));
 const AdminSupportKB = lazy(() => import("./AdminSupportKB"));
+const AdminCMS = lazy(() => import("./AdminCMS"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -203,7 +204,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced" | "errors" | "referrals" | "support-kb">("advanced");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced" | "errors" | "referrals" | "support-kb" | "cms">("advanced");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
@@ -479,6 +480,18 @@ export default function Admin() {
           >
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent max-w-full">
+                <button
+                  data-testid="tab-cms"
+                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
+                    activeTab === "cms"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  CMS
+                </button>
                 <button
                   data-testid="tab-pending"
                   onClick={() => { setActiveTab("pending"); setSearchTerm(""); }}
@@ -821,6 +834,16 @@ export default function Admin() {
                 </div>
               }>
                 <PodcastDirectory />
+              </Suspense>
+            )}
+
+            {activeTab === "cms" && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              }>
+                <AdminCMS />
               </Suspense>
             )}
 

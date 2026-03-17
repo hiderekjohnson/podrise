@@ -646,6 +646,17 @@ export async function registerRoutes(
         UNIQUE(user_id, tier_id)
       );
     `);
+    await migrationPool.query(`
+      ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
+      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
+    `);
+    // Backfill landing_page_recaps: unpublished episodes get status='hidden'
+    await migrationPool.query(`
+      UPDATE landing_page_recaps SET status = 'hidden' WHERE published = false AND status = 'published';
+    `);
+    // Note: podcast_directory has no legacy 'published' boolean column to backfill from.
+    // It only has 'has_landing_page' (operational, controls page rendering) which is separate
+    // from editorial 'status'. All podcast_directory rows default to status='published'.
     console.log("[startup] Schema migration check complete");
 
     const dupeSlugs = [
@@ -8561,6 +8572,328 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       res.json({ success: true, whatHappenedLength: recap.whatHappened?.length, paragraphs: recap.whatHappened?.split("\n\n").length });
     } catch (err: any) {
       console.error("[Admin] Regenerate single recap error:", err);
+      res.status(500).json({ message: err?.message || "Failed to regenerate" });
+    }
+  });
+
+  app.get("/api/admin/cms/podcasts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { search, sort, order, status } = req.query;
+      let query = `SELECT pd.*, (SELECT COUNT(*) FROM landing_page_recaps lpr WHERE lpr.slug = pd.slug) as episode_count FROM podcast_directory pd WHERE 1=1`;
+      const params: any[] = [];
+      if (search) {
+        params.push(`%${search}%`);
+        query += ` AND (pd.name ILIKE $${params.length} OR pd.slug ILIKE $${params.length} OR pd.hosts ILIKE $${params.length})`;
+      }
+      if (status && status !== "all") {
+        params.push(status);
+        query += ` AND pd.status = $${params.length}`;
+      }
+      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : "pd.name";
+      const sortOrder = order === "desc" ? "DESC" : "ASC";
+      query += ` ORDER BY ${sortCol} ${sortOrder}`;
+      const { rows } = await pool.query(query, params);
+      res.json(rows);
+    } catch (err: any) {
+      console.error("[CMS] Get podcasts error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch podcasts" });
+    }
+  });
+
+  app.get("/api/admin/cms/podcasts/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      const { rows: podcastRows } = await pool.query(`SELECT * FROM podcast_directory WHERE slug = $1`, [slug]);
+      if (podcastRows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      const podcast = podcastRows[0];
+
+      const { rows: episodeRows } = await pool.query(
+        `SELECT episode_title, publish_date, guests, key_topics, status, entity_contexts_cache FROM landing_page_recaps WHERE slug = $1 ORDER BY publish_date DESC`, [slug]
+      );
+      const episodeCount = episodeRows.length;
+
+      const recentGuests: string[] = [];
+      const topicCounts: Record<string, number> = {};
+      const peopleSet = new Set<string>();
+      const companySet = new Set<string>();
+      const knownCompanyKeywords = ["inc", "corp", "llc", "co", "ltd", "capital", "ventures", "labs", "ai"];
+
+      for (const ep of episodeRows) {
+        if (ep.guests) {
+          try {
+            const guests = JSON.parse(ep.guests);
+            if (Array.isArray(guests)) {
+              for (const g of guests.slice(0, 3)) {
+                const name = typeof g === "string" ? g : g.name;
+                if (name && !recentGuests.includes(name)) recentGuests.push(name);
+              }
+            }
+          } catch {}
+        }
+        if (ep.key_topics && Array.isArray(ep.key_topics)) {
+          for (const t of ep.key_topics) {
+            topicCounts[t] = (topicCounts[t] || 0) + 1;
+          }
+        }
+        if (ep.entity_contexts_cache) {
+          try {
+            const entities: Record<string, string> = typeof ep.entity_contexts_cache === "string"
+              ? JSON.parse(ep.entity_contexts_cache)
+              : ep.entity_contexts_cache;
+            for (const [entitySlug, context] of Object.entries(entities)) {
+              const name = entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+              const lowerName = name.toLowerCase();
+              const isCompany = knownCompanyKeywords.some(kw => lowerName.includes(kw)) ||
+                /^[A-Z][a-z]+$/.test(name) === false && !name.includes(" ") ||
+                (typeof context === "string" && /\b(company|platform|product|service|app)\b/i.test(context));
+              if (isCompany) {
+                companySet.add(name);
+              } else {
+                peopleSet.add(name);
+              }
+            }
+          } catch {}
+        }
+      }
+
+      const topTopics = Object.entries(topicCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([topic, count]) => ({ topic, count }));
+
+      res.json({
+        ...podcast,
+        stats: {
+          episodeCount,
+          recentGuests: recentGuests.slice(0, 10),
+          topTopics,
+          peopleMentioned: Array.from(peopleSet).slice(0, 10),
+          companiesMentioned: Array.from(companySet).slice(0, 10),
+        },
+      });
+    } catch (err: any) {
+      console.error("[CMS] Get podcast detail error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch podcast" });
+    }
+  });
+
+  app.patch("/api/admin/cms/podcasts/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      const validStatuses = ["published", "needs_review", "hidden"];
+      if (req.body.status && !validStatuses.includes(req.body.status)) {
+        return res.status(400).json({ message: "Invalid status. Must be: published, needs_review, or hidden" });
+      }
+      const allowedFields: Record<string, string> = {
+        name: "name", description: "description", artworkUrl: "artwork_url",
+        hosts: "hosts", appleUrl: "apple_url", spotifyUrl: "spotify_url",
+        youtubeUrl: "youtube_url", status: "status", hasLandingPage: "has_landing_page",
+      };
+      const sets: string[] = [];
+      const params: any[] = [];
+      for (const [key, col] of Object.entries(allowedFields)) {
+        if (req.body[key] !== undefined) {
+          params.push(req.body[key]);
+          sets.push(`${col} = $${params.length}`);
+        }
+      }
+      if (sets.length === 0) return res.status(400).json({ message: "No fields to update" });
+      params.push(slug);
+      sets.push(`updated_at = NOW()`);
+      const result = await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE slug = $${params.length}`, params);
+      if (result.rowCount === 0) return res.status(404).json({ message: "Podcast not found" });
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[CMS] Update podcast error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update podcast" });
+    }
+  });
+
+  app.get("/api/admin/cms/podcasts/:slug/episodes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      const { search, sort, order, status } = req.query;
+      let query = `SELECT id, slug, episode_slug, episode_title, publish_date, duration, artwork_url, status, tldl FROM landing_page_recaps WHERE slug = $1`;
+      const params: any[] = [slug];
+      if (search) {
+        params.push(`%${search}%`);
+        query += ` AND (episode_title ILIKE $${params.length})`;
+      }
+      if (status && status !== "all") {
+        params.push(status);
+        query += ` AND status = $${params.length}`;
+      }
+      const sortCol = sort === "title" ? "episode_title" : sort === "date" ? "publish_date" : "publish_date";
+      const sortOrder = order === "asc" ? "ASC" : "DESC";
+      query += ` ORDER BY ${sortCol} ${sortOrder}`;
+      const { rows } = await pool.query(query, params);
+      res.json(rows);
+    } catch (err: any) {
+      console.error("[CMS] Get episodes error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch episodes" });
+    }
+  });
+
+  app.get("/api/admin/cms/episodes/:podcastSlug/:episodeSlug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { podcastSlug, episodeSlug } = req.params;
+      const { rows: recapRows } = await pool.query(
+        `SELECT * FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`, [podcastSlug, episodeSlug]
+      );
+      if (recapRows.length === 0) return res.status(404).json({ message: "Episode not found" });
+      const episode = recapRows[0];
+
+      const { rows: quoteRows } = await pool.query(
+        `SELECT * FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2 ORDER BY sort_order`, [podcastSlug, episodeSlug]
+      );
+
+      let transcript = null;
+      try {
+        const { rows: pdRows } = await pool.query(`SELECT itunes_id FROM podcast_directory WHERE slug = $1`, [podcastSlug]);
+        if (pdRows.length > 0) {
+          const { rows: transcriptRows } = await pool.query(
+            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title = $2 LIMIT 1`,
+            [String(pdRows[0].itunes_id), episode.episode_title]
+          );
+          if (transcriptRows.length > 0) transcript = transcriptRows[0].transcript;
+        }
+      } catch {}
+
+      let extractedProducts: any[] = [];
+      try {
+        const { rows: prodRows } = await pool.query(
+          `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url FROM extracted_products WHERE podcast_slug = $1 AND episode_slug = $2 ORDER BY name`,
+          [podcastSlug, episodeSlug]
+        );
+        extractedProducts = prodRows;
+      } catch {}
+
+      res.json({ ...episode, quotes: quoteRows, transcript, extractedProducts });
+    } catch (err: any) {
+      console.error("[CMS] Get episode detail error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch episode" });
+    }
+  });
+
+  app.patch("/api/admin/cms/episodes/:podcastSlug/:episodeSlug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { podcastSlug, episodeSlug } = req.params;
+      const validStatuses = ["published", "needs_review", "hidden"];
+      if (req.body.status && !validStatuses.includes(req.body.status)) {
+        return res.status(400).json({ message: "Invalid status. Must be: published, needs_review, or hidden" });
+      }
+      const allowedFields: Record<string, string> = {
+        episodeTitle: "episode_title", publishDate: "publish_date", duration: "duration",
+        artworkUrl: "artwork_url", tldl: "tldl", whatHappened: "what_happened",
+        keyInsights: "key_insights", quote: "quote", quoteAttribution: "quote_attribution",
+        hosts: "hosts", guests: "guests", keyTopics: "key_topics",
+        topicContexts: "topic_contexts", sponsors: "sponsors", resources: "resources",
+        showNotes: "show_notes", status: "status", topQuestions: "top_questions",
+        entityContextsCache: "entity_contexts_cache",
+      };
+      const sets: string[] = [];
+      const params: any[] = [];
+      for (const [key, col] of Object.entries(allowedFields)) {
+        if (req.body[key] !== undefined) {
+          let val = req.body[key];
+          if (key === "keyInsights" && Array.isArray(val)) {
+            val = `{${val.map((v: string) => `"${v.replace(/"/g, '\\"')}"`).join(",")}}`;
+          } else if (key === "keyTopics" && Array.isArray(val)) {
+            val = `{${val.map((v: string) => `"${v.replace(/"/g, '\\"')}"`).join(",")}}`;
+          } else if (["guests", "sponsors", "resources", "topicContexts", "topQuestions", "entityContextsCache"].includes(key) && typeof val === "object") {
+            val = JSON.stringify(val);
+          }
+          params.push(val);
+          sets.push(`${col} = $${params.length}`);
+        }
+      }
+      if (sets.length === 0) return res.status(400).json({ message: "No fields to update" });
+      params.push(podcastSlug);
+      params.push(episodeSlug);
+      const result = await pool.query(
+        `UPDATE landing_page_recaps SET ${sets.join(", ")} WHERE slug = $${params.length - 1} AND episode_slug = $${params.length}`,
+        params
+      );
+      if (result.rowCount === 0) return res.status(404).json({ message: "Episode not found" });
+      if (req.body.status) {
+        const publishedVal = req.body.status === "published";
+        await pool.query(
+          `UPDATE landing_page_recaps SET published = $1 WHERE slug = $2 AND episode_slug = $3`,
+          [publishedVal, podcastSlug, episodeSlug]
+        );
+      }
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[CMS] Update episode error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update episode" });
+    }
+  });
+
+  app.post("/api/admin/cms/episodes/:podcastSlug/:episodeSlug/quotes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { podcastSlug, episodeSlug } = req.params;
+      const { speakerName, speakerRole, quoteText, context, quoteType } = req.body;
+      const { rows } = await pool.query(
+        `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [podcastSlug, episodeSlug, speakerName || "", speakerRole || "", quoteText || "", context || "", quoteType || "Hero Quote"]
+      );
+      res.json(rows[0]);
+    } catch (err: any) {
+      console.error("[CMS] Create quote error:", err);
+      res.status(500).json({ message: err?.message || "Failed to create quote" });
+    }
+  });
+
+  app.patch("/api/admin/cms/quotes/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { id } = req.params;
+      const { speakerName, speakerRole, quoteText, context, quoteType } = req.body;
+      await pool.query(
+        `UPDATE episode_quotes SET speaker_name = COALESCE($1, speaker_name), speaker_role = COALESCE($2, speaker_role), quote_text = COALESCE($3, quote_text), context = COALESCE($4, context), quote_type = COALESCE($5, quote_type) WHERE id = $6`,
+        [speakerName, speakerRole, quoteText, context, quoteType, id]
+      );
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[CMS] Update quote error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update quote" });
+    }
+  });
+
+  app.delete("/api/admin/cms/quotes/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      await pool.query(`DELETE FROM episode_quotes WHERE id = $1`, [req.params.id]);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[CMS] Delete quote error:", err);
+      res.status(500).json({ message: err?.message || "Failed to delete quote" });
+    }
+  });
+
+  app.post("/api/admin/cms/episodes/:podcastSlug/:episodeSlug/regenerate", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    const { podcastSlug, episodeSlug } = req.params;
+    try {
+      const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/admin/regenerate-single-recap`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": req.headers.cookie || "",
+        },
+        body: JSON.stringify({ podcastSlug, episodeSlug }),
+      });
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (err: any) {
+      console.error("[CMS] Regenerate proxy error:", err);
       res.status(500).json({ message: err?.message || "Failed to regenerate" });
     }
   });
