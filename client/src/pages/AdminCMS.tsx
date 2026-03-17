@@ -326,21 +326,62 @@ function PodcastEnrichButton() {
     enabled: polling,
   });
 
+  const pct = enrichStatus && enrichStatus.total > 0 ? Math.round((enrichStatus.done / enrichStatus.total) * 100) : 0;
+  const isComplete = enrichStatus && !enrichStatus.running && enrichStatus.done > 0 && enrichStatus.done === enrichStatus.total;
+
   return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => startEnrich.mutate()}
-        disabled={startEnrich.isPending || polling}
-        className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-        data-testid="button-enrich-podcasts"
-      >
-        {polling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-        {polling ? "Enriching..." : "Enrich All Metadata"}
-      </button>
-      {enrichStatus && (polling || enrichStatus.done > 0) && (
-        <span className="text-xs text-muted-foreground">
-          {enrichStatus.done}/{enrichStatus.total} — {enrichStatus.updated} updated, {enrichStatus.errors} errors
-        </span>
+    <div className="mt-2 space-y-2" data-testid="enrich-panel">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => startEnrich.mutate()}
+          disabled={startEnrich.isPending || polling}
+          className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          data-testid="button-enrich-podcasts"
+        >
+          {polling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          {polling ? "Enriching..." : "Enrich All Metadata"}
+        </button>
+        {enrichStatus && enrichStatus.total > 0 && (
+          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold ${
+            isComplete ? "bg-green-100 text-green-700" : polling ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"
+          }`}>
+            {isComplete ? "✓ Complete" : polling ? `Running ${pct}%` : `Last run: ${pct}%`}
+          </span>
+        )}
+      </div>
+      {enrichStatus && enrichStatus.total > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-green-500" : "bg-primary"}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap w-20 text-right">
+              {enrichStatus.done}/{enrichStatus.total}
+            </span>
+          </div>
+          <div className="flex gap-3 text-xs text-muted-foreground">
+            <span>{enrichStatus.updated} updated</span>
+            <span>{enrichStatus.skipped} skipped</span>
+            {enrichStatus.errors > 0 && <span className="text-red-500">{enrichStatus.errors} errors</span>}
+          </div>
+          {enrichStatus.log && enrichStatus.log.length > 0 && (
+            <details className="mt-1">
+              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                View log ({enrichStatus.log.length} entries)
+              </summary>
+              <div className="mt-1 max-h-40 overflow-y-auto bg-muted/50 rounded-lg p-2 text-xs font-mono space-y-0.5">
+                {enrichStatus.log.slice(-20).map((line: string, i: number) => (
+                  <div key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-muted-foreground"}>
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
       )}
     </div>
   );
