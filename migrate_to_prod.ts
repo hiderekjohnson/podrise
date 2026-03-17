@@ -20,16 +20,23 @@ async function adminLogin(): Promise<void> {
   console.log("Authenticated with production");
 }
 
-async function execBatchOnProd(items: { query: string; params: any[] }[]): Promise<{ inserted: number; errors: number }> {
+async function execBatchOnProd(items: { query: string; params: any[] }[], logErrors = false): Promise<{ inserted: number; errors: number }> {
   try {
     const resp = await fetch(`${PROD_URL}/api/admin/migrate-exec`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: COOKIE },
       body: JSON.stringify({ batch: items }),
     });
-    if (!resp.ok) return { inserted: 0, errors: items.length };
+    if (!resp.ok) {
+      if (logErrors) {
+        const text = await resp.text();
+        console.error(`HTTP ${resp.status}: ${text.substring(0, 200)}`);
+      }
+      return { inserted: 0, errors: items.length };
+    }
     return await resp.json();
-  } catch {
+  } catch (err: any) {
+    if (logErrors) console.error(`Fetch error: ${err.message}`);
     return { inserted: 0, errors: items.length };
   }
 }
@@ -62,11 +69,12 @@ async function migrateLargeTable(
   insertQuery: string,
   mapRow: (row: any) => any[],
   dbBatchSize: number = 500,
-  httpBatchSize: number = 50
+  httpBatchSize: number = 50,
+  startOffset: number = 0
 ) {
   const total = parseInt((await devPool.query(countQuery)).rows[0].cnt);
-  console.log(`\n=== ${tableName}: ${total} rows ===`);
-  let offset = 0, totalInserted = 0, totalErrors = 0;
+  console.log(`\n=== ${tableName}: ${total} rows (starting at offset ${startOffset}) ===`);
+  let offset = startOffset, totalInserted = 0, totalErrors = 0;
   const startTime = Date.now();
   while (offset < total) {
     const { rows } = await devPool.query(`${selectQuery} LIMIT $1 OFFSET $2`, [dbBatchSize, offset]);
@@ -90,6 +98,7 @@ async function migrateLargeTable(
 
 async function main() {
   const tableArg = process.argv[2];
+  const startOffsetArg = parseInt(process.argv[3] || "0") || 0;
   await adminLogin();
   console.log("\n========== MIGRATION ==========");
   console.log(`Started at: ${new Date().toISOString()}`);
@@ -139,7 +148,8 @@ async function main() {
       `SELECT slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published FROM landing_page_recaps ORDER BY id`,
       `INSERT INTO landing_page_recaps (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT (slug, episode_slug) DO NOTHING`,
       (r) => [r.slug, r.itunes_id, r.podcast_name, r.episode_title, r.episode_slug, r.publish_date, r.duration, r.artwork_url, r.hosts, r.tldl, r.what_happened, r.key_insights, r.quote, r.quote_attribution, r.created_at, r.apple_episode_url, r.audio_url, r.key_topics, r.top_questions, r.sponsors, r.guests, r.show_notes, r.resources, r.spotify_episode_url, r.entity_contexts_cache, r.topic_contexts, r.published],
-      500, 50
+      200, 1,
+      startOffsetArg
     );
   }
 
@@ -148,21 +158,55 @@ async function main() {
       "episode_quotes",
       `SELECT COUNT(*) as cnt FROM episode_quotes`,
       `SELECT podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at FROM episode_quotes ORDER BY id`,
-      `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (podcast_slug, episode_slug, quote_text) DO NOTHING`,
+      `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at) SELECT $1,$2,$3,$4,$5,$6,$7,$8 WHERE NOT EXISTS (SELECT 1 FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2 AND quote_text = $5)`,
       (r) => [r.podcast_slug, r.episode_slug, r.speaker_name, r.speaker_role, r.quote_text, r.context, r.quote_type, r.created_at],
-      500, 50
+      1000, 100,
+      startOffsetArg
     );
   }
 
   if (!tableArg || tableArg === "episode_transcripts") {
-    await migrateLargeTable(
-      "episode_transcripts",
-      `SELECT COUNT(*) as cnt FROM episode_transcripts`,
-      `SELECT podcast_id, episode_title, transcript, audio_url, language, created_at FROM episode_transcripts ORDER BY id`,
-      `INSERT INTO episode_transcripts (podcast_id, episode_title, transcript, audio_url, language, created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (podcast_id, episode_title) DO NOTHING`,
-      (r) => [r.podcast_id, r.episode_title, r.transcript, r.audio_url, r.language, r.created_at],
-      100, 10
-    );
+    console.log("\n=== episode_transcripts: smart migration ===");
+    const total = parseInt((await devPool.query("SELECT COUNT(*) as cnt FROM episode_transcripts")).rows[0].cnt);
+    console.log(`  Total dev rows: ${total}, starting from offset ${startOffsetArg}`);
+    
+    let offset = startOffsetArg, totalInserted = 0, totalSkipped = 0;
+    const startTime = Date.now();
+    const insertQuery = `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record, fetched_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) ON CONFLICT (episode_guid) DO NOTHING`;
+    
+    while (offset < total) {
+      const { rows } = await devPool.query(
+        `SELECT podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record, fetched_at FROM episode_transcripts ORDER BY id LIMIT $1 OFFSET $2`,
+        [50, offset]
+      );
+      if (rows.length === 0) break;
+      
+      let batchInserted = 0, batchErrors = 0;
+      const concurrency = 5;
+      for (let i = 0; i < rows.length; i += concurrency) {
+        const chunk = rows.slice(i, i + concurrency);
+        const results = await Promise.all(chunk.map(r => 
+          execBatchOnProd([{
+            query: insertQuery,
+            params: [r.podcast_id, r.episode_guid, r.episode_title, r.transcript, r.description, r.subtitle, r.date_published, r.duration, r.audio_url, r.image_url, r.season_number, r.episode_number, r.episode_type, r.complete_record, r.fetched_at]
+          }])
+        ));
+        for (const { inserted, errors } of results) {
+          batchInserted += inserted;
+          batchErrors += errors;
+        }
+      }
+      totalInserted += batchInserted;
+      totalSkipped += batchErrors;
+      offset += rows.length;
+      
+      const elapsed = (Date.now() - startTime) / 1000;
+      const rate = offset / elapsed;
+      const eta = Math.round((total - offset) / rate);
+      process.stdout.write(`  ${offset}/${total} (${totalInserted} new, ${totalSkipped} skip) ~${eta}s left\r`);
+    }
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    console.log(`  Done: ${totalInserted} inserted, ${totalSkipped} skipped in ${elapsed}s          `);
   }
 
   console.log(`\n========== MIGRATION COMPLETE ==========`);

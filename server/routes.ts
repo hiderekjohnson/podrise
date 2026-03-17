@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import type { Server } from "http";
 import crypto from "crypto";
 import session from "express-session";
@@ -8564,7 +8565,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
-  app.post("/api/admin/migrate-exec", async (req, res) => {
+  app.post("/api/admin/migrate-exec", express.json({ limit: "50mb" }), async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
@@ -8578,7 +8579,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           try {
             await pool.query(item.query, item.params || []);
             inserted++;
-          } catch { errors++; }
+          } catch (e: any) {
+            console.error(`[migrate-exec] Error: ${e.message?.substring(0, 300)}`);
+            errors++;
+          }
         }
         return res.json({ inserted, errors });
       }
@@ -8592,6 +8596,28 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       res.json({ rowCount: result.rowCount });
     } catch (err: any) {
       res.status(500).json({ message: err?.message?.substring(0, 200) || "Query failed" });
+    }
+  });
+
+  app.post("/api/admin/migrate-check-missing", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { table, pairs } = req.body;
+      if (table === "episode_transcripts" && Array.isArray(pairs)) {
+        const existing = await pool.query(
+          "SELECT podcast_id || '|||' || episode_title as pair FROM episode_transcripts WHERE (podcast_id, episode_title) IN (" +
+          pairs.map((_: any, i: number) => `($${i*2+1}::int, $${i*2+2})`).join(",") + ")",
+          pairs.flatMap((p: any) => [p[0], p[1]])
+        );
+        const existingSet = new Set(existing.rows.map((r: any) => r.pair));
+        const missing = pairs.filter((p: any) => !existingSet.has(p[0] + "|||" + p[1]));
+        return res.json({ missing });
+      }
+      res.status(400).json({ message: "Invalid table or params" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message?.substring(0, 200) || "Check failed" });
     }
   });
 
