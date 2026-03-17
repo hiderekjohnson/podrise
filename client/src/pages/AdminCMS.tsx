@@ -7,7 +7,7 @@ import {
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil,
-  Globe, Star, Zap, CheckCircle, XCircle, Play
+  Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -17,6 +17,28 @@ function useDebouncedValue(value: string, delay = 300) {
     return () => clearTimeout(timer);
   }, [value, delay]);
   return debounced;
+}
+
+function CopyableId({ label, value }: { label: string; value: string | number }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`${label}: ${value}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/50 hover:bg-muted border border-border rounded-lg text-xs font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      title={`Copy ${label}`}
+      data-testid={`copy-id-${label.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+      <Hash className="w-3 h-3" />
+      <span className="font-semibold">{label}</span>
+      <span>{value}</span>
+      {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+    </button>
+  );
 }
 
 type CMSView =
@@ -482,6 +504,8 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
           Back to Podcasts
         </button>
       </div>
+
+      <CopyableId label="Podcast ID" value={podcast.id} />
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -1212,6 +1236,8 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
           Back to Episodes
         </button>
       </div>
+
+      <CopyableId label="Episode ID" value={episode.id} />
 
       <div className="flex items-start justify-between">
         <div>
@@ -2047,6 +2073,7 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
           </button>
         </div>
       </div>
+      <CopyableId label="Person ID" value={data.id} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
           {data.photoUrl ? (
@@ -2217,6 +2244,7 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
           </button>
         </div>
       </div>
+      <CopyableId label="Company ID" value={data.id} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
           {data.logoUrl ? (
@@ -2425,7 +2453,8 @@ function ProductsTab() {
                 <img src={p.image_url} alt="" className={`flex-shrink-0 object-cover rounded-lg ${p.source === "book" ? "w-10 h-14" : "w-10 h-10"}`} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CopyableId label={p.source === "book" ? "Book ID" : "Product ID"} value={p.id} />
                   <span className="text-sm font-semibold text-foreground">{p.name}</span>
                   {p.company && <span className="text-xs text-muted-foreground">{p.source === "book" ? "by" : "—"} {p.company}</span>}
                   <StatusBadge status={p.status === "approved" ? "published" : p.status === "rejected" ? "hidden" : "needs_review"} />
