@@ -62,6 +62,8 @@ interface FeedItem {
   appleUrl: string | null;
   spotifyUrl: string | null;
   youtubeUrl: string | null;
+  spotifyEpisodeUrl: string | null;
+  appleEpisodeUrl: string | null;
   mentions: {
     people: MentionEntry[];
     companies: MentionEntry[];
@@ -239,14 +241,156 @@ function MentionAvatar({ src, name, index, kind }: { src: string; name: string; 
   );
 }
 
-function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle, toast }: {
+function parseSpotifyEpisodeId(url: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/open\.spotify\.com\/episode\/([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
+function parseYouTubeVideoId(url: string | null): string | null {
+  if (!url) return null;
+  if (url.includes("/search") || url.includes("search_query")) return null;
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+function SpotifyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+    </svg>
+  );
+}
+
+function YouTubeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+      <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="white"/>
+    </svg>
+  );
+}
+
+function RecapIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+  );
+}
+
+function ListenSection({ item }: { item: FeedItem }) {
+  const spotifyId = parseSpotifyEpisodeId(item.spotifyEpisodeUrl);
+  const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
+  const hasYoutube = !!youtubeId;
+  const spotifyFallbackUrl = item.spotifyEpisodeUrl || item.spotifyUrl;
+  const hasSpotify = !!spotifyId || !!spotifyFallbackUrl;
+  const [activePlayer, setActivePlayer] = useState<"spotify" | "youtube">(hasSpotify ? "spotify" : "youtube");
+
+  if (!spotifyId && !hasYoutube) {
+    if (spotifyFallbackUrl) {
+      return (
+        <div className="px-5 py-4">
+          <a
+            href={spotifyFallbackUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#1DB954] hover:underline"
+            data-testid={`listen-spotify-link-${item.id}`}
+          >
+            <SpotifyIcon className="w-5 h-5" />
+            Listen on Spotify
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  return (
+    <div className="px-5 py-4">
+      {hasSpotify && hasYoutube && (
+        <div className="flex gap-1 mb-3">
+          <button
+            onClick={() => setActivePlayer("spotify")}
+            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-medium transition-all ${
+              activePlayer === "spotify"
+                ? "bg-[#EEF2FF] text-[#6366F1] font-semibold"
+                : "text-[#71717A] hover:bg-[#F4F4F5]"
+            }`}
+            data-testid={`listen-tab-spotify-${item.id}`}
+          >
+            <SpotifyIcon className="w-4 h-4" />
+            Spotify
+          </button>
+          <button
+            onClick={() => setActivePlayer("youtube")}
+            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-medium transition-all ${
+              activePlayer === "youtube"
+                ? "bg-[#EEF2FF] text-[#6366F1] font-semibold"
+                : "text-[#71717A] hover:bg-[#F4F4F5]"
+            }`}
+            data-testid={`listen-tab-youtube-${item.id}`}
+          >
+            <YouTubeIcon className="w-4 h-4" />
+            YouTube
+          </button>
+        </div>
+      )}
+      {activePlayer === "spotify" && spotifyId && (
+        <iframe
+          src={`https://open.spotify.com/embed/episode/${spotifyId}?utm_source=generator&theme=0`}
+          width="100%"
+          height="152"
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+          className="rounded-xl"
+          data-testid={`listen-spotify-embed-${item.id}`}
+        />
+      )}
+      {activePlayer === "spotify" && !spotifyId && spotifyFallbackUrl && (
+        <a
+          href={spotifyFallbackUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#1DB954] hover:underline"
+          data-testid={`listen-spotify-link-${item.id}`}
+        >
+          <SpotifyIcon className="w-5 h-5" />
+          Listen on Spotify
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
+      {activePlayer === "youtube" && youtubeId && (
+        <iframe
+          src={`https://www.youtube.com/embed/${youtubeId}`}
+          width="100%"
+          height="200"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          className="rounded-xl"
+          data-testid={`listen-youtube-embed-${item.id}`}
+        />
+      )}
+    </div>
+  );
+}
+
+function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowToggle, toast }: {
   item: FeedItem;
   isBookmarked: boolean;
   onBookmarkToggle: (episodeSlug: string, podcastSlug: string) => void;
   onFollowToggle: (slug: string, follow: boolean) => void;
   toast: ReturnType<typeof useToast>["toast"];
 }) {
-  const [open, setOpen] = useState(false);
+  const [openSection, setOpenSection] = useState<"recap" | "mentions" | "listen" | null>(null);
   const [activeTab, setActiveTab] = useState<"people" | "companies" | "products">("people");
   const [showAllPeople, setShowAllPeople] = useState(false);
   const [showAllCompanies, setShowAllCompanies] = useState(false);
@@ -254,23 +398,17 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
 
   const { people, companies, products } = item.mentions;
   const totalMentions = people.length + companies.length + products.length;
+  const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
+  const hasRecap = whatHappenedParagraphs.length > 0;
+  const hasMentions = totalMentions > 0;
 
-  if (totalMentions === 0) {
-    return (
-      <div className="border-t border-[#F0F0F2] bg-[#F7F7FC] flex items-center justify-end">
-        <div className="flex items-center gap-[2px] px-[14px] py-2 flex-shrink-0">
-          <button
-            onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
-            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-white hover:text-[#6366F1]"}`}
-            data-testid={`feed-bookmark-${item.id}`}
-          >
-            {isBookmarked ? <BookmarkCheck className="w-[15px] h-[15px]" /> : <Bookmark className="w-[15px] h-[15px]" />}
-          </button>
-          <SharePopover episodeTitle={item.episodeTitle} podcastSlug={item.podcastSlug} episodeSlug={item.episodeSlug} itemId={item.id} toast={toast} />
-        </div>
-      </div>
-    );
-  }
+  const spotifyId = parseSpotifyEpisodeId(item.spotifyEpisodeUrl);
+  const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
+  const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl;
+
+  const toggleSection = (section: "recap" | "mentions" | "listen") => {
+    setOpenSection(prev => prev === section ? null : section);
+  };
 
   const stackItems = [...people.slice(0, 3), ...companies.slice(0, 2)];
   const remaining = totalMentions - stackItems.length;
@@ -285,11 +423,6 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
       setActiveTab(tabs[0].key);
     }
   }, [people.length, companies.length, products.length, activeTab]);
-
-  const summaryParts: string[] = [];
-  if (people.length > 0) summaryParts.push(`${people.length} ${people.length === 1 ? "person" : "people"}`);
-  if (companies.length > 0) summaryParts.push(`${companies.length} ${companies.length === 1 ? "company" : "companies"}`);
-  if (products.length > 0) summaryParts.push(`${products.length} ${products.length === 1 ? "product" : "products"}`);
 
   const renderMentionRows = (items: MentionEntry[], type: "person" | "company", showAll: boolean, onShowMore: () => void) => {
     const visibleItems = showAll ? items : items.slice(0, 3);
@@ -361,54 +494,167 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
   };
 
   return (
-    <div className={`border-t border-[#F0F0F2] bg-[#F7F7FC] ${open ? "ep-mentions-open" : ""}`} data-testid={`feed-mentions-${item.id}`}>
-      <div className="flex items-stretch">
-        <div
-          className={`flex items-center gap-3 px-3 md:px-5 py-[11px] flex-1 min-w-0 cursor-pointer transition-colors ${open ? "bg-[#EEF2FF]" : "hover:bg-[#EEF2FF]"}`}
-          onClick={() => setOpen(!open)}
-          data-testid={`feed-mentions-toggle-${item.id}`}
-        >
-          <div className="flex items-center flex-shrink-0">
-            {stackItems.map((m, i) => {
-              const isPerson = i < people.length;
-              const personImg = isPerson ? (PEOPLE_IMAGE_MAP.get(m.slug) || PEOPLE_IMAGE_MAP.get(m.name.toLowerCase())) : null;
-              const companyImg = !isPerson ? (COMPANY_LOGO_MAP.get(m.slug) || COMPANY_LOGO_MAP.get(m.name.toLowerCase())) : null;
-              const borderColor = open ? "#EEF2FF" : "#F7F7FC";
-              if (isPerson && personImg) {
-                return <img key={m.slug + i} src={personImg} alt={m.name} className={`w-[34px] h-[34px] rounded-full flex-shrink-0 object-cover ${i > 0 ? "-ml-[9px]" : ""}`} style={{ border: `2.5px solid ${borderColor}` }} loading="lazy" />;
-              }
-              if (!isPerson && companyImg) {
-                return <img key={m.slug + i} src={companyImg} alt={m.name} className={`w-[34px] h-[34px] rounded-lg flex-shrink-0 object-cover bg-white ${i > 0 ? "-ml-[9px]" : ""}`} style={{ border: `2.5px solid ${borderColor}` }} loading="lazy" />;
-              }
-              const colors = getAvatarColor(i);
-              return (
-                <div
-                  key={m.slug + i}
-                  className={`w-[34px] h-[34px] flex-shrink-0 flex items-center justify-center text-[11px] font-bold ${i > 0 ? "-ml-[9px]" : ""} ${
-                    isPerson ? "rounded-full" : "rounded-lg"
-                  }`}
-                  style={{ background: colors.bg, color: colors.color, border: `2.5px solid ${borderColor}` }}
-                >
-                  {getInitials(m.name)}
+    <div data-testid={`feed-accordion-${item.id}`}>
+      {hasRecap && (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-recap-section-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "recap" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("recap")}
+            data-testid={`feed-recap-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              <RecapIcon className="w-[22px] h-[22px] text-[#6366F1]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Episode Recap</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "recap" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "recap" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="px-5 md:px-6 py-4 border-t border-[#F0F0F2]">
+                  <div className="text-[16px] text-[#52525B] leading-[1.8]" data-testid={`feed-recap-${item.id}`}>
+                    {whatHappenedParagraphs.map((para, i) => (
+                      <p key={i} className="mb-[14px] last:mb-0">{para}</p>
+                    ))}
+                  </div>
                 </div>
-              );
-            })}
-            {remaining > 0 && (
-              <div className="w-[34px] h-[34px] rounded-full flex-shrink-0 -ml-[9px] bg-[#E4E4E7] text-[#71717A] text-[10px] font-bold flex items-center justify-center" style={{ fontFamily: "var(--font-mono)", border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` }}>
-                +{remaining}
-              </div>
+              </motion.div>
             )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[14px] font-semibold text-[#09090B]">Mentioned in this episode</div>
-            <div className="text-[13px] text-[#71717A] mt-[2px]">{summaryParts.join(" · ")}</div>
-          </div>
-          <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform ${open ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </AnimatePresence>
         </div>
-        <div className="flex items-center gap-[2px] px-[10px] md:px-[14px] py-2 border-l border-[#F0F0F2] flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      )}
+
+      {hasMentions && (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-mentions-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "mentions" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("mentions")}
+            data-testid={`feed-mentions-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              {stackItems.map((m, i) => {
+                const isPerson = i < people.length;
+                const personImg = isPerson ? (PEOPLE_IMAGE_MAP.get(m.slug) || PEOPLE_IMAGE_MAP.get(m.name.toLowerCase())) : null;
+                const companyImg = !isPerson ? (COMPANY_LOGO_MAP.get(m.slug) || COMPANY_LOGO_MAP.get(m.name.toLowerCase())) : null;
+                const borderColor = openSection === "mentions" ? "#F7F7FC" : "#FFFFFF";
+                if (isPerson && personImg) {
+                  return <img key={m.slug + i} src={personImg} alt={m.name} className={`w-[28px] h-[28px] rounded-full flex-shrink-0 object-cover ${i > 0 ? "-ml-[8px]" : ""}`} style={{ border: `2px solid ${borderColor}` }} loading="lazy" />;
+                }
+                if (!isPerson && companyImg) {
+                  return <img key={m.slug + i} src={companyImg} alt={m.name} className={`w-[28px] h-[28px] rounded-lg flex-shrink-0 object-cover bg-white ${i > 0 ? "-ml-[8px]" : ""}`} style={{ border: `2px solid ${borderColor}` }} loading="lazy" />;
+                }
+                const colors = getAvatarColor(i);
+                return (
+                  <div
+                    key={m.slug + i}
+                    className={`w-[28px] h-[28px] flex-shrink-0 flex items-center justify-center text-[10px] font-bold ${i > 0 ? "-ml-[8px]" : ""} ${
+                      isPerson ? "rounded-full" : "rounded-lg"
+                    }`}
+                    style={{ background: colors.bg, color: colors.color, border: `2px solid ${borderColor}` }}
+                  >
+                    {getInitials(m.name)}
+                  </div>
+                );
+              })}
+              {remaining > 0 && (
+                <div className="w-[28px] h-[28px] rounded-full flex-shrink-0 -ml-[8px] bg-[#E4E4E7] text-[#71717A] text-[9px] font-bold flex items-center justify-center" style={{ fontFamily: "var(--font-mono)", border: `2px solid ${openSection === "mentions" ? "#F7F7FC" : "#FFFFFF"}` }}>
+                  +{remaining}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Mentioned in this episode</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "mentions" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "mentions" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden border-t border-[#F0F0F2]"
+              >
+                <div className="flex border-b border-[#F0F0F2] px-6">
+                  {tabs.map((tab, i) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`flex items-center gap-[6px] py-[11px] px-[14px] text-[14px] font-medium border-b-2 -mb-px transition-colors select-none whitespace-nowrap ${
+                        i === 0 ? "pl-0" : ""
+                      } ${
+                        activeTab === tab.key
+                          ? "text-[#6366F1] border-[#6366F1] font-semibold"
+                          : "text-[#A1A1AA] border-transparent hover:text-[#52525B]"
+                      }`}
+                      data-testid={`mention-tab-${tab.key}-${item.id}`}
+                    >
+                      {tab.label}
+                      <span className={`text-[11px] font-semibold px-[7px] py-[1px] rounded-full transition-all ${
+                        activeTab === tab.key ? "bg-[#EEF2FF] text-[#6366F1]" : "bg-[#F0F0F2] text-[#71717A]"
+                      }`} style={{ fontFamily: "var(--font-mono)" }}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="px-6 pb-1">
+                  {activeTab === "people" && renderMentionRows(people, "person", showAllPeople, () => setShowAllPeople(true))}
+                  {activeTab === "companies" && renderMentionRows(companies, "company", showAllCompanies, () => setShowAllCompanies(true))}
+                  {activeTab === "products" && renderProductRows(products, showAllProducts, () => setShowAllProducts(true))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {hasListen && (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-listen-section-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "listen" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("listen")}
+            data-testid={`feed-listen-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              <SpotifyIcon className="w-[22px] h-[22px] text-[#1DB954]" />
+              {youtubeId && <YouTubeIcon className="w-[22px] h-[22px] text-[#FF0000] -ml-[4px]" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Listen to this episode</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "listen" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "listen" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden border-t border-[#F0F0F2]"
+              >
+                <ListenSection item={item} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      <div className="border-t border-[#E4E4E7] flex items-center justify-end px-3 md:px-4 py-2">
+        <div className="flex items-center gap-[2px]">
           <button
             onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
-            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-white hover:text-[#6366F1]"}`}
+            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-[#F4F4F5] hover:text-[#6366F1]"}`}
             data-testid={`feed-bookmark-${item.id}`}
           >
             {isBookmarked ? <BookmarkCheck className="w-[15px] h-[15px]" /> : <Bookmark className="w-[15px] h-[15px]" />}
@@ -416,7 +662,7 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
           <SharePopover episodeTitle={item.episodeTitle} podcastSlug={item.podcastSlug} episodeSlug={item.episodeSlug} itemId={item.id} toast={toast} />
           <button
             onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
-            className={`ml-1 px-4 py-[6px] rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
+            className={`ml-2 px-4 py-[6px] rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
               item.isFollowing
                 ? "bg-white text-[#52525B] border-[1.5px] border-[#E4E4E7] hover:border-[#6366F1] hover:text-[#6366F1]"
                 : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
@@ -427,46 +673,6 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
           </button>
         </div>
       </div>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="overflow-hidden border-t border-[#F0F0F2]"
-          >
-            <div className="flex border-b border-[#F0F0F2] px-6">
-              {tabs.map((tab, i) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-[6px] py-[11px] px-[14px] text-[14px] font-medium border-b-2 -mb-px transition-colors select-none whitespace-nowrap ${
-                    i === 0 ? "pl-0" : ""
-                  } ${
-                    activeTab === tab.key
-                      ? "text-[#6366F1] border-[#6366F1] font-semibold"
-                      : "text-[#A1A1AA] border-transparent hover:text-[#52525B]"
-                  }`}
-                  data-testid={`mention-tab-${tab.key}-${item.id}`}
-                >
-                  {tab.label}
-                  <span className={`text-[11px] font-semibold px-[7px] py-[1px] rounded-full transition-all ${
-                    activeTab === tab.key ? "bg-[#EEF2FF] text-[#6366F1]" : "bg-[#F0F0F2] text-[#71717A]"
-                  }`} style={{ fontFamily: "var(--font-mono)" }}>
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="px-6 pb-1">
-              {activeTab === "people" && renderMentionRows(people, "person", showAllPeople, () => setShowAllPeople(true))}
-              {activeTab === "companies" && renderMentionRows(companies, "company", showAllCompanies, () => setShowAllCompanies(true))}
-              {activeTab === "products" && renderProductRows(products, showAllProducts, () => setShowAllProducts(true))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -529,7 +735,6 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
   const isBookmarked = bookmarkedKeys.has(`${item.podcastSlug}::${item.episodeSlug}`);
   const headerTint = getHeaderTint(item.artworkUrl || item.podcastSlug);
   const allInsights = item.keyInsights || [];
-  const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
 
   return (
     <article
@@ -617,7 +822,7 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
         )}
 
         {item.quote && (
-          <div className="border-l-[3px] border-[#8B5CF6] rounded-r-[10px] px-[18px] py-[14px] bg-[#F7F7FC] mb-5">
+          <div className="border-l-[3px] border-[#8B5CF6] rounded-r-[10px] px-[18px] py-[14px] bg-[#F7F7FC]">
             <div className="text-[18px] italic text-[#52525B] leading-[1.65] mb-2" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-quote-${item.id}`}>
               "{item.quote}"
             </div>
@@ -626,20 +831,9 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
             )}
           </div>
         )}
-
-        {whatHappenedParagraphs.length > 0 && (
-          <div>
-            <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Episode Recap</div>
-            <div className="text-[16px] text-[#52525B] leading-[1.8]" data-testid={`feed-recap-${item.id}`}>
-              {whatHappenedParagraphs.map((para, i) => (
-                <p key={i} className="mb-[14px] last:mb-0">{para}</p>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      <MentionsSection
+      <CardBottomAccordion
         item={item}
         isBookmarked={isBookmarked}
         onBookmarkToggle={onBookmarkToggle}
