@@ -91,6 +91,8 @@ interface CMSQuote {
 interface CMSEpisodeDetail {
   id: number;
   slug: string;
+  podcast_name: string;
+  itunes_id: string;
   episode_title: string;
   episode_slug: string;
   publish_date: string;
@@ -112,6 +114,11 @@ interface CMSEpisodeDetail {
   entity_contexts_cache: string | Record<string, string>;
   quotes: CMSQuote[];
   extractedProducts: ExtractedProduct[];
+  spotify_episode_url: string;
+  apple_episode_url: string;
+  audio_url: string;
+  show_notes: string;
+  topic_contexts: string;
 }
 
 interface PodcastForm {
@@ -163,6 +170,10 @@ interface EpisodeForm {
   keyTopics: string[];
   status: string;
   entityContexts: EntityEntry[];
+  spotifyEpisodeUrl: string;
+  appleEpisodeUrl: string;
+  audioUrl: string;
+  showNotes: string;
 }
 
 interface EditingQuote {
@@ -804,6 +815,10 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         keyTopics: episode.key_topics || [],
         status: episode.status || "published",
         entityContexts: entityEntries,
+        spotifyEpisodeUrl: episode.spotify_episode_url || "",
+        appleEpisodeUrl: episode.apple_episode_url || "",
+        audioUrl: episode.audio_url || "",
+        showNotes: episode.show_notes || "",
       });
     }
   }, [episode]);
@@ -1245,6 +1260,54 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
               </div>
             </div>
           </div>
+
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-foreground">Top Questions</h4>
+              <button
+                onClick={() => setForm({ ...form, topQuestions: [...form.topQuestions, ""] })}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+                data-testid="button-add-question"
+              >
+                <Plus className="w-3 h-3" /> Add
+              </button>
+            </div>
+            {form.topQuestions.length === 0 && <p className="text-xs text-muted-foreground">No top questions.</p>}
+            {form.topQuestions.map((q: string, i: number) => (
+              <div key={i} className="flex items-start gap-2" data-testid={`question-item-${i}`}>
+                <input
+                  value={q}
+                  onChange={(e) => {
+                    const updated = [...form.topQuestions];
+                    updated[i] = e.target.value;
+                    setForm({ ...form, topQuestions: updated });
+                  }}
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-sm"
+                  placeholder="Question this episode answers..."
+                  data-testid={`input-question-${i}`}
+                />
+                <button
+                  onClick={() => setForm({ ...form, topQuestions: form.topQuestions.filter((_: string, idx: number) => idx !== i) })}
+                  className="text-muted-foreground hover:text-red-500 pt-2"
+                  data-testid={`button-delete-question-${i}`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+            <h4 className="text-sm font-bold text-foreground">Show Notes</h4>
+            <textarea
+              data-testid="input-cms-show-notes"
+              value={form.showNotes}
+              onChange={(e) => setForm({ ...form, showNotes: e.target.value })}
+              rows={6}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
+              placeholder="Original show notes..."
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -1306,6 +1369,52 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                 onChange={(e) => setForm({ ...form, hosts: e.target.value })}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm"
               />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
+            <h4 className="text-sm font-bold text-foreground">Episode Links</h4>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Apple Podcasts URL</label>
+              <input
+                data-testid="input-cms-apple-url"
+                type="text"
+                value={form.appleEpisodeUrl}
+                onChange={(e) => setForm({ ...form, appleEpisodeUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                placeholder="https://podcasts.apple.com/..."
+              />
+              {form.appleEpisodeUrl && (
+                <a href={form.appleEpisodeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block" data-testid="link-apple-episode">Open in Apple Podcasts</a>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Spotify URL</label>
+              <input
+                data-testid="input-cms-spotify-url"
+                type="text"
+                value={form.spotifyEpisodeUrl}
+                onChange={(e) => setForm({ ...form, spotifyEpisodeUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                placeholder="https://open.spotify.com/episode/..."
+              />
+              {form.spotifyEpisodeUrl && (
+                <a href={form.spotifyEpisodeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block" data-testid="link-spotify-episode">Open in Spotify</a>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Audio URL</label>
+              <input
+                data-testid="input-cms-audio-url"
+                type="text"
+                value={form.audioUrl}
+                onChange={(e) => setForm({ ...form, audioUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                placeholder="https://..."
+              />
+              {form.audioUrl && (
+                <a href={form.audioUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block" data-testid="link-audio">Listen to audio</a>
+              )}
             </div>
           </div>
 

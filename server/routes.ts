@@ -8767,7 +8767,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       let extractedProducts: any[] = [];
       try {
         const { rows: prodRows } = await pool.query(
-          `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url FROM extracted_products WHERE podcast_slug = $1 AND episode_slug = $2 ORDER BY name`,
+          `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url FROM extracted_products WHERE podcast_slug = $1 AND (episode_slug = $2 OR episode_slug LIKE $2 || '%' OR $2 LIKE episode_slug || '%') ORDER BY name`,
           [podcastSlug, episodeSlug]
         );
         extractedProducts = prodRows;
@@ -8796,6 +8796,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         topicContexts: "topic_contexts", sponsors: "sponsors", resources: "resources",
         showNotes: "show_notes", status: "status", topQuestions: "top_questions",
         entityContextsCache: "entity_contexts_cache",
+        spotifyEpisodeUrl: "spotify_episode_url", appleEpisodeUrl: "apple_episode_url",
+        audioUrl: "audio_url",
       };
       const sets: string[] = [];
       const params: any[] = [];
