@@ -730,6 +730,21 @@ export async function registerRoutes(
       CREATE INDEX IF NOT EXISTS idx_entity_mentions_recap ON entity_episode_mentions (recap_id);
       CREATE INDEX IF NOT EXISTS idx_entity_mentions_podcast ON entity_episode_mentions (podcast_slug);
     `);
+    await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS bookmarks (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        episode_slug TEXT NOT NULL,
+        podcast_slug TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS advertisers (
+        id SERIAL PRIMARY KEY,
+        message TEXT NOT NULL,
+        link TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
   }
