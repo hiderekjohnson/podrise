@@ -16205,7 +16205,31 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           if (random <= 0) { results.push(ad); break; }
         }
       }
-      res.json({ ads: results, frequency: freq });
+      let enriched = results;
+      try {
+        const podcastSlugs = [...new Set(results.filter(a => a.type === "podcast" && a.podcastSlug).map(a => a.podcastSlug!))];
+        if (podcastSlugs.length > 0) {
+          const placeholders = podcastSlugs.map((_, i) => `$${i + 1}`).join(",");
+          const { rows } = await pool.query(
+            `SELECT slug, artwork_url FROM podcasts WHERE slug IN (${placeholders})`,
+            podcastSlugs
+          );
+          const podcastArtwork: Record<string, string> = {};
+          for (const r of rows) {
+            if (r.artwork_url) podcastArtwork[r.slug] = r.artwork_url;
+          }
+          enriched = results.map(ad => {
+            if (ad.type === "podcast" && ad.podcastSlug && (!ad.imageUrl || ad.imageUrl === "")) {
+              const artwork = podcastArtwork[ad.podcastSlug];
+              if (artwork) return { ...ad, imageUrl: artwork };
+            }
+            return ad;
+          });
+        }
+      } catch (artworkErr) {
+        console.log("[FeedAds] Artwork enrichment skipped (podcasts table may not exist)");
+      }
+      res.json({ ads: enriched, frequency: freq });
     } catch (err) {
       console.error("[FeedAds] Batch error:", err);
       res.status(500).json({ error: "Failed to fetch feed ads" });
@@ -16439,20 +16463,39 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS feed_ads (
+          id SERIAL PRIMARY KEY,
+          type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          image_url TEXT NOT NULL,
+          destination_url TEXT DEFAULT '',
+          podcast_slug TEXT,
+          weight INTEGER NOT NULL DEFAULT 1,
+          is_active BOOLEAN NOT NULL DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS feed_ad_settings (
+          id SERIAL PRIMARY KEY,
+          key TEXT NOT NULL UNIQUE,
+          value TEXT NOT NULL
+        );
+      `);
       const { rows: feedAdCount } = await pool.query("SELECT COUNT(*)::int AS count FROM feed_ads");
       if (feedAdCount[0].count === 0) {
         console.log("[FeedAdSeed] No feed ads found — seeding defaults...");
         const demoAds = [
-          { type: "podcast", title: "Fresh Air", description: "Award-winning NPR podcast featuring intimate conversations with today's biggest luminaries. Over 1,000,000 downloads per episode. A must-follow for curious minds.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/d6/31/a4d63137-91f0-a73a-07e3-0a0b0e8617e5/mza_13866365516284798537.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "fresh-air", weight: 3 },
-          { type: "podcast", title: "The Daily", description: "The biggest stories of our day, told by the best journalists in the world. From The New York Times, this is the podcast millions trust to start their morning.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/1c/ac/04/1cac0421-4483-ff09-4f80-19710d9feda4/mza_12421371692158516891.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "the-daily", weight: 2 },
-          { type: "podcast", title: "Radiolab", description: "Investigating a strange world through science, philosophy and human experience. Radiolab has been a Peabody Award-winning podcast since 2002.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/91/93/ea/9193eaa1-1261-936a-d1f6-a4f3b6e2221e/mza_4417378394975087647.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "radiolab", weight: 2 },
-          { type: "podcast", title: "How I Built This", description: "Guy Raz dives into the stories behind some of the world's best known companies. Entrepreneurs share the incredible journeys of building their iconic brands.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/80/a7/f0/80a7f04b-8ed0-c85d-a767-f8be84a6e8f6/mza_16618981505tried432.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "how-i-built-this", weight: 1 },
-          { type: "podcast", title: "Freakonomics Radio", description: "Discover the hidden side of everything with host Stephen Dubner. The podcast that makes you question conventional wisdom with data-driven insights.", imageUrl: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/7d/c9/d5/7dc9d5f6-dc06-8f2c-3c61-2699b0ef42ab/mza_8908910437421367498.jpg/100x100bb.jpg", destinationUrl: "", podcastSlug: "freakonomics-radio", weight: 1 },
-          { type: "regular", title: "AG1", description: "The ultimate daily nutrition supplement trusted by millions. Get your daily greens, vitamins, and probiotics in one scoop. Try AG1 today and save 50% on your first order.", imageUrl: "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=200&h=200&fit=crop", destinationUrl: "https://www.drinkag1.com", podcastSlug: null, weight: 3 },
-          { type: "regular", title: "Squarespace", description: "Build a beautiful website for your podcast, portfolio, or business. Start your free trial today — no credit card required. Everything you need to grow online.", imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200&h=200&fit=crop", destinationUrl: "https://www.squarespace.com", podcastSlug: null, weight: 2 },
-          { type: "regular", title: "BetterHelp", description: "Professional therapy, accessible anywhere. Connect with a licensed therapist from the comfort of your home. Get 25% off your first month with code PODCAST.", imageUrl: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=200&h=200&fit=crop", destinationUrl: "https://www.betterhelp.com", podcastSlug: null, weight: 2 },
-          { type: "regular", title: "NordVPN", description: "Protect your privacy online with military-grade encryption. Stream content from anywhere, browse securely, and stay anonymous. 68% off 2-year plans.", imageUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=200&h=200&fit=crop", destinationUrl: "https://www.nordvpn.com", podcastSlug: null, weight: 1 },
-          { type: "regular", title: "Athletic Greens", description: "Comprehensive daily nutrition made simple. 75 vitamins, minerals, and whole food-sourced ingredients in one delicious drink. Free welcome kit with first purchase.", imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&h=200&fit=crop", destinationUrl: "https://www.athleticgreens.com", podcastSlug: null, weight: 1 },
+          { type: "podcast", title: "Fresh Air", description: "This is amazing podcast about the health of our earth, a 5 star podcast with over 1,000,000 downloads. Def a worthy follow.", imageUrl: "", destinationUrl: "", podcastSlug: "freshair", weight: 3 },
+          { type: "podcast", title: "Hidden Brain", description: "One of the best psychology podcasts out there. Shankar Vedantam makes complex science feel personal and deeply human.", imageUrl: "", destinationUrl: "", podcastSlug: "hiddenbrain", weight: 3 },
+          { type: "podcast", title: "How I Built This", description: "Guy Raz interviews the world's best known entrepreneurs to learn how they built their iconic companies. Over 500 episodes of pure gold.", imageUrl: "", destinationUrl: "", podcastSlug: "howibuiltthis", weight: 3 },
+          { type: "podcast", title: "Acquired", description: "The #1 business podcast. Ben and David break down the greatest technology acquisitions and IPOs of all time. Obsessively researched.", imageUrl: "", destinationUrl: "", podcastSlug: "acquired", weight: 3 },
+          { type: "podcast", title: "The Daily", description: "The biggest stories of our time, told by the best journalists in the world. 20 minutes a day is all you need to stay informed.", imageUrl: "", destinationUrl: "", podcastSlug: "thedaily", weight: 3 },
+          { type: "regular", title: "AG1", description: "This is an amazing product, the best product in the world. Click here to save 50% off today on your first order www.ag1.com/podrise", imageUrl: "https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=200&h=200&fit=crop", destinationUrl: "https://www.ag1.com/podrise", podcastSlug: null, weight: 3 },
+          { type: "regular", title: "Notion", description: "The all-in-one workspace for your notes, tasks, wikis, and databases. Try it free — over 30 million people already have.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png", destinationUrl: "https://www.notion.so", podcastSlug: null, weight: 3 },
+          { type: "regular", title: "Riverside.fm", description: "Record podcasts and videos in studio quality from anywhere. Used by top podcasters worldwide. Get 20% off with code PODCAP.", imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=200&h=200&fit=crop", destinationUrl: "https://riverside.fm", podcastSlug: null, weight: 3 },
+          { type: "regular", title: "Linear", description: "The issue tracker built for modern software teams. Fast, beautiful, and designed to keep your team in flow.", imageUrl: "https://asset.brandfetch.io/iduDa181eM/id9wLqBTfn.png", destinationUrl: "https://linear.app", podcastSlug: null, weight: 3 },
+          { type: "regular", title: "Superhuman", description: "The fastest email experience ever made. Get through your inbox twice as fast. Try it free for 30 days.", imageUrl: "https://asset.brandfetch.io/idZAb_dELm/idPJJfnOlY.png", destinationUrl: "https://superhuman.com", podcastSlug: null, weight: 3 },
         ];
         for (const ad of demoAds) {
           await pool.query(
