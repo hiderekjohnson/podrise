@@ -166,17 +166,17 @@ async function backfillAIFields() {
     
     try {
       const { rows: transcriptRows } = await pool.query(`
-        SELECT full_text FROM episode_transcripts
+        SELECT transcript FROM episode_transcripts
         WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2))
         LIMIT 1
       `, [row.itunes_id, row.episode_title]);
 
-      if (!transcriptRows[0]?.full_text) {
+      if (!transcriptRows[0]?.transcript) {
         backfillState.processed++;
         continue;
       }
 
-      const transcript = transcriptRows[0].full_text;
+      const transcript = transcriptRows[0].transcript;
       const { processFullTranscript } = await import("./transcriptChunker");
       const processedTranscript = processFullTranscript(transcript);
 
@@ -260,17 +260,17 @@ async function backfillQuotes() {
 
     try {
       const { rows: transcriptRows } = await pool.query(`
-        SELECT full_text FROM episode_transcripts
+        SELECT transcript FROM episode_transcripts
         WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2))
         LIMIT 1
       `, [row.itunes_id, row.episode_title]);
 
-      if (!transcriptRows[0]?.full_text) {
+      if (!transcriptRows[0]?.transcript) {
         backfillState.processed++;
         continue;
       }
 
-      const transcript = transcriptRows[0].full_text;
+      const transcript = transcriptRows[0].transcript;
       const { processFullTranscript } = await import("./transcriptChunker");
       const processedTranscript = processFullTranscript(transcript);
 
