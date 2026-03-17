@@ -19,10 +19,13 @@ function useDebouncedValue(value: string, delay = 300) {
   return debounced;
 }
 
-function CopyableId({ label, value }: { label: string; value: string | number }) {
+function CopyableId({ label, value, context }: { label: string; value: string | number; context?: string }) {
   const [copied, setCopied] = useState(false);
+  const copyText = context
+    ? `production#${value} (${label} — ${context})`
+    : `production#${value} (${label})`;
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${label}: ${value}`);
+    navigator.clipboard.writeText(copyText);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -30,12 +33,11 @@ function CopyableId({ label, value }: { label: string; value: string | number })
     <button
       onClick={handleCopy}
       className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/50 hover:bg-muted border border-border rounded-lg text-xs font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-      title={`Copy ${label}`}
+      title={`Copy: ${copyText}`}
       data-testid={`copy-id-${label.toLowerCase().replace(/\s+/g, "-")}`}
     >
       <Hash className="w-3 h-3" />
-      <span className="font-semibold">{label}</span>
-      <span>{value}</span>
+      <span className="font-semibold text-foreground">production#{value}</span>
       {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
     </button>
   );
@@ -505,7 +507,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
         </button>
       </div>
 
-      <CopyableId label="Podcast ID" value={podcast.id} />
+      <CopyableId label="Podcast" value={podcast.id} context={podcast.name} />
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -1237,7 +1239,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         </button>
       </div>
 
-      <CopyableId label="Episode ID" value={episode.id} />
+      <CopyableId label="Episode" value={episode.id} context={episode.episode_title} />
 
       <div className="flex items-start justify-between">
         <div>
@@ -2073,7 +2075,7 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
           </button>
         </div>
       </div>
-      <CopyableId label="Person ID" value={data.id} />
+      <CopyableId label="Person" value={data.id} context={data.name} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
           {data.photoUrl ? (
@@ -2244,7 +2246,7 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
           </button>
         </div>
       </div>
-      <CopyableId label="Company ID" value={data.id} />
+      <CopyableId label="Company" value={data.id} context={data.name} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
           {data.logoUrl ? (
@@ -2454,7 +2456,7 @@ function ProductsTab() {
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <CopyableId label={p.source === "book" ? "Book ID" : "Product ID"} value={p.id} />
+                  <CopyableId label={p.source === "book" ? "Book" : "Product"} value={p.id} context={p.name} />
                   <span className="text-sm font-semibold text-foreground">{p.name}</span>
                   {p.company && <span className="text-xs text-muted-foreground">{p.source === "book" ? "by" : "—"} {p.company}</span>}
                   <StatusBadge status={p.status === "approved" ? "published" : p.status === "rejected" ? "hidden" : "needs_review"} />
