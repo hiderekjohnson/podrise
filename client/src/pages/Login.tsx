@@ -65,7 +65,7 @@ export default function Login() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex flex-col items-center justify-center px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-8">
             <PodCapWordmark />
@@ -91,7 +91,7 @@ export default function Login() {
           <button
             data-testid="button-back-to-login"
             onClick={() => { setEmailSent(false); loginMutation.reset(); }}
-            className="text-sm text-primary font-semibold hover:underline"
+            className="text-[14px] text-primary font-semibold hover:underline min-h-[44px]"
           >
             Use a different email
           </button>
@@ -101,7 +101,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center justify-center px-5 sm:px-6 lg:px-8">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-8">
           <PodCapWordmark />

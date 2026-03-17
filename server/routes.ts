@@ -294,24 +294,25 @@ async function sendVerificationEmail(user: { id: number; email: string }) {
     to: user.email,
     subject: "Confirm your email address",
     html: `<!DOCTYPE html>
-<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
-<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-<div style="padding:40px 32px 24px;text-align:center;">
-<div style="width:56px;height:56px;margin:0 auto 20px;background:#f0f4ff;border-radius:14px;display:flex;align-items:center;justify-content:center;">
-<span style="font-size:28px;">📬</span>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+<div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#6366F1,#8B5CF6);padding:32px 24px;text-align:center;">
+<h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap</h1>
 </div>
-<h1 style="margin:0 0 8px;color:#18181b;font-size:22px;font-weight:800;">Confirm your email</h1>
-<p style="margin:0;color:#71717a;font-size:15px;line-height:1.5;">Tap the button below to verify your email address and activate your PodCap account.</p>
+<div style="padding:32px 28px;text-align:center;">
+<h2 style="margin:0 0 12px;color:#09090B;font-size:22px;font-weight:700;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Confirm your email</h2>
+<p style="margin:0 0 24px;color:#52525B;font-size:15px;line-height:1.6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Tap the button below to verify your email address and activate your PodCap account.</p>
+<a href="${verifyUrl}" style="display:inline-block;background:#6366F1;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:-0.01em;box-shadow:0 4px 12px rgba(99,102,241,0.3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Verify Email Address</a>
+<p style="margin:24px 0 0;color:#a1a1aa;font-size:13px;line-height:1.5;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">This link expires in 24 hours.<br/>If you didn't create a PodCap account, you can ignore this email.</p>
 </div>
-<div style="padding:0 32px 32px;text-align:center;">
-<a href="${verifyUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:-0.01em;">Verify Email Address</a>
-<p style="margin:20px 0 0;color:#a1a1aa;font-size:13px;line-height:1.5;">This link expires in 24 hours.<br/>If you didn't create a PodCap account, you can ignore this email.</p>
-</div>
-<div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
-<span style="font-size:12px;color:#a1a1aa;">PodCap — The intelligence layer on top of podcasts</span>
+<div style="padding:16px 28px;background:#f7f7fc;text-align:center;border-top:1px solid #F0F0F2;">
+<span style="font-size:13px;color:#52525B;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap — The intelligence layer on top of podcasts</span>
 </div>
 </div>
-</body></html>`,
+</body>
+</html>`,
   });
 
   console.log(`[VerifyEmail] Verification email sent to ${user.email}`);
@@ -1803,16 +1804,19 @@ If you don't know the answer to something, be honest about it and suggest the us
         html: `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
-  <div style="max-width:480px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-    <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">PodCap</h1>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#6366F1,#8B5CF6);padding:32px 24px;text-align:center;">
+      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap</h1>
     </div>
     <div style="padding:32px 28px;text-align:center;">
-      <h2 style="color:#1a1a1a;font-size:20px;font-weight:700;margin:0 0 12px 0;">Log in to PodCap</h2>
-      <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px 0;">Click the button below to securely log in. This link expires in 15 minutes.</p>
-      <a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(37,99,235,0.3);">Log in to PodCap</a>
-      <p style="color:#9ca3af;font-size:12px;margin:24px 0 0 0;">If you didn't request this, you can safely ignore this email.</p>
+      <h2 style="color:#09090B;font-size:20px;font-weight:700;margin:0 0 12px 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Log in to PodCap</h2>
+      <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Click the button below to securely log in. This link expires in 15 minutes.</p>
+      <a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(99,102,241,0.3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Log in to PodCap</a>
+      <p style="color:#a1a1aa;font-size:13px;margin:24px 0 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">If you didn't request this, you can safely ignore this email.</p>
+    </div>
+    <div style="padding:16px 28px;background:#f7f7fc;text-align:center;border-top:1px solid #F0F0F2;">
+      <span style="font-size:13px;color:#52525B;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap — The intelligence layer on top of podcasts</span>
     </div>
   </div>
 </body>

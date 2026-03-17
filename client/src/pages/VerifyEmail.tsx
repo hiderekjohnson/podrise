@@ -64,7 +64,7 @@ export default function VerifyEmail() {
 
   if (status === "check-inbox") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 sm:px-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5 sm:px-6">
         <div className="flex justify-center mb-8">
           <Link href="/" data-testid="link-home-logo">
             <PodCapWordmark />
@@ -76,7 +76,7 @@ export default function VerifyEmail() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-[440px]"
         >
-          <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-8 sm:p-10 text-center">
+          <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-10 text-center">
             <div className="w-16 h-16 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-6">
               <Mail className="w-8 h-8 text-primary" />
             </div>
@@ -102,7 +102,7 @@ export default function VerifyEmail() {
                 data-testid="button-resend-verification"
                 onClick={handleResend}
                 disabled={resending || resent}
-                className="w-full h-[48px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98]"
+                className="w-full h-[48px] min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98]"
               >
                 {resending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -125,7 +125,7 @@ export default function VerifyEmail() {
 
   if (status === "verifying") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5">
         <div className="flex justify-center mb-8">
           <Link href="/" data-testid="link-home-logo">
             <PodCapWordmark />
@@ -146,7 +146,7 @@ export default function VerifyEmail() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 sm:px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5 sm:px-6">
       <div className="flex justify-center mb-8">
         <Link href="/" data-testid="link-home-logo">
           <PodCapWordmark />
@@ -158,7 +158,7 @@ export default function VerifyEmail() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-[440px]"
       >
-        <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-8 sm:p-10 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-10 text-center">
           <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-6">
             <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
@@ -175,7 +175,7 @@ export default function VerifyEmail() {
             <Link href="/register">
               <button
                 data-testid="button-try-again"
-                className="w-full h-[48px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
+                className="w-full h-[48px] min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98]"
               >
                 Create a new account
               </button>
@@ -183,7 +183,7 @@ export default function VerifyEmail() {
             <Link href="/login">
               <button
                 data-testid="button-login-instead"
-                className="w-full h-[44px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[14px] text-[#52525B] dark:text-[#A1A1AA] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
+                className="w-full h-[44px] min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[14px] text-[#52525B] dark:text-[#A1A1AA] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
               >
                 Sign in to existing account
               </button>

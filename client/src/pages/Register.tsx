@@ -64,7 +64,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-950 px-4 sm:px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-950 px-5 sm:px-6">
       <a href="#register-form" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-[16px] focus:font-semibold" data-testid="link-skip-to-form">
         Skip to sign-up form
       </a>

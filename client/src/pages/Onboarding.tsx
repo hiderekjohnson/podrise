@@ -163,19 +163,12 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="onboarding-page">
       <header className="sticky top-0 z-40 bg-white dark:bg-[#09090B] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
-        <div className="max-w-4xl mx-auto px-4 md:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
           <PodCapWordmark />
-          <button
-            onClick={() => completeMutation.mutate()}
-            className="text-[15px] font-semibold text-[#A1A1AA] hover:text-[#52525B] dark:hover:text-white transition-colors"
-            data-testid="onboarding-skip"
-          >
-            Skip
-          </button>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-8">
+      <div className="max-w-4xl mx-auto px-5 md:px-8">
         <motion.div
           key="search"
           initial={{ opacity: 0, x: 20 }}
@@ -225,7 +218,7 @@ export default function Onboarding() {
 
             {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-[15px] text-[#A1A1AA]">No podcasts found for "{searchQuery}"</p>
+                <p className="text-[15px] text-[#A1A1AA]">We couldn't find that podcast or don't support it yet. Try another search!</p>
               </div>
             )}
 
@@ -240,7 +233,7 @@ export default function Onboarding() {
                       onClick={() => {
                         toggleSelected(resultSlug, result.name, result.artworkUrl);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-[#FAFAFE] dark:hover:bg-[#111114] transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] text-left hover:bg-[#FAFAFE] dark:hover:bg-[#111114] transition-colors"
                       data-testid={`onboarding-search-result-${result.id}`}
                     >
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-[#1C1C22]">
@@ -315,7 +308,7 @@ export default function Onboarding() {
                       <button
                         key={podcast.slug}
                         onClick={() => addRelatedPodcast(podcast)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#ECECEE] dark:border-[#27272A] hover:bg-[#FAFAFE] dark:hover:bg-[#111114] hover:border-[#6366F1]/20 transition-all text-left"
+                        className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl border border-[#ECECEE] dark:border-[#27272A] hover:bg-[#FAFAFE] dark:hover:bg-[#111114] hover:border-[#6366F1]/20 transition-all text-left"
                         data-testid={`onboarding-related-${podcast.slug}`}
                       >
                         <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-[#1C1C22]">
@@ -352,13 +345,13 @@ export default function Onboarding() {
               {completeMutation.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                selectedPodcasts.size > 0 ? `Create my feed — ${selectedPodcasts.size} picks` : "Create my feed"
+                selectedPodcasts.size > 0 ? `Finish setup — ${selectedPodcasts.size} picks` : "Finish setup"
               )}
             </button>
             <button
               onClick={() => completeMutation.mutate()}
               disabled={completeMutation.isPending}
-              className="w-full mt-3 text-center text-[14px] font-medium text-[#A1A1AA] hover:text-[#52525B] dark:hover:text-white transition-colors py-2 disabled:opacity-50"
+              className="w-full mt-3 text-center text-[14px] font-medium text-[#A1A1AA] hover:text-[#52525B] dark:hover:text-white transition-colors py-3 min-h-[44px] disabled:opacity-50"
               data-testid="onboarding-no-podcasts"
             >
               I don't currently listen to podcasts
