@@ -10075,7 +10075,24 @@ Rules:
         for (const row of devRows) {
           try {
             await pool.query(
-              `INSERT INTO landing_page_recaps (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT (slug, episode_slug) DO NOTHING`,
+              `INSERT INTO landing_page_recaps (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT (slug, episode_slug) DO UPDATE SET
+                show_notes = EXCLUDED.show_notes,
+                entity_contexts_cache = EXCLUDED.entity_contexts_cache,
+                topic_contexts = EXCLUDED.topic_contexts,
+                tldl = EXCLUDED.tldl,
+                what_happened = EXCLUDED.what_happened,
+                key_insights = EXCLUDED.key_insights,
+                quote = EXCLUDED.quote,
+                quote_attribution = EXCLUDED.quote_attribution,
+                key_topics = EXCLUDED.key_topics,
+                top_questions = EXCLUDED.top_questions,
+                sponsors = EXCLUDED.sponsors,
+                guests = EXCLUDED.guests,
+                resources = EXCLUDED.resources,
+                apple_episode_url = EXCLUDED.apple_episode_url,
+                spotify_episode_url = EXCLUDED.spotify_episode_url,
+                audio_url = EXCLUDED.audio_url,
+                published = EXCLUDED.published`,
               [row.slug, row.itunes_id, row.podcast_name, row.episode_title, row.episode_slug, row.publish_date, row.duration, row.artwork_url, row.hosts, row.tldl, row.what_happened, row.key_insights, row.quote, row.quote_attribution, row.created_at, row.apple_episode_url, row.audio_url, row.key_topics, row.top_questions, row.sponsors, row.guests, row.show_notes, row.resources, row.spotify_episode_url, row.entity_contexts_cache, row.topic_contexts, row.published]
             );
             inserted++;
@@ -10138,6 +10155,51 @@ Rules:
     } catch (err: any) {
       console.error("[Migration] Error:", err);
       res.status(500).json({ message: err?.message || "Migration failed" });
+    } finally {
+      await devPool.end();
+    }
+  });
+
+  app.post("/api/admin/backfill-show-notes", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const devDbUrl = process.env.DEV_DATABASE_URL;
+    if (!devDbUrl) {
+      return res.status(400).json({ message: "DEV_DATABASE_URL not set" });
+    }
+    const pgModule = await import("pg");
+    const devPool = new pgModule.default.Pool({ connectionString: devDbUrl });
+
+    try {
+      const { rows: devRows } = await devPool.query(
+        `SELECT slug, episode_slug, show_notes FROM landing_page_recaps WHERE show_notes IS NOT NULL AND show_notes != '' ORDER BY id`
+      );
+
+      let updated = 0;
+      let skipped = 0;
+      const errors: string[] = [];
+      for (const row of devRows) {
+        try {
+          const result = await pool.query(
+            `UPDATE landing_page_recaps SET show_notes = $1 WHERE slug = $2 AND episode_slug = $3 AND (show_notes IS NULL OR show_notes = '')`,
+            [row.show_notes, row.slug, row.episode_slug]
+          );
+          if (result.rowCount && result.rowCount > 0) {
+            updated++;
+          } else {
+            skipped++;
+          }
+        } catch (e: any) {
+          skipped++;
+          errors.push(`${row.slug}/${row.episode_slug}: ${e.message?.substring(0, 100)}`);
+        }
+      }
+
+      res.json({ success: true, updated, skipped, totalDevRows: devRows.length, errors: errors.slice(0, 20) });
+    } catch (err: any) {
+      console.error("[Backfill show notes] Error:", err);
+      res.status(500).json({ message: err?.message || "Backfill failed" });
     } finally {
       await devPool.end();
     }
