@@ -5457,7 +5457,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             `SELECT eq.speaker_name, eq.quote_text, eq.context, eq.quote_type, eq.podcast_slug, eq.episode_slug,
                     lpr.podcast_name, lpr.episode_title
              FROM episode_quotes eq
-             JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug
+             JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND (eq.episode_slug = lpr.episode_slug OR eq.episode_slug LIKE lpr.episode_slug || '%' OR lpr.episode_slug LIKE eq.episode_slug || '%')
              WHERE ${pairConditions}
              ORDER BY eq.sort_order ASC`,
             pairParams
@@ -6081,7 +6081,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           `SELECT eq.speaker_name, eq.quote_text, eq.context, eq.podcast_slug, eq.episode_slug,
                   lpr.podcast_name, lpr.episode_title
            FROM episode_quotes eq
-           JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug
+           JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND (eq.episode_slug = lpr.episode_slug OR eq.episode_slug LIKE lpr.episode_slug || '%' OR lpr.episode_slug LIKE eq.episode_slug || '%')
            WHERE lpr.published = true
            ORDER BY lpr.publish_date DESC, eq.sort_order ASC
            LIMIT 30`
@@ -8749,7 +8749,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const episode = recapRows[0];
 
       const { rows: quoteRows } = await pool.query(
-        `SELECT * FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2 ORDER BY sort_order`, [podcastSlug, episodeSlug]
+        `SELECT * FROM episode_quotes WHERE podcast_slug = $1 AND (episode_slug = $2 OR episode_slug LIKE $2 || '%' OR $2 LIKE episode_slug || '%') ORDER BY sort_order`, [podcastSlug, episodeSlug]
       );
 
       let transcript = null;
@@ -11050,7 +11050,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       `SELECT lpr.slug, lpr.episode_title, lpr.episode_slug, lpr.tldl, lpr.what_happened,
               lpr.key_insights, lpr.quote, lpr.quote_attribution, lpr.key_topics,
               lpr.top_questions, lpr.guests, lpr.hosts,
-              (SELECT count(*)::int FROM episode_quotes eq WHERE eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug) as quote_count,
+              (SELECT count(*)::int FROM episode_quotes eq WHERE eq.podcast_slug = lpr.slug AND (eq.episode_slug = lpr.episode_slug OR eq.episode_slug LIKE lpr.episode_slug || '%' OR lpr.episode_slug LIKE eq.episode_slug || '%')) as quote_count,
               (SELECT count(*)::int FROM podcast_hosts ph WHERE ph.podcast_slug = lpr.slug) as host_count
        FROM landing_page_recaps lpr
        ${whereClause}
