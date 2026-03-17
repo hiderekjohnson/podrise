@@ -2072,39 +2072,113 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
 function EntityBackfillBanner() {
   const { toast } = useToast();
+  const [polling, setPolling] = useState(false);
+  const [progress, setProgress] = useState<any>(null);
+
   const { data: status } = useQuery<{ total_episodes: number; with_entities: number; without_entities: number; backfillable: number }>({
     queryKey: ["/api/admin/cms/entity-backfill-status"],
   });
-  const backfillMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/cms/entity-backfill", { batchSize: 200 }),
-    onSuccess: async (res: any) => {
+
+  useQuery({
+    queryKey: ["/api/admin/cms/entity-backfill-progress"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/cms/entity-backfill-progress", { credentials: "include" });
+      if (!res.ok) return null;
       const data = await res.json();
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/entity-backfill-status"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies"] });
-      toast({ title: `Processed ${data.processed} episodes, found ${data.totalEntities} mentions` });
+      setProgress(data);
+      if (!data.running && polling) {
+        setPolling(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/entity-backfill-status"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies"] });
+      }
+      return data;
+    },
+    refetchInterval: polling ? 3000 : false,
+    enabled: polling,
+  });
+
+  const backfillMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/admin/cms/entity-backfill", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      if (res.status === 409) { setPolling(true); return; }
+      if (!res.ok) throw new Error("Failed to start");
+    },
+    onSuccess: () => {
+      toast({ title: "Entity backfill started" });
+      setPolling(true);
     },
     onError: (err: Error) => toast({ title: "Backfill failed", description: err.message, variant: "destructive" }),
   });
-  if (!status || status.without_entities === 0) return null;
-  const pct = Math.round((status.with_entities / status.total_episodes) * 100);
+
+  if (!status || (status.without_entities === 0 && !polling && !progress)) return null;
+
+  const overallPct = Math.round((status.with_entities / status.total_episodes) * 100);
+  const runPct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+  const isComplete = progress && !progress.running && progress.done > 0 && progress.done === progress.total;
+
   return (
-    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-center justify-between gap-3" data-testid="entity-backfill-banner">
-      <div className="flex items-center gap-2">
-        <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-        <span className="text-sm text-amber-800 dark:text-amber-300">
-          Entity mentions: {status.with_entities}/{status.total_episodes} episodes ({pct}%) — {status.backfillable} can be backfilled
-        </span>
+    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 space-y-3" data-testid="entity-backfill-banner">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+          <span className="text-sm text-amber-800 dark:text-amber-300">
+            Entity mentions: {status.with_entities}/{status.total_episodes} episodes ({overallPct}%) — {status.backfillable} can be backfilled
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => backfillMutation.mutate()}
+            disabled={backfillMutation.isPending || polling}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 flex-shrink-0"
+            data-testid="button-run-backfill"
+          >
+            {polling ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+            {polling ? "Running..." : "Run Backfill"}
+          </button>
+          {progress && progress.total > 0 && (
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
+              isComplete ? "bg-green-100 text-green-700" : polling ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+            }`}>
+              {isComplete ? "✓ Complete" : polling ? `${runPct}%` : `Last: ${runPct}%`}
+            </span>
+          )}
+        </div>
       </div>
-      <button
-        onClick={() => backfillMutation.mutate()}
-        disabled={backfillMutation.isPending}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 flex-shrink-0"
-        data-testid="button-run-backfill"
-      >
-        {backfillMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-        {backfillMutation.isPending ? "Processing..." : "Run Backfill (200)"}
-      </button>
+      {progress && progress.total > 0 && (polling || isComplete) && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-green-500" : "bg-amber-600"}`}
+                style={{ width: `${runPct}%` }}
+              />
+            </div>
+            <span className="text-xs text-amber-700 dark:text-amber-400 whitespace-nowrap w-24 text-right">
+              {progress.done}/{progress.total}
+            </span>
+          </div>
+          <div className="flex gap-3 text-xs text-amber-700 dark:text-amber-400">
+            <span>{progress.processed} processed</span>
+            <span>{progress.totalEntities} entities found</span>
+            {progress.errors > 0 && <span className="text-red-500">{progress.errors} errors</span>}
+          </div>
+          {progress.log && progress.log.length > 0 && (
+            <details className="mt-1">
+              <summary className="text-xs text-amber-600 dark:text-amber-400 cursor-pointer hover:text-amber-800">
+                View log ({progress.log.length} entries)
+              </summary>
+              <div className="mt-1 max-h-40 overflow-y-auto bg-amber-100/50 dark:bg-amber-900/30 rounded-lg p-2 text-xs font-mono space-y-0.5">
+                {progress.log.slice(-20).map((line: string, i: number) => (
+                  <div key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-amber-700"}>
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+      )}
     </div>
   );
 }

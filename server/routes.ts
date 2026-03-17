@@ -9368,96 +9368,121 @@ Rules:
     }
   });
 
+  const entityBackfillState = { running: false, progress: { total: 0, done: 0, processed: 0, errors: 0, totalEntities: 0, log: [] as string[] } };
+
+  app.get("/api/admin/cms/entity-backfill-progress", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    res.json({ running: entityBackfillState.running, ...entityBackfillState.progress });
+  });
+
   app.post("/api/admin/cms/entity-backfill", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
-    const batchSize = Math.min(parseInt(req.body.batchSize) || 100, 500);
-    try {
-      const { rows: episodes } = await pool.query(`
-        SELECT landing_page_recaps.id, landing_page_recaps.slug, landing_page_recaps.itunes_id, landing_page_recaps.podcast_name, landing_page_recaps.episode_title, landing_page_recaps.episode_slug, landing_page_recaps.sponsors, landing_page_recaps.hosts
-        FROM landing_page_recaps
-        WHERE landing_page_recaps.entity_contexts_cache IS NULL
-          AND landing_page_recaps.itunes_id IS NOT NULL
-          AND EXISTS (
-            SELECT 1 FROM episode_transcripts 
-            WHERE episode_transcripts.podcast_id = landing_page_recaps.itunes_id 
-              AND LOWER(TRIM(episode_transcripts.episode_title)) = LOWER(TRIM(landing_page_recaps.episode_title))
-              AND episode_transcripts.transcript IS NOT NULL
-              AND episode_transcripts.transcript != ''
-          )
-        ORDER BY landing_page_recaps.publish_date DESC NULLS LAST
-        LIMIT $1
-      `, [batchSize]);
+    if (entityBackfillState.running) return res.status(409).json({ message: "Entity backfill already running", progress: entityBackfillState.progress });
 
-      if (episodes.length === 0) {
-        return res.json({ processed: 0, message: "All episodes already have entity contexts" });
-      }
+    entityBackfillState.running = true;
+    entityBackfillState.progress = { total: 0, done: 0, processed: 0, errors: 0, totalEntities: 0, log: [] };
 
-      const { detectEntitiesFromTranscript } = await import("./entityContextGenerator");
-      let processed = 0;
-      let errors = 0;
-      let totalEntities = 0;
+    res.json({ message: "Entity backfill started" });
 
-      for (const ep of episodes) {
-        try {
-          const { rows: transcriptRows } = await pool.query(
-            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2)) LIMIT 1`,
-            [ep.itunes_id, ep.episode_title]
-          );
-          if (!transcriptRows[0]?.transcript) {
-            errors++;
-            continue;
-          }
+    (async () => {
+      try {
+        const { rows: episodes } = await pool.query(`
+          SELECT landing_page_recaps.id, landing_page_recaps.slug, landing_page_recaps.itunes_id, landing_page_recaps.podcast_name, landing_page_recaps.episode_title, landing_page_recaps.episode_slug, landing_page_recaps.sponsors, landing_page_recaps.hosts
+          FROM landing_page_recaps
+          WHERE landing_page_recaps.entity_contexts_cache IS NULL
+            AND landing_page_recaps.itunes_id IS NOT NULL
+            AND EXISTS (
+              SELECT 1 FROM episode_transcripts 
+              WHERE episode_transcripts.podcast_id = landing_page_recaps.itunes_id 
+                AND LOWER(TRIM(episode_transcripts.episode_title)) = LOWER(TRIM(landing_page_recaps.episode_title))
+                AND episode_transcripts.transcript IS NOT NULL
+                AND episode_transcripts.transcript != ''
+            )
+          ORDER BY landing_page_recaps.publish_date DESC NULLS LAST
+        `);
 
-          let sponsorNames: string[] = [];
-          try {
-            if (ep.sponsors) {
-              const sponsors = typeof ep.sponsors === "string" ? JSON.parse(ep.sponsors) : ep.sponsors;
-              sponsorNames = (Array.isArray(sponsors) ? sponsors : []).map((s: any) => (s.name || "").toLowerCase()).filter(Boolean);
-            }
-          } catch {}
+        entityBackfillState.progress.total = episodes.length;
 
-          let hostNames: string[] = [];
-          try {
-            const hostData = await storage.getHostsByPodcastSlug(ep.slug);
-            hostNames = hostData.map(h => h.name);
-          } catch {}
-
-          const entityContexts = detectEntitiesFromTranscript(
-            transcriptRows[0].transcript, ep.slug, hostNames, sponsorNames
-          );
-
-          await pool.query(
-            `UPDATE landing_page_recaps SET entity_contexts_cache = $1 WHERE id = $2`,
-            [JSON.stringify(entityContexts), ep.id]
-          );
-
-          const { ENTITY_PEOPLE: EP, ENTITY_COMPANIES: EC } = await import("./entityContextGenerator");
-          const companySlugsSet = new Set(EC.map(c => c.slug));
-          const peopleSlugsSet = new Set(EP.map(p => p.slug));
-          for (const [entitySlug, context] of Object.entries(entityContexts)) {
-            const entityType = companySlugsSet.has(entitySlug) ? "company" : peopleSlugsSet.has(entitySlug) ? "person" : null;
-            if (!entityType) continue;
-            await pool.query(
-              `INSERT INTO entity_episode_mentions (entity_type, entity_slug, recap_id, episode_slug, podcast_slug, context)
-               VALUES ($1, $2, $3, $4, $5, $6)
-               ON CONFLICT (entity_type, entity_slug, recap_id) DO UPDATE SET context = EXCLUDED.context`,
-              [entityType, entitySlug, ep.id, ep.episode_slug, ep.slug, typeof context === "string" ? context : ""]
-            );
-          }
-
-          totalEntities += Object.keys(entityContexts).length;
-          processed++;
-        } catch (err: any) {
-          errors++;
+        if (episodes.length === 0) {
+          entityBackfillState.progress.log.push("All episodes already have entity contexts");
+          entityBackfillState.running = false;
+          return;
         }
-      }
 
-      console.log(`[EntityBackfill] Processed ${processed} episodes, found ${totalEntities} total entity mentions`);
-      res.json({ processed, errors, totalEntities, remaining: episodes.length === batchSize ? "more available" : "done" });
-    } catch (err: any) {
-      console.error("[CMS] Entity backfill error:", err);
-      res.status(500).json({ message: err?.message || "Backfill failed" });
-    }
+        const { detectEntitiesFromTranscript, ENTITY_PEOPLE: EP, ENTITY_COMPANIES: EC } = await import("./entityContextGenerator");
+        const companySlugsSet = new Set(EC.map(c => c.slug));
+        const peopleSlugsSet = new Set(EP.map(p => p.slug));
+
+        for (let i = 0; i < episodes.length; i++) {
+          const ep = episodes[i];
+          entityBackfillState.progress.done = i;
+
+          try {
+            const { rows: transcriptRows } = await pool.query(
+              `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2)) LIMIT 1`,
+              [ep.itunes_id, ep.episode_title]
+            );
+            if (!transcriptRows[0]?.transcript) {
+              entityBackfillState.progress.errors++;
+              entityBackfillState.progress.log.push(`✗ ${ep.podcast_name}: ${ep.episode_title?.slice(0, 50)} — no transcript`);
+              continue;
+            }
+
+            let sponsorNames: string[] = [];
+            try {
+              if (ep.sponsors) {
+                const sponsors = typeof ep.sponsors === "string" ? JSON.parse(ep.sponsors) : ep.sponsors;
+                sponsorNames = (Array.isArray(sponsors) ? sponsors : []).map((s: any) => (s.name || "").toLowerCase()).filter(Boolean);
+              }
+            } catch {}
+
+            let hostNames: string[] = [];
+            try {
+              const hostData = await storage.getHostsByPodcastSlug(ep.slug);
+              hostNames = hostData.map(h => h.name);
+            } catch {}
+
+            const entityContexts = detectEntitiesFromTranscript(
+              transcriptRows[0].transcript, ep.slug, hostNames, sponsorNames
+            );
+
+            await pool.query(
+              `UPDATE landing_page_recaps SET entity_contexts_cache = $1 WHERE id = $2`,
+              [JSON.stringify(entityContexts), ep.id]
+            );
+
+            for (const [entitySlug, context] of Object.entries(entityContexts)) {
+              const entityType = companySlugsSet.has(entitySlug) ? "company" : peopleSlugsSet.has(entitySlug) ? "person" : null;
+              if (!entityType) continue;
+              await pool.query(
+                `INSERT INTO entity_episode_mentions (entity_type, entity_slug, recap_id, episode_slug, podcast_slug, context)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 ON CONFLICT (entity_type, entity_slug, recap_id) DO UPDATE SET context = EXCLUDED.context`,
+                [entityType, entitySlug, ep.id, ep.episode_slug, ep.slug, typeof context === "string" ? context : ""]
+              );
+            }
+
+            const entCount = Object.keys(entityContexts).length;
+            entityBackfillState.progress.totalEntities += entCount;
+            entityBackfillState.progress.processed++;
+            if (entCount > 0) {
+              entityBackfillState.progress.log.push(`✓ ${ep.episode_title?.slice(0, 60)} — ${entCount} entities`);
+            }
+          } catch (err: any) {
+            entityBackfillState.progress.errors++;
+            entityBackfillState.progress.log.push(`✗ ${ep.episode_title?.slice(0, 50)} — ${err.message?.slice(0, 60)}`);
+          }
+        }
+
+        entityBackfillState.progress.done = episodes.length;
+        console.log(`[EntityBackfill] Complete: ${entityBackfillState.progress.processed} processed, ${entityBackfillState.progress.totalEntities} entities, ${entityBackfillState.progress.errors} errors`);
+      } catch (err: any) {
+        console.error("[EntityBackfill] Fatal error:", err);
+        entityBackfillState.progress.log.push(`FATAL: ${err.message}`);
+      } finally {
+        entityBackfillState.running = false;
+      }
+    })();
   });
 
   app.get("/api/admin/cms/people", async (req, res) => {
