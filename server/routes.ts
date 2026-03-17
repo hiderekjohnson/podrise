@@ -8564,13 +8564,32 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/migrate-exec", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { query: sqlQuery, params = [] } = req.body;
+      if (!sqlQuery || typeof sqlQuery !== "string") {
+        return res.status(400).json({ message: "query required" });
+      }
+      if (!sqlQuery.trim().toUpperCase().startsWith("INSERT")) {
+        return res.status(400).json({ message: "Only INSERT queries allowed" });
+      }
+      const result = await pool.query(sqlQuery, params);
+      res.json({ rowCount: result.rowCount });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message?.substring(0, 200) || "Query failed" });
+    }
+  });
+
   app.post("/api/admin/migrate-from-dev", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     const devDbUrl = process.env.DEV_DATABASE_URL;
     if (!devDbUrl) {
-      return res.status(400).json({ message: "DEV_DATABASE_URL not set" });
+      return res.status(400).json({ message: "DEV_DATABASE_URL not set — run migration from dev server instead" });
     }
     const { table, batchSize = 100, offset = 0 } = req.body;
     if (!table) {
