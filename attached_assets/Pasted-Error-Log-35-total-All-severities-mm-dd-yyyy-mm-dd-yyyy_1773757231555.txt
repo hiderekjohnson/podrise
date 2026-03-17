@@ -1,0 +1,246 @@
+Error Log
+(35 total)
+
+All severities
+
+mm/dd/yyyy
+
+mm/dd/yyyy
+
+An internal server error occurred while trying to load the admin/advertisers.
+
+error
+500
+GET /api/admin/advertisers
+just now
+Full endpoint
+GET /api/admin/advertisers
+
+HTTP Status
+500
+
+First seen
+3/17/2026, 2:19:20 PM
+
+Last seen
+3/17/2026, 2:19:20 PM
+
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+{"error":"Failed to fetch advertisers"}
+
+
+An internal client error occurred while trying to load the auth/me.
+
+warning
+401
+GET /api/auth/me
+107x
+4m ago
+Full endpoint
+GET /api/auth/me
+
+HTTP Status
+401
+
+First seen
+3/16/2026, 3:32:23 PM
+
+Last seen
+3/17/2026, 2:15:16 PM
+
+User Agent
+Mozilla/5.0 (iPhone; CPU iPhone OS 26_0_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.40 Mobile/15E148 Safari/604.1
+
+Technical error message
+Not authenticated
+
+
+An internal client error occurred while trying to load the admin/me.
+
+warning
+401
+GET /api/admin/me
+7x
+9m ago
+Full endpoint
+GET /api/admin/me
+
+HTTP Status
+401
+
+First seen
+3/16/2026, 6:38:14 PM
+
+Last seen
+3/17/2026, 2:10:07 PM
+
+User ID:
+10
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+Not authenticated as admin
+
+
+An internal client error occurred while trying to load the admin/cms.
+
+warning
+401
+GET /api/admin/cms/people
+3x
+10m ago
+Full endpoint
+GET /api/admin/cms/people
+
+HTTP Status
+401
+
+First seen
+3/17/2026, 1:44:07 PM
+
+Last seen
+3/17/2026, 2:09:27 PM
+
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+Unauthorized
+
+
+An internal client error occurred while trying to load the admin/cms.
+
+warning
+401
+GET /api/admin/cms/entity-backfill-status
+6x
+10m ago
+Full endpoint
+GET /api/admin/cms/entity-backfill-status
+
+HTTP Status
+401
+
+First seen
+3/17/2026, 12:33:22 PM
+
+Last seen
+3/17/2026, 2:09:27 PM
+
+User Agent
+curl/8.14.1
+
+Technical error message
+Unauthorized
+
+
+An internal client error occurred while trying to load the admin/cms.
+
+warning
+401
+GET /api/admin/cms/products
+2x
+35m ago
+Full endpoint
+GET /api/admin/cms/products
+
+HTTP Status
+401
+
+First seen
+3/17/2026, 1:44:15 PM
+
+Last seen
+3/17/2026, 1:44:21 PM
+
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+Unauthorized
+
+
+An internal client error occurred while trying to load the admin/cms.
+
+warning
+401
+GET /api/admin/cms/companies
+2x
+35m ago
+Full endpoint
+GET /api/admin/cms/companies
+
+HTTP Status
+401
+
+First seen
+3/17/2026, 1:44:19 PM
+
+Last seen
+3/17/2026, 1:44:20 PM
+
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+Unauthorized
+
+
+An internal server error occurred while trying to load the bookmarks.
+
+error
+500
+GET /api/bookmarks
+142x
+42m ago
+Full endpoint
+GET /api/bookmarks
+
+HTTP Status
+500
+
+First seen
+3/16/2026, 3:30:43 PM
+
+Last seen
+3/17/2026, 1:37:22 PM
+
+User ID:
+10
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+Something went wrong. Please try again later.
+
+
+An internal server error occurred while trying to load the bookmarks API.
+
+error
+500
+GET /api/bookmarks
+183x
+42m ago
+Full endpoint
+GET /api/bookmarks
+
+HTTP Status
+500
+
+First seen
+3/16/2026, 8:13:19 AM
+
+Last seen
+3/17/2026, 1:37:22 PM
+
+User ID:
+44
+User Agent
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+
+Technical error message
+relation "bookmarks" does not exist

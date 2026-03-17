@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
-const PodcastDirectory = lazy(() => import("./PodcastDirectory"));
 const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
 const HostsManager = lazy(() => import("./HostsManager"));
 const BackfillTracker = lazy(() => import("./BackfillTracker"));
@@ -532,18 +531,6 @@ export default function Admin() {
                   Analytics
                 </button>
                 <button
-                  data-testid="tab-directory"
-                  onClick={() => { setActiveTab("directory"); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "directory"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Podcast className="w-4 h-4" />
-                  Podcasts
-                </button>
-                <button
                   data-testid="tab-shop"
                   onClick={() => { setActiveTab("shop"); setSearchTerm(""); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
@@ -824,16 +811,6 @@ export default function Admin() {
                 </div>
               }>
                 <PendingEmails />
-              </Suspense>
-            )}
-
-            {activeTab === "directory" && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              }>
-                <PodcastDirectory />
               </Suspense>
             )}
 
