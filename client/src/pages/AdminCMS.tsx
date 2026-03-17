@@ -516,7 +516,18 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
           )}
           <div>
             <h3 className="text-xl font-bold text-foreground" data-testid="text-podcast-name">{podcast.name}</h3>
-            <p className="text-sm text-muted-foreground">{podcast.hosts}</p>
+            {podcast.hosts_data && podcast.hosts_data.length > 0 ? (
+              <div className="flex items-center gap-2 mt-1">
+                {podcast.hosts_data.map((host: PodcastHost) => (
+                  <div key={host.id} className="flex items-center gap-1.5">
+                    {host.photo_url && <img src={host.photo_url} alt="" className="w-5 h-5 rounded-full object-cover" />}
+                    <span className="text-sm text-muted-foreground">{host.name}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{podcast.hosts}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1606,15 +1617,8 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Hosts</label>
-              <input
-                data-testid="input-cms-episode-hosts"
-                type="text"
-                value={form.hosts}
-                onChange={(e) => setForm({ ...form, hosts: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-              />
-              {episode?.podcastHosts && episode.podcastHosts.length > 0 && (
-                <div className="flex flex-wrap gap-3 mt-2">
+              {episode?.podcastHosts && episode.podcastHosts.length > 0 ? (
+                <div className="flex flex-wrap gap-3 mt-1">
                   {episode.podcastHosts.map((host: any, i: number) => (
                     <div key={i} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-1.5">
                       {host.photo_url && <img src={host.photo_url} alt="" className="w-6 h-6 rounded-full object-cover" />}
@@ -1623,6 +1627,14 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                     </div>
                   ))}
                 </div>
+              ) : (
+                <input
+                  data-testid="input-cms-episode-hosts"
+                  type="text"
+                  value={form.hosts}
+                  onChange={(e) => setForm({ ...form, hosts: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                />
               )}
             </div>
           </div>
