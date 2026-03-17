@@ -556,6 +556,7 @@ export class DatabaseStorage implements IStorage {
           quote: data.quote,
           quoteAttribution: data.quoteAttribution,
           appleEpisodeUrl: data.appleEpisodeUrl,
+          spotifyEpisodeUrl: data.spotifyEpisodeUrl,
           audioUrl: data.audioUrl,
           keyTopics: data.keyTopics,
           topQuestions: data.topQuestions,

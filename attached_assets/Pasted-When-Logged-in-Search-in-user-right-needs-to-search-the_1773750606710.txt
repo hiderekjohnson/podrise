@@ -1,0 +1,117 @@
+When Logged in
+Search in user right needs to search there, not take them to a new part of the app.
+When searching a podcast we don’t have, it currently says - No results for "almost”, it needs to say something like we currently don’t have that podcast in our system, but click the following button to request it and we’ll review. And in the meantime, check out these podcasts, etc.
+Podcasts to follow in right hand vcolumn shouldn’t truncate the podcast name unless crazy long.
+For the hook for each podcast, we need to use whatever we’re using in the emails we send recaps to customers, it’s very short, like a hook like - How one food critic fought for his life - use whatever we use in the emails, or however we produce those.
+Don’t make any of the following clickable - Dr. Jill Bolte Taylor: The 4 Brain Characters That Transform Habits and Critical Thinking | Human Behavior | E390
+1d ago
+Dr. Jill Bolte Taylor discusses her experience with a stroke that led to insights about the brain's four characters, which shape thoughts, emotions, habits, and decisions. She emphasizes the importance of understanding and balancing these to optimize one's life and business strategies.
+Bookmarking an episode isn’t working, produces an error
+In shop - when viewing All - Its showing the same books on line 2, as line 1
+When already following a podcast, we shouldn’t say “unfollow” as a big button, it should be like three little dots that opens up when you click and has the option to unfollow.
+We’re missing spotify and apple listen logos up in the top of each episode card in the feed.
+On the feed can you make the artwork a little bigger.
+Top right hand search, the search box should just say Search
+Can you downgrade hiderekjohnson@gmail.com to a free account, remove Pulse Pro
+In discover, add “All” button to the left of “AI” then remove all this stuff below - For You
+Industries
+Interests
+Roles
+Lists based on podcasts you follow
+
+
+Entrepreneurs & Side Hustlers
+14 podcasts · 5 following
+
+Entrepreneurship, bootstrapping, side projects, and indie hacking
+
+My First Million
+Entrepreneurs on Fire
+The Side Hustle Show
+Tropical MBA: Entrepreneurship & Founder Lifestyle
+Startups For the Rest of Us
++9
+
+Self Improvement
+11 podcasts · 6 following
+
+Personal growth, mindset shifts, and becoming your best self
+
+The Mel Robbins Podcast
+Tom Bilyeu's Impact Theory
+The Diary Of A CEO with Steven Bartlett
+The Daily Stoic
+The Jordan Harbinger Show
++6
+
+Venture Capital
+12 podcasts · 4 following
+
+Inside the world of startup funding, VC strategy, and deal-making
+
+The Twenty Minute VC (20VC): Venture Capital | Startup Funding | The Pitch
+Acquired
+All-In with Chamath, Jason, Sacks & Friedberg
+Equity
+My First Million
++7
+
+Leadership & Management
+11 podcasts · 1 following
+
+Leadership development, team building, and organizational management
+
+HBR IdeaCast
+Coaching for Leaders
+At The Table with Patrick Lencioni
+Dare to Lead with Brené Brown
+Worklife with Adam Grant
++6
+
+Health & Longevity
+8 podcasts · 2 following
+
+Science-backed health optimization, nutrition, and longevity research
+
+Huberman Lab
+FoundMyFitness
+House Call With Dr. Hyman
+The Ultimate Human with Gary Brecka
+The Model Health Show
++3
+
+Productivity
+8 podcasts · 2 following
+
+Time management, deep work, systems for getting more done
+
+Deep Questions with Cal Newport
+The Tim Ferriss Show
+The Life Coach School Podcast
+The Mel Robbins Podcast
+high-performance-podcast
++3
+
+Future of Work
+9 podcasts · 1 following
+
+How work is evolving with remote, AI, and organizational change
+
+Worklife with Adam Grant
+HBR IdeaCast
+The McKinsey Podcast
+Lenny's Podcast: Product | Career | Growth
+Masters of Scale
++4
+
+Science & Curiosity
+9 podcasts · 1 following
+
+Deep dives into science, the universe, and how things work
+
+StarTalk Radio
+infinite-monkey-cage
+In Our Time
+Stuff You Should Know
+skeptics-guide-to-the-universe
++4

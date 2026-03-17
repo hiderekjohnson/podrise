@@ -42,7 +42,7 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
         const canonicalSlug = dirRow.rows[0]?.slug || derivedSlug;
 
         const recapRow = await client.query(
-          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug, guests, duration, publish_date
+          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug, episode_title, guests, duration, publish_date
            FROM landing_page_recaps
            WHERE slug = $1
            ORDER BY publish_date DESC LIMIT 1`,
@@ -92,7 +92,8 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
                 const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
                 const generated = await generateEntityContextsForRecap(
                   recapIdRes.rows[0].id, canonicalSlug, name,
-                  row.episode_slug, transcriptRes.rows[0].transcript, sponsorNames
+                  row.episode_title || row.episode_slug, transcriptRes.rows[0].transcript, sponsorNames,
+                  row.episode_slug,
                 );
                 if (Object.keys(generated).length > 0) {
                   entityCacheData = JSON.stringify(generated);
@@ -1040,8 +1041,12 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           const { searchEpisodeShowNotes } = await import("./taddyClient");
           showNotes = await searchEpisodeShowNotes(podcast.name, recap.episodeTitle);
         } catch {}
+        if (!showNotes && recap.whatHappened) {
+          showNotes = recap.whatHappened;
+        }
 
-        await storage.upsertLandingPageRecap({
+        const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + recap.episodeTitle)}`;
+        const savedRecap = await storage.upsertLandingPageRecap({
           slug: podcast.slug,
           itunesId: podcast.itunesId,
           podcastName: podcast.name,
@@ -1057,6 +1062,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           quote: recap.quote || null,
           quoteAttribution: recap.quoteAttribution || null,
           appleEpisodeUrl: appleEpisodeUrl,
+          spotifyEpisodeUrl,
           audioUrl: ep.episodeUrl || null,
           keyTopics: recap.keyTopics || null,
           topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
@@ -1109,6 +1115,34 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           }
         } catch (quoteErr) {
           console.warn(`[LandingRecaps] Quote generation failed for ${podcast.name} - "${epTitle}":`, quoteErr);
+        }
+
+        try {
+          if (transcriptText && savedRecap?.id) {
+            const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
+            let sponsorNames: string[] = [];
+            try {
+              if (recap.sponsors) {
+                const sponsors = Array.isArray(recap.sponsors) ? recap.sponsors : JSON.parse(recap.sponsors);
+                sponsorNames = sponsors.map((s: any) => s.name || "").filter(Boolean);
+              }
+            } catch {}
+            const entityContexts = await generateEntityContextsForRecap(
+              savedRecap.id,
+              podcast.slug,
+              podcast.name,
+              recap.episodeTitle,
+              transcriptText,
+              sponsorNames,
+              epSlug,
+            );
+            const entityCount = Object.keys(entityContexts).length;
+            if (entityCount > 0) {
+              console.log(`[LandingRecaps] Detected ${entityCount} entity mentions for ${podcast.name} - "${epTitle}"`);
+            }
+          }
+        } catch (entityErr) {
+          console.warn(`[LandingRecaps] Entity detection failed for ${podcast.name} - "${epTitle}":`, entityErr);
         }
 
         podcastNewRecaps++;
@@ -1965,8 +1999,12 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               const { searchEpisodeShowNotes } = await import("./taddyClient");
               showNotes = await searchEpisodeShowNotes(podcast.name, recap.episodeTitle);
             } catch {}
+            if (!showNotes && recap.whatHappened) {
+              showNotes = recap.whatHappened;
+            }
 
-            await storage.upsertLandingPageRecap({
+            const batchSpotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + recap.episodeTitle)}`;
+            const batchSavedRecap = await storage.upsertLandingPageRecap({
               slug: podcast.slug,
               itunesId: podcast.itunesId,
               podcastName: podcast.name,
@@ -1982,6 +2020,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               quote: recap.quote || null,
               quoteAttribution: recap.quoteAttribution || null,
               appleEpisodeUrl: appleEpisodeUrl,
+              spotifyEpisodeUrl: batchSpotifyUrl,
               audioUrl: ep.episodeUrl || null,
               keyTopics: recap.keyTopics || null,
               topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
@@ -1991,6 +2030,47 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               resources: recap.resources ? JSON.stringify(recap.resources) : null,
               showNotes,
             });
+
+            try {
+              if (transcriptText) {
+                const { extractQuotesFromTranscript } = await import("./recapGenerator");
+                const extractedQuotes = await extractQuotesFromTranscript(
+                  transcriptText, podcast.name, recap.episodeTitle,
+                  podcast.hosts || null,
+                  recap.guests ? JSON.stringify(recap.guests) : null,
+                );
+                if (extractedQuotes.length > 0) {
+                  const quotesToSave = extractedQuotes.map((q: any) => ({
+                    podcastSlug: podcast.slug, episodeSlug: epSlug,
+                    speakerName: q.speakerName, speakerRole: q.speakerRole || null,
+                    quoteText: q.quoteText, context: q.context, quoteType: q.quoteType,
+                  }));
+                  await storage.saveEpisodeQuotes(quotesToSave);
+                  console.log(`[BatchExpand] Generated ${extractedQuotes.length} quotes for ${podcast.name} - "${epTitle}"`);
+                }
+              }
+            } catch (quoteErr) {
+              console.warn(`[BatchExpand] Quote generation failed for ${podcast.name} - "${epTitle}":`, quoteErr);
+            }
+
+            try {
+              if (transcriptText && batchSavedRecap?.id) {
+                const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
+                let sponsorNames: string[] = [];
+                try {
+                  if (recap.sponsors) {
+                    const sponsors = Array.isArray(recap.sponsors) ? recap.sponsors : JSON.parse(recap.sponsors);
+                    sponsorNames = sponsors.map((s: any) => s.name || "").filter(Boolean);
+                  }
+                } catch {}
+                await generateEntityContextsForRecap(
+                  batchSavedRecap.id, podcast.slug, podcast.name, recap.episodeTitle,
+                  transcriptText, sponsorNames, epSlug,
+                );
+              }
+            } catch (entityErr) {
+              console.warn(`[BatchExpand] Entity detection failed for ${podcast.name} - "${epTitle}":`, entityErr);
+            }
 
             podcastCreated++;
             batchExpansionProgress.episodesCreated++;

@@ -178,6 +178,7 @@ export async function generateEntityContextsForRecap(
   episodeTitle: string,
   transcript: string,
   sponsorNamesRaw?: string[],
+  episodeSlug?: string,
 ): Promise<Record<string, string>> {
   const sponsorNames = (sponsorNamesRaw || []).map(s => s.toLowerCase());
 
@@ -248,6 +249,22 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           `UPDATE landing_page_recaps SET entity_contexts_cache = $1 WHERE id = $2`,
           [JSON.stringify(entityContexts), recapId]
         );
+
+        const companySlugsSet = new Set(ENTITY_COMPANIES.map(c => c.slug));
+        const peopleSlugsSet = new Set(ENTITY_PEOPLE.map(p => p.slug));
+        for (const [entitySlug, context] of Object.entries(entityContexts)) {
+          const entityType = companySlugsSet.has(entitySlug) ? "company" : peopleSlugsSet.has(entitySlug) ? "person" : null;
+          if (!entityType) continue;
+          try {
+            await pool.query(
+              `INSERT INTO entity_episode_mentions (entity_type, entity_slug, recap_id, episode_slug, podcast_slug, context)
+               VALUES ($1, $2, $3, $4, $5, $6)
+               ON CONFLICT (entity_type, entity_slug, recap_id) DO UPDATE SET context = EXCLUDED.context`,
+              [entityType, entitySlug, recapId, episodeSlug || "", podcastSlug, typeof context === "string" ? context : ""]
+            );
+          } catch {}
+        }
+
         console.log(`[EntityGen] Cached ${Object.keys(entityContexts).length} entity contexts for "${episodeTitle.slice(0, 50)}"`);
         return entityContexts;
       }
