@@ -41,12 +41,48 @@ interface PodcastStats {
   companiesMentioned: string[];
 }
 
+interface PodcastHost {
+  id: number;
+  name: string;
+  bio: string;
+  photo_url: string;
+  twitter_handle: string;
+  linkedin_url: string;
+  instagram_handle: string;
+  website_url: string;
+  sort_order: number;
+}
+
+interface PodcastFAQ {
+  question: string;
+  answer: string;
+}
+
 interface CMSPodcastDetail extends CMSPodcast {
   description: string;
   apple_url: string;
   spotify_url: string;
   youtube_url: string;
   has_landing_page: boolean;
+  twitter_handle: string;
+  instagram_url: string;
+  tiktok_url: string;
+  facebook_url: string;
+  discord_url: string;
+  website_url: string;
+  store_url: string;
+  category: string;
+  frequency: string;
+  avg_episode_length: number;
+  year_started: number;
+  total_episodes: number;
+  apple_rating: number;
+  apple_rating_count: number;
+  about_podcast: string;
+  known_for: string[];
+  host_bios: Array<{ name: string; bio: string }>;
+  hosts_data: PodcastHost[];
+  top_questions_data: PodcastFAQ[];
   stats: PodcastStats;
 }
 
@@ -131,6 +167,18 @@ interface PodcastForm {
   youtubeUrl: string;
   status: string;
   hasLandingPage: boolean;
+  twitterHandle: string;
+  instagramUrl: string;
+  tiktokUrl: string;
+  facebookUrl: string;
+  discordUrl: string;
+  websiteUrl: string;
+  storeUrl: string;
+  category: string;
+  frequency: string;
+  avgEpisodeLength: number;
+  yearStarted: number;
+  aboutPodcast: string;
 }
 
 interface ExtractedProduct {
@@ -376,6 +424,18 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
         youtubeUrl: podcast.youtube_url || "",
         status: podcast.status || "published",
         hasLandingPage: podcast.has_landing_page ?? true,
+        twitterHandle: podcast.twitter_handle || "",
+        instagramUrl: podcast.instagram_url || "",
+        tiktokUrl: podcast.tiktok_url || "",
+        facebookUrl: podcast.facebook_url || "",
+        discordUrl: podcast.discord_url || "",
+        websiteUrl: podcast.website_url || "",
+        storeUrl: podcast.store_url || "",
+        category: podcast.category || "",
+        frequency: podcast.frequency || "",
+        avgEpisodeLength: podcast.avg_episode_length || 0,
+        yearStarted: podcast.year_started || 0,
+        aboutPodcast: podcast.about_podcast || "",
       });
     }
   }, [podcast]);

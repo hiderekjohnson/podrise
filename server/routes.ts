@@ -8663,8 +8663,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         .slice(0, 10)
         .map(([topic, count]) => ({ topic, count }));
 
+      let hosts: any[] = [];
+      try {
+        const { rows: hostRows } = await pool.query(
+          `SELECT id, name, bio, photo_url, twitter_handle, linkedin_url, instagram_handle, website_url, sort_order FROM podcast_hosts WHERE podcast_slug = $1 ORDER BY sort_order`,
+          [slug]
+        );
+        hosts = hostRows;
+      } catch {}
+
+      let topQuestions: any[] = [];
+      try {
+        const { rows: tqRows } = await pool.query(
+          `SELECT questions FROM podcast_top_questions WHERE slug = $1 ORDER BY generated_at DESC LIMIT 1`,
+          [slug]
+        );
+        if (tqRows.length > 0 && tqRows[0].questions) {
+          const parsed = typeof tqRows[0].questions === "string" ? JSON.parse(tqRows[0].questions) : tqRows[0].questions;
+          if (Array.isArray(parsed)) topQuestions = parsed;
+        }
+      } catch {}
+
       res.json({
         ...podcast,
+        hosts_data: hosts,
+        top_questions_data: topQuestions,
         stats: {
           episodeCount,
           recentGuests: recentGuests.slice(0, 10),
@@ -8691,6 +8714,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         name: "name", description: "description", artworkUrl: "artwork_url",
         hosts: "hosts", appleUrl: "apple_url", spotifyUrl: "spotify_url",
         youtubeUrl: "youtube_url", status: "status", hasLandingPage: "has_landing_page",
+        twitterHandle: "twitter_handle", instagramUrl: "instagram_url",
+        tiktokUrl: "tiktok_url", facebookUrl: "facebook_url", discordUrl: "discord_url",
+        websiteUrl: "website_url", storeUrl: "store_url", category: "category",
+        frequency: "frequency", avgEpisodeLength: "avg_episode_length",
+        yearStarted: "year_started", aboutPodcast: "about_podcast",
       };
       const sets: string[] = [];
       const params: any[] = [];
@@ -8897,6 +8925,151 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err: any) {
       console.error("[CMS] Regenerate proxy error:", err);
       res.status(500).json({ message: err?.message || "Failed to regenerate" });
+    }
+  });
+
+  app.get("/api/admin/cms/people", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { search } = req.query;
+      const { rows } = await pool.query(
+        `SELECT entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
+      );
+      const peopleCounts: Record<string, { name: string; slug: string; count: number; podcasts: Set<string>; context: string }> = {};
+      const knownCompanyKeywords = ["inc", "corp", "llc", "co", "ltd", "capital", "ventures", "labs", "ai", "google", "amazon", "apple", "microsoft", "meta", "nvidia", "tesla", "spacex", "anthropic", "openai"];
+      for (const row of rows) {
+        try {
+          const entities: Record<string, string> = typeof row.entity_contexts_cache === "string"
+            ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+          for (const [entitySlug, context] of Object.entries(entities)) {
+            const name = entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+            const lowerName = name.toLowerCase();
+            const isCompany = knownCompanyKeywords.some(kw => lowerName === kw || lowerName.includes(` ${kw}`)) ||
+              (!name.includes(" ") && name.length <= 5 && name === name.toUpperCase()) ||
+              (typeof context === "string" && /\b(company|platform|product|service|app|corporation|startup)\b/i.test(context) && !/\b(entrepreneur|investor|author|host|ceo|founder|professor|journalist|engineer)\b/i.test(context));
+            if (!isCompany) {
+              if (!peopleCounts[entitySlug]) {
+                peopleCounts[entitySlug] = { name, slug: entitySlug, count: 0, podcasts: new Set(), context: typeof context === "string" ? context : "" };
+              }
+              peopleCounts[entitySlug].count++;
+            }
+          }
+        } catch {}
+      }
+      let people = Object.values(peopleCounts)
+        .map(p => ({ ...p, podcasts: Array.from(p.podcasts) }))
+        .sort((a, b) => b.count - a.count);
+      if (search) {
+        const q = (search as string).toLowerCase();
+        people = people.filter(p => p.name.toLowerCase().includes(q));
+      }
+      res.json(people.slice(0, 200));
+    } catch (err: any) {
+      console.error("[CMS] People error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch people" });
+    }
+  });
+
+  app.get("/api/admin/cms/companies", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { search } = req.query;
+      const { rows } = await pool.query(
+        `SELECT entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
+      );
+      const companyCounts: Record<string, { name: string; slug: string; count: number; context: string }> = {};
+      const knownCompanyKeywords = ["inc", "corp", "llc", "co", "ltd", "capital", "ventures", "labs", "ai", "google", "amazon", "apple", "microsoft", "meta", "nvidia", "tesla", "spacex", "anthropic", "openai"];
+      for (const row of rows) {
+        try {
+          const entities: Record<string, string> = typeof row.entity_contexts_cache === "string"
+            ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
+          for (const [entitySlug, context] of Object.entries(entities)) {
+            const name = entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+            const lowerName = name.toLowerCase();
+            const isCompany = knownCompanyKeywords.some(kw => lowerName === kw || lowerName.includes(` ${kw}`)) ||
+              (!name.includes(" ") && name.length <= 5 && name === name.toUpperCase()) ||
+              (typeof context === "string" && /\b(company|platform|product|service|app|corporation|startup)\b/i.test(context) && !/\b(entrepreneur|investor|author|host|ceo|founder|professor|journalist|engineer)\b/i.test(context));
+            if (isCompany) {
+              if (!companyCounts[entitySlug]) {
+                companyCounts[entitySlug] = { name, slug: entitySlug, count: 0, context: typeof context === "string" ? context : "" };
+              }
+              companyCounts[entitySlug].count++;
+            }
+          }
+        } catch {}
+      }
+      let companies = Object.values(companyCounts).sort((a, b) => b.count - a.count);
+      if (search) {
+        const q = (search as string).toLowerCase();
+        companies = companies.filter(c => c.name.toLowerCase().includes(q));
+      }
+      res.json(companies.slice(0, 200));
+    } catch (err: any) {
+      console.error("[CMS] Companies error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch companies" });
+    }
+  });
+
+  app.get("/api/admin/cms/products", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { search, status, page } = req.query;
+      const limit = 50;
+      const offset = ((parseInt(page as string) || 1) - 1) * limit;
+      let where = "WHERE 1=1";
+      const params: any[] = [];
+      if (status && status !== "all") {
+        params.push(status);
+        where += ` AND status = $${params.length}`;
+      }
+      if (search) {
+        params.push(`%${search}%`);
+        where += ` AND (name ILIKE $${params.length} OR company ILIKE $${params.length})`;
+      }
+      const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM extracted_products ${where}`, params);
+      const total = countRows[0]?.total || 0;
+      params.push(limit);
+      params.push(offset);
+      const { rows } = await pool.query(
+        `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url, podcast_slug, episode_slug, episode_title, extracted_at FROM extracted_products ${where} ORDER BY extracted_at DESC NULLS LAST, id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        params
+      );
+      const { rows: statusCounts } = await pool.query(`SELECT status, count(*)::int as count FROM extracted_products GROUP BY status`);
+      res.json({ products: rows, total, statusCounts: Object.fromEntries(statusCounts.map((r: any) => [r.status, r.count])) });
+    } catch (err: any) {
+      console.error("[CMS] Products error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch products" });
+    }
+  });
+
+  app.patch("/api/admin/cms/products/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { id } = req.params;
+      const { status, purchaseUrl, imageUrl, name, company, description, category } = req.body;
+      const sets: string[] = [];
+      const params: any[] = [];
+      if (status) { params.push(status); sets.push(`status = $${params.length}`); }
+      if (purchaseUrl !== undefined) { params.push(purchaseUrl); sets.push(`purchase_url = $${params.length}`); }
+      if (imageUrl !== undefined) { params.push(imageUrl); sets.push(`image_url = $${params.length}`); }
+      if (name !== undefined) { params.push(name); sets.push(`name = $${params.length}`); }
+      if (company !== undefined) { params.push(company); sets.push(`company = $${params.length}`); }
+      if (description !== undefined) { params.push(description); sets.push(`description = $${params.length}`); }
+      if (category !== undefined) { params.push(category); sets.push(`category = $${params.length}`); }
+      if (sets.length === 0) return res.status(400).json({ message: "No fields to update" });
+      if (status === "approved") {
+        sets.push(`approved_at = NOW()`);
+        sets.push(`approved_by = 'admin'`);
+      }
+      if (status === "rejected") {
+        sets.push(`reviewed_at = NOW()`);
+      }
+      params.push(id);
+      await pool.query(`UPDATE extracted_products SET ${sets.join(", ")} WHERE id = $${params.length}`, params);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[CMS] Update product error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update product" });
     }
   });
 
