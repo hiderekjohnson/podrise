@@ -8986,6 +8986,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   const podcastEnrichState = { running: false, progress: { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] as string[] } };
 
   app.post("/api/admin/cms/podcast-enrich", async (req, res) => {
+    console.log("[Enrich] POST /api/admin/cms/podcast-enrich", { isAdmin: req.session.isAdmin, running: podcastEnrichState.running });
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     if (podcastEnrichState.running) return res.status(409).json({ message: "Enrichment already running", progress: podcastEnrichState.progress });
 
@@ -9000,11 +9001,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const whereClause = singleSlug ? `WHERE slug = $1` : `WHERE has_landing_page = true`;
         const queryParams = singleSlug ? [singleSlug] : [];
         const { rows: podcasts } = await pool.query(
-          `SELECT id, slug, name, hosts, description, apple_url, spotify_url, youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url, discord_url, store_url, category, frequency, avg_episode_length, year_started ${whereClause} ORDER BY name`,
+          `SELECT id, slug, name, hosts, description, apple_url, spotify_url, youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url, discord_url, store_url, category, frequency, avg_episode_length, year_started FROM podcast_directory ${whereClause} ORDER BY name`,
           queryParams
         );
 
         podcastEnrichState.progress.total = podcasts.length;
+        console.log(`[Enrich] Found ${podcasts.length} podcasts to process`);
         const { openai } = await import("./replit_integrations/image/client");
 
         for (let i = 0; i < podcasts.length; i++) {
