@@ -131,6 +131,46 @@ function extractSnippets(text: string, terms: string[], count: number = 3): stri
   return snippets;
 }
 
+export function detectEntitiesFromTranscript(
+  transcript: string,
+  podcastSlug: string,
+  hostNames: string[],
+  sponsorNames: string[] = [],
+): Record<string, string> {
+  const hostNameSet = new Set(hostNames.map(h => h.toLowerCase().trim()));
+
+  const matchedPeople = ENTITY_PEOPLE.filter(p => {
+    const nameLower = p.name.toLowerCase();
+    if (hostNameSet.has(nameLower)) return false;
+    if (p.searchTerms.some(term => hostNameSet.has(term.toLowerCase()))) return false;
+    if (p.hostedSlugs && p.hostedSlugs.includes(podcastSlug)) return false;
+    return countMentions(transcript, p.searchTerms) >= 2;
+  });
+
+  const matchedCompanies = ENTITY_COMPANIES.filter(c => {
+    if (sponsorNames.includes(c.name.toLowerCase())) return false;
+    const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
+    return countMentions(transcript, allTerms, AMBIGUOUS_TERMS) >= 2;
+  });
+
+  const result: Record<string, string> = {};
+
+  for (const person of matchedPeople) {
+    const snippets = extractSnippets(transcript, person.searchTerms, 1);
+    result[person.slug] = snippets[0] ? `...${snippets[0]}...` : `Mentioned in transcript`;
+  }
+
+  for (const company of matchedCompanies) {
+    const allTerms = [...company.searchTerms, ...(company.associatedTerms || [])];
+    const snippets = extractSnippets(transcript, allTerms, 1);
+    result[company.slug] = snippets[0] ? `...${snippets[0]}...` : `Mentioned in transcript`;
+  }
+
+  return result;
+}
+
+export { ENTITY_PEOPLE, ENTITY_COMPANIES };
+
 export async function generateEntityContextsForRecap(
   recapId: number,
   podcastSlug: string,

@@ -6,7 +6,8 @@ import {
   Loader2, Search, ChevronLeft, ChevronDown, ChevronUp,
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
-  Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil
+  Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil,
+  Globe, Star, Zap, CheckCircle, XCircle, Play
 } from "lucide-react";
 
 type CMSView =
@@ -500,121 +501,152 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
             <h4 className="text-sm font-bold text-foreground">Edit Podcast</h4>
-
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
-                <input
-                  data-testid="input-cms-podcast-name"
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                />
+                <input data-testid="input-cms-podcast-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
               </div>
-
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Description</label>
-                <textarea
-                  data-testid="input-cms-podcast-description"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
-                />
+                <textarea data-testid="input-cms-podcast-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none" />
               </div>
-
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">About</label>
+                <textarea data-testid="input-cms-podcast-about" value={form.aboutPodcast} onChange={(e) => setForm({ ...form, aboutPodcast: e.target.value })} rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none" />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Hosts</label>
-                  <input
-                    data-testid="input-cms-podcast-hosts"
-                    type="text"
-                    value={form.hosts}
-                    onChange={(e) => setForm({ ...form, hosts: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                  />
+                  <input data-testid="input-cms-podcast-hosts" type="text" value={form.hosts} onChange={(e) => setForm({ ...form, hosts: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Artwork URL</label>
-                  <input
-                    data-testid="input-cms-podcast-artwork"
-                    type="text"
-                    value={form.artworkUrl}
-                    onChange={(e) => setForm({ ...form, artworkUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                  />
+                  <input data-testid="input-cms-podcast-artwork" type="text" value={form.artworkUrl} onChange={(e) => setForm({ ...form, artworkUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
                 </div>
               </div>
-
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Apple URL</label>
-                  <input
-                    type="text"
-                    value={form.appleUrl}
-                    onChange={(e) => setForm({ ...form, appleUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                    data-testid="input-cms-podcast-apple"
-                  />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
+                  <input data-testid="input-cms-podcast-category" type="text" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Spotify URL</label>
-                  <input
-                    type="text"
-                    value={form.spotifyUrl}
-                    onChange={(e) => setForm({ ...form, spotifyUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                    data-testid="input-cms-podcast-spotify"
-                  />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Frequency</label>
+                  <input data-testid="input-cms-podcast-frequency" type="text" value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">YouTube URL</label>
-                  <input
-                    type="text"
-                    value={form.youtubeUrl}
-                    onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                    data-testid="input-cms-podcast-youtube"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Status</label>
-                  <StatusSelect value={form.status} onChange={(v) => setForm({ ...form, status: v })} />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Avg Length (min)</label>
+                  <input data-testid="input-cms-podcast-avg-length" type="number" value={form.avgEpisodeLength || ""} onChange={(e) => setForm({ ...form, avgEpisodeLength: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Active</label>
-                  <button
-                    onClick={() => setForm({ ...form, hasLandingPage: !form.hasLandingPage })}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
-                      form.hasLandingPage
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400"
-                        : "bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800/30 dark:border-gray-700 dark:text-gray-400"
-                    }`}
-                    data-testid="button-toggle-active"
-                  >
-                    {form.hasLandingPage ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    {form.hasLandingPage ? "Active" : "Inactive"}
-                  </button>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Year Started</label>
+                  <input data-testid="input-cms-podcast-year" type="number" value={form.yearStarted || ""} onChange={(e) => setForm({ ...form, yearStarted: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => updateMutation.mutate(form)}
-                disabled={updateMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                data-testid="button-save-podcast"
-              >
-                {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Save Changes
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+            <h4 className="text-sm font-bold text-foreground">Platform Links</h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Apple URL</label>
+                <input type="text" value={form.appleUrl} onChange={(e) => setForm({ ...form, appleUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-apple" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Spotify URL</label>
+                <input type="text" value={form.spotifyUrl} onChange={(e) => setForm({ ...form, spotifyUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-spotify" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">YouTube URL</label>
+                <input type="text" value={form.youtubeUrl} onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-youtube" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+            <h4 className="text-sm font-bold text-foreground">Social & Web Links</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Website</label>
+                <input type="text" value={form.websiteUrl} onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-website" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Twitter Handle</label>
+                <input type="text" value={form.twitterHandle} onChange={(e) => setForm({ ...form, twitterHandle: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-twitter" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Instagram</label>
+                <input type="text" value={form.instagramUrl} onChange={(e) => setForm({ ...form, instagramUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-instagram" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">TikTok</label>
+                <input type="text" value={form.tiktokUrl} onChange={(e) => setForm({ ...form, tiktokUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-tiktok" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Facebook</label>
+                <input type="text" value={form.facebookUrl} onChange={(e) => setForm({ ...form, facebookUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-facebook" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Discord</label>
+                <input type="text" value={form.discordUrl} onChange={(e) => setForm({ ...form, discordUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-discord" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Store URL</label>
+                <input type="text" value={form.storeUrl} onChange={(e) => setForm({ ...form, storeUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-store" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <StatusSelect value={form.status} onChange={(v) => setForm({ ...form, status: v })} />
+            </div>
+            <div>
+              <button onClick={() => setForm({ ...form, hasLandingPage: !form.hasLandingPage })} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border transition-colors w-full justify-center ${form.hasLandingPage ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400" : "bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800/30 dark:border-gray-700 dark:text-gray-400"}`} data-testid="button-toggle-active">
+                {form.hasLandingPage ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                {form.hasLandingPage ? "Active" : "Inactive"}
               </button>
             </div>
           </div>
+
+          <div className="flex justify-end">
+            <button onClick={() => updateMutation.mutate(form)} disabled={updateMutation.isPending} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors" data-testid="button-save-podcast">
+              {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Changes
+            </button>
+          </div>
+
+          {podcast?.hosts_data && podcast.hosts_data.length > 0 && (
+            <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+              <h4 className="text-sm font-bold text-foreground">Host Profiles</h4>
+              {podcast.hosts_data.map((host: PodcastHost) => (
+                <div key={host.id} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg" data-testid={`host-card-${host.id}`}>
+                  {host.photo_url && <img src={host.photo_url} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{host.name}</p>
+                    {host.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{host.bio}</p>}
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {host.twitter_handle && <span className="text-xs text-primary">@{host.twitter_handle}</span>}
+                      {host.linkedin_url && <a href={host.linkedin_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">LinkedIn</a>}
+                      {host.website_url && <a href={host.website_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">Website</a>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {podcast?.top_questions_data && podcast.top_questions_data.length > 0 && (
+            <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
+              <h4 className="text-sm font-bold text-foreground">Podcast FAQs</h4>
+              {podcast.top_questions_data.map((faq: PodcastFAQ, i: number) => (
+                <details key={i} className="group" data-testid={`faq-item-${i}`}>
+                  <summary className="text-sm font-medium text-foreground cursor-pointer hover:text-primary transition-colors">{faq.question}</summary>
+                  <p className="text-xs text-muted-foreground mt-1 pl-2 border-l-2 border-primary/20">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -625,6 +657,28 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
                 <span className="text-xs text-muted-foreground">Episodes</span>
                 <span className="text-sm font-bold text-foreground" data-testid="text-stat-episodes">{stats?.episodeCount || 0}</span>
               </div>
+              {podcast?.total_episodes > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Total (Directory)</span>
+                  <span className="text-sm font-bold text-foreground">{podcast.total_episodes}</span>
+                </div>
+              )}
+              {podcast?.apple_rating > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Apple Rating</span>
+                  <span className="text-sm font-bold text-foreground flex items-center gap-1"><Star className="w-3 h-3 text-amber-500" /> {podcast.apple_rating} ({podcast.apple_rating_count})</span>
+                </div>
+              )}
+              {podcast?.known_for && Array.isArray(podcast.known_for) && podcast.known_for.length > 0 && (
+                <div>
+                  <span className="text-xs text-muted-foreground">Known For</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {podcast.known_for.map((k: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md text-xs">{k}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {stats?.recentGuests?.length > 0 && (
                 <div>
                   <span className="text-xs text-muted-foreground">Recent Guests</span>
@@ -1784,14 +1838,218 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
   );
 }
 
-function ComingSoonPlaceholder({ title }: { title: string }) {
+function EntityBackfillBanner() {
+  const { toast } = useToast();
+  const { data: status } = useQuery<{ total_episodes: number; with_entities: number; without_entities: number; backfillable: number }>({
+    queryKey: ["/api/admin/cms/entity-backfill-status"],
+  });
+  const backfillMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/cms/entity-backfill", { batchSize: 200 }),
+    onSuccess: async (res: any) => {
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/entity-backfill-status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies"] });
+      toast({ title: `Processed ${data.processed} episodes, found ${data.totalEntities} mentions` });
+    },
+    onError: (err: Error) => toast({ title: "Backfill failed", description: err.message, variant: "destructive" }),
+  });
+  if (!status || status.without_entities === 0) return null;
+  const pct = Math.round((status.with_entities / status.total_episodes) * 100);
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center" data-testid={`placeholder-${title.toLowerCase()}`}>
-      <div className="w-16 h-16 rounded-2xl bg-muted/40 flex items-center justify-center mb-4">
-        <AlertCircle className="w-8 h-8 text-muted-foreground" />
+    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-center justify-between gap-3" data-testid="entity-backfill-banner">
+      <div className="flex items-center gap-2">
+        <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+        <span className="text-sm text-amber-800 dark:text-amber-300">
+          Entity mentions: {status.with_entities}/{status.total_episodes} episodes ({pct}%) — {status.backfillable} can be backfilled
+        </span>
       </div>
-      <h3 className="text-lg font-bold text-foreground mb-1">{title}</h3>
-      <p className="text-sm text-muted-foreground">Coming soon in Phase 2</p>
+      <button
+        onClick={() => backfillMutation.mutate()}
+        disabled={backfillMutation.isPending}
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 flex-shrink-0"
+        data-testid="button-run-backfill"
+      >
+        {backfillMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+        {backfillMutation.isPending ? "Processing..." : "Run Backfill (200)"}
+      </button>
+    </div>
+  );
+}
+
+function PeopleTab() {
+  const [search, setSearch] = useState("");
+  const { data: people, isLoading } = useQuery<Array<{ name: string; slug: string; count: number; context: string }>>({
+    queryKey: ["/api/admin/cms/people", search],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      const res = await fetch(`/api/admin/cms/people?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+  return (
+    <div className="space-y-4" data-testid="cms-people-tab">
+      <EntityBackfillBanner />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input type="text" placeholder="Search people..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-people" />
+        </div>
+        <span className="text-xs text-muted-foreground">{people?.length || 0} people</span>
+      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : !people?.length ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">No people found. Run entity backfill to populate.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {people.map((person) => (
+            <div key={person.slug} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2" data-testid={`person-card-${person.slug}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">{person.name}</span>
+                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs font-medium">{person.count} episodes</span>
+              </div>
+              {person.context && <p className="text-xs text-muted-foreground line-clamp-2">{person.context.replace(/^\.\.\./, '').replace(/\.\.\.$/, '')}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CompaniesTab() {
+  const [search, setSearch] = useState("");
+  const { data: companies, isLoading } = useQuery<Array<{ name: string; slug: string; count: number; context: string }>>({
+    queryKey: ["/api/admin/cms/companies", search],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      const res = await fetch(`/api/admin/cms/companies?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+  return (
+    <div className="space-y-4" data-testid="cms-companies-tab">
+      <EntityBackfillBanner />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input type="text" placeholder="Search companies..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-companies" />
+        </div>
+        <span className="text-xs text-muted-foreground">{companies?.length || 0} companies</span>
+      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : !companies?.length ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">No companies found. Run entity backfill to populate.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {companies.map((company) => (
+            <div key={company.slug} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2" data-testid={`company-card-${company.slug}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">{company.name}</span>
+                <span className="px-2 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-xs font-medium">{company.count} episodes</span>
+              </div>
+              {company.context && <p className="text-xs text-muted-foreground line-clamp-2">{company.context.replace(/^\.\.\./, '').replace(/\.\.\.$/, '')}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductsTab() {
+  const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useQuery<{ products: Array<{ id: number; name: string; company: string; description: string; category: string; context: string; mention_type: string; status: string; purchase_url: string; image_url: string; podcast_slug: string; episode_slug: string; episode_title: string; extracted_at: string }>; total: number; statusCounts: Record<string, number> }>({
+    queryKey: ["/api/admin/cms/products", search, statusFilter, page],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      params.set("page", String(page));
+      const res = await fetch(`/api/admin/cms/products?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...body }: { id: number; status?: string }) => apiRequest("PATCH", `/api/admin/cms/products/${id}`, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/products"] });
+      toast({ title: "Product updated" });
+    },
+    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+  const products = data?.products || [];
+  const total = data?.total || 0;
+  const counts = data?.statusCounts || {};
+  return (
+    <div className="space-y-4" data-testid="cms-products-tab">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input type="text" placeholder="Search products or companies..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-products" />
+        </div>
+        <div className="flex items-center gap-1">
+          {["all", "pending", "approved", "rejected"].map((s) => (
+            <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-primary text-white" : "bg-muted/40 text-muted-foreground hover:text-foreground"}`} data-testid={`filter-product-${s}`}>
+              {s === "all" ? `All (${total})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s] || 0})`}
+            </button>
+          ))}
+        </div>
+      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : !products.length ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">No products found.</div>
+      ) : (
+        <div className="space-y-2">
+          {products.map((p) => (
+            <div key={p.id} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 flex items-start gap-4" data-testid={`product-row-${p.id}`}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground">{p.name}</span>
+                  {p.company && <span className="text-xs text-muted-foreground">by {p.company}</span>}
+                  <StatusBadge status={p.status === "approved" ? "published" : p.status === "rejected" ? "hidden" : "needs_review"} />
+                </div>
+                {p.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{p.description}</p>}
+                <div className="flex items-center gap-3 mt-1.5">
+                  {p.category && <span className="text-xs text-primary">{p.category}</span>}
+                  {p.episode_title && <span className="text-xs text-muted-foreground truncate max-w-[300px]">{p.episode_title}</span>}
+                  {p.purchase_url && <a href={p.purchase_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline flex items-center gap-0.5"><ExternalLink className="w-3 h-3" /> Link</a>}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {p.status !== "approved" && (
+                  <button onClick={() => updateMutation.mutate({ id: p.id, status: "approved" })} className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Approve" data-testid={`button-approve-product-${p.id}`}>
+                    <CheckCircle className="w-4 h-4" />
+                  </button>
+                )}
+                {p.status !== "rejected" && (
+                  <button onClick={() => updateMutation.mutate({ id: p.id, status: "rejected" })} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="Reject" data-testid={`button-reject-product-${p.id}`}>
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          {total > 50 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/40 disabled:opacity-30" data-testid="button-prev-page">Previous</button>
+              <span className="text-xs text-muted-foreground">Page {page} of {Math.ceil(total / 50)}</span>
+              <button disabled={page >= Math.ceil(total / 50)} onClick={() => setPage(page + 1)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/40 disabled:opacity-30" data-testid="button-next-page">Next</button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1879,9 +2137,9 @@ export default function AdminCMS() {
       {view.tab === "episode-detail" && view.podcastSlug && view.episodeSlug && (
         <EpisodeDetail podcastSlug={view.podcastSlug} episodeSlug={view.episodeSlug} onNavigate={handleNavigate} />
       )}
-      {view.tab === "people" && <ComingSoonPlaceholder title="People" />}
-      {view.tab === "companies" && <ComingSoonPlaceholder title="Companies" />}
-      {view.tab === "products" && <ComingSoonPlaceholder title="Products" />}
+      {view.tab === "people" && <PeopleTab />}
+      {view.tab === "companies" && <CompaniesTab />}
+      {view.tab === "products" && <ProductsTab />}
     </div>
   );
 }

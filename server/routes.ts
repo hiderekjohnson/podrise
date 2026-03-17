@@ -8939,10 +8939,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         FROM landing_page_recaps
       `);
       const { rows: [transcriptCounts] } = await pool.query(`
-        SELECT count(DISTINCT et.episode_slug)::int as episodes_with_transcripts
-        FROM episode_transcripts et
-        INNER JOIN landing_page_recaps lr ON lr.episode_slug = et.episode_slug
-        WHERE lr.entity_contexts_cache IS NULL
+        SELECT count(*)::int as episodes_with_transcripts
+        FROM landing_page_recaps
+        WHERE entity_contexts_cache IS NULL
+          AND itunes_id IS NOT NULL
+          AND EXISTS (
+            SELECT 1 FROM episode_transcripts 
+            WHERE episode_transcripts.podcast_id = landing_page_recaps.itunes_id 
+              AND LOWER(TRIM(episode_transcripts.episode_title)) = LOWER(TRIM(landing_page_recaps.episode_title))
+              AND episode_transcripts.transcript IS NOT NULL
+              AND episode_transcripts.transcript != ''
+          )
       `);
       res.json({
         ...counts,
@@ -8955,14 +8962,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.post("/api/admin/cms/entity-backfill", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
-    const batchSize = Math.min(parseInt(req.body.batchSize) || 10, 25);
+    const batchSize = Math.min(parseInt(req.body.batchSize) || 100, 500);
     try {
       const { rows: episodes } = await pool.query(`
-        SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug, lr.sponsors, lr.hosts
-        FROM landing_page_recaps lr
-        INNER JOIN episode_transcripts et ON et.episode_slug = lr.episode_slug
-        WHERE lr.entity_contexts_cache IS NULL
-        ORDER BY lr.publish_date DESC NULLS LAST
+        SELECT landing_page_recaps.id, landing_page_recaps.slug, landing_page_recaps.itunes_id, landing_page_recaps.podcast_name, landing_page_recaps.episode_title, landing_page_recaps.episode_slug, landing_page_recaps.sponsors, landing_page_recaps.hosts
+        FROM landing_page_recaps
+        WHERE landing_page_recaps.entity_contexts_cache IS NULL
+          AND landing_page_recaps.itunes_id IS NOT NULL
+          AND EXISTS (
+            SELECT 1 FROM episode_transcripts 
+            WHERE episode_transcripts.podcast_id = landing_page_recaps.itunes_id 
+              AND LOWER(TRIM(episode_transcripts.episode_title)) = LOWER(TRIM(landing_page_recaps.episode_title))
+              AND episode_transcripts.transcript IS NOT NULL
+              AND episode_transcripts.transcript != ''
+          )
+        ORDER BY landing_page_recaps.publish_date DESC NULLS LAST
         LIMIT $1
       `, [batchSize]);
 
@@ -8970,18 +8984,18 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return res.json({ processed: 0, message: "All episodes already have entity contexts" });
       }
 
+      const { detectEntitiesFromTranscript } = await import("./entityContextGenerator");
       let processed = 0;
       let errors = 0;
-      const results: Array<{ episode: string; entities: number; error?: string }> = [];
+      let totalEntities = 0;
 
       for (const ep of episodes) {
         try {
           const { rows: transcriptRows } = await pool.query(
-            `SELECT transcript FROM episode_transcripts WHERE episode_slug = $1 LIMIT 1`,
-            [ep.episode_slug]
+            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2)) LIMIT 1`,
+            [ep.itunes_id, ep.episode_title]
           );
           if (!transcriptRows[0]?.transcript) {
-            results.push({ episode: ep.episode_title, entities: 0, error: "No transcript" });
             errors++;
             continue;
           }
@@ -8994,28 +9008,30 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             }
           } catch {}
 
-          const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
-          const entityContexts = await generateEntityContextsForRecap(
-            ep.id, ep.slug, ep.podcast_name,
-            ep.episode_title, transcriptRows[0].transcript, sponsorNames
+          let hostNames: string[] = [];
+          try {
+            const hostData = await storage.getHostsByPodcastSlug(ep.slug);
+            hostNames = hostData.map(h => h.name);
+          } catch {}
+
+          const entityContexts = detectEntitiesFromTranscript(
+            transcriptRows[0].transcript, ep.slug, hostNames, sponsorNames
           );
 
-          const entityCount = Object.keys(entityContexts).length;
-          if (entityCount === 0) {
-            await pool.query(
-              `UPDATE landing_page_recaps SET entity_contexts_cache = '{}' WHERE id = $1`,
-              [ep.id]
-            );
-          }
-          results.push({ episode: ep.episode_title, entities: entityCount });
+          await pool.query(
+            `UPDATE landing_page_recaps SET entity_contexts_cache = $1 WHERE id = $2`,
+            [JSON.stringify(entityContexts), ep.id]
+          );
+
+          totalEntities += Object.keys(entityContexts).length;
           processed++;
         } catch (err: any) {
-          results.push({ episode: ep.episode_title, entities: 0, error: err.message?.substring(0, 100) });
           errors++;
         }
       }
 
-      res.json({ processed, errors, results });
+      console.log(`[EntityBackfill] Processed ${processed} episodes, found ${totalEntities} total entity mentions`);
+      res.json({ processed, errors, totalEntities, remaining: episodes.length === batchSize ? "more available" : "done" });
     } catch (err: any) {
       console.error("[CMS] Entity backfill error:", err);
       res.status(500).json({ message: err?.message || "Backfill failed" });
@@ -9026,33 +9042,33 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { search } = req.query;
+      const { ENTITY_PEOPLE, ENTITY_COMPANIES } = await import("./entityContextGenerator");
+      const companySlugs = new Set(ENTITY_COMPANIES.map(c => c.slug));
+      const personNameMap: Record<string, string> = {};
+      for (const p of ENTITY_PEOPLE) personNameMap[p.slug] = p.name;
       const { rows } = await pool.query(
         `SELECT entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
       );
-      const peopleCounts: Record<string, { name: string; slug: string; count: number; podcasts: Set<string>; context: string }> = {};
-      const knownCompanyKeywords = ["inc", "corp", "llc", "co", "ltd", "capital", "ventures", "labs", "ai", "google", "amazon", "apple", "microsoft", "meta", "nvidia", "tesla", "spacex", "anthropic", "openai"];
+      const peopleCounts: Record<string, { name: string; slug: string; count: number; context: string }> = {};
       for (const row of rows) {
         try {
           const entities: Record<string, string> = typeof row.entity_contexts_cache === "string"
             ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
           for (const [entitySlug, context] of Object.entries(entities)) {
-            const name = entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-            const lowerName = name.toLowerCase();
-            const isCompany = knownCompanyKeywords.some(kw => lowerName === kw || lowerName.includes(` ${kw}`)) ||
-              (!name.includes(" ") && name.length <= 5 && name === name.toUpperCase()) ||
-              (typeof context === "string" && /\b(company|platform|product|service|app|corporation|startup)\b/i.test(context) && !/\b(entrepreneur|investor|author|host|ceo|founder|professor|journalist|engineer)\b/i.test(context));
-            if (!isCompany) {
-              if (!peopleCounts[entitySlug]) {
-                peopleCounts[entitySlug] = { name, slug: entitySlug, count: 0, podcasts: new Set(), context: typeof context === "string" ? context : "" };
-              }
-              peopleCounts[entitySlug].count++;
+            if (companySlugs.has(entitySlug)) continue;
+            if (!personNameMap[entitySlug]) continue;
+            const name = personNameMap[entitySlug];
+            if (!peopleCounts[entitySlug]) {
+              peopleCounts[entitySlug] = { name, slug: entitySlug, count: 0, context: typeof context === "string" ? context : "" };
+            }
+            peopleCounts[entitySlug].count++;
+            if (context && (!peopleCounts[entitySlug].context || peopleCounts[entitySlug].context.startsWith("..."))) {
+              peopleCounts[entitySlug].context = typeof context === "string" ? context : "";
             }
           }
         } catch {}
       }
-      let people = Object.values(peopleCounts)
-        .map(p => ({ ...p, podcasts: Array.from(p.podcasts) }))
-        .sort((a, b) => b.count - a.count);
+      let people = Object.values(peopleCounts).sort((a, b) => b.count - a.count);
       if (search) {
         const q = (search as string).toLowerCase();
         people = people.filter(p => p.name.toLowerCase().includes(q));
@@ -9068,26 +9084,27 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { search } = req.query;
+      const { ENTITY_COMPANIES } = await import("./entityContextGenerator");
+      const companySlugs = new Set(ENTITY_COMPANIES.map(c => c.slug));
+      const companyNameMap: Record<string, string> = {};
+      for (const c of ENTITY_COMPANIES) companyNameMap[c.slug] = c.name;
       const { rows } = await pool.query(
         `SELECT entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
       );
       const companyCounts: Record<string, { name: string; slug: string; count: number; context: string }> = {};
-      const knownCompanyKeywords = ["inc", "corp", "llc", "co", "ltd", "capital", "ventures", "labs", "ai", "google", "amazon", "apple", "microsoft", "meta", "nvidia", "tesla", "spacex", "anthropic", "openai"];
       for (const row of rows) {
         try {
           const entities: Record<string, string> = typeof row.entity_contexts_cache === "string"
             ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
           for (const [entitySlug, context] of Object.entries(entities)) {
-            const name = entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-            const lowerName = name.toLowerCase();
-            const isCompany = knownCompanyKeywords.some(kw => lowerName === kw || lowerName.includes(` ${kw}`)) ||
-              (!name.includes(" ") && name.length <= 5 && name === name.toUpperCase()) ||
-              (typeof context === "string" && /\b(company|platform|product|service|app|corporation|startup)\b/i.test(context) && !/\b(entrepreneur|investor|author|host|ceo|founder|professor|journalist|engineer)\b/i.test(context));
-            if (isCompany) {
-              if (!companyCounts[entitySlug]) {
-                companyCounts[entitySlug] = { name, slug: entitySlug, count: 0, context: typeof context === "string" ? context : "" };
-              }
-              companyCounts[entitySlug].count++;
+            if (!companySlugs.has(entitySlug)) continue;
+            const name = companyNameMap[entitySlug] || entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+            if (!companyCounts[entitySlug]) {
+              companyCounts[entitySlug] = { name, slug: entitySlug, count: 0, context: typeof context === "string" ? context : "" };
+            }
+            companyCounts[entitySlug].count++;
+            if (context && (!companyCounts[entitySlug].context || companyCounts[entitySlug].context.startsWith("..."))) {
+              companyCounts[entitySlug].context = typeof context === "string" ? context : "";
             }
           }
         } catch {}
