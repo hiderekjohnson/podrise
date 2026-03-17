@@ -9446,7 +9446,8 @@ Rules:
   });
 
   app.get("/api/admin/cms/people", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    console.log("[CMS] GET /api/admin/cms/people", { search: req.query.search, isAdmin: req.session.isAdmin });
+    if (!req.session.isAdmin) { console.log("[CMS] GET /api/admin/cms/people -> 401 Unauthorized"); return res.status(401).json({ message: "Unauthorized" }); }
     try {
       const { search } = req.query;
       let where = "";
@@ -9470,6 +9471,7 @@ Rules:
         ORDER BY COALESCE(m.mention_count, 0) DESC, ep.name ASC
         LIMIT 200
       `, params);
+      console.log("[CMS] GET /api/admin/cms/people -> 200, count:", rows.length);
       res.json(rows.map(r => ({
         id: r.id,
         slug: r.slug,
@@ -9489,7 +9491,7 @@ Rules:
         context: r.latest_context || "",
       })));
     } catch (err: any) {
-      console.error("[CMS] People error:", err);
+      console.error("[CMS] GET /api/admin/cms/people -> 500:", err?.message || err);
       res.status(500).json({ message: err?.message || "Failed to fetch people" });
     }
   });
@@ -9573,7 +9575,8 @@ Rules:
   });
 
   app.get("/api/admin/cms/companies", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    console.log("[CMS] GET /api/admin/cms/companies", { search: req.query.search, isAdmin: req.session.isAdmin });
+    if (!req.session.isAdmin) { console.log("[CMS] GET /api/admin/cms/companies -> 401 Unauthorized"); return res.status(401).json({ message: "Unauthorized" }); }
     try {
       const { search } = req.query;
       let where = "";
@@ -9597,6 +9600,7 @@ Rules:
         ORDER BY COALESCE(m.mention_count, 0) DESC, ec.name ASC
         LIMIT 200
       `, params);
+      console.log("[CMS] GET /api/admin/cms/companies -> 200, count:", rows.length);
       res.json(rows.map(r => ({
         id: r.id,
         slug: r.slug,
@@ -9614,7 +9618,7 @@ Rules:
         context: r.latest_context || "",
       })));
     } catch (err: any) {
-      console.error("[CMS] Companies error:", err);
+      console.error("[CMS] GET /api/admin/cms/companies -> 500:", err?.message || err);
       res.status(500).json({ message: err?.message || "Failed to fetch companies" });
     }
   });
@@ -9759,7 +9763,8 @@ Rules:
   });
 
   app.get("/api/admin/cms/products", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    console.log("[CMS] GET /api/admin/cms/products", { search: req.query.search, status: req.query.status, category: req.query.category, page: req.query.page, isAdmin: req.session.isAdmin });
+    if (!req.session.isAdmin) { console.log("[CMS] GET /api/admin/cms/products -> 401 Unauthorized"); return res.status(401).json({ message: "Unauthorized" }); }
     try {
       const { search, status, category, page } = req.query;
       const limit = 50;
@@ -9797,6 +9802,7 @@ Rules:
           count(CASE WHEN cover_approved = false THEN 1 END)::int as rejected
           FROM book_enrichments`);
         const statusCounts = { approved: sc[0]?.approved || 0, pending: sc[0]?.pending || 0, rejected: sc[0]?.rejected || 0 };
+        console.log("[CMS] GET /api/admin/cms/products -> 200, books:", rows.length, "total:", total);
         res.json({ products: rows, total, statusCounts, categoryCounts: { book: total } });
       } else if (onlyProducts) {
         let where = "WHERE 1=1";
@@ -9819,6 +9825,7 @@ Rules:
           params
         );
         const { rows: sc } = await pool.query(`SELECT status, count(*)::int as count FROM extracted_products WHERE category = $1 GROUP BY status`, [category]);
+        console.log("[CMS] GET /api/admin/cms/products -> 200, products:", rows.length, "total:", total);
         res.json({ products: rows, total, statusCounts: Object.fromEntries(sc.map((r: any) => [r.status, r.count])), categoryCounts: {} });
       } else {
         const productWhere: string[] = ["1=1"];
@@ -9889,10 +9896,11 @@ Rules:
         const categoryCounts: Record<string, number> = { book: bookTotal };
         for (const r of catCounts.rows) categoryCounts[r.category] = r.count;
 
+        console.log("[CMS] GET /api/admin/cms/products -> 200, merged:", merged.length, "total:", total);
         res.json({ products: merged, total, statusCounts: sc, categoryCounts });
       }
     } catch (err: any) {
-      console.error("[CMS] Products error:", err);
+      console.error("[CMS] GET /api/admin/cms/products -> 500:", err?.message || err);
       res.status(500).json({ message: err?.message || "Failed to fetch products" });
     }
   });

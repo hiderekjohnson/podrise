@@ -2199,13 +2199,13 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
 function PeopleTab() {
   const [search, setSearch] = useState("");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-  const { data: people, isLoading } = useQuery<EntityPerson[]>({
+  const { data: people, isLoading, isError, error, refetch } = useQuery<EntityPerson[]>({
     queryKey: ["/api/admin/cms/people", search],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       const res = await fetch(`/api/admin/cms/people?${params}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) throw new Error(`Failed to load people (${res.status})`);
       return res.json();
     },
   });
@@ -2226,6 +2226,12 @@ function PeopleTab() {
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : isError ? (
+        <div className="text-center py-12 space-y-3" data-testid="error-people">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+          <p className="text-sm text-red-600 dark:text-red-400">Failed to load people{error?.message ? `: ${error.message}` : ""}</p>
+          <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-2" data-testid="button-retry-people"><RefreshCw className="w-4 h-4" /> Retry</button>
+        </div>
       ) : !people?.length ? (
         <div className="text-center py-12 text-muted-foreground text-sm">No people found. Run entity backfill to populate.</div>
       ) : (
@@ -2367,13 +2373,13 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
 function CompaniesTab() {
   const [search, setSearch] = useState("");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-  const { data: companies, isLoading } = useQuery<EntityCompany[]>({
+  const { data: companies, isLoading, isError, error, refetch } = useQuery<EntityCompany[]>({
     queryKey: ["/api/admin/cms/companies", search],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       const res = await fetch(`/api/admin/cms/companies?${params}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) throw new Error(`Failed to load companies (${res.status})`);
       return res.json();
     },
   });
@@ -2394,6 +2400,12 @@ function CompaniesTab() {
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : isError ? (
+        <div className="text-center py-12 space-y-3" data-testid="error-companies">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+          <p className="text-sm text-red-600 dark:text-red-400">Failed to load companies{error?.message ? `: ${error.message}` : ""}</p>
+          <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-2" data-testid="button-retry-companies"><RefreshCw className="w-4 h-4" /> Retry</button>
+        </div>
       ) : !companies?.length ? (
         <div className="text-center py-12 text-muted-foreground text-sm">No companies found. Run entity backfill to populate.</div>
       ) : (
@@ -2443,7 +2455,7 @@ function ProductsTab() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery<{ products: Array<{ id: number; name: string; company: string; description: string; category: string; context: string; mention_type: string; status: string; purchase_url: string; image_url: string; podcast_slug: string; episode_slug: string; episode_title: string; extracted_at: string; source?: string; book_slug?: string }>; total: number; statusCounts: Record<string, number>; categoryCounts?: Record<string, number> }>({
+  const { data, isLoading, isError, error, refetch } = useQuery<{ products: Array<{ id: number; name: string; company: string; description: string; category: string; context: string; mention_type: string; status: string; purchase_url: string; image_url: string; podcast_slug: string; episode_slug: string; episode_title: string; extracted_at: string; source?: string; book_slug?: string }>; total: number; statusCounts: Record<string, number>; categoryCounts?: Record<string, number> }>({
     queryKey: ["/api/admin/cms/products", debouncedSearch, statusFilter, categoryFilter, page],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -2452,7 +2464,7 @@ function ProductsTab() {
       if (categoryFilter !== "all") params.set("category", categoryFilter);
       params.set("page", String(page));
       const res = await fetch(`/api/admin/cms/products?${params}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) throw new Error(`Failed to load products (${res.status})`);
       return res.json();
     },
   });
@@ -2497,6 +2509,12 @@ function ProductsTab() {
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : isError ? (
+        <div className="text-center py-12 space-y-3" data-testid="error-products">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
+          <p className="text-sm text-red-600 dark:text-red-400">Failed to load products{error?.message ? `: ${error.message}` : ""}</p>
+          <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-2" data-testid="button-retry-products"><RefreshCw className="w-4 h-4" /> Retry</button>
+        </div>
       ) : !products.length ? (
         <div className="text-center py-12 text-muted-foreground text-sm">No mentions found.</div>
       ) : (
