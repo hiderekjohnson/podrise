@@ -154,59 +154,117 @@ async function main() {
   }
 
   if (!tableArg || tableArg === "episode_quotes") {
-    await migrateLargeTable(
-      "episode_quotes",
-      `SELECT COUNT(*) as cnt FROM episode_quotes`,
-      `SELECT podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at FROM episode_quotes ORDER BY id`,
-      `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at) SELECT $1,$2,$3,$4,$5,$6,$7,$8 WHERE NOT EXISTS (SELECT 1 FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2 AND quote_text = $5)`,
-      (r) => [r.podcast_slug, r.episode_slug, r.speaker_name, r.speaker_role, r.quote_text, r.context, r.quote_type, r.created_at],
-      1000, 100,
-      startOffsetArg
-    );
+    console.log("\n=== episode_quotes: smart missing-only migration ===");
+    const allKeys = (await devPool.query("SELECT podcast_slug, episode_slug, quote_text FROM episode_quotes ORDER BY id")).rows.map((r: any) => [r.podcast_slug, r.episode_slug, r.quote_text]);
+    console.log(`  Total dev rows: ${allKeys.length}`);
+
+    let allMissing: any[] = [];
+    const checkBatchSize = 200;
+    for (let i = 0; i < allKeys.length; i += checkBatchSize) {
+      const chunk = allKeys.slice(i, i + checkBatchSize);
+      try {
+        const resp = await fetch(`${PROD_URL}/api/admin/migrate-check-missing`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Cookie: COOKIE },
+          body: JSON.stringify({ table: "episode_quotes", keys: chunk }),
+        });
+        if (resp.ok) {
+          const { missing } = await resp.json();
+          allMissing.push(...missing);
+        }
+      } catch {}
+      process.stdout.write(`  Checked ${Math.min(i + checkBatchSize, allKeys.length)}/${allKeys.length} — ${allMissing.length} missing so far\r`);
+    }
+    console.log(`\n  Found ${allMissing.length} missing quotes to migrate`);
+
+    if (allMissing.length > 0) {
+      const insertQuery = `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at) SELECT $1,$2,$3,$4,$5,$6,$7,$8 WHERE NOT EXISTS (SELECT 1 FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2 AND quote_text = $5)`;
+      let totalInserted = 0, totalErrors = 0;
+      const startTime = Date.now();
+
+      const missingSet = new Set(allMissing.map((k: any) => k[0] + "|||" + k[1] + "|||" + k[2]));
+      const allRows = (await devPool.query("SELECT podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at FROM episode_quotes ORDER BY id")).rows;
+      const rowsToSend = allRows.filter((r: any) => missingSet.has(r.podcast_slug + "|||" + r.episode_slug + "|||" + r.quote_text));
+      console.log(`  Fetched ${rowsToSend.length} rows to send`);
+
+      for (let i = 0; i < rowsToSend.length; i += 100) {
+        const chunk = rowsToSend.slice(i, i + 100);
+        const items = chunk.map((r: any) => ({
+          query: insertQuery,
+          params: [r.podcast_slug, r.episode_slug, r.speaker_name, r.speaker_role, r.quote_text, r.context, r.quote_type, r.created_at]
+        }));
+        const { inserted, errors } = await execBatchOnProd(items, true);
+        totalInserted += inserted;
+        totalErrors += errors;
+        const done = Math.min(i + 100, rowsToSend.length);
+        process.stdout.write(`  ${done}/${rowsToSend.length} (${totalInserted} ok, ${totalErrors} err)\r`);
+      }
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.log(`  Done: ${totalInserted} inserted, ${totalErrors} errors in ${elapsed}s          `);
+    }
   }
 
   if (!tableArg || tableArg === "episode_transcripts") {
-    console.log("\n=== episode_transcripts: smart migration ===");
-    const total = parseInt((await devPool.query("SELECT COUNT(*) as cnt FROM episode_transcripts")).rows[0].cnt);
-    console.log(`  Total dev rows: ${total}, starting from offset ${startOffsetArg}`);
-    
-    let offset = startOffsetArg, totalInserted = 0, totalSkipped = 0;
-    const startTime = Date.now();
-    const insertQuery = `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record, fetched_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) ON CONFLICT (episode_guid) DO NOTHING`;
-    
-    while (offset < total) {
-      const { rows } = await devPool.query(
-        `SELECT podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record, fetched_at FROM episode_transcripts ORDER BY id LIMIT $1 OFFSET $2`,
-        [50, offset]
-      );
-      if (rows.length === 0) break;
-      
-      let batchInserted = 0, batchErrors = 0;
-      const concurrency = 5;
-      for (let i = 0; i < rows.length; i += concurrency) {
-        const chunk = rows.slice(i, i + concurrency);
-        const results = await Promise.all(chunk.map(r => 
-          execBatchOnProd([{
-            query: insertQuery,
-            params: [r.podcast_id, r.episode_guid, r.episode_title, r.transcript, r.description, r.subtitle, r.date_published, r.duration, r.audio_url, r.image_url, r.season_number, r.episode_number, r.episode_type, r.complete_record, r.fetched_at]
-          }])
-        ));
-        for (const { inserted, errors } of results) {
-          batchInserted += inserted;
-          batchErrors += errors;
+    console.log("\n=== episode_transcripts: smart missing-only migration ===");
+    const allGuids = (await devPool.query("SELECT episode_guid FROM episode_transcripts ORDER BY id")).rows.map((r: any) => r.episode_guid);
+    console.log(`  Total dev rows: ${allGuids.length}`);
+
+    let allMissing: string[] = [];
+    const checkBatchSize = 500;
+    for (let i = 0; i < allGuids.length; i += checkBatchSize) {
+      const chunk = allGuids.slice(i, i + checkBatchSize);
+      try {
+        const resp = await fetch(`${PROD_URL}/api/admin/migrate-check-missing`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Cookie: COOKIE },
+          body: JSON.stringify({ table: "episode_transcripts", keys: chunk }),
+        });
+        if (resp.ok) {
+          const { missing } = await resp.json();
+          allMissing.push(...missing);
         }
-      }
-      totalInserted += batchInserted;
-      totalSkipped += batchErrors;
-      offset += rows.length;
-      
-      const elapsed = (Date.now() - startTime) / 1000;
-      const rate = offset / elapsed;
-      const eta = Math.round((total - offset) / rate);
-      process.stdout.write(`  ${offset}/${total} (${totalInserted} new, ${totalSkipped} skip) ~${eta}s left\r`);
+      } catch {}
+      process.stdout.write(`  Checked ${Math.min(i + checkBatchSize, allGuids.length)}/${allGuids.length} — ${allMissing.length} missing so far\r`);
     }
-    const elapsed = Math.round((Date.now() - startTime) / 1000);
-    console.log(`  Done: ${totalInserted} inserted, ${totalSkipped} skipped in ${elapsed}s          `);
+    console.log(`\n  Found ${allMissing.length} missing transcripts to migrate`);
+
+    if (allMissing.length > 0) {
+      const insertQuery = `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record, fetched_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) ON CONFLICT (episode_guid) DO NOTHING`;
+      let totalInserted = 0, totalErrors = 0;
+      const startTime = Date.now();
+      const concurrency = 3;
+
+      for (let i = 0; i < allMissing.length; i += 10) {
+        const guidBatch = allMissing.slice(i, i + 10);
+        const placeholders = guidBatch.map((_: any, idx: number) => `$${idx + 1}`).join(",");
+        const { rows } = await devPool.query(
+          `SELECT podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record, fetched_at FROM episode_transcripts WHERE episode_guid IN (${placeholders})`,
+          guidBatch
+        );
+
+        for (let j = 0; j < rows.length; j += concurrency) {
+          const chunk = rows.slice(j, j + concurrency);
+          const results = await Promise.all(chunk.map((r: any) =>
+            execBatchOnProd([{
+              query: insertQuery,
+              params: [r.podcast_id, r.episode_guid, r.episode_title, r.transcript, r.description, r.subtitle, r.date_published, r.duration, r.audio_url, r.image_url, r.season_number, r.episode_number, r.episode_type, r.complete_record, r.fetched_at]
+            }], true)
+          ));
+          for (const { inserted, errors } of results) {
+            totalInserted += inserted;
+            totalErrors += errors;
+          }
+        }
+
+        const done = Math.min(i + 10, allMissing.length);
+        const elapsed = (Date.now() - startTime) / 1000;
+        const rate = done / elapsed;
+        const eta = Math.round((allMissing.length - done) / rate);
+        process.stdout.write(`  ${done}/${allMissing.length} (${totalInserted} ok, ${totalErrors} err) ~${eta}s left\r`);
+      }
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.log(`  Done: ${totalInserted} inserted, ${totalErrors} errors in ${elapsed}s          `);
+    }
   }
 
   console.log(`\n========== MIGRATION COMPLETE ==========`);

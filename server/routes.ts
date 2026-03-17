@@ -8599,20 +8599,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
-  app.post("/api/admin/migrate-check-missing", async (req, res) => {
+  app.post("/api/admin/migrate-check-missing", express.json({ limit: "10mb" }), async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
-      const { table, pairs } = req.body;
-      if (table === "episode_transcripts" && Array.isArray(pairs)) {
+      const { table, keys } = req.body;
+      if (table === "episode_transcripts" && Array.isArray(keys)) {
+        const placeholders = keys.map((_: any, i: number) => `$${i + 1}`).join(",");
         const existing = await pool.query(
-          "SELECT podcast_id || '|||' || episode_title as pair FROM episode_transcripts WHERE (podcast_id, episode_title) IN (" +
-          pairs.map((_: any, i: number) => `($${i*2+1}::int, $${i*2+2})`).join(",") + ")",
-          pairs.flatMap((p: any) => [p[0], p[1]])
+          `SELECT episode_guid FROM episode_transcripts WHERE episode_guid IN (${placeholders})`,
+          keys
         );
-        const existingSet = new Set(existing.rows.map((r: any) => r.pair));
-        const missing = pairs.filter((p: any) => !existingSet.has(p[0] + "|||" + p[1]));
+        const existingSet = new Set(existing.rows.map((r: any) => r.episode_guid));
+        const missing = keys.filter((k: string) => !existingSet.has(k));
+        return res.json({ missing });
+      }
+      if (table === "episode_quotes" && Array.isArray(keys)) {
+        const placeholders = keys.map((_: any, i: number) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(",");
+        const params = keys.flatMap((k: any) => [k[0], k[1], k[2]]);
+        const existing = await pool.query(
+          `SELECT podcast_slug || '|||' || episode_slug || '|||' || quote_text as key FROM episode_quotes WHERE (podcast_slug, episode_slug, quote_text) IN (${placeholders})`,
+          params
+        );
+        const existingSet = new Set(existing.rows.map((r: any) => r.key));
+        const missing = keys.filter((k: any) => !existingSet.has(k[0] + "|||" + k[1] + "|||" + k[2]));
         return res.json({ missing });
       }
       res.status(400).json({ message: "Invalid table or params" });
