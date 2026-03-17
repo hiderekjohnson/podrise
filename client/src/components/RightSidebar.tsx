@@ -1,44 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Search, TrendingUp, Quote, Users, ShoppingBag, ChevronRight } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
-interface TrendingTopic {
+interface ReferralStats {
+  referralCount: number;
+  currentTier: { name: string; threshold: number };
+  nextTier: { name: string; threshold: number } | null;
+}
+
+interface SuggestedPodcast {
   slug: string;
   name: string;
-  episodeCount: number;
-  trend: string;
+  artworkUrl: string;
+  category: string | null;
+  description: string | null;
+  hosts?: string | null;
 }
 
-interface NotableQuote {
-  speakerName: string;
-  quoteText: string;
-  podcastName: string;
-  podcastSlug: string;
-  episodeSlug: string;
-}
-
-interface TrendingPerson {
-  slug: string;
-  name: string;
-  title: string;
-  mentionCount: number;
-  trend: string;
-}
-
-interface PopularShopItem {
+interface ShopProduct {
   name: string;
   company: string | null;
-  imageUrl: string;
-  category: string;
-  slug: string;
-}
-
-interface SidebarData {
-  trendingTopics: TrendingTopic[];
-  notableQuotes: NotableQuote[];
-  trendingPeople: TrendingPerson[];
-  popularShop: PopularShopItem[];
+  imageUrl: string | null;
+  podcastSlug: string;
+  podcastName?: string;
 }
 
 function SidebarSearch() {
@@ -54,181 +42,232 @@ function SidebarSearch() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative" data-testid="sidebar-search">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
-      <input
-        type="text"
-        placeholder="Search podcasts"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full pl-9 pr-3 py-2.5 bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-full text-[14px] text-[#09090B] dark:text-white placeholder-[#A1A1AA] outline-none focus:ring-2 focus:ring-[#6366F1]/30 transition-all"
-        data-testid="sidebar-search-input"
-      />
-    </form>
+    <div className="sticky top-0 z-10 px-4 py-3 bg-[#F7F7FC] border-b border-[#F0F0F2]">
+      <form onSubmit={handleSubmit} data-testid="sidebar-search">
+        <div className="flex items-center gap-[10px] bg-white border border-[#E4E4E7] rounded-[10px] px-[14px] py-[9px] transition-colors focus-within:border-[#6366F1]">
+          <Search className="w-4 h-4 text-[#A1A1AA] flex-shrink-0" />
+          <input
+            type="text"
+            placeholder="Search podcasts, topics, people…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 border-none bg-transparent outline-none text-[14px] text-[#09090B] placeholder-[#A1A1AA] min-h-0 p-0"
+            style={{ minHeight: 0, border: 'none', padding: 0 }}
+            data-testid="sidebar-search-input"
+          />
+        </div>
+      </form>
+    </div>
   );
 }
 
-function SidebarSection({ title, icon: Icon, showMoreHref, showMoreLabel, children }: {
-  title: string;
-  icon: React.ElementType;
-  showMoreHref?: string;
-  showMoreLabel?: string;
-  children: React.ReactNode;
-}) {
+function PodSquadCard() {
+  const [, navigate] = useLocation();
+  const [dismissed, setDismissed] = useState(false);
+
+  const { data: stats } = useQuery<ReferralStats>({
+    queryKey: ["/api/referral/stats"],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  if (dismissed) return null;
+
+  const referralCount = stats?.referralCount || 0;
+  const nextThreshold = stats?.nextTier?.threshold || 3;
+  const progressPercent = Math.min((referralCount / nextThreshold) * 100, 100);
+
   return (
-    <div className="bg-[#F9FAFB] dark:bg-[#111114] rounded-2xl overflow-hidden" data-testid={`sidebar-section-${title.toLowerCase().replace(/\s+/g, "-")}`}>
-      <div className="px-4 pt-3.5 pb-2">
-        <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-[#6366F1]" />
-          <h3 className="text-[15px] font-bold text-[#09090B] dark:text-white">{title}</h3>
-        </div>
+    <div
+      className="rounded-2xl p-[18px] pl-5 mb-[14px] relative"
+      style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
+      data-testid="rail-pod-squad"
+    >
+      <button
+        onClick={() => setDismissed(true)}
+        className="absolute top-3 right-3 w-[26px] h-[26px] rounded-full flex items-center justify-center transition-all"
+        style={{ background: "rgba(255,255,255,0.15)" }}
+        data-testid="rail-squad-close"
+      >
+        <X className="w-3 h-3 text-white/70 hover:text-white" />
+      </button>
+      <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/65 mb-[6px]">
+        🏆 The Pod Squad
       </div>
-      <div>{children}</div>
-      {showMoreHref && (
-        <Link href={showMoreHref}>
-          <div className="px-4 py-3 text-[13px] font-semibold text-[#6366F1] hover:bg-[#F0F0F2] dark:hover:bg-[#1C1C22] transition-colors cursor-pointer" data-testid={`sidebar-show-more-${title.toLowerCase().replace(/\s+/g, "-")}`}>
-            {showMoreLabel || "Show more"}
-          </div>
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function TrendingTopicsModule({ topics }: { topics: TrendingTopic[] }) {
-  if (topics.length === 0) return null;
-  return (
-    <SidebarSection title="Trending" icon={TrendingUp} showMoreHref="/discover" showMoreLabel="Show more">
-      {topics.map((topic, i) => (
-        <Link key={topic.slug} href={`/topics/${topic.slug}`}>
-          <div className="px-4 py-2.5 hover:bg-[#F0F0F2] dark:hover:bg-[#1C1C22] transition-colors cursor-pointer" data-testid={`sidebar-topic-${topic.slug}`}>
-            <p className="text-[11px] text-[#A1A1AA] font-medium">{i + 1} · Trending</p>
-            <p className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug">{topic.name}</p>
-            <p className="text-[12px] text-[#71717A] mt-0.5">{topic.episodeCount} recent episode{topic.episodeCount !== 1 ? "s" : ""}</p>
-          </div>
-        </Link>
-      ))}
-    </SidebarSection>
-  );
-}
-
-function NotableQuotesModule({ quotes }: { quotes: NotableQuote[] }) {
-  if (quotes.length === 0) return null;
-  return (
-    <SidebarSection title="Notable Quotes" icon={Quote} showMoreHref="/discover">
-      {quotes.map((quote, i) => (
-        <Link key={i} href={`/podcasts/${quote.podcastSlug}/${quote.episodeSlug}`}>
-          <div className="px-4 py-3 hover:bg-[#F0F0F2] dark:hover:bg-[#1C1C22] transition-colors cursor-pointer" data-testid={`sidebar-quote-${i}`}>
-            <p className="text-[13px] text-[#09090B] dark:text-[#E4E4E7] leading-relaxed italic line-clamp-3">"{quote.quoteText}"</p>
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <p className="text-[12px] font-semibold text-[#52525B] dark:text-[#A1A1AA]">{quote.speakerName}</p>
-              <span className="text-[10px] text-[#A1A1AA]">·</span>
-              <p className="text-[11px] text-[#A1A1AA] truncate">{quote.podcastName}</p>
-            </div>
-          </div>
-        </Link>
-      ))}
-    </SidebarSection>
-  );
-}
-
-function PeopleModule({ people }: { people: TrendingPerson[] }) {
-  if (people.length === 0) return null;
-  return (
-    <SidebarSection title="People in the News" icon={Users} showMoreHref="/people" showMoreLabel="Show more">
-      {people.map((person) => (
-        <Link key={person.slug} href={`/people/${person.slug}`}>
-          <div className="px-4 py-2.5 hover:bg-[#F0F0F2] dark:hover:bg-[#1C1C22] transition-colors cursor-pointer flex items-center gap-3" data-testid={`sidebar-person-${person.slug}`}>
-            <div className="w-9 h-9 rounded-full bg-[#E4E4E7] dark:bg-[#27272A] flex items-center justify-center flex-shrink-0">
-              <span className="text-[13px] font-bold text-[#52525B] dark:text-[#A1A1AA]">{person.name.charAt(0)}</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-semibold text-[#09090B] dark:text-white truncate">{person.name}</p>
-              <p className="text-[12px] text-[#71717A] dark:text-[#A1A1AA] truncate">{person.title}</p>
-            </div>
-            <ChevronRight className="w-3.5 h-3.5 text-[#D4D4D8] dark:text-[#3F3F46] flex-shrink-0" />
-          </div>
-        </Link>
-      ))}
-    </SidebarSection>
-  );
-}
-
-function ShopModule({ items }: { items: PopularShopItem[] }) {
-  if (items.length === 0) return null;
-  return (
-    <SidebarSection title="Popular in Shop" icon={ShoppingBag} showMoreHref="/shop" showMoreLabel="Browse shop">
-      {items.map((item, i) => (
-        <Link key={i} href={`/shop/${item.slug}`}>
-          <div className="px-4 py-2.5 hover:bg-[#F0F0F2] dark:hover:bg-[#1C1C22] transition-colors cursor-pointer flex items-center gap-3" data-testid={`sidebar-shop-${i}`}>
-            {item.imageUrl && (
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-[#E4E4E7] dark:bg-[#27272A]"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-semibold text-[#09090B] dark:text-white truncate">{item.name}</p>
-              {item.company && <p className="text-[11px] text-[#A1A1AA] truncate">{item.company}</p>}
-            </div>
-          </div>
-        </Link>
-      ))}
-    </SidebarSection>
-  );
-}
-
-function SidebarSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="h-10 bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-full animate-pulse" />
-      {[1, 2, 3].map(i => (
-        <div key={i} className="bg-[#F9FAFB] dark:bg-[#111114] rounded-2xl p-4 space-y-3">
-          <div className="h-4 bg-[#E4E4E7] dark:bg-[#27272A] rounded w-24 animate-pulse" />
-          <div className="h-3 bg-[#E4E4E7] dark:bg-[#27272A] rounded w-full animate-pulse" />
-          <div className="h-3 bg-[#E4E4E7] dark:bg-[#27272A] rounded w-3/4 animate-pulse" />
+      <div className="text-[20px] text-white leading-[1.3] mb-[6px]" style={{ fontFamily: "var(--font-serif)" }}>
+        Refer friends. Get gear.
+      </div>
+      <div className="text-[13px] text-white/75 mb-[14px] leading-[1.5]">
+        You're {Math.max(nextThreshold - referralCount, 1)} referral{nextThreshold - referralCount !== 1 ? 's' : ''} away from your next reward.
+      </div>
+      <div className="flex items-center gap-[10px] mb-[14px]">
+        <div className="flex-1 h-[6px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.2)" }}>
+          <div className="h-full bg-white rounded-full" style={{ width: `${progressPercent}%` }} />
         </div>
-      ))}
+        <span className="text-[11px] text-white/80 whitespace-nowrap" style={{ fontFamily: "var(--font-mono)" }}>
+          {referralCount} / {nextThreshold}
+        </span>
+      </div>
+      <button
+        onClick={() => navigate("/pod-squad")}
+        className="inline-flex items-center gap-[5px] text-white text-[13px] font-semibold px-4 py-2 rounded-lg transition-all cursor-pointer"
+        style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)" }}
+        data-testid="rail-squad-join"
+      >
+        Join the Pod Squad →
+      </button>
     </div>
   );
 }
 
-export function RightSidebar() {
-  const { data, isLoading } = useQuery<SidebarData>({
+function WhoToFollowSection() {
+  const { data: user } = useAuth();
+  const { toast } = useToast();
+
+  const { data: sidebarData } = useQuery<{ podcasts: SuggestedPodcast[]; followedSlugs: string[] }>({
+    queryKey: ["/api/sidebar-suggestions"],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const followMutation = useMutation({
+    mutationFn: async ({ podcastSlug, follow }: { podcastSlug: string; follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sidebar-suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+      toast({
+        title: variables.follow ? "Following" : "Unfollowed",
+        description: variables.follow ? "Added to your feed" : "Removed from your feed",
+      });
+    },
+    onError: () => {
+      toast({ title: "Something went wrong", description: "Please try again", variant: "destructive" });
+    },
+  });
+
+  const podcasts = sidebarData?.podcasts || [];
+  const followedSlugs = new Set(sidebarData?.followedSlugs || []);
+  const unfollowed = podcasts.filter(p => !followedSlugs.has(p.slug)).slice(0, 4);
+
+  if (unfollowed.length === 0) return null;
+
+  return (
+    <div className="bg-white border border-[#F0F0F2] rounded-[14px] overflow-hidden mb-[14px]" data-testid="rail-who-to-follow">
+      <div className="px-4 pt-[15px] pb-[13px] border-b border-[#F0F0F2]">
+        <div className="text-[15px] font-bold text-[#09090B]">Podcasts to follow</div>
+      </div>
+      {unfollowed.map((podcast) => {
+        const isFollowing = followedSlugs.has(podcast.slug);
+        return (
+          <div key={podcast.slug} className="flex items-center gap-3 px-4 py-3 border-b border-[#F0F0F2] last:border-b-0" data-testid={`rail-wtf-${podcast.slug}`}>
+            <Link href={`/podcasts/${podcast.slug}`}>
+              <div className="w-12 h-12 rounded-[11px] overflow-hidden flex-shrink-0 shadow-sm shadow-black/10">
+                {podcast.artworkUrl ? (
+                  <img src={podcast.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={podcast.name} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full bg-[#E4E4E7]" />
+                )}
+              </div>
+            </Link>
+            <div className="flex-1 min-w-0">
+              <Link href={`/podcasts/${podcast.slug}`}>
+                <span className="text-[14px] font-bold text-[#09090B] hover:text-[#6366F1] transition-colors block truncate" data-testid={`rail-wtf-name-${podcast.slug}`}>
+                  {podcast.name}
+                </span>
+              </Link>
+              {podcast.description && (
+                <div className="text-[12px] text-[#71717A] mt-[2px] truncate">{podcast.description.slice(0, 60)}</div>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                if (!user) return;
+                followMutation.mutate({ podcastSlug: podcast.slug, follow: !isFollowing });
+              }}
+              className={`flex-shrink-0 text-[13px] font-bold px-[14px] py-[7px] rounded-full transition-all ${
+                isFollowing
+                  ? "bg-white text-[#09090B] border-[1.5px] border-[#E4E4E7] hover:border-[#6366F1] hover:text-[#6366F1]"
+                  : "bg-[#09090B] text-white hover:bg-[#3F3F46]"
+              }`}
+              data-testid={`rail-wtf-follow-${podcast.slug}`}
+            >
+              {isFollowing ? "Following" : "Follow"}
+            </button>
+          </div>
+        );
+      })}
+      <div className="px-4 py-[11px]">
+        <Link href="/discover" className="text-[13px] font-medium text-[#6366F1] hover:underline" data-testid="rail-wtf-show-more">
+          Show more suggestions
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function ShopSection() {
+  const { data: sidebarData } = useQuery<{ popularShop: ShopProduct[] }>({
     queryKey: ["/api/sidebar-data"],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
+  const items = sidebarData?.popularShop || [];
+  if (items.length === 0) return null;
+
+  return (
+    <div className="bg-white border border-[#F0F0F2] rounded-[14px] overflow-hidden mb-[14px]" data-testid="rail-shop">
+      <div className="px-4 pt-[15px] pb-[13px] border-b border-[#F0F0F2]">
+        <div className="text-[15px] font-bold text-[#09090B]">From your podcasts' shop</div>
+      </div>
+      {items.slice(0, 3).map((item, i) => (
+        <Link key={i} href="/shop">
+          <div className="flex items-start gap-3 px-4 py-3 border-b border-[#F0F0F2] last:border-b-0 cursor-pointer hover:bg-[#F7F7FC] transition-colors" data-testid={`rail-shop-item-${i}`}>
+            <div className="w-[46px] h-[46px] rounded-[10px] bg-[#F7F7FC] border border-[#F0F0F2] flex-shrink-0 flex items-center justify-center text-[22px] overflow-hidden">
+              {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              ) : "🛍️"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold text-[#09090B] truncate">{item.name}</div>
+              {item.company && <div className="text-[12px] text-[#71717A] mt-[1px]">{item.company}</div>}
+            </div>
+          </div>
+        </Link>
+      ))}
+      <div className="px-4 py-[11px]">
+        <Link href="/shop" className="text-[13px] font-medium text-[#6366F1] hover:underline" data-testid="rail-shop-show-more">
+          Browse the full shop →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function RightSidebar() {
   return (
     <aside
-      className="w-[320px] flex-shrink-0"
+      className="w-[312px] flex-shrink-0 bg-[#F7F7FC] flex flex-col h-screen sticky top-0"
       data-testid="right-sidebar"
     >
-      <div className="sticky top-0 pt-3 pb-6 px-4 space-y-4 max-h-screen overflow-y-auto hide-scrollbar">
-        <SidebarSearch />
-        {isLoading || !data ? (
-          <SidebarSkeleton />
-        ) : (
-          <>
-            <TrendingTopicsModule topics={data.trendingTopics} />
-            <NotableQuotesModule quotes={data.notableQuotes} />
-            <PeopleModule people={data.trendingPeople} />
-            <ShopModule items={data.popularShop} />
-          </>
-        )}
-        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[#A1A1AA] dark:text-[#52525B] px-1 pt-2">
-          <Link href="/terms" className="hover:underline">Terms</Link>
+      <SidebarSearch />
+      <div className="flex-1 overflow-y-auto px-4 py-[14px] hide-scrollbar">
+        <PodSquadCard />
+        <WhoToFollowSection />
+        <ShopSection />
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[#A1A1AA] px-1 pt-4">
+          <Link href="/terms" className="hover:underline" data-testid="link-terms">Terms</Link>
           <span>·</span>
-          <Link href="/privacy" className="hover:underline">Privacy</Link>
+          <Link href="/privacy" className="hover:underline" data-testid="link-privacy">Privacy</Link>
           <span>·</span>
-          <Link href="/about" className="hover:underline">About</Link>
+          <Link href="/about" className="hover:underline" data-testid="link-about">About</Link>
           <span>·</span>
-          <Link href="/help" className="hover:underline">More</Link>
+          <Link href="/help" className="hover:underline" data-testid="link-more">More</Link>
         </div>
-        <p className="text-[11px] text-[#A1A1AA] dark:text-[#52525B] px-1">&copy; 2026 PodCap, Inc.</p>
+        <p className="text-[11px] text-[#A1A1AA] px-1 mt-1">&copy; 2026 PodCap, Inc.</p>
       </div>
     </aside>
   );

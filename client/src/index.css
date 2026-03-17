@@ -309,6 +309,63 @@
   }
 }
 
+.dashboard-shell .feed-tab-btn {
+  position: relative;
+}
+.dashboard-shell .feed-tab-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #09090B;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 50;
+  width: 200px;
+  font-weight: 400;
+}
+.dashboard-shell .feed-tab-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #09090B;
+}
+.dashboard-shell .feed-tab-btn:hover .feed-tab-tooltip {
+  opacity: 1;
+}
+
+.dashboard-shell .sidebar-icon-item::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #09090B;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 100;
+}
+.dashboard-shell .sidebar-icon-item:hover::after {
+  opacity: 1;
+}
+
 @media (max-width: 640px) {
   button, [role="button"], a.btn-primary, a.btn-secondary {
     min-height: 52px;

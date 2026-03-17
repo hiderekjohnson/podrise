@@ -6248,6 +6248,48 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/sidebar-suggestions", async (req, res) => {
+    try {
+      const sidebarSugUserId = getAuthUserId(req);
+      let followedSlugs: string[] = [];
+      if (sidebarSugUserId) {
+        const user = await storage.getUserById(sidebarSugUserId);
+        if (user) {
+          const rawPodcasts = user.podcasts || [];
+          const itunesIds = rawPodcasts.map((p: string) => {
+            try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
+          });
+          if (itunesIds.length > 0) {
+            const slugResult = await pool.query(
+              `SELECT slug FROM podcast_directory WHERE itunes_id::text = ANY($1)`,
+              [itunesIds]
+            );
+            followedSlugs = slugResult.rows.map((r: any) => r.slug);
+          }
+        }
+      }
+      const { rows } = await pool.query(
+        `SELECT slug, name, artwork_url, category, description, hosts
+         FROM podcast_directory
+         WHERE has_landing_page = true AND status = 'published'
+         ORDER BY followers DESC NULLS LAST
+         LIMIT 20`
+      );
+      const podcasts = rows.map((p: any) => ({
+        slug: p.slug,
+        name: p.name,
+        artworkUrl: p.artwork_url,
+        category: p.category,
+        description: p.description ? (p.description.length > 80 ? p.description.slice(0, 80) + "…" : p.description) : null,
+        hosts: p.hosts,
+      }));
+      res.json({ podcasts, followedSlugs });
+    } catch (err) {
+      console.error("Sidebar suggestions error:", err);
+      res.json({ podcasts: [], followedSlugs: [] });
+    }
+  });
+
   app.get("/api/onboarding/suggestions", async (req, res) => {
     try {
       const onbUserId = getAuthUserId(req);
@@ -6462,7 +6504,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
                  lr.quote, lr.quote_attribution, lr.duration,
                  lr.what_happened, lr.guests, lr.key_topics,
-                 pd.slug as pd_slug
+                 pd.slug as pd_slug, pd.hosts as pd_hosts,
+                 pd.total_episodes as pd_total_episodes,
+                 pd.year_started as pd_year_started,
+                 pd.apple_url as pd_apple_url,
+                 pd.spotify_url as pd_spotify_url
           FROM landing_page_recaps lr
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
@@ -6481,7 +6527,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
                  lr.quote, lr.quote_attribution, lr.duration,
                  lr.what_happened, lr.guests, lr.key_topics,
-                 pd.slug as pd_slug
+                 pd.slug as pd_slug, pd.hosts as pd_hosts,
+                 pd.total_episodes as pd_total_episodes,
+                 pd.year_started as pd_year_started,
+                 pd.apple_url as pd_apple_url,
+                 pd.spotify_url as pd_spotify_url
           FROM landing_page_recaps lr
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
@@ -6495,6 +6545,54 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const result = await pool.query(query, params);
+      const recapIds = result.rows.map((r: any) => r.id);
+
+      let mentionsMap: Record<number, { people: any[]; companies: any[] }> = {};
+      if (recapIds.length > 0) {
+        const mentionsResult = await pool.query(
+          `SELECT eem.recap_id, eem.entity_type, eem.entity_slug, eem.context,
+                  CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
+                  CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
+                  CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
+           FROM entity_episode_mentions eem
+           LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
+           LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
+           WHERE eem.recap_id = ANY($1)`,
+          [recapIds]
+        );
+        for (const m of mentionsResult.rows) {
+          if (!mentionsMap[m.recap_id]) mentionsMap[m.recap_id] = { people: [], companies: [] };
+          const entry = { slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context };
+          if (m.entity_type === 'person') mentionsMap[m.recap_id].people.push(entry);
+          else mentionsMap[m.recap_id].companies.push(entry);
+        }
+      }
+
+      let productsMap: Record<string, any[]> = {};
+      if (recapIds.length > 0) {
+        const episodePairs = result.rows
+          .filter((r: any) => r.episode_slug && r.slug)
+          .map((r: any) => ({ episodeSlug: r.episode_slug, podcastSlug: r.slug }));
+        const episodeSlugs = [...new Set(episodePairs.map(p => p.episodeSlug))];
+        const podcastSlugs = [...new Set(episodePairs.map(p => p.podcastSlug))];
+        if (episodeSlugs.length > 0) {
+          const productsResult = await pool.query(
+            `SELECT podcast_slug, episode_slug, name, company, description, image_url, category, purchase_url
+             FROM extracted_products
+             WHERE status = 'approved' AND episode_slug = ANY($1) AND podcast_slug = ANY($2)`,
+            [episodeSlugs, podcastSlugs]
+          );
+          for (const p of productsResult.rows) {
+            const key = `${p.podcast_slug}:${p.episode_slug}`;
+            if (!productsMap[key]) productsMap[key] = [];
+            productsMap[key].push({
+              name: p.name, company: p.company, description: p.description,
+              imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
+            });
+          }
+        }
+      }
+
       const items = result.rows.map((r: any) => {
         let parsedGuests: string[] = [];
         if (r.guests) {
@@ -6505,6 +6603,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             }
           } catch { parsedGuests = []; }
         }
+        const mentions = mentionsMap[r.id] || { people: [], companies: [] };
+        const products = productsMap[`${r.slug}:${r.episode_slug}`] || [];
         return {
           id: r.id,
           podcastSlug: r.slug,
@@ -6522,6 +6622,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           guests: parsedGuests,
           keyTopics: r.key_topics || [],
           isFollowing: userPodcastSlugs.includes(r.slug),
+          hosts: r.pd_hosts || null,
+          totalEpisodes: r.pd_total_episodes || null,
+          yearStarted: r.pd_year_started || null,
+          appleUrl: r.pd_apple_url || null,
+          spotifyUrl: r.pd_spotify_url || null,
+          mentions: {
+            people: mentions.people,
+            companies: mentions.companies,
+            products: products,
+          },
         };
       });
 

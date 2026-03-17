@@ -7,7 +7,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **User Data Safety**: NEVER bulk-delete user accounts. All user accounts are real users. Only delete individual accounts via the admin panel delete button (with confirmation). The 8 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com, ru1@mac.com
 
 ## System Architecture
-**Frontend**: React, Vite, Tailwind CSS, Shadcn UI, `wouter` for routing, `framer-motion` for animations. UI adheres to WCAG AA accessibility standards, utilizing DM Sans and DM Mono fonts, an indigo/violet brand palette, and an inline SVG wordmark logo.
+**Frontend**: React, Vite, Tailwind CSS, Shadcn UI, `wouter` for routing, `framer-motion` for animations. UI adheres to WCAG AA accessibility standards, utilizing DM Sans, DM Mono, and DM Serif Display fonts, an indigo/violet brand palette, and an inline SVG wordmark logo.
 **Backend**: Express.js server for API and user sessions.
 **Database**: PostgreSQL with Drizzle ORM and connection pooling.
 **Authentication**: Dual session + JWT token auth supporting email magic link and Google OAuth for web, and JWT Bearer tokens for mobile.
@@ -34,7 +34,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 - **Asset Storage**: All images stored locally.
 - **People Image Pipeline**: Resolves profile photos from local storage, Wikipedia/Wikimedia, or X/Twitter via unavatar.io.
 - **SEO/SSR Pipeline**: Async DB-backed meta tag injection and SSR for all public pages for search engine visibility, using branded OG images.
-- **Logged-In Desktop Experience**: Three-column layout on large screens, collapsible left sidebar, mobile bottom navigation, light/dark mode, profile settings, bookmarks, hover preview cards, and redesigned Discover page.
+- **Logged-In Feed Experience**: Redesigned three-column layout: 64px icon-only sidebar with CSS tooltip labels (DashboardLayout.tsx), magazine-style episode cards with tinted headers/large artwork/podcast meta/platform buttons/serif headlines/takeaways/quote blocks/recaps/expandable mentions footer (FeedPage.tsx), right rail with sticky search/Pod Squad referral card/Who to Follow/Shop section (RightSidebar.tsx). Feed API (`/api/feed`) returns hosts, totalEpisodes, yearStarted, appleUrl, spotifyUrl, and mentions (people/companies/products from entity tables). Uses DM Serif Display for headlines, DM Mono for episode titles. Sidebar suggestions via `/api/sidebar-suggestions`.
 - **Unified Shop**: Merged bookstore and product pages into a single `/shop` page with unified filtering and detail pages (`/shop/:slug`) that normalize book and product data. Includes type-specific features like book spines and author links.
 - **Product Image Approval**: Products require `image_status = 'approved'` to be visible publicly; managed via admin panel.
 - **Context Summarization**: Generates polished editorial summaries for products using AI (GPT-4o-mini), preferring these over raw transcript contexts.

@@ -4,10 +4,26 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Zap, Copy, ExternalLink, ArrowRight, Quote, Gift, Users, ChevronRight } from "lucide-react";
+import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { HoverPreviewCard } from "@/components/HoverPreviewCard";
+
+interface MentionEntry {
+  slug: string;
+  name: string;
+  role: string | null;
+  company: string | null;
+  context: string | null;
+}
+
+interface ProductEntry {
+  name: string;
+  company: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  category: string;
+  purchaseUrl: string | null;
+}
 
 interface FeedItem {
   id: number;
@@ -26,6 +42,16 @@ interface FeedItem {
   guests: string[];
   keyTopics: string[];
   isFollowing: boolean;
+  hosts: string | null;
+  totalEpisodes: number | null;
+  yearStarted: number | null;
+  appleUrl: string | null;
+  spotifyUrl: string | null;
+  mentions: {
+    people: MentionEntry[];
+    companies: MentionEntry[];
+    products: ProductEntry[];
+  };
 }
 
 function relativeTime(dateStr: string): string {
@@ -36,13 +62,13 @@ function relativeTime(dateStr: string): string {
   if (diffMs < 0) return "just now";
   const mins = Math.floor(diffMs / 60000);
   if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d`;
+  if (days < 7) return `${days}d ago`;
   const weeks = Math.floor(days / 7);
-  if (weeks < 4) return `${weeks}w`;
+  if (weeks < 4) return `${weeks}w ago`;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
@@ -50,6 +76,31 @@ function hiResArtwork(url: string): string {
   if (!url) return "";
   if (url.startsWith("/artwork/")) return url;
   return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
+}
+
+const AVATAR_COLORS = [
+  { bg: "#EEF2FF", color: "#4F46E5" },
+  { bg: "#F0F9FF", color: "#0369A1" },
+  { bg: "#FFF7ED", color: "#C2410C" },
+  { bg: "#FEF9C3", color: "#A16207" },
+  { bg: "#FCE7F3", color: "#9D174D" },
+  { bg: "#F0FDF4", color: "#15803D" },
+  { bg: "#E0E7FF", color: "#3730A3" },
+  { bg: "#FEF2F2", color: "#DC2626" },
+];
+
+function getInitials(name: string): string {
+  return name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function getAvatarColor(index: number) {
+  return AVATAR_COLORS[index % AVATAR_COLORS.length];
+}
+
+function getHeaderTint(artworkUrl: string): string {
+  const hash = artworkUrl ? artworkUrl.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
+  const tints = ["#F0F1FE", "#FFFBEB", "#FEF2F2", "#ECFDF5", "#F0F9FF", "#FDF4FF", "#FFF7ED", "#F5F3FF"];
+  return tints[hash % tints.length];
 }
 
 function PodSquadBanner() {
@@ -93,19 +144,12 @@ function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }:
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) setOpen(false);
     };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => { document.removeEventListener("mousedown", handleClick); document.removeEventListener("keydown", handleKeyDown); };
   }, [open]);
 
   return (
@@ -113,10 +157,10 @@ function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }:
       <button
         onClick={() => setOpen(!open)}
         aria-label="Share episode"
-        className={`flex items-center gap-1 transition-colors ${open ? "text-[#6366F1]" : "text-[#A1A1AA] hover:text-[#6366F1]"}`}
+        className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white hover:text-[#6366F1] transition-all"
         data-testid={`feed-share-${itemId}`}
       >
-        <Share className="w-[18px] h-[18px]" />
+        <Share className="w-[15px] h-[15px]" />
       </button>
       <AnimatePresence>
         {open && (
@@ -125,37 +169,248 @@ function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }:
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full right-0 mb-2 w-[180px] bg-white dark:bg-[#18181B] rounded-xl shadow-lg border border-[#E4E4E7] dark:border-[#27272A] overflow-hidden z-50"
+            className="absolute bottom-full right-0 mb-2 w-[180px] bg-white rounded-xl shadow-lg border border-[#E4E4E7] overflow-hidden z-50"
           >
             <button
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(getShareUrl());
                   toast({ title: "Link copied", description: "Episode link copied to clipboard" });
-                } catch {
-                  toast({ title: "Copy failed", description: "Could not copy link to clipboard", variant: "destructive" });
-                }
+                } catch { toast({ title: "Copy failed", description: "Could not copy link", variant: "destructive" }); }
                 setOpen(false);
               }}
-              className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] dark:text-[#D4D4D8] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] transition-colors"
+              className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] hover:bg-[#F4F4F5] transition-colors"
               data-testid={`feed-share-copy-${itemId}`}
             >
-              <Copy className="w-4 h-4" />
-              Copy link
+              <Copy className="w-4 h-4" /> Copy link
             </button>
             {supportsNativeShare && (
               <button
-                onClick={() => {
-                  navigator.share({ title: episodeTitle, url: getShareUrl() }).catch(() => {});
-                  setOpen(false);
-                }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] dark:text-[#D4D4D8] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] transition-colors border-t border-[#F0F0F2] dark:border-[#27272A]"
+                onClick={() => { navigator.share({ title: episodeTitle, url: getShareUrl() }).catch(() => {}); setOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] hover:bg-[#F4F4F5] border-t border-[#F0F0F2]"
                 data-testid={`feed-share-native-${itemId}`}
               >
-                <ExternalLink className="w-4 h-4" />
-                Share via...
+                <ExternalLink className="w-4 h-4" /> Share via...
               </button>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle, toast }: {
+  item: FeedItem;
+  isBookmarked: boolean;
+  onBookmarkToggle: (episodeSlug: string, podcastSlug: string) => void;
+  onFollowToggle: (slug: string, follow: boolean) => void;
+  toast: ReturnType<typeof useToast>["toast"];
+}) {
+  const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"people" | "companies" | "products">("people");
+  const [showAllPeople, setShowAllPeople] = useState(false);
+  const [showAllCompanies, setShowAllCompanies] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+
+  const { people, companies, products } = item.mentions;
+  const totalMentions = people.length + companies.length + products.length;
+
+  if (totalMentions === 0) {
+    return (
+      <div className="border-t border-[#F0F0F2] bg-[#F7F7FC] flex items-center justify-end">
+        <div className="flex items-center gap-[2px] px-[14px] py-2 flex-shrink-0">
+          <button
+            onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
+            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-white hover:text-[#6366F1]"}`}
+            data-testid={`feed-bookmark-${item.id}`}
+          >
+            {isBookmarked ? <BookmarkCheck className="w-[15px] h-[15px]" /> : <Bookmark className="w-[15px] h-[15px]" />}
+          </button>
+          <SharePopover episodeTitle={item.episodeTitle} podcastSlug={item.podcastSlug} episodeSlug={item.episodeSlug} itemId={item.id} toast={toast} />
+        </div>
+      </div>
+    );
+  }
+
+  const stackItems = [...people.slice(0, 3), ...companies.slice(0, 2)];
+  const remaining = totalMentions - stackItems.length;
+
+  const tabs: { key: "people" | "companies" | "products"; label: string; count: number }[] = [];
+  if (people.length > 0) tabs.push({ key: "people", label: "People", count: people.length });
+  if (companies.length > 0) tabs.push({ key: "companies", label: "Companies", count: companies.length });
+  if (products.length > 0) tabs.push({ key: "products", label: "Products", count: products.length });
+
+  useEffect(() => {
+    if (!tabs.find(t => t.key === activeTab) && tabs.length > 0) {
+      setActiveTab(tabs[0].key);
+    }
+  }, [people.length, companies.length, products.length, activeTab]);
+
+  const summaryParts: string[] = [];
+  if (people.length > 0) summaryParts.push(`${people.length} ${people.length === 1 ? "person" : "people"}`);
+  if (companies.length > 0) summaryParts.push(`${companies.length} ${companies.length === 1 ? "company" : "companies"}`);
+  if (products.length > 0) summaryParts.push(`${products.length} ${products.length === 1 ? "product" : "products"}`);
+
+  const renderMentionRows = (items: MentionEntry[], type: "person" | "company", showAll: boolean, onShowMore: () => void) => {
+    const visibleItems = showAll ? items : items.slice(0, 3);
+    const hiddenCount = items.length - 3;
+    return (
+      <>
+        {visibleItems.map((m, i) => (
+          <div key={m.slug + i} className="flex items-start gap-[14px] py-[15px] border-b border-[#F0F0F2] last:border-b-0" data-testid={`mention-${type}-${m.slug}`}>
+            {type === "person" ? (
+              <div className="w-[42px] h-[42px] rounded-full flex-shrink-0 flex items-center justify-center text-[13px] font-bold" style={{ background: getAvatarColor(i).bg, color: getAvatarColor(i).color }}>
+                {getInitials(m.name)}
+              </div>
+            ) : (
+              <div className="w-[42px] h-[42px] rounded-[10px] flex-shrink-0 bg-white border border-[#F0F0F2] flex items-center justify-center text-[20px]">
+                🏢
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-2 flex-wrap mb-1">
+                <span className="text-[15px] font-bold text-[#09090B]">{m.name}</span>
+                {(m.role || m.company) && (
+                  <span className="text-[12px] text-[#71717A]">
+                    {m.role}{m.company ? ` at ${m.company}` : ""}
+                  </span>
+                )}
+              </div>
+              {m.context && <div className="text-[14px] text-[#52525B] leading-[1.55]">{m.context}</div>}
+            </div>
+          </div>
+        ))}
+        {!showAll && hiddenCount > 0 && (
+          <div className="py-3 flex justify-center">
+            <button onClick={onShowMore} className="text-[14px] font-medium text-[#6366F1] bg-transparent border-[1.5px] border-[#A5B4FC] rounded-full px-[18px] py-[7px] hover:bg-[#EEF2FF] hover:border-[#6366F1] transition-all" data-testid={`mention-show-more-${type}`}>
+              Show {hiddenCount} more {type === "person" ? "people" : "companies"}
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const renderProductRows = (items: ProductEntry[], showAll: boolean, onShowMore: () => void) => {
+    const visibleItems = showAll ? items : items.slice(0, 3);
+    const hiddenCount = items.length - 3;
+    return (
+      <>
+        {visibleItems.map((p, i) => (
+          <div key={p.name + i} className="flex items-start gap-[14px] py-[15px] border-b border-[#F0F0F2] last:border-b-0" data-testid={`mention-product-${i}`}>
+            <div className="w-[34px] h-[46px] rounded flex-shrink-0 bg-[#EEF2FF] flex items-center justify-center text-[18px] shadow-[2px_2px_0_rgba(0,0,0,0.08)]">
+              📘
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-bold text-[#09090B] mb-1">{p.name}</div>
+              {p.company && <div className="text-[12px] text-[#A1A1AA] mb-[5px]" style={{ fontFamily: "var(--font-mono)" }}>{p.company}</div>}
+              {p.description && <div className="text-[14px] text-[#52525B] leading-[1.55]">{p.description}</div>}
+            </div>
+          </div>
+        ))}
+        {!showAll && hiddenCount > 0 && (
+          <div className="py-3 flex justify-center">
+            <button onClick={onShowMore} className="text-[14px] font-medium text-[#6366F1] bg-transparent border-[1.5px] border-[#A5B4FC] rounded-full px-[18px] py-[7px] hover:bg-[#EEF2FF] hover:border-[#6366F1] transition-all" data-testid="mention-show-more-products">
+              Show {hiddenCount} more products
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  return (
+    <div className={`border-t border-[#F0F0F2] bg-[#F7F7FC] ${open ? "ep-mentions-open" : ""}`} data-testid={`feed-mentions-${item.id}`}>
+      <div className="flex items-stretch">
+        <div
+          className={`flex items-center gap-3 px-3 md:px-5 py-[11px] flex-1 min-w-0 cursor-pointer transition-colors ${open ? "bg-[#EEF2FF]" : "hover:bg-[#EEF2FF]"}`}
+          onClick={() => setOpen(!open)}
+          data-testid={`feed-mentions-toggle-${item.id}`}
+        >
+          <div className="flex items-center flex-shrink-0">
+            {stackItems.map((m, i) => (
+              <div
+                key={m.slug + i}
+                className={`w-[34px] h-[34px] flex-shrink-0 flex items-center justify-center text-[11px] font-bold ${i > 0 ? "-ml-[9px]" : ""} ${
+                  i >= people.length ? "rounded-lg text-[16px] bg-white border border-[#F0F0F2]" : "rounded-full"
+                }`}
+                style={i < people.length ? { background: getAvatarColor(i).bg, color: getAvatarColor(i).color, border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` } : { border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` }}
+              >
+                {i < people.length ? getInitials(m.name) : "🏢"}
+              </div>
+            ))}
+            {remaining > 0 && (
+              <div className="w-[34px] h-[34px] rounded-full flex-shrink-0 -ml-[9px] bg-[#E4E4E7] text-[#71717A] text-[10px] font-bold flex items-center justify-center" style={{ fontFamily: "var(--font-mono)", border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` }}>
+                +{remaining}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-semibold text-[#09090B]">Mentioned in this episode</div>
+            <div className="text-[13px] text-[#71717A] mt-[2px]">{summaryParts.join(" · ")}</div>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform ${open ? "rotate-180 text-[#6366F1]" : ""}`} />
+        </div>
+        <div className="flex items-center gap-[2px] px-[10px] md:px-[14px] py-2 border-l border-[#F0F0F2] flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
+            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-white hover:text-[#6366F1]"}`}
+            data-testid={`feed-bookmark-${item.id}`}
+          >
+            {isBookmarked ? <BookmarkCheck className="w-[15px] h-[15px]" /> : <Bookmark className="w-[15px] h-[15px]" />}
+          </button>
+          <SharePopover episodeTitle={item.episodeTitle} podcastSlug={item.podcastSlug} episodeSlug={item.episodeSlug} itemId={item.id} toast={toast} />
+          <button
+            onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
+            className={`ml-1 px-4 py-[6px] rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
+              item.isFollowing
+                ? "bg-white text-[#52525B] border-[1.5px] border-[#E4E4E7] hover:border-[#6366F1] hover:text-[#6366F1]"
+                : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+            }`}
+            data-testid={`feed-mentions-follow-${item.id}`}
+          >
+            {item.isFollowing ? "Following" : "Follow"}
+          </button>
+        </div>
+      </div>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden border-t border-[#F0F0F2]"
+          >
+            <div className="flex border-b border-[#F0F0F2] px-6">
+              {tabs.map((tab, i) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex items-center gap-[6px] py-[11px] px-[14px] text-[14px] font-medium border-b-2 -mb-px transition-colors select-none whitespace-nowrap ${
+                    i === 0 ? "pl-0" : ""
+                  } ${
+                    activeTab === tab.key
+                      ? "text-[#6366F1] border-[#6366F1] font-semibold"
+                      : "text-[#A1A1AA] border-transparent hover:text-[#52525B]"
+                  }`}
+                  data-testid={`mention-tab-${tab.key}-${item.id}`}
+                >
+                  {tab.label}
+                  <span className={`text-[11px] font-semibold px-[7px] py-[1px] rounded-full transition-all ${
+                    activeTab === tab.key ? "bg-[#EEF2FF] text-[#6366F1]" : "bg-[#F0F0F2] text-[#71717A]"
+                  }`} style={{ fontFamily: "var(--font-mono)" }}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="px-6 pb-1">
+              {activeTab === "people" && renderMentionRows(people, "person", showAllPeople, () => setShowAllPeople(true))}
+              {activeTab === "companies" && renderMentionRows(companies, "company", showAllCompanies, () => setShowAllCompanies(true))}
+              {activeTab === "products" && renderProductRows(products, showAllProducts, () => setShowAllProducts(true))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -170,247 +425,143 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
   onBookmarkToggle: (episodeSlug: string, podcastSlug: string) => void;
   toast: ReturnType<typeof useToast>["toast"];
 }) {
-  const [expanded, setExpanded] = useState(false);
   const isBookmarked = bookmarkedKeys.has(`${item.podcastSlug}::${item.episodeSlug}`);
-
-  const previewInsights = item.keyInsights?.slice(0, 2) || [];
+  const headerTint = getHeaderTint(item.artworkUrl || item.podcastSlug);
   const allInsights = item.keyInsights || [];
-  const hasMoreContent = !!(item.whatHappened || (allInsights.length > previewInsights.length) || (item.guests && item.guests.length > 0) || (item.keyTopics && item.keyTopics.length > 0));
-
-  const whatHappenedParagraphs = item.whatHappened
-    ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim())
-    : [];
-
+  const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
   const episodeUrl = `/podcasts/${item.podcastSlug}/${item.episodeSlug}`;
 
   return (
     <article
-      className="border-b border-[#F0F0F2] dark:border-[#1C1C22]"
+      className="bg-white border border-[#E4E4E7] rounded-2xl overflow-hidden mb-5 shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
       data-testid={`feed-card-${item.id}`}
     >
-      <div className="px-4 pt-4 pb-1.5">
-        <div className="flex items-start gap-3">
-          <HoverPreviewCard
-            type="podcast"
-            slug={item.podcastSlug}
-            name={item.podcastName}
-            artworkUrl={item.artworkUrl}
-            isFollowing={item.isFollowing}
-            onFollowToggle={onFollowToggle}
-          >
+      <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
+        <Link href={`/podcasts/${item.podcastSlug}`}>
+          <div className="w-24 h-24 rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
+            <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
+          </div>
+        </Link>
+        <div className="flex-1 min-w-0 flex flex-col justify-between min-h-24">
+          <div>
             <Link href={`/podcasts/${item.podcastSlug}`}>
-              <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 ring-[0.5px] ring-black/5 shadow-sm">
-                <img
-                  src={hiResArtwork(item.artworkUrl)}
-                  alt={item.podcastName}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </Link>
-          </HoverPreviewCard>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                <HoverPreviewCard
-                  type="podcast"
-                  slug={item.podcastSlug}
-                  name={item.podcastName}
-                  artworkUrl={item.artworkUrl}
-                  description={item.tldl}
-                  isFollowing={item.isFollowing}
-                  onFollowToggle={onFollowToggle}
-                >
-                  <Link href={`/podcasts/${item.podcastSlug}`}>
-                    <span className="font-bold text-[15px] md:text-[16px] text-[#09090B] dark:text-white hover:underline" data-testid={`feed-podcast-name-${item.id}`}>
-                      {item.podcastName}
-                    </span>
-                  </Link>
-                </HoverPreviewCard>
-                <span className="text-[#A1A1AA] text-[13px] flex-shrink-0">·</span>
-                <span className="text-[#71717A] text-[13px] flex-shrink-0" data-testid={`feed-time-${item.id}`}>
-                  {relativeTime(item.publishDate)}
-                </span>
-              </div>
-
-              <button
-                onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
-                className={`flex-shrink-0 text-[13px] font-bold rounded-full transition-all active:scale-95 ${
-                  item.isFollowing
-                    ? "px-3.5 py-[5px] border border-[#D4D4D8] dark:border-[#3F3F46] text-[#09090B] dark:text-white hover:border-red-300 hover:text-red-600"
-                    : "px-3.5 py-[5px] bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] hover:bg-[#27272A] dark:hover:bg-[#E4E4E7]"
-                }`}
-                data-testid={`feed-follow-btn-${item.id}`}
-              >
-                {item.isFollowing ? "Following" : "Follow"}
-              </button>
-            </div>
-
-            <Link href={episodeUrl}>
-              <h3 className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white mt-0.5 leading-[1.35] hover:underline line-clamp-2" data-testid={`feed-episode-title-${item.id}`}>
-                {item.episodeTitle}
-              </h3>
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-3 ml-[56px]">
-          <div className="rounded-xl bg-gradient-to-br from-[#F8F8FC] to-[#F4F4F8] dark:from-[#111118] dark:to-[#0F0F14] border border-[#EDEDF3] dark:border-[#1C1C22] p-3.5 mb-3">
-            <p className="text-[15px] md:text-[16px] text-[#27272A] dark:text-[#D4D4D8] leading-[1.6] font-medium" data-testid={`feed-tldl-${item.id}`}>
-              {item.tldl}
-            </p>
-          </div>
-
-          {!expanded && previewInsights.length > 0 && (
-            <div className="space-y-2 mb-2.5">
-              {previewInsights.map((insight, i) => (
-                <div key={i} className="flex gap-2.5 text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.5]">
-                  <span className="w-5 h-5 rounded-full bg-[#6366F1]/10 flex items-center justify-center flex-shrink-0 mt-[1px]">
-                    <span className="text-[#6366F1] text-[8px]">●</span>
-                  </span>
-                  <span>{insight}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!expanded && item.quote && (
-            <div className="mt-2.5 mb-2.5 rounded-lg bg-[#6366F1]/[0.04] dark:bg-[#6366F1]/[0.06] border-l-[3px] border-[#6366F1]/40 px-3.5 py-2.5">
-              <div className="flex gap-2">
-                <Quote className="w-4 h-4 text-[#6366F1]/40 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] italic leading-[1.55] line-clamp-2">"{item.quote}"</p>
-                  {item.quoteAttribution && (
-                    <p className="text-[12px] text-[#A1A1AA] mt-1 not-italic font-semibold">— {item.quoteAttribution}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <AnimatePresence>
-            {expanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                {item.guests && item.guests.length > 0 && (
-                  <div className="mt-1 mb-3 flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] font-bold text-[#A1A1AA] uppercase tracking-wider">Guests</span>
-                    {item.guests.map((guest, i) => (
-                      <span key={i} className="text-[13px] font-medium text-[#09090B] dark:text-white bg-[#F4F4F5] dark:bg-[#1C1C22] px-2.5 py-1 rounded-full">{typeof guest === 'string' ? guest : (guest as any).name || ''}</span>
-                    ))}
-                  </div>
-                )}
-
-                {whatHappenedParagraphs.length > 0 && (
-                  <div className="mb-3 space-y-2.5">
-                    {whatHappenedParagraphs.map((para, i) => (
-                      <p key={i} className="text-[14px] md:text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.65]">{para}</p>
-                    ))}
-                  </div>
-                )}
-
-                {allInsights.length > 0 && (
-                  <div className="mb-3 rounded-xl bg-gradient-to-br from-[#F8F8FC] to-[#F4F4F8] dark:from-[#111118] dark:to-[#0F0F14] border border-[#EDEDF3] dark:border-[#1C1C22] p-3.5">
-                    <div className="flex items-center gap-1.5 mb-2.5">
-                      <Zap className="w-3.5 h-3.5 text-[#6366F1]" />
-                      <span className="text-[11px] font-bold text-[#6366F1] uppercase tracking-wider">Key Insights</span>
-                    </div>
-                    <ul className="space-y-2.5">
-                      {allInsights.map((insight, i) => (
-                        <li key={i} className="text-[14px] md:text-[15px] text-[#3F3F46] dark:text-[#A1A1AA] flex gap-2.5 leading-[1.5]">
-                          <span className="w-5 h-5 rounded-full bg-[#6366F1]/10 flex items-center justify-center flex-shrink-0 mt-[1px]">
-                            <span className="text-[#6366F1] text-[8px]">●</span>
-                          </span>
-                          <span>{insight}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {item.quote && (
-                  <div className="mb-3 rounded-lg bg-[#6366F1]/[0.04] dark:bg-[#6366F1]/[0.06] border-l-[3px] border-[#6366F1]/40 px-3.5 py-2.5">
-                    <div className="flex gap-2">
-                      <Quote className="w-4 h-4 text-[#6366F1]/40 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-[14px] md:text-[15px] text-[#52525B] dark:text-[#A1A1AA] italic leading-[1.55]">"{item.quote}"</p>
-                        {item.quoteAttribution && (
-                          <p className="text-[12px] text-[#A1A1AA] mt-1 not-italic font-semibold">— {item.quoteAttribution}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {item.keyTopics && item.keyTopics.length > 0 && (
-                  <div className="mb-3 flex flex-wrap gap-1.5">
-                    {item.keyTopics.map((topic, i) => (
-                      <span key={i} className="text-[12px] font-medium text-[#6366F1] bg-[#6366F1]/[0.08] px-2.5 py-1 rounded-full">{topic}</span>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="flex items-center gap-3 mt-1 mb-1">
-            {hasMoreContent && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 text-[#6366F1] text-[13px] font-semibold hover:underline"
-                data-testid={`feed-expand-${item.id}`}
-              >
-                {expanded ? (
-                  <>Show less<ChevronDown className="w-3.5 h-3.5 rotate-180 transition-transform" /></>
-                ) : (
-                  <>Show more<ChevronDown className="w-3.5 h-3.5 transition-transform" /></>
-                )}
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mt-1.5 ml-[56px] pb-3">
-          <Link href={episodeUrl}>
-            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6366F1] hover:text-[#4F46E5] transition-colors group" data-testid={`feed-viewfull-${item.id}`}>
-              Read full recap
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            {item.duration && (
-              <span className="flex items-center gap-1 text-[#A1A1AA]">
-                <Clock className="w-[14px] h-[14px]" />
-                <span className="text-[12px]">{item.duration}</span>
+              <span className="text-[18px] font-extrabold text-[#09090B] tracking-[-0.02em] leading-[1.1] mb-2 inline-block hover:text-[#6366F1] transition-colors" data-testid={`feed-podcast-name-${item.id}`}>
+                {item.podcastName}
               </span>
+            </Link>
+            <div className="flex items-center gap-[14px] flex-wrap mb-3">
+              {item.hosts && (
+                <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
+                  {item.hosts}
+                </div>
+              )}
+              {item.totalEpisodes && (
+                <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd"/></svg>
+                  {item.totalEpisodes}+ episodes
+                </div>
+              )}
+              {item.yearStarted && (
+                <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
+                  Since {item.yearStarted}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {item.appleUrl && (
+              <a href={item.appleUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-lg text-[14px] font-medium text-[#52525B] border border-black/[0.12] transition-all hover:bg-white whitespace-nowrap no-underline" style={{ background: "rgba(255,255,255,0.75)" }} data-testid={`feed-apple-${item.id}`}>
+                <svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#B150E2"/><circle cx="10" cy="10" r="6" fill="none" stroke="white" strokeWidth="1.5" opacity="0.7"/><circle cx="10" cy="10" r="2.5" fill="white" opacity="0.8"/></svg>
+                Apple
+              </a>
             )}
-
+            {item.spotifyUrl && (
+              <a href={item.spotifyUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-lg text-[14px] font-medium text-[#52525B] border border-black/[0.12] transition-all hover:bg-white whitespace-nowrap no-underline" style={{ background: "rgba(255,255,255,0.75)" }} data-testid={`feed-spotify-${item.id}`}>
+                <svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#1DB954"/><path d="M14.5 13.5a.5.5 0 01-.7.1c-1.9-1.2-4.3-1.4-7.1-.8a.5.5 0 01-.2-1c3.1-.7 5.7-.4 7.9 1a.5.5 0 01.1.7zm1.1-2.5a.6.6 0 01-.8.2c-2.2-1.3-5.5-1.7-8.1-1a.6.6 0 01-.3-1.2c3-.8 6.7-.4 9.2 1.2a.6.6 0 010 .8zm.1-2.6C12.7 7 8.9 6.8 6.3 7.6a.7.7 0 11-.4-1.4c3-.9 7.2-.7 10.1 1.1a.7.7 0 01-.3 1.2z" fill="white"/></svg>
+                Spotify
+              </a>
+            )}
             <button
-              onClick={() => onBookmarkToggle(item.episodeSlug, item.podcastSlug)}
-              aria-label={isBookmarked ? "Remove bookmark" : "Bookmark episode"}
-              className={`flex items-center gap-1 transition-all active:scale-90 ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:text-[#6366F1]"}`}
-              data-testid={`feed-bookmark-${item.id}`}
+              onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
+              className={`inline-flex items-center px-5 py-2 rounded-lg text-[14px] font-bold transition-all ${
+                item.isFollowing
+                  ? "border border-black/[0.12] text-[#52525B] hover:text-[#6366F1]"
+                  : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+              }`}
+              style={item.isFollowing ? { background: "rgba(255,255,255,0.75)" } : {}}
+              data-testid={`feed-follow-btn-${item.id}`}
             >
-              {isBookmarked ? <BookmarkCheck className="w-[18px] h-[18px]" /> : <Bookmark className="w-[18px] h-[18px]" />}
+              {item.isFollowing ? "Following" : "Follow"}
             </button>
-
-            <SharePopover
-              episodeTitle={item.episodeTitle}
-              podcastSlug={item.podcastSlug}
-              episodeSlug={item.episodeSlug}
-              itemId={item.id}
-              toast={toast}
-            />
           </div>
         </div>
       </div>
+
+      <div className="px-5 md:px-6 py-[18px] border-t border-[#F0F0F2] border-b border-b-[#F0F0F2]">
+        <div className="flex items-baseline justify-between gap-3 mb-[9px]">
+          <Link href={episodeUrl}>
+            <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0 hover:text-[#6366F1] transition-colors" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-episode-title-${item.id}`}>
+              {item.episodeTitle}
+            </span>
+          </Link>
+          <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-time-${item.id}`}>
+            {relativeTime(item.publishDate)}
+          </span>
+        </div>
+        <Link href={episodeUrl}>
+          <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em] hover:text-[#6366F1] transition-colors" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-headline-${item.id}`}>
+            {item.tldl}
+          </h3>
+        </Link>
+      </div>
+
+      <div className="px-5 md:px-6 py-[22px]">
+        {allInsights.length > 0 && (
+          <div className="mb-5">
+            <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Key Takeaways</div>
+            <ul className="list-none p-0">
+              {allInsights.map((insight, i) => (
+                <li key={i} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] text-[16px] text-[#52525B] leading-[1.6] first:pt-0 last:border-b-0 last:pb-0">
+                  <div className="w-[7px] h-[7px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[8px]" />
+                  <div>{insight}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {item.quote && (
+          <div className="border-l-[3px] border-[#8B5CF6] rounded-r-[10px] px-[18px] py-[14px] bg-[#F7F7FC] mb-5">
+            <div className="text-[18px] italic text-[#52525B] leading-[1.65] mb-2" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-quote-${item.id}`}>
+              "{item.quote}"
+            </div>
+            {item.quoteAttribution && (
+              <div className="text-[12px] text-[#A1A1AA]" style={{ fontFamily: "var(--font-mono)" }}>— {item.quoteAttribution}</div>
+            )}
+          </div>
+        )}
+
+        {whatHappenedParagraphs.length > 0 && (
+          <div>
+            <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Episode Recap</div>
+            <div className="text-[16px] text-[#52525B] leading-[1.8]" data-testid={`feed-recap-${item.id}`}>
+              {whatHappenedParagraphs.map((para, i) => (
+                <p key={i} className="mb-[14px] last:mb-0">{para}</p>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <MentionsSection
+        item={item}
+        isBookmarked={isBookmarked}
+        onBookmarkToggle={onBookmarkToggle}
+        onFollowToggle={onFollowToggle}
+        toast={toast}
+      />
     </article>
   );
 }
@@ -420,6 +571,7 @@ export default function FeedPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"foryou" | "following">("foryou");
   const observerRef = useRef<HTMLDivElement>(null);
+  const [, navigate] = useLocation();
 
   type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
 
@@ -444,16 +596,10 @@ export default function FeedPage() {
       });
       return { previous };
     },
-    onSuccess: () => {
-      toast({ title: "Bookmarked", description: "Episode saved to your bookmarks" });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-    },
+    onSuccess: () => { toast({ title: "Bookmarked", description: "Episode saved to your bookmarks" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
-      }
+      if (context?.previous) queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
       toast({ title: "Error", description: "Failed to bookmark episode", variant: "destructive" });
     },
   });
@@ -470,31 +616,19 @@ export default function FeedPage() {
       );
       return { previous };
     },
-    onSuccess: () => {
-      toast({ title: "Removed", description: "Episode removed from bookmarks" });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-    },
+    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from bookmarks" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
-      }
+      if (context?.previous) queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
       toast({ title: "Error", description: "Failed to remove bookmark", variant: "destructive" });
     },
   });
 
   const handleBookmarkToggle = useCallback((episodeSlug: string, podcastSlug: string) => {
-    if (!user) {
-      toast({ title: "Sign in required", description: "Log in to bookmark episodes", variant: "destructive" });
-      return;
-    }
+    if (!user) { toast({ title: "Sign in required", description: "Log in to bookmark episodes", variant: "destructive" }); return; }
     const key = `${podcastSlug}::${episodeSlug}`;
-    if (bookmarkedKeys.has(key)) {
-      removeBookmark.mutate({ podcastSlug, episodeSlug });
-    } else {
-      addBookmark.mutate({ episodeSlug, podcastSlug });
-    }
+    if (bookmarkedKeys.has(key)) removeBookmark.mutate({ podcastSlug, episodeSlug });
+    else addBookmark.mutate({ episodeSlug, podcastSlug });
   }, [bookmarkedKeys, addBookmark, removeBookmark, user, toast]);
 
   const {
@@ -519,9 +653,7 @@ export default function FeedPage() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
       },
       { threshold: 0.1 }
     );
@@ -538,23 +670,17 @@ export default function FeedPage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sidebar-suggestions"] });
       toast({
         title: variables.follow ? "Following" : "Unfollowed",
-        description: variables.follow
-          ? "Added to your feed and daily email recap"
-          : "Removed from your feed and daily email",
+        description: variables.follow ? "Added to your feed and daily email recap" : "Removed from your feed and daily email",
       });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" });
-    },
+    onError: () => { toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" }); },
   });
 
   const handleFollowToggle = useCallback((slug: string, follow: boolean) => {
-    if (!user) {
-      toast({ title: "Sign in required", description: "Log in to follow podcasts", variant: "destructive" });
-      return;
-    }
+    if (!user) { toast({ title: "Sign in required", description: "Log in to follow podcasts", variant: "destructive" }); return; }
     followMutation.mutate({ podcastSlug: slug, follow });
   }, [user, followMutation, toast]);
 
@@ -562,35 +688,41 @@ export default function FeedPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="feed-page">
-        <div className="sticky top-0 z-30 bg-white dark:bg-[#09090B] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex">
-              {(["foryou", "following"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 text-[14px] md:text-[15px] font-bold text-center relative transition-colors ${
-                    activeTab === tab ? "text-[#09090B] dark:text-white" : "text-[#A1A1AA] hover:text-[#71717A] hover:bg-[#FAFAFA] dark:hover:bg-[#111114]"
-                  }`}
-                  data-testid={`feed-tab-${tab}`}
-                >
-                  {tab === "foryou" ? "For You" : "Following"}
-                  {activeTab === tab && (
-                    <motion.div
-                      layoutId="feedTabIndicator"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[56px] h-[3px] bg-[#6366F1] rounded-full"
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
+      <div className="min-h-screen flex flex-col" data-testid="feed-page">
+        <div className="sticky top-0 z-30 flex-shrink-0 border-b border-[#F0F0F2] flex items-stretch h-[54px] pr-4" style={{ background: "rgba(255,255,255,0.94)", backdropFilter: "blur(16px)" }}>
+          <div className="flex flex-1">
+            {(["foryou", "following"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`feed-tab-btn flex-1 flex items-center justify-center text-[16px] font-medium border-b-2 select-none transition-colors relative ${
+                  activeTab === tab
+                    ? "text-[#09090B] border-[#6366F1] font-semibold"
+                    : "text-[#A1A1AA] border-transparent hover:text-[#52525B] hover:bg-[#FAFAFA]"
+                }`}
+                data-testid={`feed-tab-${tab}`}
+              >
+                {tab === "foryou" ? "For You" : "Following"}
+                <div className="feed-tab-tooltip">
+                  {tab === "foryou"
+                    ? "Personalised episodes based on your interests, industries, and roles — including podcasts you don't follow yet"
+                    : "Every new episode from the podcasts you follow, in chronological order"}
+                </div>
+              </button>
+            ))}
           </div>
+          <button
+            onClick={() => navigate("/discover")}
+            className="w-9 h-9 rounded-lg flex items-center justify-center self-center text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#6366F1] transition-all"
+            data-testid="feed-search-btn"
+          >
+            <Search className="w-5 h-5" />
+          </button>
         </div>
 
         <PodSquadBanner />
 
-        <div className="max-w-5xl mx-auto">
+        <div className="flex-1 bg-white px-4 md:px-5 py-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <Loader2 className="w-7 h-7 animate-spin text-[#6366F1]" />
@@ -598,13 +730,13 @@ export default function FeedPage() {
             </div>
           ) : allItems.length === 0 ? (
             <div className="text-center py-20 px-8">
-              <div className="w-16 h-16 rounded-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-[#F4F4F5] flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-7 h-7 text-[#A1A1AA]" />
               </div>
-              <p className="text-[17px] font-bold text-[#09090B] dark:text-white mb-1">
+              <p className="text-[17px] font-bold text-[#09090B] mb-1">
                 {activeTab === "following" ? "No followed podcasts yet" : "Nothing here yet"}
               </p>
-              <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed">
+              <p className="text-[14px] text-[#71717A] leading-relaxed">
                 {activeTab === "following"
                   ? "Follow podcasts from the For You tab or Discover to see their recaps here."
                   : "Check back soon for fresh podcast recaps."}
@@ -629,7 +761,7 @@ export default function FeedPage() {
                   <span className="text-[13px] text-[#A1A1AA]">Scroll for more</span>
                 ) : allItems.length > 5 ? (
                   <div className="flex flex-col items-center gap-1">
-                    <div className="w-8 h-[2px] bg-[#E4E4E7] dark:bg-[#27272A] rounded-full" />
+                    <div className="w-8 h-[2px] bg-[#E4E4E7] rounded-full" />
                     <span className="text-[13px] text-[#A1A1AA] font-medium">You're all caught up</span>
                   </div>
                 ) : null}
