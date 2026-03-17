@@ -30,3 +30,9 @@ id = "XT5_ZuPb2M3KIPO0LHsF2"
 uri = "file://POD_SQUAD_MOBILE_INTEGRATION.md"
 type = "text"
 title = "Pod Squad Mobile Integration Guide"
+
+[[outputs]]
+id = "rLM7q4vh-KPedrdMaprg2"
+uri = "file:///tmp/podcasts_need_youtube.txt"
+type = "text"
+title = "215 Podcasts Needing YouTube Links"
