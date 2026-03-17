@@ -285,63 +285,17 @@ function RecapIcon({ className }: { className?: string }) {
 function ListenSection({ item }: { item: FeedItem }) {
   const spotifyId = parseSpotifyEpisodeId(item.spotifyEpisodeUrl);
   const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
-  const hasYoutube = !!youtubeId;
   const spotifyFallbackUrl = item.spotifyEpisodeUrl || item.spotifyUrl;
-  const hasSpotify = !!spotifyId || !!spotifyFallbackUrl;
-  const [activePlayer, setActivePlayer] = useState<"spotify" | "youtube">(hasSpotify ? "spotify" : "youtube");
+  const hasSpotifyEmbed = !!spotifyId;
+  const hasSpotifyLink = !!spotifyFallbackUrl;
+  const hasYoutubeEmbed = !!youtubeId;
+  const hasYoutubeLink = !!item.youtubeUrl && item.youtubeUrl !== '';
 
-  if (!spotifyId && !hasYoutube) {
-    if (spotifyFallbackUrl) {
-      return (
-        <div className="px-5 py-4">
-          <a
-            href={spotifyFallbackUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#1DB954] hover:underline"
-            data-testid={`listen-spotify-link-${item.id}`}
-          >
-            <SpotifyIcon className="w-5 h-5" />
-            Listen on Spotify
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
-      );
-    }
-    return null;
-  }
+  if (!hasSpotifyEmbed && !hasSpotifyLink && !hasYoutubeEmbed && !hasYoutubeLink) return null;
 
   return (
-    <div className="px-5 py-4">
-      {hasSpotify && hasYoutube && (
-        <div className="flex gap-1 mb-3">
-          <button
-            onClick={() => setActivePlayer("spotify")}
-            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-medium transition-all ${
-              activePlayer === "spotify"
-                ? "bg-[#EEF2FF] text-[#6366F1] font-semibold"
-                : "text-[#71717A] hover:bg-[#F4F4F5]"
-            }`}
-            data-testid={`listen-tab-spotify-${item.id}`}
-          >
-            <SpotifyIcon className="w-4 h-4" />
-            Spotify
-          </button>
-          <button
-            onClick={() => setActivePlayer("youtube")}
-            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-medium transition-all ${
-              activePlayer === "youtube"
-                ? "bg-[#EEF2FF] text-[#6366F1] font-semibold"
-                : "text-[#71717A] hover:bg-[#F4F4F5]"
-            }`}
-            data-testid={`listen-tab-youtube-${item.id}`}
-          >
-            <YouTubeIcon className="w-4 h-4" />
-            YouTube
-          </button>
-        </div>
-      )}
-      {activePlayer === "spotify" && spotifyId && (
+    <div className="px-5 py-4 flex flex-col gap-3">
+      {hasSpotifyEmbed && (
         <iframe
           src={`https://open.spotify.com/embed/episode/${spotifyId}?utm_source=generator&theme=0`}
           width="100%"
@@ -353,20 +307,20 @@ function ListenSection({ item }: { item: FeedItem }) {
           data-testid={`listen-spotify-embed-${item.id}`}
         />
       )}
-      {activePlayer === "spotify" && !spotifyId && spotifyFallbackUrl && (
+      {!hasSpotifyEmbed && hasSpotifyLink && (
         <a
-          href={spotifyFallbackUrl}
+          href={spotifyFallbackUrl!}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#1DB954] hover:underline"
+          className="inline-flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#1DB954]/[0.08] text-[#1DB954] hover:bg-[#1DB954]/[0.14] transition-colors"
           data-testid={`listen-spotify-link-${item.id}`}
         >
           <SpotifyIcon className="w-5 h-5" />
-          Listen on Spotify
-          <ExternalLink className="w-3.5 h-3.5" />
+          <span className="text-[14px] font-semibold">Listen on Spotify</span>
+          <ExternalLink className="w-3.5 h-3.5 ml-auto" />
         </a>
       )}
-      {activePlayer === "youtube" && youtubeId && (
+      {hasYoutubeEmbed && (
         <iframe
           src={`https://www.youtube.com/embed/${youtubeId}`}
           width="100%"
@@ -378,6 +332,19 @@ function ListenSection({ item }: { item: FeedItem }) {
           className="rounded-xl"
           data-testid={`listen-youtube-embed-${item.id}`}
         />
+      )}
+      {!hasYoutubeEmbed && hasYoutubeLink && (
+        <a
+          href={item.youtubeUrl!}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#FF0000]/[0.08] text-[#FF0000] hover:bg-[#FF0000]/[0.14] transition-colors"
+          data-testid={`listen-youtube-link-${item.id}`}
+        >
+          <YouTubeIcon className="w-5 h-5" />
+          <span className="text-[14px] font-semibold">Watch on YouTube</span>
+          <ExternalLink className="w-3.5 h-3.5 ml-auto" />
+        </a>
       )}
     </div>
   );
@@ -404,7 +371,7 @@ function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowTog
 
   const spotifyId = parseSpotifyEpisodeId(item.spotifyEpisodeUrl);
   const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
-  const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl;
+  const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl || (!!item.youtubeUrl && item.youtubeUrl !== '');
 
   const toggleSection = (section: "recap" | "mentions" | "listen") => {
     setOpenSection(prev => prev === section ? null : section);
