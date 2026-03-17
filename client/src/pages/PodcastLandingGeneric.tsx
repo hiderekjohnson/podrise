@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useParams, Link } from "wouter";
+import { useParams, Link } from "wouter";
 import { Loader2, ArrowRight, Clock, Mic, Users, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
@@ -383,7 +383,6 @@ export default function PodcastLandingGeneric() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const staticConfig = getPodcastBySlug(slug || "");
-  const [, navigate] = useLocation();
   const { data: user } = useAuth();
   const { toast } = useToast();
 
@@ -509,11 +508,6 @@ export default function PodcastLandingGeneric() {
       if (ld) ld.remove();
     };
   }, [config?.name]);
-
-  if (user) {
-    navigate("/dashboard");
-    return null;
-  }
 
   if (!config && !dbEntry && !staticConfig) {
     return (
