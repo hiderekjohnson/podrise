@@ -2188,6 +2188,7 @@ interface EntityPerson {
   title: string | null; company: string | null; twitterHandle: string | null;
   linkedinUrl: string | null; websiteUrl: string | null; category: string | null;
   searchTerms: string[]; hostedSlugs: string[]; verified: boolean; episodeCount: number; context: string;
+  createdAt: string | null; updatedAt: string | null;
 }
 
 interface EntityCompany {
@@ -2195,6 +2196,7 @@ interface EntityCompany {
   industry: string | null; websiteUrl: string | null; twitterHandle: string | null;
   category: string | null; searchTerms: string[]; associatedTerms: string[];
   verified: boolean; episodeCount: number; context: string;
+  createdAt: string | null; updatedAt: string | null;
 }
 
 interface EntityMention {
@@ -2214,6 +2216,8 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
   });
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Partial<EntityPerson>>({});
+  const [searchTermsInput, setSearchTermsInput] = useState("");
+  const [hostedSlugsInput, setHostedSlugsInput] = useState("");
   const updateMut = useMutation({
     mutationFn: (body: Partial<EntityPerson>) => apiRequest("PATCH", `/api/admin/cms/people/${slug}`, body),
     onSuccess: () => {
@@ -2227,6 +2231,23 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!data) return null;
 
+  const startEditing = () => {
+    setForm(data);
+    setSearchTermsInput((data.searchTerms || []).join(", "));
+    setHostedSlugsInput((data.hostedSlugs || []).join(", "));
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    const { id: _id, slug: _slug, episodeCount: _ec, context: _ctx, createdAt: _ca, updatedAt: _ua, ...editableFields } = form as EntityPerson;
+    const payload = {
+      ...editableFields,
+      searchTerms: searchTermsInput.split(",").map(s => s.trim()).filter(Boolean),
+      hostedSlugs: hostedSlugsInput.split(",").map(s => s.trim()).filter(Boolean),
+    };
+    updateMut.mutate(payload);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -2235,7 +2256,7 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
         </button>
         <div className="flex items-center gap-2">
           {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs">Verified</span>}
-          <button onClick={() => { setEditing(!editing); setForm(data); }} className="text-xs text-primary hover:underline" data-testid="button-edit-person">
+          <button onClick={() => { if (editing) { setEditing(false); } else { startEditing(); } }} className="text-xs text-primary hover:underline" data-testid="button-edit-person">
             {editing ? "Cancel" : "Edit"}
           </button>
         </div>
@@ -2252,29 +2273,36 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
             {editing ? (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-xs text-muted-foreground">Name</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Title</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.title || ""} onChange={e => setForm({...form, title: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Company</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.company || ""} onChange={e => setForm({...form, company: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="entrepreneur, investor, host..." /></div>
-                  <div><label className="text-xs text-muted-foreground">Photo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.photoUrl || ""} onChange={e => setForm({...form, photoUrl: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">LinkedIn</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.linkedinUrl || ""} onChange={e => setForm({...form, linkedinUrl: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Website</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Name</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} data-testid="input-person-name" /></div>
+                  <div><label className="text-xs text-muted-foreground">Slug</label><input className="w-full border rounded px-2 py-1 text-sm bg-gray-50 dark:bg-zinc-800" value={form.slug || ""} readOnly data-testid="input-person-slug" /></div>
+                  <div><label className="text-xs text-muted-foreground">Title</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.title || ""} onChange={e => setForm({...form, title: e.target.value})} data-testid="input-person-title" /></div>
+                  <div><label className="text-xs text-muted-foreground">Company</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.company || ""} onChange={e => setForm({...form, company: e.target.value})} data-testid="input-person-company" /></div>
+                  <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="entrepreneur, investor, host..." data-testid="input-person-category" /></div>
+                  <div><label className="text-xs text-muted-foreground">Photo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.photoUrl || ""} onChange={e => setForm({...form, photoUrl: e.target.value})} data-testid="input-person-photo" /></div>
+                  <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} data-testid="input-person-twitter" /></div>
+                  <div><label className="text-xs text-muted-foreground">LinkedIn URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.linkedinUrl || ""} onChange={e => setForm({...form, linkedinUrl: e.target.value})} data-testid="input-person-linkedin" /></div>
+                  <div><label className="text-xs text-muted-foreground">Website URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} data-testid="input-person-website" /></div>
                 </div>
-                <div><label className="text-xs text-muted-foreground">Bio</label><textarea className="w-full border rounded px-2 py-1 text-sm min-h-[60px]" value={form.bio || ""} onChange={e => setForm({...form, bio: e.target.value})} /></div>
+                <div><label className="text-xs text-muted-foreground">Bio</label><textarea className="w-full border rounded px-2 py-1 text-sm min-h-[60px]" value={form.bio || ""} onChange={e => setForm({...form, bio: e.target.value})} data-testid="input-person-bio" /></div>
+                <div><label className="text-xs text-muted-foreground">Search Terms <span className="text-[10px]">(comma-separated)</span></label><input className="w-full border rounded px-2 py-1 text-sm" value={searchTermsInput} onChange={e => setSearchTermsInput(e.target.value)} placeholder="e.g. Elon Musk, @elonmusk, Tesla CEO" data-testid="input-person-search-terms" /></div>
+                <div><label className="text-xs text-muted-foreground">Hosted Podcast Slugs <span className="text-[10px]">(comma-separated)</span></label><input className="w-full border rounded px-2 py-1 text-sm" value={hostedSlugsInput} onChange={e => setHostedSlugsInput(e.target.value)} placeholder="e.g. all-in, my-first-million" data-testid="input-person-hosted-slugs" /></div>
                 <div className="flex gap-2">
-                  <button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending} className="px-3 py-1 bg-primary text-white rounded text-sm" data-testid="button-save-person">
+                  <button onClick={handleSave} disabled={updateMut.isPending} className="px-3 py-1 bg-primary text-white rounded text-sm" data-testid="button-save-person">
                     {updateMut.isPending ? "Saving..." : "Save"}
                   </button>
-                  <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.verified || false} onChange={e => setForm({...form, verified: e.target.checked})} /> Verified</label>
+                  <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.verified || false} onChange={e => setForm({...form, verified: e.target.checked})} data-testid="input-person-verified" /> Verified</label>
                 </div>
               </div>
             ) : (
               <>
                 <h3 className="text-lg font-semibold">{data.name}</h3>
+                <p className="text-xs text-muted-foreground font-mono">slug: {data.slug}</p>
                 {data.title && <p className="text-sm text-muted-foreground">{data.title}{data.company ? ` at ${data.company}` : ""}</p>}
                 {data.bio && <p className="text-sm text-muted-foreground mt-2">{data.bio}</p>}
-                {data.category && <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.category}</span>}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {data.category && <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.category}</span>}
+                  {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs">Verified</span>}
+                </div>
                 <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
                   {data.twitterHandle && <span>@{data.twitterHandle}</span>}
                   {data.linkedinUrl && <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">LinkedIn</a>}
@@ -2285,6 +2313,34 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
           </div>
         </div>
       </div>
+
+      <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-3">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Search Terms</h4>
+        {data.searchTerms?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {data.searchTerms.map((t, i) => (
+              <span key={i} className="px-2 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded text-xs">{t}</span>
+            ))}
+          </div>
+        ) : <p className="text-xs text-muted-foreground">None</p>}
+
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2">Hosted Podcast Slugs</h4>
+        {data.hostedSlugs?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {data.hostedSlugs.map((s, i) => (
+              <span key={i} className="px-2 py-0.5 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded text-xs font-mono">{s}</span>
+            ))}
+          </div>
+        ) : <p className="text-xs text-muted-foreground">None</p>}
+
+        {(data.createdAt || data.updatedAt) && (
+          <div className="pt-2 border-t border-border flex gap-4 text-[10px] text-muted-foreground">
+            {data.createdAt && <span>Created: {new Date(data.createdAt).toLocaleDateString()}</span>}
+            {data.updatedAt && <span>Updated: {new Date(data.updatedAt).toLocaleDateString()}</span>}
+          </div>
+        )}
+      </div>
+
       <div className="space-y-2">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           Episode Mentions
@@ -2391,6 +2447,8 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
   });
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Partial<EntityCompany>>({});
+  const [searchTermsInput, setSearchTermsInput] = useState("");
+  const [associatedTermsInput, setAssociatedTermsInput] = useState("");
   const updateMut = useMutation({
     mutationFn: (body: Partial<EntityCompany>) => apiRequest("PATCH", `/api/admin/cms/companies/${slug}`, body),
     onSuccess: () => {
@@ -2404,6 +2462,23 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!data) return null;
 
+  const startEditing = () => {
+    setForm(data);
+    setSearchTermsInput((data.searchTerms || []).join(", "));
+    setAssociatedTermsInput((data.associatedTerms || []).join(", "));
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    const { id: _id, slug: _slug, episodeCount: _ec, context: _ctx, createdAt: _ca, updatedAt: _ua, ...editableFields } = form as EntityCompany;
+    const payload = {
+      ...editableFields,
+      searchTerms: searchTermsInput.split(",").map(s => s.trim()).filter(Boolean),
+      associatedTerms: associatedTermsInput.split(",").map(s => s.trim()).filter(Boolean),
+    };
+    updateMut.mutate(payload);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -2412,7 +2487,7 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
         </button>
         <div className="flex items-center gap-2">
           {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs">Verified</span>}
-          <button onClick={() => { setEditing(!editing); setForm(data); }} className="text-xs text-primary hover:underline" data-testid="button-edit-company">
+          <button onClick={() => { if (editing) { setEditing(false); } else { startEditing(); } }} className="text-xs text-primary hover:underline" data-testid="button-edit-company">
             {editing ? "Cancel" : "Edit"}
           </button>
         </div>
@@ -2429,26 +2504,33 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
             {editing ? (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-xs text-muted-foreground">Name</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Industry</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.industry || ""} onChange={e => setForm({...form, industry: e.target.value})} placeholder="AI, Finance, Social..." /></div>
-                  <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="tech, finance, vc..." /></div>
-                  <div><label className="text-xs text-muted-foreground">Logo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.logoUrl || ""} onChange={e => setForm({...form, logoUrl: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Website</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} /></div>
-                  <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Name</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} data-testid="input-company-name" /></div>
+                  <div><label className="text-xs text-muted-foreground">Slug</label><input className="w-full border rounded px-2 py-1 text-sm bg-gray-50 dark:bg-zinc-800" value={form.slug || ""} readOnly data-testid="input-company-slug" /></div>
+                  <div><label className="text-xs text-muted-foreground">Industry</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.industry || ""} onChange={e => setForm({...form, industry: e.target.value})} placeholder="AI, Finance, Social..." data-testid="input-company-industry" /></div>
+                  <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="tech, finance, vc..." data-testid="input-company-category" /></div>
+                  <div><label className="text-xs text-muted-foreground">Logo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.logoUrl || ""} onChange={e => setForm({...form, logoUrl: e.target.value})} data-testid="input-company-logo" /></div>
+                  <div><label className="text-xs text-muted-foreground">Website URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} data-testid="input-company-website" /></div>
+                  <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} data-testid="input-company-twitter" /></div>
                 </div>
-                <div><label className="text-xs text-muted-foreground">Description</label><textarea className="w-full border rounded px-2 py-1 text-sm min-h-[60px]" value={form.description || ""} onChange={e => setForm({...form, description: e.target.value})} /></div>
+                <div><label className="text-xs text-muted-foreground">Description</label><textarea className="w-full border rounded px-2 py-1 text-sm min-h-[60px]" value={form.description || ""} onChange={e => setForm({...form, description: e.target.value})} data-testid="input-company-description" /></div>
+                <div><label className="text-xs text-muted-foreground">Search Terms <span className="text-[10px]">(comma-separated)</span></label><input className="w-full border rounded px-2 py-1 text-sm" value={searchTermsInput} onChange={e => setSearchTermsInput(e.target.value)} placeholder="e.g. Google, Alphabet, GOOG" data-testid="input-company-search-terms" /></div>
+                <div><label className="text-xs text-muted-foreground">Associated Terms <span className="text-[10px]">(comma-separated)</span></label><input className="w-full border rounded px-2 py-1 text-sm" value={associatedTermsInput} onChange={e => setAssociatedTermsInput(e.target.value)} placeholder="e.g. Android, Chrome, YouTube" data-testid="input-company-associated-terms" /></div>
                 <div className="flex gap-2">
-                  <button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending} className="px-3 py-1 bg-primary text-white rounded text-sm" data-testid="button-save-company">
+                  <button onClick={handleSave} disabled={updateMut.isPending} className="px-3 py-1 bg-primary text-white rounded text-sm" data-testid="button-save-company">
                     {updateMut.isPending ? "Saving..." : "Save"}
                   </button>
-                  <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.verified || false} onChange={e => setForm({...form, verified: e.target.checked})} /> Verified</label>
+                  <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.verified || false} onChange={e => setForm({...form, verified: e.target.checked})} data-testid="input-company-verified" /> Verified</label>
                 </div>
               </div>
             ) : (
               <>
                 <h3 className="text-lg font-semibold">{data.name}</h3>
-                {data.industry && <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs mr-2">{data.industry}</span>}
-                {data.category && <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.category}</span>}
+                <p className="text-xs text-muted-foreground font-mono">slug: {data.slug}</p>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {data.industry && <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.industry}</span>}
+                  {data.category && <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.category}</span>}
+                  {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs">Verified</span>}
+                </div>
                 {data.description && <p className="text-sm text-muted-foreground mt-2">{data.description}</p>}
                 <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
                   {data.twitterHandle && <span>@{data.twitterHandle}</span>}
@@ -2459,6 +2541,34 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
           </div>
         </div>
       </div>
+
+      <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-3">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Search Terms</h4>
+        {data.searchTerms?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {data.searchTerms.map((t, i) => (
+              <span key={i} className="px-2 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded text-xs">{t}</span>
+            ))}
+          </div>
+        ) : <p className="text-xs text-muted-foreground">None</p>}
+
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2">Associated Terms</h4>
+        {data.associatedTerms?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {data.associatedTerms.map((t, i) => (
+              <span key={i} className="px-2 py-0.5 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded text-xs">{t}</span>
+            ))}
+          </div>
+        ) : <p className="text-xs text-muted-foreground">None</p>}
+
+        {(data.createdAt || data.updatedAt) && (
+          <div className="pt-2 border-t border-border flex gap-4 text-[10px] text-muted-foreground">
+            {data.createdAt && <span>Created: {new Date(data.createdAt).toLocaleDateString()}</span>}
+            {data.updatedAt && <span>Updated: {new Date(data.updatedAt).toLocaleDateString()}</span>}
+          </div>
+        )}
+      </div>
+
       <div className="space-y-2">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           Episode Mentions

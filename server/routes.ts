@@ -9561,6 +9561,7 @@ Rules:
         websiteUrl: person.website_url, category: person.category,
         searchTerms: person.search_terms, hostedSlugs: person.hosted_slugs,
         verified: person.verified,
+        createdAt: person.created_at, updatedAt: person.updated_at,
         mentions: mentions.map(m => ({
           episodeSlug: m.episode_slug,
           podcastSlug: m.podcast_slug,
@@ -9578,16 +9579,17 @@ Rules:
   app.patch("/api/admin/cms/people/:slug", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
-      const { name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, verified } = req.body;
+      const { name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, verified, searchTerms, hostedSlugs } = req.body;
       const { rows: [updated] } = await pool.query(`
         UPDATE entity_people SET 
           name = COALESCE($1, name), bio = COALESCE($2, bio), photo_url = COALESCE($3, photo_url),
           title = COALESCE($4, title), company = COALESCE($5, company), twitter_handle = COALESCE($6, twitter_handle),
           linkedin_url = COALESCE($7, linkedin_url), website_url = COALESCE($8, website_url),
           category = COALESCE($9, category), verified = COALESCE($10, verified),
+          search_terms = COALESCE($11, search_terms), hosted_slugs = COALESCE($12, hosted_slugs),
           updated_at = NOW()
-        WHERE slug = $11 RETURNING *
-      `, [name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, verified, req.params.slug]);
+        WHERE slug = $13 RETURNING *
+      `, [name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, verified, searchTerms || null, hostedSlugs || null, req.params.slug]);
       if (!updated) return res.status(404).json({ message: "Person not found" });
       res.json({
         id: updated.id, slug: updated.slug, name: updated.name, bio: updated.bio,
@@ -9595,7 +9597,7 @@ Rules:
         twitterHandle: updated.twitter_handle, linkedinUrl: updated.linkedin_url,
         websiteUrl: updated.website_url, category: updated.category,
         searchTerms: updated.search_terms, hostedSlugs: updated.hosted_slugs,
-        verified: updated.verified,
+        verified: updated.verified, createdAt: updated.created_at, updatedAt: updated.updated_at,
       });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to update person" });
@@ -9687,6 +9689,7 @@ Rules:
         twitterHandle: company.twitter_handle, category: company.category,
         searchTerms: company.search_terms, associatedTerms: company.associated_terms,
         verified: company.verified,
+        createdAt: company.created_at, updatedAt: company.updated_at,
         mentions: mentions.map(m => ({
           episodeSlug: m.episode_slug,
           podcastSlug: m.podcast_slug,
@@ -9704,22 +9707,23 @@ Rules:
   app.patch("/api/admin/cms/companies/:slug", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
-      const { name, description, logoUrl, industry, websiteUrl, twitterHandle, category, verified } = req.body;
+      const { name, description, logoUrl, industry, websiteUrl, twitterHandle, category, verified, searchTerms, associatedTerms } = req.body;
       const { rows: [updated] } = await pool.query(`
         UPDATE entity_companies SET 
           name = COALESCE($1, name), description = COALESCE($2, description), logo_url = COALESCE($3, logo_url),
           industry = COALESCE($4, industry), website_url = COALESCE($5, website_url),
           twitter_handle = COALESCE($6, twitter_handle), category = COALESCE($7, category),
-          verified = COALESCE($8, verified), updated_at = NOW()
-        WHERE slug = $9 RETURNING *
-      `, [name, description, logoUrl, industry, websiteUrl, twitterHandle, category, verified, req.params.slug]);
+          verified = COALESCE($8, verified), search_terms = COALESCE($9, search_terms),
+          associated_terms = COALESCE($10, associated_terms), updated_at = NOW()
+        WHERE slug = $11 RETURNING *
+      `, [name, description, logoUrl, industry, websiteUrl, twitterHandle, category, verified, searchTerms || null, associatedTerms || null, req.params.slug]);
       if (!updated) return res.status(404).json({ message: "Company not found" });
       res.json({
         id: updated.id, slug: updated.slug, name: updated.name, description: updated.description,
         logoUrl: updated.logo_url, industry: updated.industry, websiteUrl: updated.website_url,
         twitterHandle: updated.twitter_handle, category: updated.category,
         searchTerms: updated.search_terms, associatedTerms: updated.associated_terms,
-        verified: updated.verified,
+        verified: updated.verified, createdAt: updated.created_at, updatedAt: updated.updated_at,
       });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to update company" });
