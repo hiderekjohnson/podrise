@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Mic, ArrowRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight, Clock, Users, X, Flame, Zap, Star, Play, ArrowUpRight, Headphones, Filter, Send } from "lucide-react";
+import { Search, Mic, ArrowRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight, Clock, Users, X, Flame, Zap, Star, Play, ArrowUpRight, Headphones, Filter, Send, User, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
@@ -293,12 +293,34 @@ export default function PodcastsExplorer() {
     return () => observer.disconnect();
   }, []);
 
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const { data: discoveryData, isLoading } = useQuery<DiscoveryData>({
     queryKey: ["/api/podcasts-discovery"],
   });
 
   const { data: leaderboardData } = useQuery<LeaderboardPodcast[]>({
     queryKey: ["/api/leaderboard"],
+  });
+
+  interface EpisodeSearchResult { podcastSlug: string; episodeSlug: string; podcastName: string; episodeTitle: string; artworkUrl: string; publishDate: string }
+  interface PersonSearchResult { slug: string; name: string; photoUrl: string; title: string; company: string }
+  interface CompanySearchResult { slug: string; name: string; logoUrl: string; industry: string }
+  interface PodcastSearchResult { id: number; name: string; slug: string; imageUrl?: string; publisher?: string; description?: string }
+  interface GlobalSearchResults { podcasts: PodcastSearchResult[]; episodes: EpisodeSearchResult[]; people: PersonSearchResult[]; companies: CompanySearchResult[] }
+
+  const { data: globalSearchData } = useQuery<GlobalSearchResults>({
+    queryKey: ["/api/global-search", debouncedSearch],
+    queryFn: async () => {
+      const res = await fetch(`/api/global-search?term=${encodeURIComponent(debouncedSearch)}`);
+      return res.json();
+    },
+    enabled: debouncedSearch.trim().length >= 2,
+    staleTime: 30 * 1000,
   });
 
   const staffPicks = useMemo(() => {
@@ -522,7 +544,108 @@ export default function PodcastsExplorer() {
           <div className="mb-4">
             <p className="text-[14px] text-muted-foreground">
               <span className="font-semibold text-foreground">{filteredPodcasts.length}</span> podcast{filteredPodcasts.length !== 1 ? "s" : ""} matching "<span className="font-medium text-foreground">{searchQuery}</span>"
+              {globalSearchData && globalSearchData.episodes.length > 0 && (
+                <span> · <span className="font-semibold text-foreground">{globalSearchData.episodes.length}</span> episode{globalSearchData.episodes.length !== 1 ? "s" : ""}</span>
+              )}
+              {globalSearchData && globalSearchData.people.length > 0 && (
+                <span> · <span className="font-semibold text-foreground">{globalSearchData.people.length}</span> {globalSearchData.people.length !== 1 ? "people" : "person"}</span>
+              )}
+              {globalSearchData && globalSearchData.companies.length > 0 && (
+                <span> · <span className="font-semibold text-foreground">{globalSearchData.companies.length}</span> {globalSearchData.companies.length !== 1 ? "companies" : "company"}</span>
+              )}
             </p>
+          </div>
+        )}
+
+        {isSearching && globalSearchData && globalSearchData.episodes.length > 0 && (
+          <div className="mb-8" data-testid="episode-search-results">
+            <h3 className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2"><Mic className="w-4 h-4 text-primary" /> Episodes</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {globalSearchData.episodes.map((ep) => (
+                <Link
+                  key={`${ep.podcastSlug}-${ep.episodeSlug}`}
+                  href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card border border-black/[0.06] dark:border-white/[0.06] hover:border-primary/20 hover:shadow-sm transition-all no-underline"
+                  data-testid={`search-episode-${ep.episodeSlug}`}
+                >
+                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                    {ep.artworkUrl ? (
+                      <img src={ep.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={ep.episodeTitle} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><Mic className="w-4 h-4 text-muted-foreground" /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-foreground truncate">{ep.episodeTitle}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{ep.podcastName}</div>
+                    {ep.publishDate && <div className="text-[10px] text-muted-foreground/60 mt-0.5">{ep.publishDate}</div>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isSearching && globalSearchData && (globalSearchData.people.length > 0 || globalSearchData.companies.length > 0) && (
+          <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {globalSearchData.people.length > 0 && (
+              <div data-testid="people-search-results">
+                <h3 className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> People</h3>
+                <div className="space-y-2">
+                  {globalSearchData.people.map((person) => (
+                    <Link
+                      key={person.slug}
+                      href={`/people/${person.slug}`}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-black/[0.06] dark:border-white/[0.06] hover:border-primary/20 hover:shadow-sm transition-all no-underline"
+                      data-testid={`search-person-${person.slug}`}
+                    >
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                        {person.photoUrl ? (
+                          <img src={person.photoUrl} alt={person.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center"><User className="w-4 h-4 text-muted-foreground" /></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-semibold text-foreground truncate">{person.name}</div>
+                        {(person.title || person.company) && (
+                          <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{[person.title, person.company].filter(Boolean).join(" at ")}</div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {globalSearchData.companies.length > 0 && (
+              <div data-testid="companies-search-results">
+                <h3 className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2"><Building2 className="w-4 h-4 text-primary" /> Companies</h3>
+                <div className="space-y-2">
+                  {globalSearchData.companies.map((company) => (
+                    <Link
+                      key={company.slug}
+                      href={`/companies/${company.slug}`}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-black/[0.06] dark:border-white/[0.06] hover:border-primary/20 hover:shadow-sm transition-all no-underline"
+                      data-testid={`search-company-${company.slug}`}
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                        {company.logoUrl ? (
+                          <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center"><Building2 className="w-4 h-4 text-muted-foreground" /></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-semibold text-foreground truncate">{company.name}</div>
+                        {company.industry && (
+                          <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{company.industry}</div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

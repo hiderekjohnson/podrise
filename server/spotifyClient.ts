@@ -75,3 +75,37 @@ export async function searchSpotifyEpisode(podcastName: string, episodeTitle: st
     return null;
   }
 }
+
+export async function searchSpotifyShow(podcastName: string): Promise<string | null> {
+  try {
+    const token = await getAccessToken();
+    const query = encodeURIComponent(podcastName);
+    const res = await fetch(
+      `https://api.spotify.com/v1/search?q=${query}&type=show&limit=5`,
+      {
+        headers: { "Authorization": `Bearer ${token}` }
+      }
+    );
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const shows = data?.shows?.items;
+    if (!shows || shows.length === 0) return null;
+
+    const nameNorm = podcastName.toLowerCase().trim();
+    const match = shows.find((s: any) => {
+      const showName = (s.name || "").toLowerCase().trim();
+      return showName === nameNorm || showName.includes(nameNorm) || nameNorm.includes(showName);
+    }) || shows[0];
+
+    if (match?.external_urls?.spotify) {
+      return match.external_urls.spotify;
+    }
+
+    return null;
+  } catch (err) {
+    console.warn("[Spotify] Show search error:", err);
+    return null;
+  }
+}

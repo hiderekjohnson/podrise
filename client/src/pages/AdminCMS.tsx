@@ -7,7 +7,7 @@ import {
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil,
-  Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check
+  Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -2227,6 +2227,15 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
     },
     onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
+  const enrichMut = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/admin/enrich-person/${slug}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people", slug] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
+      toast({ title: "Person enriched with AI" });
+    },
+    onError: (err: Error) => toast({ title: "Enrichment failed", description: err.message, variant: "destructive" }),
+  });
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!data) return null;
@@ -2255,6 +2264,15 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
           <ChevronLeft className="w-4 h-4" /> Back to People
         </button>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => enrichMut.mutate()}
+            disabled={enrichMut.isPending}
+            className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50"
+            data-testid="button-enrich-person"
+          >
+            {enrichMut.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+            {enrichMut.isPending ? "Enriching..." : "Enrich with AI"}
+          </button>
           {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs">Verified</span>}
           <button onClick={() => { if (editing) { setEditing(false); } else { startEditing(); } }} className="text-xs text-primary hover:underline" data-testid="button-edit-person">
             {editing ? "Cancel" : "Edit"}
@@ -2370,6 +2388,7 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
 function PeopleTab() {
   const [search, setSearch] = useState("");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const { toast } = useToast();
   const { data: people, isLoading, isError, error, refetch } = useQuery<EntityPerson[]>({
     queryKey: ["/api/admin/cms/people", search],
     queryFn: async () => {
@@ -2379,6 +2398,11 @@ function PeopleTab() {
       if (!res.ok) throw new Error(`Failed to load people (${res.status})`);
       return res.json();
     },
+  });
+  const enrichAllMut = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/enrich-people"),
+    onSuccess: () => toast({ title: "People enrichment started in background" }),
+    onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
   });
 
   if (selectedSlug) {
@@ -2393,6 +2417,15 @@ function PeopleTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input type="text" placeholder="Search people..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-people" />
         </div>
+        <button
+          onClick={() => enrichAllMut.mutate()}
+          disabled={enrichAllMut.isPending}
+          className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-xl text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50 whitespace-nowrap"
+          data-testid="button-enrich-all-people"
+        >
+          {enrichAllMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          Enrich All
+        </button>
         <span className="text-xs text-muted-foreground">{people?.length || 0} people</span>
       </div>
       {isLoading ? (
@@ -2458,6 +2491,15 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
     },
     onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
+  const enrichMut = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/admin/enrich-company/${slug}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies", slug] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies"] });
+      toast({ title: "Company enriched with AI" });
+    },
+    onError: (err: Error) => toast({ title: "Enrichment failed", description: err.message, variant: "destructive" }),
+  });
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!data) return null;
@@ -2486,6 +2528,15 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
           <ChevronLeft className="w-4 h-4" /> Back to Companies
         </button>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => enrichMut.mutate()}
+            disabled={enrichMut.isPending}
+            className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50"
+            data-testid="button-enrich-company"
+          >
+            {enrichMut.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+            {enrichMut.isPending ? "Enriching..." : "Enrich with AI"}
+          </button>
           {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs">Verified</span>}
           <button onClick={() => { if (editing) { setEditing(false); } else { startEditing(); } }} className="text-xs text-primary hover:underline" data-testid="button-edit-company">
             {editing ? "Cancel" : "Edit"}
@@ -2609,6 +2660,13 @@ function CompaniesTab() {
     },
   });
 
+  const { toast } = useToast();
+  const enrichAllMut = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/enrich-companies"),
+    onSuccess: () => toast({ title: "Companies enrichment started in background" }),
+    onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
+  });
+
   if (selectedSlug) {
     return <CompanyDetailPanel slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
   }
@@ -2621,6 +2679,15 @@ function CompaniesTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input type="text" placeholder="Search companies..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-companies" />
         </div>
+        <button
+          onClick={() => enrichAllMut.mutate()}
+          disabled={enrichAllMut.isPending}
+          className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-xl text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50 whitespace-nowrap"
+          data-testid="button-enrich-all-companies"
+        >
+          {enrichAllMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          Enrich All
+        </button>
         <span className="text-xs text-muted-foreground">{companies?.length || 0} companies</span>
       </div>
       {isLoading ? (

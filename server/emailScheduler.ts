@@ -2472,3 +2472,530 @@ export async function backfillSpotifyEpisodeUrls() {
     client.release();
   }
 }
+
+export async function backfillPodcastPlatformLinks() {
+  const { pool: dbPool } = await import("./db");
+  const { searchSpotifyShow } = await import("./spotifyClient");
+  const client = await dbPool.connect();
+  try {
+    const { rows: podcasts } = await client.query(
+      `SELECT id, itunes_id, name, slug, apple_url, spotify_url, youtube_url FROM podcast_directory WHERE has_landing_page = true ORDER BY id`
+    );
+    console.log(`[BackfillPodcastLinks] Found ${podcasts.length} podcasts to check`);
+
+    let appleUpdated = 0, spotifyUpdated = 0, youtubeUpdated = 0, errors = 0;
+
+    for (let i = 0; i < podcasts.length; i++) {
+      const p = podcasts[i];
+      try {
+        const updates: string[] = [];
+        const vals: any[] = [];
+        let paramIdx = 1;
+
+        if (!p.apple_url && p.itunes_id) {
+          try {
+            const lookupUrl = `https://itunes.apple.com/lookup?id=${p.itunes_id}`;
+            const resp = await fetch(lookupUrl);
+            if (resp.ok) {
+              const data = await resp.json();
+              const result = data.results?.[0];
+              if (result?.collectionViewUrl) {
+                updates.push(`apple_url = $${paramIdx++}`);
+                vals.push(result.collectionViewUrl.replace(/&uo=\d+/, ""));
+                appleUpdated++;
+              }
+            }
+          } catch {}
+          await new Promise(r => setTimeout(r, 300));
+        }
+
+        if (!p.spotify_url) {
+          try {
+            const spotifyUrl = await searchSpotifyShow(p.name);
+            if (spotifyUrl) {
+              updates.push(`spotify_url = $${paramIdx++}`);
+              vals.push(spotifyUrl);
+              spotifyUpdated++;
+            } else {
+              updates.push(`spotify_url = $${paramIdx++}`);
+              vals.push(`https://open.spotify.com/search/${encodeURIComponent(p.name)}`);
+              spotifyUpdated++;
+            }
+          } catch {
+            updates.push(`spotify_url = $${paramIdx++}`);
+            vals.push(`https://open.spotify.com/search/${encodeURIComponent(p.name)}`);
+            spotifyUpdated++;
+          }
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        if (!p.youtube_url) {
+          const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(p.name + " podcast")}`;
+          updates.push(`youtube_url = $${paramIdx++}`);
+          vals.push(ytSearchUrl);
+          youtubeUpdated++;
+        }
+
+        if (updates.length > 0) {
+          vals.push(p.id);
+          await client.query(
+            `UPDATE podcast_directory SET ${updates.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx}`,
+            vals
+          );
+        }
+
+        if ((i + 1) % 10 === 0 || i === podcasts.length - 1) {
+          console.log(`[BackfillPodcastLinks] Progress: ${i + 1}/${podcasts.length} (Apple: ${appleUpdated}, Spotify: ${spotifyUpdated})`);
+        }
+      } catch (err) {
+        errors++;
+        console.warn(`[BackfillPodcastLinks] Error for "${p.name}":`, err);
+      }
+    }
+
+    console.log(`[BackfillPodcastLinks] Complete: Apple=${appleUpdated}, Spotify=${spotifyUpdated}, YouTube=${youtubeUpdated}, errors=${errors}`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function backfillPodcastHosts() {
+  const { pool: dbPool } = await import("./db");
+  const client = await dbPool.connect();
+  try {
+    const { rows: podcasts } = await client.query(
+      `SELECT pd.id, pd.itunes_id, pd.name, pd.slug, pd.hosts
+       FROM podcast_directory pd
+       WHERE pd.has_landing_page = true AND (pd.hosts IS NULL OR pd.hosts = '')
+       ORDER BY pd.id`
+    );
+    console.log(`[BackfillPodcastHosts] Found ${podcasts.length} podcasts missing hosts`);
+
+    let updated = 0, errors = 0;
+
+    for (let i = 0; i < podcasts.length; i++) {
+      const p = podcasts[i];
+      try {
+        const { rows: hostRows } = await client.query(
+          `SELECT name FROM podcast_hosts WHERE podcast_slug = $1 ORDER BY sort_order, id`,
+          [p.slug]
+        );
+
+        if (hostRows.length > 0) {
+          const hostsStr = hostRows.map((h: any) => h.name).join(", ");
+          await client.query(
+            `UPDATE podcast_directory SET hosts = $1, updated_at = NOW() WHERE id = $2`,
+            [hostsStr, p.id]
+          );
+          updated++;
+          continue;
+        }
+
+        if (p.itunes_id) {
+          try {
+            const lookupUrl = `https://itunes.apple.com/lookup?id=${p.itunes_id}`;
+            const resp = await fetch(lookupUrl);
+            if (resp.ok) {
+              const data = await resp.json();
+              const result = data.results?.[0];
+              if (result?.artistName && result.artistName !== p.name) {
+                await client.query(
+                  `UPDATE podcast_directory SET hosts = $1, updated_at = NOW() WHERE id = $2`,
+                  [result.artistName, p.id]
+                );
+                updated++;
+              }
+            }
+          } catch {}
+          await new Promise(r => setTimeout(r, 300));
+        }
+
+        if ((i + 1) % 10 === 0) {
+          console.log(`[BackfillPodcastHosts] Progress: ${i + 1}/${podcasts.length} (${updated} updated)`);
+        }
+      } catch (err) {
+        errors++;
+        console.warn(`[BackfillPodcastHosts] Error for "${p.name}":`, err);
+      }
+    }
+
+    console.log(`[BackfillPodcastHosts] Complete: ${updated} updated, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function backfillEpisodeShowNotesFromItunes() {
+  const { pool: dbPool } = await import("./db");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recaps } = await client.query(
+      `SELECT id, slug, itunes_id, episode_title, podcast_name
+       FROM landing_page_recaps
+       WHERE (show_notes IS NULL OR show_notes = '') AND itunes_id IS NOT NULL
+       ORDER BY slug, id`
+    );
+    console.log(`[BackfillItunesShowNotes] Found ${recaps.length} recaps missing show notes`);
+
+    const byItunesId = new Map<string, typeof recaps>();
+    for (const r of recaps) {
+      const list = byItunesId.get(r.itunes_id) || [];
+      list.push(r);
+      byItunesId.set(r.itunes_id, list);
+    }
+
+    let updated = 0, notFound = 0, errors = 0;
+
+    for (const [itunesId, podcastRecaps] of byItunesId) {
+      try {
+        const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=200&sort=recent`;
+        const resp = await fetch(lookupUrl);
+        if (!resp.ok) { errors++; continue; }
+        const data = await resp.json();
+        const episodes = (data.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+
+        for (const recap of podcastRecaps) {
+          const titleNorm = recap.episode_title.toLowerCase().trim();
+          const match = episodes.find((ep: any) => {
+            const epNorm = (ep.trackName || "").toLowerCase().trim();
+            return epNorm === titleNorm || epNorm.includes(titleNorm) || titleNorm.includes(epNorm);
+          });
+
+          if (match?.description) {
+            await client.query(
+              `UPDATE landing_page_recaps SET show_notes = $1 WHERE id = $2`,
+              [match.description, recap.id]
+            );
+            updated++;
+          } else {
+            notFound++;
+          }
+        }
+
+        await new Promise(r => setTimeout(r, 300));
+      } catch (err) {
+        errors++;
+        console.warn(`[BackfillItunesShowNotes] Error for iTunes ID ${itunesId}:`, err);
+      }
+    }
+
+    console.log(`[BackfillItunesShowNotes] Complete: ${updated} updated, ${notFound} not found, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function backfillEpisodeHosts() {
+  const { pool: dbPool } = await import("./db");
+  const client = await dbPool.connect();
+  try {
+    const { rows: recaps } = await client.query(
+      `SELECT r.id, r.slug, r.hosts as episode_hosts, pd.hosts as podcast_hosts
+       FROM landing_page_recaps r
+       JOIN podcast_directory pd ON pd.slug = r.slug
+       WHERE (r.hosts IS NULL OR r.hosts = '') AND pd.hosts IS NOT NULL AND pd.hosts != ''
+       ORDER BY r.id`
+    );
+    console.log(`[BackfillEpisodeHosts] Found ${recaps.length} episodes missing hosts`);
+
+    let updated = 0, errors = 0;
+
+    for (let i = 0; i < recaps.length; i++) {
+      try {
+        await client.query(
+          `UPDATE landing_page_recaps SET hosts = $1 WHERE id = $2`,
+          [recaps[i].podcast_hosts, recaps[i].id]
+        );
+        updated++;
+      } catch (err) {
+        errors++;
+      }
+
+      if ((i + 1) % 100 === 0 || i === recaps.length - 1) {
+        console.log(`[BackfillEpisodeHosts] Progress: ${i + 1}/${recaps.length} (${updated} updated)`);
+      }
+    }
+
+    console.log(`[BackfillEpisodeHosts] Complete: ${updated} updated, ${errors} errors`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function enrichPeopleWithAI() {
+  const { pool: dbPool } = await import("./db");
+  const { openai } = await import("./replit_integrations/image/client");
+  const client = await dbPool.connect();
+  try {
+    const { rows: people } = await client.query(
+      `SELECT id, slug, name, bio, title, company, photo_url, twitter_handle, linkedin_url, website_url
+       FROM entity_people
+       WHERE (bio IS NULL OR bio = '')
+          OR (title IS NULL OR title = '')
+          OR (company IS NULL OR company = '')
+          OR (twitter_handle IS NULL OR twitter_handle = '')
+          OR (linkedin_url IS NULL OR linkedin_url = '')
+          OR (website_url IS NULL OR website_url = '')
+          OR (photo_url IS NULL OR photo_url = '')
+       ORDER BY id`
+    );
+    console.log(`[EnrichPeople] Found ${people.length} people to enrich`);
+
+    let updated = 0, errors = 0;
+
+    for (let i = 0; i < people.length; i++) {
+      const person = people[i];
+      try {
+        const resp = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{
+            role: "user",
+            content: `Generate a structured profile for this public figure. Only include information you are confident about. Return JSON with these fields:
+- bio: A concise 1-2 sentence bio (what they're known for)
+- title: Their current professional title (e.g. "CEO", "Venture Capitalist", "Podcast Host")
+- company: Their current primary company/organization
+- twitter_handle: Their X/Twitter handle without @ (e.g. "elonmusk"), or null if unknown
+- linkedin_url: Their LinkedIn profile URL, or null if unknown
+- website_url: Their personal website URL, or null if unknown
+- photo_url: A publicly accessible URL of their headshot/photo (from Wikipedia, company site, etc.), or null if unknown
+
+Person: ${person.name}
+${person.title ? `Known title: ${person.title}` : ""}
+${person.company ? `Known company: ${person.company}` : ""}
+
+Respond ONLY with valid JSON.`
+          }],
+          max_tokens: 500,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        });
+
+        const content = resp.choices[0]?.message?.content;
+        if (content) {
+          const data = JSON.parse(content);
+          const setClauses: string[] = [];
+          const vals: any[] = [];
+          let idx = 1;
+
+          if (data.bio && !person.bio) { setClauses.push(`bio = $${idx++}`); vals.push(data.bio); }
+          if (data.title && !person.title) { setClauses.push(`title = $${idx++}`); vals.push(data.title); }
+          if (data.company && !person.company) { setClauses.push(`company = $${idx++}`); vals.push(data.company); }
+          if (data.twitter_handle && !person.twitter_handle) { setClauses.push(`twitter_handle = $${idx++}`); vals.push(data.twitter_handle.replace(/^@/, "")); }
+          if (data.linkedin_url && !person.linkedin_url) { setClauses.push(`linkedin_url = $${idx++}`); vals.push(data.linkedin_url); }
+          if (data.website_url && !person.website_url) { setClauses.push(`website_url = $${idx++}`); vals.push(data.website_url); }
+          if (data.photo_url && !person.photo_url) { setClauses.push(`photo_url = $${idx++}`); vals.push(data.photo_url); }
+
+          if (setClauses.length > 0) {
+            vals.push(person.id);
+            await client.query(
+              `UPDATE entity_people SET ${setClauses.join(", ")}, updated_at = NOW() WHERE id = $${idx}`,
+              vals
+            );
+            updated++;
+          }
+        }
+
+        if ((i + 1) % 5 === 0 || i === people.length - 1) {
+          console.log(`[EnrichPeople] Progress: ${i + 1}/${people.length} (${updated} updated)`);
+        }
+
+        await new Promise(r => setTimeout(r, 500));
+      } catch (err) {
+        errors++;
+        console.warn(`[EnrichPeople] Error for "${person.name}":`, err);
+      }
+    }
+
+    console.log(`[EnrichPeople] Complete: ${updated} updated, ${errors} errors out of ${people.length}`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function enrichSinglePerson(slug: string): Promise<boolean> {
+  const { pool: dbPool } = await import("./db");
+  const { openai } = await import("./replit_integrations/image/client");
+  const { rows: [person] } = await dbPool.query(
+    `SELECT id, slug, name, bio, title, company, photo_url, twitter_handle, linkedin_url, website_url FROM entity_people WHERE slug = $1`,
+    [slug]
+  );
+  if (!person) return false;
+
+  try {
+    const resp = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: `Generate a structured profile for this public figure. Only include information you are confident about. Return JSON with these fields:
+- bio: A concise 1-2 sentence bio (what they're known for)
+- title: Their current professional title
+- company: Their current primary company/organization
+- twitter_handle: Their X/Twitter handle without @ (e.g. "elonmusk"), or null if unknown
+- linkedin_url: Their LinkedIn profile URL, or null if unknown
+- website_url: Their personal website URL, or null if unknown
+- photo_url: A publicly accessible URL of their headshot/photo (from Wikipedia, company site, etc.), or null if unknown
+
+Person: ${person.name}
+
+Respond ONLY with valid JSON.`
+      }],
+      max_tokens: 500,
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    });
+
+    const content = resp.choices[0]?.message?.content;
+    if (content) {
+      const data = JSON.parse(content);
+      await dbPool.query(
+        `UPDATE entity_people SET
+          bio = COALESCE($1, bio), title = COALESCE($2, title), company = COALESCE($3, company),
+          twitter_handle = COALESCE($4, twitter_handle), linkedin_url = COALESCE($5, linkedin_url),
+          website_url = COALESCE($6, website_url), photo_url = COALESCE($7, photo_url), updated_at = NOW()
+        WHERE slug = $8`,
+        [data.bio || null, data.title || null, data.company || null,
+         data.twitter_handle ? data.twitter_handle.replace(/^@/, "") : null,
+         data.linkedin_url || null, data.website_url || null, data.photo_url || null, slug]
+      );
+      return true;
+    }
+  } catch (err) {
+    console.warn(`[EnrichPerson] Error for "${person.name}":`, err);
+  }
+  return false;
+}
+
+export async function enrichCompaniesWithAI() {
+  const { pool: dbPool } = await import("./db");
+  const { openai } = await import("./replit_integrations/image/client");
+  const client = await dbPool.connect();
+  try {
+    const { rows: companies } = await client.query(
+      `SELECT id, slug, name, description, industry, website_url, twitter_handle, logo_url
+       FROM entity_companies
+       WHERE (description IS NULL OR description = '')
+          OR (industry IS NULL OR industry = '')
+          OR (website_url IS NULL OR website_url = '')
+          OR (twitter_handle IS NULL OR twitter_handle = '')
+          OR (logo_url IS NULL OR logo_url = '')
+       ORDER BY id`
+    );
+    console.log(`[EnrichCompanies] Found ${companies.length} companies to enrich`);
+
+    let updated = 0, errors = 0;
+
+    for (let i = 0; i < companies.length; i++) {
+      const company = companies[i];
+      try {
+        const resp = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{
+            role: "user",
+            content: `Generate a structured profile for this company/organization. Only include information you are confident about. Return JSON with these fields:
+- description: A concise 1-2 sentence description of what the company does
+- industry: The primary industry (e.g. "Technology", "Finance", "Media", "Venture Capital")
+- website_url: The company's main website URL, or null if unknown
+- twitter_handle: The company's X/Twitter handle without @ (e.g. "openai"), or null if unknown
+- logo_url: A publicly accessible URL of the company's logo (from their website, Wikipedia, etc.), or null if unknown
+
+Company: ${company.name}
+${company.industry ? `Known industry: ${company.industry}` : ""}
+
+Respond ONLY with valid JSON.`
+          }],
+          max_tokens: 500,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        });
+
+        const content = resp.choices[0]?.message?.content;
+        if (content) {
+          const data = JSON.parse(content);
+          const setClauses: string[] = [];
+          const vals: any[] = [];
+          let idx = 1;
+
+          if (data.description && !company.description) { setClauses.push(`description = $${idx++}`); vals.push(data.description); }
+          if (data.industry && !company.industry) { setClauses.push(`industry = $${idx++}`); vals.push(data.industry); }
+          if (data.website_url && !company.website_url) { setClauses.push(`website_url = $${idx++}`); vals.push(data.website_url); }
+          if (data.twitter_handle && !company.twitter_handle) { setClauses.push(`twitter_handle = $${idx++}`); vals.push(data.twitter_handle.replace(/^@/, "")); }
+          if (data.logo_url && !company.logo_url) { setClauses.push(`logo_url = $${idx++}`); vals.push(data.logo_url); }
+
+          if (setClauses.length > 0) {
+            vals.push(company.id);
+            await client.query(
+              `UPDATE entity_companies SET ${setClauses.join(", ")}, updated_at = NOW() WHERE id = $${idx}`,
+              vals
+            );
+            updated++;
+          }
+        }
+
+        if ((i + 1) % 5 === 0 || i === companies.length - 1) {
+          console.log(`[EnrichCompanies] Progress: ${i + 1}/${companies.length} (${updated} updated)`);
+        }
+
+        await new Promise(r => setTimeout(r, 500));
+      } catch (err) {
+        errors++;
+        console.warn(`[EnrichCompanies] Error for "${company.name}":`, err);
+      }
+    }
+
+    console.log(`[EnrichCompanies] Complete: ${updated} updated, ${errors} errors out of ${companies.length}`);
+  } finally {
+    client.release();
+  }
+}
+
+export async function enrichSingleCompany(slug: string): Promise<boolean> {
+  const { pool: dbPool } = await import("./db");
+  const { openai } = await import("./replit_integrations/image/client");
+  const { rows: [company] } = await dbPool.query(
+    `SELECT id, slug, name, description, industry, website_url, twitter_handle, logo_url FROM entity_companies WHERE slug = $1`,
+    [slug]
+  );
+  if (!company) return false;
+
+  try {
+    const resp = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: `Generate a structured profile for this company/organization. Only include information you are confident about. Return JSON with these fields:
+- description: A concise 1-2 sentence description of what the company does
+- industry: The primary industry (e.g. "Technology", "Finance", "Media", "Venture Capital")
+- website_url: The company's main website URL, or null if unknown
+- twitter_handle: The company's X/Twitter handle without @ (e.g. "openai"), or null if unknown
+- logo_url: A publicly accessible URL of the company's logo (from their website, Wikipedia, etc.), or null if unknown
+
+Company: ${company.name}
+
+Respond ONLY with valid JSON.`
+      }],
+      max_tokens: 500,
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    });
+
+    const content = resp.choices[0]?.message?.content;
+    if (content) {
+      const data = JSON.parse(content);
+      await dbPool.query(
+        `UPDATE entity_companies SET
+          description = COALESCE($1, description), industry = COALESCE($2, industry),
+          website_url = COALESCE($3, website_url), twitter_handle = COALESCE($4, twitter_handle),
+          logo_url = COALESCE($5, logo_url), updated_at = NOW()
+        WHERE slug = $6`,
+        [data.description || null, data.industry || null,
+         data.website_url || null,
+         data.twitter_handle ? data.twitter_handle.replace(/^@/, "") : null,
+         data.logo_url || null, slug]
+      );
+      return true;
+    }
+  } catch (err) {
+    console.warn(`[EnrichCompany] Error for "${company.name}":`, err);
+  }
+  return false;
+}

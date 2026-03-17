@@ -2538,6 +2538,66 @@ If you don't know the answer to something, be honest about it and suggest the us
     }
   });
 
+  app.get("/api/global-search", async (req, res) => {
+    const term = req.query.term as string;
+    if (!term || term.trim().length < 2) {
+      return res.json({ podcasts: [], episodes: [], people: [], companies: [] });
+    }
+    const searchTerm = `%${term.trim()}%`;
+    try {
+      const [podcastsResult, episodesResult, peopleResult, companiesResult] = await Promise.all([
+        pool.query(
+          `SELECT itunes_id, name, artwork_url, slug FROM podcast_directory
+           WHERE has_landing_page = true AND (name ILIKE $1 OR slug ILIKE $1)
+           ORDER BY name ASC LIMIT 5`,
+          [searchTerm]
+        ),
+        pool.query(
+          `SELECT id, slug, episode_slug, podcast_name, episode_title, artwork_url, publish_date
+           FROM landing_page_recaps
+           WHERE published = true AND status = 'published'
+             AND (episode_title ILIKE $1)
+           ORDER BY publish_date DESC LIMIT 5`,
+          [searchTerm]
+        ),
+        pool.query(
+          `SELECT slug, name, photo_url, title, company FROM entity_people
+           WHERE name ILIKE $1 OR $2 = ANY(search_terms)
+           ORDER BY name ASC LIMIT 5`,
+          [searchTerm, term.trim()]
+        ),
+        pool.query(
+          `SELECT slug, name, logo_url, industry FROM entity_companies
+           WHERE name ILIKE $1 OR $2 = ANY(search_terms)
+           ORDER BY name ASC LIMIT 5`,
+          [searchTerm, term.trim()]
+        ),
+      ]);
+
+      res.json({
+        podcasts: podcastsResult.rows.map((r: any) => ({
+          slug: r.slug, name: r.name, artworkUrl: r.artwork_url || "", type: "podcast" as const,
+        })),
+        episodes: episodesResult.rows.map((r: any) => ({
+          podcastSlug: r.slug, episodeSlug: r.episode_slug, podcastName: r.podcast_name,
+          episodeTitle: r.episode_title, artworkUrl: r.artwork_url || "",
+          publishDate: r.publish_date, type: "episode" as const,
+        })),
+        people: peopleResult.rows.map((r: any) => ({
+          slug: r.slug, name: r.name, photoUrl: r.photo_url || "",
+          title: r.title || "", company: r.company || "", type: "person" as const,
+        })),
+        companies: companiesResult.rows.map((r: any) => ({
+          slug: r.slug, name: r.name, logoUrl: r.logo_url || "",
+          industry: r.industry || "", type: "company" as const,
+        })),
+      });
+    } catch (err) {
+      console.warn("[GlobalSearch] Error:", err);
+      res.json({ podcasts: [], episodes: [], people: [], companies: [] });
+    }
+  });
+
   const ENTITY_PEOPLE = [
     { slug: "elon-musk", name: "Elon Musk", title: "CEO of Tesla & SpaceX", gender: "male", category: "Tech & AI", searchTerms: ["Elon Musk"], hostedSlugs: [] as string[] },
     { slug: "sam-altman", name: "Sam Altman", title: "CEO of OpenAI", gender: "male", category: "Tech & AI", searchTerms: ["Sam Altman"], hostedSlugs: [] },
@@ -7834,6 +7894,102 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       res.json({ message: "Show notes backfill started." });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/backfill-podcast-platform-links", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { backfillPodcastPlatformLinks } = await import("./emailScheduler");
+      backfillPodcastPlatformLinks();
+      res.json({ message: "Podcast platform links backfill started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/backfill-podcast-hosts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { backfillPodcastHosts } = await import("./emailScheduler");
+      backfillPodcastHosts();
+      res.json({ message: "Podcast hosts backfill started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/backfill-episode-show-notes-itunes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { backfillEpisodeShowNotesFromItunes } = await import("./emailScheduler");
+      backfillEpisodeShowNotesFromItunes();
+      res.json({ message: "Episode show notes backfill from iTunes started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/backfill-episode-hosts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { backfillEpisodeHosts } = await import("./emailScheduler");
+      backfillEpisodeHosts();
+      res.json({ message: "Episode hosts backfill started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
+    }
+  });
+
+  app.post("/api/admin/enrich-people", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { enrichPeopleWithAI } = await import("./emailScheduler");
+      enrichPeopleWithAI();
+      res.json({ message: "People enrichment started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger enrichment" });
+    }
+  });
+
+  app.post("/api/admin/enrich-companies", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { enrichCompaniesWithAI } = await import("./emailScheduler");
+      enrichCompaniesWithAI();
+      res.json({ message: "Companies enrichment started." });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger enrichment" });
+    }
+  });
+
+  app.post("/api/admin/enrich-person/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { enrichSinglePerson } = await import("./emailScheduler");
+      const success = await enrichSinglePerson(req.params.slug);
+      if (success) {
+        res.json({ message: "Person enriched successfully." });
+      } else {
+        res.status(404).json({ message: "Person not found or enrichment failed." });
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to enrich person" });
+    }
+  });
+
+  app.post("/api/admin/enrich-company/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { enrichSingleCompany } = await import("./emailScheduler");
+      const success = await enrichSingleCompany(req.params.slug);
+      if (success) {
+        res.json({ message: "Company enriched successfully." });
+      } else {
+        res.status(404).json({ message: "Company not found or enrichment failed." });
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to enrich company" });
     }
   });
 
