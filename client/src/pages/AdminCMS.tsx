@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -10,10 +10,19 @@ import {
   Globe, Star, Zap, CheckCircle, XCircle, Play
 } from "lucide-react";
 
+function useDebouncedValue(value: string, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 type CMSView =
   | { tab: "podcasts"; podcastSlug?: undefined; episodeSlug?: undefined }
   | { tab: "podcast-detail"; podcastSlug: string; episodeSlug?: undefined }
-  | { tab: "episodes"; podcastSlug: string; episodeSlug?: undefined }
+  | { tab: "episodes"; podcastSlug?: string; episodeSlug?: undefined }
   | { tab: "episode-detail"; podcastSlug: string; episodeSlug: string }
   | { tab: "people" }
   | { tab: "companies" }
@@ -144,7 +153,6 @@ interface CMSEpisodeDetail {
   guests: string;
   resources: string;
   sponsors: string;
-  top_questions: string;
   key_topics: string[];
   status: string;
   transcript: string;
@@ -215,7 +223,6 @@ interface EpisodeForm {
   guests: CMSGuest[];
   resources: CMSResource[];
   sponsors: CMSSponsor[];
-  topQuestions: string[];
   keyTopics: string[];
   status: string;
   entityContexts: EntityEntry[];
@@ -262,15 +269,16 @@ function StatusSelect({ value, onChange }: { value: string; onChange: (v: string
 
 function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data: podcasts, isLoading } = useQuery<CMSPodcast[]>({
-    queryKey: ["/api/admin/cms/podcasts", search, statusFilter, sortField, sortOrder],
+    queryKey: ["/api/admin/cms/podcasts", debouncedSearch, statusFilter, sortField, sortOrder],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.set("search", search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter !== "all") params.set("status", statusFilter);
       params.set("sort", sortField);
       params.set("order", sortOrder);
@@ -636,17 +644,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
             </div>
           )}
 
-          {podcast?.top_questions_data && podcast.top_questions_data.length > 0 && (
-            <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
-              <h4 className="text-sm font-bold text-foreground">Podcast FAQs</h4>
-              {podcast.top_questions_data.map((faq: PodcastFAQ, i: number) => (
-                <details key={i} className="group" data-testid={`faq-item-${i}`}>
-                  <summary className="text-sm font-medium text-foreground cursor-pointer hover:text-primary transition-colors">{faq.question}</summary>
-                  <p className="text-xs text-muted-foreground mt-1 pl-2 border-l-2 border-primary/20">{faq.answer}</p>
-                </details>
-              ))}
-            </div>
-          )}
+
         </div>
 
         <div className="space-y-4">
@@ -731,15 +729,16 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
 
 function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavigate: (view: CMSView) => void }) {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortField, setSortField] = useState("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const { data: episodes, isLoading } = useQuery<CMSEpisodeListItem[]>({
-    queryKey: ["/api/admin/cms/podcasts", podcastSlug, "episodes", search, statusFilter, sortField, sortOrder],
+    queryKey: ["/api/admin/cms/podcasts", podcastSlug, "episodes", debouncedSearch, statusFilter, sortField, sortOrder],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.set("search", search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter !== "all") params.set("status", statusFilter);
       params.set("sort", sortField);
       params.set("order", sortOrder);
@@ -873,6 +872,147 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
   );
 }
 
+function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortField, setSortField] = useState("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; artwork_url: string; view_count: number }>; total: number }>({
+    queryKey: ["/api/admin/cms/all-episodes", debouncedSearch, statusFilter, sortField, sortOrder, page],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      params.set("sort", sortField);
+      params.set("order", sortOrder);
+      params.set("page", String(page));
+      const res = await fetch(`/api/admin/cms/all-episodes?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const episodes = data?.episodes || [];
+  const total = data?.total || 0;
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder(field === "date" ? "desc" : "asc");
+    }
+    setPage(1);
+  };
+
+  return (
+    <div className="space-y-4" data-testid="cms-all-episodes">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-bold text-foreground">All Episodes</h3>
+          <p className="text-sm text-muted-foreground">{total.toLocaleString()} episodes across all podcasts</p>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              data-testid="input-cms-all-episode-search"
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search episodes or podcasts..."
+              className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm"
+            />
+          </div>
+          <select
+            data-testid="select-cms-all-episode-status"
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="h-9 px-3 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
+          >
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="needs_review">Needs Review</option>
+            <option value="hidden">Hidden</option>
+          </select>
+          <select
+            data-testid="select-cms-all-episode-sort"
+            value={sortField}
+            onChange={(e) => { setSortField(e.target.value); setPage(1); }}
+            className="h-9 px-3 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
+          >
+            <option value="date">Most Recent</option>
+            <option value="popular">Most Popular</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden">
+        <table className="w-full" data-testid="table-cms-all-episodes">
+          <thead>
+            <tr className="border-b border-border bg-muted/30">
+              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground" onClick={() => toggleSort("title")} data-testid="sort-all-episode-title">
+                <span className="flex items-center gap-1">
+                  Episode {sortField === "title" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                </span>
+              </th>
+              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Podcast</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground" onClick={() => toggleSort("date")} data-testid="sort-all-episode-date">
+                <span className="flex items-center gap-1">
+                  Date {sortField === "date" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                </span>
+              </th>
+              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {isLoading ? (
+              <tr><td colSpan={4} className="px-4 py-12 text-center"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></td></tr>
+            ) : episodes.length === 0 ? (
+              <tr><td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">{debouncedSearch ? "No matching episodes found." : "No episodes."}</td></tr>
+            ) : (
+              episodes.map((ep) => (
+                <tr
+                  key={ep.id}
+                  className="hover:bg-muted/20 transition-colors cursor-pointer"
+                  onClick={() => onNavigate({ tab: "episode-detail", podcastSlug: ep.slug, episodeSlug: ep.episode_slug })}
+                  data-testid={`row-cms-all-episode-${ep.id}`}
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      {ep.artwork_url && <img src={ep.artwork_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />}
+                      <p className="font-medium text-foreground text-sm truncate max-w-md">{ep.episode_title}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px] block">{ep.podcast_name}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-muted-foreground">{ep.publish_date || "—"}</span>
+                  </td>
+                  <td className="px-4 py-3"><StatusBadge status={ep.status || "published"} /></td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {total > 50 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/40 disabled:opacity-30" data-testid="button-prev-episodes">Previous</button>
+          <span className="text-xs text-muted-foreground">Page {page} of {Math.ceil(total / 50)}</span>
+          <button disabled={page >= Math.ceil(total / 50)} onClick={() => setPage(page + 1)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/40 disabled:opacity-30" data-testid="button-next-episodes">Next</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function parseJSON<T>(val: string | undefined | null, fallback: T): T {
   if (!val) return fallback;
   try { return JSON.parse(val); } catch { return fallback; }
@@ -925,7 +1065,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         guests: parseJSON<CMSGuest[]>(episode.guests, []),
         resources: parseJSON<CMSResource[]>(episode.resources, []),
         sponsors: parseJSON<CMSSponsor[]>(episode.sponsors, []),
-        topQuestions: parseJSON<string[]>(episode.top_questions, []),
         keyTopics: episode.key_topics || [],
         status: episode.status || "published",
         entityContexts: entityEntries,
@@ -1007,7 +1146,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
       guests: JSON.stringify(form.guests),
       resources: JSON.stringify(form.resources),
       sponsors: JSON.stringify(form.sponsors),
-      topQuestions: JSON.stringify(form.topQuestions),
       entityContextsCache: JSON.stringify(entityCacheObj),
     };
     updateMutation.mutate(payload);
@@ -1066,7 +1204,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
     <div className="space-y-6" data-testid="cms-episode-detail">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => onNavigate({ tab: "episodes", podcastSlug })}
+          onClick={() => onNavigate({ tab: "episodes" })}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           data-testid="button-back-to-episodes"
         >
@@ -1373,42 +1511,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                 />
               </div>
             </div>
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">Top Questions</h4>
-              <button
-                onClick={() => setForm({ ...form, topQuestions: [...form.topQuestions, ""] })}
-                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
-                data-testid="button-add-question"
-              >
-                <Plus className="w-3 h-3" /> Add
-              </button>
-            </div>
-            {form.topQuestions.length === 0 && <p className="text-xs text-muted-foreground">No top questions.</p>}
-            {form.topQuestions.map((q: string, i: number) => (
-              <div key={i} className="flex items-start gap-2" data-testid={`question-item-${i}`}>
-                <input
-                  value={q}
-                  onChange={(e) => {
-                    const updated = [...form.topQuestions];
-                    updated[i] = e.target.value;
-                    setForm({ ...form, topQuestions: updated });
-                  }}
-                  className="flex-1 px-3 py-2 border border-border rounded-lg text-sm"
-                  placeholder="Question this episode answers..."
-                  data-testid={`input-question-${i}`}
-                />
-                <button
-                  onClick={() => setForm({ ...form, topQuestions: form.topQuestions.filter((_: string, idx: number) => idx !== i) })}
-                  className="text-muted-foreground hover:text-red-500 pt-2"
-                  data-testid={`button-delete-question-${i}`}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
@@ -2236,13 +2338,14 @@ function CompaniesTab() {
 function ProductsTab() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery<{ products: Array<{ id: number; name: string; company: string; description: string; category: string; context: string; mention_type: string; status: string; purchase_url: string; image_url: string; podcast_slug: string; episode_slug: string; episode_title: string; extracted_at: string }>; total: number; statusCounts: Record<string, number> }>({
-    queryKey: ["/api/admin/cms/products", search, statusFilter, page],
+    queryKey: ["/api/admin/cms/products", debouncedSearch, statusFilter, page],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.set("search", search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter !== "all") params.set("status", statusFilter);
       params.set("page", String(page));
       const res = await fetch(`/api/admin/cms/products?${params}`, { credentials: "include" });
@@ -2335,8 +2438,7 @@ export default function AdminCMS() {
     if (newView.tab === "podcasts" || newView.tab === "podcast-detail") setActiveSection("podcasts");
     else if (newView.tab === "episodes" || newView.tab === "episode-detail") setActiveSection("episodes");
     else {
-      const sectionMap: Record<string, CMSSection> = { people: "people", companies: "companies", products: "products" };
-      setActiveSection(sectionMap[newView.tab] || "podcasts");
+      setActiveSection(newView.tab as CMSSection);
     }
   };
 
@@ -2353,10 +2455,7 @@ export default function AdminCMS() {
     if (key === "podcasts") {
       setView({ tab: "podcasts" });
     } else if (key === "episodes") {
-      if (view.tab !== "episodes" && view.tab !== "episode-detail") {
-        setView({ tab: "podcasts" });
-        setActiveSection("episodes");
-      }
+      setView({ tab: "episodes" });
     } else {
       setView({ tab: key });
     }
@@ -2382,24 +2481,12 @@ export default function AdminCMS() {
         ))}
       </div>
 
-      {view.tab === "podcasts" && activeSection === "episodes" && (
-        <div className="space-y-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3 flex items-center gap-2" data-testid="episodes-select-prompt">
-            <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm text-blue-700 dark:text-blue-300">Select a podcast below to browse its episodes</span>
-          </div>
-          <PodcastsList onNavigate={(v) => {
-            if (v.tab === "podcast-detail" && v.podcastSlug) {
-              handleNavigate({ tab: "episodes", podcastSlug: v.podcastSlug });
-            } else {
-              handleNavigate(v);
-            }
-          }} />
-        </div>
-      )}
-      {view.tab === "podcasts" && activeSection !== "episodes" && <PodcastsList onNavigate={handleNavigate} />}
+      {view.tab === "podcasts" && <PodcastsList onNavigate={handleNavigate} />}
       {view.tab === "podcast-detail" && view.podcastSlug && (
         <PodcastDetail slug={view.podcastSlug} onNavigate={handleNavigate} />
+      )}
+      {view.tab === "episodes" && !view.podcastSlug && (
+        <AllEpisodesTab onNavigate={handleNavigate} />
       )}
       {view.tab === "episodes" && view.podcastSlug && (
         <EpisodesList podcastSlug={view.podcastSlug} onNavigate={handleNavigate} />

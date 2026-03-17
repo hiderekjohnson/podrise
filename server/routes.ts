@@ -9432,6 +9432,42 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/cms/all-episodes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { search, status, sort, order, page } = req.query;
+      const limit = 50;
+      const offset = ((parseInt(page as string) || 1) - 1) * limit;
+      let where = "WHERE 1=1";
+      const params: any[] = [];
+      if (status && status !== "all") {
+        params.push(status);
+        where += ` AND lpr.status = $${params.length}`;
+      }
+      if (search) {
+        params.push(`%${search}%`);
+        where += ` AND (lpr.episode_title ILIKE $${params.length} OR lpr.podcast_name ILIKE $${params.length})`;
+      }
+      let orderBy = "lpr.publish_date DESC NULLS LAST";
+      if (sort === "title") orderBy = `lpr.episode_title ${order === "desc" ? "DESC" : "ASC"}`;
+      else if (sort === "date") orderBy = `lpr.publish_date ${order === "asc" ? "ASC" : "DESC"} NULLS LAST`;
+      else if (sort === "popular") orderBy = `lpr.publish_date DESC NULLS LAST`;
+      const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM landing_page_recaps lpr ${where}`, params);
+      const total = countRows[0]?.total || 0;
+      params.push(limit);
+      params.push(offset);
+      const { rows } = await pool.query(
+        `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url
+         FROM landing_page_recaps lpr ${where} ORDER BY ${orderBy}, lpr.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        params
+      );
+      res.json({ episodes: rows, total });
+    } catch (err: any) {
+      console.error("[CMS] All episodes error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch episodes" });
+    }
+  });
+
   app.get("/api/admin/cms/products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
