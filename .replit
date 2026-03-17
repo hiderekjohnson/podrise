@@ -57,6 +57,9 @@ LOGO_DEV_PUBLIC_KEY = "pk_LXNkoTXrTpe8BARnvuKgHA"
 GOOGLE_CLIENT_ID = "57857649690-5p6r4vm6a9q8ve014vgbdjt151o29o8s.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "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"
 
+[userenv.production]
+DEV_DATABASE_URL = "postgresql://postgres:password@helium/heliumdb?sslmode=disable"
+
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000

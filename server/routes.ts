@@ -8564,6 +8564,131 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/migrate-from-dev", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const devDbUrl = process.env.DEV_DATABASE_URL;
+    if (!devDbUrl) {
+      return res.status(400).json({ message: "DEV_DATABASE_URL not set" });
+    }
+    const { table, batchSize = 100, offset = 0 } = req.body;
+    if (!table) {
+      return res.status(400).json({ message: "table parameter required" });
+    }
+
+    const pgModule = await import("pg");
+    const devPool = new pgModule.default.Pool({ connectionString: devDbUrl });
+
+    try {
+      const log: string[] = [];
+      let inserted = 0;
+
+      if (table === "podcast_directory") {
+        const { rows: devRows } = await devPool.query(`SELECT * FROM podcast_directory ORDER BY id LIMIT $1 OFFSET $2`, [batchSize, offset]);
+        for (const row of devRows) {
+          try {
+            const cols = Object.keys(row);
+            const vals = Object.values(row);
+            const placeholders = vals.map((_, i) => `$${i + 1}`).join(",");
+            await pool.query(`INSERT INTO podcast_directory (${cols.join(",")}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`, vals);
+            inserted++;
+          } catch (e: any) { log.push(`Skip podcast ${row.slug}: ${e.message}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else if (table === "episode_transcripts") {
+        const { rows: devRows } = await devPool.query(
+          `SELECT podcast_id, episode_title, transcript, audio_url, language, created_at FROM episode_transcripts ORDER BY id LIMIT $1 OFFSET $2`,
+          [batchSize, offset]
+        );
+        for (const row of devRows) {
+          try {
+            await pool.query(
+              `INSERT INTO episode_transcripts (podcast_id, episode_title, transcript, audio_url, language, created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (podcast_id, episode_title) DO NOTHING`,
+              [row.podcast_id, row.episode_title, row.transcript, row.audio_url, row.language, row.created_at]
+            );
+            inserted++;
+          } catch (e: any) { log.push(`Skip transcript: ${e.message?.substring(0, 100)}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else if (table === "landing_page_recaps") {
+        const { rows: devRows } = await devPool.query(
+          `SELECT slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published FROM landing_page_recaps ORDER BY id LIMIT $1 OFFSET $2`,
+          [batchSize, offset]
+        );
+        for (const row of devRows) {
+          try {
+            await pool.query(
+              `INSERT INTO landing_page_recaps (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT (slug, episode_slug) DO NOTHING`,
+              [row.slug, row.itunes_id, row.podcast_name, row.episode_title, row.episode_slug, row.publish_date, row.duration, row.artwork_url, row.hosts, row.tldl, row.what_happened, row.key_insights, row.quote, row.quote_attribution, row.created_at, row.apple_episode_url, row.audio_url, row.key_topics, row.top_questions, row.sponsors, row.guests, row.show_notes, row.resources, row.spotify_episode_url, row.entity_contexts_cache, row.topic_contexts, row.published]
+            );
+            inserted++;
+          } catch (e: any) { log.push(`Skip recap ${row.episode_slug}: ${e.message?.substring(0, 100)}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else if (table === "book_enrichments") {
+        const { rows: devRows } = await devPool.query(`SELECT * FROM book_enrichments ORDER BY id LIMIT $1 OFFSET $2`, [batchSize, offset]);
+        for (const row of devRows) {
+          try {
+            await pool.query(
+              `INSERT INTO book_enrichments (book_key, book_title, slug, author, description, asin, isbn, google_books_id, has_cover, cover_approved, podcast_buzz, topics, page_count, publish_year, rating) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) ON CONFLICT (book_key) DO NOTHING`,
+              [row.book_key, row.book_title, row.slug, row.author, row.description, row.asin, row.isbn, row.google_books_id, row.has_cover, row.cover_approved, row.podcast_buzz, row.topics, row.page_count, row.publish_year, row.rating]
+            );
+            inserted++;
+          } catch (e: any) { log.push(`Skip book ${row.slug}: ${e.message?.substring(0, 100)}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else if (table === "book_aliases") {
+        const { rows: devRows } = await devPool.query(`SELECT alias_key, canonical_key FROM book_aliases ORDER BY alias_key LIMIT $1 OFFSET $2`, [batchSize, offset]);
+        for (const row of devRows) {
+          try {
+            await pool.query(`INSERT INTO book_aliases (alias_key, canonical_key) VALUES ($1,$2) ON CONFLICT (alias_key) DO NOTHING`, [row.alias_key, row.canonical_key]);
+            inserted++;
+          } catch (e: any) { log.push(`Skip alias: ${e.message?.substring(0, 100)}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else if (table === "episode_quotes") {
+        const { rows: devRows } = await devPool.query(`SELECT podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at FROM episode_quotes ORDER BY id LIMIT $1 OFFSET $2`, [batchSize, offset]);
+        for (const row of devRows) {
+          try {
+            await pool.query(
+              `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (podcast_slug, episode_slug, quote_text) DO NOTHING`,
+              [row.podcast_slug, row.episode_slug, row.speaker_name, row.speaker_role, row.quote_text, row.context, row.quote_type, row.created_at]
+            );
+            inserted++;
+          } catch (e: any) { log.push(`Skip quote: ${e.message?.substring(0, 100)}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else if (table === "extracted_products") {
+        const { rows: devRows } = await devPool.query(`SELECT name, company, description, purchase_url, image_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, image_status FROM extracted_products ORDER BY id LIMIT $1 OFFSET $2`, [batchSize, offset]);
+        for (const row of devRows) {
+          try {
+            await pool.query(
+              `INSERT INTO extracted_products (name, company, description, purchase_url, image_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, image_status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
+              [row.name, row.company, row.description, row.purchase_url, row.image_url, row.context, row.mention_type, row.category, row.episode_title, row.episode_slug, row.podcast_slug, row.status, row.image_status]
+            );
+            inserted++;
+          } catch (e: any) { log.push(`Skip product ${row.name}: ${e.message?.substring(0, 100)}`); }
+        }
+        res.json({ table, inserted, total: devRows.length, offset, log: log.slice(0, 20) });
+
+      } else {
+        return res.status(400).json({ message: `Unknown table: ${table}` });
+      }
+    } catch (err: any) {
+      console.error("[Migration] Error:", err);
+      res.status(500).json({ message: err?.message || "Migration failed" });
+    } finally {
+      await devPool.end();
+    }
+  });
+
   app.post("/api/admin/regenerate-pending-html", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
