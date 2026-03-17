@@ -9502,29 +9502,136 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.get("/api/admin/cms/products", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
-      const { search, status, page } = req.query;
+      const { search, status, category, page } = req.query;
       const limit = 50;
       const offset = ((parseInt(page as string) || 1) - 1) * limit;
-      let where = "WHERE 1=1";
-      const params: any[] = [];
-      if (status && status !== "all") {
-        params.push(status);
-        where += ` AND status = $${params.length}`;
+      const onlyBooks = category === "book";
+      const onlyProducts = category && category !== "book" && category !== "all";
+
+      if (onlyBooks) {
+        let where = "WHERE 1=1";
+        const params: any[] = [];
+        if (status && status !== "all") {
+          if (status === "approved") { where += " AND cover_approved = true"; }
+          else if (status === "pending") { where += " AND cover_approved IS NULL"; }
+          else if (status === "rejected") { where += " AND cover_approved = false"; }
+        }
+        if (search) {
+          params.push(`%${search}%`);
+          where += ` AND (book_title ILIKE $${params.length} OR author ILIKE $${params.length})`;
+        }
+        const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM book_enrichments ${where}`, params);
+        const total = countRows[0]?.total || 0;
+        params.push(limit); params.push(offset);
+        const { rows } = await pool.query(
+          `SELECT id, book_title as name, author as company, description, 'book' as category, '' as context, '' as mention_type,
+            CASE WHEN cover_approved = true THEN 'approved' WHEN cover_approved = false THEN 'rejected' ELSE 'pending' END as status,
+            amazon_url as purchase_url,
+            CASE WHEN has_cover = true THEN '/api/books/' || slug || '/cover' ELSE '' END as image_url,
+            '' as podcast_slug, '' as episode_slug, '' as episode_title, created_at as extracted_at, 'book' as source, slug as book_slug
+          FROM book_enrichments ${where} ORDER BY created_at DESC NULLS LAST, id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+          params
+        );
+        const { rows: sc } = await pool.query(`SELECT
+          count(CASE WHEN cover_approved = true THEN 1 END)::int as approved,
+          count(CASE WHEN cover_approved IS NULL THEN 1 END)::int as pending,
+          count(CASE WHEN cover_approved = false THEN 1 END)::int as rejected
+          FROM book_enrichments`);
+        const statusCounts = { approved: sc[0]?.approved || 0, pending: sc[0]?.pending || 0, rejected: sc[0]?.rejected || 0 };
+        res.json({ products: rows, total, statusCounts, categoryCounts: { book: total } });
+      } else if (onlyProducts) {
+        let where = "WHERE 1=1";
+        const params: any[] = [];
+        params.push(category);
+        where += ` AND category = $${params.length}`;
+        if (status && status !== "all") {
+          params.push(status);
+          where += ` AND status = $${params.length}`;
+        }
+        if (search) {
+          params.push(`%${search}%`);
+          where += ` AND (name ILIKE $${params.length} OR company ILIKE $${params.length})`;
+        }
+        const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM extracted_products ${where}`, params);
+        const total = countRows[0]?.total || 0;
+        params.push(limit); params.push(offset);
+        const { rows } = await pool.query(
+          `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url, podcast_slug, episode_slug, episode_title, extracted_at, 'product' as source FROM extracted_products ${where} ORDER BY extracted_at DESC NULLS LAST, id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+          params
+        );
+        const { rows: sc } = await pool.query(`SELECT status, count(*)::int as count FROM extracted_products WHERE category = $1 GROUP BY status`, [category]);
+        res.json({ products: rows, total, statusCounts: Object.fromEntries(sc.map((r: any) => [r.status, r.count])), categoryCounts: {} });
+      } else {
+        const productWhere: string[] = ["1=1"];
+        const bookWhere: string[] = ["1=1"];
+        const pParams: any[] = [];
+        const bParams: any[] = [];
+
+        if (status && status !== "all") {
+          pParams.push(status);
+          productWhere.push(`status = $${pParams.length}`);
+          if (status === "approved") bookWhere.push("cover_approved = true");
+          else if (status === "pending") bookWhere.push("cover_approved IS NULL");
+          else if (status === "rejected") bookWhere.push("cover_approved = false");
+        }
+        if (search) {
+          pParams.push(`%${search}%`);
+          productWhere.push(`(name ILIKE $${pParams.length} OR company ILIKE $${pParams.length})`);
+          bParams.push(`%${search}%`);
+          bookWhere.push(`(book_title ILIKE $${bParams.length} OR author ILIKE $${bParams.length})`);
+        }
+
+        const [pCount, bCount] = await Promise.all([
+          pool.query(`SELECT count(*)::int as total FROM extracted_products WHERE ${productWhere.join(" AND ")}`, pParams),
+          pool.query(`SELECT count(*)::int as total FROM book_enrichments WHERE ${bookWhere.join(" AND ")}`, bParams),
+        ]);
+        const productTotal = pCount.rows[0]?.total || 0;
+        const bookTotal = bCount.rows[0]?.total || 0;
+        const total = productTotal + bookTotal;
+
+        const allParams = [...pParams];
+        allParams.push(limit); allParams.push(offset);
+        const bAllParams = [...bParams];
+        bAllParams.push(limit); bAllParams.push(offset);
+
+        const [pRows, bRows] = await Promise.all([
+          pool.query(
+            `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url, podcast_slug, episode_slug, episode_title, extracted_at, 'product' as source FROM extracted_products WHERE ${productWhere.join(" AND ")} ORDER BY extracted_at DESC NULLS LAST, id DESC LIMIT $${allParams.length - 1} OFFSET $${allParams.length}`,
+            allParams
+          ),
+          pool.query(
+            `SELECT id, book_title as name, author as company, description, 'book' as category, '' as context, '' as mention_type,
+              CASE WHEN cover_approved = true THEN 'approved' WHEN cover_approved = false THEN 'rejected' ELSE 'pending' END as status,
+              amazon_url as purchase_url,
+              CASE WHEN has_cover = true THEN '/api/books/' || slug || '/cover' ELSE '' END as image_url,
+              '' as podcast_slug, '' as episode_slug, '' as episode_title, created_at as extracted_at, 'book' as source, slug as book_slug
+            FROM book_enrichments WHERE ${bookWhere.join(" AND ")} ORDER BY created_at DESC NULLS LAST, id DESC LIMIT $${bAllParams.length - 1} OFFSET $${bAllParams.length}`,
+            bAllParams
+          ),
+        ]);
+
+        const merged = [...pRows.rows, ...bRows.rows].sort((a: any, b: any) => {
+          const da = a.extracted_at ? new Date(a.extracted_at).getTime() : 0;
+          const db = b.extracted_at ? new Date(b.extracted_at).getTime() : 0;
+          return db - da;
+        }).slice(0, limit);
+
+        const [pStatusCounts, bStatusCounts, catCounts] = await Promise.all([
+          pool.query(`SELECT status, count(*)::int as count FROM extracted_products GROUP BY status`),
+          pool.query(`SELECT count(CASE WHEN cover_approved = true THEN 1 END)::int as approved, count(CASE WHEN cover_approved IS NULL THEN 1 END)::int as pending, count(CASE WHEN cover_approved = false THEN 1 END)::int as rejected FROM book_enrichments`),
+          pool.query(`SELECT category, count(*)::int as count FROM extracted_products GROUP BY category`),
+        ]);
+        const sc: Record<string, number> = {};
+        for (const r of pStatusCounts.rows) sc[r.status] = (sc[r.status] || 0) + r.count;
+        sc.approved = (sc.approved || 0) + (bStatusCounts.rows[0]?.approved || 0);
+        sc.pending = (sc.pending || 0) + (bStatusCounts.rows[0]?.pending || 0);
+        sc.rejected = (sc.rejected || 0) + (bStatusCounts.rows[0]?.rejected || 0);
+
+        const categoryCounts: Record<string, number> = { book: bookTotal };
+        for (const r of catCounts.rows) categoryCounts[r.category] = r.count;
+
+        res.json({ products: merged, total, statusCounts: sc, categoryCounts });
       }
-      if (search) {
-        params.push(`%${search}%`);
-        where += ` AND (name ILIKE $${params.length} OR company ILIKE $${params.length})`;
-      }
-      const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM extracted_products ${where}`, params);
-      const total = countRows[0]?.total || 0;
-      params.push(limit);
-      params.push(offset);
-      const { rows } = await pool.query(
-        `SELECT id, name, company, description, category, context, mention_type, status, purchase_url, image_url, podcast_slug, episode_slug, episode_title, extracted_at FROM extracted_products ${where} ORDER BY extracted_at DESC NULLS LAST, id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
-        params
-      );
-      const { rows: statusCounts } = await pool.query(`SELECT status, count(*)::int as count FROM extracted_products GROUP BY status`);
-      res.json({ products: rows, total, statusCounts: Object.fromEntries(statusCounts.map((r: any) => [r.status, r.count])) });
     } catch (err: any) {
       console.error("[CMS] Products error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch products" });
@@ -9559,6 +9666,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err: any) {
       console.error("[CMS] Update product error:", err);
       res.status(500).json({ message: err?.message || "Failed to update product" });
+    }
+  });
+
+  app.patch("/api/admin/cms/books/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      if (!status) return res.status(400).json({ message: "No fields to update" });
+      const coverApproved = status === "approved" ? true : status === "rejected" ? false : null;
+      await pool.query(`UPDATE book_enrichments SET cover_approved = $1, updated_at = NOW() WHERE id = $2`, [coverApproved, id]);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[CMS] Update book error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update book" });
     }
   });
 

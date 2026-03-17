@@ -2346,18 +2346,28 @@ function CompaniesTab() {
   );
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  all: "All",
+  book: "Books",
+  physical_product: "Physical Goods",
+  service_or_tool: "Services & Tools",
+  experience: "Experiences",
+};
+
 function ProductsTab() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery<{ products: Array<{ id: number; name: string; company: string; description: string; category: string; context: string; mention_type: string; status: string; purchase_url: string; image_url: string; podcast_slug: string; episode_slug: string; episode_title: string; extracted_at: string }>; total: number; statusCounts: Record<string, number> }>({
-    queryKey: ["/api/admin/cms/products", debouncedSearch, statusFilter, page],
+  const { data, isLoading } = useQuery<{ products: Array<{ id: number; name: string; company: string; description: string; category: string; context: string; mention_type: string; status: string; purchase_url: string; image_url: string; podcast_slug: string; episode_slug: string; episode_title: string; extracted_at: string; source?: string; book_slug?: string }>; total: number; statusCounts: Record<string, number>; categoryCounts?: Record<string, number> }>({
+    queryKey: ["/api/admin/cms/products", debouncedSearch, statusFilter, categoryFilter, page],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter !== "all") params.set("status", statusFilter);
+      if (categoryFilter !== "all") params.set("category", categoryFilter);
       params.set("page", String(page));
       const res = await fetch(`/api/admin/cms/products?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
@@ -2365,30 +2375,43 @@ function ProductsTab() {
     },
   });
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...body }: { id: number; status?: string }) => apiRequest("PATCH", `/api/admin/cms/products/${id}`, body),
+    mutationFn: ({ id, source, ...body }: { id: number; source?: string; status?: string }) => {
+      if (source === "book") {
+        return apiRequest("PATCH", `/api/admin/cms/books/${id}`, body);
+      }
+      return apiRequest("PATCH", `/api/admin/cms/products/${id}`, body);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/products"] });
-      toast({ title: "Product updated" });
+      toast({ title: "Item updated" });
     },
     onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
   const products = data?.products || [];
   const total = data?.total || 0;
   const counts = data?.statusCounts || {};
+  const catCounts = data?.categoryCounts || {};
   return (
     <div className="space-y-4" data-testid="cms-products-tab">
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input type="text" placeholder="Search products or companies..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-products" />
+          <input type="text" placeholder="Search products, books, or companies..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-products" />
         </div>
-        <div className="flex items-center gap-1">
-          {["all", "pending", "approved", "rejected"].map((s) => (
-            <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-primary text-white" : "bg-muted/40 text-muted-foreground hover:text-foreground"}`} data-testid={`filter-product-${s}`}>
-              {s === "all" ? `All (${total})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s] || 0})`}
-            </button>
-          ))}
-        </div>
+      </div>
+      <div className="flex items-center gap-1 flex-wrap">
+        {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+          <button key={key} onClick={() => { setCategoryFilter(key); setPage(1); }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${categoryFilter === key ? "bg-primary text-white" : "bg-muted/40 text-muted-foreground hover:text-foreground"}`} data-testid={`filter-category-${key}`}>
+            {label}{catCounts[key] !== undefined ? ` (${catCounts[key]})` : key === "all" ? ` (${total})` : ""}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-1">
+        {["all", "pending", "approved", "rejected"].map((s) => (
+          <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-indigo-100 dark:bg-indigo-900/30 text-primary border border-primary/30" : "bg-muted/40 text-muted-foreground hover:text-foreground"}`} data-testid={`filter-product-${s}`}>
+            {s === "all" ? `All (${total})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s] || 0})`}
+          </button>
+        ))}
       </div>
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -2397,28 +2420,33 @@ function ProductsTab() {
       ) : (
         <div className="space-y-2">
           {products.map((p) => (
-            <div key={p.id} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 flex items-start gap-4" data-testid={`product-row-${p.id}`}>
+            <div key={`${p.source || "product"}-${p.id}`} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 flex items-start gap-4" data-testid={`product-row-${p.source || "product"}-${p.id}`}>
+              {p.image_url && (
+                <img src={p.image_url} alt="" className={`flex-shrink-0 object-cover rounded-lg ${p.source === "book" ? "w-10 h-14" : "w-10 h-10"}`} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-foreground">{p.name}</span>
-                  {p.company && <span className="text-xs text-muted-foreground">by {p.company}</span>}
+                  {p.company && <span className="text-xs text-muted-foreground">{p.source === "book" ? "by" : "—"} {p.company}</span>}
                   <StatusBadge status={p.status === "approved" ? "published" : p.status === "rejected" ? "hidden" : "needs_review"} />
                 </div>
                 {p.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{p.description}</p>}
                 <div className="flex items-center gap-3 mt-1.5">
-                  {p.category && <span className="text-xs text-primary">{p.category}</span>}
+                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${p.category === "book" ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" : p.category === "physical_product" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : p.category === "service_or_tool" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"}`}>
+                    {CATEGORY_LABELS[p.category] || p.category}
+                  </span>
                   {p.episode_title && <span className="text-xs text-muted-foreground truncate max-w-[300px]">{p.episode_title}</span>}
                   {p.purchase_url && <a href={p.purchase_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline flex items-center gap-0.5"><ExternalLink className="w-3 h-3" /> Link</a>}
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 {p.status !== "approved" && (
-                  <button onClick={() => updateMutation.mutate({ id: p.id, status: "approved" })} className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Approve" data-testid={`button-approve-product-${p.id}`}>
+                  <button onClick={() => updateMutation.mutate({ id: p.id, source: p.source, status: "approved" })} className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Approve" data-testid={`button-approve-product-${p.source || "product"}-${p.id}`}>
                     <CheckCircle className="w-4 h-4" />
                   </button>
                 )}
                 {p.status !== "rejected" && (
-                  <button onClick={() => updateMutation.mutate({ id: p.id, status: "rejected" })} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="Reject" data-testid={`button-reject-product-${p.id}`}>
+                  <button onClick={() => updateMutation.mutate({ id: p.id, source: p.source, status: "rejected" })} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="Reject" data-testid={`button-reject-product-${p.source || "product"}-${p.id}`}>
                     <XCircle className="w-4 h-4" />
                   </button>
                 )}
