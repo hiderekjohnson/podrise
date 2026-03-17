@@ -4,7 +4,7 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight } from "lucide-react";
+import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight, MoreHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
 
@@ -418,6 +418,55 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
   );
 }
 
+function FollowMenuDropdown({ onUnfollow, itemId }: { onUnfollow: () => void; itemId: number }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => { document.removeEventListener("mousedown", handleClick); document.removeEventListener("keydown", handleKeyDown); };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-9 h-9 rounded-lg flex items-center justify-center border border-black/[0.12] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all"
+        style={{ background: "rgba(255,255,255,0.75)" }}
+        aria-label="Podcast options"
+        data-testid={`feed-follow-menu-${itemId}`}
+      >
+        <MoreHorizontal className="w-[18px] h-[18px]" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full right-0 mt-1 w-[160px] bg-white rounded-xl shadow-lg border border-[#E4E4E7] overflow-hidden z-50"
+          >
+            <button
+              onClick={() => { onUnfollow(); setOpen(false); }}
+              className="flex items-center gap-2 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#EF4444] hover:bg-[#FEF2F2] transition-colors"
+              data-testid={`feed-unfollow-btn-${itemId}`}
+            >
+              Unfollow
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toast }: {
   item: FeedItem;
   onFollowToggle: (slug: string, follow: boolean) => void;
@@ -437,12 +486,12 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
       data-testid={`feed-card-${item.id}`}
     >
       <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
-        <Link href={`/podcasts/${item.podcastSlug}`}>
-          <div className="w-24 h-24 rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
+        <Link href={episodeUrl}>
+          <div className="w-[120px] h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
             <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
           </div>
         </Link>
-        <div className="flex-1 min-w-0 flex flex-col justify-between min-h-24">
+        <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[120px]">
           <div>
             <Link href={`/podcasts/${item.podcastSlug}`}>
               <span className="text-[18px] font-extrabold text-[#09090B] tracking-[-0.02em] leading-[1.1] mb-2 inline-block hover:text-[#6366F1] transition-colors" data-testid={`feed-podcast-name-${item.id}`}>
@@ -483,29 +532,26 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
                 Spotify
               </a>
             )}
-            <button
-              onClick={() => onFollowToggle(item.podcastSlug, !item.isFollowing)}
-              className={`inline-flex items-center px-5 py-2 rounded-lg text-[14px] font-bold transition-all ${
-                item.isFollowing
-                  ? "border border-black/[0.12] text-[#52525B] hover:text-[#6366F1]"
-                  : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
-              }`}
-              style={item.isFollowing ? { background: "rgba(255,255,255,0.75)" } : {}}
-              data-testid={`feed-follow-btn-${item.id}`}
-            >
-              {item.isFollowing ? "Following" : "Follow"}
-            </button>
+            {item.isFollowing ? (
+              <FollowMenuDropdown onUnfollow={() => onFollowToggle(item.podcastSlug, false)} itemId={item.id} />
+            ) : (
+              <button
+                onClick={() => onFollowToggle(item.podcastSlug, true)}
+                className="inline-flex items-center px-5 py-2 rounded-lg text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+                data-testid={`feed-follow-btn-${item.id}`}
+              >
+                Follow
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <div className="px-5 md:px-6 py-[18px] border-t border-[#F0F0F2] border-b border-b-[#F0F0F2]">
         <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-          <Link href={episodeUrl}>
-            <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0 hover:text-[#6366F1] transition-colors" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-episode-title-${item.id}`}>
-              {item.episodeTitle}
-            </span>
-          </Link>
+          <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-episode-title-${item.id}`}>
+            {item.episodeTitle}
+          </span>
           <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-time-${item.id}`}>
             {relativeTime(item.publishDate)}
           </span>

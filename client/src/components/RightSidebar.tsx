@@ -1,10 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Search, X } from "lucide-react";
-import { useState } from "react";
+import { Search, X, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+
 
 interface ReferralStats {
   referralCount: number;
@@ -29,34 +30,166 @@ interface ShopProduct {
   podcastName?: string;
 }
 
+interface DirectoryPodcast {
+  slug: string;
+  name: string;
+  artwork_url?: string;
+  artworkUrl?: string;
+  category?: string | null;
+  description?: string | null;
+}
+
+interface SearchResult {
+  slug: string;
+  name: string;
+  artworkUrl: string;
+  category?: string | null;
+  description?: string | null;
+}
+
 function SidebarSearch() {
   const [query, setQuery] = useState("");
-  const [, navigate] = useLocation();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      navigate(`/discover?q=${encodeURIComponent(query.trim())}`);
-      setQuery("");
-    }
-  };
+  const { data: directoryData, isLoading: directoryLoading } = useQuery<DirectoryPodcast[]>({
+    queryKey: ["/api/podcasts/directory"],
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const searchResults: SearchResult[] = query.trim().length >= 2 && directoryData
+    ? directoryData
+        .filter((p) => p.name?.toLowerCase().includes(query.toLowerCase().trim()))
+        .map((p) => ({
+          slug: p.slug,
+          name: p.name,
+          artworkUrl: p.artwork_url || p.artworkUrl || "",
+          category: p.category,
+          description: p.description,
+        }))
+        .slice(0, 8)
+    : [];
+
+  const showResults = query.trim().length >= 2;
+  const noResults = showResults && !directoryLoading && searchResults.length === 0;
+
+  const suggestedPodcasts: SearchResult[] = useMemo(() => {
+    if (!noResults || !directoryData) return [];
+    const seed = query.trim().toLowerCase().split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    const pool = directoryData.slice(0, 50);
+    const shuffled = [...pool].sort((a, b) => {
+      const ha = (a.slug.charCodeAt(0) + seed) % 100;
+      const hb = (b.slug.charCodeAt(0) + seed) % 100;
+      return ha - hb;
+    });
+    return shuffled.slice(0, 3).map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      artworkUrl: p.artwork_url || p.artworkUrl || "",
+      category: p.category,
+    }));
+  }, [noResults, directoryData, query]);
 
   return (
     <div className="sticky top-0 z-10 px-4 py-3 bg-[#F7F7FC] border-b border-[#F0F0F2]">
-      <form onSubmit={handleSubmit} data-testid="sidebar-search">
+      <div data-testid="sidebar-search">
         <div className="flex items-center gap-[10px] bg-white border border-[#E4E4E7] rounded-[10px] px-[14px] py-[9px] transition-colors focus-within:border-[#6366F1]">
           <Search className="w-4 h-4 text-[#A1A1AA] flex-shrink-0" />
           <input
             type="text"
-            placeholder="Search podcasts, topics, people…"
+            placeholder="Search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 border-none bg-transparent outline-none text-[14px] text-[#09090B] placeholder-[#A1A1AA] min-h-0 p-0"
             style={{ minHeight: 0, border: 'none', padding: 0 }}
             data-testid="sidebar-search-input"
           />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="text-[#A1A1AA] hover:text-[#52525B] transition-colors"
+              data-testid="sidebar-search-clear"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-      </form>
+      </div>
+
+      {showResults && (
+        <div className="mt-2 bg-white border border-[#E4E4E7] rounded-[10px] overflow-hidden max-h-[400px] overflow-y-auto shadow-sm" data-testid="sidebar-search-results">
+          {showResults && directoryLoading ? (
+            <div className="flex items-center justify-center py-6" data-testid="sidebar-search-loading">
+              <Loader2 className="w-5 h-5 text-[#A1A1AA] animate-spin" />
+            </div>
+          ) : searchResults.length > 0 ? (
+            searchResults.map((result) => (
+              <Link
+                key={result.slug}
+                href={`/podcasts/${result.slug}`}
+                className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
+                onClick={() => setQuery("")}
+                data-testid={`sidebar-result-${result.slug}`}
+              >
+                <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+                  {result.artworkUrl ? (
+                    <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-[#E4E4E7]" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
+                  {result.category && (
+                    <div className="text-[11px] text-[#A1A1AA] mt-[1px]">{result.category}</div>
+                  )}
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="px-4 py-4" data-testid="sidebar-search-no-results">
+              <div className="text-[14px] font-medium text-[#52525B] mb-1">
+                We don't have that podcast in our system yet
+              </div>
+              <p className="text-[12px] text-[#A1A1AA] leading-relaxed mb-3">
+                We're always adding new podcasts. Let us know which one you'd like to see!
+              </p>
+              <button
+                className="w-full text-[13px] font-semibold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-lg py-2 px-3 transition-colors mb-3"
+                onClick={() => {
+                  toast({ title: "Request noted!", description: `We'll look into adding "${query}" to PodCap.` });
+                }}
+                data-testid="sidebar-search-request-btn"
+              >
+                Request this podcast
+              </button>
+              {suggestedPodcasts.length > 0 && (
+                <div>
+                  <div className="text-[11px] font-medium text-[#A1A1AA] uppercase tracking-wide mb-2">Check these out instead</div>
+                  {suggestedPodcasts.map((p) => (
+                    <Link
+                      key={p.slug}
+                      href={`/podcasts/${p.slug}`}
+                      className="flex items-center gap-2 py-1.5 hover:text-[#6366F1] transition-colors no-underline"
+                      onClick={() => setQuery("")}
+                      data-testid={`sidebar-suggestion-${p.slug}`}
+                    >
+                      <div className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+                        {p.artworkUrl ? (
+                          <img src={p.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full bg-[#E4E4E7]" />
+                        )}
+                      </div>
+                      <span className="text-[12px] font-medium text-[#52525B] truncate">{p.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -174,7 +307,7 @@ function WhoToFollowSection() {
             </Link>
             <div className="flex-1 min-w-0">
               <Link href={`/podcasts/${podcast.slug}`}>
-                <span className="text-[14px] font-bold text-[#09090B] hover:text-[#6366F1] transition-colors block truncate" data-testid={`rail-wtf-name-${podcast.slug}`}>
+                <span className="text-[14px] font-bold text-[#09090B] hover:text-[#6366F1] transition-colors block line-clamp-2" data-testid={`rail-wtf-name-${podcast.slug}`}>
                   {podcast.name}
                 </span>
               </Link>

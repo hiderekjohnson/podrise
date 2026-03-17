@@ -269,9 +269,16 @@ export function PersonalShop() {
       .slice(0, 6);
   }, [data]);
 
-  const visibleItems = filteredItems.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredItems.length;
   const showFeatured = !searchQuery && activeCategory === "all" && !isLoading && featuredItems.length > 0;
+
+  const dedupedItems = useMemo(() => {
+    if (!showFeatured || featuredItems.length === 0) return filteredItems;
+    const featuredKeys = new Set(featuredItems.map(i => `${i.itemType}::${i.slug || i.name}`));
+    return filteredItems.filter(i => !featuredKeys.has(`${i.itemType}::${i.slug || i.name}`));
+  }, [filteredItems, featuredItems, showFeatured]);
+
+  const visibleItems = dedupedItems.slice(0, visibleCount);
+  const hasMore = visibleCount < dedupedItems.length;
 
   return (
     <div className="min-h-screen pb-24 md:pb-12" data-testid="personal-shop">
