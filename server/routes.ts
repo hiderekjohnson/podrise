@@ -9043,7 +9043,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       const isEmptyVal = (v: any) => !v || typeof v !== 'string' || !v.trim() || v.trim() === '[]' || v.trim() === 'null';
       const hostsValue = isEmptyVal(episode.hosts) ? podcastHosts.map((h: any) => h.name).join(", ") : episode.hosts;
-      const spotifyValue = isEmptyVal(episode.spotify_episode_url) ? podcastSpotifyUrl : episode.spotify_episode_url;
+      const fallbackSpotifySearch = `https://open.spotify.com/search/${encodeURIComponent((episode.podcast_name || "") + " " + (episode.episode_title || ""))}`;
+      const spotifyValue = !isEmptyVal(episode.spotify_episode_url) ? episode.spotify_episode_url : (!isEmptyVal(podcastSpotifyUrl) ? podcastSpotifyUrl : fallbackSpotifySearch);
 
       res.json({ ...episode, hosts: hostsValue, spotify_episode_url: spotifyValue, quotes: quoteRows, transcript, extractedProducts, podcastHosts });
     } catch (err: any) {
@@ -12344,15 +12345,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
           : `${durationMin} minutes`;
 
+        const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
         const insertResult = await client.query(
           `INSERT INTO landing_page_recaps
-           (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+           (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, spotify_episode_url)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
            ON CONFLICT (slug, episode_slug) DO UPDATE SET
              tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
              quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
              topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-             sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources
+             sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
+             spotify_episode_url = COALESCE(NULLIF(landing_page_recaps.spotify_episode_url, ''), EXCLUDED.spotify_episode_url)
            RETURNING id`,
           [
             podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
@@ -12366,6 +12369,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
             recap.guests ? JSON.stringify(recap.guests) : "[]",
             recap.resources ? JSON.stringify(recap.resources) : "[]",
+            spotifyEpisodeUrl,
           ]
         );
         const newRecapId = insertResult.rows[0]?.id;
@@ -12650,19 +12654,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       for (const r of recaps) {
         try {
+          const bulkSpotifyUrl = r.spotify_episode_url || `https://open.spotify.com/search/${encodeURIComponent((r.podcast_name || "") + " " + (r.episode_title || ""))}`;
           await client.query(
             `INSERT INTO landing_page_recaps
-             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, spotify_episode_url)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
              ON CONFLICT (slug, episode_slug) DO UPDATE SET
                tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
                quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
                topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-               sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
+               sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
+               spotify_episode_url = COALESCE(NULLIF(landing_page_recaps.spotify_episode_url, ''), EXCLUDED.spotify_episode_url)`,
             [r.slug, r.itunes_id, r.podcast_name, r.episode_title, r.episode_slug, r.publish_date,
              r.duration, r.artwork_url, r.hosts, r.tldl, r.what_happened, r.key_insights,
              r.quote, r.quote_attribution, r.key_topics, r.topic_contexts, r.top_questions,
-             r.audio_url, r.sponsors, r.guests, r.resources]
+             r.audio_url, r.sponsors, r.guests, r.resources, bulkSpotifyUrl]
           );
           inserted++;
         } catch (err) {
@@ -15156,15 +15162,17 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               ? new Date(epData.datePublished * 1000).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0];
 
+            const webhookSpotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + epTitle)}`;
             await pool.query(
               `INSERT INTO landing_page_recaps
-               (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+               (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, spotify_episode_url)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
                ON CONFLICT (slug, episode_slug) DO UPDATE SET
                  tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
                  quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
                  topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-                 sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources`,
+                 sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
+                 spotify_episode_url = COALESCE(NULLIF(landing_page_recaps.spotify_episode_url, ''), EXCLUDED.spotify_episode_url)`,
               [
                 podcast.slug, podcast.itunes_id, podcast.name, epTitle, epSlug, publishDate,
                 durationStr, epData.imageUrl || podcast.artwork_url || "", podcast.hosts || "",
@@ -15176,6 +15184,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
                 recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
                 recap.guests ? JSON.stringify(recap.guests) : "[]",
                 recap.resources ? JSON.stringify(recap.resources) : "[]",
+                webhookSpotifyUrl,
               ]
             );
             console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
