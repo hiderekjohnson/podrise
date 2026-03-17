@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag, Bookmark, BookmarkCheck } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -518,6 +518,26 @@ export default function EpisodeRecapPage() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
   });
 
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+    enabled: !!authUser,
+  });
+  const isFollowing = followData?.followedSlugs?.includes(podcastSlug) ?? false;
+
+  const followMutation = useMutation({
+    mutationFn: async ({ follow }: { follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" });
+    },
+  });
+
   const { data: episode, isLoading: episodeLoading } = useQuery<any>({
     queryKey: ["/api/podcasts", podcastSlug, "recaps", episodeSlug],
     queryFn: async () => {
@@ -935,6 +955,27 @@ export default function EpisodeRecapPage() {
             <Mail className="w-4 h-4" />
             Get Updates
           </button>
+          {authUser && (
+            <button
+              onClick={() => followMutation.mutate({ follow: !isFollowing })}
+              disabled={followMutation.isPending}
+              className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-[16px] font-semibold min-h-[44px] whitespace-nowrap shrink-0 transition-all active:scale-[0.98] ${
+                isFollowing
+                  ? "bg-primary/[0.08] text-primary border border-primary/20 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                  : "bg-primary text-white hover:bg-[#4F46E5] shadow-sm shadow-primary/20"
+              }`}
+              data-testid="nav-follow-podcast"
+            >
+              {followMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Heart className={`w-4 h-4 ${isFollowing ? "fill-current" : ""}`} />
+                  {isFollowing ? "Following" : "Follow"}
+                </>
+              )}
+            </button>
+          )}
           {authUser && (
             <button
               onClick={() => isBookmarked ? removeBookmarkMut.mutate() : addBookmarkMut.mutate()}
