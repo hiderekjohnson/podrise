@@ -89,26 +89,31 @@ export function isLikelySponsorProduct(product: ProductCandidate): FilterResult 
   const companyLower = (product.company || "").toLowerCase().trim();
   const urlLower = (product.purchaseUrl || "").toLowerCase();
   const contextLower = (product.context || "").toLowerCase();
+  const mentionType = (product.mentionType || "").toLowerCase();
 
-  for (const brand of KNOWN_SPONSOR_BRANDS) {
-    if (nameLower.includes(brand) || companyLower.includes(brand)) {
+  const isAdMention = mentionType === "ad_read" || mentionType === "sponsorship";
+
+  if (!isAdMention) {
+    for (const brand of KNOWN_SPONSOR_BRANDS) {
+      if (nameLower.includes(brand) || companyLower.includes(brand)) {
+        return { isFiltered: true, reason: "sponsor_ad" };
+      }
+    }
+
+    if (nameLower === "ag1" || nameLower === "ag-1" || nameLower === "agz" || companyLower === "ag1") {
       return { isFiltered: true, reason: "sponsor_ad" };
     }
-  }
 
-  if (nameLower === "ag1" || nameLower === "ag-1" || nameLower === "agz" || companyLower === "ag1") {
-    return { isFiltered: true, reason: "sponsor_ad" };
-  }
-
-  for (const pattern of SPONSOR_URL_PATTERNS) {
-    if (pattern.test(urlLower)) {
-      return { isFiltered: true, reason: "sponsor_ad" };
+    for (const pattern of SPONSOR_URL_PATTERNS) {
+      if (pattern.test(urlLower)) {
+        return { isFiltered: true, reason: "sponsor_ad" };
+      }
     }
-  }
 
-  for (const pattern of SPONSOR_CONTEXT_PATTERNS) {
-    if (pattern.test(contextLower)) {
-      return { isFiltered: true, reason: "sponsor_ad" };
+    for (const pattern of SPONSOR_CONTEXT_PATTERNS) {
+      if (pattern.test(contextLower)) {
+        return { isFiltered: true, reason: "sponsor_ad" };
+      }
     }
   }
 

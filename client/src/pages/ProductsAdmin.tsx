@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, CheckCircle2, XCircle, Filter, Clock, Trash2, AlertTriangle, FileText, Bot, ChevronDown, ChevronUp, ArrowUpDown, Image, Upload, Sparkles } from "lucide-react";
+import { Loader2, ExternalLink, ShoppingBag, Play, Package, Globe, Star, MessageSquare, ThumbsUp, ThumbsDown, CheckCircle2, XCircle, Filter, Clock, Trash2, AlertTriangle, FileText, Bot, ChevronDown, ChevronUp, ArrowUpDown, Image, Upload, Sparkles, Megaphone, Handshake, Heart } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,10 +25,17 @@ interface Product {
 }
 
 const MENTION_LABELS: Record<string, { label: string; color: string; icon: typeof Star }> = {
-  recommendation: { label: "Recommended", color: "bg-green-100 text-green-700", icon: ThumbsUp },
+  organic: { label: "Organic", color: "bg-green-100 text-green-700", icon: Heart },
   personal_use: { label: "Personal Use", color: "bg-blue-100 text-blue-700", icon: Star },
+  ad_read: { label: "Ad Read", color: "bg-red-100 text-red-600", icon: Megaphone },
+  sponsorship: { label: "Sponsorship", color: "bg-orange-100 text-orange-600", icon: Handshake },
   discussion: { label: "Discussed", color: "bg-zinc-100 text-zinc-600", icon: MessageSquare },
 };
+
+function normalizeMentionType(type: string | null): string {
+  if (type === "recommendation") return "organic";
+  return type || "discussion";
+}
 
 const CATEGORY_LABELS: Record<string, { label: string; color: string; icon: typeof Package }> = {
   physical_product: { label: "Product", color: "bg-orange-50 text-orange-700", icon: Package },
@@ -51,16 +58,23 @@ const REJECT_REASONS = [
 type FilterMode = "all" | "pending" | "approved" | "rejected";
 type SortMode = "newest" | "genuine_first" | "ads_first";
 
-function highlightTerms(text: string, terms: string[]): (string | JSX.Element)[] {
+function highlightTerms(text: string, terms: string[], adKeywords?: string[]): (string | JSX.Element)[] {
   const validTerms = terms.filter(t => t && t.length > 1).sort((a, b) => b.length - a.length);
-  if (validTerms.length === 0) return [text];
-  const escaped = validTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const validAdKw = (adKeywords || []).filter(t => t && t.length > 1).sort((a, b) => b.length - a.length);
+  const allTerms = [...validTerms, ...validAdKw];
+  if (allTerms.length === 0) return [text];
+  const escaped = allTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const regex = new RegExp(`(${escaped.join("|")})`, "gi");
   const parts = text.split(regex);
-  const lowerTerms = validTerms.map(t => t.toLowerCase());
+  const lowerProductTerms = validTerms.map(t => t.toLowerCase());
+  const lowerAdTerms = validAdKw.map(t => t.toLowerCase());
   return parts.map((part, i) => {
-    if (lowerTerms.some(t => part.toLowerCase() === t)) {
+    const partLower = part.toLowerCase();
+    if (lowerProductTerms.some(t => partLower === t)) {
       return <mark key={i} className="bg-yellow-200 dark:bg-yellow-700/50 text-inherit rounded-sm px-0.5 font-semibold">{part}</mark>;
+    }
+    if (lowerAdTerms.some(t => partLower === t)) {
+      return <mark key={i} className="bg-red-200 dark:bg-red-700/50 text-red-700 dark:text-red-300 rounded-sm px-0.5 font-semibold">{part}</mark>;
     }
     return part;
   });
@@ -79,8 +93,11 @@ function computeAdScore(product: Product): number {
     if (contextLower.includes(kw)) score += 15;
   }
   if (!product.purchase_url) score += 10;
-  if (product.mention_type === "personal_use") score -= 20;
-  if (product.mention_type === "recommendation") score -= 10;
+  const normalizedType = normalizeMentionType(product.mention_type);
+  if (normalizedType === "personal_use") score -= 20;
+  if (normalizedType === "organic") score -= 10;
+  if (normalizedType === "ad_read") score += 30;
+  if (normalizedType === "sponsorship") score += 25;
   return Math.max(0, Math.min(100, score));
 }
 
@@ -90,12 +107,39 @@ interface TranscriptExcerpt {
   productName?: string;
   company?: string;
   message?: string;
+  intro?: string | null;
+  outro?: string | null;
 }
 
 interface AiCheckResult {
   verdict: "genuine" | "ad" | "brief_mention" | "unknown";
   confidence: number;
   reason: string;
+}
+
+function TranscriptSection({ title, text, highlightWords, icon }: { title: string; text: string; highlightWords: string[]; icon?: typeof FileText }) {
+  const [expanded, setExpanded] = useState(false);
+  const IconComp = icon || FileText;
+  return (
+    <div className="mt-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30" data-testid={`section-${title.toLowerCase().replace(/\s/g, '-')}`}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700/30 rounded-lg transition-colors"
+        data-testid={`button-toggle-${title.toLowerCase().replace(/\s/g, '-')}`}
+      >
+        <IconComp className="w-3.5 h-3.5" />
+        {title}
+        {expanded ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+      </button>
+      {expanded && (
+        <div className="px-4 pb-3 max-h-[300px] overflow-y-auto">
+          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono">
+            {highlightTerms(text, highlightWords, AD_KEYWORDS)}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function TranscriptExcerptPanel({ productId, productName, company }: { productId: number; productName: string; company: string | null }) {
@@ -123,14 +167,27 @@ function TranscriptExcerptPanel({ productId, productName, company }: { productId
   const highlightWords = [productName, company].filter(Boolean) as string[];
 
   return (
-    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/50 dark:bg-amber-900/10 dark:border-amber-800 p-4 max-h-[400px] overflow-y-auto">
-      <div className="flex items-center gap-2 mb-2">
-        <FileText className="w-4 h-4 text-amber-600" />
-        <span className="text-xs font-bold text-amber-700 dark:text-amber-400">Transcript Excerpt</span>
+    <div className="mt-3 space-y-2">
+      {data.intro && (
+        <TranscriptSection title="Episode Intro" text={data.intro} highlightWords={highlightWords} />
+      )}
+      <div className="rounded-lg border border-amber-200 bg-amber-50/50 dark:bg-amber-900/10 dark:border-amber-800 p-4 max-h-[400px] overflow-y-auto" data-testid="section-transcript-excerpt">
+        <div className="flex items-center gap-2 mb-2">
+          <FileText className="w-4 h-4 text-amber-600" />
+          <span className="text-xs font-bold text-amber-700 dark:text-amber-400">Transcript Excerpt</span>
+          <span className="text-[10px] text-amber-500 ml-auto">
+            <mark className="bg-yellow-200 dark:bg-yellow-700/50 rounded-sm px-1 text-[10px]">product</mark>
+            {" "}
+            <mark className="bg-red-200 dark:bg-red-700/50 text-red-700 dark:text-red-300 rounded-sm px-1 text-[10px]">ad keyword</mark>
+          </span>
+        </div>
+        <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono">
+          ...{highlightTerms(data.excerpt, highlightWords, AD_KEYWORDS)}...
+        </p>
       </div>
-      <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono">
-        ...{highlightTerms(data.excerpt, highlightWords)}...
-      </p>
+      {data.outro && (
+        <TranscriptSection title="Episode Outro" text={data.outro} highlightWords={highlightWords} />
+      )}
     </div>
   );
 }
@@ -461,7 +518,7 @@ export default function ProductsAdmin() {
       ) : (
         <div className="space-y-3">
           {products.map((p) => {
-            const mention = MENTION_LABELS[p.mention_type || "discussion"] || MENTION_LABELS.discussion;
+            const mention = MENTION_LABELS[normalizeMentionType(p.mention_type)] || MENTION_LABELS.discussion;
             const MentionIcon = mention.icon;
             const catInfo = CATEGORY_LABELS[p.category] || CATEGORY_LABELS.physical_product;
             const CatIcon = catInfo.icon;

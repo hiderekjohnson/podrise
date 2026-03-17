@@ -13527,7 +13527,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
         }
       }
 
-      const extractionPrompt = `You find PRODUCTS, SERVICES, TOOLS, APPS, and EXPERIENCES that podcast hosts and guests genuinely endorse from personal experience. Extract ALL types in a single pass.
+      const extractionPrompt = `You find PRODUCTS, SERVICES, TOOLS, APPS, and EXPERIENCES mentioned by podcast hosts and guests. Extract ALL mention types in a single pass — including genuine endorsements, ad reads, and sponsorships. Classify each mention accurately.
 
 CATEGORIES — assign each item one of these:
 - "physical_product" — tangible, shippable items (electronics, fitness gear, kitchen tools, clothing, supplements with specific brand names like AG1)
@@ -13535,11 +13535,11 @@ CATEGORIES — assign each item one of these:
 - "experience" — places to visit, events to attend, restaurants, retreats, memberships (Soho House, Burning Man, specific restaurants, etc.)
 
 THE CRITICAL AD-DETECTION TEST:
-Before extracting ANYTHING, determine whether the mention is a GENUINE personal endorsement or a PAID ADVERTISEMENT/SPONSORSHIP.
+Before extracting, determine whether the mention is a GENUINE personal endorsement, a PAID ADVERTISEMENT/SPONSORSHIP, or a general discussion. Classify each mention accurately using the mentionType field.
 
-DEAD GIVEAWAY AD PHRASES — if ANY of these appear near the mention, it is an AD. DO NOT EXTRACT:
+AD/SPONSOR INDICATOR PHRASES — if ANY of these appear near the mention, classify as "ad_read" or "sponsorship":
 
-1. Direct Sponsor Introductions:
+1. Direct Sponsor Introductions (use mentionType: "sponsorship"):
 - "this episode is sponsored by"
 - "today's sponsor"
 - "today's episode is brought to you by"
@@ -13550,7 +13550,7 @@ DEAD GIVEAWAY AD PHRASES — if ANY of these appear near the mention, it is an A
 - "support for this show comes from"
 - "this episode is made possible by"
 
-2. Host Transition Phrases (into ad breaks):
+2. Host Transition Phrases into ad breaks (use mentionType: "ad_read"):
 - "quick word from our sponsor"
 - "let's take a quick break"
 - "before we continue" (followed by brand pitch)
@@ -13560,7 +13560,7 @@ DEAD GIVEAWAY AD PHRASES — if ANY of these appear near the mention, it is an A
 - "now a message from our sponsor"
 - "we'll take a short break"
 
-3. Discount / Offer Language:
+3. Discount / Offer Language (use mentionType: "ad_read"):
 - "use code", "promo code", "discount code"
 - "special offer", "get X percent off"
 - "free trial", "start your free trial"
@@ -13575,27 +13575,34 @@ DEAD GIVEAWAY AD PHRASES — if ANY of these appear near the mention, it is an A
 - "thanks again to our sponsor"
 - "thanks to our sponsor"
 
-Other signs of an AD or SPONSOR — DO NOT EXTRACT:
+Signs of an AD READ (mentionType: "ad_read"):
 - Sounds like a scripted sales pitch with specific offers, discount codes, or promotional language
 - The speaker reads a prepared description that sounds like marketing copy
 - The endorsement feels forced, overly detailed, or reads like a commercial break
 - Example AD: "I use it myself for not one, not two, but I have eight different Mercury accounts... I highly, highly recommend it. Like I said, I use it myself." — This READS LIKE AN AD with exaggerated enthusiasm and repetitive "I use it myself" framing
 
-Signs of a GENUINE endorsement — OK to extract:
+Signs of a SPONSORSHIP (mentionType: "sponsorship"):
+- "This episode is brought to you by...", "Thanks to our sponsor...", "This episode is sponsored by..."
+- Product is mentioned in a dedicated ad segment at the start or end of the episode
+- Includes promo codes, special URLs, or discount offers
+
+Signs of a GENUINE/ORGANIC endorsement (mentionType: "organic" or "personal_use"):
 - Comes up naturally in conversation, not as a segment break
 - The speaker shares a specific personal story or experience with the product
 - Mentioned casually alongside other topics, not as a dedicated pitch
 - The endorsement has nuance — they mention both positives and limitations
 - Example GENUINE: "Yeah I just switched to that standing desk from FlexiSpot and my back has been way better. Cost me like $300 on Amazon."
+- Use "personal_use" when the host/guest explicitly says they personally use or own it
+- Use "organic" for natural recommendations or endorsements without personal ownership claims
 
-THE PERSONAL ENDORSEMENT TEST — the host/guest must do AT LEAST ONE:
-- "I use this" / "I bought one" / "We use this at our company" / "I've been using this for months"
-- "My wife loves her [product]" / "I carry it everywhere" / "Game changer for me"
-- "I went there and it was incredible" / "You have to try this"
-- Must be NATURAL, CONVERSATIONAL, and NOT scripted
+Signs of a DISCUSSION (mentionType: "discussion"):
+- The product is discussed as a topic of conversation but without a clear endorsement or recommendation
+- Mentioned in passing, as context, or as part of a broader discussion
+
+MENTION TYPE CLASSIFICATION:
+Always classify the mentionType — even for ads and sponsorships. Extract ALL product mentions and classify them accurately. This helps admins review and filter products.
 
 DO NOT EXTRACT:
-- Podcast sponsors/ads (even if the host says "I use it" — if it sounds scripted or is in an ad break, SKIP)
 - Generic categories without specific brand names ("liver supplements", "standing desks" without a brand)
 - Books, ebooks, audiobooks (tracked separately)
 - Companies discussed only as business cases or investments, not as products to use
@@ -13614,7 +13621,7 @@ BAD context (restates what it is): "Wild Type produces lab-grown sushi-grade sal
 
 GOOD context: "The hosts said they are fans of this company and its approach to producing sustainable, lab-grown sushi-grade salmon using cultivated seafood technology. By eliminating the need for traditional fishing or ocean farming, they viewed it as a promising solution to overfishing and damage to marine ecosystems. They noted that innovations like this could allow people to enjoy sushi without the environmental cost, and highlighted that the company's first product is already being served."
 
-QUALITY BAR: We want 0-5 high-quality items per episode across ALL categories. Many episodes will have ZERO qualifying items — that's perfectly fine. Only extract items you're confident are genuine endorsements, not ads.
+QUALITY BAR: We want 0-8 items per episode across ALL categories and mention types. Many episodes will have ZERO qualifying items — that's perfectly fine. Extract both genuine endorsements AND sponsored/ad products — classify each accurately using mentionType so admins can review them.
 
 For each qualifying item, return:
 - name: the specific product/service/experience name (e.g. "Vitamix A3500" not just "blender")
@@ -13622,7 +13629,7 @@ For each qualifying item, return:
 - description: 1 sentence explaining what it is and why it's interesting
 - purchaseUrl: the best URL to buy/visit (prefer Amazon for physical products)
 - context: 3-5 sentences explaining WHY they use/recommend it — do NOT restate what the product is. Focus on their reasons, opinions, and specific experiences.
-- mentionType: "recommendation" | "personal_use"
+- mentionType: "organic" | "personal_use" | "ad_read" | "sponsorship" | "discussion"
 - category: "physical_product" | "service_or_tool" | "experience"
 
 Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSection}`;
@@ -13651,7 +13658,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
                 { role: "system", content: extractionPrompt },
                 {
                   role: "user",
-                  content: `Extract products, services, tools, and experiences the hosts/guests GENUINELY endorse (not ads/sponsors). For the context field, write a 3-5 sentence editorial summary of WHY they use/recommend it, what problem it solves, and what makes it stand out. Do NOT copy raw transcript text - rewrite it as a clean, professional summary.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
+                  content: `Extract all products, services, tools, and experiences mentioned by hosts/guests — including genuine endorsements, ad reads, and sponsorships. Classify each with the correct mentionType. For the context field, write a 3-5 sentence editorial summary of WHY they mention/use/recommend it, what problem it solves, and what makes it stand out. Do NOT copy raw transcript text - rewrite it as a clean, professional summary.\n\nEpisode: "${ep.episode_title}"\nSegment ${chunkIndex + 1} of ${totalChunks} (${chunk.length} chars):\n\n${chunk}`
                 }
               ],
               max_tokens: 4500,
@@ -13699,7 +13706,7 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
             description: p.description || null,
             purchaseUrl: rawUrl || null,
             context: p.context || null,
-            mentionType: ["recommendation", "personal_use"].includes(p.mentionType) ? p.mentionType : "personal_use",
+            mentionType: ["organic", "personal_use", "ad_read", "sponsorship", "discussion"].includes(p.mentionType) ? p.mentionType : (p.mentionType === "recommendation" ? "organic" : "personal_use"),
             category,
             episodeTitle: ep.episode_title,
             episodeSlug,
@@ -13903,11 +13910,21 @@ Return JSON: {"products": [...]}. Empty array is completely fine.${trainingSecti
       }
       if (bestStart === -1) return res.json({ excerpt: null, message: "Product mention not found in transcript" });
 
-      const contextChars = 1500;
+      const contextChars = 3500;
       const start = Math.max(0, bestStart - contextChars);
       const end = Math.min(transcript.length, bestStart + matchedTerm.length + contextChars);
       const excerpt = transcript.slice(start, end);
-      res.json({ excerpt, matchedTerm, startOffset: start, productName: product.name, company: product.company });
+
+      const introOutroChars = 3000;
+      const searchTermsLower = searchTerms.map(t => t.toLowerCase());
+      const introText = transcript.slice(0, introOutroChars);
+      const outroText = transcript.slice(Math.max(0, transcript.length - introOutroChars));
+      const introHasMatch = searchTermsLower.some(t => introText.toLowerCase().includes(t));
+      const outroHasMatch = searchTermsLower.some(t => outroText.toLowerCase().includes(t));
+      const intro = introHasMatch ? introText : null;
+      const outro = outroHasMatch ? outroText : null;
+
+      res.json({ excerpt, matchedTerm, startOffset: start, productName: product.name, company: product.company, intro, outro });
     } catch (err: any) {
       res.status(500).json({ message: "Failed to fetch excerpt" });
     }
