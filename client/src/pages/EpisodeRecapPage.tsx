@@ -586,7 +586,20 @@ export default function EpisodeRecapPage() {
     } catch { return []; }
   })();
 
-  const podcastConfig = getPodcastBySlug(podcastSlug);
+  const staticConfig = getPodcastBySlug(podcastSlug);
+  const podcastConfig: PodcastLandingConfig | undefined = staticConfig || (episode ? {
+    slug: podcastSlug,
+    name: episode.podcastName || podcastSlug,
+    itunesId: episode.itunesId || "",
+    category: "",
+    hosts: episode.hosts || "",
+    description: "",
+    keywords: "",
+    faqTopics: "",
+    artworkUrl: episode.artworkUrl || "",
+    appleUrl: "",
+    spotifyUrl: "",
+  } : undefined);
 
   const { data: podcastHosts } = useQuery<any[]>({
     queryKey: ["/api/podcasts", podcastSlug, "hosts"],

@@ -69,7 +69,12 @@ export default function EpisodeGuestsPage() {
   });
 
   const guests = guestsData?.guests || [];
-  const podcastConfig = getPodcastBySlug(podcastSlug);
+  const staticConfig = getPodcastBySlug(podcastSlug);
+  const podcastConfig = staticConfig || (episode ? {
+    slug: podcastSlug, name: episode.podcastName || podcastSlug, itunesId: "",
+    category: "", hosts: episode.hosts || "", description: "", keywords: "", faqTopics: "",
+    artworkUrl: episode.artworkUrl || "", appleUrl: "", spotifyUrl: "",
+  } : undefined);
 
   useEffect(() => {
     if (episode && podcastConfig) {

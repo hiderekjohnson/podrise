@@ -170,9 +170,14 @@ export default function EpisodeTranscriptPage() {
     enabled: !!podcastSlug,
   });
 
-  const podcastConfig = getPodcastBySlug(podcastSlug);
+  const staticConfig = getPodcastBySlug(podcastSlug);
   const segments = data?.segments || [];
   const meta = data?.meta;
+  const podcastConfig = staticConfig || (meta ? {
+    slug: podcastSlug, name: meta.podcastName || podcastSlug, itunesId: "",
+    category: "", hosts: "", description: "", keywords: "", faqTopics: "",
+    artworkUrl: meta.artworkUrl || "", appleUrl: "", spotifyUrl: "",
+  } : undefined);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
