@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PodCap — Home</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --indigo: #6366F1; --violet: #8B5CF6; --indigo-light: #A5B4FC;
+  --indigo-bg: #EEF2FF; --bg: #F7F7FC; --card: #FFFFFF;
+  --text: #09090B; --secondary: #52525B; --muted: #71717A;
+  --hint: #A1A1AA; --border: #F0F0F2; --border-med: #E4E4E7;
+  --serif: 'DM Serif Display', serif; --sans: 'DM Sans', sans-serif; --mono: 'DM Mono', monospace;
+}
+html, body { height: 100%; font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; font-size: 17px; }
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar { width: 64px; flex-shrink: 0; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
+.sidebar-logo { width: 36px; height: 36px; background: linear-gradient(145deg, #6366F1, #8B5CF6); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.sidebar-nav { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; width: 100%; padding: 0 10px; }
+.s-item { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--hint); cursor: pointer; transition: all 0.15s; position: relative; }
+.s-item:hover { background: var(--bg); color: var(--secondary); }
+.s-item.active { background: var(--indigo-bg); color: var(--indigo); }
+.s-item svg { width: 20px; height: 20px; }
+.s-item::after { content: attr(data-label); position: absolute; left: 54px; top: 50%; transform: translateY(-50%); background: var(--text); color: #fff; font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 100; }
+.s-item:hover::after { opacity: 1; }
+.sidebar-bottom { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.s-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--indigo-bg); color: var(--indigo); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--indigo-light); }
+
+.content { flex: 1; display: flex; overflow: hidden; min-width: 0; }
+
+/* FEED */
+.feed-col { flex: 1; display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--border); }
+.feed-head { flex-shrink: 0; background: rgba(255,255,255,0.94); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); display: flex; align-items: stretch; height: 54px; padding-right: 16px; }
+.feed-tabs { display: flex; flex: 1; }
+.f-tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: var(--hint); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; user-select: none; position: relative; }
+.f-tab:hover { color: var(--secondary); background: #FAFAFA; }
+.f-tab.active { color: var(--text); border-bottom-color: var(--indigo); font-weight: 600; }
+.f-tab-tooltip { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; font-size: 12px; line-height: 1.5; padding: 8px 12px; border-radius: 8px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; width: 200px; }
+.f-tab-tooltip::before { content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-bottom-color: var(--text); }
+.f-tab:hover .f-tab-tooltip { opacity: 1; }
+.feed-search-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; align-self: center; color: var(--hint); cursor: pointer; background: none; border: none; transition: all 0.15s; }
+.feed-search-btn:hover { background: var(--bg); color: var(--indigo); }
+.feed-scroll { flex: 1; overflow-y: auto; background: #FFFFFF; padding: 16px 20px; }
+.feed-scroll::-webkit-scrollbar { width: 4px; }
+.feed-scroll::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+
+/* ═══════════════════════════
+   EPISODE CARD
+   ═══════════════════════════ */
+.ep {
+  background: var(--card);
+  border: 1px solid var(--border-med);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.ep:last-child { margin-bottom: 0; }
+
+/* HEADER — tinted background set inline per card, creates instant color identity */
+.ep-header { display: flex; align-items: flex-start; gap: 18px; padding: 20px 24px 18px; }
+
+.ep-artwork {
+  width: 96px; height: 96px; border-radius: 14px;
+  overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16), 0 1px 3px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.ep-artwork img, .ep-artwork svg { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.ep-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 96px; }
+
+/* Podcast name — bumped up, primary anchor */
+.ep-podcast-name {
+  font-size: 18px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px;
+  text-decoration: none; display: inline-block; transition: color 0.12s;
+}
+.ep-podcast-name:hover { color: var(--indigo); }
+
+.ep-meta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.ep-meta-item { display: flex; align-items: center; gap: 5px; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.ep-meta-item svg { opacity: 0.4; flex-shrink: 0; }
+
+.ep-actions-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ep-platform-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px;
+  background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.12);
+  font-size: 14px; font-weight: 500; color: var(--secondary);
+  cursor: pointer; text-decoration: none; transition: all 0.15s; white-space: nowrap;
+}
+.ep-platform-btn:hover { background: #fff; }
+.ep-platform-btn svg { flex-shrink: 0; width: 15px; height: 15px; }
+.ep-follow-btn {
+  display: inline-flex; align-items: center; padding: 8px 20px;
+  border-radius: 8px; background: var(--indigo); color: #fff;
+  font-size: 14px; font-weight: 700; border: none;
+  cursor: pointer; font-family: var(--sans); transition: all 0.15s;
+}
+.ep-follow-btn:hover { background: #4F46E5; }
+.ep-follow-btn.active { background: rgba(255,255,255,0.75); color: var(--secondary); border: 1px solid rgba(0,0,0,0.12); }
+.ep-follow-btn.active:hover { color: var(--indigo); }
+
+/* HEADLINE BLOCK — clean white */
+.ep-headline-block { padding: 18px 24px 18px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+/* Episode title line + timestamp right-aligned */
+.ep-episode-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+.ep-episode-title { font-family: var(--mono); font-size: 12px; color: var(--hint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.ep-episode-time { font-family: var(--mono); font-size: 12px; color: var(--hint); white-space: nowrap; flex-shrink: 0; }
+
+/* Hook — 26px serif. Yes it's bigger than the podcast name — the hook is the new information */
+.ep-headline {
+  font-family: var(--serif); font-size: 26px; font-weight: 400;
+  color: var(--text); line-height: 1.2; letter-spacing: -0.01em;
+}
+
+/* CARD BODY */
+.ep-body { padding: 22px 24px 22px; }
+
+/* Takeaways */
+.ep-takeaways { margin-bottom: 20px; }
+.tk-label { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); margin-bottom: 12px; }
+.tk-list { list-style: none; padding: 0; }
+.tk-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 16px; color: var(--secondary); line-height: 1.6; }
+.tk-list li:first-child { padding-top: 0; }
+.tk-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.tk-bullet { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--indigo); margin-top: 8px; }
+
+/* Quote */
+.ep-quote { border-left: 3px solid var(--violet); border-radius: 0 10px 10px 0; padding: 14px 18px; background: var(--bg); margin-bottom: 20px; }
+.ep-qt { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--secondary); line-height: 1.65; margin-bottom: 8px; }
+.ep-qa { font-family: var(--mono); font-size: 12px; color: var(--hint); }
+
+/* Recap */
+.ep-recap { margin-bottom: 0; }
+.ep-recap-label { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); margin-bottom: 12px; }
+.ep-recap-text { font-size: 16px; color: var(--secondary); line-height: 1.8; }
+.ep-recap-text p { margin-bottom: 14px; }
+.ep-recap-text p:last-child { margin-bottom: 0; }
+
+/* MENTIONS — card footer, no margin-top needed since ep-body has padding */
+.ep-mentions { border-top: 1px solid var(--border); background: var(--bg); }
+.mentions-teaser { display: flex; align-items: stretch; }
+.mentions-teaser-left {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px 11px 20px; flex: 1; min-width: 0;
+  cursor: pointer; transition: background 0.12s;
+}
+.mentions-teaser-left:hover, .ep-mentions.open .mentions-teaser-left { background: var(--indigo-bg); }
+.mentions-teaser-right {
+  display: flex; align-items: center; gap: 2px;
+  padding: 8px 14px 8px 10px; border-left: 1px solid var(--border); flex-shrink: 0;
+}
+.tsr-btn {
+  width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  color: var(--hint); background: none; border: none; cursor: pointer; transition: all 0.15s;
+}
+.tsr-btn:hover { background: var(--card); color: var(--indigo); }
+.tsr-btn svg { width: 15px; height: 15px; }
+.tsr-follow {
+  margin-left: 4px; padding: 6px 16px; border-radius: 999px;
+  background: var(--indigo); color: #fff; font-size: 13px; font-weight: 700;
+  border: none; cursor: pointer; font-family: var(--sans); transition: all 0.15s; white-space: nowrap;
+}
+.tsr-follow:hover { background: #4F46E5; }
+.tsr-follow.active { background: var(--card); color: var(--secondary); border: 1.5px solid var(--border-med); }
+.tsr-follow.active:hover { border-color: var(--indigo); color: var(--indigo); }
+
+/* ACTION BAR — hidden, replaced by mentions-teaser-right */
+.ep-actions { display: none !important; }
+.m-stack { display: flex; align-items: center; flex-shrink: 0; }
+.m-stack-item { width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-left: -9px; flex-shrink: 0; transition: border-color 0.12s; }
+.m-stack-item:first-child { margin-left: 0; }
+.mentions-teaser:hover .m-stack-item, .ep-mentions.open .m-stack-item { border-color: var(--indigo-bg); }
+.m-stack-item.sq { border-radius: 8px; font-size: 16px; background: var(--card) !important; }
+.m-stack-more { width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--bg); margin-left: -9px; flex-shrink: 0; background: var(--border-med); color: var(--muted); font-size: 10px; font-weight: 700; font-family: var(--mono); display: flex; align-items: center; justify-content: center; }
+.m-teaser-info { flex: 1; min-width: 0; }
+.m-teaser-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.m-teaser-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.m-teaser-chevron { color: var(--hint); flex-shrink: 0; transition: transform 0.22s, color 0.15s; }
+.ep-mentions.open .m-teaser-chevron { transform: rotate(180deg); color: var(--indigo); }
+.mentions-body { display: none; border-top: 1px solid var(--border); }
+.ep-mentions.open .mentions-body { display: block; animation: expandIn 0.2s ease both; }
+@keyframes expandIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.mentions-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; }
+.mentions-tab { display: flex; align-items: center; gap: 6px; padding: 11px 14px; font-size: 14px; font-weight: 500; color: var(--hint); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; user-select: none; white-space: nowrap; }
+.mentions-tab:first-child { padding-left: 0; }
+.mentions-tab:hover { color: var(--secondary); }
+.mentions-tab.active { color: var(--indigo); border-bottom-color: var(--indigo); font-weight: 600; }
+.mentions-tab-count { font-family: var(--mono); font-size: 11px; font-weight: 600; background: var(--border); color: var(--muted); padding: 1px 7px; border-radius: 999px; transition: all 0.15s; }
+.mentions-tab.active .mentions-tab-count { background: var(--indigo-bg); color: var(--indigo); }
+.mentions-panel { display: none; padding: 0 24px 4px; }
+.mentions-panel.active { display: block; }
+.mention-row { display: flex; align-items: flex-start; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--border); }
+.mention-row:last-of-type { border-bottom: none; }
+.m-av { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.m-logo { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.m-book { width: 34px; height: 46px; border-radius: 4px; flex-shrink: 0; background: var(--indigo-bg); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 2px 2px 0 rgba(0,0,0,0.08); }
+.m-info { flex: 1; min-width: 0; }
+.m-name-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.m-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.m-role { font-size: 12px; color: var(--muted); }
+.m-book-meta { font-family: var(--mono); font-size: 12px; color: var(--hint); margin-bottom: 5px; }
+.m-context { font-size: 14px; color: var(--secondary); line-height: 1.55; }
+.mentions-show-more { padding: 12px 0 14px; display: flex; justify-content: center; }
+.mentions-show-more-btn { font-size: 14px; font-weight: 500; color: var(--indigo); background: none; border: 1.5px solid var(--indigo-light); border-radius: 999px; padding: 7px 18px; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
+.mentions-show-more-btn:hover { background: var(--indigo-bg); border-color: var(--indigo); }
+.mention-row.hidden { display: none; }
+.mention-row.hidden.revealed { display: flex; }
+
+/* RIGHT RAIL */
+.rail { width: 312px; flex-shrink: 0; overflow-y: auto; padding: 0; background: var(--bg); display: flex; flex-direction: column; }
+.rail::-webkit-scrollbar { width: 4px; }
+.rail::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+
+/* Sticky search bar at top of rail */
+.rail-search {
+  position: sticky; top: 0; z-index: 10;
+  padding: 12px 16px; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.rail-search-inner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--border-med);
+  border-radius: 10px; padding: 9px 14px; transition: border-color 0.15s;
+}
+.rail-search-inner:focus-within { border-color: var(--indigo); }
+.rail-search-inner svg { color: var(--hint); flex-shrink: 0; width: 16px; height: 16px; }
+.rail-search-input {
+  flex: 1; border: none; background: none; outline: none;
+  font-family: var(--sans); font-size: 14px; color: var(--text);
+}
+.rail-search-input::placeholder { color: var(--hint); }
+
+/* Rail content scrollable area */
+.rail-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.rail-body::-webkit-scrollbar { width: 4px; }
+.rail-body::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+
+/* Pod Squad — closable */
+.rail-squad { background: linear-gradient(145deg, #6366F1, #8B5CF6); border-radius: 16px; padding: 18px 18px 18px 20px; margin-bottom: 14px; position: relative; }
+.rs-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.7); transition: all 0.15s;
+}
+.rs-close:hover { background: rgba(255,255,255,0.25); color: #fff; }
+.rs-close svg { width: 12px; height: 12px; }
+.rs-eye { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+.rs-hl { font-family: var(--serif); font-size: 20px; color: #fff; line-height: 1.3; margin-bottom: 6px; }
+.rs-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 14px; line-height: 1.5; }
+.rs-progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.rs-bar-wrap { flex: 1; background: rgba(255,255,255,0.2); border-radius: 999px; height: 6px; overflow: hidden; }
+.rs-bar-fill { width: 66%; height: 100%; background: #fff; border-radius: 999px; }
+.rs-frac { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.8); white-space: nowrap; }
+.rs-btn { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.2); color: #fff; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); transition: background 0.15s; cursor: pointer; font-family: var(--sans); }
+.rs-btn:hover { background: rgba(255,255,255,0.3); }
+.r-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
+.r-head { padding: 15px 16px 13px; border-bottom: 1px solid var(--border); }
+.r-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.r-show-more { padding: 11px 16px; }
+.r-show-more a { font-size: 13px; font-weight: 500; color: var(--indigo); text-decoration: none; }
+.r-show-more a:hover { text-decoration: underline; }
+
+/* Who to follow */
+.wtf-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.wtf-row:last-of-type { border-bottom: none; }
+.wtf-artwork { width: 48px; height: 48px; border-radius: 11px; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.wtf-artwork svg, .wtf-artwork img { display: block; width: 100%; height: 100%; }
+.wtf-info { flex: 1; min-width: 0; }
+.wtf-name { font-size: 14px; font-weight: 700; color: var(--text); cursor: pointer; text-decoration: none; display: block; }
+.wtf-name:hover { color: var(--indigo); }
+.wtf-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.wtf-follow-btn { flex-shrink: 0; font-size: 13px; font-weight: 700; padding: 7px 14px; border-radius: 999px; background: var(--text); color: #fff; border: none; cursor: pointer; font-family: var(--sans); transition: background 0.15s; }
+.wtf-follow-btn:hover { background: #3F3F46; }
+.wtf-follow-btn.following { background: var(--card); color: var(--text); border: 1.5px solid var(--border-med); }
+.wtf-follow-btn.following:hover { border-color: var(--indigo); color: var(--indigo); }
+
+/* Shop */
+.shop-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.12s; }
+.shop-row:last-of-type { border-bottom: none; }
+.shop-row:hover { background: var(--bg); }
+.shop-thumb { width: 46px; height: 46px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.shop-info { flex: 1; min-width: 0; }
+.shop-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.shop-brand { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.shop-from { font-size: 11px; color: var(--indigo); margin-top: 3px; font-weight: 500; }
+
+button:focus-visible, a:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; border-radius: 4px; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.ep:nth-child(1) { animation: fadeUp 0.28s 0.00s ease both; }
+.ep:nth-child(2) { animation: fadeUp 0.28s 0.07s ease both; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 28 28" width="20" height="20" fill="none">
+        <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
+        <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+        <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
+        <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+        <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+        <circle cx="25.5" cy="3" r="2.5" fill="white"/>
+      </svg>
+    </div>
+    <div class="sidebar-nav">
+      <div class="s-item active" data-label="Home"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg></div>
+      <div class="s-item" data-label="Discover"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg></div>
+      <div class="s-item" data-label="My Pulse"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg></div>
+      <div class="s-item" data-label="Shop"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/></svg></div>
+      <div class="s-item" data-label="Bookmarks"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg></div>
+      <div class="s-item" data-label="Pod Squad"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg></div>
+      <div class="s-item" data-label="Settings"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg></div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="s-item" data-label="Help"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg></div>
+      <div class="s-avatar">DJ</div>
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="feed-col">
+      <div class="feed-head">
+        <div class="feed-tabs">
+          <div class="f-tab" onclick="setTab(this)">For You<div class="f-tab-tooltip">Personalised episodes based on your interests, industries, and roles — including podcasts you don't follow yet</div></div>
+          <div class="f-tab active" onclick="setTab(this)">Following<div class="f-tab-tooltip">Every new episode from the podcasts you follow, in chronological order</div></div>
+        </div>
+        <button class="feed-search-btn"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg></button>
+      </div>
+
+      <div class="feed-scroll">
+
+        <!-- EP 1 — My First Million · indigo/violet accent -->
+        <div class="ep">
+          <div class="ep-header" style="background: #F0F1FE;">
+            <div class="ep-artwork">
+              <svg viewBox="0 0 96 96" fill="none">
+                <rect width="96" height="96" fill="#111"/>
+                <defs><linearGradient id="g1" x1="0" y1="0" x2="96" y2="96"><stop offset="0%" stop-color="#1c1c1c"/><stop offset="100%" stop-color="#000"/></linearGradient></defs>
+                <rect width="96" height="96" fill="url(#g1)"/>
+                <ellipse cx="27" cy="36" rx="13" ry="15" fill="#2e2e2e"/>
+                <rect x="14" y="49" width="26" height="47" rx="3" fill="#252525"/>
+                <ellipse cx="69" cy="36" rx="13" ry="15" fill="#363636"/>
+                <rect x="56" y="49" width="26" height="47" rx="3" fill="#252525"/>
+                <text x="48" y="27" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="#D4AF37" text-anchor="middle" letter-spacing="1">MY</text>
+                <text x="48" y="41" font-family="Arial Black,sans-serif" font-size="10" font-weight="900" fill="white" text-anchor="middle">FIRST</text>
+                <text x="48" y="55" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="#D4AF37" text-anchor="middle" letter-spacing="1">MILLION</text>
+                <text x="48" y="67" font-family="sans-serif" font-size="6" fill="#555" text-anchor="middle">HubSpot Media</text>
+              </svg>
+            </div>
+            <div class="ep-meta">
+              <div>
+                <a href="#" class="ep-podcast-name">My First Million</a>
+                <div class="ep-meta-row">
+                  <div class="ep-meta-item"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>Sam Parr &amp; Shaan Puri</div>
+                  <div class="ep-meta-item"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/></svg>843+ episodes</div>
+                  <div class="ep-meta-item"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>Since 2020</div>
+                </div>
+              </div>
+              <div class="ep-actions-row">
+                <a href="#" class="ep-platform-btn"><svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#B150E2"/><circle cx="10" cy="10" r="6" fill="none" stroke="white" stroke-width="1.5" opacity="0.7"/><circle cx="10" cy="10" r="2.5" fill="white" opacity="0.8"/></svg>Apple Podcasts</a>
+                <a href="#" class="ep-platform-btn"><svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#1DB954"/><path d="M14.5 13.5a.5.5 0 01-.7.1c-1.9-1.2-4.3-1.4-7.1-.8a.5.5 0 01-.2-1c3.1-.7 5.7-.4 7.9 1a.5.5 0 01.1.7zm1.1-2.5a.6.6 0 01-.8.2c-2.2-1.3-5.5-1.7-8.1-1a.6.6 0 01-.3-1.2c3-.8 6.7-.4 9.2 1.2a.6.6 0 010 .8zm.1-2.6C12.7 7 8.9 6.8 6.3 7.6a.7.7 0 11-.4-1.4c3-.9 7.2-.7 10.1 1.1a.7.7 0 01-.3 1.2z" fill="white"/></svg>Spotify</a>
+                <button class="ep-follow-btn" id="ft1" onclick="syncFollow('ft1','afp1')">Follow</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ep-headline-block">
+            <div class="ep-episode-line">
+              <span class="ep-episode-title">Ep 689 — This guy names billion dollar brands for a living, here's his exact 3-step formula</span>
+              <span class="ep-episode-time">14h ago</span>
+            </div>
+            <div class="ep-headline">The guy with the secret to billion-dollar brand names</div>
+          </div>
+
+          <div class="ep-body">
+            <div class="ep-takeaways">
+              <div class="tk-label">Key Takeaways</div>
+              <ul class="tk-list">
+                <li><div class="tk-bullet"></div><div>A brand's name is its most-used asset. 'Swiffer' beat 'ProMop' because it was more processing-fluent and surprising — that single naming decision drove the product's market success.</div></li>
+                <li><div class="tk-bullet"></div><div>Choosing a name that feels safe usually means choosing a name that fails to stand out. 'Windsurf' replacing 'Codium' significantly boosted brand visibility without changing a single feature.</div></li>
+                <li><div class="tk-bullet"></div><div>The process: generate thousands of candidates across linguistic and thematic categories, then filter for alignment with both the product and the consumer's mental model.</div></li>
+                <li><div class="tk-bullet"></div><div>Present potential names in realistic scenarios so clients can feel their impact — context makes names believable, especially for clients unfamiliar with creative decisions.</div></li>
+              </ul>
+            </div>
+            <div class="ep-quote">
+              <div class="ep-qt">"The most frequently used part of your brand isn't your logo, your tagline, or your colour palette. It's your name."</div>
+              <div class="ep-qa">— David (brand naming strategist)</div>
+            </div>
+            <div class="ep-recap">
+              <div class="ep-recap-label">Episode Recap</div>
+              <div class="ep-recap-text">
+                <p>David began by challenging the notion that a company's name isn't important, arguing that a good name is the most frequently used part of a brand and can provide a strategic advantage. He recounted the story of how the Swiffer name was chosen over ProMop, demonstrating how a name can transform market perception and success.</p>
+                <p>He emphasised that a great name should be original, processing fluent, and surprising, sharing the example of renaming Codium to Windsurf, which significantly boosted the brand's visibility. David also highlighted the importance of not choosing comfortable or popular names, as they often fail to stand out.</p>
+                <p>The conversation delved into the process of finding the right name, where David explained the importance of understanding both the product and the consumer's needs. He detailed how his team generates thousands of name candidates by exploring various linguistic and thematic categories.</p>
+                <p>David discussed the 'comfort trap' in naming and the need for courage in choosing names that might initially seem polarising but have the potential to be memorable and impactful. He also shared insights into how his firm uses software and cognitive science principles to evaluate the effectiveness of names.</p>
+                <p>The episode also covered the significance of presenting names in a context that makes them believable, such as showcasing them in realistic scenarios to clients. This helps clients, who may not be used to making creative decisions, see the potential value of a name.</p>
+                <p>David concluded by offering advice on managing creative teams, encouraging leaders to focus on leading rather than managing and to foster an environment where creativity can thrive without immediate judgment. He also mentioned the value of giving creative teams permission to fail as part of the creative process.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ep-mentions" id="em1">
+            <div class="mentions-teaser">
+              <div class="mentions-teaser-left" onclick="toggleMentions('em1')">
+                <div class="m-stack">
+                  <div class="m-stack-item" style="background:#EEF2FF;color:#4F46E5;">SG</div>
+                  <div class="m-stack-item" style="background:#F0F9FF;color:#0369A1;">MZ</div>
+                  <div class="m-stack-item" style="background:#FFF7ED;color:#C2410C;">JB</div>
+                  <div class="m-stack-item" style="background:#FEF9C3;color:#A16207;">WB</div>
+                  <div class="m-stack-item sq">🤖</div>
+                  <div class="m-stack-more">+10</div>
+                </div>
+                <div class="m-teaser-info">
+                  <div class="m-teaser-title">Mentioned in this episode</div>
+                  <div class="m-teaser-sub">6 people · 6 companies · 3 products</div>
+                </div>
+                <div class="m-teaser-chevron"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></div>
+              </div>
+              <div class="mentions-teaser-right" onclick="event.stopPropagation()">
+                <button class="tsr-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg></button>
+                <button class="tsr-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/></svg></button>
+                <button class="tsr-follow" id="afp1" onclick="syncFollow('ft1','afp1')">Follow</button>
+              </div>
+            </div>
+            <div class="mentions-body">
+              <div class="mentions-tabs">
+                <div class="mentions-tab active" onclick="switchTab(this,'ep1-people')">People <span class="mentions-tab-count">6</span></div>
+                <div class="mentions-tab" onclick="switchTab(this,'ep1-companies')">Companies <span class="mentions-tab-count">6</span></div>
+                <div class="mentions-tab" onclick="switchTab(this,'ep1-products')">Products <span class="mentions-tab-count">3</span></div>
+              </div>
+              <div class="mentions-panel active" id="ep1-people">
+                <div class="mention-row"><div class="m-av" style="background:#EEF2FF;color:#4F46E5;">SG</div><div class="m-info"><div class="m-name-row"><span class="m-name">Scott Galloway</span><span class="m-role">Professor at NYU Stern &amp; Host of Prof G</span></div><div class="m-context">Referenced as one of over 80 founders interviewed to uncover insights about success and investment strategies.</div></div></div>
+                <div class="mention-row"><div class="m-av" style="background:#F0F9FF;color:#0369A1;">MZ</div><div class="m-info"><div class="m-name-row"><span class="m-name">Mark Zuckerberg</span><span class="m-role">CEO of Meta</span></div><div class="m-context">Highlighted as a notable example of a unique path to success, contrasting with more conventional routes taken by others like Gates.</div></div></div>
+                <div class="mention-row"><div class="m-av" style="background:#FFF7ED;color:#C2410C;">JB</div><div class="m-info"><div class="m-name-row"><span class="m-name">Jeff Bezos</span><span class="m-role">Founder of Amazon &amp; Blue Origin</span></div><div class="m-context">Discussed for his dual capabilities in product development and leadership, allowing Amazon to remain innovative even at large scale.</div></div></div>
+                <div class="mention-row hidden" id="ep1-pm1"><div class="m-av" style="background:#FEF9C3;color:#A16207;">WB</div><div class="m-info"><div class="m-name-row"><span class="m-name">Warren Buffett</span><span class="m-role">Chairman &amp; CEO of Berkshire Hathaway</span></div><div class="m-context">His 'be greedy when others are fearful' advice cited to illustrate a strategic mindset in times of market uncertainty.</div></div></div>
+                <div class="mention-row hidden" id="ep1-pm2"><div class="m-av" style="background:#FEF2F2;color:#DC2626;">TK</div><div class="m-info"><div class="m-name-row"><span class="m-name">Travis Kalanick</span><span class="m-role">Co-founder of Uber</span></div><div class="m-context">Described as notoriously prickly, making it challenging for others to connect with him personally.</div></div></div>
+                <div class="mention-row hidden" id="ep1-pm3"><div class="m-av" style="background:#F0FDF4;color:#15803D;">DM</div><div class="m-info"><div class="m-name-row"><span class="m-name">Danny Meyer</span><span class="m-role">Restaurateur &amp; Founder of Shake Shack</span></div><div class="m-context">Profiled for his influential mentors and leadership style in the restaurant industry.</div></div></div>
+                <div class="mentions-show-more" id="ep1-psm"><button class="mentions-show-more-btn" onclick="showMore('ep1-pm1','ep1-pm2','ep1-pm3','ep1-psm')">Show 3 more people</button></div>
+              </div>
+              <div class="mentions-panel" id="ep1-companies">
+                <div class="mention-row"><div class="m-logo">🤖</div><div class="m-info"><div class="m-name-row"><span class="m-name">OpenAI</span><span class="m-role">Artificial Intelligence</span></div><div class="m-context">Discussed as having a significantly higher burn rate than Uber, with estimates suggesting losses of up to $10 billion annually.</div></div></div>
+                <div class="mention-row"><div class="m-logo">🔍</div><div class="m-info"><div class="m-name-row"><span class="m-name">Google</span><span class="m-role">Technology &amp; Internet Services</span></div><div class="m-context">Referenced as a notable investment opportunity that Jeff Bezos capitalised on during his angel investing endeavours.</div></div></div>
+                <div class="mention-row"><div class="m-logo">✈️</div><div class="m-info"><div class="m-name-row"><span class="m-name">Airbnb</span><span class="m-role">Travel &amp; Hospitality</span></div><div class="m-context">Discussed in the context of a personal anecdote about attempting to secure a job there during its early days.</div></div></div>
+                <div class="mention-row"><div class="m-logo">🌊</div><div class="m-info"><div class="m-name-row"><span class="m-name">Windsurf (fmr. Codium)</span><span class="m-role">AI coding tool</span></div><div class="m-context">The rename from Codium to Windsurf significantly boosted brand visibility — the clearest recent example of strategic naming delivering measurable results.</div></div></div>
+                <div class="mention-row"><div class="m-logo">🧹</div><div class="m-info"><div class="m-name-row"><span class="m-name">Swiffer (P&amp;G)</span><span class="m-role">Consumer cleaning product</span></div><div class="m-context">Chosen over 'ProMop' because it scored higher on processing fluency and surprise — credited as a significant driver of market success.</div></div></div>
+                <div class="mention-row"><div class="m-logo">🛍️</div><div class="m-info"><div class="m-name-row"><span class="m-name">Shopify</span><span class="m-role">E-commerce platform</span></div><div class="m-context">Noted for enabling entrepreneurs to easily start businesses, exemplified by a success story of a pillow company that thrived using its platform.</div></div></div>
+              </div>
+              <div class="mentions-panel" id="ep1-products">
+                <div class="mention-row"><div class="m-book">📘</div><div class="m-info"><div class="m-name-row"><span class="m-name">Ship of Gold in the Deep Blue Sea</span></div><div class="m-book-meta">Gary Kinder · 560 pages · 2009</div><div class="m-context">Used as an analogy for the treasure hunt process in brand naming — exploring all possibilities to find the valuable insight buried within.</div></div></div>
+                <div class="mention-row"><div class="m-book">📙</div><div class="m-info"><div class="m-name-row"><span class="m-name">Leonardo da Vinci</span></div><div class="m-book-meta">Walter Isaacson · 599 pages · 2017</div><div class="m-context">Recommended for insights into creativity and persistence — da Vinci's relentless exploration directly mirrors how David generates brand name candidates.</div></div></div>
+                <div class="mention-row"><div class="m-book">📗</div><div class="m-info"><div class="m-name-row"><span class="m-name">Playing to Win</span></div><div class="m-book-meta">Roger Martin &amp; A.G. Lafley · 260 pages · 2013</div><div class="m-context">Cited for its direct approach to marketing strategy — useful for understanding how a brand name can itself become a competitive advantage.</div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ep-actions">
+            <div class="ep-actions-left">
+              <button class="act-follow-pill" id="afp1" onclick="syncFollow('ft1','afp1')">Follow</button>
+              <button class="act-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg></button>
+              <button class="act-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- EP 2 — Stoic Advice · amber/orange accent -->
+        <div class="ep">
+          <div class="ep-header" style="background: #FFFBEB;">
+            <div class="ep-artwork">
+              <svg viewBox="0 0 96 96" fill="none">
+                <rect width="96" height="96" fill="#0c1a0e"/>
+                <circle cx="48" cy="40" r="26" fill="none" stroke="#86efac" stroke-width="1.5" opacity="0.35"/>
+                <circle cx="48" cy="40" r="16" fill="none" stroke="#86efac" stroke-width="1" opacity="0.25"/>
+                <circle cx="48" cy="40" r="7" fill="#86efac" opacity="0.35"/>
+                <text x="48" y="76" font-family="serif" font-size="7.5" fill="#86efac" text-anchor="middle" opacity="0.55" letter-spacing="2">STOIC</text>
+                <text x="48" y="87" font-family="serif" font-size="7.5" fill="#86efac" text-anchor="middle" opacity="0.4" letter-spacing="2">ADVICE</text>
+              </svg>
+            </div>
+            <div class="ep-meta">
+              <div>
+                <a href="#" class="ep-podcast-name">Stoic Advice</a>
+                <div class="ep-meta-row">
+                  <div class="ep-meta-item"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>Ryan Holiday</div>
+                  <div class="ep-meta-item"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/></svg>512+ episodes</div>
+                  <div class="ep-meta-item"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>Since 2018</div>
+                </div>
+              </div>
+              <div class="ep-actions-row">
+                <a href="#" class="ep-platform-btn"><svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#B150E2"/><circle cx="10" cy="10" r="6" fill="none" stroke="white" stroke-width="1.5" opacity="0.7"/><circle cx="10" cy="10" r="2.5" fill="white" opacity="0.8"/></svg>Apple Podcasts</a>
+                <a href="#" class="ep-platform-btn"><svg width="13" height="13" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#1DB954"/><path d="M14.5 13.5a.5.5 0 01-.7.1c-1.9-1.2-4.3-1.4-7.1-.8a.5.5 0 01-.2-1c3.1-.7 5.7-.4 7.9 1a.5.5 0 01.1.7zm1.1-2.5a.6.6 0 01-.8.2c-2.2-1.3-5.5-1.7-8.1-1a.6.6 0 01-.3-1.2c3-.8 6.7-.4 9.2 1.2a.6.6 0 010 .8zm.1-2.6C12.7 7 8.9 6.8 6.3 7.6a.7.7 0 11-.4-1.4c3-.9 7.2-.7 10.1 1.1a.7.7 0 01-.3 1.2z" fill="white"/></svg>Spotify</a>
+                <button class="ep-follow-btn" id="ft2" onclick="syncFollow('ft2','afp2')">Follow</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ep-headline-block">
+            <div class="ep-episode-line">
+              <span class="ep-episode-title">Ep 512 — Stoic advice for the problems we all face</span>
+              <span class="ep-episode-time">8h ago</span>
+            </div>
+            <div class="ep-headline">The price of profit Ryan Holiday won't pay</div>
+          </div>
+
+          <div class="ep-body">
+            <div class="ep-takeaways">
+              <div class="tk-label">Key Takeaways</div>
+              <ul class="tk-list">
+                <li><div class="tk-bullet"></div><div>Diversifying workouts with strength training enhances both physical and mental wellness — Holiday's personal shift was supported by Tonal's home gym system.</div></li>
+                <li><div class="tk-bullet"></div><div>Stoicism does not advocate isolation — even Marcus Aurelius valued deep friendships and community, countering the misconception that Stoics are cold and detached.</div></li>
+                <li><div class="tk-bullet"></div><div>In business, prioritising principles over profit aligns with Stoic ethics — Holiday's time at American Apparel saw principled decisions made at real financial cost.</div></li>
+                <li><div class="tk-bullet"></div><div>Gandhi and MLK used Stoic principles as proof that moral example is a practical strategic tool — non-violent resistance is the most disciplined form of action.</div></li>
+              </ul>
+            </div>
+            <div class="ep-quote">
+              <div class="ep-qt">"You can always make more money. You cannot always get your integrity back."</div>
+              <div class="ep-qa">— Ryan Holiday</div>
+            </div>
+            <div class="ep-recap">
+              <div class="ep-recap-label">Episode Recap</div>
+              <div class="ep-recap-text">
+                <p>Holiday opens with something unexpected: strength training. His recent shift toward more weight work — supported by Tonal — is framed as a Stoic act in itself: caring for your vessel so your mind can do its work. It's a small example of what the episode keeps returning to: philosophy that lives in actions, not ideas.</p>
+                <p>He addresses a question he fielded at a recent San Diego talk about Marcus Aurelius and friendship. The misconception that Stoics are cold and isolated is widespread. Holiday is direct — Aurelius had deep friendships and was deeply community-oriented. The philosophy was never about detachment from people. It was about detachment from outcomes.</p>
+                <p>The most pointed section draws on his time at American Apparel — a company run by someone with remarkable commercial instincts and almost no principles — to argue that Stoicism provides a practical framework for deciding what you won't do, regardless of what it costs. The Gandhi and MLK section extends this into activism: non-violent resistance isn't passive, it's the most disciplined form of action there is.</p>
+                <p>Holiday closes by reframing the whole episode's thread: Stoicism isn't a philosophy of endurance. It's a philosophy of clarity — about what matters, what doesn't, and what you'll sacrifice for the difference.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ep-mentions" id="em2">
+            <div class="mentions-teaser">
+              <div class="mentions-teaser-left" onclick="toggleMentions('em2')">
+                <div class="m-stack">
+                  <div class="m-stack-item" style="background:#FEF9C3;color:#A16207;">RH</div>
+                  <div class="m-stack-item" style="background:#E0E7FF;color:#3730A3;">MA</div>
+                  <div class="m-stack-item" style="background:#FCE7F3;color:#9D174D;">MK</div>
+                  <div class="m-stack-item" style="background:#F0FDF4;color:#15803D;">MG</div>
+                  <div class="m-stack-item sq">👕</div>
+                </div>
+                <div class="m-teaser-info">
+                  <div class="m-teaser-title">Mentioned in this episode</div>
+                  <div class="m-teaser-sub">4 people · 1 company</div>
+                </div>
+                <div class="m-teaser-chevron"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></div>
+              </div>
+              <div class="mentions-teaser-right" onclick="event.stopPropagation()">
+                <button class="tsr-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg></button>
+                <button class="tsr-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/></svg></button>
+                <button class="tsr-follow" id="afp2" onclick="syncFollow('ft2','afp2')">Follow</button>
+              </div>
+            </div>
+            <div class="mentions-body">
+              <div class="mentions-tabs">
+                <div class="mentions-tab active" onclick="switchTab(this,'ep2-people')">People <span class="mentions-tab-count">4</span></div>
+                <div class="mentions-tab" onclick="switchTab(this,'ep2-companies')">Companies <span class="mentions-tab-count">1</span></div>
+              </div>
+              <div class="mentions-panel active" id="ep2-people">
+                <div class="mention-row"><div class="m-av" style="background:#FEF9C3;color:#A16207;">RH</div><div class="m-info"><div class="m-name-row"><span class="m-name">Ryan Holiday</span><span class="m-role">Author &amp; Stoic thinker</span></div><div class="m-context">Uses his time at American Apparel as a live case study in Stoic business ethics — what happens when commercial instinct runs completely unchecked by principles.</div></div></div>
+                <div class="mention-row"><div class="m-av" style="background:#E0E7FF;color:#3730A3;">MA</div><div class="m-info"><div class="m-name-row"><span class="m-name">Marcus Aurelius</span><span class="m-role">Roman Emperor &amp; Stoic philosopher</span></div><div class="m-context">Cited to counter the isolation misconception — Aurelius was one of the most relationship-oriented Stoics on record, with close friendships documented in his letters.</div></div></div>
+                <div class="mention-row"><div class="m-av" style="background:#FCE7F3;color:#9D174D;">MK</div><div class="m-info"><div class="m-name-row"><span class="m-name">Martin Luther King Jr.</span><span class="m-role">Civil rights leader</span></div><div class="m-context">Alongside Gandhi, cited as proof that Stoic non-violent resistance is one of the most effective strategic tools in history.</div></div></div>
+                <div class="mention-row"><div class="m-av" style="background:#F0FDF4;color:#15803D;">MG</div><div class="m-info"><div class="m-name-row"><span class="m-name">Gandhi</span><span class="m-role">Political &amp; spiritual leader</span></div><div class="m-context">The defining example of Stoic principles applied in activism — moral example as a more powerful force than any direct confrontation.</div></div></div>
+              </div>
+              <div class="mentions-panel" id="ep2-companies">
+                <div class="mention-row"><div class="m-logo">👕</div><div class="m-info"><div class="m-name-row"><span class="m-name">American Apparel</span><span class="m-role">Fashion company</span></div><div class="m-context">Where Holiday worked early in his career — used to argue that extraordinary commercial instinct combined with no principles eventually destroys itself.</div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ep-actions">
+            <div class="ep-actions-left">
+              <button class="act-follow-pill" id="afp2" onclick="syncFollow('ft2','afp2')">Follow</button>
+              <button class="act-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg></button>
+              <button class="act-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT RAIL -->
+    <aside class="rail">
+      <div class="rail-search">
+        <div class="rail-search-inner">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+          <input class="rail-search-input" type="text" placeholder="Search podcasts, topics, people…">
+        </div>
+      </div>
+
+      <div class="rail-body">
+        <div class="rail-squad" id="pod-squad-card">
+          <button class="rs-close" onclick="document.getElementById('pod-squad-card').style.display='none'" title="Dismiss">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+          <div class="rs-eye">🏆 The Pod Squad</div>
+          <div class="rs-hl">Refer friends. Get gear.</div>
+          <div class="rs-sub">You're 1 referral away from your first reward.</div>
+          <div class="rs-progress-row">
+            <div class="rs-bar-wrap"><div class="rs-bar-fill"></div></div>
+            <span class="rs-frac">2 / 3</span>
+          </div>
+          <div class="rs-btn">Join the Pod Squad →</div>
+        </div>
+
+      <div class="r-card">
+        <div class="r-head"><div class="r-title">Podcasts to follow</div></div>
+        <div class="wtf-row">
+          <div class="wtf-artwork"><svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="10" fill="#1B1B2E"/><circle cx="24" cy="17" r="9" fill="#4F46E5" opacity="0.9"/><ellipse cx="24" cy="34" rx="14" ry="8" fill="#4F46E5" opacity="0.5"/></svg></div>
+          <div class="wtf-info"><a href="#" class="wtf-name">Huberman Lab</a><div class="wtf-desc">Andrew Huberman</div></div>
+          <button class="wtf-follow-btn" onclick="toggleWTF(this)">Follow</button>
+        </div>
+        <div class="wtf-row">
+          <div class="wtf-artwork"><svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="10" fill="#0f172a"/><rect x="12" y="12" width="24" height="24" rx="4" fill="#38bdf8" opacity="0.8"/><rect x="18" y="18" width="12" height="12" rx="2" fill="#0f172a" opacity="0.6"/></svg></div>
+          <div class="wtf-info"><a href="#" class="wtf-name">Lex Fridman Podcast</a><div class="wtf-desc">Lex Fridman</div></div>
+          <button class="wtf-follow-btn" onclick="toggleWTF(this)">Follow</button>
+        </div>
+        <div class="wtf-row">
+          <div class="wtf-artwork"><svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="10" fill="#1c0a00"/><circle cx="24" cy="24" r="13" fill="#f59e0b" opacity="0.8"/><text x="24" y="30" font-family="sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">$</text></svg></div>
+          <div class="wtf-info"><a href="#" class="wtf-name">How I Built This</a><div class="wtf-desc">Guy Raz</div></div>
+          <button class="wtf-follow-btn" onclick="toggleWTF(this)">Follow</button>
+        </div>
+        <div class="wtf-row">
+          <div class="wtf-artwork"><svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="10" fill="#18181b"/><circle cx="24" cy="24" r="11" fill="none" stroke="#d6d3d1" stroke-width="2" opacity="0.4"/><circle cx="24" cy="24" r="5" fill="#d6d3d1" opacity="0.4"/></svg></div>
+          <div class="wtf-info"><a href="#" class="wtf-name">The Daily Stoic</a><div class="wtf-desc">Ryan Holiday</div></div>
+          <button class="wtf-follow-btn" onclick="toggleWTF(this)">Follow</button>
+        </div>
+        <div class="r-show-more"><a href="#">Show more suggestions</a></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head"><div class="r-title">From your podcasts' shop</div></div>
+        <div class="shop-row"><div class="shop-thumb">🏋️</div><div class="shop-info"><div class="shop-name">Tonal Smart Home Gym</div><div class="shop-brand">Tonal</div><div class="shop-from">Stoic Advice</div></div></div>
+        <div class="shop-row"><div class="shop-thumb">📓</div><div class="shop-info"><div class="shop-name">Moleskine Classic Notebook</div><div class="shop-brand">Moleskine</div><div class="shop-from">My First Million</div></div></div>
+        <div class="shop-row"><div class="shop-thumb">🎧</div><div class="shop-info"><div class="shop-name">Sony WH-1000XM5</div><div class="shop-brand">Sony</div><div class="shop-from">Huberman Lab</div></div></div>
+        <div class="r-show-more"><a href="#">Browse the full shop →</a></div>
+      </div>
+      </div><!-- /rail-body -->
+    </aside>
+  </div>
+</div>
+
+<script>
+  function setTab(el) {
+    document.querySelectorAll('.f-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function syncFollow(headerId, pillId) {
+    const header = document.getElementById(headerId);
+    const pill = document.getElementById(pillId);
+    if (!header || !pill) return;
+    const nowFollowing = !header.classList.contains('active');
+    [header, pill].forEach(b => {
+      b.classList.toggle('active', nowFollowing);
+      b.textContent = nowFollowing ? 'Following' : 'Follow';
+    });
+  }
+
+  function toggleWTF(btn) {
+    const isFollowing = btn.classList.contains('following');
+    btn.classList.toggle('following', !isFollowing);
+    btn.textContent = isFollowing ? 'Follow' : 'Following';
+  }
+
+  function toggleMentions(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  function switchTab(tabEl, panelId) {
+    const mentionsEl = tabEl.closest('.ep-mentions');
+    mentionsEl.querySelectorAll('.mentions-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    mentionsEl.querySelectorAll('.mentions-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+  }
+
+  function showMore(...args) {
+    const showMoreId = args[args.length - 1];
+    for (let i = 0; i < args.length - 1; i++) {
+      const row = document.getElementById(args[i]);
+      if (row) row.classList.add('revealed');
+    }
+    document.getElementById(showMoreId).style.display = 'none';
+  }
+</script>
+</body>
+</html>
