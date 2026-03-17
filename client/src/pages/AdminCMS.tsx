@@ -1585,6 +1585,17 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                 onChange={(e) => setForm({ ...form, hosts: e.target.value })}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm"
               />
+              {episode?.podcastHosts && episode.podcastHosts.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {episode.podcastHosts.map((host: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-1.5">
+                      {host.photo_url && <img src={host.photo_url} alt="" className="w-6 h-6 rounded-full object-cover" />}
+                      <span className="text-xs font-medium">{host.name}</span>
+                      {host.twitter_handle && <span className="text-[10px] text-muted-foreground">@{host.twitter_handle}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

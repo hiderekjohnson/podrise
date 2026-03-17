@@ -5213,7 +5213,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const { entity_contexts_cache: _ecc, ...recapWithoutCache } = recap;
-      res.json({ ...recapWithoutCache, matchedPeopleSlugs, matchedCompanySlugs, entityContexts });
+      const isEmptyField = (v: any) => !v || typeof v !== 'string' || !v.trim() || v.trim() === '[]' || v.trim() === 'null';
+      const hostsFromPodcast = podcastHosts.map(h => h.name).join(", ");
+      const resolvedHosts = isEmptyField(recap.hosts) ? hostsFromPodcast : recap.hosts;
+      
+      let resolvedSpotify = isEmptyField(recap.spotifyEpisodeUrl) ? "" : recap.spotifyEpisodeUrl;
+      if (!resolvedSpotify) {
+        try {
+          const { rows: pdSpotify } = await pool.query(`SELECT spotify_url FROM podcast_directory WHERE slug = $1`, [req.params.slug]);
+          if (pdSpotify.length > 0) resolvedSpotify = pdSpotify[0].spotify_url || "";
+        } catch {}
+      }
+      
+      res.json({ ...recapWithoutCache, hosts: resolvedHosts, spotifyEpisodeUrl: resolvedSpotify, matchedPeopleSlugs, matchedCompanySlugs, entityContexts });
     } catch {
       res.status(500).json({ error: "Failed to fetch recap" });
     }
@@ -8904,7 +8916,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         extractedProducts = prodRows;
       } catch {}
 
-      res.json({ ...episode, quotes: quoteRows, transcript, extractedProducts });
+      let podcastHosts: any[] = [];
+      let podcastSpotifyUrl = "";
+      try {
+        const { rows: hostRows } = await pool.query(
+          `SELECT name, bio, photo_url, twitter_handle, linkedin_url, website_url FROM podcast_hosts WHERE podcast_slug = $1 ORDER BY sort_order`,
+          [podcastSlug]
+        );
+        podcastHosts = hostRows;
+        const { rows: pdRows2 } = await pool.query(
+          `SELECT spotify_url FROM podcast_directory WHERE slug = $1`,
+          [podcastSlug]
+        );
+        if (pdRows2.length > 0) podcastSpotifyUrl = pdRows2[0].spotify_url || "";
+      } catch {}
+
+      const isEmptyVal = (v: any) => !v || typeof v !== 'string' || !v.trim() || v.trim() === '[]' || v.trim() === 'null';
+      const hostsValue = isEmptyVal(episode.hosts) ? podcastHosts.map((h: any) => h.name).join(", ") : episode.hosts;
+      const spotifyValue = isEmptyVal(episode.spotify_episode_url) ? podcastSpotifyUrl : episode.spotify_episode_url;
+
+      res.json({ ...episode, hosts: hostsValue, spotify_episode_url: spotifyValue, quotes: quoteRows, transcript, extractedProducts, podcastHosts });
     } catch (err: any) {
       console.error("[CMS] Get episode detail error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch episode" });
